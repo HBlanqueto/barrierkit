@@ -17,6 +17,7 @@ pub struct List {
     rows: Vec<String>,
     sections: Vec<(Cow<'static, str>, Vec<String>)>,
     selected: Vec<usize>,
+    row: Option<Callback<usize, Element>>,
     scroll_bar: bool,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
@@ -30,6 +31,7 @@ impl List {
             rows,
             sections: Vec::new(),
             selected: Vec::new(),
+            row: None,
             scroll_bar: true,
             on_select: None,
             style: Theme::tengen().style(|_: TableStyle| TableStyle::inset_list()),
@@ -44,6 +46,11 @@ impl List {
 
     pub fn section(mut self, title: impl Into<Cow<'static, str>>, rows: Vec<String>) -> Self {
         self.sections.push((title.into(), rows));
+        self
+    }
+
+    pub fn row<V: IntoElement>(mut self, row: impl Fn(usize) -> V + 'static) -> Self {
+        self.row = Some(Callback::new(move |index| row(index).into_element()));
         self
     }
 
@@ -74,6 +81,13 @@ impl Component for List {
             .rows(self.rows.iter().map(|row| vec![row.clone()]).collect())
             .selected(self.selected.clone())
             .scroll_bar(self.scroll_bar);
+        let table = match &self.row {
+            Some(row) => {
+                let row = row.clone();
+                table.cell(0, move |index| row.call(index))
+            }
+            None => table,
+        };
         let table = match &self.on_select {
             Some(callback) => table.on_select(callback.clone()),
             None => table,
@@ -111,6 +125,13 @@ impl List {
                     .rows(rows.iter().map(|row| vec![row.clone()]).collect())
                     .selected(selected)
                     .scroll_bar(false);
+                let table = match &self.row {
+                    Some(row) => {
+                        let row = row.clone();
+                        table.cell(0, move |local| row.call(local + offset))
+                    }
+                    None => table,
+                };
                 let table = match &self.on_select {
                     Some(callback) => {
                         let callback = callback.clone();

@@ -245,3 +245,21 @@ The program is [`recipes/callback.rs`](recipes/callback.rs).
    parent ([recipe 6](#6-a-reusable-view)).
 3. A closure that writes a `State` takes it by `move`, and the `State` needs
    `let mut`.
+
+## 23. Views in list rows and table cells
+
+SwiftUI: `List { ForEach(mail) { MailRow($0) } }` and `TableColumn("Enabled") { Toggle(..) }`.
+
+The program is [`recipes/list_rows.rs`](recipes/list_rows.rs).
+
+1. `List::new(label, names)` keeps the row count and the accessible names;
+   `.row(|index| view)` draws each row as a view. `Table::cell(column,
+   |row| view)` does it for one column; the other columns draw their strings
+   ([chapter 11](../docs/barrierkit/11-views.md#views-in-rows-and-cells)).
+2. Inside the closure, `Text` takes the font and the ink of the row, so the
+   title turns white on a selected row. `Avatar` and `Badge` keep their own
+   colors.
+3. A control stops the press so the row does not select: wrap it in a `rect()`
+   with `.on_press(|event: Event<PressEventData>| event.stop_propagation())`.
+4. Rows have a fixed height: set `TableStyle::row_height` for a taller row. The
+   closure never compares equal, so the list redraws with its parent.

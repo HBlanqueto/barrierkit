@@ -386,10 +386,10 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `List` (`.automatic`, `.inset`, `.plain`, `.sidebar`, `.bordered`) | single-column `NSTableView` | `List`, `List::section` (`.sidebar` is `Sidebar`) | `measured`: sections 16% of the pixels (the pinned first header) | bench `lists`; [Lists][m-lists] | — |
+| `List` (`.automatic`, `.inset`, `.plain`, `.sidebar`, `.bordered`) | single-column `NSTableView` | `List`, `List::section`, `List::row` for view rows (`.sidebar` is `Sidebar`) | `measured`: sections 16% of the pixels (the pinned first header); rows with views draw like text rows, their height and insets are not measured | bench `lists`; [Lists][m-lists] | — |
 | `Table` with `.inset` | `NSTableView` `.inset` | `Table` | `measured` | bench `table`; [Tables][m-tables] | — |
 | `Table` `.automatic`, `.bordered` | `.automatic`, `.fullWidth`, `.sourceList`, `.plain`; `rowSizeStyle` | `TableStyle::full_width`, `plain`, `source_list`, `row_size` | `measured`: 5 to 11% of the pixels, a source list apart (AppKit draws the sidebar material) | bench `tables`; [Classic tables][m-classic] | — |
-| `TableColumn` with views | cell views | `Table` shows text rows, with `icons` before the first column | `partial`: icon cells measured; no controls in cells | bench `tables` | P1 |
+| `TableColumn` with views | cell views | `Table::cell`, `Table::icons` before the first column | `implemented`: a view cell draws like a text cell (kit test `list_rows`); icon cells measured, a control cell is not | bench `tables` | P2 |
 | sort descriptors | `NSSortDescriptor` | `SortOrder`: one column | `partial` | [Table sorted column][m-rings] | P3 |
 | `OutlineGroup` | `NSOutlineView` | `OutlineView`, `TreeNode`, `OutlineViewStyle::classic`, `full_width` | `measured`: inset and full width 5 to 6%; the source list outline is not drawn | bench `tables`; [Classic tables][m-classic] | P2 |
 | — | `NSBrowser` | `Browser` | `partial`: fixed column width, no keyboard, no column titles | none | P3 |
@@ -587,12 +587,14 @@ first four areas are the sessions that run now.
 
 ### C. Lists, tables, forms, containers and presentation
 
-1. **P1** A `List` view of free rows with selection, separators and the
-   `.inset`, `.plain` and `.sidebar` looks; probe SwiftUI `List`, `Form`,
-   `GroupBox` and `DisclosureGroup`, which no probe has
-   ([12](#12-containers-and-navigation)).
-2. **P1** `Table`: cells with controls (icons, row size styles, the other
-   table styles and the scrollers are done).
+1. **P1** ~~A `List` view of free rows with selection and separators~~ done
+   ([ADR 0086](../decisions.md)); `.sidebar` is `Sidebar`. The rows with views are
+   not measured: probe a SwiftUI `List` row with an avatar, two lines and a badge
+   (height, insets, where the separator starts), and `GroupBox` and
+   `DisclosureGroup`, which no probe has ([12](#12-containers-and-navigation)).
+2. **P1** ~~`Table`: cells with controls~~ done (icons, row size styles, the
+   other table styles and the scrollers were already done); a control cell is
+   not measured.
 3. **P1** `Form` with `.columns`, compared with a probe of a macOS 27
    Settings window.
 4. **P1** Alert: icon, accessory view, help button, text field; popover probe;

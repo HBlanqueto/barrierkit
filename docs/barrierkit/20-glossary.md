@@ -1023,7 +1023,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|
 | `rule_editor::RuleEditor` | struct | — | `≈ NSPredicateEditor` | Edits a predicate as field, operator and value rows | [6](06-text-and-editing.md#rule-editor) |
 | `rule_editor::RuleField` | struct | — | `≈ NSPredicateEditorRowTemplate` | A filterable field: label and kind | [6](06-text-and-editing.md#rule-editor) |
-| `rule_editor::RuleKind` | enum | — | — | `Text`, `Number` or `Choice(&[..])` | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::RuleKind` | enum | — | — | `Text`, `Number` or `Choice(Vec<Cow<'static, str>>)` | [6](06-text-and-editing.md#rule-editor) |
 | `rule_editor::Operator` | enum | — | — | `Contains`, `BeginsWith`, `EndsWith`, `Is`, `IsNot`, `Greater`, `Less` | [6](06-text-and-editing.md#rule-editor) |
 | `rule_editor::operators` | fn | — | — | Operators offered for a field kind | [6](06-text-and-editing.md#rule-editor) |
 | `rule_editor::Rule` | struct | — | — | One condition: field, operator and value | [6](06-text-and-editing.md#rule-editor) |
@@ -1176,9 +1176,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `views::list::List` | struct | `List` | `NSTableView` without header | One column of text rows with separators and selection; `inset`, `plain` and `bordered` styles | [11](11-views.md#list) |
+| `views::list::List` | struct | `List` | `NSTableView` without header | One column of rows, text or views, with separators and selection; `inset`, `plain` and `bordered` styles | [11](11-views.md#list) |
+| `views::list::List::row` | method | `ForEach` in a `List` | `NSTableView.view(atColumn:row:makeIfNecessary:)` | Draws every row as a view built from the row index | [11](11-views.md#views-in-rows-and-cells) |
 | `views::list::List::section` | method | `Section` in a `List` | group rows of `NSTableView` | A header over a group of rows | [11](11-views.md#list) |
-| `views::table::Table` | struct | `Table` | `NSTableView` | Text rows in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
+| `views::table::Table` | struct | `Table` | `NSTableView` | Rows of text or views in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
+| `views::table::Table::cell` | method | `TableColumn(_:content:)` | `NSTableView.viewFor(tableColumn:row:)` | Draws the cell of a column as a view built from the row index | [11](11-views.md#views-in-rows-and-cells) |
 | `views::table::Table::icons` | method | `Label` in a `TableColumn` | `NSTableCellView.imageView` | One symbol per row before the title of the first column | [11](11-views.md#table) |
 | `views::table::Table::scroll_bar`, `views::list::List::scroll_bar`, `views::tree::OutlineView::scroll_bar` | method | `scrollIndicators(_:)` | `NSScrollView.hasVerticalScroller` | Shows or hides the scroll bar | [11](11-views.md#table) |
 | `views::table::SortOrder` | struct | — | ≈ `NSTableView.sortDescriptors` | The sorted column index and direction; one column, not a list | [11](11-views.md#sortorder) |

@@ -109,6 +109,10 @@ name = "if_else"
 path = "../../agents/recipes/if_else.rs"
 
 [[example]]
+name = "list_rows"
+path = "../../agents/recipes/list_rows.rs"
+
+[[example]]
 name = "observable"
 path = "../../agents/recipes/observable.rs"
 

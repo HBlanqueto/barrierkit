@@ -305,7 +305,7 @@ pub fn swatch_name(id: &'static str) -> &'static str {
 pub struct ColorWell {
     label: Cow<'static, str>,
     multicolor: Option<Cow<'static, str>>,
-    swatches: &'static [(&'static str, Rgba)],
+    swatches: Vec<(Cow<'static, str>, Rgba)>,
     accents: bool,
     selected: Option<usize>,
     disabled: bool,
@@ -316,14 +316,17 @@ pub struct ColorWell {
 }
 
 impl ColorWell {
-    pub fn new(
+    pub fn new<S: Clone + Into<Cow<'static, str>>>(
         label: impl Into<Cow<'static, str>>,
-        swatches: &'static [(&'static str, Rgba)],
+        swatches: &[(S, Rgba)],
     ) -> Self {
         Self {
             label: label.into(),
             multicolor: None,
-            swatches,
+            swatches: swatches
+                .iter()
+                .map(|(name, fill)| (name.clone().into(), *fill))
+                .collect(),
             accents: false,
             selected: None,
             disabled: false,
@@ -396,26 +399,30 @@ impl Component for ColorWell {
     fn render(&self) -> impl IntoElement {
         let style: ColorWellStyle = resolve(&self.style);
         let choice = use_choice(self.selected, self.on_change.clone());
-        let swatches =
-            self.multicolor
-                .clone()
-                .map(|name| (name, None))
-                .into_iter()
-                .chain(self.swatches.iter().map(|(name, fill)| {
-                    (swatch_name(name).into(), Some(self.fill_of(name, *fill)))
-                }))
-                .enumerate()
-                .map(|(index, (name, fill))| {
-                    Swatch {
-                        name,
-                        fill,
-                        selected: choice.is(index),
-                        disabled: self.disabled,
-                        on_select: choice.select(index),
-                        style: self.style.clone(),
-                    }
-                    .into_element()
-                });
+        let swatches = self
+            .multicolor
+            .clone()
+            .map(|name| (name, None))
+            .into_iter()
+            .chain(self.swatches.iter().map(|(name, fill)| {
+                let shown = match name {
+                    Cow::Borrowed(id) => swatch_name(id).into(),
+                    Cow::Owned(_) => name.clone(),
+                };
+                (shown, Some(self.fill_of(name, *fill)))
+            }))
+            .enumerate()
+            .map(|(index, (name, fill))| {
+                Swatch {
+                    name,
+                    fill,
+                    selected: choice.is(index),
+                    disabled: self.disabled,
+                    on_select: choice.select(index),
+                    style: self.style.clone(),
+                }
+                .into_element()
+            });
         let root = choice_group(
             &self.label,
             style.axis,

@@ -28,6 +28,7 @@ know the kit's shape.
 | `@Observable` | a `Copy` struct of `State`s, given as a context | [`observable.rs`](../../agents/recipes/observable.rs) |
 | `@FocusState`, `.focused($f)` | `use_a11y()`, `.a11y_id(id)`, `id.request_focus()` | [`focus_state.rs`](../../agents/recipes/focus_state.rs) |
 | `ForEach(items, id: \.id)` | `.children(iter.map(..))` and `.key(id)` | [`for_each.rs`](../../agents/recipes/for_each.rs), [`stopwatch.rs`](../../agents/recipes/stopwatch.rs) |
+| `List { ForEach(mail) { MailRow($0) } }`, `TableColumn("On") { Toggle(..) }` | `List::new(label, names).row(\|index\| view)`, `Table::cell(column, \|row\| view)` | [`list_rows.rs`](../../agents/recipes/list_rows.rs) |
 | `if` and `else` in a view builder | a Rust `if`, `.maybe_child(opt)`, `.into_element()` | [`if_else.rs`](../../agents/recipes/if_else.rs) |
 | `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../agents/recipes/callback.rs) |
 | `.commands`, `.keyboardShortcut` | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |

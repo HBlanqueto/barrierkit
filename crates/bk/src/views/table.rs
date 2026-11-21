@@ -12,8 +12,8 @@ use crate::menu::{CheckState, MenuItem};
 use crate::scroll::{use_scroll_bar, use_scroll_controller};
 use crate::style::{continuous_corner, text};
 use crate::styles::{
-    ControlState, Painted, Paints, ScrollViewStyle, ShapeStyle, StateValue, TableStyle, Theme,
-    resolve,
+    ControlState, Painted, Paints, ScrollViewStyle, ShapeStyle, StateValue, TableStyle,
+    TextStyleScope, Theme, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
@@ -27,8 +27,9 @@ pub struct SortOrder {
 #[derive(PartialEq)]
 pub struct Table {
     label: Cow<'static, str>,
-    columns: Vec<&'static str>,
+    columns: Vec<Cow<'static, str>>,
     rows: Vec<Vec<String>>,
+    cells: Vec<(usize, Callback<usize, Element>)>,
     sort: Option<SortOrder>,
     selected: Vec<usize>,
     icons: Vec<Symbol>,
@@ -40,11 +41,15 @@ pub struct Table {
 }
 
 impl Table {
-    pub fn new(label: impl Into<Cow<'static, str>>, columns: Vec<&'static str>) -> Self {
+    pub fn new(
+        label: impl Into<Cow<'static, str>>,
+        columns: impl IntoIterator<Item = impl Into<Cow<'static, str>>>,
+    ) -> Self {
         Self {
             label: label.into(),
-            columns,
+            columns: columns.into_iter().map(Into::into).collect(),
             rows: Vec::new(),
+            cells: Vec::new(),
             sort: None,
             selected: Vec::new(),
             icons: Vec::new(),
@@ -68,6 +73,16 @@ impl Table {
 
     pub fn rows(mut self, rows: Vec<Vec<String>>) -> Self {
         self.rows = rows;
+        self
+    }
+
+    pub fn cell<V: IntoElement>(
+        mut self,
+        column: usize,
+        cell: impl Fn(usize) -> V + 'static,
+    ) -> Self {
+        self.cells
+            .push((column, Callback::new(move |row| cell(row).into_element())));
         self
     }
 
@@ -120,6 +135,7 @@ struct RowLook {
     background: Fill,
     blur: Option<f32>,
     label: Rgba,
+    foreground: ShapeStyle,
 }
 
 fn row_look(
@@ -132,6 +148,7 @@ fn row_look(
         background: paints.fill(background),
         blur: paints.blur(background),
         label: paints.color(label.resolve(state)),
+        foreground: label.resolve(state).clone(),
     }
 }
 
@@ -223,7 +240,7 @@ impl Component for Table {
                 _ => None,
             };
             let cell = HeaderCell {
-                title: self.columns[index].into(),
+                title: self.columns[index].clone(),
                 arrow,
                 style: self.style.clone(),
                 on_press: self
@@ -312,7 +329,7 @@ impl Component for Table {
             .iter()
             .enumerate()
             .map(|(index, title)| {
-                MenuItem::action(index.to_string(), *title)
+                MenuItem::action(index.to_string(), title.clone())
                     .with_check(CheckState::Checkbox(!hidden.read().contains(&index)))
             })
             .collect();
@@ -365,6 +382,7 @@ impl Component for Table {
         );
         let data = (
             self.rows.clone(),
+            self.cells.clone(),
             self.selected.clone(),
             self.on_select.clone(),
             looks,
@@ -410,6 +428,7 @@ impl Component for Table {
             |item,
              (
                 rows,
+                views,
                 selected,
                 on_select,
                 looks,
@@ -440,7 +459,21 @@ impl Component for Table {
                 let held = *held;
                 let values = shown.iter().zip(column_widths).map(|(&column, width)| {
                     let value = rows[index].get(column).cloned().unwrap_or_default();
-                    let title = text(value, *font, look.label);
+                    let (title, name) = match views.iter().find(|(target, _)| *target == column) {
+                        Some((_, cell)) => {
+                            let cell = cell.clone();
+                            let scope = TextStyleScope::new(
+                                *font,
+                                look.foreground.clone(),
+                                Callback::new(move |()| cell.call(index)),
+                            );
+                            (
+                                scope.into_element(),
+                                Some(value).filter(|name| !name.is_empty()),
+                            )
+                        }
+                        None => (text(value, *font, look.label).into_element(), None),
+                    };
                     let (symbols, inks, size, gap) = icons;
                     let content = match symbols.get(index).filter(|_| column == 0) {
                         Some(&icon) => rect()
@@ -456,11 +489,12 @@ impl Component for Table {
                             )
                             .child(title)
                             .into_element(),
-                        None => title.into_element(),
+                        None => title,
                     };
                     let value = rect()
                         .width(Size::fill())
                         .overflow(Overflow::Clip)
+                        .map(name, |cell, name| cell.a11y_alt(name))
                         .child(content);
                     (*width, value.into_element())
                 });

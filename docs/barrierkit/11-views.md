@@ -186,14 +186,15 @@ that the user owns it.
 
 ### `Table`
 
-Rows of text in columns with a header, like `NSTableView`.
+Rows of text, or of views, in columns with a header, like `NSTableView`.
 
 ![Table sorted by name with one row selected](../../crates/bk/tests/golden/table-light.png)
 
 | Method | Effect |
 |---|---|
-| `Table::new(label, columns)` | `label` names it for accessibility; `columns` are the header titles |
+| `Table::new(label, columns)` | `label` names it for accessibility; `columns` are the header titles: literals, `tr!` results, `String`s or `Cow`s |
 | `.rows(Vec<Vec<String>>)` | One `Vec` of cells per row |
+| `.cell(column, \|row\| view)` | Draws `column` as a view in every row: [views in rows and cells](#views-in-rows-and-cells) |
 | `.sort(Option<SortOrder>)` | Shows the arrow on the sorted column |
 | `.selected(Vec<usize>)` | Selected rows |
 | `.icons(Vec<Symbol>)` | One symbol per row, drawn before the title of the first column: an icon cell |
@@ -231,13 +232,14 @@ selection color with the label in `OnSelectedContent`. `OutlineView` and
 
 ### `List`
 
-One column of text rows without a header, like SwiftUI's `List` with the
+One column of rows, text or views, without a header, like SwiftUI's `List` with the
 `.inset`, `.plain` and `.bordered` styles. It is a `Table` with a
 different `TableStyle`.
 
 | Method | Effect |
 |---|---|
 | `List::new(label, rows)` | `rows` are the strings of the rows; the default is the inset style |
+| `.row(\|index\| view)` | Draws every row as a view: [views in rows and cells](#views-in-rows-and-cells) |
 | `.selected(Vec<usize>)` | Selected rows |
 | `.on_select(callback)` | Receives the new selection, `Vec<usize>` |
 | `.style(\|_\| TableStyle::plain_list())` | `inset_list` (rows inset 10, rounded selection), `plain_list` (full width) or `bordered_list` (a hairline border) |
@@ -247,6 +249,53 @@ different `TableStyle`.
 
 Rows are separated by a hairline from the start of the text to the end of the
 row. A selected row and its neighbors have none.
+
+### Views in rows and cells
+
+`List::row` and `Table::cell` draw a view where the table would draw the text,
+like SwiftUI's `List { ForEach(..) { Row($0) } }` and `TableColumn { row in .. }`.
+The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-table-cells).
+
+| Method | Effect |
+|---|---|
+| `List::row(\|index\| view)` | Draws every row of the list, sections included, as the view |
+| `Table::cell(column, \|row\| view)` | Draws the cell of `column` in every row as the view |
+
+1. The closure takes the row index and returns any view. The app keeps its data
+   (an `Rc`, or a `Copy` struct of `State`s) and the closure reads the row from
+   it.
+2. The strings of `rows` give the row count. The string of a view cell stays its
+   accessible name ([ADR 0084](../decisions.md)). A column without `.cell`
+   draws its string, so a table can mix text and views.
+3. The view runs inside a text scope: `Text`, `Label` and a Freya `label()` take
+   the font of the table and the ink of the row, which is `OnSelectedContent`
+   while the row is selected and the table has focus. A view of text draws the
+   same pixels as the text it replaces.
+4. In a sectioned list the index counts across the sections, as `.selected` and
+   `.on_select` do. Selection stays by index.
+5. Rows keep the height of the style, `TableStyle::row_height`, so set it for a
+   taller row. A row that takes the height of its content is not available:
+   Freya's `VirtualScrollView` needs the height before it builds the row.
+6. A press on a view reaches the row and selects it. A control stops it:
+
+```rust
+// ✗ a click on the switch also selects the row
+.cell(1, |row| Switch::new("On").on(on[row]))
+// ✓ the wrapper stops the press
+.cell(1, |row| {
+    rect()
+        .on_press(|event: Event<PressEventData>| event.stop_propagation())
+        .child(Switch::new("On").on(on[row]))
+})
+```
+
+7. A closure never compares equal (Freya's `Callback`), so a table with a view
+   redraws with its parent, as a [button with a label](05-controls.md#buttons)
+   does. A `State` read inside the closure redraws that view alone.
+
+Not measured: the height and the insets of a row that holds a view, and where
+the separator starts under an avatar. The rows keep the values of text rows;
+there are no `listRow*` modifiers because no value backs them.
 
 ### `SortOrder`
 

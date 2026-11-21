@@ -12,11 +12,11 @@ use crate::style::text;
 use crate::styles::{ControlState, Paints, RuleEditorStyle, Theme, resolve};
 use crate::symbol::Symbol;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum RuleKind {
     Text,
     Number,
-    Choice(&'static [&'static str]),
+    Choice(Vec<Cow<'static, str>>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -36,7 +36,7 @@ pub enum Operator {
     Less,
 }
 
-pub fn operators(kind: RuleKind) -> &'static [Operator] {
+pub fn operators(kind: &RuleKind) -> &'static [Operator] {
     match kind {
         RuleKind::Text => &[
             Operator::Contains,
@@ -89,20 +89,20 @@ pub struct Predicate {
 
 impl Rule {
     pub fn new(id: u64, fields: &[RuleField], field: usize) -> Self {
-        let kind = fields[field].kind;
+        let kind = &fields[field].kind;
         Self {
             id,
             field,
             operator: operators(kind)[0],
             value: match kind {
-                RuleKind::Choice(choices) => choices[0].to_owned(),
+                RuleKind::Choice(choices) => choices[0].to_string(),
                 _ => String::new(),
             },
         }
     }
 
-    pub fn matches(&self, kind: RuleKind, actual: &str) -> bool {
-        if kind == RuleKind::Number {
+    pub fn matches(&self, kind: &RuleKind, actual: &str) -> bool {
+        if *kind == RuleKind::Number {
             let (Ok(actual), Ok(wanted)) =
                 (actual.trim().parse::<f64>(), self.value.trim().parse())
             else {
@@ -142,7 +142,7 @@ impl Predicate {
         let mut results = self.rules.iter().map(|criterion| match criterion {
             Criterion::Rule(rule) => fields
                 .get(rule.field)
-                .is_some_and(|field| rule.matches(field.kind, &value_of(rule.field))),
+                .is_some_and(|field| rule.matches(&field.kind, &value_of(rule.field))),
             Criterion::Group { predicate, .. } => predicate.evaluate(fields, value_of),
         });
         if self.all {
@@ -434,7 +434,7 @@ impl Component for RuleRow {
         let Some(field) = self.fields.get(rule.field) else {
             return rect().into_element();
         };
-        let kind = field.kind;
+        let kind = &field.kind;
         let shown = rule.value.clone();
         let mut value = use_state(move || shown);
         if *value.peek() != rule.value {
@@ -463,14 +463,15 @@ impl Component for RuleRow {
                 let fresh = Rule::new(id, &fields, index);
                 predicate.write().update(id, |rule| *rule = fresh);
             });
-        let operator_picker = operators(kind)
+        let kind_operators = operators(kind);
+        let operator_picker = kind_operators
             .iter()
             .fold(
                 PopUpButton::new(text!("rule-operator")),
                 |picker, operator| picker.item(operator_label(*operator)),
             )
             .selected(
-                operators(kind)
+                kind_operators
                     .iter()
                     .position(|operator| *operator == rule.operator)
                     .unwrap_or(0),
@@ -478,21 +479,24 @@ impl Component for RuleRow {
             .on_change(move |index: usize| {
                 predicate
                     .write()
-                    .update(id, |rule| rule.operator = operators(kind)[index]);
+                    .update(id, |rule| rule.operator = kind_operators[index]);
             });
         let editor = match kind {
-            RuleKind::Choice(choices) => choices
-                .iter()
-                .fold(PopUpButton::new(text!("rule-value")), |picker, choice| {
-                    picker.item(*choice)
-                })
-                .selected(choices.iter().position(|c| *c == rule.value).unwrap_or(0))
-                .on_change(move |index: usize| {
-                    predicate
-                        .write()
-                        .update(id, |rule| rule.value = choices[index].to_owned());
-                })
-                .into_element(),
+            RuleKind::Choice(choices) => {
+                let picked = choices.clone();
+                choices
+                    .iter()
+                    .fold(PopUpButton::new(text!("rule-value")), |picker, choice| {
+                        picker.item(choice.clone())
+                    })
+                    .selected(choices.iter().position(|c| *c == rule.value).unwrap_or(0))
+                    .on_change(move |index: usize| {
+                        predicate
+                            .write()
+                            .update(id, |rule| rule.value = picked[index].to_string());
+                    })
+                    .into_element()
+            }
             RuleKind::Text | RuleKind::Number => {
                 TextField::new(value, text!("rule-value")).into_element()
             }
@@ -562,8 +566,8 @@ mod tests {
 
     #[test]
     fn text_rules_ignore_case_and_number_rules_compare_parsed_values() {
-        let check = |criterion: Criterion, kind, actual: &str| match criterion {
-            Criterion::Rule(rule) => rule.matches(kind, actual),
+        let check = |criterion: Criterion, kind: RuleKind, actual: &str| match criterion {
+            Criterion::Rule(rule) => rule.matches(&kind, actual),
             Criterion::Group { .. } => unreachable!(),
         };
         assert!(check(

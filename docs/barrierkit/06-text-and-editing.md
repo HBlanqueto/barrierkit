@@ -224,13 +224,16 @@ the tokens and the selected token. The tokens of a `SearchField` draw from the
 `NSPredicateEditor`.
 
 ```rust
-const FIELDS: [RuleField; 2] = [
-    RuleField { label: "Name", kind: RuleKind::Text },
-    RuleField { label: "Kind", kind: RuleKind::Choice(&["File", "Folder"]) },
+let fields = vec![
+    RuleField { label: "Name".into(), kind: RuleKind::Text },
+    RuleField { label: "Kind".into(), kind: RuleKind::Choice(vec!["File".into(), "Folder".into()]) },
 ];
 let predicate = use_state(|| Predicate { all: true, rules: vec![] });
-RuleEditor::new("Filter", FIELDS.to_vec(), predicate)
+RuleEditor::new("Filter", fields, predicate)
 ```
+
+`RuleKind::Choice` owns its choices as `Cow<'static, str>`, so a runtime list needs no leak.
+`RuleKind` is `Clone`, not `Copy`: `operators` and `Rule::matches` take `&RuleKind`.
 
 `RuleEditor::new(label, fields, State<Predicate>)` writes every change into the state.
 
@@ -244,10 +247,10 @@ RuleEditor::new("Filter", FIELDS.to_vec(), predicate)
 | Type | What it is |
 |---|---|
 | `RuleField { label, kind }` | A field the user can filter on |
-| `RuleKind` | `Text`, `Number` or `Choice(&[..])` |
+| `RuleKind` | `Text`, `Number` or `Choice(Vec<Cow<'static, str>>)` |
 | `Operator` | `Contains`, `BeginsWith`, `EndsWith`, `Is`, `IsNot`, `Greater`, `Less` |
-| `operators(kind)` | Text: the first five; Number: `Is`, `IsNot`, `Greater`, `Less`; Choice: `Is`, `IsNot` |
-| `Rule { id, field, operator, value }` | One condition. `Rule::new(id, fields, field)` uses the first operator and choice; `matches(kind, actual)` compares numbers as numbers and text without case |
+| `operators(&kind)` | Text: the first five; Number: `Is`, `IsNot`, `Greater`, `Less`; Choice: `Is`, `IsNot` |
+| `Rule { id, field, operator, value }` | One condition. `Rule::new(id, fields, field)` uses the first operator and choice; `matches(&kind, actual)` compares numbers as numbers and text without case |
 | `Criterion` | `Rule(Rule)` or `Group { id, predicate }` |
 | `Predicate { all, rules }` | All or any of its criteria. `evaluate(fields, value_of)` checks an item; an empty "any" matches. Also `rule(id)`, `remove(id)`, `insert_after(id, fields, compound)` |
 

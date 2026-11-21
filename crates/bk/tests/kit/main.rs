@@ -12,6 +12,7 @@ mod controls;
 mod focus;
 mod form_stack;
 mod image;
+mod list_rows;
 mod menu;
 mod modifiers;
 mod template;

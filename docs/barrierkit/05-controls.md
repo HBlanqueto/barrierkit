@@ -448,8 +448,9 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
 - `ColorWell` is a row of 24 swatches, 12 apart, measured on the accent picker of
   System Settings. The chosen one gets an accent ring 1 away
   (`SETTINGS.swatch_ring_gap`) and 3 wide, like macOS. The chosen swatch and the one
-  under the pointer show their name below. `swatches` is
-  `&'static [(&'static str, Rgba)]`, for example `ctdesign::ACCENT_SWATCHES`.
+  under the pointer show their name below. `swatches` is a slice of
+  `(name, Rgba)`, for example `&ACCENT_SWATCHES`; a name is a literal, a `tr!` result
+  or a `String`, and the well copies it.
   `ColorWell::accents(label)` is the accent picker: it takes `ACCENT_SWATCHES` and draws
   each swatch in the `control` color of the current appearance, as System Settings does.
   `.multicolor(name)` puts a rainbow swatch first, from `ctdesign::MULTICOLOR`,
@@ -514,7 +515,8 @@ RadioGroup::new("Size").option("Small").option("Large")
 - `Slider` is 220 wide. `Slider::new` is free: the value is continuous inside `.range(lo..=hi)`
   (0 to 1 by default), and the knob goes to wherever the cursor is, over a mark or between two,
   and stays where you drop it. `.number_of_tick_marks(n)` spreads `n` ticks evenly and
-  `.labels(&[..])` puts captions under the track; neither snaps the knob, as `NSSlider` with
+  `.labels(&[..])` puts captions under the track (literals, `tr!` results or `String`s; the
+  slider copies them); neither snaps the knob, as `NSSlider` with
   `allowsTickMarkValuesOnly` off. ← ↓ and → ↑ move 5% of the range (`SLIDER_KEY_STEP`).
 - `Slider::stepped` is for a choice among a few options. Its value is the step, from 0 to
   `steps - 1`, with a tick under each step and an optional caption per step. A click or drag

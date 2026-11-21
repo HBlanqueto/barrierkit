@@ -13,7 +13,7 @@ pub struct Slider {
     range: (f32, f32),
     stepped: bool,
     value: f32,
-    labels: &'static [&'static str],
+    labels: Vec<Cow<'static, str>>,
     tick_marks: Option<usize>,
     disabled: bool,
     continuous: bool,
@@ -31,7 +31,7 @@ impl Slider {
             range: (0.0, 1.0),
             stepped: false,
             value: 0.0,
-            labels: &[],
+            labels: Vec::new(),
             tick_marks: None,
             disabled: false,
             continuous: true,
@@ -78,8 +78,8 @@ impl Slider {
         self
     }
 
-    pub fn labels(mut self, labels: &'static [&'static str]) -> Self {
-        self.labels = labels;
+    pub fn labels<S: Clone + Into<Cow<'static, str>>>(mut self, labels: &[S]) -> Self {
+        self.labels = labels.iter().cloned().map(Into::into).collect();
         self
     }
 
@@ -222,7 +222,7 @@ impl Component for Slider {
         let step_name = self
             .labels
             .get(current.round() as usize)
-            .copied()
+            .cloned()
             .filter(|_| steps == Some(self.labels.len()));
         let mut root = interaction
             .attach(rect(), !self.disabled)
@@ -383,7 +383,7 @@ impl Component for Slider {
         let shown = steps.unwrap_or(self.labels.len());
         let labels_row = style.labels.map(|_| {
             let names = self.labels.iter().take(shown).map(|text| {
-                let label_node = with_font(label().text(*text), style.label_font)
+                let label_node = with_font(label().text(text.clone()), style.label_font)
                     .max_lines(1)
                     .color(paints.fill(&style.label));
                 rect().child(label_node).into_element()
