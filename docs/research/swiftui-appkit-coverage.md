@@ -428,7 +428,7 @@ The size of each control is a row in its own family.
 |---|---|---|---|---|---|
 | `Menu` content, pop-up menu | `NSMenu` | `MenuView`, `MenuItem` | `partial`: measured in light and dark, not in Increase Contrast; item icons not measured | bench `menu` scene; [Menus][m-menus] | P1 |
 | `.contextMenu` | `NSMenu.popUpContextMenu` | `ViewModifiers::context_menu` | `implemented` | same look as the menu | P1 |
-| `Commands`, `CommandMenu` | main menu | `MainMenu`, menu bar menu | `implemented` | [`macos-menu-bar.md`](macos-menu-bar.md) | P1 |
+| `Commands`, `CommandMenu`, `CommandGroup`, `TextEditingCommands` | main menu | `Commands`, `CommandGroup`, `MainMenu`, menu bar menu | `partial`: the App, File, Edit, Window and Help groups with the measured titles and Ctrl shortcuts; the Cut, Copy, Paste, Delete, Select All, Find and Help items start disabled until an app handles them (no responder chain, ADR 0085); no About, View, Format, sidebar, toolbar or inspector commands, no `commandsRemoved` | [`macos-standard-menus.md`](macos-standard-menus.md) | P1 |
 | `MenuBarExtra` | `NSStatusItem` | `status_item` | `partial`: a static item (icon name, title, menu) | none | P2 |
 | `.popover` | `NSPopover` | `Popover` | `partial`: `Popover::show` returns `()`, so no close, behavior or edge | none | P1 |
 | `.sheet` | `beginSheet` | `Sheet` | `partial`: light and dark only; corners, shadow and edge are the compositor's | [Sheets][m-sheets] | P1 |
@@ -469,7 +469,7 @@ The size of each control is a row in its own family.
 | title bar line | `NSTitlebarSeparatorStyle` | `TitlebarStyle` hairline | `partial` | none | P2 |
 | `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the glyph is a tile; no Increase Contrast | bench `sidebar`; [What the kit does][m-sidebar] | P1 |
 | full screen | `toggleFullScreen` | `FullscreenBar` | `implemented` | none | P2 |
-| `WindowGroup`, `Window`, `Settings` | `NSWindow`, `NSWindowController` | `Application`, `SettingsWindow` | `partial`: one scene per `Application::window`; no `openWindow(id:)`, no `dismissWindow`, no Window menu | none | P1 |
+| `WindowGroup`, `Window`, `Settings`, `openWindow`, `dismissWindow` | `NSWindow`, `NSWindowController` | `WindowGroup`, `Window`, `Settings`, `use_open_window`, `use_dismiss_window`, `SettingsWindow` | `partial`: ids, one window per value, fronting a window that is open, and a Window menu from the kit's own list; no `openSettings` or `SettingsLink`, no launch behavior, no restore of the open windows, no position (xdg-shell) | [`macos-standard-menus.md`](macos-standard-menus.md) | P1 |
 | `UtilityWindow` | `NSPanel` | `UtilityWindow`, `PanelBehavior` | `implemented` | none | P3 |
 | — | window tabs | `WindowTabs` | `partial`: one toplevel, no tab group, tabs do not drag | none | P3 |
 | `DocumentGroup`, `AlertScene` | `NSDocument` | — | `missing` | none | P3 |
@@ -626,6 +626,10 @@ first four areas are the sessions that run now.
    labels, spacer, tracking separator, title bar accessory.
 7. **P3** The [macOS 27 APIs](#18-new-in-macos-27), toolbar customization,
    document scenes.
+8. **P2** Standard menus still missing: About, View, Format, the sidebar,
+   toolbar and inspector commands, Close All (an alternate), `commandsRemoved`,
+   and the Fill, Center and Move & Resize items of the Window menu, which the
+   probe did not show ([14](#14-windows-and-chrome)).
 
 ### Probes to write first
 

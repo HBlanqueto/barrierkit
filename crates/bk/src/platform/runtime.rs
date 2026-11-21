@@ -143,6 +143,7 @@ pub(crate) struct Runtime {
 pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
     pub(crate) app_id: String,
+    pub(crate) state: String,
     pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
     pub(crate) resolved: State<Resolved>,
     pub(crate) wallpaper: Option<ctdesign::Rgba>,

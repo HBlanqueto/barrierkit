@@ -93,6 +93,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctappearance::traffic::visual(lights, style, inactive, rim, input)`, `ButtonVisual { fill, rim, glyph }`, `ButtonVisual::idle`, `glyph_svg(.., pixels)` | `ctappearance::traffic::visual(looks, input)`, `ButtonVisual { fill, ring, glyph, scale, dodge }`, `glyph_svg(index, color, fixed_width)` | 2026-11-20 |
 | `ctdesign::TrafficRim`, `Palette::traffic_lights_inactive`, `Palette::traffic_rim`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `Button::color`, `TrafficGlyphs::box_size`, the tokens `traffic-close`, `traffic-min`, `traffic-zoom`, `traffic-inactive`, `traffic-rim`, `traffic-rim-inactive` | `ctdesign::TrafficLooks`, `TRAFFIC_LIGHTS_*`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_PRESS`; the themes' `traffic-lights` and `traffic-lights-contrast` | 2026-11-20 |
 | `styles::TrafficLightsStyle { fills, rims, glyphs, rim_width, glyph_size, shape, effect }` | `styles::TrafficLightsStyle { looks, ring_width, halo, backdrop }` | 2026-11-20 |
+| `app::Scene` (one window; `.options`, `.run`), returned by `Application::window` | `Application::window` returns `Application`, which has `.options` and `.run`; `app::Scene` is now what `Application::scene` takes | 2026-11-21 |
 
 ## How to read the tables
 
@@ -1263,8 +1264,19 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `app::Application` | struct | `App` | `NSApplication` | The app; its name gives the `app_id` and saved window size | [2](02-first-app.md#what-application-does-for-you) |
-| `app::Scene` | struct | `Scene`, `WindowGroup` | — | One window with a titlebar and centered content; `.options`, `.run` | [2](02-first-app.md#what-application-does-for-you) |
+| `app::Application` | struct | `App` | `NSApplication` | The app; its name gives the `app_id` and saved window size. `.window`, `.scene`, `.options`, `.commands`, `.run` | [2](02-first-app.md#what-application-does-for-you) |
+| `app::Scene` | struct | `Scene` | — | A declared scene, what `Application::scene` takes; `WindowGroup`, `Window` and `Settings` convert into it | [8](08-windows.md#scenes) |
+| `app::WindowGroup` | struct | `WindowGroup` | — | Windows that share their content, one per `open`; `for_value` gives one per value | [8](08-windows.md#scenes) |
+| `app::Window` | struct | `Window` | `NSWindow` | One window with an id; opening it again fronts it | [8](08-windows.md#scenes) |
+| `app::Settings` | struct | `Settings` | `NSWindowController` | The single settings window, id `SETTINGS_WINDOW` | [8](08-windows.md#scenes) |
+| `app::MAIN_WINDOW`, `app::SETTINGS_WINDOW` | constant | — | — | The ids of the window `Application::window` declares and of the settings scene | [8](08-windows.md#scenes) |
+| `app::OpenWindowAction` | struct | `OpenWindowAction` | — | `open(id)` and `open_value(value)` | [8](08-windows.md#scenes) |
+| `app::use_open_window` | fn | `EnvironmentValues.openWindow` | — | Hook that returns the `OpenWindowAction` | [8](08-windows.md#scenes) |
+| `app::DismissWindowAction` | struct | `DismissWindowAction` | `NSWindow.performClose(_:)` | `dismiss()` and `dismiss_id(id)` | [8](08-windows.md#scenes) |
+| `app::use_dismiss_window` | fn | `EnvironmentValues.dismissWindow` | — | Hook that returns the `DismissWindowAction` | [8](08-windows.md#scenes) |
+| `app::Commands` | struct | `Commands`, `TextEditingCommands` | `NSApplication.mainMenu` | The standard menus of the app; `.menu`, `.group`, `.text_editing` | [13](13-app.md#standard-menus) |
+| `app::CommandGroup` | struct | `CommandGroup` | — | Items placed before, after or in place of a standard group | [13](13-app.md#standard-menus) |
+| `app::CommandGroupPlacement` | enum | `CommandGroupPlacement` | — | The standard groups: `AppSettings`, `AppTermination`, `NewItem`, `SaveItem`, `UndoRedo`, `Pasteboard`, `TextEditing`, `WindowSize`, `SingleWindowList`, `WindowArrangement`, `WindowList`, `Help` | [13](13-app.md#standard-menus) |
 
 ## Actions and shortcuts
 
@@ -1276,12 +1288,17 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `app::use_menu_action` | fn | — | ≈ `NSApplication.sendAction(_:to:from:)` | Hook that receives every action id from menus, shortcuts and activation | [13](13-app.md#actions-and-shortcuts) |
 | `app::UNDO` | constant | `CommandGroupPlacement.undoRedo` | — | The kit's Undo action, Ctrl+Z | [13](13-app.md#undo) |
 | `app::REDO` | constant | `CommandGroupPlacement.undoRedo` | — | The kit's Redo action, Ctrl+Shift+Z | [13](13-app.md#undo) |
+| `app::NEW_WINDOW`, `app::CLOSE_WINDOW`, `app::SETTINGS`, `app::QUIT` | constant | `CommandGroupPlacement.newItem`, `.appSettings`, `.appTermination` | `NSApplication.terminate(_:)` for `QUIT` | The actions of the File and app menus, Ctrl+N, W, comma and Q; the kit handles them | [13](13-app.md#standard-menus) |
+| `app::MINIMIZE`, `app::ZOOM`, `app::BRING_ALL_TO_FRONT` | constant | `CommandGroupPlacement.windowSize`, `.windowArrangement` | `NSWindow.performMiniaturize(_:)`, `performZoom(_:)`, `NSApplication.arrangeInFront(_:)` | The actions of the Window menu; the kit handles them | [13](13-app.md#standard-menus) |
+| `app::CUT`, `app::COPY`, `app::PASTE`, `app::DELETE`, `app::SELECT_ALL` | constant | `CommandGroupPlacement.pasteboard` | `NSText.cut(_:)` and the rest | The Edit menu actions; the app handles them | [13](13-app.md#standard-menus) |
+| `app::FIND`, `app::FIND_AND_REPLACE`, `app::FIND_NEXT`, `app::FIND_PREVIOUS`, `app::USE_SELECTION_FOR_FIND`, `app::JUMP_TO_SELECTION` | constant | `TextEditingCommands` | — | The items of Edit ▸ Find; the app handles them | [13](13-app.md#standard-menus) |
+| `app::HELP` | constant | `CommandGroupPlacement.help` | `NSApplication.showHelp(_:)` | The Help menu item, F1; the app handles it | [13](13-app.md#standard-menus) |
 
 ## Menu bar menu
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `main_menu::MainMenu` | struct | `Commands` | `NSApplication.mainMenu` | The window's menu bar menu, published over dbusmenu | [13](13-app.md#menu-bar-menu) |
+| `main_menu::MainMenu` | struct | — | `NSApplication.mainMenu` | The window's menu bar menu, published over dbusmenu | [13](13-app.md#menu-bar-menu) |
 | `main_menu::Menu` | struct | `CommandMenu` | `NSMenu` | One top-level menu: a title and its items | [13](13-app.md#menu-bar-menu) |
 | `main_menu::MenuHandle` | struct | — | ≈ `NSMenu` | Live handle to the window's menu: `update`, `set_menu_items` | [13](13-app.md#changing-the-menu-live) |
 | `main_menu::use_menu_enabled` | fn | `.disabled(_:)` | `NSMenuItemValidation` | Hook that enables or disables a menu item when the value changes | [13](13-app.md#changing-the-menu-live) |

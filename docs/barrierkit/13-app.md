@@ -5,9 +5,9 @@ bar menu, saved settings, undo, a single instance and the desktop services.
 **Scope:** starts with an app that already opens a window
 ([2. Your first app](02-first-app.md)) and ends with the services in
 `bk::app`, `main_menu`, `status_item`, `notifications`, `secrets` and
-`portal`. `Application` and `Scene` are in
-[2](02-first-app.md#what-application-does-for-you), `WindowOptions` in
-[8. Windows](08-windows.md), `MenuItem` and `CheckState` in
+`portal`. `Application` is in
+[2](02-first-app.md#what-application-does-for-you), `WindowOptions` and the
+scenes in [8. Windows](08-windows.md), `MenuItem` and `CheckState` in
 [7. Menus and popovers](07-menus-and-popovers.md), translated text (`tr!`) in
 [17. Languages](17-languages.md).
 **Reader:** anyone preparing an app for real use.
@@ -79,6 +79,8 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
 
 7. Optional: make the app single instance with `launch` before `run()`
    ([Single instance](#single-instance)).
+8. Optional: give every window the standard menus with
+   `.commands(Commands::new())` ([Standard menus](#standard-menus)).
 
 ## Actions and shortcuts
 
@@ -137,6 +139,87 @@ The kit declares these actions:
 | `REDO` | Ctrl+Shift+Z | [`use_undo`](#undo) |
 | `GO_BACK`, `GO_FORWARD` | Alt+Left, Alt+Right | [11. Views](11-views.md) |
 | `TOGGLE_SIDEBAR` | Ctrl+Alt+S | [10. Sidebar](10-sidebar.md) |
+
+## Standard menus
+
+`Commands` gives the windows of an `Application` the menus that SwiftUI gives
+an app. Titles, order and shortcuts come from a SwiftUI app measured on
+macOS 27.2.1 in English and Spanish
+([the measurement](../research/macos-standard-menus.md)). It is opt in: an app
+without `.commands(..)` keeps the menu of its `WindowOptions::menu`, or has
+none, and a scene whose options carry a `MainMenu` keeps that one.
+
+1. Add `.commands(Commands::new())` to the `Application`.
+2. Add your own menus with `.menu(Menu::new(title, items))` (SwiftUI's
+   `CommandMenu`). They sit between Edit and Window.
+3. Add to a standard group, or replace it, with
+   `.group(CommandGroup::after(CommandGroupPlacement::NewItem, items))`
+   (`before`, `after` and `replacing`).
+4. Add the Find submenu with `.text_editing()` (SwiftUI's
+   `TextEditingCommands`).
+5. Handle your own ids with `use_menu_action`. The kit handles the ones marked
+   so below; for the others call `use_menu_enabled(id, true)` once the app
+   serves them.
+
+The menus, in order, and the groups you can place items in:
+
+| Menu | Groups, in order | Standard items |
+|---|---|---|
+| the app name | `AppSettings`, `AppTermination` | Settings…, Quit *App* |
+| File | `NewItem`, `SaveItem` | New Window, Close |
+| Edit | `UndoRedo`, `Pasteboard`, `TextEditing` | Undo, Redo; Cut, Copy, Paste, Delete, Select All; Find ▸ (only with `.text_editing()`) |
+| your `.menu(..)` menus | | |
+| Window | `WindowSize`, `SingleWindowList`, `WindowArrangement`, `WindowList` | Minimize, Zoom; one item per `Window` scene; Bring All to Front; one item per open window |
+| Help | `Help` | *App* Help |
+
+A menu without items is not published. The Spanish titles are in the
+[measurement](../research/macos-standard-menus.md#the-measured-menus).
+
+Each action is a constant in `bk::app`. A shortcut is the macOS one with ⌘ as
+Ctrl, ⌥ as Alt and ⇧ as Shift; Help is F1, which does not depend on the
+keyboard layout.
+
+| Action | Shortcut | Handled by | Enabled |
+|---|---|---|---|
+| `NEW_WINDOW` | Ctrl+N | the kit: opens another window of the first `WindowGroup` | a `WindowGroup` without a value exists |
+| `CLOSE_WINDOW` | Ctrl+W | the kit: closes this window | always |
+| `SETTINGS` | Ctrl+, | the kit: opens the `Settings` scene | a `Settings` scene exists |
+| `QUIT` | Ctrl+Q | the kit: closes every window, so the process ends | always |
+| `MINIMIZE` | Ctrl+M | the kit | always |
+| `ZOOM` | none | the kit: maximizes or restores | not for a fixed-size window |
+| `BRING_ALL_TO_FRONT` | none | the kit | always |
+| `UNDO`, `REDO` | Ctrl+Z, Ctrl+Shift+Z | [`use_undo`](#undo) | while a stack has a value |
+| `CUT`, `COPY`, `PASTE`, `SELECT_ALL` | Ctrl+X, C, V, A | the app | after `use_menu_enabled` |
+| `DELETE` | none | the app | after `use_menu_enabled` |
+| `FIND`, `FIND_AND_REPLACE`, `FIND_NEXT`, `FIND_PREVIOUS`, `USE_SELECTION_FOR_FIND`, `JUMP_TO_SELECTION` | Ctrl+F, Ctrl+Alt+F, Ctrl+G, Ctrl+Shift+G, Ctrl+E, Ctrl+J | the app | after `use_menu_enabled` |
+| `HELP` | F1 | the app | after `use_menu_enabled` |
+
+The kit does not route a command to the focused view
+([ADR 0085](../decisions.md)), so the items the app handles start disabled. A
+text field copies, cuts, pastes and selects with its own shortcuts and never
+touches the menu.
+
+```swift
+// ✗ Button("Copy") { }.keyboardShortcut("c") in a CommandGroup, enabled by the responder chain
+// ✓ use_menu_enabled(COPY.id, *selection.read() != 0) and a use_menu_action that copies
+```
+
+### The Window menu
+
+The kit lists the open windows itself: Wayland has no window list
+([8. Windows](08-windows.md#scenes)). Each scene window publishes the items
+of its own Window menu when the list changes:
+
+1. A `Window` scene has one item, `window-open:<id>`, that opens or fronts it.
+2. Each open window of a `WindowGroup` has an item, `window-activate:<n>`,
+   that fronts it. The item of the window that owns the menu is checked.
+3. Titles are the ones the scene declared. `set_title` does not change them.
+
+### Quit
+
+`QUIT` closes every window of the app, one by one. It has no veto, so a
+window with unsaved work closes like any other ([ADR 0085](../decisions.md)).
+The kit has no function that quits.
 
 ## Menu bar menu
 

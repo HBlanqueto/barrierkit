@@ -3,8 +3,9 @@
 **Goal:** open a window with `run_window`, set its options, read and change
 its state, open utility windows and popups, and run code later.
 **Scope:** the window API of `bk::platform`: `run_window`,
-`WindowOptions`, `WindowControls`, `WindowStatus`, utility windows, popups,
-timers, input helpers and `RunError`. `Application` and `Scene` are in
+`WindowOptions`, `WindowControls`, `WindowStatus`, scenes (`WindowGroup`,
+`Window`, `Settings`, `openWindow`, `dismissWindow`), utility windows, popups,
+timers, input helpers and `RunError`. `Application` is in
 [2. Your first app](02-first-app.md). The title bar and the traffic lights are
 in [9. Titlebars](09-titlebars.md). How the runner works inside (Vulkan,
 Wayland protocols) is in [18. Platform](18-platform.md).
@@ -15,9 +16,11 @@ Wayland protocols) is in [18. Platform](18-platform.md).
 ## Steps
 
 1. Use `run_window` instead of `Application` when the window draws its own
-   title bar (a sidebar, toolbar items) or the app opens more windows.
+   title bar (a sidebar, toolbar items).
    `Application::window(..).run()` is `run_window` with a background, a
    `Titlebar` and centered content ([2](02-first-app.md#what-application-does-for-you)).
+   An app with more than one window declares [scenes](#scenes) on the
+   `Application`.
 2. Describe the window with `WindowOptions` and pass the root view:
 
    ```rust
@@ -92,12 +95,14 @@ method changes one field (the fields are also public).
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
 | `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves; ignored by main windows |
 | `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen bar included. `Application::theme` sets it |
+| `scene` (field) | `None` | The scene id that names the saved size: `<app_id>.window.<scene>`. `Application` sets it; `None` is `<app_id>.window` |
 
 `FullscreenBar` has three variants, `Solid` (default), `Glass` and
 `ProgressiveGlass`; their look is in
 [9. Titlebars](09-titlebars.md#the-bar-in-full-screen-fullscreenbar).
 
-The size and the maximized state are saved on close under `<app_id>.window`
+The size and the maximized state are saved on close under `<app_id>.window`,
+or `<app_id>.window.<scene>` for a scene other than `MAIN_WINDOW`
 (see restoration in [13. App](13-app.md)). A window closed in full screen
 saves nothing; a maximized one keeps its last normal size and reopens
 maximized.
@@ -120,7 +125,7 @@ in.
 | `set_background_alpha(alpha)` | Multiplies the alpha of the window background, clamped to 0…1 (1 is opaque) |
 | `present(token)` | Activates the window with an xdg-activation token, for example one received from a second launch |
 | `make_key_and_order_front()` | Brings the window to the front and gives it the keyboard with the last key or button press, for example from a shortcut in another window of the same process |
-| `open_window(app, options)` | Opens another main window in the same process |
+| `open_window(app, options)` | Opens another main window in the same process. [Scenes](#scenes) use it |
 | `set_ime_cursor_area(x, y, width, height)` | Tells the input method where the text cursor is, in logical pixels |
 | `copy_rich(text, html)`, `primary_selection()` | Clipboard ([13. App](13-app.md)) |
 
@@ -169,6 +174,67 @@ along each corner.
 `WindowEdge` names the edge: `Top`, `Bottom`, `Left`, `Right`, `TopLeft`,
 `TopRight`, `BottomLeft`, `BottomRight`. An app that draws its own grip calls
 `WindowControls::get().resize(edge)` from a press.
+
+## Scenes
+
+An `Application` declares its windows as scenes. `.window(title, content)` is
+the first, `.scene(..)` adds the others, and `.options(..)` changes the
+`WindowOptions` of the scene declared last. The first scene that is not
+`Settings` opens at launch; the rest open when the app asks.
+
+| Type | Like | What it is |
+|---|---|---|
+| `WindowGroup::new(id, title, content)` | `WindowGroup(id:)` | Any number of windows with the same content. `.window(..)` declares one with the id `MAIN_WINDOW` |
+| `WindowGroup::for_value(id, title, \|value: T\| view)` | `WindowGroup(id:for:)` | One window per value; `T` is `Clone + PartialEq + 'static` |
+| `Window::new(id, title, content)` | `Window(id:)` | One window with that id |
+| `Settings::new(content)` | `Settings` | One window with the id `SETTINGS_WINDOW`. `content` draws its own title bar, as [`SettingsWindow`](12-patterns.md#settingswindow) does |
+
+`Scene` is what `.scene(..)` takes: each type above converts into it. A
+`WindowGroup` or `Window` window gets the same background and `Titlebar` as
+`Application::window`.
+
+`Application` applies its name and its `Theme` when `.scene(..)` takes a scene,
+so call `Application::theme` first. To give one scene another theme or size,
+call `Application::options` right after its `.scene(..)`.
+
+The program is [`recipes/scenes.rs`](../../agents/recipes/scenes.rs).
+
+Open and close from a component of a scene window
+([recipe 25](../../agents/recipes.md#25-several-windows)):
+
+| Hook | Returns | Methods |
+|---|---|---|
+| `use_open_window()` | `OpenWindowAction` | `open(id)`; `open_value(value)` finds the group by the type of `value` |
+| `use_dismiss_window()` | `DismissWindowAction` | `dismiss()` closes this window; `dismiss_id(id)` closes every open window with that id |
+
+Both panic where there is no `Application` above (a test, a `run_window` app).
+A value in `open_value` or an id that no scene declares logs a warning and does
+nothing.
+
+Rules the runner applies:
+
+1. `open(id)` on a `Window` or `Settings` fronts the window if it is open and
+   opens it otherwise. On a `WindowGroup` it opens a new window each time. On a
+   value group, `open_value` fronts the window whose value is equal, or opens
+   a new one.
+2. Opening sends `WindowControls::open_window` from the calling window. The
+   runner makes another `xdg_toplevel` with smithay-client-toolkit
+   (`Runtime::create_window`, as `run_window` does for the first window), so
+   `freya-winit` is not involved ([ADR 0033](../decisions.md)).
+3. Every scene window shares the app's `app_id`.
+4. Wayland has no list of windows and no way to raise another window. The kit
+   keeps its own list: a scene window adds its `WindowControls` when it mounts
+   and removes it when it closes. Fronting is `make_key_and_order_front` on the
+   listed controls, which asks the compositor with the last input serial.
+   The [Window menu](13-app.md#the-window-menu) shows that list.
+5. Each scene saves its own size (`WindowOptions::scene`).
+6. The app is not restored with the windows that were open, and no scene
+   sets its position: xdg-shell gives a client neither.
+
+Not built: `defaultLaunchBehavior`, `openSettings` and `SettingsLink`,
+`openWindow(id:value:)`, `dismissWindow(value:)`, `handlesExternalEvents`, a
+`Codable` value that restores the window, and a Window menu title that follows
+`set_title` (the list keeps the title the scene declared).
 
 ## Utility windows
 
@@ -354,6 +420,7 @@ lists.
 | `DeviceLost` | The GPU device cannot be recreated, or is lost again after two recreations without a presented frame |
 | `SurfaceLost` | Never returned: the runner creates a new Vulkan surface and swapchain |
 | `LayerSize` | A `LayerSpec` leaves a size at 0 without anchoring both opposite edges |
+| `NoWindow` | `Application::run` finds no scene to open at launch (only `Settings`, or none) |
 | `EventLoop(reason)` | A `calloop` source cannot be created or the loop fails |
 | `Io` | The appearance watcher cannot start |
 

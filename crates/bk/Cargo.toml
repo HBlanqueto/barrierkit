@@ -133,6 +133,10 @@ name = "rows_and_columns"
 path = "../../agents/recipes/rows_and_columns.rs"
 
 [[example]]
+name = "scenes"
+path = "../../agents/recipes/scenes.rs"
+
+[[example]]
 name = "settings_form"
 path = "../../agents/recipes/settings_form.rs"
 

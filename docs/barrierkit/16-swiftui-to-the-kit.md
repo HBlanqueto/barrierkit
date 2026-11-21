@@ -34,6 +34,7 @@ know the kit's shape.
 | `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../agents/recipes/callback.rs) |
 | `.commands`, `.keyboardShortcut` on a menu item | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
 | `.keyboardShortcut` on a `Button` | `Button::keyboard_shortcut(Shortcut)` | [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs) |
+| `WindowGroup`, `Window`, `Settings`, `@Environment(\.openWindow)`, `\.dismissWindow` | `Application::scene(..)`, `use_open_window()`, `use_dismiss_window()` | [`scenes.rs`](../../agents/recipes/scenes.rs) |
 | `.onAppear`, `.onDisappear`, `.onChange`, `.task` | [`use_hook`, `use_drop`, `use_side_effect_with_deps`, `use_future`](#effects) | none |
 
 ## State and bindings
@@ -180,7 +181,7 @@ The hooks are in `freya-core` 0.5.3, `src/lifecycle/` and `src/hooks/`.
 | a `Binding` type, `$model.field` | none; use the `State` or the value and callback above |
 | a command sent to the focused view (the responder chain) | none; every handler of the window gets the id |
 | `windowShouldClose` | none; a close request closes the window at once, except a sheet's |
-| `applicationShouldTerminate`, `NSApp.terminate` | none; the last window closing ends the process |
+| `applicationShouldTerminate`, `NSApp.terminate` | none; the last window closing ends the process. The Quit command (`QUIT`) closes every window ([13](13-app.md#quit)) |
 | `.onOpenURL`, `application(_:open:)` | none |
 
 The full audit of Swift syntax against the kit, with probes, is in

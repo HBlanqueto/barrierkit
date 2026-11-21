@@ -67,6 +67,7 @@ pub struct WindowOptions {
     pub panel: PanelBehavior,
     pub(crate) modal: bool,
     pub theme: crate::styles::Theme,
+    pub scene: Option<&'static str>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -113,6 +114,7 @@ impl WindowOptions {
             panel: PanelBehavior::UTILITY,
             modal: false,
             theme: crate::styles::Theme::tengen(),
+            scene: None,
         }
     }
 
@@ -424,8 +426,11 @@ struct SavedSize {
     maximized: bool,
 }
 
-fn window_state(app_id: &str) -> String {
-    format!("{app_id}.window")
+fn window_state(app_id: &str, scene: Option<&str>) -> String {
+    match scene {
+        Some(scene) => format!("{app_id}.window.{scene}"),
+        None => format!("{app_id}.window"),
+    }
 }
 
 fn within(size: (u32, u32), min: Option<(u32, u32)>, max: Option<(u32, u32)>) -> (u32, u32) {
@@ -512,10 +517,11 @@ impl Runtime {
         {
             style.set_panel(window.wl_surface(), options.panel.flags());
         }
+        let state = window_state(&app_id, options.scene);
         let saved: SavedSize = if utility {
             SavedSize::default()
         } else {
-            crate::app::load_restoration(&window_state(&app_id))
+            crate::app::load_restoration(&state)
         };
         if saved.width > 0 && saved.height > 0 {
             options.size = within(
@@ -646,6 +652,7 @@ impl Runtime {
         window.context = Some(WindowContext {
             controls: controls.clone(),
             app_id,
+            state,
             focus_notice,
             resolved: window_resolved,
             wallpaper: None,
@@ -896,7 +903,7 @@ impl Runtime {
         {
             let mut status = context.controls.status;
             let shown = *status.peek();
-            let state = window_state(&context.app_id);
+            let state = context.state.clone();
             let previous: SavedSize = crate::app::load_restoration(&state);
             let saved = match (shown.maximized, shown.fullscreen) {
                 (_, true) => None,

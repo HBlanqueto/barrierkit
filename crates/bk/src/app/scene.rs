@@ -2,15 +2,16 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use std::borrow::Cow;
 
+use super::commands::Commands;
+use super::windows::{MAIN_WINDOW, Scene, Scenes, WindowGroup};
 use crate::platform::{RunError, WindowOptions, open_utility_window, run_window};
-use crate::style::Palette;
 use crate::styles::Theme;
-use crate::theme::color;
-use crate::titlebar::Titlebar;
 
 pub struct Application {
     name: String,
     theme: Theme,
+    scenes: Vec<Scene>,
+    commands: Option<Commands>,
 }
 
 impl Application {
@@ -18,6 +19,8 @@ impl Application {
         Self {
             name: name.into(),
             theme: Theme::tengen(),
+            scenes: Vec::new(),
+            commands: None,
         }
     }
 
@@ -30,35 +33,38 @@ impl Application {
         self,
         title: impl Into<Cow<'static, str>>,
         content: impl Fn() -> E + 'static,
-    ) -> Scene {
-        let title = title.into();
-        Scene {
-            options: WindowOptions::new(title.clone(), self.name).theme(self.theme),
-            title,
-            content: AppComponent::from(content),
-        }
+    ) -> Self {
+        self.scene(WindowGroup::new(MAIN_WINDOW, title, content))
     }
-}
 
-pub struct Scene {
-    options: WindowOptions,
-    title: Cow<'static, str>,
-    content: AppComponent,
-}
+    pub fn scene(mut self, scene: impl Into<Scene>) -> Self {
+        let mut scene = scene.into();
+        scene.options.app_name = self.name.clone();
+        scene.options.theme = self.theme.clone();
+        self.scenes.push(scene);
+        self
+    }
 
-impl Scene {
     pub fn options(mut self, configure: impl FnOnce(WindowOptions) -> WindowOptions) -> Self {
-        self.options = configure(self.options);
+        if let Some(scene) = self.scenes.last_mut() {
+            scene.options = configure(scene.options.clone());
+        }
+        self
+    }
+
+    pub fn commands(mut self, commands: Commands) -> Self {
+        self.commands = Some(commands);
         self
     }
 
     pub fn run(self) -> Result<(), RunError> {
-        let Self {
-            options,
-            title,
-            content,
-        } = self;
-        run_window(move || window_root(title.clone(), content.clone()), options)
+        let (options, root) = self.launch()?;
+        run_window(root, options)
+    }
+
+    pub(crate) fn launch(self) -> Result<(WindowOptions, AppComponent), RunError> {
+        let (scenes, launch) = Scenes::new(self.name, self.scenes, self.commands);
+        Ok(scenes.window(launch.ok_or(RunError::NoWindow)?, None))
     }
 }
 
@@ -87,12 +93,4 @@ impl UtilityWindow {
     pub fn open(self) {
         open_utility_window(self.content, self.options);
     }
-}
-
-fn window_root(title: Cow<'static, str>, content: AppComponent) -> impl IntoElement + use<> {
-    rect()
-        .expanded()
-        .background(color(Palette::current().window_background))
-        .child(Titlebar::new().title(title))
-        .child(rect().expanded().center().child(content))
 }

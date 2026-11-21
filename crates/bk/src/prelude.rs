@@ -7,7 +7,11 @@ pub use freya_core::prelude::*;
 pub use torin::prelude::{Alignment, Direction, Size};
 
 pub use crate::adornments::Divider;
-pub use crate::app::{Application, Scene, UtilityWindow};
+pub use crate::app::{
+    Application, CommandGroup, CommandGroupPlacement, Commands, DismissWindowAction,
+    OpenWindowAction, Scene, Settings, UtilityWindow, Window, WindowGroup, use_dismiss_window,
+    use_open_window,
+};
 pub use crate::controls::*;
 pub use crate::elements::{HStack, Label, Text, VStack};
 pub use crate::environment::{use_environment, use_is_enabled};

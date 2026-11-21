@@ -95,13 +95,17 @@ fn main() -> Result<(), RunError> {
 |---|---|
 | `Application::new(name)` | Creates the app. `name` is short, lowercase and stable: it becomes the `app_id`, the settings domain and the key of the saved window size |
 | `Application::theme(theme)` | Gives every window the [`Theme`](../../agents/styles.md#levels); without it, `Theme::tengen()` |
-| `Application::window(title, content)` | Returns a `Scene` for one window. `content` is a closure that returns the view; hooks go at its top |
-| `Scene::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting: size, limits, menu, full-screen bar |
-| `Scene::run()` | Draws the window background (`Palette::current().window_background`), a [`Titlebar`](09-titlebars.md) with the title, centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>` |
+| `Application::window(title, content)` | Declares the window that opens at launch, a `WindowGroup` with the id `MAIN_WINDOW`. `content` is a closure that returns the view; hooks go at its top |
+| `Application::scene(scene)` | Declares another [scene](08-windows.md#scenes): `WindowGroup`, `Window` or `Settings` |
+| `Application::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting of the scene declared last: size, limits, menu, full-screen bar |
+| `Application::commands(commands)` | Gives every window the [standard menus](13-app.md#standard-menus) |
+| `Application::run()` | Draws the window background (`Palette::current().window_background`), a [`Titlebar`](09-titlebars.md) with the title, centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>`; `RunError::NoWindow` when only `Settings` is declared |
 
 Use `run_window` directly when the window draws its own title bar (a sidebar,
-toolbar items) or the app opens several windows: see
-[recipe 7](../../agents/recipes.md#7-drawing-the-whole-window-yourself).
+toolbar items): see
+[recipe 7](../../agents/recipes.md#7-drawing-the-whole-window-yourself). An app
+with several windows declares scenes
+([recipe 25](../../agents/recipes.md#25-several-windows)).
 
 ## Text and stacks
 
@@ -143,7 +147,7 @@ The stacks have no style of their own: their methods and the
 
 | From | Names |
 |---|---|
-| The kit | `Application`, `Scene`, `UtilityWindow`, `Text`, `Label`, `VStack`, `HStack`, `Image`, `Symbol`, `IconStyle`, `TemplateRenderingMode`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`), the [`EnvironmentModifiers`](16-swiftui-to-the-kit.md#environment) trait (`.disabled`, `.environment`, `.focused`, `.default_focus`), `use_environment`, `use_is_enabled`, `FocusState`, `use_focus_state` and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
+| The kit | `Application`, `Scene`, `WindowGroup`, `Window`, `Settings`, `Commands`, `CommandGroup`, `CommandGroupPlacement`, `OpenWindowAction`, `DismissWindowAction`, `use_open_window`, `use_dismiss_window`, `UtilityWindow`, `Text`, `Label`, `VStack`, `HStack`, `Image`, `Symbol`, `IconStyle`, `TemplateRenderingMode`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`), the [`EnvironmentModifiers`](16-swiftui-to-the-kit.md#environment) trait (`.disabled`, `.environment`, `.focused`, `.default_focus`), `use_environment`, `use_is_enabled`, `FocusState`, `use_focus_state` and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
 | Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods; its `Label` type gives way to the kit's |
 | Torin | `Alignment`, `Direction`, `Size` |
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `CAPTION_2`, `FOOTNOTE`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `SUBHEADLINE`, `TITLE`, `TITLE_2`, `TITLE_3`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |

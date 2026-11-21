@@ -278,3 +278,22 @@ The program is [`recipes/disabled.rs`](recipes/disabled.rs).
 1. `.disabled(bool)` goes after the children and takes the whole view; every
    control inside is disabled when its own flag or a view above it is.
 2. The flag can change on every render: what is inside keeps its state.
+
+## 25. Several windows
+
+SwiftUI: `WindowGroup { }`, `Window("Inspector", id: "inspector") { }`, `Settings { }` and `@Environment(\.openWindow) var openWindow`.
+
+The program is [`recipes/scenes.rs`](recipes/scenes.rs).
+
+1. `.window(..)` is the window that opens at launch. `.scene(..)` adds a
+   `Window`, a `WindowGroup` or `Settings`
+   ([chapter 8](../docs/barrierkit/08-windows.md#scenes)).
+2. `use_open_window()` goes at the top of a component of a scene window. Its
+   `open(id)` opens the scene with that id, or fronts it when it is a `Window`
+   that is already open; `open_value(7)` opens the `WindowGroup::for_value`
+   window with that value.
+3. `use_dismiss_window()` closes this window (`dismiss()`) or every window of an
+   id (`dismiss_id(id)`).
+4. `.commands(Commands::new())` adds the standard menus, with a Window menu
+   that lists the open windows and a Settings… item
+   ([chapter 13](../docs/barrierkit/13-app.md#standard-menus)).

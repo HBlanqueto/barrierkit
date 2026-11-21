@@ -97,6 +97,7 @@ useful accessibility tree on this host, so their measurements are visual.
 | Settings and focus | `settings-appearance.png`, `settings-focus-tab.png`, `settings-focus-tab2.png`, `focus-crop.png`, `focus-crop-4x.png` |
 | Blur and Liquid Glass matrix | `blur-*.png`, `defaults-2026-11-19-blur/` |
 | 2026-11-20 modes pass | `d2-*.png`, `d3-*.png` (dark), `l2-*.png`, `l3-*.png` (light), `defaults-2026-11-20-modes/` |
+| Standard app menus | `appmenus/{en,es,en-cmd,es-cmd}-{main,inspector,text}.json`, `appmenus/show.py` (probe `appmenus.swift`, [`macos-standard-menus.md`](macos-standard-menus.md)) |
 
 These files stay outside the repository. They are local evidence, not
 committed assets.

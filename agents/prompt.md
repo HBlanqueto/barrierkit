@@ -108,7 +108,7 @@ version.
 | Change how a control looks (color, shape, size, motion) or build a theme | [`styles.md`](styles.md) |
 | Edit, style or spell-check text | [`06-text-and-editing.md`](../docs/barrierkit/06-text-and-editing.md) |
 | Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../docs/barrierkit/07-menus-and-popovers.md) |
-| Window size, limits, popups, timers | [`08-windows.md`](../docs/barrierkit/08-windows.md) |
+| Window size, limits, more than one window, popups, timers | [`08-windows.md`](../docs/barrierkit/08-windows.md) |
 | Title bars and traffic lights | [`09-titlebars.md`](../docs/barrierkit/09-titlebars.md) |
 | A sidebar app | [`10-sidebar.md`](../docs/barrierkit/10-sidebar.md) |
 | Forms, tables, tabs, alerts, search | [`11-views.md`](../docs/barrierkit/11-views.md) |

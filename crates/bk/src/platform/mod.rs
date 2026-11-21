@@ -15,6 +15,8 @@ mod main_menu_export;
 mod popup;
 mod primary;
 pub(crate) mod runtime;
+#[cfg(test)]
+mod scene_tests;
 pub(crate) mod surface;
 #[cfg(test)]
 mod tests;
@@ -84,6 +86,8 @@ pub enum RunError {
     SurfaceLost,
     #[error("a layer surface without a width or height must be anchored to both opposite edges")]
     LayerSize,
+    #[error("the application declares no window")]
+    NoWindow,
     #[error("event loop failed: {0}")]
     EventLoop(&'static str),
     #[error("Skia could not create its Vulkan context")]
