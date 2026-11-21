@@ -119,17 +119,28 @@ def region(name, content_height, found):
     return item["x"], content_height - item["y"] - item["h"], width, item["h"]
 
 
-def crop(image, box, margin=MARGIN):
+def crop(image, box, margin=MARGIN, scale=SCALE):
     x, y, w, h = box
-    return image[(y - margin) * SCALE:(y + h + margin) * SCALE, (x - margin) * SCALE:(x + w + margin) * SCALE]
+    return image[(y - margin) * scale:(y + h + margin) * scale, (x - margin) * scale:(x + w + margin) * scale]
 
 
-def bounds(pixels, backdrop):
+def bounds(pixels, backdrop, scale=SCALE):
     mask = abs(pixels - backdrop).max(-1) > 8
     ys, xs = np.nonzero(mask)
     if not len(ys):
         return None
-    return xs.min() / SCALE, ys.min() / SCALE, (xs.max() + 1 - xs.min()) / SCALE, (ys.max() + 1 - ys.min()) / SCALE
+    return xs.min() / scale, ys.min() / scale, (xs.max() + 1 - xs.min()) / scale, (ys.max() + 1 - ys.min()) / scale
+
+
+def screenshot(path):
+    """The 1x screenshot of a probe window without its title bar, for what `cacheDisplay` does not draw."""
+    return rgb(path)[TITLE_BAR:]
+
+
+def one_x(image):
+    """A kit scene rendered at SCALE, reduced to the pixels of a 1x screen."""
+    height, width = image.shape[0] // SCALE * SCALE, image.shape[1] // SCALE * SCALE
+    return image[:height, :width].reshape(height // SCALE, SCALE, width // SCALE, SCALE, 3).mean(axis=(1, 3))
 
 
 def dominant(pixels, backdrop):
@@ -499,29 +510,46 @@ LISTS = [
     "form-grouped", "form-columns", "groupbox", "disclosure",
 ]
 LISTS_FOCUSABLE = ["list-inset", "list-plain", "list-bordered", "table", "outline-group"]
+TABS = [
+    "tabs-top", "tabs-top-second", "tabs-bottom", "tabs-left", "tabs-none-bezel", "tabs-none-line", "tabs-none", "tabs-top-small",
+    "tabs-top-mini",
+]
+TABLES = [
+    "table-automatic", "table-fullwidth", "table-inset", "table-sourcelist", "table-plain", "table-fullwidth-striped",
+    "table-small", "table-medium", "table-large", "outline-inset", "outline-fullwidth",
+]
+TABLES_FOCUSABLE = ["table-inset"]
+SCROLLERS = ["swiftui-list-inset", "swiftui-list-plain", "swiftui-table", "appkit-table-inset", "appkit-table-fullwidth", "appkit-list-sourcelist"]
+SCREEN_FAMILIES = {"containers": TABS, "scrollers": SCROLLERS, "tables": ["table-sourcelist"]}
+TITLE_BAR = 32
 
 
 def lists(args):
     look = (CONTRAST if args.tag == "hc" else APPKIT)[args.mode]
     tag = f"{args.family}-hc" if args.tag == "hc" else args.family
-    with open(os.path.join(CAPTURES, args.family, f"{look}-none.json")) as handle:
+    suffix = "legacy" if args.family == "scrollers" else "none"
+    with open(os.path.join(CAPTURES, args.family, f"{look}-{suffix}.json")) as handle:
         data = json.load(handle)
     height, found = data["contentH"], {item["name"]: item for item in data["items"]}
     print(f"{'item':16} {'focus':>5} {'%diff':>6} {'AppKit x y w h':>24} {'kit x y w h':>24}")
-    for name in args.names.split(",") if args.names else (LISTS if args.family == "lists" else CONTAINERS):
+    for name in args.names.split(",") if args.names else {"lists": LISTS, "containers": CONTAINERS, "scrollers": SCROLLERS, "tables": TABLES}[args.family]:
         box = region(name, height, found)
-        for focused in (False, True) if name in LISTS_FOCUSABLE and args.family == "lists" else (False,):
-            appkit = rgb(os.path.join(CAPTURES, args.family, f"{look}-{name if focused else 'none'}@{SCALE}x.png"))
+        for focused in (False, True) if name in {"lists": LISTS_FOCUSABLE, "tables": TABLES_FOCUSABLE}.get(args.family, ()) else (False,):
+            screen = name in SCREEN_FAMILIES.get(args.family, ())
+            scale = 1 if screen else SCALE
+            if not screen and not os.path.exists(os.path.join(CAPTURES, args.family, f"{look}-{name if focused else 'none'}@{SCALE}x.png")):
+                continue
+            appkit = screenshot(os.path.join(CAPTURES, args.family, f"{look}-{suffix}-screen-srgb.png")) if screen else rgb(os.path.join(CAPTURES, args.family, f"{look}-{name if focused else 'none'}@{SCALE}x.png"))
             focus = f"focus-{name}-" if focused else ""
             kit_path = os.path.join(KIT, f"kit-{tag}-{focus}{args.mode}-white.png")
             if not os.path.exists(kit_path):
                 continue
-            kit = rgb(kit_path)
+            kit = one_x(rgb(kit_path)) if screen else rgb(kit_path)
             whole = tuple(int(round(v)) for v in box)
-            a, k = crop(appkit, whole, 0), crop(kit, whole, 0)
+            a, k = crop(appkit, whole, 0, scale), crop(kit, whole, 0, scale)
             diff = (abs(a - k) > 3).any(-1).mean() * 100
             backdrop = a[0, 0]
-            ba, bk = bounds(a, backdrop), bounds(k, k[0, 0])
+            ba, bk = bounds(a, backdrop, scale), bounds(k, k[0, 0], scale)
             show = lambda b: "%5.1f %5.1f %5.1f %5.1f" % b if b else "none"
             print(f"{name:16} {'yes' if focused else 'no':>5} {diff:6.1f} {show(ba):>24} {show(bk):>24}")
             if args.sheet:
@@ -567,7 +595,7 @@ def icons(args):
     print(f"{near} of {len(names)} within 0.5 of the ink box and 10% of the mass")
 
 
-CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"]
+CONTAINERS = ["split-v-thin", "split-h-thin", "swiftui-hsplit", "swiftui-vsplit"] + TABS
 
 
 LIGHTS_PROBES = {"light": "aqua", "dark": "darkAqua", "hc-light": "aquaHC", "hc-dark": "darkAquaHC"}
@@ -732,4 +760,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-    eight.add_argument("--family", default="lists", choices=("lists", "containers"), help="the probe family")
+    eight.add_argument("--family", default="lists", choices=("lists", "containers", "scrollers", "tables"), help="the probe family")

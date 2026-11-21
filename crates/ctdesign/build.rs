@@ -114,6 +114,7 @@ SPLIT_PANES SplitPanesMetrics components.split-panes
 FLOATING_PANE FloatingPaneMetrics components.floating-pane
 TABLE TableMetrics components.table
 COLLECTION CollectionMetrics components.collection
+TAB_VIEW TabViewMetrics components.tab-view
 TOOLBAR_TABS ToolbarTabsMetrics components.toolbar-tabs
     padding=container.padding gap=container.gap radius=container.radius icon=tab.icon
     icon_gap=tab.gap font_size=tab.font.size font_weight=tab.font.weight

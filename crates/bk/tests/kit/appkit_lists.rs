@@ -1,17 +1,20 @@
 use std::{fs, path::PathBuf};
 
 use bk::style::{Palette, text};
-use bk::styles::{OutlineViewStyle, Role, ShapeStyle, StateValue, TableStyle};
+use bk::styles::{
+    OutlineViewStyle, Role, ShapeStyle, StateValue, TabType, TabViewStyle, TableStyle,
+};
 use bk::symbol::Symbol;
 use bk::views::form::{Form, Row, Section};
 use bk::views::group::{DisclosureGroup, GroupBox};
 use bk::views::list::List;
 use bk::views::split_panes::SplitPanes;
 use bk::views::table::{SortOrder, Table};
+use bk::views::tabs::TabView;
 use bk::views::tree::{OutlineView, TreeNode};
-use ctdesign::BODY;
+use ctdesign::{BODY, ControlSize};
 use freya_core::prelude::*;
-use torin::prelude::{Direction, Size};
+use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use super::appkit::{Builder, layout, render_scene, scene_content, scene_tag};
 
@@ -162,6 +165,133 @@ fn table(restyle: fn(TableStyle) -> TableStyle) -> Element {
         .into_element()
 }
 
+const FILES: [(&str, &str, Symbol); 6] = [
+    ("adr-0047.pdf", "PDF", Symbol::Document),
+    ("notas.txt", "Text", Symbol::Document),
+    ("portada.png", "Image", Symbol::Photo),
+    ("datos.csv", "Table", Symbol::Document),
+    ("music.mp3", "Audio", Symbol::MusicNote),
+    ("video.mov", "Movie", Symbol::Film),
+];
+
+fn unstriped(style: TableStyle) -> TableStyle {
+    TableStyle {
+        alternate_row_background: StateValue::new(ShapeStyle::Clear),
+        ..style
+    }
+}
+
+fn classic(columns: Vec<&'static str>, restyle: fn(TableStyle) -> TableStyle) -> Element {
+    let two = columns.len() > 1;
+    rect()
+        .width(Size::px(300.0))
+        .height(Size::px(170.0))
+        .child(
+            Table::new("Files", columns)
+                .rows(
+                    FILES
+                        .iter()
+                        .map(|(name, kind, _)| {
+                            let mut row = vec![name.to_string()];
+                            if two {
+                                row.push(kind.to_string());
+                            }
+                            row
+                        })
+                        .collect(),
+                )
+                .icons(FILES.iter().map(|file| file.2).collect())
+                .scroll_bar(false)
+                .selected(vec![1])
+                .style(restyle),
+        )
+        .into_element()
+}
+
+fn tables() -> Vec<(&'static str, Builder)> {
+    vec![
+        ("table-automatic", || {
+            classic(vec!["Name", "Kind"], unstriped)
+        }),
+        ("table-fullwidth", || {
+            classic(
+                vec!["Name", "Kind"],
+                |_| unstriped(TableStyle::full_width()),
+            )
+        }),
+        ("table-inset", || classic(vec!["Name", "Kind"], unstriped)),
+        ("table-sourcelist", || {
+            classic(vec!["Name"], |_| TableStyle::source_list())
+        }),
+        ("table-plain", || {
+            classic(vec!["Name", "Kind"], |_| TableStyle::plain())
+        }),
+        ("table-fullwidth-striped", || {
+            classic(vec!["Name", "Kind"], |_| TableStyle::full_width())
+        }),
+        ("table-small", || {
+            classic(vec!["Name", "Kind"], |style| {
+                unstriped(style).row_size(ControlSize::Small)
+            })
+        }),
+        ("table-medium", || {
+            classic(vec!["Name", "Kind"], |style| {
+                unstriped(style).row_size(ControlSize::Regular)
+            })
+        }),
+        ("table-large", || {
+            classic(vec!["Name", "Kind"], |style| {
+                unstriped(style).row_size(ControlSize::Large)
+            })
+        }),
+        ("outline-inset", || {
+            classic_outline(|_| OutlineViewStyle::classic())
+        }),
+        ("outline-fullwidth", || {
+            classic_outline(|_| OutlineViewStyle::full_width())
+        }),
+    ]
+}
+
+fn classic_outline(restyle: fn(OutlineViewStyle) -> OutlineViewStyle) -> Element {
+    let folder = |title: &str| TreeNode::new(title).icon(Symbol::Folder);
+    rect()
+        .width(Size::px(300.0))
+        .height(Size::px(170.0))
+        .child(
+            OutlineView::new(
+                "Places",
+                vec![
+                    folder("Favorites")
+                        .expanded(true)
+                        .child(folder("AirDrop"))
+                        .child(folder("Recents"))
+                        .child(folder("Applications")),
+                    folder("Locations")
+                        .expanded(true)
+                        .child(folder("Desktop"))
+                        .child(folder("Documents")),
+                ],
+            )
+            .selected(vec![vec![0, 1]])
+            .scroll_bar(false)
+            .style(restyle),
+        )
+        .into_element()
+}
+
+fn emphasized_tables() -> Vec<(&'static str, Builder)> {
+    vec![("table-inset", || {
+        classic(vec!["Name", "Kind"], |style| emphasized(unstriped(style)))
+    })]
+}
+
+#[test]
+#[ignore]
+fn appkit_tables() {
+    render_family(tables(), emphasized_tables());
+}
+
 fn emphasized_lists() -> Vec<(&'static str, Builder)> {
     vec![
         ("list-inset", || list(emphasized)),
@@ -238,13 +368,124 @@ fn panes(direction: Direction) -> Element {
         .into_element()
 }
 
+fn page(title: &'static str) -> Element {
+    rect()
+        .expanded()
+        .main_align(Alignment::End)
+        .padding(Gaps::new(0.0, 0.0, 12.0, 12.0))
+        .child(
+            rect()
+                .height(Size::px(17.0))
+                .child(text(title, BODY, Palette::current().label)),
+        )
+        .into_element()
+}
+
+fn tabs(tab_type: TabType, select: usize, size: ControlSize) -> Element {
+    rect()
+        .width(Size::px(220.0))
+        .height(Size::px(140.0))
+        .child(
+            TabView::new("Tabs")
+                .tab(Symbol::Folder, "One", page("Page One"))
+                .tab(Symbol::Folder, "Two", page("Page Two"))
+                .tab(Symbol::Folder, "Three", page("Page Three"))
+                .selected(select)
+                .size(size)
+                .style(move |style: TabViewStyle| TabViewStyle { tab_type, ..style }),
+        )
+        .into_element()
+}
+
 fn containers() -> Vec<(&'static str, Builder)> {
     vec![
         ("split-v-thin", || panes(Direction::Horizontal)),
         ("swiftui-hsplit", || panes(Direction::Horizontal)),
         ("split-h-thin", || panes(Direction::Vertical)),
         ("swiftui-vsplit", || panes(Direction::Vertical)),
+        ("tabs-top", || tabs(TabType::Top, 0, ControlSize::Regular)),
+        ("tabs-top-second", || {
+            tabs(TabType::Top, 1, ControlSize::Regular)
+        }),
+        ("tabs-bottom", || {
+            tabs(TabType::Bottom, 0, ControlSize::Regular)
+        }),
+        ("tabs-left", || tabs(TabType::Left, 0, ControlSize::Regular)),
+        ("tabs-none-bezel", || {
+            tabs(TabType::NoTabsBezelBorder, 0, ControlSize::Regular)
+        }),
+        ("tabs-none-line", || {
+            tabs(TabType::NoTabsLineBorder, 0, ControlSize::Regular)
+        }),
+        ("tabs-none", || {
+            tabs(TabType::NoTabsNoBorder, 0, ControlSize::Regular)
+        }),
+        ("tabs-top-small", || {
+            tabs(TabType::Top, 0, ControlSize::Small)
+        }),
+        ("tabs-top-mini", || tabs(TabType::Top, 0, ControlSize::Mini)),
     ]
+}
+
+fn file_names() -> Vec<String> {
+    (0..40).map(|row| format!("file-{row}.txt")).collect()
+}
+
+fn long_list(restyle: fn(TableStyle) -> TableStyle) -> Element {
+    rect()
+        .width(Size::px(300.0))
+        .height(Size::px(180.0))
+        .child(
+            List::new("Files", file_names())
+                .selected(vec![1])
+                .style(restyle),
+        )
+        .into_element()
+}
+
+fn long_table(restyle: fn(TableStyle) -> TableStyle) -> Element {
+    let kinds = ["PDF", "Text", "Image"];
+    rect()
+        .width(Size::px(300.0))
+        .height(Size::px(180.0))
+        .child(
+            Table::new("Files", vec!["Name", "Kind"])
+                .rows(
+                    file_names()
+                        .into_iter()
+                        .enumerate()
+                        .map(|(row, name)| vec![name, kinds[row % 3].to_string()])
+                        .collect(),
+                )
+                .selected(vec![1])
+                .style(restyle),
+        )
+        .into_element()
+}
+
+fn scrollers() -> Vec<(&'static str, Builder)> {
+    vec![
+        ("swiftui-list-inset", || long_list(|style| style)),
+        ("swiftui-list-plain", || {
+            long_list(|_| TableStyle::plain_list())
+        }),
+        ("swiftui-table", || long_table(|style| style)),
+        ("appkit-table-inset", || {
+            long_table(|style| emphasized(unstriped(style)))
+        }),
+        ("appkit-table-fullwidth", || {
+            long_table(|_| unstriped(TableStyle::full_width()))
+        }),
+        ("appkit-list-sourcelist", || {
+            long_list(|_| TableStyle::source_list())
+        }),
+    ]
+}
+
+#[test]
+#[ignore]
+fn appkit_scrollers() {
+    render_family(scrollers(), Vec::new());
 }
 
 #[test]

@@ -181,6 +181,8 @@ Rows of text in columns with a header, like `NSTableView`.
 | `.rows(Vec<Vec<String>>)` | One `Vec` of cells per row |
 | `.sort(Option<SortOrder>)` | Shows the arrow on the sorted column |
 | `.selected(Vec<usize>)` | Selected rows |
+| `.icons(Vec<Symbol>)` | One symbol per row, drawn before the title of the first column: an icon cell |
+| `.scroll_bar(bool)` | `false` hides the scroll bar, like `hasVerticalScroller = false` |
 | `.on_sort(callback)` | Receives the [`SortOrder`](#sortorder) the user asks for |
 | `.on_select(callback)` | Receives the new selection, `Vec<usize>` |
 
@@ -200,6 +202,13 @@ The table keeps column widths and hidden columns itself and does not report
 them. Rows are `TABLE.row_height` (24) high, striped, and only the visible
 ones are built.
 
+When the rows overflow, the table draws the scroll bar of
+[`ScrollView`](05-controls.md#scrolling): the legacy one is a 17 wide strip
+beside the rows and the header, starting under the header, so the rows and the
+stripes keep 17 of their width free; the overlay one floats over them while
+the table scrolls. The bar follows the user's setting like `ScrollView` does,
+and `List` and `OutlineView` take it the same way.
+
 The selected row is gray (`SelectedContentInactive`, the unemphasized
 selection of `NSTableView`) until the table has focus, then it takes the
 selection color with the label in `OnSelectedContent`. `OutlineView` and
@@ -218,6 +227,7 @@ different `TableStyle`.
 | `.on_select(callback)` | Receives the new selection, `Vec<usize>` |
 | `.style(\|_\| TableStyle::plain_list())` | `inset_list` (rows inset 10, rounded selection), `plain_list` (full width) or `bordered_list` (a hairline border) |
 | `.style(TableStyle::striped)` | Alternating rows, like `.inset(alternatesRowBackgrounds: true)`; it drops the separators |
+| `.scroll_bar(bool)` | `false` hides the scroll bar |
 
 Rows are separated by a hairline from the start of the text to the end of the
 row. A selected row and its neighbors have none.
@@ -240,6 +250,24 @@ direction.
 `Table::style` takes a `TableStyle`: the header, the stripes and the
 selection. The fields are in
 [Styles and themes](../../crates/bk/src/styles/table.rs).
+
+The presets are the styles of `NSTableView` and `NSOutlineView`
+([measurements](../research/macos-control-metrics.md#classic-tables-and-outlines)):
+
+| Preset | `NSTableView.Style` | What changes |
+|---|---|---|
+| `TableStyle::tengen()` | `.inset`, `.automatic` | Rows inset 10, 5 below the header, rounded selection |
+| `TableStyle::full_width()` | `.fullWidth` | Rows and stripes from edge to edge, square selection |
+| `TableStyle::plain()` | `.plain` | `full_width` with 17 high rows, the cell 8 in and no extra inset in later columns |
+| `TableStyle::source_list()` | `.sourceList` | No header, rows inset 10 and 32 high, accent icons |
+| `.row_size(ControlSize)` | `rowSizeStyle` | `Small`, `Regular` and `Large` are small, medium and large: the font is 11, 13 and 15 and the icon 14, 16 and 18; only a source list changes its rows, to 24, 32 and 40 |
+
+```rust
+Table::new("Files", vec!["Name", "Kind"])
+    .rows(rows)
+    .icons(vec![Symbol::Document; 3])
+    .style(|_| TableStyle::full_width().row_size(ControlSize::Large))
+```
 
 ## Collections
 
@@ -303,7 +331,12 @@ are selected. `on_select` receives the selected paths, `Vec<Vec<usize>>`;
 Ctrl+click and Shift+click work over the visible rows as in
 [`select`](#select). A hairline runs under each row from its title to the end
 of the row, except in the last top-level node, next to a selected row and
-under the last row.
+under the last row. `.scroll_bar(bool)` hides the scroll bar.
+
+`OutlineViewStyle::classic()` is `NSOutlineView` with the default cell views:
+gray icons, no hairlines and the title 19 after the disclosure column;
+`OutlineViewStyle::full_width()` is the same with square rows from edge to
+edge, like `NSTableView.Style.fullWidth`.
 
 ### `Browser`
 
@@ -334,7 +367,10 @@ Theme::tengen().style(|s: OutlineViewStyle| OutlineViewStyle { row_shape: Shape:
 
 ### `TabView`
 
-Pages chosen from a centered strip of tabs with an icon above the title, as in the toolbar tabs of a settings window: each tab is as wide as its title plus 13 and at least 55, with 1 between tabs and no box around them.
+Pages chosen from a strip of tabs, like SwiftUI's `TabView` and `NSTabView`:
+a segmented strip centered on the top edge of a box that holds the page. Each
+tab is as wide as its title plus 28.4 (31 in AppKit, whose titles are
+narrower), the chosen one is a raised tab, and the strip is opaque.
 
 ```rust
 TabView::new("Preferences")
@@ -344,23 +380,42 @@ TabView::new("Preferences")
     .on_change(move |index: usize| tab.set(index))
 ```
 
-![Search and Sound tabs](../../crates/bk/tests/golden/tab-view-light.png)
+![Search and Sound tabs](../../crates/bk/tests/golden/tab-view-top-light.png)
 
 | Method | Effect |
 |---|---|
 | `TabView::new(label)` | An empty tab view; `label` names the strip for accessibility |
-| `.tab(Symbol, title, content)` | Adds a tab and its page |
+| `.tab(Symbol, title, content)` | Adds a tab and its page; the icon only shows in `TabType::Toolbar` |
 | `.selected(usize)` | The selected tab. A new value selects it again |
 | `.on_change(callback)` | Receives the index the user picks |
+| `.size(ControlSize)` | Small and mini strips (20 and 16 high), like `controlSize` |
 
 The view switches pages by itself; `on_change` is for the app to remember.
+It fills the space it is given.
 
 ### Style
 
-`TabView::style` takes a `TabViewStyle`: the strip and its tabs. The fields
-are in [Styles and themes](../../crates/bk/src/styles/tab_view.rs).
+`TabView::style` takes a `TabViewStyle`: the strip and its tabs. Its
+`tab_type` says where the tabs are, like `NSTabView.tabViewType`:
 
-## Window tabs
+| `TabType` | `NSTabView.TabType` | Look |
+|---|---|---|
+| `Top` | `.topTabsBezelBorder` | The strip straddles the top edge of the bezel box (default) |
+| `Bottom` | `.bottomTabsBezelBorder` | The strip straddles the bottom edge |
+| `Left` | `.leftTabsBezelBorder` | A vertical strip on the left, titles read upward |
+| `Toolbar` | `NSTabViewController` `.toolbar` | Icon over title, as in a settings window: `TabViewStyle::toolbar()` |
+| `NoTabsBezelBorder` | `.noTabsBezelBorder` | The box without a strip |
+| `NoTabsLineBorder` | `.noTabsLineBorder` | A square 1 line, no fill |
+| `NoTabsNoBorder` | `.noTabsNoBorder` | The page alone |
+
+`TabType::Right` is not drawn. The tab view that SwiftUI hosts draws the same
+box and strip. The fields are in
+[Styles and themes](../../crates/bk/src/styles/tab_view.rs); the numbers are in
+[the measurements](../research/macos-control-metrics.md#tab-views).
+
+```rust
+TabView::new("Settings").style(|_| TabViewStyle::toolbar())
+```
 
 ### `WindowTabs`
 

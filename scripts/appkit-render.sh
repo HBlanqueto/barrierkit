@@ -31,7 +31,7 @@ case "$scene" in
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
         APPKIT_TAG=swiftui
         ;;
-    lists | lists-contrast | containers | containers-contrast)
+    lists | lists-contrast | containers | containers-contrast | scrollers | scrollers-contrast | tables | tables-contrast)
         family=${scene%-contrast}
         APPKIT_LAYOUT=$out/layout-$family.tsv
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
@@ -41,16 +41,16 @@ case "$scene" in
         APPKIT_LAYOUT=$out/layout-accents.tsv
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
         ;;
-    menu | toolbar | sidebar | picker | icons)
+    menu | toolbar | sidebar | picker | icons | lights)
         ;;
     *)
-        printf 'usage: %s controls|contrast|accents|accents-contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar|picker|icons\n' "$0" >&2
+        printf 'usage: %s controls|contrast|accents|accents-contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|scrollers|scrollers-contrast|tables|tables-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar|icons|lights\n' "$0" >&2
         exit 2
         ;;
 esac
 
 case "$scene" in
-    contrast | accents-contrast | views-contrast | texts-contrast | lists-contrast | containers-contrast | buttons-contrast | swiftui-contrast)
+    contrast | accents-contrast | views-contrast | texts-contrast | lists-contrast | containers-contrast | scrollers-contrast | tables-contrast | buttons-contrast | swiftui-contrast)
         APPKIT_CONTRAST=1
         APPKIT_REDUCE=1
         APPKIT_TAG=${APPKIT_TAG:+$APPKIT_TAG-}hc
@@ -99,7 +99,7 @@ case "$scene" in
         cargo test -p bk --test kit --features bk/shell appkit_texts -- --ignored
         exec cargo test -p bk --test kit --features bk/shell appkit_focus -- --ignored
         ;;
-    lists | lists-contrast | containers | containers-contrast)
+    lists | lists-contrast | containers | containers-contrast | scrollers | scrollers-contrast | tables | tables-contrast)
         test=appkit_${scene%-contrast}
         light=ffffff
         dark=1e1e1e

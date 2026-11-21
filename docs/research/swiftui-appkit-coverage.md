@@ -388,10 +388,10 @@ The size of each control is a row in its own family.
 |---|---|---|---|---|---|
 | `List` (`.automatic`, `.inset`, `.plain`, `.sidebar`, `.bordered`) | single-column `NSTableView` | — (`Table`, `OutlineView`, `Sidebar` cover parts) | `missing`: no list of free rows with selection and separators | none | P1 |
 | `Table` with `.inset` | `NSTableView` `.inset` | `Table` | `measured` | bench `table`; [Tables][m-tables] | — |
-| `Table` `.automatic`, `.bordered` | `.automatic`, `.fullWidth`, `.sourceList`, `.plain`; `rowSizeStyle` | `TableStyle` fields; no preset but the inset look | `missing` | not probed | P2 |
-| `TableColumn` with views | cell views | `Table` shows text rows | `missing` | none | P1 |
+| `Table` `.automatic`, `.bordered` | `.automatic`, `.fullWidth`, `.sourceList`, `.plain`; `rowSizeStyle` | `TableStyle::full_width`, `plain`, `source_list`, `row_size` | `measured`: 5 to 11% of the pixels, a source list apart (AppKit draws the sidebar material) | bench `tables`; [Classic tables][m-classic] | — |
+| `TableColumn` with views | cell views | `Table` shows text rows, with `icons` before the first column | `partial`: icon cells measured; no controls in cells | bench `tables` | P1 |
 | sort descriptors | `NSSortDescriptor` | `SortOrder`: one column | `partial` | [Table sorted column][m-rings] | P3 |
-| `OutlineGroup` | `NSOutlineView` | `OutlineView`, `TreeNode` | `implemented` | none; the source list is the classic one ([Tables][m-tables]) | P2 |
+| `OutlineGroup` | `NSOutlineView` | `OutlineView`, `TreeNode`, `OutlineViewStyle::classic`, `full_width` | `measured`: inset and full width 5 to 6%; the source list outline is not drawn | bench `tables`; [Classic tables][m-classic] | P2 |
 | — | `NSBrowser` | `Browser` | `implemented` | none | P3 |
 | `Form` `.grouped` | — | `Form`, `Section`, `Row` | `implemented` | none; no probe has a SwiftUI `Form` | P1 |
 | `Form` `.columns` | `NSGridView` | — | `missing` | none | P2 |
@@ -401,15 +401,15 @@ The size of each control is a row in its own family.
 | `DisclosureGroup` | disclosure triangle | `DisclosureGroup` | `partial`: the triangle is measured, not the indent or the animation | bench `disclosure` | P2 |
 | `Label`, `LabelStyle` | — | `LabelStyle` for menu buttons only | `partial`: no general `Label` view | none | P2 |
 | `ContentUnavailableView` | — | `ContentUnavailableView` | `implemented` | none | P2 |
-| `TabView` (toolbar-like tabs) | `NSTabViewController` `.toolbar` | `TabView` | `partial`: measured in [Toolbar tabs][m-tabs], not in the bench | probe `tabs` | P1 |
-| `TabView` classic | `NSTabView` (top, bottom, left, right, none), `.segmentedControlOnTop`, `.segmentedControlOnBottom` | — | `missing` | probe `views` captures `NSTabView` | P2 |
+| `TabView` (toolbar-like tabs) | `NSTabViewController` `.toolbar` | `TabView` with `TabViewStyle::toolbar()` | `partial`: measured in [Toolbar tabs][m-tabs], not in the bench | probe `tabs` | P1 |
+| `TabView` classic | `NSTabView` (top, bottom, left, right, none), `.segmentedControlOnTop`, `.segmentedControlOnBottom` | `TabView` with `TabType` `Top`, `Bottom`, `Left` and the three without tabs | `measured`: 3.7 to 4.9% of the pixels for the strips, 1.5 to 2.3% without tabs; no right tabs | bench `containers` (`tabs-*`); [Tab views][m-tabviews] | — |
 | `TabView` `.sidebarAdaptable`, `.tabBarOnly`, `Tab`, `TabSection` | — | — | `missing` | sdk | P3 |
 | `NavigationSplitView` (`.automatic`, `.balanced`, `.prominentDetail`) | `NSSplitViewController`, `NSSplitViewItem` (sidebar, content list, inspector) | `SplitView` | `partial`: two columns and an inspector; no content-list column; the sidebar is in [14](#14-windows-and-chrome) | none | P1 |
 | `NavigationStack`, `NavigationLink`, `navigationDestination` | — | `History`, `NavigationButtons`, `Row::page` | `partial`: no path or destination API | none | P2 |
 | `HSplitView`, `VSplitView` | `NSSplitView` (`.thin`, `.thick`) | `SplitPanes` | `implemented` | none | P2 |
 | `inspector(isPresented:)` | `NSSplitViewItem` inspector | `SplitView::inspector` | `implemented` | none | P2 |
-| `ScrollView` legacy bar | `NSScroller` legacy | `ScrollView` | `measured` | bench `scroll-legacy`; [Menus, scrollers][m-menus] | — |
-| `ScrollView` overlay bar | `NSScroller` overlay | `ScrollView` | `partial`: the overlay bar is not compared | probe `views` has `scroll-overlay` | P1 |
+| `ScrollView` legacy bar | `NSScroller` legacy | `ScrollView`, `Table`, `List`, `OutlineView` | `measured` in the four appearances | bench `scrollers`; [Scrollers][m-scrollers] | — |
+| `ScrollView` overlay bar | `NSScroller` overlay | `ScrollView`, `Table`, `List`, `OutlineView` | `partial`: the thumb is measured (6 wide, per appearance), not compared in a scene | probe `scrollers` (`overlay`); [Scrollers][m-scrollers] | P2 |
 | `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass`, `ScrollView` edge | `partial` | [Sidebar][m-sidebar] | P2 |
 | `Grid`, `GridRow` | `NSGridView` | — | `missing` | none | P2 |
 | `LazyVGrid`, `LazyHGrid` | `NSCollectionView` | `CollectionView` | `implemented` | none | P3 |
@@ -589,14 +589,14 @@ first four areas are the sessions that run now.
    `.inset`, `.plain` and `.sidebar` looks; probe SwiftUI `List`, `Form`,
    `GroupBox` and `DisclosureGroup`, which no probe has
    ([12](#12-containers-and-navigation)).
-2. **P1** `Table`: cells with icons and controls, row size styles, the other
-   table styles, the overlay scroller.
+2. **P1** `Table`: cells with controls (icons, row size styles, the other
+   table styles and the scrollers are done).
 3. **P1** `Form` with `.columns`, compared with a probe of a macOS 27
    Settings window.
 4. **P1** Alert: icon, accessory view, help button, text field; popover probe;
    sheet and menu in Increase Contrast ([13](#13-presentation)).
-5. **P1** `TabView`: classic top tabs and segmented-on-top; the toolbar tabs
-   as a bench entry.
+5. **P1** `TabView`: the toolbar tabs as a bench entry (the classic tabs are
+   done).
 6. **P2** A three-column `NavigationSplitView`; a path and destination API for
    `NavigationStack`; a general `Label`; `Grid`; confirmation dialog;
    tooltip and `NSSplitView` divider probes.
@@ -670,3 +670,6 @@ No probe of `~/src/probes` renders these:
 [m-toolbar]: macos-control-metrics.md#toolbar-items-and-navigation-buttons
 [m-icons]: macos-icons.md
 [m-tabs]: macos-control-metrics.md#toolbar-tabs-and-window-corners
+[m-tabviews]: macos-control-metrics.md#tab-views
+[m-scrollers]: macos-control-metrics.md#scrollers
+[m-classic]: macos-control-metrics.md#classic-tables-and-outlines

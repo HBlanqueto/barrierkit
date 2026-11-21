@@ -9,7 +9,7 @@ use freya_core::prelude::*;
 
 use super::{
     ButtonStyle, CheckboxStyle, ComboBoxStyle, DatePickerStyle, PopUpButtonStyle, RadioGroupStyle,
-    SearchFieldStyle, SegmentedControlStyle, SliderStyle, StepperStyle, SwitchStyle,
+    SearchFieldStyle, SegmentedControlStyle, SliderStyle, StepperStyle, SwitchStyle, TabViewStyle,
     TextFieldStyle,
 };
 
@@ -60,6 +60,7 @@ impl Theme {
             .style(move |style: ButtonStyle| style.sized(size))
             .style(move |style: PopUpButtonStyle| style.sized(size))
             .style(move |style: SegmentedControlStyle| style.sized(size))
+            .style(move |style: TabViewStyle| style.sized(size))
             .style(move |style: CheckboxStyle| style.sized(size))
             .style(move |style: RadioGroupStyle| style.sized(size))
             .style(move |style: SwitchStyle| style.sized(size))

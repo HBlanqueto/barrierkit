@@ -1142,10 +1142,9 @@ pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,
     pub min_length: f32,
-    pub opacity: f32,
+    pub opacity: [f32; 4],
     pub track: f32,
-    pub track_opacity: f32,
-    pub always_opacity: [f32; 2],
+    pub track_opacity: [f32; 4],
     pub edge_height: f32,
     pub hide_delay_ms: u64,
 }
@@ -1216,6 +1215,13 @@ pub struct TableMetrics {
     pub sort_arrow_stroke: f32,
     pub sort_arrow_inset: f32,
     pub sort_arrow_drop: f32,
+    pub plain_row_height: f32,
+    pub row_size_font: [f32; 3],
+    pub row_size_icon: [f32; 3],
+    pub source_list_row_height: [f32; 3],
+    pub source_list_inset: f32,
+    pub icon_box: f32,
+    pub icon_gap: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1241,6 +1247,61 @@ pub struct ToolbarTabsMetrics {
     pub icon_gap: f32,
     pub font_size: f32,
     pub font_weight: i32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TabViewSize {
+    pub strip_height: f32,
+    pub strip_inset: f32,
+    pub strip_radius: f32,
+    pub strip_padding_x: f32,
+    pub page_gap: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TabViewMetrics {
+    pub strip_height: f32,
+    pub strip_inset: f32,
+    pub strip_radius: f32,
+    pub strip_padding_x: f32,
+    pub page_gap: f32,
+    pub small: TabViewSize,
+    pub mini: TabViewSize,
+    pub strip_padding_y: f32,
+    pub strip_opacity: [f32; 4],
+    pub pill_inset: f32,
+    pub pill_inset_x: f32,
+    pub pill_radius: f32,
+    pub pill_fill: [Rgba; 4],
+    pub pill_highlight: [Rgba; 4],
+    pub pill_ring: [f32; 4],
+    pub pill_highlight_depth: f32,
+    pub box_radius: f32,
+    pub box_inset_x: f32,
+    pub box_inset_far: f32,
+    pub box_inset_near: f32,
+    pub box_fill_opacity: f32,
+    pub box_border_opacity: [f32; 4],
+    pub line_border_opacity: [f32; 4],
+    pub left_strip_top: f32,
+    pub bezel_inset: [f32; 4],
+    pub bezel_page_inset: [f32; 4],
+}
+
+impl TabViewMetrics {
+    pub fn size(&self, size: ControlSize) -> TabViewSize {
+        match size {
+            ControlSize::Mini => self.mini,
+            ControlSize::Small => self.small,
+            _ => TabViewSize {
+                strip_height: self.strip_height,
+                strip_inset: self.strip_inset,
+                strip_radius: self.strip_radius,
+                strip_padding_x: self.strip_padding_x,
+                page_gap: self.page_gap,
+            },
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -160,7 +160,7 @@ pub use split_view::SplitViewStyle;
 pub use stepper::StepperStyle;
 pub use switch::SwitchStyle;
 pub use symbol_tile::SymbolTileStyle;
-pub use tab_view::TabViewStyle;
+pub use tab_view::{TabType, TabViewStyle};
 pub use table::TableStyle;
 pub use text::TextStyle;
 pub use text_editor::TextEditorStyle;
@@ -199,6 +199,12 @@ impl From<Tint> for ShapeStyle {
             Tint::Backdrop => Self::Backdrop,
         }
     }
+}
+
+// The column of a token that holds light, dark, then both with Increase Contrast.
+pub(crate) fn appearance_index() -> usize {
+    let resolved = crate::theme::resolved();
+    2 * usize::from(resolved.contrast) + usize::from(resolved.scheme.is_dark())
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

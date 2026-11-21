@@ -473,11 +473,11 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `Form` | `FormStyle`, for its sections and rows; the lines between rows take `DividerStyle` | 2026-11-07 |
 | `GroupBox` | `GroupBoxStyle` | 2026-11-07 |
 | `DisclosureGroup` | `DisclosureGroupStyle` | 2026-11-07 |
-| `Table` | `TableStyle`, for its header cells and rows | 2026-11-07 |
+| `Table` | `TableStyle`, for its header cells and rows; `full_width()`, `plain()` and `source_list()` are the `NSTableView` styles, `.row_size(ControlSize)` the row size | 2026-11-20 |
 | `List` | `TableStyle`; `TableStyle::plain_list()` or `bordered_list()` replace the default `inset_list()` | 2026-11-20 |
 | `CollectionView` | `CollectionViewStyle`, for its tiles | 2026-11-07 |
-| `OutlineView`, `Browser` | `OutlineViewStyle` | 2026-11-07 |
-| `TabView` | `TabViewStyle`, for its tabs | 2026-11-07 |
+| `OutlineView`, `Browser` | `OutlineViewStyle`; `classic()` and `full_width()` are `NSOutlineView` | 2026-11-20 |
+| `TabView` | `TabViewStyle`, for its tabs; `tab_type` is `Top` (default), `Bottom`, `Left`, `NoTabs*` or `Toolbar` (`TabViewStyle::toolbar()`, the settings-window tabs) | 2026-11-20 |
 | `WindowTabs` | `WindowTabsStyle`, for its tabs | 2026-11-07 |
 | `TextView` | `TextViewStyle` | 2026-11-07 |
 | `Sheet` | `SheetStyle` | 2026-11-07 |

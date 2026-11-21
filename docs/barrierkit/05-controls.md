@@ -808,10 +808,12 @@ Badge::new("3").style(|s| BadgeStyle {
 | `.edge_effect(bool)` | `false` | Content fades under an edge over 24 (`SCROLL_BAR.edge_height`), like `scrollEdgeEffectStyle(.soft)`: the top edge while scrolled; sideways, each edge with more content past it |
 | `.controller(ScrollController)` | its own | Scroll from code |
 
-The bar is a 7 thumb that appears while scrolling and fades 800 ms later. With the
+The bar is a 6 thumb that appears while scrolling and fades 800 ms later. With the
 appearance setting `scroll_bars = "always"` ([4](04-appearance-and-tokens.md)) it stays,
 17 wide on a faint track that takes its strip out of the content, like a legacy
-scroller; `"automatic"` does so after a mouse wheel. A click on
+scroller; `"automatic"` does so after a mouse wheel. The thumb and the track
+change with Increase Contrast ([measured](../research/macos-control-metrics.md#scrollers)).
+`Table`, `List` and `OutlineView` draw the same bar. A click on
 the track pages toward the click, or with `scroll_bar_click = "clicked_spot"`
 centers the thumb there, like the macOS Appearance setting.
 

@@ -37,11 +37,10 @@ pub struct ScrollViewStyle {
     pub edge: StateValue<ShapeStyle>,
     /// Tengen: `Color` of the sidebar line, the line of `.top_line(true)`.
     pub top_line: StateValue<ShapeStyle>,
-    /// Tengen: `SCROLL_BAR.opacity`.
+    /// Tengen: `SCROLL_BAR.opacity` of the appearance (light, dark, then both with Increase
+    /// Contrast), over the track when the bar is always shown.
     pub thumb_opacity: f32,
-    /// Tengen: `SCROLL_BAR.always_opacity`, light then dark.
-    pub always_thumb_opacity: f32,
-    /// Tengen: `SCROLL_BAR.track_opacity`.
+    /// Tengen: `SCROLL_BAR.track_opacity` of the appearance.
     pub track_opacity: f32,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -65,10 +64,8 @@ impl ControlStyle for ScrollViewStyle {
             track: StateValue::new(ShapeStyle::Role(Role::Label)),
             edge: StateValue::new(ShapeStyle::Role(Role::WindowBackground)),
             top_line: StateValue::new(ShapeStyle::Color(crate::sidebar::sidebar_palette().line)),
-            thumb_opacity: SCROLL_BAR.opacity,
-            always_thumb_opacity: SCROLL_BAR.always_opacity
-                [usize::from(crate::theme::resolved().scheme.is_dark())],
-            track_opacity: SCROLL_BAR.track_opacity,
+            thumb_opacity: SCROLL_BAR.opacity[super::appearance_index()],
+            track_opacity: SCROLL_BAR.track_opacity[super::appearance_index()],
             effect: system_effect,
             hide_delay_ms: SCROLL_BAR.hide_delay_ms,
             animation: Animation::Ease {

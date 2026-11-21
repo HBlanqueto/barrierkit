@@ -62,6 +62,31 @@ pub struct OutlineViewStyle {
     pub font: Font,
 }
 
+impl OutlineViewStyle {
+    /// `NSOutlineView` with the default cell views: gray icons, no row lines and the title 19 after the
+    /// disclosure column.
+    pub fn classic() -> Self {
+        Self {
+            row_separator: None,
+            lead_width: 15.0,
+            spacing: 3.0,
+            icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
+            selected_icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
+                .focused(ShapeStyle::Role(Role::OnSelectedContent)),
+            ..Self::tengen()
+        }
+    }
+
+    /// `NSTableView.Style.fullWidth` for an outline: `classic` with square rows from edge to edge.
+    pub fn full_width() -> Self {
+        Self {
+            inset: 0.0,
+            row_shape: Shape::Rectangle,
+            ..Self::classic()
+        }
+    }
+}
+
 impl ControlStyle for OutlineViewStyle {
     fn tengen() -> Self {
         Self {

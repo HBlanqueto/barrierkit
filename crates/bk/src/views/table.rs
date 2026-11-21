@@ -7,11 +7,13 @@ use crate::context_menu::context_menu;
 use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
+use crate::scroll::{use_scroll_bar, use_scroll_controller};
 use crate::style::{continuous_corner, text};
 use crate::styles::{
-    ControlState, Painted, Paints, ShapeStyle, StateValue, TableStyle, Theme, resolve,
+    ControlState, Painted, Paints, ScrollViewStyle, ShapeStyle, StateValue, TableStyle, Theme,
+    resolve,
 };
-use crate::symbol::{Symbol, stroked_symbol};
+use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -27,6 +29,8 @@ pub struct Table {
     rows: Vec<Vec<String>>,
     sort: Option<SortOrder>,
     selected: Vec<usize>,
+    icons: Vec<Symbol>,
+    scroll_bar: bool,
     on_sort: Option<Callback<SortOrder, ()>>,
     on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
@@ -40,6 +44,8 @@ impl Table {
             rows: Vec::new(),
             sort: None,
             selected: Vec::new(),
+            icons: Vec::new(),
+            scroll_bar: true,
             on_sort: None,
             on_select: None,
             style: Theme::tengen(),
@@ -68,6 +74,16 @@ impl Table {
 
     pub fn selected(mut self, rows: Vec<usize>) -> Self {
         self.selected = rows;
+        self
+    }
+
+    pub fn icons(mut self, icons: Vec<Symbol>) -> Self {
+        self.icons = icons;
+        self
+    }
+
+    pub fn scroll_bar(mut self, shown: bool) -> Self {
+        self.scroll_bar = shown;
         self
     }
 
@@ -185,6 +201,8 @@ impl Component for Table {
         let mut measured = use_state(|| vec![0.0f32; self.columns.len()]);
         let mut drag = use_state(|| None::<(usize, f64, f32)>);
         let mut body_height = use_state(|| 0.0f32);
+        let controller = use_scroll_controller();
+        let scroll_style: ScrollViewStyle = resolve(&self.style);
         if widths.peek().len() != self.columns.len() {
             widths.write().resize(self.columns.len(), None);
             measured.write().resize(self.columns.len(), 0.0);
@@ -234,10 +252,16 @@ impl Component for Table {
             (width_of(index), content.into_element())
         });
         let inset = style.row_inset;
+        let bars = use_scroll_bar(controller, false, self.scroll_bar, &scroll_style);
+        controller.set_content((
+            0.0,
+            self.rows.len() as f32 * style.row_height + style.body_inset,
+        ));
         let header =
             rect()
                 .width(Size::fill())
                 .height(Size::px(style.header_height))
+                .padding(Gaps::new(0.0, bars.reserved, 0.0, 0.0))
                 .child(
                     rect()
                         .width(Size::fill())
@@ -324,6 +348,15 @@ impl Component for Table {
             style.row_radius,
             column_shift,
         );
+        let icons = (
+            self.icons.clone(),
+            [
+                paints.color(style.icon.resolve(focused)),
+                paints.color(style.selected_icon.resolve(focused)),
+            ],
+            style.icon_size,
+            style.icon_spacing,
+        );
         let data = (
             self.rows.clone(),
             self.selected.clone(),
@@ -334,6 +367,7 @@ impl Component for Table {
             column_widths,
             held,
             separator,
+            icons,
         );
         let striped = !matches!(
             style.alternate_row_background.resolve(focused),
@@ -365,75 +399,100 @@ impl Component for Table {
                     )
             })
             .collect::<Vec<_>>();
-        let body =
-            VirtualScrollView::new_with_data(
-                data,
-                |item,
-                 (
-                    rows,
-                    selected,
-                    on_select,
-                    looks,
-                    metrics,
-                    shown,
-                    column_widths,
-                    held,
-                    separator,
-                )| {
-                    let index = item.index;
-                    let (font, row_height, padding_x, inset, row_radius, column_shift): &(
-                        Font,
-                        f32,
-                        f32,
-                        f32,
-                        f32,
-                        f32,
-                    ) = metrics;
-                    let selected_row = selected.contains(&index);
-                    let look = if selected_row {
-                        &looks[2]
-                    } else {
-                        &looks[index % 2]
+        let body = VirtualScrollView::new_with_data(
+            data,
+            |item,
+             (
+                rows,
+                selected,
+                on_select,
+                looks,
+                metrics,
+                shown,
+                column_widths,
+                held,
+                separator,
+                icons,
+            )| {
+                let index = item.index;
+                let (font, row_height, padding_x, inset, row_radius, column_shift): &(
+                    Font,
+                    f32,
+                    f32,
+                    f32,
+                    f32,
+                    f32,
+                ) = metrics;
+                let selected_row = selected.contains(&index);
+                let look = if selected_row {
+                    &looks[2]
+                } else {
+                    &looks[index % 2]
+                };
+                let on_select = on_select.clone();
+                let selected = selected.clone();
+                let held = *held;
+                let values = shown.iter().zip(column_widths).map(|(&column, width)| {
+                    let value = rows[index].get(column).cloned().unwrap_or_default();
+                    let title = text(value, *font, look.label);
+                    let (symbols, inks, size, gap) = icons;
+                    let content = match symbols.get(index).filter(|_| column == 0) {
+                        Some(&icon) => rect()
+                            .direction(Direction::Horizontal)
+                            .cross_align(Alignment::Center)
+                            .spacing(*gap)
+                            .child(
+                                rect()
+                                    .width(Size::px(TABLE.icon_box))
+                                    .main_align(Alignment::Center)
+                                    .direction(Direction::Horizontal)
+                                    .child(symbol(icon, *size, inks[usize::from(selected_row)])),
+                            )
+                            .child(title)
+                            .into_element(),
+                        None => title.into_element(),
                     };
-                    let on_select = on_select.clone();
-                    let selected = selected.clone();
-                    let held = *held;
-                    let values = shown.iter().zip(column_widths).map(|(&column, width)| {
-                        let value = rows[index].get(column).cloned().unwrap_or_default();
-                        let value = rect()
-                            .width(Size::fill())
-                            .overflow(Overflow::Clip)
-                            .child(text(value, *font, look.label));
-                        (*width, value.into_element())
-                    });
-                    let divided =
-                        !selected_row && index + 1 < rows.len() && !selected.contains(&(index + 1));
-                    rect()
+                    let value = rect()
                         .width(Size::fill())
-                        .height(Size::px(*row_height))
-                        .padding(Gaps::new(0.0, *inset, 0.0, *inset))
-                        .a11y_role(AccessibilityRole::Row)
-                        .a11y_builder(move |node| node.set_selected(selected_row))
-                        .child(
-                            cells(*padding_x, *column_shift, values)
-                                .height(Size::fill())
-                                .corner_radius(continuous_corner(*row_radius))
-                                .background(look.background.clone())
-                                .map(look.blur, Rect::backdrop_blur),
-                        )
-                        .maybe_child(separator.as_ref().filter(|_| divided).map(
-                            |(fill, (before, after))| row_divider(fill.clone(), *before, *after),
-                        ))
-                        .on_press(move |_| {
-                            if let Some(cb) = &on_select {
-                                cb.call(select(&selected, index, *held.peek()));
-                            }
-                        })
-                        .into_element()
-                },
-            )
-            .length(self.rows.len())
-            .item_size(style.row_height);
+                        .overflow(Overflow::Clip)
+                        .child(content);
+                    (*width, value.into_element())
+                });
+                let divided =
+                    !selected_row && index + 1 < rows.len() && !selected.contains(&(index + 1));
+                rect()
+                    .width(Size::fill())
+                    .height(Size::px(*row_height))
+                    .padding(Gaps::new(0.0, *inset, 0.0, *inset))
+                    .a11y_role(AccessibilityRole::Row)
+                    .a11y_builder(move |node| node.set_selected(selected_row))
+                    .child(
+                        cells(*padding_x, *column_shift, values)
+                            .height(Size::fill())
+                            .corner_radius(continuous_corner(*row_radius))
+                            .background(look.background.clone())
+                            .map(look.blur, Rect::backdrop_blur),
+                    )
+                    .maybe_child(
+                        separator
+                            .as_ref()
+                            .filter(|_| divided)
+                            .map(|(fill, (before, after))| {
+                                row_divider(fill.clone(), *before, *after)
+                            }),
+                    )
+                    .on_press(move |_| {
+                        if let Some(cb) = &on_select {
+                            cb.call(select(&selected, index, *held.peek()));
+                        }
+                    })
+                    .into_element()
+            },
+        )
+        .show_scrollbar(false)
+        .scroll_controller(controller.raw())
+        .length(self.rows.len())
+        .item_size(style.row_height);
 
         let (rows, on_select) = (self.rows.len(), self.on_select.clone());
         let selected = self.selected.last().copied();
@@ -470,16 +529,23 @@ impl Component for Table {
                 }
             })
             .bordered(&paints, style.border.as_ref())
-            .child(header)
+            .maybe_child((style.header_height > 0.0).then_some(header))
             .child(
                 rect()
                     .expanded()
-                    .padding(Gaps::new(style.body_inset, 0.0, 0.0, 0.0))
                     .on_sized(move |event: Event<SizedEventData>| {
                         body_height.set_if_modified(event.area.height());
+                        controller.set_viewport((event.area.width(), event.area.height()));
                     })
-                    .children(empty_stripes)
-                    .child(body),
+                    .maybe_child(bars.track)
+                    .maybe_child(bars.thumb)
+                    .child(
+                        rect()
+                            .expanded()
+                            .padding(Gaps::new(style.body_inset, bars.reserved, 0.0, 0.0))
+                            .children(empty_stripes)
+                            .child(body),
+                    ),
             );
         interaction.inner_focus_ring(table)
     }

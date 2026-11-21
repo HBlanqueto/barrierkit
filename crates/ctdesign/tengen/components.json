@@ -574,6 +574,34 @@
         }
       }
     },
+    "tab-view": {
+      "strip-height": 24,
+      "strip-inset": 4,
+      "strip-radius": 6,
+      "strip-padding-x": 14.2,
+      "strip-padding-y": 5.2,
+      "page-gap": 5,
+      "small": {"strip-height": 20, "strip-inset": 2, "strip-radius": 5, "strip-padding-x": 12.2, "page-gap": 3},
+      "mini": {"strip-height": 16, "strip-inset": 1, "strip-radius": 4, "strip-padding-x": 10.2, "page-gap": 2},
+      "strip-opacity": [0.075, 0.075, 0.17, 0.175],
+      "pill-inset": 2,
+      "pill-inset-x": 2.5,
+      "pill-radius": 5,
+      "pill-fill": ["#f2f2f2", "#4b4b4b", "#ffffff", "#373737"],
+      "pill-highlight": ["#ffffff", "#6c6c6c", "#ffffff", "#5d5d5d"],
+      "pill-ring": [0.15, 0.2, 0.17, 0.2],
+      "pill-highlight-depth": 0.25,
+      "box-radius": 5,
+      "box-inset-x": 7,
+      "box-inset-far": 10,
+      "box-inset-near": 4,
+      "box-fill-opacity": 0.031,
+      "box-border-opacity": [0.045, 0.124, 0.4, 0.486],
+      "line-border-opacity": [0.25, 0.25, 0.5, 0.51],
+      "left-strip-top": 10,
+      "bezel-inset": [3, 2, 3, 4],
+      "bezel-page-inset": [10, 7, 10, 13]
+    },
     "table": {
       "row-height": 24,
       "header-height": 28,
@@ -594,7 +622,14 @@
       "sort-arrow": 9.6,
       "sort-arrow-stroke": 1.05,
       "sort-arrow-inset": -1.25,
-      "sort-arrow-drop": 0.5
+      "sort-arrow-drop": 0.5,
+      "plain-row-height": 17,
+      "row-size-font": [11, 13, 15],
+      "row-size-icon": [14, 16, 18],
+      "source-list-row-height": [24, 32, 40],
+      "source-list-inset": 10,
+      "icon-box": 17,
+      "icon-gap": 2
     },
     "collection": {
       "tile": 92,
@@ -1118,13 +1153,12 @@
     },
     "scroll-bar": {
       "hide-delay": 800,
-      "thumb": 7,
+      "thumb": 6,
       "inset": 3,
       "min-length": 20,
-      "opacity": 0.45,
+      "opacity": [0.498, 0.551, 0.757, 0.7],
       "track": 17,
-      "track-opacity": 0.05,
-      "always-opacity": [0.495, 0.547],
+      "track-opacity": [0.05, 0.049, 0.149, 0.148],
       "edge-height": 24
     },
     "badge": {

@@ -1,4 +1,4 @@
-use ctdesign::{BODY, CAPTION, Font, HAIRLINE, Rgba, SPACE_1, TABLE};
+use ctdesign::{BODY, CAPTION, ControlSize, Font, HAIRLINE, Rgba, SPACE_1, TABLE};
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 use crate::style::Palette;
@@ -84,6 +84,19 @@ pub struct TableStyle {
     pub sort_arrow: StateValue<ShapeStyle>,
     /// Tengen: `BODY`.
     pub font: Font,
+    /// Tengen, with `icon_spacing`: `TABLE.row_size_icon` of the middle row size, the symbol of an
+    /// icon cell, centered in a `TABLE.icon_box` wide box.
+    pub icon_size: f32,
+    /// Tengen, with `icon_size`: `TABLE.icon_gap` between the icon box and its title.
+    pub icon_spacing: f32,
+    /// Tengen: `None`; `source_list` takes `TABLE.source_list_row_height`, the height of a row by
+    /// small, medium and large row size.
+    pub row_heights: Option<[f32; 3]>,
+    /// Tengen: `Role(SecondaryLabel)`, the icon of a row; `Accent` in `source_list`.
+    pub icon: StateValue<ShapeStyle>,
+    /// Tengen: `Role(SecondaryLabel)`, `Role(OnSelectedContent)` while the table has focus;
+    /// `Accent` in `source_list`.
+    pub selected_icon: StateValue<ShapeStyle>,
 }
 
 fn stripe() -> StateValue<ShapeStyle> {
@@ -144,11 +157,78 @@ impl ControlStyle for TableStyle {
             sort_arrow_offset: (TABLE.sort_arrow_inset, TABLE.sort_arrow_drop),
             sort_arrow: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             font: BODY,
+            icon_size: TABLE.row_size_icon[1],
+            icon_spacing: TABLE.icon_gap,
+            row_heights: None,
+            icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
+            selected_icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
+                .focused(ShapeStyle::Role(Role::OnSelectedContent)),
         }
     }
 }
 
 impl TableStyle {
+    /// `NSTableView.Style.fullWidth`: rows and stripes from edge to edge, with square selection.
+    pub fn full_width() -> Self {
+        Self {
+            row_inset: 0.0,
+            body_inset: 0.0,
+            row_radius: 0.0,
+            ..Self::tengen()
+        }
+    }
+
+    /// `NSTableView.Style.plain`: `full_width` with 17 high rows, the cell 8 in and no extra inset
+    /// in later columns.
+    pub fn plain() -> Self {
+        Self {
+            row_height: TABLE.plain_row_height,
+            padding_x: TABLE.plain_padding_x,
+            column_shift: 0.0,
+            ..Self::full_width()
+        }
+    }
+
+    /// `NSTableView.Style.sourceList`: no header, the rows 10 in from each side and from the top, and
+    /// the icons in the accent. The sidebar material behind it is the compositor's.
+    pub fn source_list() -> Self {
+        Self {
+            header_height: 0.0,
+            header_border: None,
+            header_separator: None,
+            body_inset: TABLE.source_list_inset,
+            row_height: TABLE.source_list_row_height[1],
+            row_heights: Some(TABLE.source_list_row_height),
+            alternate_row_background: StateValue::new(ShapeStyle::Clear),
+            icon: StateValue::new(ShapeStyle::Accent),
+            selected_icon: StateValue::new(ShapeStyle::Accent)
+                .focused(ShapeStyle::Role(Role::OnSelectedContent)),
+            ..Self::tengen()
+        }
+    }
+
+    /// `NSTableView.rowSizeStyle`: the font and the icon grow; only a source list changes its rows'
+    /// height. `Small`, `Regular` and `Large` are small, medium and large; the other sizes take the
+    /// nearest.
+    pub fn row_size(self, size: ControlSize) -> Self {
+        let index = match size {
+            ControlSize::Mini | ControlSize::Small => 0,
+            ControlSize::Regular => 1,
+            ControlSize::Large | ControlSize::ExtraLarge => 2,
+        };
+        Self {
+            font: Font {
+                size: TABLE.row_size_font[index] as u32,
+                ..self.font
+            },
+            icon_size: TABLE.row_size_icon[index],
+            row_height: self
+                .row_heights
+                .map_or(self.row_height, |heights| heights[index]),
+            ..self
+        }
+    }
+
     pub fn striped(self) -> Self {
         Self {
             alternate_row_background: stripe(),

@@ -1101,15 +1101,16 @@ background, for `reduce_transparency`.
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |
 | `SPLIT_PANES` | `SplitPanesMetrics` | `views::split_panes`, `styles` (`SplitPanesStyle`) |
 | `FLOATING_PANE` | `FloatingPaneMetrics` | `views::floating_pane`, `styles` (`FloatingPaneStyle`) |
-| `TABLE` | `TableMetrics` | `views::table` |
+| `TABLE` | `TableMetrics` | `views::table`, `styles` (`TableStyle`); `plain_row_height`, `row_size_font`, `row_size_icon`, `source_list_row_height`, `icon_box` and `icon_gap` are the classic `NSTableView` styles |
 | `COLLECTION` | `CollectionMetrics` | `views::collection` |
 | `LIST_GROUP` | `ListGroupMetrics` | `views::form` |
 | `GROUP_BOX` | `GroupBoxMetrics` | `views::group` |
 | `COLOR_PICKER` | `ColorPickerMetrics` | `color_picker`, `styles` (`ColorPickerStyle`) |
 | `CIRCULAR_SLIDER` | `CircularSliderMetrics` | `controls`, `styles` (`CircularSliderStyle`) |
 | `DISCLOSURE` | `DisclosureMetrics` | `views::group`, `views::tree`, `font_panel`, `styles` (`RuleEditorStyle`) |
+| `TAB_VIEW` | `TabViewMetrics` | `views::tabs`, `styles` (`TabViewStyle`); the arrays hold light, dark, then both with Increase Contrast |
 | `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `views::tabs` |
-| `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views, `styles` (`ScrollViewStyle`) |
+| `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views, tables and outlines, `styles` (`ScrollViewStyle`); `opacity` and `track_opacity` hold light, dark, then both with Increase Contrast |
 | `SETTINGS` | `SettingsMetrics` | `patterns::settings`, `sidebar`, `styles` |
 | `FONT_PANEL` | `FontPanelMetrics` | `font_panel` |
 | `MEDIA` | `MediaMetrics` | `media`, `styles`; `button_font_weight` is the weight of the `MediaButton` label |

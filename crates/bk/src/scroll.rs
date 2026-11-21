@@ -76,6 +76,18 @@ pub fn revealed_offset(offset: i32, top: f32, bottom: f32, viewport: f32) -> i32
 }
 
 impl ScrollController {
+    pub(crate) fn raw(self) -> Inner {
+        self.inner
+    }
+
+    pub(crate) fn set_viewport(mut self, size: (f32, f32)) {
+        self.viewport.set_if_modified(size);
+    }
+
+    pub(crate) fn set_content(mut self, size: (f32, f32)) {
+        self.content.set_if_modified(size);
+    }
+
     pub fn scroll_to_x(&mut self, to: i32) -> bool {
         self.inner.scroll_to_x(to)
     }
@@ -281,18 +293,110 @@ fn edge_fade(style: &ScrollViewStyle, edge: FadedEdge) -> Rect {
     }
 }
 
+pub(crate) struct ScrollBarParts {
+    pub(crate) reserved: f32,
+    pub(crate) track: Option<Rect>,
+    pub(crate) thumb: Option<Rect>,
+}
+
+// The bar of a scroll view: the legacy one that is always shown beside the content and the overlay one that
+// fades in while scrolling. A view that draws its own content (a virtual table) takes it from here too.
+pub(crate) fn use_scroll_bar(
+    controller: ScrollController,
+    horizontal: bool,
+    enabled: bool,
+    style: &ScrollViewStyle,
+) -> ScrollBarParts {
+    let paints = Paints::current(ControlState::default(), style.effect);
+    let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
+    let resolved = crate::theme::resolved();
+    let always = match resolved.scroll_bars {
+        ScrollBars::Always => true,
+        ScrollBars::WhenScrolling => false,
+        ScrollBars::Automatic => SCROLLED_WITH_A_MOUSE.load(Ordering::Relaxed),
+    };
+    let (viewport, content) = (controller.viewport, controller.content);
+    let (scrolled_x, scrolled_y): (i32, i32) = controller.into();
+    let scrolled = if horizontal { scrolled_x } else { scrolled_y };
+    let along = move |(width, height): (f32, f32)| if horizontal { width } else { height };
+    let mut shown_at = use_state(|| scrolled);
+    let mut scrolls = use_state(|| 0u32);
+    let mut scrolling = use_state(|| false);
+    if *shown_at.peek() != scrolled {
+        shown_at.set(scrolled);
+        let scroll = *scrolls.peek() + 1;
+        scrolls.set(scroll);
+        scrolling.set(true);
+        if let Some(timers) = try_consume_root_context::<Timers>() {
+            timers.after(Duration::from_millis(style.hide_delay_ms), move || {
+                if scrolls.try_peek().is_some_and(|last| *last == scroll) {
+                    let mut scrolling = scrolling;
+                    scrolling.set(false);
+                }
+            });
+        }
+    }
+    let fade =
+        crate::animation::use_animated(f32::from(u8::from(*scrolling.read())), style.animation);
+    let visibility = if always { 1.0 } else { fade };
+    let (breadth, opacity, edge) = if always {
+        (style.track_width, style.thumb_opacity, style.inset)
+    } else {
+        (style.thumb_width, style.thumb_opacity, 0.0)
+    };
+    let track_length = along(*viewport.read()) - 2.0 * edge;
+    let bar = thumb(
+        track_length,
+        along(*content.read()) - 2.0 * edge,
+        scrolled as f32,
+        style.min_thumb_length,
+    )
+    .filter(|_| enabled && visibility > 0.0);
+    let reserved = if always && bar.is_some() {
+        style.track_width + 2.0 * style.inset
+    } else {
+        0.0
+    };
+    let track = bar.filter(|_| always).map(|thumb| {
+        let click = resolved.scroll_bar_click;
+        let (shown, whole) = (along(*viewport.peek()), along(*content.peek()));
+        let mut inner = controller.inner;
+        bar_rect(style, horizontal, edge, track_length, breadth)
+            .background(color(Rgba {
+                a: style.track_opacity,
+                ..ink(&style.track)
+            }))
+            .on_mouse_down(move |event: Event<MouseEventData>| {
+                event.stop_propagation();
+                let at = if horizontal {
+                    event.element_location.x
+                } else {
+                    event.element_location.y
+                } as f32;
+                let next = track_click(click, at, thumb, track_length, scrolled, shown, whole);
+                if horizontal {
+                    inner.scroll_to_x(next);
+                } else {
+                    inner.scroll_to_y(next);
+                }
+            })
+    });
+    let thumb = bar.map(|(offset, length)| {
+        bar_rect(style, horizontal, edge + offset, length, breadth).background(color(Rgba {
+            a: opacity * visibility,
+            ..ink(&style.thumb)
+        }))
+    });
+    ScrollBarParts {
+        reserved,
+        track,
+        thumb,
+    }
+}
+
 impl Component for ScrollView {
     fn render(&self) -> impl IntoElement {
         let style: ScrollViewStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
-        let ink =
-            |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
-        let resolved = crate::theme::resolved();
-        let always = match resolved.scroll_bars {
-            ScrollBars::Always => true,
-            ScrollBars::WhenScrolling => false,
-            ScrollBars::Automatic => SCROLLED_WITH_A_MOUSE.load(Ordering::Relaxed),
-        };
         let own = use_scroll_controller();
         let controller = self.controller.unwrap_or(own);
         let horizontal = self.direction == Direction::Horizontal;
@@ -301,44 +405,8 @@ impl Component for ScrollView {
         let scrolled = if horizontal { scrolled_x } else { scrolled_y };
         let along = move |(width, height): (f32, f32)| if horizontal { width } else { height };
         let size = |area: Area| (area.width(), area.height());
-        let mut shown_at = use_state(|| scrolled);
-        let mut scrolls = use_state(|| 0u32);
-        let mut scrolling = use_state(|| false);
-        if *shown_at.peek() != scrolled {
-            shown_at.set(scrolled);
-            let scroll = *scrolls.peek() + 1;
-            scrolls.set(scroll);
-            scrolling.set(true);
-            if let Some(timers) = try_consume_root_context::<Timers>() {
-                timers.after(Duration::from_millis(style.hide_delay_ms), move || {
-                    if scrolls.try_peek().is_some_and(|last| *last == scroll) {
-                        let mut scrolling = scrolling;
-                        scrolling.set(false);
-                    }
-                });
-            }
-        }
-        let fade =
-            crate::animation::use_animated(f32::from(u8::from(*scrolling.read())), style.animation);
-        let visibility = if always { 1.0 } else { fade };
-        let (breadth, opacity, edge) = if always {
-            (style.track_width, style.always_thumb_opacity, style.inset)
-        } else {
-            (style.thumb_width, style.thumb_opacity, 0.0)
-        };
-        let track_length = along(*viewport.read()) - 2.0 * edge;
-        let bar = thumb(
-            track_length,
-            along(*content.read()) - 2.0 * edge,
-            scrolled as f32,
-            style.min_thumb_length,
-        )
-        .filter(|_| self.scroll_bar && visibility > 0.0);
-        let reserved = if always && bar.is_some() {
-            style.track_width + 2.0 * style.inset
-        } else {
-            0.0
-        };
+        let bars = use_scroll_bar(controller, horizontal, self.scroll_bar, &style);
+        let reserved = bars.reserved;
         rect()
             .width(self.width.clone())
             .height(self.height.clone())
@@ -378,44 +446,16 @@ impl Component for ScrollView {
                     .then(|| edge_fade(&style, FadedEdge::Right)),
             )
             .maybe_child(self.top_line.then(|| {
+                let paints = Paints::current(ControlState::default(), style.effect);
                 Divider::new()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .layer(THUMB_LAYER)
-                    .background(color(ink(&style.top_line)))
+                    .background(color(
+                        paints.color(style.top_line.resolve(ControlState::default())),
+                    ))
             }))
-            .maybe_child(bar.filter(|_| always).map(|thumb| {
-                let click = resolved.scroll_bar_click;
-                let (shown, whole) = (along(*viewport.peek()), along(*content.peek()));
-                let mut inner = controller.inner;
-                bar_rect(&style, horizontal, edge, track_length, breadth)
-                    .background(color(Rgba {
-                        a: style.track_opacity,
-                        ..ink(&style.track)
-                    }))
-                    .on_mouse_down(move |event: Event<MouseEventData>| {
-                        event.stop_propagation();
-                        let at = if horizontal {
-                            event.element_location.x
-                        } else {
-                            event.element_location.y
-                        } as f32;
-                        let next =
-                            track_click(click, at, thumb, track_length, scrolled, shown, whole);
-                        if horizontal {
-                            inner.scroll_to_x(next);
-                        } else {
-                            inner.scroll_to_y(next);
-                        }
-                    })
-            }))
-            .maybe_child(bar.map(|(offset, length)| {
-                bar_rect(&style, horizontal, edge + offset, length, breadth).background(color(
-                    Rgba {
-                        a: opacity * visibility,
-                        ..ink(&style.thumb)
-                    },
-                ))
-            }))
+            .maybe_child(bars.track)
+            .maybe_child(bars.thumb)
     }
 
     fn render_key(&self) -> DiffKey {

@@ -159,6 +159,7 @@ pub struct OutlineView {
     label: &'static str,
     nodes: Vec<TreeNode>,
     selected: Vec<Vec<usize>>,
+    scroll_bar: bool,
     on_select: Option<Callback<Vec<Vec<usize>>, ()>>,
     style: Theme,
 }
@@ -169,6 +170,7 @@ impl OutlineView {
             label,
             nodes,
             selected: Vec::new(),
+            scroll_bar: true,
             on_select: None,
             style: Theme::tengen(),
         }
@@ -184,6 +186,11 @@ impl OutlineView {
 
     pub fn selected(mut self, paths: Vec<Vec<usize>>) -> Self {
         self.selected = paths;
+        self
+    }
+
+    pub fn scroll_bar(mut self, shown: bool) -> Self {
+        self.scroll_bar = shown;
         self
     }
 
@@ -310,12 +317,15 @@ impl Component for OutlineView {
             .a11y_alt(self.label)
             .expanded()
             .child(
-                ScrollView::new().expanded().child(
-                    rect()
-                        .width(Size::fill())
-                        .padding(Gaps::new(style.inset, 0.0, 0.0, 0.0))
-                        .children(items),
-                ),
+                ScrollView::new()
+                    .scroll_bar(self.scroll_bar)
+                    .expanded()
+                    .child(
+                        rect()
+                            .width(Size::fill())
+                            .padding(Gaps::new(style.inset, 0.0, 0.0, 0.0))
+                            .children(items),
+                    ),
             )
     }
 }

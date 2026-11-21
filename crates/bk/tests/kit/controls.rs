@@ -19,7 +19,7 @@ use bk::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use bk::popup_button::PopUpButton;
 use bk::progress::{ProgressRing, ProgressView, Spinner};
 use bk::sidebar::SidebarAccount;
-use bk::styles::ButtonStyle;
+use bk::styles::{ButtonStyle, TabViewStyle};
 use bk::symbol::Symbol;
 use bk::theme;
 use bk::views::collection::CollectionView;
@@ -78,6 +78,7 @@ fn cases() -> Vec<Control> {
         ("popup-button-icon", popup_button_icon),
         ("form", form),
         ("tab-view", tab_view),
+        ("tab-view-top", tab_view_top),
         ("table", table),
         ("collection", collection),
         ("empty-state", empty),
@@ -289,6 +290,19 @@ fn tab_view() -> Element {
     TabView::new("Preferencias")
         .tab(Symbol::MagnifyingGlass, "Buscar", label().text("Buscar"))
         .tab(Symbol::SpeakerWave, "Sonido", label().text("Sonido"))
+        .style(|_| TabViewStyle::toolbar())
+        .into_element()
+}
+
+fn tab_view_top() -> Element {
+    rect()
+        .width(Size::px(260.0))
+        .height(Size::px(120.0))
+        .child(
+            TabView::new("Preferencias")
+                .tab(Symbol::MagnifyingGlass, "Buscar", label().text("Buscar"))
+                .tab(Symbol::SpeakerWave, "Sonido", label().text("Sonido")),
+        )
         .into_element()
 }
 

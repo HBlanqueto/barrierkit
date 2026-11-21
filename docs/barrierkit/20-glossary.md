@@ -50,6 +50,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::Theme::slider` | `styles::Theme::style` (generic: `\|s: SliderStyle\|`) | 2026-11-07 |
 | `modifiers::StyleModifiers::slider_style` | `modifiers::StyleModifiers::control_style` (generic) | 2026-11-07 |
 | enum `controls::ButtonStyle` | struct `styles::ButtonStyle` | 2026-11-07 |
+| `TabView` with the toolbar tabs as its only look (`TabViewStyle::tengen()`) | `TabView` draws the classic strip (`TabType::Top`); the toolbar tabs are `TabViewStyle::toolbar()` | 2026-11-20 |
+| `ctdesign::SCROLL_BAR.always_opacity`, `SCROLL_BAR.opacity` (one value) | `SCROLL_BAR.opacity` and `SCROLL_BAR.track_opacity`, four values each (light, dark, then both with Increase Contrast); `ScrollViewStyle.always_thumb_opacity` is gone | 2026-11-20 |
 | `controls::Button::style(ButtonStyle)` | `controls::Button::style(\|s\| ..)`, the closure of every control | 2026-11-07 |
 | `ButtonStyle::Secondary` | `ButtonStyle::tengen()`, the default (SwiftUI `.bordered`) | 2026-11-07 |
 | `ButtonStyle::Primary` | `ButtonStyle::bordered_prominent` | 2026-11-07 |
@@ -334,6 +336,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::table::Table::style` | method | `tableStyle(_:)` | ≈ `NSTableView.style` | Changes the style of one table | [Styles](../../crates/bk/src/styles/table.rs) |
 | `styles::TableStyle::inset_list`, `plain_list`, `bordered_list` | fn | `.listStyle(.inset)`, `.plain`, `.bordered` | `NSTableView.Style.inset`, `.plain` | The styles of `List`: headerless rows with separators | [11](11-views.md#list) |
 | `styles::TableStyle::striped` | method | `.inset(alternatesRowBackgrounds: true)` | `NSTableView.usesAlternatingRowBackgroundColors` | Alternating rows without separators | [11](11-views.md#list) |
+| `styles::TableStyle::full_width`, `plain`, `source_list` | fn | — | `NSTableView.Style.fullWidth`, `.plain`, `.sourceList` | The classic styles of `Table`: edge to edge rows, 17 high rows, a headerless source list | [11](11-views.md#table) |
+| `styles::TableStyle::row_size` | method | `controlSize(_:)` | `NSTableView.rowSizeStyle` | Font and icon of small, medium and large rows; the rows of a source list | [11](11-views.md#table) |
+| `styles::OutlineViewStyle::classic`, `full_width` | fn | — | `NSOutlineView`, `NSTableView.Style.fullWidth` | Gray icons without hairlines; the same with square rows from edge to edge | [11](11-views.md#outlineview) |
+| `styles::TabType` | enum | — | `NSTabView.TabType` | Where the tabs are: `Top`, `Bottom`, `Left`, `Toolbar`, `NoTabsBezelBorder`, `NoTabsLineBorder`, `NoTabsNoBorder` | [11](11-views.md#tabview) |
+| `styles::TabViewStyle::toolbar` | fn | — | `NSTabViewController.tabStyle = .toolbar` | The icon-over-title tabs of a settings window | [11](11-views.md#tabview) |
 | `views::collection::CollectionView::style` | method | — | — | Changes the style of one collection view | [Styles](../../crates/bk/src/styles/table.rs) |
 | `views::tree::OutlineView::style` | method | ≈ `listStyle(_:)` | — | Changes the style of one outline view | [Styles](../../crates/bk/src/styles/table.rs) |
 | `views::tree::Browser::style` | method | — | — | Changes the style of one browser | [Styles](../../crates/bk/src/styles/table.rs) |
@@ -812,7 +819,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::TEXT_FIELD`, `TOKEN_FIELD`, `SPELLING`, `COMBO_BOX`, `PATH_CONTROL`, `DATE_PICKER`, `IMAGE_WELL` | constant | — | — | Metrics of fields and pickers | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::LEVEL_INDICATOR`, `GAUGE`, `PROGRESS`, `BADGE`, `FOCUS_RING`, `SYMBOL`, `ICON_STYLE`, `ICON_PLATE`, `ICON_PLATE_LOBE_DARK`, `ICON_PLATE_LOBE_LIGHT`, `ICON_PLATE_GRAPHITE`, `ICON_PLATE_SILVER`, `ICON_PLATE_CLEAR`, `ICON_PLATE_CLEAR_DARK`, `ICON_PLATE_TINTED`, `ICON_PLATE_TINTED_DARK`, `ICON_PLATE_GLASS`, `ICON_PLATE_GLASS_DARK`, `ICON_PLATE_GLASS_DARK_ON_DARK`, `ICON_LOGO_CLEAR`, `ICON_LOGO_CLEAR_DARK`, `ICON_LOGO_TINTED`, `ICON_LOGO_TINTED_DARK`, `TOOLTIP`, `POPOVER`, `DRAG` | constant | — | — | Metrics of indicators, focus ring, symbols, icon styles, tooltips, popovers, drag; `ICON_PLATE_GLASS`, `_DARK` and `_DARK_ON_DARK` (dark icons on a dark Dock) are the lightness a clear plate drawn as glass moves toward, how far, its chroma scale and its light lift | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::MENU_POPOVER`, `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON`, `MENU_SEPARATOR_INK_MIX` | constant | — | — | Menu and pop-up menu metrics and timing | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `SCROLL_BAR` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
+| `ctdesign::SIDEBAR`, `TOOLGROUP`, `SPLIT_VIEW`, `SPLIT_PANES`, `FLOATING_PANE`, `TABLE`, `COLLECTION`, `LIST_GROUP`, `GROUP_BOX`, `DISCLOSURE`, `TOOLBAR_TABS`, `TAB_VIEW`, `SCROLL_BAR` | constant | — | — | Metrics of sidebars, split views, lists, tables and groups | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::SETTINGS`, `FONT_PANEL`, `MEDIA`, `BACKDROP`, `BACKDROP_SCENES` | constant | — | — | Metrics of settings, font panel, media, backdrops | [4](04-appearance-and-tokens.md#view-metrics) |
 | `ctdesign::MATERIAL` | constant | `Material` | `NSVisualEffectView.Material` | Opacity and blur of the five material thicknesses | [4](04-appearance-and-tokens.md#materials) |
 | `ctdesign::MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_TINT_SPREAD`, `MENUBAR_DARK_INK_ABOVE`, `MENUBAR_CLASSIC_ALPHA`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_LIGHT_SELECTION`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_OVER_DARK_SELECTION`, `MENUBAR_FONT_SIZE`, `MENUBAR_FONT_SIZE_LARGE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED`, `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | constant | — | — | Shell menu bar sizes; focus-mode bar colors | [4](04-appearance-and-tokens.md#shell) |
@@ -1156,6 +1163,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|
 | `views::list::List` | struct | `List` | `NSTableView` without header | One column of text rows with separators and selection; `inset`, `plain` and `bordered` styles | [11](11-views.md#list) |
 | `views::table::Table` | struct | `Table` | `NSTableView` | Text rows in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
+| `views::table::Table::icons` | method | `Label` in a `TableColumn` | `NSTableCellView.imageView` | One symbol per row before the title of the first column | [11](11-views.md#table) |
+| `views::table::Table::scroll_bar`, `views::list::List::scroll_bar`, `views::tree::OutlineView::scroll_bar` | method | `scrollIndicators(_:)` | `NSScrollView.hasVerticalScroller` | Shows or hides the scroll bar | [11](11-views.md#table) |
 | `views::table::SortOrder` | struct | — | ≈ `NSTableView.sortDescriptors` | The sorted column index and direction; one column, not a list | [11](11-views.md#sortorder) |
 | `views::table::next_sort` | fn | — | — | The order a header click asks for: flip or start ascending | [11](11-views.md#table-helpers) |
 | `views::table::shown_columns` | fn | — | — | Column indices not hidden | [11](11-views.md#table-helpers) |
@@ -1175,7 +1184,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `views::tabs::TabView` | struct | `TabView` | `NSTabView` | Pages chosen from a strip of icon-over-title tabs | [11](11-views.md#tabview) |
+| `views::tabs::TabView` | struct | `TabView` | `NSTabView` | Pages chosen from a strip of tabs on the top, bottom or left of a box, or icon-over-title tabs | [11](11-views.md#tabview) |
+| `views::tabs::TabView::size` | method | `controlSize(_:)` | `NSTabView.controlSize` | Small and mini strips | [11](11-views.md#tabview) |
 | `views::window_tabs::WindowTabs` | struct | — | ≈ `NSWindowTabGroup` | The tab bar of a tabbed window; the app keeps each tab's content | [11](11-views.md#windowtabs) |
 | `views::split_panes::SplitPanes` | struct | `HSplitView`, `VSplitView` | `NSSplitView` | Panes in a row or column with draggable dividers; controlled ratios | [11](11-views.md#splitpanes) |
 | `views::floating_pane::FloatingPane` | struct | — | ≈ `NSPanel` | A movable, resizable pane drawn inside the window, not a separate window | [11](11-views.md#floatingpane) |
