@@ -1,5 +1,6 @@
 use ctdesign::{
-    BODY, Font, SEARCH_CLEAR_DARK, SEARCH_CLEAR_DARK_TINT, SEARCH_CLEAR_LIGHT, SETTINGS, TEXT_FIELD,
+    BODY, ControlSize, Font, SEARCH_CLEAR_DARK, SEARCH_CLEAR_DARK_TINT, SEARCH_CLEAR_LIGHT,
+    SEARCH_FIELD, SETTINGS, TEXT_FIELD,
 };
 
 use super::{
@@ -53,6 +54,32 @@ pub struct SearchFieldStyle {
     pub font: Font,
 }
 
+impl SearchFieldStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = match size {
+            ControlSize::Mini => SEARCH_FIELD.mini,
+            ControlSize::Small => SEARCH_FIELD.small,
+            ControlSize::Regular => return self,
+            ControlSize::Large => SEARCH_FIELD.large,
+            ControlSize::ExtraLarge => SEARCH_FIELD.xl,
+        };
+        Self {
+            height: row.height,
+            icon_size: row.icon,
+            glyph: (row.glyph, row.glyph_stroke),
+            glyph_offset: (row.glyph_dx, row.glyph_dy),
+            clear_size: (row.clear, row.clear_glyph, row.clear_glyph_stroke),
+            clear_offset: (row.clear_dx, row.clear_dy),
+            font: Font {
+                size: row.font_size,
+                line_height: row.line_height,
+                ..self.font
+            },
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for SearchFieldStyle {
     fn tengen() -> Self {
         Self {
@@ -66,9 +93,11 @@ impl ControlStyle for SearchFieldStyle {
             background: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
             border: StateValue::new(ShapeStyle::Role(Role::ControlBorder))
                 .focused(ShapeStyle::Accent),
-            text: StateValue::new(ShapeStyle::Role(Role::Label)),
+            text: StateValue::new(ShapeStyle::Role(Role::Label))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             placeholder: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
-            icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
+            icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             clear_icon: StateValue::new(ShapeStyle::Role(Role::TextBackground)),
             clear_size: (
                 SETTINGS.search_clear,

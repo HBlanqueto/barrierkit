@@ -2,12 +2,13 @@ use std::{fs, path::PathBuf};
 
 use bk::color_picker::ColorPicker;
 use bk::combo_box::ComboBox;
-use bk::controls::{SecureField, TextField};
+use bk::controls::{ControlSize, SearchField, SecureField, TextField};
 use bk::date::{CivilDate, CivilDateTime};
 use bk::date_picker::{DateElements, DatePicker};
 use bk::image_well::ImageWell;
 use bk::password::PasswordField;
 use bk::path_control::PathControl;
+use bk::styles::TextFieldStyle;
 use bk::symbol::Symbol;
 use bk::text_editor::TextEditor;
 use bk::token_field::TokenField;
@@ -34,13 +35,102 @@ fn date_time() -> CivilDateTime {
     CivilDateTime::new(CivilDate::new(2027, 1, 15), 10, 7)
 }
 
+macro_rules! sized {
+    ($prefix:literal, $build:expr) => {
+        [
+            (
+                concat!($prefix, "-mini"),
+                (|| $build(ControlSize::Mini)) as Builder,
+            ),
+            (
+                concat!($prefix, "-small"),
+                (|| $build(ControlSize::Small)) as Builder,
+            ),
+            (
+                concat!($prefix, "-regular"),
+                (|| $build(ControlSize::Regular)) as Builder,
+            ),
+            (
+                concat!($prefix, "-large"),
+                (|| $build(ControlSize::Large)) as Builder,
+            ),
+            (
+                concat!($prefix, "-xl"),
+                (|| $build(ControlSize::ExtraLarge)) as Builder,
+            ),
+        ]
+    };
+}
+
 fn texts() -> Vec<(&'static str, Builder)> {
     let field = || {
         TextField::new(state_string(), "Placeholder")
             .width(Size::px(140.0))
             .into_element()
     };
-    vec![
+    let mut all: Vec<(&'static str, Builder)> = Vec::new();
+    all.extend(sized!("tf", |size| {
+        TextField::new(use_state(|| "Query".to_string()), "Placeholder")
+            .width(Size::px(140.0))
+            .size(size)
+            .into_element()
+    }));
+    all.extend(sized!("search-text", |size| {
+        SearchField::new(use_state(|| "Query".to_string()), "Search")
+            .width(Size::px(160.0))
+            .size(size)
+            .into_element()
+    }));
+    all.extend(sized!("search", |size| {
+        SearchField::new(state_string(), "Search")
+            .width(Size::px(160.0))
+            .size(size)
+            .into_element()
+    }));
+    all.extend(sized!("combo", |size| {
+        ComboBox::new(use_state(|| "Combo".to_string()), "Combo")
+            .item("One")
+            .width(Size::px(140.0))
+            .size(size)
+            .into_element()
+    }));
+    all.push((
+        "tf-plain",
+        (|| {
+            TextField::new(use_state(|| "Plain".to_string()), "Placeholder")
+                .width(Size::px(140.0))
+                .style(TextFieldStyle::plain)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "tf-disabled-filled",
+        (|| {
+            TextField::new(use_state(|| "Query".to_string()), "Placeholder")
+                .width(Size::px(140.0))
+                .disabled(true)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "tf-disabled-rounded",
+        (|| {
+            TextField::new(use_state(|| "Rounded".to_string()), "Placeholder")
+                .width(Size::px(140.0))
+                .disabled(true)
+                .into_element()
+        }) as Builder,
+    ));
+    all.push((
+        "search-disabled-text",
+        (|| {
+            SearchField::new(use_state(|| "Query".to_string()), "Search")
+                .width(Size::px(160.0))
+                .disabled(true)
+                .into_element()
+        }) as Builder,
+    ));
+    all.extend::<Vec<(&'static str, Builder)>>(vec![
         ("tf-empty", field),
         ("tf-filled", || {
             TextField::new(use_state(|| "Query".to_string()), "Placeholder")
@@ -68,7 +158,7 @@ fn texts() -> Vec<(&'static str, Builder)> {
                 .into_element()
         }),
         ("search-text", || {
-            bk::controls::SearchField::new(use_state(|| "Query".to_string()), "Search")
+            SearchField::new(use_state(|| "Query".to_string()), "Search")
                 .width(Size::px(160.0))
                 .into_element()
         }),
@@ -119,7 +209,8 @@ fn texts() -> Vec<(&'static str, Builder)> {
         ("imagewell-gray-empty", || {
             ImageWell::new("Image", use_state(|| None::<PathBuf>)).into_element()
         }),
-    ]
+    ]);
+    all
 }
 
 fn builders() -> Vec<(&'static str, Builder)> {

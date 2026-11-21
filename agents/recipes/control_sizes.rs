@@ -16,7 +16,8 @@ fn main() -> Result<(), RunError> {
                     HStack::new()
                         .child(Button::new("Save").size(size))
                         .child(Checkbox::new("Remember").size(size))
-                        .child(Switch::new("Wi-Fi").size(size)),
+                        .child(Switch::new("Wi-Fi").size(size))
+                        .child(TextField::new(use_state(String::new), "Name").size(size)),
                 )
             })
         })

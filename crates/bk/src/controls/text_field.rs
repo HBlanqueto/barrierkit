@@ -7,6 +7,7 @@ pub struct SecureField {
     width: Size,
     auto_focus: bool,
     revealed: bool,
+    disabled: bool,
     on_submit: Option<Callback<Zeroizing<String>, ()>>,
     style: Theme,
     key: DiffKey,
@@ -20,6 +21,7 @@ impl SecureField {
             width: Size::fill(),
             auto_focus: false,
             revealed: false,
+            disabled: false,
             on_submit: None,
             style: Theme::tengen(),
             key: DiffKey::None,
@@ -28,6 +30,11 @@ impl SecureField {
 
     pub fn revealed(mut self, revealed: bool) -> Self {
         self.revealed = revealed;
+        self
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
         self
     }
 
@@ -70,7 +77,8 @@ impl Component for SecureField {
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SecureFieldStyle = resolve(&self.style);
-        let state = control_state(interaction, false);
+        let state = control_state(interaction, self.disabled);
+        let disabled = self.disabled;
         let paints = Paints::current(state, style.effect);
         let mut field = self.field;
         let on_submit = self.on_submit.clone();
@@ -104,6 +112,9 @@ impl Component for SecureField {
                 el.border(outer_hairline(paints.color(paint)))
             })
             .on_key_down(move |event: Event<KeyboardEventData>| {
+                if disabled {
+                    return;
+                }
                 let secret = field.write().handle_key(&event.key, event.modifiers);
                 if let Some(secret) = secret {
                     event.prevent_default();
@@ -145,6 +156,7 @@ pub struct TextField {
     width: Size,
     auto_focus: bool,
     autocorrection_disabled: bool,
+    disabled: bool,
     on_submit: Option<Callback<String, ()>>,
     style: Theme,
     key: DiffKey,
@@ -158,10 +170,20 @@ impl TextField {
             width: Size::fill(),
             auto_focus: false,
             autocorrection_disabled: false,
+            disabled: false,
             on_submit: None,
             style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: TextFieldStyle| style.sized(size))
     }
 
     pub fn autocorrection_disabled(mut self, disabled: bool) -> Self {
@@ -205,6 +227,7 @@ impl Component for TextField {
         let state = ControlState {
             hovered: *hovered.read(),
             focused: !matches!(*focus.read(), Focus::Not),
+            disabled: self.disabled,
             ..ControlState::default()
         };
         let paints = Paints::current(state, style.effect);
@@ -218,7 +241,11 @@ impl Component for TextField {
             self.value,
             self.placeholder,
             [
-                ink(&style.background),
+                if self.disabled {
+                    Rgba::TRANSPARENT
+                } else {
+                    ink(&style.background)
+                },
                 Rgba::TRANSPARENT,
                 ink(&style.border),
                 ink(&style.text),
@@ -228,6 +255,7 @@ impl Component for TextField {
             Gaps::new(margin_y, style.padding_x, margin_y, style.padding_x),
         )
         .height(Size::px(style.height))
+        .enabled(!self.disabled)
         .auto_focus(self.auto_focus);
         let input = match self.on_submit.clone() {
             Some(on_submit) => input.on_submit(move |text: String| on_submit.call(text)),
@@ -270,6 +298,9 @@ impl Component for TextField {
                 .width(Size::fill())
                 .corner_radius(radius)
                 .border(outer_hairline(ink(&style.border)))
+                .maybe(self.disabled, |el| {
+                    el.background(color(ink(&style.background)))
+                })
                 .map(paints.blur(&style.background), |el, blur| {
                     el.corner_radius(radius).backdrop_blur(blur)
                 })
@@ -321,6 +352,7 @@ pub struct SearchField {
     on_navigate: Option<Callback<NamedKey, ()>>,
     a11y_id: Option<AccessibilityId>,
     tokens: Option<State<Vec<String>>>,
+    disabled: bool,
     style: Theme,
     key: DiffKey,
 }
@@ -341,9 +373,19 @@ impl SearchField {
             on_navigate: None,
             a11y_id: None,
             tokens: None,
+            disabled: false,
             style: Theme::tengen(),
             key: DiffKey::None,
         }
+    }
+
+    pub fn disabled(mut self, disabled: bool) -> Self {
+        self.disabled = disabled;
+        self
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: SearchFieldStyle| style.sized(size))
     }
 
     pub fn style(
@@ -402,10 +444,12 @@ impl Component for SearchField {
         let state = ControlState {
             hovered: *hovered.read(),
             focused: !matches!(*focus.read(), Focus::Not),
+            disabled: self.disabled,
             ..ControlState::default()
         };
         let paints = Paints::current(state, style.effect);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
+        let disabled = self.disabled;
         let on_focus_change = use_reactive(&self.on_focus_change);
         let mut reported = use_state(|| false);
         use_side_effect(move || {
@@ -438,7 +482,11 @@ impl Component for SearchField {
             value,
             self.placeholder,
             [
-                ink(&style.background),
+                if disabled {
+                    Rgba::TRANSPARENT
+                } else {
+                    ink(&style.background)
+                },
                 Rgba::TRANSPARENT,
                 ink(&style.border),
                 ink(&style.text),
@@ -448,6 +496,7 @@ impl Component for SearchField {
             Gaps::new(margin_y, padding + icon + gap, margin_y, leading),
         )
         .height(Size::px(height))
+        .enabled(!disabled)
         .a11y_id(a11y_id)
         .auto_focus(self.auto_focus);
         let on_navigate = self.on_navigate.clone();
@@ -483,7 +532,7 @@ impl Component for SearchField {
                             .a11y_role(AccessibilityRole::Button)
                             .a11y_alt(text!("clear-search"))
                             .on_pointer_down(move |event: Event<PointerEventData>| {
-                                if event.is_primary() {
+                                if event.is_primary() && !disabled {
                                     value.set(String::new());
                                 }
                             })
@@ -509,6 +558,7 @@ impl Component for SearchField {
             )
             .corner_radius(radius)
             .border(outer_hairline(ink(&style.border)))
+            .maybe(disabled, |el| el.background(color(ink(&style.background))))
             .map(paints.blur(&style.background), |el, blur| {
                 el.corner_radius(radius).backdrop_blur(blur)
             })

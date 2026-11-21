@@ -207,7 +207,11 @@
       "button-radius": "radius.xs",
       "text-gap": 6,
       "chevron": 9.5,
-      "chevron-stroke": 1.5
+      "chevron-stroke": 1.5,
+      "mini": {"height": 16, "font-size": 9, "line-height": 11, "button-width": 16, "button-height": 11, "button-inset-x": 3, "button-radius": 3, "chevron": 8.2, "chevron-stroke": 1.25},
+      "small": {"height": 20, "font-size": 11, "line-height": 14, "button-width": 20, "button-height": 16, "button-inset-x": 3, "button-radius": 4, "chevron": 9.5, "chevron-stroke": 1.5},
+      "large": {"height": 28, "font-size": 13, "line-height": 18, "button-width": 23, "button-height": 21, "button-inset-x": 4, "button-radius": 5, "chevron": 11.4, "chevron-stroke": 1.8},
+      "xl": {"height": 36, "font-size": 13, "line-height": 18, "button-width": 29, "button-height": 27, "button-inset-x": 5, "button-radius": 7, "chevron": 11.4, "chevron-stroke": 1.8}
     },
     "help-link": {
       "glyph": 18.5,
@@ -493,7 +497,17 @@
       "secure-dot": 5.75,
       "secure-pitch": 8,
       "secure-inset": 1.25,
-      "secure-drop": 0.4
+      "secure-drop": 0.4,
+      "plain-height": 16,
+      "plain-padding-x": 2.25,
+      "mini": {"height": 19, "font-size": 9, "line-height": 11},
+      "small": {"height": 22, "font-size": 11, "line-height": 14}
+    },
+    "search-field": {
+      "mini": {"height": 16, "font-size": 9, "line-height": 11, "icon": 8, "glyph": 12.6, "glyph-stroke": 0.85, "glyph-dx": 1.5, "glyph-dy": -0.25, "clear": 9, "clear-glyph": 5.8, "clear-glyph-stroke": 0.75, "clear-dx": 5, "clear-dy": -0.5},
+      "small": {"height": 20, "font-size": 11, "line-height": 14, "icon": 10, "glyph": 15.3, "glyph-stroke": 0.95, "glyph-dx": 1.5, "glyph-dy": -0.3, "clear": 11, "clear-glyph": 7.1, "clear-glyph-stroke": 0.9, "clear-dx": 4, "clear-dy": 0.5},
+      "large": {"height": 28, "font-size": 13, "line-height": 18, "icon": 20, "glyph": 18, "glyph-stroke": 1.1, "glyph-dx": 1.4, "glyph-dy": 0.85, "clear": 13, "clear-glyph": 8.4, "clear-glyph-stroke": 1.07, "clear-dx": 1, "clear-dy": 0.5},
+      "xl": {"height": 36, "font-size": 13, "line-height": 18, "icon": 24, "glyph": 18, "glyph-stroke": 1.1, "glyph-dx": 1.4, "glyph-dy": 0.85, "clear": 13, "clear-glyph": 8.4, "clear-glyph-stroke": 1.07, "clear-dx": -3, "clear-dy": 0.5}
     },
     "segmented": {
       "padding": 0,

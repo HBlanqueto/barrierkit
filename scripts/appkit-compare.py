@@ -30,6 +30,10 @@ CONTROLS = [
 TEXTS = [
     "tf-empty", "tf-filled", "tf-square", "tf-rounded", "secure-empty", "token-empty", "search", "search-text", "combo", "combo-empty",
     "textview", "datepicker", "datetime", "time", "calendar", "path-standard", "imagewell-gray-empty",
+    "tf-mini", "tf-small", "tf-regular", "tf-large", "tf-xl", "tf-disabled-filled", "tf-plain",
+    "search-mini", "search-small", "search-regular", "search-large", "search-xl",
+    "search-text-mini", "search-text-small", "search-text-regular", "search-text-large", "search-text-xl", "search-disabled-text",
+    "combo-mini", "combo-small", "combo-regular", "combo-large", "combo-xl",
 ]
 SIZE_NAMES = ("mini", "small", "regular", "large", "xl")
 BUTTONS = [

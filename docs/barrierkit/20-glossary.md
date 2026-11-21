@@ -548,6 +548,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::PopupSize`, `PopupSizes` | struct | — | — | Arrow glyph, indicator box, trailing padding, gap and pull-down glyph of a pop-up at one size, and the five of them | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::CheckboxSize` | struct | — | — | Box, radius, mark, label gap, label font and radio dot of a checkbox or radio at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SwitchSize` | struct | — | — | Track, knob and inset of a switch at one size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::TextFieldSize` | struct | — | — | Height, font size and line height of a text field at `Mini` or `Small` | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SearchFieldMetrics` | struct | — | — | The `Mini`, `Small`, `Large` and `ExtraLarge` rows of a search field | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::SearchFieldSize` | struct | — | — | Height, font, magnifier and clear button of a search field at one size | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ComboBoxSize` | struct | — | — | Height, font, arrow button and chevron of a combo box at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SliderSize` | struct | — | — | Height, track and knob width of a slider at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::SegmentedSize` | struct | — | — | Height, padding, radius, divider and font of a segmented control at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::StepperSize` | struct | — | — | Arrows box, radius and chevron of a stepper at one size | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -674,6 +678,13 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `controls::Button` | struct | `Button` | `NSButton` | Push button with a text label | [5](05-controls.md#buttons) |
 | `controls::Button::system_image` | fn | `Button(_:systemImage:)` | `NSButton(title:image:target:action:)` | Push button with a symbol before its label | [5](05-controls.md#buttons) |
 | `controls::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | `Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`: the size of a control (`ctdesign::ControlSize`) | [5](05-controls.md#control-size) |
+| `controls::TextField::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height and font of one text field (`Mini` 19, `Small` 22; larger sizes stay 24) | [5](05-controls.md#control-size) |
+| `controls::TextField::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Draws the text in the tertiary label and takes no input | [5](05-controls.md#text-fields) |
+| `controls::SearchField::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height, font, magnifier and clear button of one search field | [5](05-controls.md#control-size) |
+| `controls::SearchField::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Draws the text and magnifier in the tertiary label and takes no input | [5](05-controls.md#text-fields) |
+| `controls::SecureField::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | Draws the dots in the tertiary label and takes no input | [5](05-controls.md#text-fields) |
+| `combo_box::ComboBox::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height, font, arrow button and chevron of one combo box | [5](05-controls.md#control-size) |
+| `styles::TextFieldStyle::plain` | method | `TextFieldStyle.plain` | `NSTextField.isBezeled` `false` | Preset: no bezel or fill, 16 high | [Styles](../../crates/bk/src/styles/text_field.rs) |
 | `controls::Button::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Height, padding, font and corners of one button | [5](05-controls.md#control-size) |
 | `popup_button::PopUpButton::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one pop-up or pull-down button | [5](05-controls.md#control-size) |
 | `controls::SegmentedControl::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one segmented control | [5](05-controls.md#control-size) |

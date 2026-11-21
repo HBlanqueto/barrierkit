@@ -133,8 +133,8 @@ Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_
 ## Control size
 
 `.size(ControlSize)` picks one of five sizes on `Button`, `PopUpButton` (also with
-`pulls_down`), `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider` and
-`Stepper`. `Regular` is the default. The tokens of each size are in `ctdesign`
+`pulls_down`), `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`,
+`Stepper`, `TextField`, `SearchField` and `ComboBox`. `Regular` is the default. The tokens of each size are in `ctdesign`
 (`BUTTON.size(size)`, `CHECKBOX.size(size)`, `SWITCH.size(size)`, `SLIDER.size(size)`,
 `SEGMENTED.size(size)`, `STEPPER.size(size)`), measured on macOS 27.2.1 in
 [`macos-control-metrics.md`](../research/macos-control-metrics.md#control-sizes).
@@ -153,8 +153,18 @@ Checkbox::new("Remember").size(ControlSize::Small)
 Slider::new("Volume").size(ControlSize::Mini)
 ```
 
+| `ControlSize` | Text field | Search field, combo box | Field font |
+|---|---|---|---|
+| `Mini` | 19 | 16 | 9 |
+| `Small` | 22 | 20 | 11 |
+| `Regular` | 24 | 24 | 13 |
+| `Large` | 24 | 28 | 13 |
+| `ExtraLarge` | 24 | 36 | 13 |
+
 The label and the glyphs follow the size: a `Mini` pop-up has a 9 label and 9 high
-arrows, and a checkmark is as large as its box. AppKit lays a switch out at 54 × 24 at every
+arrows, and a checkmark is as large as its box. A search field moves its magnifier and clear
+button, and a combo box its arrow button and chevron, with the size (`SEARCH_FIELD`,
+`COMBO_BOX`). AppKit lays a switch out at 54 × 24 at every
 size and draws it scaled around the center; the kit lays out the size it draws.
 
 ## Compact buttons
@@ -459,13 +469,16 @@ spell checking are in [6](06-text-and-editing.md#edit-menu).
 
 | Item | Module | Build | Options |
 |---|---|---|---|
-| `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.auto_focus(bool)`, `.autocorrection_disabled(bool)`, `.style(\|s\| ..)`, `.on_submit(\|text: String\| ..)` |
-| `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.auto_focus`, `.style`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
-| `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.auto_focus`, `.revealed(bool)` (shows the text, for «Show password»), `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
-| `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)`, `.disabled(bool)`, `.style(\|s\| ..)` |
+| `TextField` | `controls` | `TextField::new(value, placeholder)` | `.width(Size)` (fill), `.size(ControlSize)`, `.disabled(bool)`, `.auto_focus(bool)`, `.autocorrection_disabled(bool)`, `.style(\|s\| ..)` (`TextFieldStyle::plain` for no bezel), `.on_submit(\|text: String\| ..)` |
+| `SearchField` | `controls` | `SearchField::new(value, placeholder)` | `.width`, `.size(ControlSize)`, `.disabled(bool)`, `.auto_focus`, `.style`, `.tokens(State<Vec<String>>)`, `.a11y_id(AccessibilityId)`, `.on_focus_change(\|focused: bool\| ..)`, `.on_navigate(\|key: NamedKey\| ..)` |
+| `SecureField` | `controls` | `SecureField::new(State<PasswordField>, label)` | `.width`, `.disabled(bool)`, `.auto_focus`, `.revealed(bool)` (shows the text, for «Show password»), `.style`, `.on_submit(\|secret: Zeroizing<String>\| ..)` |
+| `ComboBox` | `combo_box` | `ComboBox::new(value, placeholder)` | `.item(text)`, `.width(Size)`, `.size(ControlSize)`, `.disabled(bool)`, `.style(\|s\| ..)` |
 
-- All are 24 tall with a 6 side padding. `SecureField` draws the focus ring; the others turn
-  their border to the accent while focused.
+- All are 24 tall with a 6 side padding at `Regular`. `SecureField` draws the focus ring; the
+  others turn their border to the accent while focused.
+- A disabled field keeps its bezel and turns its text, placeholder and magnifier to the
+  tertiary label, like AppKit's; it takes no focus or input. `TextFieldStyle::plain` is
+  `.textFieldStyle(.plain)`: no bezel or fill, 16 high, the text 2.25 from the edge.
 - `auto_focus(true)` takes the focus when the field mounts.
 - `autocorrection_disabled(true)` turns [spell checking](06-text-and-editing.md#spelling) off,
   for text that is not prose, such as a network name.

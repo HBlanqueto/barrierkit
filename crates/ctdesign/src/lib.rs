@@ -588,6 +588,42 @@ pub struct BackdropMetrics {
     pub clusters: u32,
     pub ink_secondary: f32,
     pub ink_tertiary: f32,
+    pub plain_height: f32,
+    pub plain_padding_x: f32,
+    pub mini: TextFieldSize,
+    pub small: TextFieldSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TextFieldSize {
+    pub height: f32,
+    pub font_size: u32,
+    pub line_height: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SearchFieldMetrics {
+    pub mini: SearchFieldSize,
+    pub small: SearchFieldSize,
+    pub large: SearchFieldSize,
+    pub xl: SearchFieldSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SearchFieldSize {
+    pub height: f32,
+    pub font_size: u32,
+    pub line_height: u32,
+    pub icon: f32,
+    pub glyph: f32,
+    pub glyph_stroke: f32,
+    pub glyph_dx: f32,
+    pub glyph_dy: f32,
+    pub clear: f32,
+    pub clear_glyph: f32,
+    pub clear_glyph_stroke: f32,
+    pub clear_dx: f32,
+    pub clear_dy: f32,
     pub glass: f32,
     pub glass_strong: f32,
     pub sunken: f32,
@@ -934,6 +970,23 @@ pub struct StepperSize {
     pub chevron: f32,
     pub chevron_stroke: f32,
 }
+    pub mini: ComboBoxSize,
+    pub small: ComboBoxSize,
+    pub large: ComboBoxSize,
+    pub xl: ComboBoxSize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ComboBoxSize {
+    pub height: f32,
+    pub font_size: u32,
+    pub line_height: u32,
+    pub button_width: f32,
+    pub button_height: f32,
+    pub button_inset_x: f32,
+    pub button_radius: f32,
+    pub chevron: f32,
+    pub chevron_stroke: f32,
 
 impl StepperMetrics {
     pub fn size(&self, size: ControlSize) -> StepperSize {

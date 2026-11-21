@@ -3,7 +3,9 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps, Position, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed, text_style};
+use crate::controls::{
+    ControlSize, default_pre_key, dimmed, input, outer_hairline, shadowed, text_style,
+};
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
@@ -34,6 +36,10 @@ impl ComboBox {
             disabled: false,
             style: Theme::tengen(),
         }
+    }
+
+    pub fn size(self, size: ControlSize) -> Self {
+        self.style(move |style: ComboBoxStyle| style.sized(size))
     }
 
     pub fn style(mut self, restyle: impl Fn(ComboBoxStyle) -> ComboBoxStyle + 'static) -> Self {
@@ -80,11 +86,11 @@ impl Component for ComboBox {
             ..ControlState::default()
         };
         let paints = Paints::current(button_state, style.effect);
-        let margin_y = (field_style.height - field_style.font.line_height as f32) / 2.0;
+        let margin_y = (style.height - style.font.line_height as f32) / 2.0;
         let trailing = style.button_inset + style.button_size.0 + style.text_gap;
         let radius = field_style.shape.corner_radius(
-            field_style.height,
-            field_style.height,
+            style.height,
+            style.height,
             LayoutDirection::LeftToRight,
         );
         let input = input(
@@ -100,7 +106,7 @@ impl Component for ComboBox {
             radius,
             Gaps::new(margin_y, trailing, margin_y, field_style.padding_x),
         )
-        .height(Size::px(field_style.height))
+        .height(Size::px(style.height))
         .a11y_id(field);
         let open = move || {
             let field = *area.peek();
@@ -163,7 +169,7 @@ impl Component for ComboBox {
                 paints.color(style.chevron.resolve(button_state)),
             ));
         let combo_box = dimmed(
-            text_style(rect().width(self.width.clone()), field_style.font),
+            text_style(rect().width(self.width.clone()), style.font),
             field_style.opacity,
         )
         .corner_radius(radius)

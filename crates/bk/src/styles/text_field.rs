@@ -1,4 +1,4 @@
-use ctdesign::{BODY, Font, TEXT_FIELD};
+use ctdesign::{BODY, ControlSize, Font, TEXT_FIELD};
 
 use super::button::rounded;
 use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
@@ -37,6 +37,35 @@ pub struct TextFieldStyle {
     pub effect: ColorEffect,
     /// Tengen: `BODY`; the text sits (`height` − `line_height`) / 2 from the top.
     pub font: Font,
+}
+
+impl TextFieldStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let row = match size {
+            ControlSize::Mini => TEXT_FIELD.mini,
+            ControlSize::Small => TEXT_FIELD.small,
+            _ => return self,
+        };
+        Self {
+            height: row.height,
+            font: Font {
+                size: row.font_size,
+                line_height: row.line_height,
+                ..self.font
+            },
+            ..self
+        }
+    }
+
+    pub fn plain(self) -> Self {
+        Self {
+            background: StateValue::new(ShapeStyle::Clear),
+            border: StateValue::new(ShapeStyle::Clear),
+            height: TEXT_FIELD.plain_height,
+            padding_x: TEXT_FIELD.plain_padding_x,
+            ..self
+        }
+    }
 }
 
 pub(super) fn field_shape() -> Shape {

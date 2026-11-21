@@ -44,6 +44,7 @@ SEGMENTED SegmentedMetrics components.segmented
 FOCUS_RING FocusRingMetrics components.focus-ring
 BUTTON ButtonMetrics components.button
 TEXT_FIELD TextFieldMetrics components.text-field
+SEARCH_FIELD SearchFieldMetrics components.search-field
 PROGRESS ProgressMetrics components.progress
     indeterminate_ms=indeterminate.duration spinner_ms=spinner.duration
 TOOLTIP TooltipMetrics components.tooltip delay_ms=delay
