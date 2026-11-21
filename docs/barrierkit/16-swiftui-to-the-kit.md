@@ -29,6 +29,7 @@ know the kit's shape.
 | `@FocusState`, `.focused($f)` | `use_a11y()`, `.a11y_id(id)`, `id.request_focus()` | [`focus_state.rs`](../../agents/recipes/focus_state.rs) |
 | `ForEach(items, id: \.id)` | `.children(iter.map(..))` and `.key(id)` | [`for_each.rs`](../../agents/recipes/for_each.rs), [`stopwatch.rs`](../../agents/recipes/stopwatch.rs) |
 | `if` and `else` in a view builder | a Rust `if`, `.maybe_child(opt)`, `.into_element()` | [`if_else.rs`](../../agents/recipes/if_else.rs) |
+| `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../agents/recipes/callback.rs) |
 | `.commands`, `.keyboardShortcut` | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
 | `.onAppear`, `.onDisappear`, `.onChange`, `.task` | [`use_hook`, `use_drop`, `use_side_effect_with_deps`, `use_future`](#effects) | none |
 

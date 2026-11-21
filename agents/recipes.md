@@ -57,7 +57,8 @@ SwiftUI: `struct Greeting: View { let name: String; var body: some View { … } 
 The program is [`recipes/reusable_view.rs`](recipes/reusable_view.rs).
 
 A `Component` must be `PartialEq`: the kit redraws it only when its fields
-change. A handler field is a `Callback`, which never compares equal, so a
+change. A handler field is a `Callback`
+([recipe 22](#22-a-view-that-takes-a-handler)), which never compares equal, so a
 component that holds one redraws with its parent every time; a bare closure
 field does not compile under `#[derive(PartialEq)]`.
 
@@ -231,3 +232,16 @@ The program is [`recipes/actions.rs`](recipes/actions.rs).
    ([chapter 13](../docs/barrierkit/13-app.md#actions-and-shortcuts)).
 2. Every handler of the window receives every id, so the handler compares the
    id with `ADD.id`.
+
+## 22. A view that takes a handler
+
+SwiftUI: `struct SaveBar: View { let onSave: () -> Void; var body: some View { Button("Save", action: onSave) } }`
+
+The program is [`recipes/callback.rs`](recipes/callback.rs).
+
+1. The field is a `Callback<A, R>`. It is `Clone`, and a constructor that takes
+   `impl Into<Callback<A, R>>` accepts any closure.
+2. `call(arg)` runs it. It never compares equal, so `SaveBar` redraws with its
+   parent ([recipe 6](#6-a-reusable-view)).
+3. A closure that writes a `State` takes it by `move`, and the `State` needs
+   `let mut`.

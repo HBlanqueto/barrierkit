@@ -69,6 +69,10 @@ name = "button_label"
 path = "../../agents/recipes/button_label.rs"
 
 [[example]]
+name = "callback"
+path = "../../agents/recipes/callback.rs"
+
+[[example]]
 name = "control_modifiers"
 path = "../../agents/recipes/control_modifiers.rs"
 
