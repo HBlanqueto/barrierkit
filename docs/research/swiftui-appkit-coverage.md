@@ -97,9 +97,9 @@ size and missing at mini has two rows.
 - **sdk:** the SDK header or `.swiftinterface` that lists the API.
 
 The bench of this snapshot has the scenes `controls`, `contrast`, `views`,
-`views-contrast`, `menu`, `toolbar` and `sidebar` (light and dark; it compares
-the kit with the SwiftUI probe `sidebarui`). Sessions that add the scenes
-`texts` and `lists` move rows from `implemented` to `measured`.
+`views-contrast`, `menu`, `toolbar`, `sidebar` and `texts` and `texts-contrast`
+(text, date, color, image and path controls, in light, dark and Increase Contrast; `sidebar`
+compares the kit with the SwiftUI probe `sidebarui`).
 
 ### Where the API lists come from
 
@@ -126,18 +126,18 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 4. Steppers | 2 | 1 | 0 | 0 | 3 |
 | 5. Sliders | 4 | 2 | 0 | 0 | 6 |
 | 6. Gauges, progress and level indicators | 6 | 3 | 0 | 2 | 11 |
-| 7. Text | 5 | 4 | 13 | 10 | 32 |
-| 8. Date and time | 2 | 0 | 1 | 5 | 8 |
-| 9. Color and font panels | 1 | 0 | 2 | 4 | 7 |
-| 10. Image and path control | 0 | 3 | 1 | 0 | 4 |
+| 7. Text | 7 | 8 | 11 | 6 | 32 |
+| 8. Date and time | 3 | 0 | 1 | 4 | 8 |
+| 9. Color and font panels | 2 | 0 | 2 | 3 | 7 |
+| 10. Image and path control | 0 | 2 | 2 | 0 | 4 |
 | 11. Control sizes | 2 | 0 | 0 | 0 | 2 |
 | 12. Containers and navigation | 4 | 10 | 9 | 8 | 31 |
 | 13. Presentation | 0 | 6 | 6 | 2 | 14 |
-| 14. Windows and chrome | 0 | 6 | 11 | 11 | 28 |
+| 14. Windows and chrome | 1 | 6 | 10 | 11 | 28 |
 | 15. Materials and glass | 0 | 2 | 4 | 0 | 6 |
 | 16. Symbols | 0 | 0 | 5 | 1 | 6 |
 | 17. Accessibility | 1 | 2 | 9 | 1 | 13 |
-| **All** | 52 | 45 | 73 | 48 | 218 |
+| **All** | 57 | 48 | 71 | 42 | 218 |
 
 To recount after a change, run this from the repository root:
 
@@ -264,19 +264,19 @@ Kit: `TextField`, `SearchField`, `SecureField`, `TokenField`, `ComboBox`,
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `.roundedBorder`, `.automatic` | `NSTextField` bezeled | `TextField` | `measured` | bench `textfield-regular`, `textfield-filled`; [Text fields][m-text] | — |
-| `.plain` | `isBezeled = false` | `TextFieldStyle` fields, no preset | `partial` | none | P2 |
-| `.squareBorder` | `bezelStyle = .squareBezel` | — | `missing` | probe `textfield-rounded` 140 × 24 only | P3 |
+| `.roundedBorder`, `.automatic` | `NSTextField` bezeled | `TextField` | `measured` | bench family `texts` `tf-empty`, `tf-filled`, `tf-square`, `tf-rounded`; [Text fields][m-text] | — |
+| `.plain` | `isBezeled = false` | `TextFieldStyle::plain` | `measured` | bench `tf-plain`; [Text, date, color and image][m-texts] | — |
+| `.squareBorder` | `bezelStyle = .squareBezel` | — | `missing` | `.squareBezel` draws like the default; `isBordered` without `isBezeled` is a 1 pt black square, 140 × 20 (probe `tf-bordered`) | P3 |
 | `.bordered` (macOS 27) | — | — | `missing` | sdk `BorderedTextFieldStyle`, introduced macOS 27.0; not probed | P2 |
-| `TextField` at mini and small | `controlSize` | `TextField` takes no `ControlSize` | `missing` | probe `textfield-mini` 140 × 19, `-small` 140 × 22 (with the font of that size) | P2 |
-| `TextField(axis: .vertical)` | wrapping `NSTextField` | `TextField` is one line | `missing` | none | P2 |
-| `.searchable` | `NSSearchField` | `SearchField` | `measured` | bench `search`, `search-filled` | — |
+| `TextField` at mini and small | `controlSize` | `TextField::size` | `measured` | bench `tf-mini`, `tf-small`, `tf-large`, `tf-xl`; 19, 22, 24, 24, 24 | — |
+| `TextField(axis: .vertical)` | wrapping `NSTextField` | `TextField` is one line | `missing` | probe `tf-multiline` 140 × 56 (three lines); not drawn | P2 |
+| `.searchable` | `NSSearchField` | `SearchField` | `measured` | bench `search`, `search-text`, `search-mini` to `search-xl`, `search-disabled-text`; [Text, date, color and image][m-texts] | — |
 | `.searchable` in a toolbar | `NSSearchToolbarItem` | `ToolbarSearch` | `implemented` | probe `toolbar` has the item; not compared | P1 |
-| `searchScopes`, `searchSuggestions`, `searchCompletion` | `searchMenuTemplate`, recents | `SearchField` tokens only | `missing` | none | P2 |
-| `SecureField` | `NSSecureTextField` | `SecureField` | `measured` | bench `secure` | — |
+| `searchScopes`, `searchSuggestions`, `searchCompletion` | `searchMenuTemplate`, recents | `SearchField` tokens only | `missing` | probe `search-menu`: the magnifier gets a 5 wide chevron and the text starts 7 later | P2 |
+| `SecureField` | `NSSecureTextField` | `SecureField` | `measured` | bench `secure`, `secure-empty`; `.disabled` | — |
 | — | `NSTokenField` | `TokenField` | `measured` | bench `token` | — |
-| — | `NSComboBox` | `ComboBox` | `measured` | bench `combo`, `combo-disabled` | — |
-| `TextEditor` | `NSTextView` in `NSScrollView` | `TextEditor`, `TextView` | `implemented` | none | P1 |
+| — | `NSComboBox` | `ComboBox` | `measured` | bench `combo`, `combo-empty`, `combo-mini` to `combo-xl`, `combo-disabled` | — |
+| `TextEditor` | `NSTextView` in `NSScrollView` | `TextEditor`, `TextView` | `partial`: the field and the 13 pt text are measured; caret, selection, placeholder and the find bar are not | bench `textview-system`; [Text, date, color and image][m-texts] | P1 |
 | `TextEditorStyle` (`.automatic`, `.plain`) | `NSTextView` | `TextEditorStyle` fields, no preset | `partial` | none | P3 |
 | `TextEditor` with `AttributedString`, `AttributedTextSelection` | rich `NSTextView` | `rich_text` (bold, italic, link, family, size) | `partial`: no underline, strike, color, paragraph style or list | none | P2 |
 | `findNavigator` | `NSTextFinder` | `TextEditor` find bar | `implemented` | none | P2 |
@@ -294,14 +294,14 @@ Sans, so glyph widths differ ([Limits](appkit-comparison.md#limits)).
 | `.largeTitle` | `.largeTitle` | 26 / 32, regular | `LARGE_TITLE` 26 / 32, 700 | `partial`: weight | P1 |
 | `.title` | `.title1` | 22 / 26, regular | `TITLE` 22 / 26, 650 | `partial`: weight | P1 |
 | `.title2` | `.title2` | 17 / 22, regular | — | `missing` | P1 |
-| `.title3` | `.title3` | 15 / 20, regular | `TITLE_2` 15 / 20, 600 | `partial`: weight | P2 |
+| `.title3` | `.title3` | 15 / 20, regular | `TITLE_3` 15 / 20, 400 (`TITLE_2` 15 / 20, 600 stays) | `implemented` | — |
 | `.headline` | `.headline` | 13 / 16, bold | `HEADLINE` 13 / 18, 700 | `partial`: line | P1 |
 | `.body` | `.body` | 13 / 16, regular | `BODY` 13 / 18, 400 | `partial`: line | P1 |
 | `.callout` | `.callout` | 12 / 15, regular | `CALLOUT` 12 / 16, 400 | `partial`: line | P2 |
-| `.subheadline` | `.subheadline` | 11 / 14, regular | `CAPTION` 11 / 14, 500 | `partial`: weight | P2 |
-| `.footnote` | `.footnote` | 10 / 13, regular | — | `missing` | P2 |
-| `.caption` | `.caption1` | 10 / 13, regular | — | `missing` | P2 |
-| `.caption2` | `.caption2` | 10 / 13, regular | — | `missing` | P3 |
+| `.subheadline` | `.subheadline` | 11 / 14, regular | `SUBHEADLINE` 11 / 14, 400 (`CAPTION` 11 / 14, 500 stays) | `implemented` | — |
+| `.footnote` | `.footnote` | 10 / 13, regular | `FOOTNOTE` 10 / 13, 400 | `implemented` | — |
+| `.caption` | `.caption1` | 10 / 13, regular | `FOOTNOTE` 10 / 13, 400 | `implemented` | — |
+| `.caption2` | `.caption2` | 10 / 13, medium | `CAPTION_2` 10 / 13, 500 | `implemented` | — |
 | `.monospaced()` | `monospacedSystemFont` | not read | `MONO` 13 / 16, 400 | `implemented` | P3 |
 
 `NSFont.systemFontSize(for:)` is 9 at mini, 11 at small and 13 at regular,
@@ -318,11 +318,11 @@ Kit: `DatePicker`, `DateElements` (`Date`, `Time`, `DateAndTime`).
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `.stepperField` | `.textFieldAndStepper`, year, month, day | `DatePicker` | `measured` | bench `datepicker`; [Date picker][m-rings] | — |
-| `.field` | `.textField` (no stepper) | — | `missing` | not probed | P3 |
-| `.graphical` | `.clockAndCalendar`, year, month, day | `DatePicker::graphical` | `measured` | bench `calendar`, `calendar-focused`; [Graphical date picker][m-rings]; 8–13% of the pixels differ | — |
+| `.stepperField` | `.textFieldAndStepper`, year, month, day | `DatePicker` | `measured` | bench `datepicker`, `datepicker-mini` to `datepicker-xl`, `datepicker-disabled`; [Text, date, color and image][m-texts] | — |
+| `.field` | `.textField` (no stepper) | `DatePicker::field` | `measured` | bench `date-field`; 80 × 23 with the border outside | — |
+| `.graphical` | `.clockAndCalendar`, year, month, day | `DatePicker::graphical` | `measured` | bench `calendar`, `calendar-focused`; [Graphical date picker][m-rings]; the card frame follows AppKit (`DATE_PICKER.card_*`) | — |
 | `.compact` | — | — | `missing` | not probed | P2 |
-| time parts | `.hourMinute`, `.hourMinuteSecond` | `DateElements::Time`, `DateAndTime` | `partial`: no seconds; the probe draws year, month and day only | none | P2 |
+| time parts | `.hourMinute`, `.hourMinuteSecond` | `DateElements::Time`, `DateAndTime` | `partial`: no seconds | bench `time`, `datetime` (9.6 to 18.4% of the pixels, the comma and the digits are wider in SF Pro) | P2 |
 | — | analog clock of `.clockAndCalendar` | — | `missing` | not probed | P3 |
 | — | `datePickerMode = .range` | — | `missing` | none | P3 |
 | `MultiDatePicker` | — | — | `missing` | none | P3 |
@@ -331,8 +331,8 @@ Kit: `DatePicker`, `DateElements` (`Date`, `Time`, `DateAndTime`).
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `ColorPicker` well | `NSColorWell` default style | `ColorPicker` | `measured` | bench `colorwell`, `colorwell-blue`; [Color well][m-rings] | — |
-| — | `NSColorWell` `.minimal`, `.expanded` | — | `missing` | not probed | P3 |
+| `ColorPicker` well | `NSColorWell` default style | `ColorPicker` | `measured` | bench `colorwell`, `colorwell-blue`, `well-default`, `well-default-disabled`; [Color well][m-rings] | — |
+| — | `NSColorWell` `.minimal`, `.expanded` | `ColorPickerStyle::minimal`, `expanded` | `measured` | bench `well-minimal`, `well-expanded` and their disabled looks; [Text, date, color and image][m-texts] | — |
 | `ColorPicker` panel | `NSColorPanel`: gray, RGB, CMYK, HSB, palette, list, wheel, crayon | `ColorPicker`, `ColorPanel::show`: an HSB popover | `partial`: one of eight modes | none | P2 |
 | `ColorPicker(supportsOpacity:)` | alpha of `NSColorPanel` | — | `missing`: the kit's colors are opaque in the panel | none | P2 |
 | — | eyedropper, swatch history | — | `missing` | none | P3 |
@@ -345,8 +345,8 @@ Kit: `DatePicker`, `DateElements` (`Date`, `Time`, `DateAndTime`).
 |---|---|---|---|---|---|
 | `Image` from data | `NSImageView` | `Image::data`, `Image::rgba` | `partial`: no scaling or alignment modes | none | P2 |
 | `AsyncImage` | — | `use_artwork` | `implemented` | none | P3 |
-| — | `NSImageView` editable, `NSImageCell` frame styles | `ImageWell` | `implemented` | none | P3 |
-| — | `NSPathControl` (`.standard`, `.popUp`, `.navigationBar`) | `PathControl` | `implemented` | none | P3 |
+| — | `NSImageView` editable, `NSImageCell` frame styles | `ImageWell` | `implemented` | probe `imagewell-none` to `imagewell-button` and their empty looks: `.none` draws nothing, the rest are bevels; the kit well is its own rounded design (70% of the pixels differ) | P3 |
+| — | `NSPathControl` (`.standard`, `.popUp`, `.navigationBar`) | `PathControl` | `partial`: Finder icons and collapsed names are not drawn | probe `path-standard`, `path-popup`, five sizes; bench `path-standard` 15.7% of the pixels, 2% of the box | P3 |
 
 ## 11. Control sizes
 
@@ -370,8 +370,9 @@ backdrop; width × height or height):
 | Segmented control | 16 | 20 | 24 | 28 | 36 | all five, measured |
 | Pop-up button | 16 | 20 | 24 | 28 | 36 | all five, measured |
 | Stepper | 13 × 16 | 17 × 20 | 20 × 24 | 23 × 28 | 30 × 36 | all five, measured (the mini bezel is drawn 13 × 20) |
-| Text field (with the size's font) | 19 | 22 | 24 | 24 | 24 | regular |
-| Search field, combo box (metrics) | 16 | 20 | 24 | 28 | not captured | regular |
+| Text field (with the size's font) | 19 | 22 | 24 | 24 | 24 | all five, measured |
+| Search field, combo box | 16 | 20 | 24 | 28 | 36 | all five, measured |
+| Date picker (stepper) | 9 × 13 | 11 × 16 | 13 × 20 | 22 × 28 | 29 × 36 | all five, measured (the field is 78 × 21, taller at large and extra large) |
 | Ring | 16 | 16 | 32 | 32 | 32 | regular |
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
@@ -561,18 +562,22 @@ first four areas are the sessions that run now.
 
 ### B. Text, dates, color and panels
 
-1. **P1** Text styles: add `title2` (17 / 22), `footnote`, `caption1` and
-   `caption2` (10 / 13); compare weights and lines with `preferredFont`
-   and SwiftUI `Font` ([Text styles](#text-styles)).
-2. **P1** Probe and compare `TextEditor` and `NSTextView`: insets, caret,
-   selection, placeholder, find bar ([7](#7-text)).
-3. **P1** Text field at mini (19) and small (22); `.plain`, `.squareBorder`
-   and the new `.bordered`; `TextField(axis: .vertical)`.
-4. **P2** Date picker: `.compact`, time parts with seconds, `.field`
-   without stepper, `MultiDatePicker`, range mode ([8](#8-date-and-time)).
-5. **P2** Color panel: the other seven modes, alpha, eyedropper, `.minimal`
-   and `.expanded` wells; probe the SwiftUI `ColorPicker` popover
-   ([9](#9-color-and-font-panels)).
+1. **P1** Text styles: `title2` (17 / 22) is left; the kit's `TITLE_2` is
+   15 / 20 and the titlebar uses it. ~~`footnote`, `caption1` and `caption2`~~
+   done as `FOOTNOTE`, `CAPTION_2` (and `TITLE_3`, `SUBHEADLINE`): numbers
+   only, no bench ([Text styles](#text-styles)).
+2. **P1** `TextEditor` and `NSTextView`: the field and the text are measured
+   (`textview-system`). Caret, selection, placeholder and find bar are left
+   ([7](#7-text)); a hosted SwiftUI `TextEditor` draws 12 pt Helvetica until
+   the app sets a font.
+3. **P1** ~~Text field at mini (19) and small (22); `.plain`~~ done.
+   `.squareBorder`, the new `.bordered` and `TextField(axis: .vertical)` are left.
+4. **P2** Date picker: `.compact`, time parts with seconds, `MultiDatePicker`,
+   range mode, the analog clock ([8](#8-date-and-time)). ~~`.field` without
+   stepper~~ done.
+5. **P2** Color panel: the other seven modes, alpha, eyedropper; probe the
+   SwiftUI `ColorPicker` popover ([9](#9-color-and-font-panels)). ~~`.minimal`
+   and `.expanded` wells~~ done.
 6. **P2** Search: scopes, suggestions and the recents menu.
 7. **P2** Rich text: underline, strike, color, paragraph style, lists.
 8. **P3** Font panel, rulers, text lists and tables; image scaling modes;
@@ -653,6 +658,7 @@ No probe of `~/src/probes` renders these:
 [m-control-sizes]: macos-control-metrics.md#control-sizes
 [m-open]: macos-control-metrics.md#open-differences
 [m-text]: macos-control-metrics.md#text-fields
+[m-texts]: macos-control-metrics.md#text-date-color-and-image-controls
 [m-hc]: macos-control-metrics.md#reduce-transparency-and-increase-contrast
 [m-rings]: macos-control-metrics.md#rings-level-indicators-and-boxes
 [m-tables]: macos-control-metrics.md#tables-and-source-lists
