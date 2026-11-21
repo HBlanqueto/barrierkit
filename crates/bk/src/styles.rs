@@ -45,6 +45,7 @@ mod form;
 mod fullscreen_bar;
 mod gauge;
 mod glass_container;
+mod gradient;
 mod group_box;
 mod help_link;
 mod icon_button;
@@ -121,6 +122,7 @@ pub use form::FormStyle;
 pub use fullscreen_bar::FullscreenBarStyle;
 pub use gauge::GaugeStyle;
 pub use glass_container::GlassContainerStyle;
+pub use gradient::{Gradient, GradientColorSpace};
 pub use group_box::GroupBoxStyle;
 pub use help_link::HelpLinkStyle;
 pub use icon_button::IconButtonStyle;
@@ -280,18 +282,6 @@ impl Role {
             Self::SelectedControl => palette.selected_control,
             Self::CardBorder => palette.card_border,
         }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct Gradient {
-    angle: f32,
-    stops: Vec<(ShapeStyle, f32)>,
-}
-
-impl Gradient {
-    pub fn new(angle: f32, stops: Vec<(ShapeStyle, f32)>) -> Self {
-        Self { angle, stops }
     }
 }
 
@@ -663,16 +653,7 @@ impl Paints {
     fn fill_of(&self, paint: &ShapeStyle) -> Fill {
         let ink = |rgba: Rgba| color((self.effect)(rgba, self.state));
         match (paint, self.backdrop) {
-            (ShapeStyle::Gradient(gradient), _) => gradient
-                .stops
-                .iter()
-                .fold(
-                    LinearGradient::new().angle(gradient.angle),
-                    |linear, (stop, position)| {
-                        linear.stop((color(self.color(stop)), position * 100.0))
-                    },
-                )
-                .into(),
+            (ShapeStyle::Gradient(gradient), _) => gradient.fill(|stop| self.color(stop)),
             (ShapeStyle::Backdrop, Some(backdrop)) => {
                 crate::backdrop::highlights(backdrop, ink).into()
             }

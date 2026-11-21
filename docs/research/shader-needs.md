@@ -66,6 +66,12 @@ sketch, the plan for P1 and the open questions.
    [`macos-blur.md`](macos-blur.md) §8), vibrancy over a desktop backdrop, the
    other ~230 Core Image filters, MSL and Core Image kernel loading, the private
    `CAFilter` set, HDR.
+9. **SwiftUI mixes gradients in OKLab, premultiplied, by default.** Measured on
+   macOS 27.2.1 with `ImageRenderer` (E14): red to blue at 50% is (140,83,162),
+   white to black is 99; both equal an OKLab mix within 1/255, and a stop that
+   fades to transparent mixes premultiplied. Skia's OKLab interpolation gives the
+   same values (E13). The kit's `Gradient` still mixes in device RGB by default,
+   so a SwiftUI-faithful gradient needs `.color_space(GradientColorSpace::Perceptual)`.
 
 ## Method
 
@@ -130,9 +136,9 @@ the probability that the approach works as described.
 | 9 | `compositingGroup`, `drawingGroup` | Kit | This is P1. Gain: a faded container fades as one (the slider and level workarounds go away). | L | 0.65: see P1 risk | P1 |
 | 10 | `mask`; `NSVisualEffectView.maskImage` | Kit | `DstIn` layer over the subtree (the kit does it for glass, `glass_container.rs:257`). Gain: any view as a mask. | M | 0.8 | P1 |
 | 11 | `blur(radius:opaque:)` on a view; `CIGaussianBlur` | Kit | Blur image filter on the layer; `opaque` picks the tile mode. Gain: blurred content and transitions. | M | 0.85 | P1 |
-| 12 | `saturation`, `brightness`, `contrast`, `hueRotation`, `grayscale`, `colorInvert`, `colorMultiply`, `luminanceToAlpha`; `CIColorControls`, `CIHueAdjust`, `CIColorInvert`, `CIMaskToAlpha` | Kit | Stock `ColorFilter` (matrix, `hsla_matrix`, `luma`, blend); the kit already uses them on images (`symbol.rs:768-790`). Gain: the eight modifiers on any view. | S leaf, M container | 0.9 for the effect; 0.6 that the coefficients equal macOS until a probe compares them | P1 for containers; probe |
+| 12 | `saturation`, `brightness`, `contrast`, `hueRotation`, `grayscale`, `colorInvert`, `colorMultiply`, `luminanceToAlpha`; `CIColorControls`, `CIHueAdjust`, `CIColorInvert`, `CIMaskToAlpha` | Kit | Stock `ColorFilter` (matrix, `hsla_matrix`, `luma`, blend); the kit already uses them on images (`symbol.rs:768-790`). Measured on macOS 27.2.1 (E14), on sRGB-encoded values: `saturation(s)` mixes toward the luma 0.2126/0.7152/0.0722 (the same at 8 bits as SVG's 0.213/0.715/0.072); `grayscale(g)` is `saturation(1 - g)`; `brightness(b)` adds b; `contrast(k)` is (c - 0.5)k + 0.5; `hueRotation` is the SVG `hue-rotate` matrix; `colorInvert` is 1 - c; `colorMultiply` multiplies. Gain: the eight modifiers on any view. | S leaf, M container | 0.95: formulas match every sampled value within 1/255 | P1 for containers |
 | 13 | `MeshGradient`, `Shading.meshGradient` | Kit | `Canvas::draw_patch` per cell (Coons patch, corner colors) or an SkSL with point and color arrays (compiles, E7). Gain: the macOS 15 mesh backgrounds. | M | 0.6: Apple's interpolation is unmeasured | probe |
-| 14 | `AngularGradient`, `EllipticalGradient`, `Gradient.ColorSpace.perceptual`, `Color.mix` | Kit | Freya has linear, radial and conic fills; Skia gradients take an interpolation color space (`glass.rs` builds one). Gain: all SwiftUI gradients. | S | 0.9 | none |
+| 14 | `AngularGradient`, `EllipticalGradient`, `Gradient.ColorSpace.perceptual`, `Color.mix` | Kit | Done 2026-11-21: `Gradient::angular`, `Gradient::elliptical` and `.color_space(GradientColorSpace::Perceptual)` draw a Skia gradient through Freya's `Fill::Callback` (OKLab, premultiplied; SwiftUI's angular starts right and runs clockwise, its elliptical radii are half the width and half the height; four tests). Not offered: center, start and end angles or radii. `Color.mix` is not done. Gain: all SwiftUI gradients. | S | 0.9 | none |
 | 15 | `Canvas`, `GraphicsContext` (`addFilter`, `drawLayer`, `clip`, `Shading.backdrop`) | Kit | A leaf element drawing with the Skia canvas (the `glass.rs` pattern); `addFilter` and `drawLayer` are `save_layer` plus a filter (E11). `backdrop` samples the window only. Gain: immediate-mode drawing. | M | 0.8 | none |
 | 16 | `TextRenderer`, `Text.Layout` | Kit | Skia `Paragraph::visit` exposes glyph runs, but Freya draws paragraphs itself, so the kit would own those text views. No compensa now: apps get gradient or shimmering text from `ShaderFill` on text. Gain would be per-glyph animation only. | L | 0.5 | Freya text path |
 | 17 | `ImageRenderer` | Kit | Render a subtree into an offscreen surface with the P1 loop. No compensa until an app asks: `doc_shots.rs` covers the kit's own captures. | M | 0.6 | P1 |
@@ -141,8 +147,8 @@ the probability that the approach works as described.
 | 20 | `NSVisualEffectView` `.behindWindow`; window and sidebar materials over the desktop | Comp | Malaysia: `ext-background-effect-v1` blur plus `set_glass`/tone shaders. Other compositors: plain blur; the app adds an alpha veil but cannot clamp luminance (the cap) or saturate; KDE's contrast request adds saturation. Gain: desktop-tinted sidebars. Ownership detail: blur-ownership research. | M | 0.8 on Malaysia; 0.5 elsewhere (unverified: no other compositor run) | Wayland has no shader upload |
 | 21 | Vibrancy: `allowsVibrancy`, `NSAppearance.vibrant*`, `.secondary` over a material | None | No compensa. Vibrant ink blends with the desktop pixels; nothing lets an app do that. The kit keeps measured ink colors (`ctappearance::menu::dark_ink_over`). Gain of more: none visible. | n/a | 0.2 for a faithful result | no protocol |
 | 22 | `glassEffect`, `Glass` (`regular`, `clear`, `tint`, `interactive`), `GlassEffectContainer`, `glassEffectID/Union/Transition`; `NSGlassEffectView`, `NSGlassEffectContainerView`, `effectIsInteractive` (27.0) | Kit; refraction None | The static look (blur, tint, rim, SDF smooth union) is `GlassContainer`, shipped. Refraction: no compensa, no lensing measured. `interactive` feedback is unmeasured. Gain: the interactive response only after a probe. | M | 0.7 static; 0 refraction | probe for `interactive` |
-| 23 | `scrollEdgeEffectStyle` (`automatic`, `soft`, `hard`); `NSScrollEdgeEffectStyle` | Kit | Layered blur and mask gradients (`TopGlass`, `glass.rs`); the styles are two mask curves. Gain: finish the partial row. | S | 0.8 | measure `hard` |
-| 24 | `backgroundExtensionEffect`; `NSBackgroundExtensionView` | Kit | Mirror tile plus blur (`TileMode::Mirror`); `SplitView::background_extension` exists. Gain: verify only. | S | 0.8 | none |
+| 23 | `scrollEdgeEffectStyle` (`automatic`, `soft`, `hard`); `NSScrollEdgeEffectStyle` | Kit | Checked by reading the kit: `ScrollView::edge_effect(bool)` is the `soft` fade (24 px, `SCROLL_BAR.edge_height`) and `TopGlass` is a glass band; there is no `hard`, no `automatic` and no `Edge.Set`, and no capture backs the pixels. Layered blur and mask gradients can give `hard`. Gain: finish the partial row. | S | 0.8 | a window probe: `ImageRenderer` cannot show a live scroll edge (unverified) |
+| 24 | `backgroundExtensionEffect`; `NSBackgroundExtensionView` | Kit | Checked by reading the kit: `SplitView::background_extension` stretches the first pixel column to the window edge (`10-sidebar.md`); Apple mirrors and blurs. A mirror tile plus blur (`TileMode::Mirror`) is easy for an `Image`; an arbitrary view needs P1. Gain: the macOS 26 look under the sidebar. | S for an image, M after P1 | 0.8 | P1 for arbitrary views |
 | 25 | `NSView.backgroundFilters`, `contentFilters`, `compositingFilter`; `CALayer.filters`, `backgroundFilters`, `compositingFilter` | Kit; behind-window None | Map the Core Image filters named in rows 11 and 12 and the blend filters (30 `CICategoryCompositeOperation` entries) to Skia. Behind a window: none. Other ~230 of 239 typed Core Image filters: no compensa; an app can write any as SkSL. Gain: the common filters. | S per filter | 0.85 | P1 for containers |
 | 26 | Private `CAFilter` (243 `_kCAFilter*` symbols) | None | No compensa. Undocumented; semantics only by probe. Gain: none. | n/a | n/a | not public |
 | 27 | Accessibility Display: Invert Colors, color filters, display contrast | Comp | Exists in Malaysia (`display_filter.frag`: matrix, invert, contrast). The kit must not filter its own windows too (double apply). Gain: every app, not only the kit's. | done | n/a | none |
@@ -327,7 +333,7 @@ Risks:
 
 Throwaway crate outside the repo, built in the `bk` container against
 `freya-skia-safe` 0.104.0 (`nix develop`, Skia prebuilt by `nix/skia.nix`).
-All on Skia's **CPU raster**; no GPU ran.
+E1 to E13 ran on Skia's **CPU raster**; no GPU ran. E14 ran on macOS 27.2.1 in a Swift script outside the repo.
 
 | E | Question | Result |
 |---|---|---|
@@ -341,6 +347,8 @@ All on Skia's **CPU raster**; no GPU ran.
 | E9 | Blur then veil-and-cap tone as a backdrop filter over an 8 px checker | 153 at the centre, 153 expected; outside the panel unchanged; 1.4 ms on CPU |
 | E11 | A layer with a color filter applied on restore | Red inverted to cyan inside the layer; outside untouched |
 | E12 | All 29 Skia blend modes by name; `plusDarker` as a blender | Named in source; the blender compiles |
+| E13 | Does Skia's OKLab gradient match SwiftUI's? | Red to blue at 25, 50 and 75%: (197,73,110), (140,83,162), (81,71,209) against SwiftUI's (196,74,110), (140,83,162), (81,71,210); `in_premul` Yes gives (128,0,0,128) for red to transparent blue, as SwiftUI |
+| E14 | What do SwiftUI's color modifiers and gradients compute? A Swift script, `ImageRenderer` at scale 1, pixels read as sRGB | The formulas in row 12; default gradients are OKLab (max difference 1 of 255 over 12 samples); `Color.mix(in: .perceptual)` equals the default gradient; angular starts at +x clockwise; elliptical radii are 0.5 of width and height |
 
 ## Not verified
 
@@ -349,8 +357,10 @@ All on Skia's **CPU raster**; no GPU ran.
   premultiplication details; Skia surfaces here do math on encoded values.
 - Whether macOS leaves user shaders alone under Reduce Transparency and Increase
   Contrast.
-- Numeric match of macOS `saturation`, `brightness`, `contrast`, `hueRotation`,
-  `plusDarker` and `MeshGradient` against the Skia ports. Each is one cheap probe.
+- Numeric match of macOS `plusDarker` and `MeshGradient` against the Skia ports.
+- Pixel behavior of `scrollEdgeEffectStyle` (`soft`, `hard`) and of the real
+  background extension; both need a window probe.
+- `Color.mix`, and the center, angle and radius variants of the gradients.
 - `Glass.interactive` feedback, `scrollEdgeEffectStyle.hard`, vibrancy recipe.
 - Any compositor other than Malaysia. The `ext-background-effect-v1` and KDE
   behavior is read from the protocol XML only.

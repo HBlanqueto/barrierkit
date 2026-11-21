@@ -138,7 +138,11 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles` | module | — | — | Value types of the styling system, `Theme`, `StyleScope` and the control styles | [Styles](../../agents/styles.md) |
 | `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material or nothing | [Styles](../../agents/styles.md#value-types) |
 | `styles::Role` | enum | ≈ semantic `Color` (`.primary`, `.secondary`) | ≈ `NSColor.labelColor`… | One color of the `Palette` (all but `accent`), resolved late | [Styles](../../agents/styles.md#value-types) |
-| `styles::Gradient` | struct | `LinearGradient` | `NSGradient` | Linear gradient: an angle and stops of `ShapeStyle` | [Styles](../../agents/styles.md#value-types) |
+| `styles::Gradient` | struct | `LinearGradient`, `AngularGradient`, `EllipticalGradient` | `NSGradient` | Stops of `ShapeStyle` as a linear gradient (`new`, an angle), an angular one (`angular`) or an elliptical one (`elliptical`) | [Styles](../../agents/styles.md#value-types) |
+| `styles::Gradient::angular` | method | `AngularGradient(gradient:center:angle:)` | — | Sweeps clockwise from the right, starting at an angle in degrees; the center is the view's | [Styles](../../agents/styles.md#value-types) |
+| `styles::Gradient::elliptical` | method | `EllipticalGradient(gradient:)` | — | An ellipse whose radii are half the view's width and half its height; center and radii are not offered | [Styles](../../agents/styles.md#value-types) |
+| `styles::Gradient::color_space` | method | `AnyGradient.colorSpace(_:)` | — | Picks how the stops mix | [Styles](../../agents/styles.md#value-types) |
+| `styles::GradientColorSpace` | enum | `Gradient.ColorSpace` | — | `Device` (default: the mix the controls were measured with) or `Perceptual` (OKLab, premultiplied: what SwiftUI draws by default on macOS 27.2.1) | [Styles](../../agents/styles.md#value-types) |
 | `styles::Thickness` | enum | `Material` (`.ultraThin`…`.ultraThick`) | `NSVisualEffectView.Material` | How translucent and blurred a material is; values in `MATERIAL` | [Styles](../../agents/styles.md#value-types) |
 | `styles::StateValue` | struct | — | — | A value with optional hovered, pressed, focused and disabled values | [Styles](../../agents/styles.md#value-types) |
 | `styles::ControlState` | struct | ≈ `ButtonStyle.Configuration` (`isPressed`) | ≈ `NSControl.isHighlighted`, `isEnabled` | Hovered, pressed, focused and disabled flags of a control | [Styles](../../agents/styles.md#value-types) |
