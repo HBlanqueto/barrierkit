@@ -1002,7 +1002,7 @@ Side effects of the probes: K3 wrote its own defaults domain
    ([ADR 0085](../decisions.md)).
 
 The 14 fixes of [5.4](#54-stale-or-wrong-statements) and the chapter
-[SwiftUI to the kit](../barrierkit/21-swiftui-to-the-kit.md) were written on
+[SwiftUI to the kit](../barrierkit/16-swiftui-to-the-kit.md) were written on
 2026-11-21. Five statements (D1 to D4 and D13) had already been fixed by other
 sessions; D5 to D12 and D14 were fixed then. The coverage matrix got the two
 rows of decision 3 in section 14 and a note on `Binding`.

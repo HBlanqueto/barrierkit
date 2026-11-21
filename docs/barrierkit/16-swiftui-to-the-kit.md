@@ -1,4 +1,4 @@
-# 21. SwiftUI to the kit
+# 16. SwiftUI to the kit
 
 **Goal:** write the kit's form of SwiftUI code that is not a name: state,
 bindings, environment, observation, focus, loops, conditions, actions and

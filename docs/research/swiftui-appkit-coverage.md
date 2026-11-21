@@ -658,7 +658,7 @@ No probe of `~/src/probes` renders these:
 - The matrix keeps no syntax-level rows. `Binding` is not in the kit and is a
   non-goal until an app asks ([ADR 0085](../decisions.md)); the Swift
   constructs and their kit idioms are in
-  [SwiftUI to the kit](../barrierkit/21-swiftui-to-the-kit.md).
+  [SwiftUI to the kit](../barrierkit/16-swiftui-to-the-kit.md).
 
 [m-sizes]: macos-control-metrics.md#sizes-width--height-points
 [m-control-sizes]: macos-control-metrics.md#control-sizes

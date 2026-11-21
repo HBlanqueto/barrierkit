@@ -21,7 +21,7 @@ version.
    [glossary](../docs/barrierkit/20-glossary.md). Do not guess a name. Translate
    what is not a name (`@Binding`, `@Environment`, `@Observable`, `@FocusState`,
    `ForEach`, `if/else`, actions, effects) with
-   [SwiftUI to the kit](../docs/barrierkit/21-swiftui-to-the-kit.md).
+   [SwiftUI to the kit](../docs/barrierkit/16-swiftui-to-the-kit.md).
 3. Start from the closest [recipe](recipes.md); change only what the task
    needs.
 4. Open the chapter of every item you use (the glossary links it) and check
@@ -98,7 +98,7 @@ version.
 | When you need to… | Read |
 |---|---|
 | Find the name of anything (control, view, token, hook) | [`20-glossary.md`](../docs/barrierkit/20-glossary.md) |
-| Write `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, an action or an effect | [`21-swiftui-to-the-kit.md`](../docs/barrierkit/21-swiftui-to-the-kit.md) |
+| Write `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, an action or an effect | [`16-swiftui-to-the-kit.md`](../docs/barrierkit/16-swiftui-to-the-kit.md) |
 | Copy a working program | [`recipes.md`](recipes.md) |
 | Check your work before you answer | [`checklist.md`](checklist.md) |
 | Understand the first app line by line | [`02-first-app.md`](../docs/barrierkit/02-first-app.md) |

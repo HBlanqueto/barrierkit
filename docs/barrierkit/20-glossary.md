@@ -16,7 +16,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
    controls here: search `ToggleStyle` or `PickerStyle`.
 2. Read the BarrierKit name in the first column and follow the chapter link.
    For SwiftUI syntax that is not a name (`$x`, `@Environment`, `ForEach`,
-   `if/else`), read [SwiftUI to the kit](21-swiftui-to-the-kit.md).
+   `if/else`), read [SwiftUI to the kit](16-swiftui-to-the-kit.md).
 3. To add or rename a public item, follow [How names are chosen](#how-names-are-chosen)
    and add its row here in the same commit (`AGENTS.md`, «Nombres y glosario»).
 
