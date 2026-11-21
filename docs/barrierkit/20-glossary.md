@@ -154,6 +154,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::feedback::Alert::destructive` | method | `Button(role: .destructive)` in `.alert` | `NSAlert.hasDestructiveAction` | The primary button is destructive | [11](11-views.md#alert) |
 | `styles::ButtonStyle::glass` | method | `PrimitiveButtonStyle.glass` | ≈ `NSButton.BezelStyle.glass` | Preset: raised capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::glass_prominent` | method | `PrimitiveButtonStyle.glassProminent` | — | Preset: accent capsule with a hairline rim | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::plain` | method | `PrimitiveButtonStyle.plain` | — | Preset: only the label, in the label color | [Styles](../../crates/bk/src/styles/button.rs) |
+| `styles::ButtonStyle::link` | method | `PrimitiveButtonStyle.link` | — | Preset: only the label, in the accent color | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::small_square` | method | — | `NSButton.BezelStyle.smallSquare` | Preset: 21 high rectangle, light gradient, 1 wide border | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::textured_square` | method | — | `NSButton.BezelStyle.texturedSquare` | Preset: 20 high rounded rectangle, nearly white in light | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::textured_rounded` | method | — | `NSButton.BezelStyle.texturedRounded`, `.toolbar` | Preset: capsule with a faint ring and no fill | [Styles](../../crates/bk/src/styles/button.rs) |
@@ -701,7 +703,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `controls::SegmentedControl::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one segmented control | [5](05-controls.md#control-size) |
 | `controls::Checkbox::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one checkbox | [5](05-controls.md#control-size) |
 | `choices::RadioGroup::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one radio group | [5](05-controls.md#control-size) |
-| `controls::Switch::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one switch: it is laid out at the size it draws | [5](05-controls.md#control-size) |
+| `controls::Switch::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one switch: it is drawn at that size inside the 54 × 24 frame | [5](05-controls.md#control-size) |
 | `controls::Slider::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one slider | [5](05-controls.md#control-size) |
 | `compact::Stepper::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | Size of one stepper | [5](05-controls.md#control-size) |
 | `compact::IconButton` | struct | `≈ Button` | `≈ NSButton` | Button showing only a symbol; 36 capsule inside a tool group | [5](05-controls.md#compact-buttons) |

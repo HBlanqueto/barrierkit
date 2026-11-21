@@ -144,6 +144,16 @@ table on stdout and `target/appkit/sheet-*.png`.
    scripts/appkit-compare.py pressed --family buttons
    ```
 
+   `swiftuibuttons` draws the SwiftUI button, toggle and picker styles at the five control sizes, each `NSHostingView` into one bitmap (a hosted view outside the screen is not drawn by `cacheDisplay` of its parent). Its window must be key: `swiftuibuttons-capture.sh` runs it as an app bundle and directly in turn until the JSON says `"active" : true`. `scripts/appkit-render.sh swiftui` and `scripts/appkit-compare.py controls --family swiftui` compare it:
+
+   ```sh
+   swiftc -O ~/src/probes/swiftuibuttons.swift -o ~/src/probes/swiftuibuttons
+   ~/src/probes/swiftuibuttons-capture.sh
+   scripts/appkit-compare.py layout ~/src/captures/swiftuibuttons/aqua-white.json target/appkit/layout-swiftui.tsv
+   scripts/appkit-render.sh swiftui
+   scripts/appkit-compare.py controls --family swiftui
+   ```
+
    `sizes` prints the layout size of every bezel at every control size (`swiftc -O ~/src/probes/sizes.swift -o ~/src/probes/sizes && ~/src/probes/sizes`). The `%bezel` column of `controls` leaves out the label ink of both sides, so Inter against SF Pro does not count.
 
    `controls` and `contrast` also render `kit-pressed-<name>-*.png`: one scene per pressed

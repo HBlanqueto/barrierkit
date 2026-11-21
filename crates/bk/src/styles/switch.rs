@@ -10,6 +10,9 @@ use super::{
 /// instance override of `fill`.
 #[derive(Clone, Debug)]
 pub struct SwitchStyle {
+    /// Tengen: `(SWITCH.width, SWITCH.height)`: the space the switch takes in a layout; the track is
+    /// centered in it and drawn at its own size, which `Switch::size` changes and this does not.
+    pub frame_size: (f32, f32),
     /// Tengen: `SWITCH.width`.
     pub width: f32,
     /// Tengen: `SWITCH.height`.
@@ -86,6 +89,7 @@ impl SwitchStyle {
 impl ControlStyle for SwitchStyle {
     fn tengen() -> Self {
         Self {
+            frame_size: (SWITCH.width, SWITCH.height),
             width: SWITCH.width,
             height: SWITCH.height,
             knob_size: (SWITCH.knob_width, SWITCH.knob_height),

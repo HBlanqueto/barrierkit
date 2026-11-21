@@ -51,10 +51,21 @@ BUTTONS += [
         "textured-rounded", "toolbar", "textured-square", "inline", "push-disclosure", "rounded-disclosure", "help", "circular",
     )
 ]
+BUTTONS += ["segmented-disabled"]
 BUTTONS += [
     f"bezel-{name}-disabled" for name in ("push", "small-square", "textured-rounded", "textured-square", "inline", "push-disclosure")
 ]
-FAMILIES = {"controls": CONTROLS, "texts": TEXTS, "buttons": BUTTONS}
+SWIFTUI = [
+    f"{kind}-{size}" for kind in (
+        "bordered", "prominent", "switch-off", "switch-on", "checkbox-off", "checkbox-on", "togglebutton-off", "togglebutton-on",
+        "menu", "radio", "slider", "stepper",
+    ) for size in SIZE_NAMES
+] + [
+    "automatic", "plain", "link", "destructive", "cancel", "bordered-disabled", "prominent-disabled", "bordered-capsule",
+    "bordered-circle", "bordered-rounded", "inline", "switch-on-disabled",
+]
+FAMILIES = {"controls": CONTROLS, "texts": TEXTS, "buttons": BUTTONS, "swiftui": SWIFTUI}
+CAPTURE_DIRS = {"swiftui": "swiftuibuttons"}
 GLYPH_WIDTH = {name: 18 for name in ("check-off-regular", "check-on-regular", "radio-off-regular", "radio-on-regular")}
 GLYPH_WIDTH.update({
     f"{kind}{state}-{size}": box + 2
@@ -68,7 +79,7 @@ CONTRAST = {"light": "hc-aquaHC", "dark": "hc-darkHC"}
 
 def capture(family, mode, backdrop, tag):
     name = (CONTRAST if tag.endswith("hc") else APPKIT)[mode]
-    return os.path.join(CAPTURES, family, f"{name}-{backdrop}@{SCALE}x.png")
+    return os.path.join(CAPTURES, CAPTURE_DIRS.get(family, family), f"{name}-{backdrop}@{SCALE}x.png")
 
 
 def kit_image(mode, backdrop, tag):
@@ -81,7 +92,7 @@ def rgb(path):
 
 
 def items(family):
-    with open(os.path.join(CAPTURES, family, "aqua-white.json")) as handle:
+    with open(os.path.join(CAPTURES, CAPTURE_DIRS.get(family, family), "aqua-white.json")) as handle:
         data = json.load(handle)
     return data["contentH"], {item["name"]: item for item in data["items"]}
 

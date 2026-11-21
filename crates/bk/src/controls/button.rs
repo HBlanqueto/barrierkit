@@ -82,7 +82,7 @@ impl Component for Button {
         let enabled = !self.disabled;
         let style: ButtonStyle = resolve(&self.style);
         let style = if self.on == Some(true) {
-            style.bordered_prominent()
+            style.toggled()
         } else {
             style
         };

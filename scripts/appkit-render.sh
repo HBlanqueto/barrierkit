@@ -26,6 +26,11 @@ case "$scene" in
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
         APPKIT_TAG=buttons
         ;;
+    swiftui | swiftui-contrast)
+        APPKIT_LAYOUT=$out/layout-swiftui.tsv
+        APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
+        APPKIT_TAG=swiftui
+        ;;
     lists | lists-contrast)
         APPKIT_LAYOUT=$out/layout-lists.tsv
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
@@ -34,13 +39,13 @@ case "$scene" in
     menu | toolbar | sidebar)
         ;;
     *)
-        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|buttons|buttons-contrast|menu|toolbar|sidebar\n' "$0" >&2
+        printf 'usage: %s controls|contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar\n' "$0" >&2
         exit 2
         ;;
 esac
 
 case "$scene" in
-    contrast | views-contrast | texts-contrast | lists-contrast | buttons-contrast)
+    contrast | views-contrast | texts-contrast | lists-contrast | buttons-contrast | swiftui-contrast)
         APPKIT_CONTRAST=1
         APPKIT_REDUCE=1
         APPKIT_TAG=${APPKIT_TAG:+$APPKIT_TAG-}hc
@@ -76,6 +81,9 @@ case "$scene" in
     buttons | buttons-contrast)
         cargo test -p bk --test kit --features bk/shell appkit_buttons::appkit_buttons -- --ignored --exact
         exec cargo test -p bk --test kit --features bk/shell appkit_buttons_pressed -- --ignored
+        ;;
+    swiftui | swiftui-contrast)
+        exec cargo test -p bk --test kit --features bk/shell appkit_buttons::appkit_swiftui -- --ignored --exact
         ;;
 esac
 cargo test -p bk --test kit --features bk/shell appkit_scene -- --ignored

@@ -198,6 +198,11 @@ impl Component for Switch {
                 level::knob_shadows(glass, &style.knob_shadows),
             ));
         let track = interaction.focus_ring(track, radius.top_left());
+        let track = rect()
+            .width(Size::px(style.frame_size.0))
+            .height(Size::px(style.frame_size.1))
+            .center()
+            .child(track);
         let control = match style.label_position {
             None => track,
             Some(edge) => {

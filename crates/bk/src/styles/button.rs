@@ -23,6 +23,8 @@ use super::{
 /// | `ButtonStyle::glass_prominent` | `.glassProminent` | `bordered_prominent`, then the border and shape of `glass` |
 /// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (pressed `Color(PressedPalette.bezel)`), `border` `None` |
 /// | `ButtonStyle::circular` | `.buttonBorderShape(.circle)` | `height` `BUTTON.circular_size`, `padding_x` `0`, `shape` `Circle`, the icon at `BUTTON.circular_icon` |
+/// | `ButtonStyle::plain` | `.plain` | `height` one line of `BODY`, `padding_x` `0`, `background` `Clear` |
+/// | `ButtonStyle::link` | `.link` | `plain` with `label` `Accent` (pressed `Color(PressedPalette.accent)`) |
 /// | `ButtonStyle::small_square` | `NSButton.BezelStyle.smallSquare` | the `BUTTON.bezel.small_square` row, `background` a `BezelPalette` gradient (pressed `square_pressed`), `border` `square_border`, half opaque while disabled |
 /// | `ButtonStyle::textured_square` | `texturedSquare` | the `BUTTON.bezel.textured_square` row, `background` a `BezelPalette` gradient (pressed `textured_pressed`), `border` `textured_border` |
 /// | `ButtonStyle::textured_rounded` | `texturedRounded`, `toolbar` | the `BUTTON.bezel.textured_rounded` row, `background` `Clear` (pressed `ring_pressed`), `border` `ring` |
@@ -103,6 +105,15 @@ impl ButtonStyle {
         }
     }
 
+    pub(crate) fn toggled(self) -> Self {
+        Self {
+            background: StateValue::new(ShapeStyle::Role(Role::ToggleAccent))
+                .pressed(ShapeStyle::Color(pressed_palette().toggle_accent))
+                .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
+            ..self.bordered_prominent()
+        }
+    }
+
     pub fn destructive(self) -> Self {
         Self {
             background: StateValue::new(ShapeStyle::Role(Role::DestructiveFill))
@@ -143,6 +154,25 @@ impl ButtonStyle {
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackground)),
             ..self.glass_rim()
+        }
+    }
+
+    pub fn plain(self) -> Self {
+        Self {
+            height: BODY.line_height as f32,
+            padding_x: 0.0,
+            background: StateValue::new(ShapeStyle::Clear),
+            border: None,
+            ..self
+        }
+    }
+
+    pub fn link(self) -> Self {
+        Self {
+            label: StateValue::new(ShapeStyle::Accent)
+                .pressed(ShapeStyle::Color(pressed_palette().accent))
+                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
+            ..self.plain()
         }
     }
 

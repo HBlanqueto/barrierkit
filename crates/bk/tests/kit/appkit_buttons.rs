@@ -5,7 +5,7 @@ use bk::choices::RadioGroup;
 use bk::compact::Stepper;
 use bk::controls::{Button, Checkbox, ControlSize, SegmentedControl, Slider, Switch};
 use bk::popup_button::PopUpButton;
-use bk::styles::ButtonStyle;
+use bk::styles::{ButtonStyle, Edge, Shape, SwitchStyle};
 use bk::symbol::Symbol;
 use freya_core::prelude::*;
 use torin::prelude::{Gaps, Size};
@@ -21,8 +21,6 @@ const SIZES: [(&str, ControlSize); 5] = [
 ];
 
 const SEGMENTED_WIDTHS: [f32; 5] = [134.0, 146.0, 158.0, 170.0, 194.0];
-
-const SWITCH_FRAME: (f32, f32) = (54.0, 24.0);
 
 const STEPPER_FRAMES: [(f32, f32); 5] = [
     (13.0, 16.0),
@@ -179,24 +177,22 @@ fn framed((width, height): (f32, f32), child: impl IntoElement) -> Element {
 }
 
 fn switch<const N: usize>() -> Element {
-    framed(SWITCH_FRAME, Switch::new("Switch").size(size::<N>()))
+    Switch::new("Switch").size(size::<N>()).into_element()
 }
 
 fn switch_on<const N: usize>() -> Element {
-    framed(
-        SWITCH_FRAME,
-        Switch::new("Switch").on(true).size(size::<N>()),
-    )
+    Switch::new("Switch")
+        .on(true)
+        .size(size::<N>())
+        .into_element()
 }
 
 fn switch_on_disabled<const N: usize>() -> Element {
-    framed(
-        SWITCH_FRAME,
-        Switch::new("Switch")
-            .on(true)
-            .size(size::<N>())
-            .disabled(true),
-    )
+    Switch::new("Switch")
+        .on(true)
+        .size(size::<N>())
+        .disabled(true)
+        .into_element()
 }
 
 fn slider_with<const N: usize>(disabled: bool) -> Element {
@@ -307,6 +303,7 @@ fn bezel_builders() -> Vec<(&'static str, Builder)> {
 
 fn bezel_disabled_builders() -> Vec<(&'static str, Builder)> {
     vec![
+        ("segmented-disabled", || segmented_with::<2>(true)),
         ("bezel-push-disabled", || {
             Button::new("Button").disabled(true).into_element()
         }),
@@ -481,6 +478,167 @@ fn appkit_buttons_pressed() {
                 )
                 .unwrap();
             }
+        }
+    }
+}
+
+fn leading_switch<const N: usize>(on: bool) -> Element {
+    Switch::new("Toggle")
+        .on(on)
+        .size(size::<N>())
+        .style(|style: SwitchStyle| SwitchStyle {
+            label_position: Some(Edge::Leading),
+            label_gap: 8.0,
+            ..style
+        })
+        .into_element()
+}
+
+fn swiftui_switch_off<const N: usize>() -> Element {
+    leading_switch::<N>(false)
+}
+
+fn swiftui_switch_on<const N: usize>() -> Element {
+    leading_switch::<N>(true)
+}
+
+fn toggle_checkbox<const N: usize>(on: bool) -> Element {
+    Checkbox::new("Toggle")
+        .checked(on)
+        .size(size::<N>())
+        .into_element()
+}
+
+fn swiftui_checkbox_off<const N: usize>() -> Element {
+    toggle_checkbox::<N>(false)
+}
+
+fn swiftui_checkbox_on<const N: usize>() -> Element {
+    toggle_checkbox::<N>(true)
+}
+
+fn toggle_button<const N: usize>(on: bool) -> Element {
+    Button::new("Toggle")
+        .toggled(on)
+        .size(size::<N>())
+        .into_element()
+}
+
+fn swiftui_toggle_button_off<const N: usize>() -> Element {
+    toggle_button::<N>(false)
+}
+
+fn swiftui_toggle_button_on<const N: usize>() -> Element {
+    toggle_button::<N>(true)
+}
+
+fn swiftui_menu<const N: usize>() -> Element {
+    PopUpButton::new("One")
+        .item("One")
+        .item("Two")
+        .item("Three")
+        .size(size::<N>())
+        .into_element()
+}
+
+fn swiftui_radio<const N: usize>() -> Element {
+    RadioGroup::new("Radio")
+        .option("One")
+        .option("Two")
+        .option("Three")
+        .selected(0)
+        .size(size::<N>())
+        .into_element()
+}
+
+fn swiftui_builders() -> Vec<(&'static str, Builder)> {
+    vec![
+        ("automatic", || Button::new("Button").into_element()),
+        ("plain", || {
+            bezel("Button", ButtonStyle::plain).into_element()
+        }),
+        ("link", || bezel("Button", ButtonStyle::link).into_element()),
+        ("destructive", || {
+            Button::new("Delete")
+                .style(ButtonStyle::destructive)
+                .into_element()
+        }),
+        ("cancel", || Button::new("Cancel").into_element()),
+        ("bordered-disabled", || {
+            Button::new("Button").disabled(true).into_element()
+        }),
+        ("prominent-disabled", || {
+            Button::new("Button")
+                .style(ButtonStyle::bordered_prominent)
+                .disabled(true)
+                .into_element()
+        }),
+        ("bordered-capsule", || {
+            Button::new("Button")
+                .style(|style| ButtonStyle {
+                    shape: Shape::Capsule,
+                    ..style
+                })
+                .into_element()
+        }),
+        ("bordered-circle", || {
+            Button::system_image("", Symbol::Plus)
+                .style(ButtonStyle::circular)
+                .into_element()
+        }),
+        ("bordered-rounded", || Button::new("Button").into_element()),
+        ("inline", || swiftui_radio::<2>()),
+        ("switch-on-disabled", || {
+            Switch::new("Toggle")
+                .on(true)
+                .disabled(true)
+                .style(|style: SwitchStyle| SwitchStyle {
+                    label_position: Some(Edge::Leading),
+                    label_gap: 8.0,
+                    ..style
+                })
+                .into_element()
+        }),
+    ]
+}
+
+fn swiftui() -> Vec<(String, Builder)> {
+    [
+        each("bordered", sizes!(push)),
+        each("prominent", sizes!(push_default)),
+        each("switch-off", sizes!(swiftui_switch_off)),
+        each("switch-on", sizes!(swiftui_switch_on)),
+        each("checkbox-off", sizes!(swiftui_checkbox_off)),
+        each("checkbox-on", sizes!(swiftui_checkbox_on)),
+        each("togglebutton-off", sizes!(swiftui_toggle_button_off)),
+        each("togglebutton-on", sizes!(swiftui_toggle_button_on)),
+        each("menu", sizes!(swiftui_menu)),
+        each("radio", sizes!(swiftui_radio)),
+        each("slider", sizes!(slider)),
+        each("stepper", sizes!(stepper)),
+        named(swiftui_builders()),
+    ]
+    .concat()
+}
+
+#[test]
+#[ignore]
+fn appkit_swiftui() {
+    let layout_path = std::env::var("APPKIT_LAYOUT").expect("APPKIT_LAYOUT");
+    let out = PathBuf::from(std::env::var("APPKIT_OUT").expect("APPKIT_OUT"));
+    let positions = layout(&layout_path);
+    fs::create_dir_all(&out).unwrap();
+    for dark in [false, true] {
+        for black in [false, true] {
+            let placed = swiftui()
+                .into_iter()
+                .filter_map(|(name, build)| positions.get(&name).map(|&(x, y, ..)| (x, y, build)))
+                .collect();
+            fs::write(
+                out.join(file(dark, black, "")),
+                render_scene(placed, dark, black, scene_content(), None),
+            )
+            .unwrap();
         }
     }
 }

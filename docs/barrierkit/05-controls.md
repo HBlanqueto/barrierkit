@@ -109,7 +109,18 @@ Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 | `textured_rounded` | A 20 high capsule with a faint ring and no fill; the toolbar bezel (`texturedRounded`, `toolbar`) |
 | `textured_square` | A 20 high rounded rectangle, nearly white in light and 5% white in dark (`texturedSquare`) |
 | `inline` | An 18 high capsule with a 5% fill and a 11 semibold secondary label (`inline`) |
+| `plain` | Only the label, as high as a line of text, in the label color (SwiftUI `.plain`) |
+| `link` | `plain` with the accent color, darker while pressed (SwiftUI `.link`) |
 | `push_disclosure` | A 24 square with the push fill, for a chevron symbol (`pushDisclosure`, `roundedDisclosure`) |
+
+SwiftUI names: `.automatic` and `.bordered` are `ButtonStyle::tengen()`, `.borderedProminent` is
+`bordered_prominent`, `.plain` and `.link` are `plain` and `link`, `.glass` and `.glassProminent` are
+`glass` and `glass_prominent`, and `Button(role: .destructive)` is `destructive`. SwiftUI's
+`.borderless` draws only the label (41 × 16 at regular); the kit's `borderless` keeps the 24 high
+hit area, so use `plain` or `link` for the label-only look. `.buttonBorderShape(.capsule)` is
+`Shape::Capsule` in the closure of `.style`, and `.circle` is `circular`. A `Toggle` is a `Switch`,
+a `Checkbox` or a `Button` with `.toggled(bool)`; a `Picker` is a `SegmentedControl` (`.segmented`),
+a `PopUpButton` (`.menu`) or a `RadioGroup` (`.radioGroup`, `.inline`); `.palette` is `ColorWell`.
 
 `ButtonStyle::tengen()` is also what AppKit draws for the `flexiblePush`, `roundRect`,
 `recessed`, `accessoryBar` and `accessoryBarAction` bezels: the bench finds them identical to the
@@ -175,8 +186,9 @@ Slider::new("Volume").size(ControlSize::Mini)
 The label and the glyphs follow the size: a `Mini` pop-up has a 9 label and 9 high
 arrows, and a checkmark is as large as its box. A search field moves its magnifier and clear
 button, and a combo box its arrow button and chevron, with the size (`SEARCH_FIELD`,
-`COMBO_BOX`). AppKit lays a switch out at 54 × 24 at every
-size and draws it scaled around the center; the kit lays out the size it draws.
+`COMBO_BOX`). A switch takes 54 × 24 in a layout at every size, as in AppKit and SwiftUI, and
+draws its track scaled around the center (`SwitchStyle::frame_size`); the large and extra large
+tracks overflow that frame.
 
 ## Compact buttons
 
