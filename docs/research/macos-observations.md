@@ -97,6 +97,7 @@ useful accessibility tree on this host, so their measurements are visual.
 | Notifications | `notification-banner.png`, `notification-center.png`, `notification-center2.png` |
 | Mission Control | `mission-control.png` |
 | Settings and focus | `settings-appearance.png`, `settings-focus-tab.png`, `settings-focus-tab2.png`, `focus-crop.png`, `focus-crop-4x.png` |
+| System Settings window, sidebar and panes | `settings-2026-11-22/{en,es}/*.txt` (accessibility trees) and `*.png`, probes `axdump.swift`, `axpress.swift`; [`macos-settings.md`](macos-settings.md) |
 | Blur and Liquid Glass matrix | `blur-*.png`, `defaults-2026-11-19-blur/` |
 | 2026-11-20 modes pass | `d2-*.png`, `d3-*.png` (dark), `l2-*.png`, `l3-*.png` (light), `defaults-2026-11-20-modes/` |
 | Materials in windows | `materials/*-full.png` (raw device RGB), `materials/*.json` (frames, flags, layer trees), `materials/materials-cells.json`, `materials/control-*`; probes `materials.swift`, `matcontrols.swift`; [`macos-materials.md`](macos-materials.md#10-materials-in-windows-measured-2026-11-22) |
