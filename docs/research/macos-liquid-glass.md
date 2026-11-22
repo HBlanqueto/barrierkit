@@ -73,7 +73,12 @@ a parity procedure with its tolerance, and the shader descriptions.
 12. **Interaction.** Forcing `_interactionState` to hovered or pressed maps every
     pixel of the glass as `out' = gain x out + offset`, the same for regular and
     clear, within 1 level ([section 7](#7-interaction-merging-and-morphing)). `[C]`
-13. **Not measured:** what makes the pointer trigger it (posted events changed
+13. **The Appearance › Liquid Glass slider** (`NSGlassTintAmount`, 0 to 1) moves
+    the blur fill, the face fill and cap and the read scale of every
+    `glassBackground`: `ctappearance::liquid_glass::tinted` reproduces the tone
+    within 2.3 levels and the width of a step within 2 px
+    ([section 13](#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)). `[R]` `[C]`
+14. **Not measured:** what makes the pointer trigger it (posted events changed
     nothing), scale 2, the system switches, tint at every alpha, the outer
     refraction ([section 12](#12-not-measured)).
 
@@ -352,6 +357,17 @@ the shape (negative inside) and `n` its outward normal.
    minimum `min(a, b) - h^2 k / 4` with `h = max(k - |a - b|, 0) / k` and
    `k = 0.8 s`.
 
+8. **Slider** (`t` = `NSGlassTintAmount`, clamped to 0..1; the active look only;
+   [section 13](#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)).
+   The backdrop is read through a box of 2, 4 or 8 pixels instead of 2 (the
+   layer scale 0.5, 0.25, 0.125 at the thresholds of the tokens). A second
+   Gaussian of sigma `2 x BlurFillBlurRadius` = 16 px (the blur fill, over the
+   same read) is mixed with the lens-read blur by `BlurFillNormalOpacity` `n`:
+   `seen = (1 - n) blur + n fill`. The face reads `seen` with the fill, the cap
+   (`max_luma`) and the delta table of `t` (the table of step 4 plus the shift
+   table of the position, interpolated every 0.25). The inputs that are linear
+   in `t` are the knots of `GlassTint` at `t` = 0, 0.5 and 1.
+
 ### 6.1 Error
 
 RMS of the reference against the captures, levels of 255, by distance to the
@@ -557,7 +573,12 @@ inside it.
    element and a **union** id, and a **variant** for the chrome glass (sidebar
    = 18, Dock = 3 if confirmed). State, scheme, Reduce Transparency and the
    shorter side come from the compositor.
-3. The blur needs a variable sigma by depth up to 28 px (13 levels); the existing
+3. The slider: `tint(glass, scheme)` returns the `GlassTint` tokens and
+   `tinted(&set, &tint, amount, shorter)` the active look of that position
+   (`Tinted`: the look, the read factor 2, 4 or 8, the blur fill opacity and its
+   sigma). At 0 it is the look of `adapted`. Only the active look was measured
+   under the slider; the other states keep their looks.
+4. The blur needs a variable sigma by depth up to 28 px (13 levels); the existing
    Dual Kawase cannot give the two-pixel resolution of the half-resolution read
    but can give the sigmas. The lens needs per-pixel displacement with a
    normal from the SDF.
@@ -681,12 +702,97 @@ one: at 1 the regular glass is a tinted panel of 15.5 px (dark) and 17.5 px (lig
 a blur of 16.5 px with its tone unchanged (82 % of the contrast). The regular blur grows about linearly with `t` (0.41 of its range at 0.5 in dark), not with the
 square, and the tone does not "hardly move": in light it has covered 42 % of its range at 0.5; in dark it moves late, 13 % at 0.5 and most of it after 0.5, where the fill alpha starts.
 
-### 13.3 Not measured
+### 13.3 The model (2026-11-22)
+
+`ctappearance::liquid_glass::tinted(set, tint, t, shorter)` is the active look at
+slider position `t`; `render(set, tint, t, state, backdrop, shape)` is the CPU
+reference. The tokens are `components.liquid-glass.tint.<regular|clear>.<light|dark>`
+(`GlassTint`, `LIQUID_GLASS_TINT_*`): knots at `t` = 0, 0.5 and 1 for the inputs of
+[13.1](#131-the-inputs-of-glassbackground-as-functions-of-t-read) that are linear in
+`t`, the `t` at which the read scale halves (dark 0.41 and 0.97, light 0.33 and 0.97:
+the middle of the reads that bracket them), and four nine-point tone tables.
+
+What was decided from the pixels, and with what method (2026-11-22, the captures of
+13.2 and numpy, no new capture):
+
+- The blur fill is a Gaussian of sigma 16 px: clear at `t` = 1 has a normal opacity of
+  1 and its main blur is 0.75 x 2 px, and it measures 16.5 px; regular dark and light
+  at 1 measure 15.5 and 17.5. Sigma 12 and 32 fit the bars worse than 16 (rms of the
+  difference to `t` = 0: 1.0 to 5.5 against 4 to 12).
+- The read scale adds a box of 4 or 8 px; fixing it at 2 changes the width of a step
+  by 1 px at most, so the read factor is kept as read.
+- The darken and lighten opacity (0.675 to 0.9) is not read by the model: a scale of
+  the nine-point table by that opacity left errors of 3 to 5 levels, and by the
+  opacity times `1 - n` fitted dark but not light. The tone is fitted instead: for each
+  scheme and `t` = 0.25, 0.5, 0.75 and 1 the residual of the face (with the fill and
+  cap of that `t`) against the ramp row of the `tone` capture and gray 128 is a
+  nine-point table; its difference to the table of `t` = 0 is the shift table, so the
+  tone at 0 is the earlier model exactly. The end nodes copy their neighbour's shift
+  (the ramp covers levels 26 to 230).
+- The cap: the dark size rule `clamp(0.84 - 0.00375 m, 0.45, 0.6)` has its lower end
+  moved by the slider (0.45 to 0.35), so the cap moves only where the rule is below
+  its top (a 200 px shape moves, 30 to 56 px shapes read 0.6 at every `t`).
+- The clear blur opacities become 1, 0.5, 0.5, 1 as soon as `t` > 0; the size rules of
+  clear give 0 and are not applied then (read at 200 x 160 and 560 x 400 only).
+
+Error (tests of `ctappearance::liquid_glass`): the tone over gray 128 and the ramp
+(5 positions, both schemes, regular and clear; 200 samples) is within 2.25 levels
+(regular dark gray 1.9 rms; the ramp 1.5 worst; light 1.0; clear 0.8) against the
+captures. The step of a 40 px bar at 100 px from the rim of a 560 x 400 shape
+through `render` (25 to 75 % width in pixels, and the contrast in levels; the
+sigma of Gaussian is the width over 1.349):
+
+| Look | `t` | Width model / capture | Contrast model / capture |
+|---|---|---|---|
+| Regular, dark | 0, 0.25, 0.5, 0.75, 1 | 6.1 / 6.5, 7.3 / 7.4, 9.3 / 11.1, 12.7 / 13.3, 17.5 / 17.9 | 114 / 104, 103 / 94, 93 / 85, 68 / 57, 45 / 36 |
+| Regular, light | 0, 0.25, 0.5, 0.75, 1 | 7.8 / 8.2, 9.1 / 10.7, 11.4 / 13.3, 15.3 / 16.1, 22.4 / 19.6 | 149 / 140, 127 / 120, 105 / 99, 78 / 74, 54 / 51 |
+| Clear, both | 0, 0.25, 0.5, 0.75, 1 | 1.0 / 1.0, 1.3 / 1.1, 1.7 / 1.3, 3.6 / 3.3, 21.5 / 20.2 | 223 / 223, 223 / 223, 223 / 223, 214 / 213, 185 / 183 |
+
+The tolerance is 2.5 px of sigma (3.4 px of width; ADR 0095) and 0.08 on the contrast
+as a share of its value at `t` = 0: the model keeps 5 to 11 levels more contrast than
+the captures at every `t` (the bleed is not modelled, section 4), and the regular
+blur at `t` = 0 is up to 2 px narrower than macOS (section 6.1), which the slider
+inherits. What differs most: regular light at 1 (2.8 px wider), regular dark at 0.5
+(1.8 px narrower).
+
+### 13.4 Other surfaces, states and flags (read 2026-11-22)
+
+Per-process reads of the layer tree (`-NSGlassTintAmount <t>` and, where noted,
+`-reduceTransparency 1` or `-increaseContrast 1` on the probe's command line; no system
+setting changed; no capture, so these are inputs, not pixels). The values at 0, 0.25,
+0.5, 0.75 and 1 (0, 0.5, 1 for the key window) are in
+[`macos-liquid-glass-tint-surfaces.csv`](macos-liquid-glass-tint-surfaces.csv): every input
+of every `glassBackground` that moves, by source (`lgcfg-nonkey`, `lgmulti-key`,
+`swiftglass`, `swiftwin`), surface, scheme and flags.
+
+| Surface | Follows the slider? |
+|---|---|
+| `NSGlassEffectView` in a key window and in a non-key window (the inactive look) | yes, the same inputs as 13.1 |
+| SwiftUI `glassEffect` (`.regular`, `.clear`, tints, `.interactive()`, containers, 30 to 300 px) and the glass buttons (`.glass`, `.glassProminent`) | yes, the same inputs; `.identity` does not move |
+| The toolbar's button glass and the scroll-edge bar of a `NavigationSplitView` window (soft and hard) | yes, the same inputs as regular glass (their 36 px and 48 px bars) |
+| The tab control's pill | only the face fill moves (the blur fill, the cap and the scale do not) |
+| The window sidebar (variant 18, 144 x 500) | the blur fill opacity is 0.25 at 0, 0.5 at 0.5 and 1 at 1 (not `t`), the darken or lighten opacity as 13.1, the read scale is 0.5 up to 0.5 and 0.25 from 0.75; its fill does not move |
+| The titlebar, toolbar and sidebar backdrops built from `gaussianBlur`, `colorMatrix`, `sdrNormalize`, `vibrantColorMatrix`, `variableBlur` | no input moves |
+| Reduce Transparency, regular | the blur fill opacity is `t`; the fill alpha is a tent: dark `1.2 t` to 0.6 at 0.5, then 0.5 at 1 (black fill); light `1.6 t` to 0.8 at 0.5, then 0.5 (white); the cap follows dark as in 13.1; the read scale does not move |
+| Reduce Transparency, clear | the blur fill follows 13.1; the main blur radius and opacities do not move |
+| Increase Contrast, regular | as 13.1 except the fill: light 0.45 up to 0.75 and 0.5 at 1, dark does not move; the read scale is 0.25 from 0 (light) or from 0.25 (dark) |
+| Increase Contrast, clear | as 13.1 |
+| Both (key window) | light: the fill alpha is 0.45 at 0, 0.8 at 0.5 and 0.5 at 1, no scale move; dark: the fill does not move, the cap and the blur fill as 13.1, the scale is 0.125 at 0 and 0.5 and 0.25 at 1 |
+
+The cap of dark regular glass does not move below shapes of 64 px (read 0.6 at 30 x 30,
+65 x 24 and 74 x 56), moves at 200 x 160 and 300 x 200 (0.45 to 0.35), which the model
+reproduces. `tinted` models the active look; the inactive, Reduce Transparency and
+Increase Contrast looks keep their looks under the slider (their inputs are read, their
+pixels were not captured).
+
+### 13.5 Not measured
 
 | Cell | What it needs |
 |---|---|
-| Whether the Dock, the menu bar, Control Center and the notifications follow the slider | the system value (a setting change), or a capture of them at another value |
-| The inactive look and scale 2 at other `t` | `lgshot -inactive` and a HiDPI mode |
-| What the slider does with Reduce Transparency or Increase Contrast on | `-reduceTransparency 1` and `-increaseContrast 1` with `-NSGlassTintAmount` |
+| Whether the Dock, the menu bar, Control Center and the notifications follow the slider | the system value (a setting change): `~/src/probes/states.d/` batch `liquid-glass-tint-*` and `global-states.sh`, run by the user |
+| The pixels of the inactive look, Reduce Transparency and Increase Contrast under the slider, and of the chrome glass (toolbar, sidebar, tab pill, scroll edge) inside a window | `lgshot` with the flags and a window that hosts them; only their inputs were read (13.4) |
+| Scale 2 at other `t` | a HiDPI mode |
 | The tint over colour backdrops and the rim and shadow at other `t` | the inputs of the rim and shadow do not move; colour captures were not taken |
 | Why the scale thresholds differ between dark (0.41) and light (0.33) | the scale is probably chosen from the fill's luminance; one value at each end was read |
+| The sizes between 64 and 104 px under the slider (cap), clear at sizes other than 200 x 160 and 560 x 400 (blur opacities), and the thresholds of the read scale at other sizes (the 540 x 36 toolbar bar is 0.5 up to 0.75 and 0.125 at 1) | reads at those sizes |
+| The mixing order of the blur fill, the darken and lighten blend and the bleed | the filter's code; only its inputs and 1x pixels were available |

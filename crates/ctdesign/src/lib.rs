@@ -1242,6 +1242,22 @@ pub struct GlassLens {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassTint {
+    pub blur: [f32; 3],
+    pub blur_opacity: [f32; 4],
+    pub blur_fill_opacity: [f32; 3],
+    pub blur_fill_radius: f32,
+    pub fill_rgb: [f32; 3],
+    pub fill_alpha: [f32; 3],
+    pub max_luma: [f32; 3],
+    pub read_halvings: [f32; 2],
+    pub tone_shift_t25: [f32; 9],
+    pub tone_shift_t50: [f32; 9],
+    pub tone_shift_t75: [f32; 9],
+    pub tone_shift_t100: [f32; 9],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GlassInteraction {
     pub hover: [f32; 2],
     pub pressed: [f32; 2],

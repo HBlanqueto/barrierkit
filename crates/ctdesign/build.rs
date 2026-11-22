@@ -165,6 +165,10 @@ LIQUID_GLASS_CLEAR_DARK GlassSet components.liquid-glass.clear.dark
 LIQUID_GLASS_LENS GlassLens components.liquid-glass.lens
 LIQUID_GLASS_BLUR_CAP f32 components.liquid-glass.blur-cap
 LIQUID_GLASS_UNION f32 components.liquid-glass.union
+LIQUID_GLASS_TINT_REGULAR_LIGHT GlassTint components.liquid-glass.tint.regular.light
+LIQUID_GLASS_TINT_REGULAR_DARK GlassTint components.liquid-glass.tint.regular.dark
+LIQUID_GLASS_TINT_CLEAR_LIGHT GlassTint components.liquid-glass.tint.clear.light
+LIQUID_GLASS_TINT_CLEAR_DARK GlassTint components.liquid-glass.tint.clear.dark
 LIQUID_GLASS_INTERACTION_LIGHT GlassInteraction components.liquid-glass.interaction.light
 LIQUID_GLASS_INTERACTION_DARK GlassInteraction components.liquid-glass.interaction.dark
 MATERIAL_ULTRA_THIN_LIGHT MaterialSet components.material.swiftui.ultra-thin.light

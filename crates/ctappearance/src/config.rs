@@ -122,6 +122,15 @@ fn color_filter_intensity<'de, D: Deserializer<'de>>(deserializer: D) -> Result<
     stepped(deserializer, &COLOR_FILTER_INTENSITY)
 }
 
+fn liquid_glass_tint<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
+    let amount = f32::deserialize(deserializer)?;
+    Ok(if amount.is_nan() {
+        0.0
+    } else {
+        amount.clamp(0.0, 1.0)
+    })
+}
+
 fn deserialize_tint_parts<'de, D>(deserializer: D) -> Result<TintParts, D::Error>
 where
     D: Deserializer<'de>,
@@ -292,6 +301,8 @@ pub struct AppearanceConfig {
     pub color_filter: ColorFilter,
     #[serde(deserialize_with = "color_filter_intensity")]
     pub color_filter_intensity: f32,
+    #[serde(deserialize_with = "liquid_glass_tint")]
+    pub liquid_glass_tint: f32,
     pub gtk_bridge: bool,
     pub qt_bridge: bool,
 }
@@ -332,6 +343,7 @@ impl Default for AppearanceConfig {
             color_filters: false,
             color_filter: ColorFilter::default(),
             color_filter_intensity: COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1],
+            liquid_glass_tint: 0.0,
             gtk_bridge: true,
             qt_bridge: true,
         }
@@ -778,6 +790,7 @@ traffic_lights = "standard"
             color_filters: true,
             color_filter: ColorFilter::BlueYellow,
             color_filter_intensity: COLOR_FILTER_INTENSITY[1],
+            liquid_glass_tint: 0.3,
             gtk_bridge: false,
             qt_bridge: false,
         };
@@ -883,13 +896,16 @@ traffic_lights = "standard"
     fn a_size_outside_its_steps_stops_at_the_nearest_one_and_nan_at_the_first() {
         let config: AppearanceConfig = toml::from_str(
             "display_contrast = 0.0\ntext_size = nan\npointer_size = 9.0\n\
-             color_filter_intensity = -inf\n[text_sizes]\ngtk = 40.0\n",
+             color_filter_intensity = -inf\nliquid_glass_tint = 4.0\n[text_sizes]\ngtk = 40.0\n",
         )
         .unwrap();
         assert_eq!(config.display_contrast, DISPLAY_CONTRAST[0]);
         assert_eq!(config.text_size, TEXT_SIZES[0]);
         assert_eq!(config.pointer_size, POINTER_SIZES[6]);
         assert_eq!(config.color_filter_intensity, COLOR_FILTER_INTENSITY[0]);
+        assert_eq!(config.liquid_glass_tint, 1.0);
+        let not_a_number: AppearanceConfig = toml::from_str("liquid_glass_tint = nan\n").unwrap();
+        assert_eq!(not_a_number.liquid_glass_tint, 0.0);
         assert_eq!(config.text_sizes.gtk, Some(TEXT_SIZES[5]));
         assert_eq!(config.text_sizes.qt, None);
     }

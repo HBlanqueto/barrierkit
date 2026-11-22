@@ -1,8 +1,10 @@
 use ctdesign::{
-    GlassInteraction, GlassLens, GlassLook, GlassRim, GlassScale, GlassSet, LIQUID_GLASS_BLUR_CAP,
-    LIQUID_GLASS_CLEAR_DARK, LIQUID_GLASS_CLEAR_LIGHT, LIQUID_GLASS_INTERACTION_DARK,
-    LIQUID_GLASS_INTERACTION_LIGHT, LIQUID_GLASS_LENS, LIQUID_GLASS_REGULAR_DARK,
-    LIQUID_GLASS_REGULAR_LIGHT, LIQUID_GLASS_UNION, RIM_BINS,
+    GlassInteraction, GlassLens, GlassLook, GlassRim, GlassScale, GlassSet, GlassTint,
+    LIQUID_GLASS_BLUR_CAP, LIQUID_GLASS_CLEAR_DARK, LIQUID_GLASS_CLEAR_LIGHT,
+    LIQUID_GLASS_INTERACTION_DARK, LIQUID_GLASS_INTERACTION_LIGHT, LIQUID_GLASS_LENS,
+    LIQUID_GLASS_REGULAR_DARK, LIQUID_GLASS_REGULAR_LIGHT, LIQUID_GLASS_TINT_CLEAR_DARK,
+    LIQUID_GLASS_TINT_CLEAR_LIGHT, LIQUID_GLASS_TINT_REGULAR_DARK, LIQUID_GLASS_TINT_REGULAR_LIGHT,
+    LIQUID_GLASS_UNION, RIM_BINS, Rgba,
 };
 
 use crate::ColorScheme;
@@ -12,6 +14,10 @@ const SIGMA_LEVELS: [f32; 13] = [
     0.0, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 10.0, 13.0, 16.0, 20.0, 24.0, 28.0,
 ];
 const RIM_ANGLE_BIN: f32 = 7.5;
+const BLUR_PIXELS_PER_RADIUS: f32 = 2.0;
+const HALF_RESOLUTION: usize = 2;
+const MIDDLE_KNOT: f32 = 0.5;
+const SHIFT_TABLES: f32 = 4.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Glass {
@@ -64,6 +70,21 @@ pub fn looks(glass: Glass, scheme: ColorScheme) -> GlassSet {
     }
 }
 
+pub fn tint(glass: Glass, scheme: ColorScheme) -> GlassTint {
+    match glass {
+        Glass::Regular => scheme.pick([
+            LIQUID_GLASS_TINT_REGULAR_LIGHT,
+            LIQUID_GLASS_TINT_REGULAR_DARK,
+            LIQUID_GLASS_TINT_REGULAR_DARK,
+        ]),
+        Glass::Clear => scheme.pick([
+            LIQUID_GLASS_TINT_CLEAR_LIGHT,
+            LIQUID_GLASS_TINT_CLEAR_DARK,
+            LIQUID_GLASS_TINT_CLEAR_DARK,
+        ]),
+    }
+}
+
 pub fn look(set: &GlassSet, state: GlassState) -> GlassLook {
     match state {
         GlassState::Active => set.active,
@@ -91,6 +112,90 @@ pub fn adapted(look: &GlassLook, scale: &GlassScale, shorter: f32) -> GlassLook 
     adapted
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Tinted {
+    pub look: GlassLook,
+    pub read_factor: usize,
+    pub blur_fill: f32,
+    pub blur_fill_sigma: f32,
+}
+
+impl Tinted {
+    pub fn untinted(look: GlassLook) -> Self {
+        Self {
+            look,
+            read_factor: HALF_RESOLUTION,
+            blur_fill: 0.0,
+            blur_fill_sigma: 0.0,
+        }
+    }
+}
+
+fn along_knots(knots: [f32; 3], amount: f32) -> f32 {
+    if amount <= MIDDLE_KNOT {
+        knots[0] + (knots[1] - knots[0]) * amount / MIDDLE_KNOT
+    } else {
+        knots[1] + (knots[2] - knots[1]) * (amount - MIDDLE_KNOT) / MIDDLE_KNOT
+    }
+}
+
+fn tone_shift(tint: &GlassTint, amount: f32) -> [f32; 9] {
+    let tables = [
+        [0.0; 9],
+        tint.tone_shift_t25,
+        tint.tone_shift_t50,
+        tint.tone_shift_t75,
+        tint.tone_shift_t100,
+    ];
+    let at = amount * SHIFT_TABLES;
+    let below = (at.floor() as usize).min(tables.len() - 2);
+    std::array::from_fn(|index| {
+        tables[below][index]
+            + (tables[below + 1][index] - tables[below][index]) * (at - below as f32)
+    })
+}
+
+pub fn tinted(set: &GlassSet, tint: &GlassTint, amount: f32, shorter: f32) -> Tinted {
+    let amount = amount.clamp(0.0, 1.0);
+    let mut look = adapted(&set.active, &set.scale, shorter);
+    look.blur = along_knots(tint.blur, amount);
+    if amount > 0.0 && tint.blur_opacity[3] > 0.0 {
+        look.blur_opacity = tint.blur_opacity;
+    }
+    let [slope, offset, _, highest] = set.scale.max_luma;
+    look.max_luma = rule(
+        [slope, offset, along_knots(tint.max_luma, amount), highest],
+        shorter,
+    );
+    let rgb = along_knots(tint.fill_rgb, amount);
+    look.fill = Rgba {
+        r: rgb,
+        g: rgb,
+        b: rgb,
+        a: along_knots(tint.fill_alpha, amount),
+    };
+    let shift = tone_shift(tint, amount);
+    for (delta, shift) in look.tone_delta.iter_mut().zip(shift) {
+        *delta += shift;
+    }
+    let blur_fill = along_knots(tint.blur_fill_opacity, amount);
+    let halvings = tint
+        .read_halvings
+        .iter()
+        .filter(|threshold| amount >= **threshold)
+        .count();
+    Tinted {
+        look,
+        read_factor: HALF_RESOLUTION << halvings,
+        blur_fill,
+        blur_fill_sigma: if blur_fill > 0.0 {
+            BLUR_PIXELS_PER_RADIUS * tint.blur_fill_radius
+        } else {
+            0.0
+        },
+    }
+}
+
 pub fn interaction(scheme: ColorScheme) -> GlassInteraction {
     scheme.pick([
         LIQUID_GLASS_INTERACTION_LIGHT,
@@ -107,15 +212,15 @@ pub fn interacted(interaction: &GlassInteraction, pointer: Interaction, rgb: [f3
     rgb.map(|channel| (channel * gain + offset).clamp(0.0, 1.0))
 }
 
-pub fn half_resolution(line: &[f32]) -> Vec<f32> {
+pub fn half_resolution(line: &[f32], factor: usize) -> Vec<f32> {
     let texels: Vec<f32> = line
-        .chunks(2)
-        .map(|pair| pair.iter().sum::<f32>() / pair.len() as f32)
+        .chunks(factor)
+        .map(|block| block.iter().sum::<f32>() / block.len() as f32)
         .collect();
     let last = texels.len() - 1;
     (0..line.len())
         .map(|pixel| {
-            let at = ((pixel as f32 - 0.5) / 2.0).clamp(0.0, last as f32);
+            let at = ((pixel as f32 + 0.5) / factor as f32 - 0.5).clamp(0.0, last as f32);
             let below = at.floor() as usize;
             let above = (below + 1).min(last);
             texels[below] + (texels[above] - texels[below]) * (at - below as f32)
@@ -166,7 +271,7 @@ pub fn blur_sigma(look: &GlassLook, depth: f32) -> f32 {
     } else {
         opacity[2]
     };
-    (2.0 * look.blur * scale).min(cap)
+    (BLUR_PIXELS_PER_RADIUS * look.blur * scale).min(cap)
 }
 
 pub fn lens_offset(look: &GlassLook, lens: &GlassLens, depth: f32) -> f32 {
@@ -284,9 +389,12 @@ impl Image {
         out
     }
 
-    pub fn half_resolution(&self) -> Self {
+    pub fn half_resolution(&self, factor: usize) -> Self {
         let channel = |line: &[[f32; 3]], index: usize| {
-            half_resolution(&line.iter().map(|pixel| pixel[index]).collect::<Vec<_>>())
+            half_resolution(
+                &line.iter().map(|pixel| pixel[index]).collect::<Vec<_>>(),
+                factor,
+            )
         };
         let pass = |line: &[[f32; 3]]| {
             let (r, g, b) = (channel(line, 0), channel(line, 1), channel(line, 2));
@@ -340,19 +448,27 @@ impl Image {
     }
 }
 
-pub fn render(set: &GlassSet, state: GlassState, backdrop: &Image, shape: &Shape) -> Image {
+pub fn render(
+    set: &GlassSet,
+    tint: &GlassTint,
+    amount: f32,
+    state: GlassState,
+    backdrop: &Image,
+    shape: &Shape,
+) -> Image {
     let base = look(set, state);
-    let look = if state == GlassState::Active {
-        adapted(&base, &set.scale, shape.width.min(shape.height))
+    let applied = if state == GlassState::Active {
+        tinted(set, tint, amount, shape.width.min(shape.height))
     } else {
-        base
+        Tinted::untinted(base)
     };
-    let half = backdrop.half_resolution();
+    let look = applied.look;
+    let half = backdrop.half_resolution(applied.read_factor);
     let widest = look
         .blur_opacity
         .iter()
         .fold(0.0_f32, |widest, opacity| {
-            widest.max(2.0 * look.blur * opacity)
+            widest.max(BLUR_PIXELS_PER_RADIUS * look.blur * opacity)
         })
         .min(LIQUID_GLASS_BLUR_CAP);
     let mut needed: Vec<f32> = SIGMA_LEVELS
@@ -368,6 +484,7 @@ pub fn render(set: &GlassSet, state: GlassState, backdrop: &Image, shape: &Shape
             .unwrap_or(LIQUID_GLASS_BLUR_CAP),
     );
     let blurred: Vec<Image> = needed.iter().map(|sigma| half.gaussian(*sigma)).collect();
+    let blur_fill = (applied.blur_fill > 0.0).then(|| half.gaussian(applied.blur_fill_sigma));
     Image::new(backdrop.width, backdrop.height, |x, y| {
         let (px, py) = (x as f32 + 0.5, y as f32 + 0.5);
         let (distance, normal) = rounded_rect_distance(shape, px, py);
@@ -389,8 +506,12 @@ pub fn render(set: &GlassSet, state: GlassState, backdrop: &Image, shape: &Shape
                 blurred[lower].bilinear(sx, sy),
                 blurred[upper].bilinear(sx, sy),
             );
+            let filled = blur_fill
+                .as_ref()
+                .map_or([0.0; 3], |copy| copy.bilinear(sx, sy));
             let seen: [f32; 3] = std::array::from_fn(|channel| {
-                (near[channel] + (far[channel] - near[channel]) * mix) / 255.0
+                let main = near[channel] + (far[channel] - near[channel]) * mix;
+                (main + (filled[channel] - main) * applied.blur_fill) / 255.0
             });
             face(&look, seen).map(|channel| channel * 255.0)
         } else {
@@ -435,7 +556,7 @@ mod tests {
         let mut line = vec![0.0; 16];
         line[8] = 1.0;
         assert_eq!(
-            half_resolution(&line)[6..11],
+            half_resolution(&line, 2)[6..11],
             [0.0, 0.125, 0.375, 0.375, 0.125]
         );
     }
@@ -453,7 +574,7 @@ mod tests {
             let line: Vec<f32> = (0..640)
                 .map(|x| if whites.contains(&x) { 1.0 } else { 0.0 })
                 .collect();
-            let seen = half_resolution(&line);
+            let seen = half_resolution(&line, 2);
             for row in rows("line").filter(|row| (lo..hi).contains(&(levels(row[0]) as usize))) {
                 let shown = face(&clear, [seen[levels(row[0]) as usize]; 3])[1] * 255.0;
                 worst = worst.max((shown - levels(row[1])).abs());
@@ -684,6 +805,8 @@ mod tests {
         };
         let shown = render(
             &set,
+            &tint(Glass::Clear, ColorScheme::Dark),
+            0.0,
             GlassState::Active,
             &pattern(360, 280, |_, _| 128.0),
             &shape,
@@ -704,12 +827,231 @@ mod tests {
             let set = looks(Glass::Regular, scheme);
             let shown = render(
                 &set,
+                &tint(Glass::Regular, scheme),
+                0.0,
                 GlassState::Active,
                 &pattern(360, 280, |_, _| 128.0),
                 &shape,
             );
             let worst = worst_inside(&shown, |_, _| expected, &shape, 8.0);
             assert!(worst <= 3.0, "{scheme:?}: worst {worst}");
+        }
+    }
+
+    const TINT_SAMPLES: &str = include_str!("../tests/data/liquid-glass-tint-samples.csv");
+    const TINT_INPUTS: &str = include_str!("../../../docs/research/macos-liquid-glass-tint.csv");
+    const READ_AT_SHORTER_SIDE: f32 = 160.0;
+    const BARS: [(usize, usize, usize); 5] = [
+        (100, 140, 80),
+        (160, 200, 100),
+        (220, 260, 140),
+        (280, 320, 200),
+        (340, 380, 320),
+    ];
+    const CROP: (usize, usize) = (0, 100);
+    const DEPTH_100_BAR: usize = 2;
+
+    fn tint_rows(kind: &'static str) -> impl Iterator<Item = Vec<&'static str>> {
+        TINT_SAMPLES.lines().filter_map(move |line| {
+            let mut fields = line.split(',');
+            (fields.next()? == kind).then(|| fields.collect())
+        })
+    }
+
+    fn glass_named(name: &str) -> (Glass, ColorScheme) {
+        let glass = if name.starts_with("clear") {
+            Glass::Clear
+        } else {
+            Glass::Regular
+        };
+        let scheme = if name.ends_with("light") {
+            ColorScheme::Light
+        } else {
+            ColorScheme::Dark
+        };
+        (glass, scheme)
+    }
+
+    fn tinted_named(name: &str, amount: f32, shorter: f32) -> Tinted {
+        let (glass, scheme) = glass_named(name);
+        tinted(&looks(glass, scheme), &tint(glass, scheme), amount, shorter)
+    }
+
+    #[test]
+    fn every_input_the_slider_moves_follows_the_values_read_at_each_position() {
+        let mut compared = 0;
+        for row in TINT_INPUTS.lines().skip(1) {
+            let fields: Vec<&str> = row.split(',').collect();
+            let amount = levels(fields[2]);
+            let read = levels(fields[3]);
+            let moved = tinted_named(fields[0], amount, READ_AT_SHORTER_SIDE);
+            let model = match fields[1] {
+                "inputBlurFillNormalOpacity" => moved.blur_fill,
+                "inputBlurFillBlurRadius" => moved.blur_fill_sigma / BLUR_PIXELS_PER_RADIUS,
+                "inputBlurFillDarkenOpacity" | "inputBlurFillLightenOpacity" => continue,
+                "inputFaceColorMatrixFillColor/color[0]" => moved.look.fill.r,
+                "inputFaceColorMatrixFillColor/color[1]" => moved.look.fill.g,
+                "inputFaceColorMatrixFillColor/color[2]" => moved.look.fill.b,
+                "inputFaceColorMatrixFillColor/color[3]" => moved.look.fill.a,
+                "inputFaceColorMatrixMaxLuma" | "inputFaceColorMatrixMaxLumaSDR" => {
+                    moved.look.max_luma
+                }
+                "scale" => 1.0 / moved.read_factor as f32,
+                "inputBlurOpacity0" => moved.look.blur_opacity[0],
+                "inputBlurOpacity1" => moved.look.blur_opacity[1],
+                "inputBlurOpacity2" => moved.look.blur_opacity[2],
+                "inputBlurOpacity3" => moved.look.blur_opacity[3],
+                "inputBlurRadius" => moved.look.blur,
+                other => panic!("unknown input {other}"),
+            };
+            assert!(
+                (model - read).abs() < 1e-3,
+                "{} {} at {amount}: {model} against {read}",
+                fields[0],
+                fields[1]
+            );
+            compared += 1;
+        }
+        assert!(compared > 600, "{compared}");
+    }
+
+    #[test]
+    fn at_zero_the_slider_leaves_every_look_as_it_was() {
+        for (glass, scheme) in [
+            (Glass::Regular, ColorScheme::Dark),
+            (Glass::Regular, ColorScheme::Light),
+            (Glass::Clear, ColorScheme::Dark),
+            (Glass::Clear, ColorScheme::Light),
+        ] {
+            let set = looks(glass, scheme);
+            let active = adapted(&set.active, &set.scale, 400.0);
+            let moved = tinted(&set, &tint(glass, scheme), 0.0, 400.0);
+            assert_eq!(moved.read_factor, HALF_RESOLUTION);
+            assert_eq!(moved.blur_fill, 0.0);
+            let look = moved.look;
+            assert_eq!(
+                (look.blur, look.blur_opacity, look.max_luma, look.tone_delta),
+                (
+                    active.blur,
+                    active.blur_opacity,
+                    active.max_luma,
+                    active.tone_delta
+                )
+            );
+            assert_eq!(look.fill.a, active.fill.a);
+        }
+    }
+
+    #[test]
+    fn a_value_outside_the_slider_stops_at_its_ends() {
+        let set = looks(Glass::Regular, ColorScheme::Light);
+        let slider = tint(Glass::Regular, ColorScheme::Light);
+        assert_eq!(
+            tinted(&set, &slider, -0.5, 400.0),
+            tinted(&set, &slider, 0.0, 400.0)
+        );
+        assert_eq!(
+            tinted(&set, &slider, 1.5, 400.0),
+            tinted(&set, &slider, 1.0, 400.0)
+        );
+    }
+
+    #[test]
+    fn the_dark_cap_moves_with_the_slider_only_where_the_size_rule_is_below_its_top() {
+        let set = looks(Glass::Regular, ColorScheme::Dark);
+        let slider = tint(Glass::Regular, ColorScheme::Dark);
+        for (shorter, at_one) in [(30.0, 0.6), (56.0, 0.6), (200.0, 0.35), (400.0, 0.35)] {
+            let moved = tinted(&set, &slider, 1.0, shorter).look.max_luma;
+            assert!((moved - at_one).abs() < 1e-4, "{shorter}: {moved}");
+        }
+    }
+
+    #[test]
+    fn the_tone_over_gray_and_the_ramp_follows_the_slider_within_two_and_a_half_levels() {
+        let mut worst = 0.0_f32;
+        for row in tint_rows("gray") {
+            let moved = tinted_named(row[0], levels(row[1]), 400.0);
+            let shown = face(&moved.look, [128.0 / 255.0; 3])[1] * 255.0;
+            worst = worst.max((shown - levels(row[2])).abs());
+        }
+        for row in tint_rows("ramp") {
+            let moved = tinted_named(row[0], levels(row[1]), 400.0);
+            let shown = face(&moved.look, [levels(row[2]) / 255.0; 3])[1] * 255.0;
+            worst = worst.max((shown - levels(row[3])).abs());
+        }
+        assert!(worst <= 2.5, "worst {worst}");
+    }
+
+    fn bars() -> Image {
+        Image::new(260, 280, |x, y| {
+            let on = BARS
+                .iter()
+                .any(|(top, bottom, end)| (*top..*bottom).contains(&(y + CROP.1)) && x < *end);
+            [if on { 255.0 } else { 0.0 }; 3]
+        })
+    }
+
+    fn step_through(shown: &Image) -> (f32, f32) {
+        let (top, bottom, end) = BARS[DEPTH_100_BAR];
+        let row = |x: usize| {
+            (top + 10..bottom - 10)
+                .map(|y| shown.rgb[(y - CROP.1) * shown.width + x][1])
+                .sum::<f32>()
+                / (bottom - top - 20) as f32
+        };
+        let plateau = |from: usize| (from..from + 30).map(row).sum::<f32>() / 30.0;
+        let (left, right) = (plateau(end - 60), plateau(end + 30));
+        let crossing = |level: f32| {
+            let at = (end - 40..end + 40)
+                .find(|x| (row(*x) - right) / (left - right) < level)
+                .unwrap();
+            let (before, after) = (
+                (row(at - 1) - right) / (left - right),
+                (row(at) - right) / (left - right),
+            );
+            at as f32 - 1.0 + (before - level) / (before - after)
+        };
+        (crossing(0.25) - crossing(0.75), left - right)
+    }
+
+    #[test]
+    fn the_step_a_bar_keeps_widens_and_fades_with_the_slider_as_the_captures_do() {
+        let shape = Shape {
+            x: 40.0 - CROP.0 as f32,
+            y: 40.0 - CROP.1 as f32,
+            width: 560.0,
+            height: 400.0,
+            radius: 24.0,
+        };
+        let backdrop = bars();
+        let mut at_zero = std::collections::HashMap::new();
+        for row in tint_rows("width") {
+            let amount = levels(row[1]);
+            let (glass, scheme) = glass_named(row[0]);
+            let set = looks(glass, scheme);
+            let shown = render(
+                &set,
+                &tint(glass, scheme),
+                amount,
+                GlassState::Active,
+                &backdrop,
+                &shape,
+            );
+            let (width, contrast) = step_through(&shown);
+            let (measured_width, measured_contrast) = (levels(row[2]), levels(row[3]));
+            let (zero, measured_zero) = *at_zero
+                .entry(row[0])
+                .or_insert((contrast, measured_contrast));
+            assert!(
+                (width - measured_width).abs() <= 2.5 * 1.349,
+                "{} at {amount}: width {width} against {measured_width}",
+                row[0]
+            );
+            assert!(
+                (contrast / zero - measured_contrast / measured_zero).abs() <= 0.08,
+                "{} at {amount}: contrast {contrast} against {measured_contrast}",
+                row[0]
+            );
         }
     }
 }

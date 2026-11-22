@@ -426,6 +426,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `color_filters` | `bool` | | `false` |
 | `color_filter` | `ColorFilter` | `grayscale`, `red_green`, `green_red`, `blue_yellow` | `grayscale` |
 | `color_filter_intensity` | `f32` | a value of `COLOR_FILTER_INTENSITY` | `1.0` |
+| `liquid_glass_tint` | `f32` | 0 to 1: the Liquid Glass slider of macOS (`NSGlassTintAmount`); outside it reads as the nearest end | `0.0` |
 
 Notes on the values:
 
@@ -1120,12 +1121,24 @@ levels of 255, 6 step profiles within 2 and 26 solids within 1.
 `ctappearance::liquid_glass::looks(glass, scheme)` returns the set;
 `adapted(look, &set.scale, shorter)` applies the size rules to the active look.
 `face`, `blur_sigma`, `lens_offset`, `rim_levels` and `smooth_union` are the
-stages and `render(set, state, &backdrop, &shape)` the CPU reference over an
+stages and `render(set, tint, amount, state, &backdrop, &shape)` the CPU reference over an
 `Image`. Values are device values at scale 1 as macOS 27.2.1 draws them; the
 compositor applies them in its own output space. The tests reproduce 33 gray
 samples within 2.5 levels, 36 colours, three line profiles within 1 level, the
 lens within 2 px and the rim tables within 10 levels
 ([research](../research/macos-liquid-glass.md#6-the-model)).
+
+`LIQUID_GLASS_TINT_<STYLE>_<SCHEME>` are the `GlassTint` of the Appearance › Liquid
+Glass slider (`AppearanceConfig::liquid_glass_tint`, 0 to 1): `blur`, `blur_fill_opacity`,
+`fill_rgb`, `fill_alpha` and `max_luma` are knots at 0, 0.5 and 1, `read_halvings` the
+positions at which the read through the backdrop halves its resolution, and
+`tone_shift_t25` to `_t100` nine-point shifts of `tone_delta`.
+`liquid_glass::tint(glass, scheme)` returns it and
+`tinted(&set, &tint, amount, shorter)` the active look at that position, with the
+blur fill (`Tinted`); `render(set, tint, amount, state, &backdrop, &shape)` takes both.
+At 0 the look is the unchanged one. The tests reproduce the 27 inputs of the slider at
+31 positions, the tone within 2.5 levels and the width of a step within 2.5 px of sigma
+([research](../research/macos-liquid-glass.md#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)).
 
 `LIQUID_GLASS_INTERACTION_LIGHT` and `_DARK` are a `GlassInteraction`: `hover`
 and `pressed` are the `[gain, offset]` of the device value an interactive glass

@@ -1,0 +1,1259 @@
+source,surface,scheme,flags,input,tint_amount,value
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillLightenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillLightenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillLightenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillLightenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillLightenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,light,none,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+lgcfg-nonkey,NSGlassEffectView regular,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+lgcfg-nonkey,NSGlassEffectView regular,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+lgcfg-nonkey,NSGlassEffectView regular,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+lgcfg-nonkey,NSGlassEffectView regular,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,none,scale,0,0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,none,scale,0.25,0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,none,scale,0.5,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,none,scale,0.75,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,none,scale,1,0.125
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillLightenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillLightenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillLightenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillLightenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillLightenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,FaceColorMatrixFillColor,0,1;1;1;0
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,FaceColorMatrixFillColor,0.25,1;1;1;0.4
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,FaceColorMatrixFillColor,0.5,1;1;1;0.8
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,FaceColorMatrixFillColor,0.75,1;1;1;0.65
+lgcfg-nonkey,NSGlassEffectView regular,light,rt,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillLightenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillLightenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillLightenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillLightenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillLightenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,FaceColorMatrixFillColor,0,1;1;1;0.45
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,FaceColorMatrixFillColor,0.25,1;1;1;0.45
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,FaceColorMatrixFillColor,0.5,1;1;1;0.45
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,FaceColorMatrixFillColor,0.75,1;1;1;0.45
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,scale,0,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,scale,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,scale,0.5,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,scale,0.75,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,ic,scale,1,0.125
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillLightenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillLightenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillLightenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillLightenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillLightenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,FaceColorMatrixFillColor,0,1;1;1;0.45
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,FaceColorMatrixFillColor,0.25,1;1;1;0.45
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,FaceColorMatrixFillColor,0.5,1;1;1;0.8
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,FaceColorMatrixFillColor,0.75,1;1;1;0.65
+lgcfg-nonkey,NSGlassEffectView regular,light,rtic,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillDarkenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillDarkenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillDarkenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillDarkenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLuma,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLuma,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLuma,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLuma,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLuma,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLumaSDR,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLumaSDR,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLumaSDR,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,FaceColorMatrixMaxLumaSDR,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,scale,0,0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,scale,0.25,0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,scale,0.5,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,scale,0.75,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,none,scale,1,0.125
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillDarkenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillDarkenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillDarkenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillDarkenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillDarkenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixFillColor,0,0;0;0;0
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixFillColor,0.25,0;0;0;0.3
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixFillColor,0.5,0;0;0;0.6
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixFillColor,0.75,0;0;0;0.55
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixFillColor,1,0;0;0;0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLuma,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLuma,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLuma,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLuma,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLuma,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLumaSDR,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLumaSDR,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLumaSDR,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rt,FaceColorMatrixMaxLumaSDR,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillDarkenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillDarkenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillDarkenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillDarkenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillDarkenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLuma,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLuma,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLuma,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLuma,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLuma,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLumaSDR,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLumaSDR,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLumaSDR,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,FaceColorMatrixMaxLumaSDR,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,scale,0,0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,scale,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,scale,0.5,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,scale,0.75,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,ic,scale,1,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillDarkenOpacity,0,0.675
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillDarkenOpacity,0.25,0.7875
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillDarkenOpacity,0.5,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillDarkenOpacity,0.75,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillDarkenOpacity,1,0.9
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillNormalOpacity,0.25,0.25
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillNormalOpacity,0.5,0.5
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillNormalOpacity,0.75,0.75
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLuma,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLuma,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLuma,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLuma,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLuma,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLumaSDR,0,0.45
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLumaSDR,0.25,0.4
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLumaSDR,0.75,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,FaceColorMatrixMaxLumaSDR,1,0.35
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,scale,0,0.125
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,scale,0.25,0.125
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,scale,0.5,0.125
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,scale,0.75,0.125
+lgcfg-nonkey,NSGlassEffectView regular,dark,rtic,scale,1,0.25
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,light,none,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,light,rt,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,light,ic,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,light,rtic,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,dark,none,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,dark,rt,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,dark,ic,BlurFillNormalOpacity,1,1
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillBlurRadius,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillBlurRadius,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillBlurRadius,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillBlurRadius,0.75,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillBlurRadius,1,8
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillNormalOpacity,0,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillNormalOpacity,0.25,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillNormalOpacity,0.5,0
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillNormalOpacity,0.75,0.5
+lgcfg-nonkey,NSGlassEffectView clear,dark,rtic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,BlurFillLightenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,BlurFillLightenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,BlurFillLightenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,scale,0,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,scale,0.5,0.25
+lgmulti-key,NSGlassEffectView regular 200x160,light,none,scale,1,0.125
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,BlurFillLightenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,BlurFillLightenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,BlurFillLightenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,FaceColorMatrixFillColor,0,1;1;1;0
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,FaceColorMatrixFillColor,0.5,1;1;1;0.8
+lgmulti-key,NSGlassEffectView regular 200x160,light,rt,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,BlurFillLightenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,BlurFillLightenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,BlurFillLightenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,FaceColorMatrixFillColor,0,1;1;1;0.45
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,FaceColorMatrixFillColor,0.5,1;1;1;0.45
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,scale,0,0.25
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,scale,0.5,0.25
+lgmulti-key,NSGlassEffectView regular 200x160,light,ic,scale,1,0.125
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,BlurFillLightenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,BlurFillLightenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,BlurFillLightenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,FaceColorMatrixFillColor,0,1;1;1;0.45
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,FaceColorMatrixFillColor,0.5,1;1;1;0.8
+lgmulti-key,NSGlassEffectView regular 200x160,light,rtic,FaceColorMatrixFillColor,1,1;1;1;0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,BlurFillDarkenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,BlurFillDarkenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,BlurFillDarkenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixMaxLuma,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixMaxLuma,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixMaxLuma,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixMaxLumaSDR,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,FaceColorMatrixMaxLumaSDR,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,scale,0,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,scale,0.5,0.25
+lgmulti-key,NSGlassEffectView regular 200x160,dark,none,scale,1,0.125
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,BlurFillDarkenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,BlurFillDarkenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,BlurFillDarkenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixFillColor,0,0;0;0;0
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixFillColor,0.5,0;0;0;0.6
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixFillColor,1,0;0;0;0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixMaxLuma,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixMaxLuma,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixMaxLuma,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixMaxLumaSDR,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rt,FaceColorMatrixMaxLumaSDR,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,BlurFillDarkenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,BlurFillDarkenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,BlurFillDarkenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,FaceColorMatrixMaxLuma,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,FaceColorMatrixMaxLuma,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,FaceColorMatrixMaxLuma,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,FaceColorMatrixMaxLumaSDR,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,FaceColorMatrixMaxLumaSDR,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,scale,0,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,scale,0.5,0.25
+lgmulti-key,NSGlassEffectView regular 200x160,dark,ic,scale,1,0.25
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,BlurFillDarkenOpacity,0,0.675
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,BlurFillDarkenOpacity,0.5,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,BlurFillDarkenOpacity,1,0.9
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,BlurFillNormalOpacity,0.5,0.5
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,FaceColorMatrixMaxLuma,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,FaceColorMatrixMaxLuma,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,FaceColorMatrixMaxLuma,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,FaceColorMatrixMaxLumaSDR,0,0.45
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,FaceColorMatrixMaxLumaSDR,0.5,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,FaceColorMatrixMaxLumaSDR,1,0.35
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,scale,0,0.125
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,scale,0.5,0.125
+lgmulti-key,NSGlassEffectView regular 200x160,dark,rtic,scale,1,0.25
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity0,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity0,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity0,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity1,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity1,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity1,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity2,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity2,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity2,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity3,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity3,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurOpacity3,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurRadius,0.5,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,light,none,BlurRadius,1,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,light,rt,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rt,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rt,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,light,rt,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rt,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rt,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity0,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity0,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity0,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity1,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity1,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity1,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity2,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity2,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity2,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity3,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity3,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurOpacity3,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurRadius,0.5,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,light,ic,BlurRadius,1,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,light,rtic,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rtic,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rtic,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,light,rtic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rtic,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,light,rtic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity0,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity0,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity0,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity1,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity1,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity1,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity2,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity2,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity2,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity3,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity3,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurOpacity3,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurRadius,0.5,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,dark,none,BlurRadius,1,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rt,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rt,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rt,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rt,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rt,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rt,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurFillNormalOpacity,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity0,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity0,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity0,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity1,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity1,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity1,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity2,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity2,0.5,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity2,1,0.5
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity3,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity3,0.5,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurOpacity3,1,1
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurRadius,0.5,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,dark,ic,BlurRadius,1,0.75
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rtic,BlurFillBlurRadius,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rtic,BlurFillBlurRadius,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rtic,BlurFillBlurRadius,1,8
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rtic,BlurFillNormalOpacity,0,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rtic,BlurFillNormalOpacity,0.5,0
+lgmulti-key,NSGlassEffectView clear 200x160,dark,rtic,BlurFillNormalOpacity,1,1
+swiftglass,big-clear 300x200,dark,none,BlurFillBlurRadius,0,0
+swiftglass,big-clear 300x200,dark,none,BlurFillBlurRadius,0.25,0
+swiftglass,big-clear 300x200,dark,none,BlurFillBlurRadius,0.5,0
+swiftglass,big-clear 300x200,dark,none,BlurFillBlurRadius,0.75,8
+swiftglass,big-clear 300x200,dark,none,BlurFillBlurRadius,1,8
+swiftglass,big-clear 300x200,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,big-clear 300x200,dark,none,BlurFillNormalOpacity,0.25,0
+swiftglass,big-clear 300x200,dark,none,BlurFillNormalOpacity,0.5,0
+swiftglass,big-clear 300x200,dark,none,BlurFillNormalOpacity,0.75,0.5
+swiftglass,big-clear 300x200,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,big-clear 300x200,light,none,BlurFillBlurRadius,0,0
+swiftglass,big-clear 300x200,light,none,BlurFillBlurRadius,0.25,0
+swiftglass,big-clear 300x200,light,none,BlurFillBlurRadius,0.5,0
+swiftglass,big-clear 300x200,light,none,BlurFillBlurRadius,0.75,8
+swiftglass,big-clear 300x200,light,none,BlurFillBlurRadius,1,8
+swiftglass,big-clear 300x200,light,none,BlurFillNormalOpacity,0,0
+swiftglass,big-clear 300x200,light,none,BlurFillNormalOpacity,0.25,0
+swiftglass,big-clear 300x200,light,none,BlurFillNormalOpacity,0.5,0
+swiftglass,big-clear 300x200,light,none,BlurFillNormalOpacity,0.75,0.5
+swiftglass,big-clear 300x200,light,none,BlurFillNormalOpacity,1,1
+swiftglass,big-rect 300x200,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,big-rect 300x200,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,big-rect 300x200,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,big-rect 300x200,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,big-rect 300x200,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,big-rect 300x200,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,big-rect 300x200,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,big-rect 300x200,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,big-rect 300x200,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,big-rect 300x200,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLuma,0,0.45
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLuma,0.25,0.4
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLuma,0.5,0.35
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLuma,0.75,0.35
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLuma,1,0.35
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLumaSDR,0,0.45
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLumaSDR,0.25,0.4
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLumaSDR,0.5,0.35
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLumaSDR,0.75,0.35
+swiftglass,big-rect 300x200,dark,none,FaceColorMatrixMaxLumaSDR,1,0.35
+swiftglass,big-rect 300x200,dark,none,scale,0,0.5
+swiftglass,big-rect 300x200,dark,none,scale,0.25,0.5
+swiftglass,big-rect 300x200,dark,none,scale,0.5,0.25
+swiftglass,big-rect 300x200,dark,none,scale,0.75,0.25
+swiftglass,big-rect 300x200,dark,none,scale,1,0.125
+swiftglass,big-rect 300x200,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,big-rect 300x200,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,big-rect 300x200,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,big-rect 300x200,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,big-rect 300x200,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,big-rect 300x200,light,none,BlurFillNormalOpacity,0,0
+swiftglass,big-rect 300x200,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,big-rect 300x200,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,big-rect 300x200,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,big-rect 300x200,light,none,BlurFillNormalOpacity,1,1
+swiftglass,big-rect 300x200,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,big-rect 300x200,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,big-rect 300x200,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,big-rect 300x200,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,big-rect 300x200,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,big-rect 300x200,light,none,scale,0,0.5
+swiftglass,big-rect 300x200,light,none,scale,0.25,0.5
+swiftglass,big-rect 300x200,light,none,scale,0.5,0.25
+swiftglass,big-rect 300x200,light,none,scale,0.75,0.25
+swiftglass,big-rect 300x200,light,none,scale,1,0.125
+swiftglass,button-glass 65x24,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,button-glass 65x24,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,button-glass 65x24,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,button-glass 65x24,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,button-glass 65x24,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,button-glass 65x24,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,button-glass 65x24,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,button-glass 65x24,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,button-glass 65x24,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,button-glass 65x24,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,button-glass 65x24,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,button-glass 65x24,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,button-glass 65x24,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,button-glass 65x24,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,button-glass 65x24,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,button-glass 65x24,dark,none,scale,0,0.5
+swiftglass,button-glass 65x24,dark,none,scale,0.25,0.5
+swiftglass,button-glass 65x24,dark,none,scale,0.5,0.5
+swiftglass,button-glass 65x24,dark,none,scale,0.75,0.5
+swiftglass,button-glass 65x24,dark,none,scale,1,0.125
+swiftglass,button-glass 65x24,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,button-glass 65x24,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,button-glass 65x24,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,button-glass 65x24,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,button-glass 65x24,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,button-glass 65x24,light,none,BlurFillNormalOpacity,0,0
+swiftglass,button-glass 65x24,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,button-glass 65x24,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,button-glass 65x24,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,button-glass 65x24,light,none,BlurFillNormalOpacity,1,1
+swiftglass,button-glass 65x24,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,button-glass 65x24,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,button-glass 65x24,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,button-glass 65x24,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,button-glass 65x24,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,button-glass 65x24,light,none,scale,0,0.5
+swiftglass,button-glass 65x24,light,none,scale,0.25,0.5
+swiftglass,button-glass 65x24,light,none,scale,0.5,0.5
+swiftglass,button-glass 65x24,light,none,scale,0.75,0.5
+swiftglass,button-glass 65x24,light,none,scale,1,0.125
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,button-glassProminent-tint 65x24,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,button-glassProminent-tint 65x24,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,button-glassProminent-tint 65x24,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,button-glassProminent-tint 65x24,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,button-glassProminent-tint 65x24,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,button-glassProminent-tint 65x24,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,button-glassProminent-tint 65x24,dark,none,scale,0,0.5
+swiftglass,button-glassProminent-tint 65x24,dark,none,scale,0.25,0.5
+swiftglass,button-glassProminent-tint 65x24,dark,none,scale,0.5,0.5
+swiftglass,button-glassProminent-tint 65x24,dark,none,scale,0.75,0.5
+swiftglass,button-glassProminent-tint 65x24,dark,none,scale,1,0.125
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillNormalOpacity,0,0
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,button-glassProminent-tint 65x24,light,none,BlurFillNormalOpacity,1,1
+swiftglass,button-glassProminent-tint 65x24,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,button-glassProminent-tint 65x24,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,button-glassProminent-tint 65x24,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,button-glassProminent-tint 65x24,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,button-glassProminent-tint 65x24,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,button-glassProminent-tint 65x24,light,none,scale,0,0.5
+swiftglass,button-glassProminent-tint 65x24,light,none,scale,0.25,0.5
+swiftglass,button-glassProminent-tint 65x24,light,none,scale,0.5,0.5
+swiftglass,button-glassProminent-tint 65x24,light,none,scale,0.75,0.5
+swiftglass,button-glassProminent-tint 65x24,light,none,scale,1,0.125
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,button-glassProminent 65x24,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,button-glassProminent 65x24,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,button-glassProminent 65x24,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,button-glassProminent 65x24,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,button-glassProminent 65x24,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,button-glassProminent 65x24,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,button-glassProminent 65x24,dark,none,scale,0,0.5
+swiftglass,button-glassProminent 65x24,dark,none,scale,0.25,0.5
+swiftglass,button-glassProminent 65x24,dark,none,scale,0.5,0.5
+swiftglass,button-glassProminent 65x24,dark,none,scale,0.75,0.5
+swiftglass,button-glassProminent 65x24,dark,none,scale,1,0.125
+swiftglass,button-glassProminent 65x24,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,button-glassProminent 65x24,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,button-glassProminent 65x24,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,button-glassProminent 65x24,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,button-glassProminent 65x24,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,button-glassProminent 65x24,light,none,BlurFillNormalOpacity,0,0
+swiftglass,button-glassProminent 65x24,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,button-glassProminent 65x24,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,button-glassProminent 65x24,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,button-glassProminent 65x24,light,none,BlurFillNormalOpacity,1,1
+swiftglass,button-glassProminent 65x24,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,button-glassProminent 65x24,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,button-glassProminent 65x24,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,button-glassProminent 65x24,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,button-glassProminent 65x24,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,button-glassProminent 65x24,light,none,scale,0,0.5
+swiftglass,button-glassProminent 65x24,light,none,scale,0.25,0.5
+swiftglass,button-glassProminent 65x24,light,none,scale,0.5,0.5
+swiftglass,button-glassProminent 65x24,light,none,scale,0.75,0.5
+swiftglass,button-glassProminent 65x24,light,none,scale,1,0.125
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillBlurRadius,0,0
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillBlurRadius,0.25,0
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillBlurRadius,0.5,0
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillBlurRadius,0.75,8
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillBlurRadius,1,8
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillNormalOpacity,0.25,0
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillNormalOpacity,0.5,0
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillNormalOpacity,0.75,0.5
+swiftglass,clear-tint-red 74x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,clear-tint-red 74x56,light,none,BlurFillBlurRadius,0,0
+swiftglass,clear-tint-red 74x56,light,none,BlurFillBlurRadius,0.25,0
+swiftglass,clear-tint-red 74x56,light,none,BlurFillBlurRadius,0.5,0
+swiftglass,clear-tint-red 74x56,light,none,BlurFillBlurRadius,0.75,8
+swiftglass,clear-tint-red 74x56,light,none,BlurFillBlurRadius,1,8
+swiftglass,clear-tint-red 74x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,clear-tint-red 74x56,light,none,BlurFillNormalOpacity,0.25,0
+swiftglass,clear-tint-red 74x56,light,none,BlurFillNormalOpacity,0.5,0
+swiftglass,clear-tint-red 74x56,light,none,BlurFillNormalOpacity,0.75,0.5
+swiftglass,clear-tint-red 74x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,clear 74x56,dark,none,BlurFillBlurRadius,0,0
+swiftglass,clear 74x56,dark,none,BlurFillBlurRadius,0.25,0
+swiftglass,clear 74x56,dark,none,BlurFillBlurRadius,0.5,0
+swiftglass,clear 74x56,dark,none,BlurFillBlurRadius,0.75,8
+swiftglass,clear 74x56,dark,none,BlurFillBlurRadius,1,8
+swiftglass,clear 74x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,clear 74x56,dark,none,BlurFillNormalOpacity,0.25,0
+swiftglass,clear 74x56,dark,none,BlurFillNormalOpacity,0.5,0
+swiftglass,clear 74x56,dark,none,BlurFillNormalOpacity,0.75,0.5
+swiftglass,clear 74x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,clear 74x56,light,none,BlurFillBlurRadius,0,0
+swiftglass,clear 74x56,light,none,BlurFillBlurRadius,0.25,0
+swiftglass,clear 74x56,light,none,BlurFillBlurRadius,0.5,0
+swiftglass,clear 74x56,light,none,BlurFillBlurRadius,0.75,8
+swiftglass,clear 74x56,light,none,BlurFillBlurRadius,1,8
+swiftglass,clear 74x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,clear 74x56,light,none,BlurFillNormalOpacity,0.25,0
+swiftglass,clear 74x56,light,none,BlurFillNormalOpacity,0.5,0
+swiftglass,clear 74x56,light,none,BlurFillNormalOpacity,0.75,0.5
+swiftglass,clear 74x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,container-two-far 158x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,container-two-far 158x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,container-two-far 158x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,container-two-far 158x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,container-two-far 158x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,container-two-far 158x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,container-two-far 158x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,container-two-far 158x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,container-two-far 158x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,container-two-far 158x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,container-two-far 158x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,container-two-far 158x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,container-two-far 158x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,container-two-far 158x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,container-two-far 158x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,container-two-far 158x56,dark,none,scale,0,0.5
+swiftglass,container-two-far 158x56,dark,none,scale,0.25,0.5
+swiftglass,container-two-far 158x56,dark,none,scale,0.5,0.5
+swiftglass,container-two-far 158x56,dark,none,scale,0.75,0.5
+swiftglass,container-two-far 158x56,dark,none,scale,1,0.125
+swiftglass,container-two-far 158x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,container-two-far 158x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,container-two-far 158x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,container-two-far 158x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,container-two-far 158x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,container-two-far 158x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,container-two-far 158x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,container-two-far 158x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,container-two-far 158x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,container-two-far 158x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,container-two-far 158x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,container-two-far 158x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,container-two-far 158x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,container-two-far 158x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,container-two-far 158x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,container-two-far 158x56,light,none,scale,0,0.5
+swiftglass,container-two-far 158x56,light,none,scale,0.25,0.5
+swiftglass,container-two-far 158x56,light,none,scale,0.5,0.5
+swiftglass,container-two-far 158x56,light,none,scale,0.75,0.5
+swiftglass,container-two-far 158x56,light,none,scale,1,0.125
+swiftglass,container-two-near 118x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,container-two-near 118x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,container-two-near 118x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,container-two-near 118x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,container-two-near 118x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,container-two-near 118x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,container-two-near 118x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,container-two-near 118x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,container-two-near 118x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,container-two-near 118x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,container-two-near 118x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,container-two-near 118x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,container-two-near 118x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,container-two-near 118x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,container-two-near 118x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,container-two-near 118x56,dark,none,scale,0,0.5
+swiftglass,container-two-near 118x56,dark,none,scale,0.25,0.5
+swiftglass,container-two-near 118x56,dark,none,scale,0.5,0.5
+swiftglass,container-two-near 118x56,dark,none,scale,0.75,0.5
+swiftglass,container-two-near 118x56,dark,none,scale,1,0.125
+swiftglass,container-two-near 118x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,container-two-near 118x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,container-two-near 118x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,container-two-near 118x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,container-two-near 118x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,container-two-near 118x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,container-two-near 118x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,container-two-near 118x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,container-two-near 118x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,container-two-near 118x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,container-two-near 118x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,container-two-near 118x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,container-two-near 118x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,container-two-near 118x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,container-two-near 118x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,container-two-near 118x56,light,none,scale,0,0.5
+swiftglass,container-two-near 118x56,light,none,scale,0.25,0.5
+swiftglass,container-two-near 118x56,light,none,scale,0.5,0.5
+swiftglass,container-two-near 118x56,light,none,scale,0.75,0.5
+swiftglass,container-two-near 118x56,light,none,scale,1,0.125
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0.25,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0.5,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0.75,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,1,0.125
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,no-container-two-near 49x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,no-container-two-near 49x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0.25,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0.5,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,0.75,0.5
+swiftglass,no-container-two-near 49x56,dark,none,scale,1,0.125
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0.25,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0.5,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0.75,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,1,0.125
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,no-container-two-near 49x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,no-container-two-near 49x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,no-container-two-near 49x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0.25,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0.5,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,0.75,0.5
+swiftglass,no-container-two-near 49x56,light,none,scale,1,0.125
+swiftglass,regular-default 74x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,regular-default 74x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,regular-default 74x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,regular-default 74x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,regular-default 74x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,regular-default 74x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-default 74x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-default 74x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-default 74x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-default 74x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-default 74x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,regular-default 74x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,regular-default 74x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,regular-default 74x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,regular-default 74x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,regular-default 74x56,dark,none,scale,0,0.5
+swiftglass,regular-default 74x56,dark,none,scale,0.25,0.5
+swiftglass,regular-default 74x56,dark,none,scale,0.5,0.5
+swiftglass,regular-default 74x56,dark,none,scale,0.75,0.5
+swiftglass,regular-default 74x56,dark,none,scale,1,0.125
+swiftglass,regular-default 74x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,regular-default 74x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,regular-default 74x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,regular-default 74x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,regular-default 74x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,regular-default 74x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-default 74x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-default 74x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-default 74x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-default 74x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-default 74x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,regular-default 74x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,regular-default 74x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,regular-default 74x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,regular-default 74x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,regular-default 74x56,light,none,scale,0,0.5
+swiftglass,regular-default 74x56,light,none,scale,0.25,0.5
+swiftglass,regular-default 74x56,light,none,scale,0.5,0.5
+swiftglass,regular-default 74x56,light,none,scale,0.75,0.5
+swiftglass,regular-default 74x56,light,none,scale,1,0.125
+swiftglass,regular-interactive 74x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,regular-interactive 74x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,regular-interactive 74x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,regular-interactive 74x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,regular-interactive 74x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,regular-interactive 74x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-interactive 74x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-interactive 74x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-interactive 74x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-interactive 74x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-interactive 74x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,regular-interactive 74x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,regular-interactive 74x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,regular-interactive 74x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,regular-interactive 74x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,regular-interactive 74x56,dark,none,scale,0,0.5
+swiftglass,regular-interactive 74x56,dark,none,scale,0.25,0.5
+swiftglass,regular-interactive 74x56,dark,none,scale,0.5,0.5
+swiftglass,regular-interactive 74x56,dark,none,scale,0.75,0.5
+swiftglass,regular-interactive 74x56,dark,none,scale,1,0.125
+swiftglass,regular-interactive 74x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,regular-interactive 74x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,regular-interactive 74x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,regular-interactive 74x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,regular-interactive 74x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,regular-interactive 74x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-interactive 74x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-interactive 74x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-interactive 74x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-interactive 74x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-interactive 74x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,regular-interactive 74x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,regular-interactive 74x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,regular-interactive 74x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,regular-interactive 74x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,regular-interactive 74x56,light,none,scale,0,0.5
+swiftglass,regular-interactive 74x56,light,none,scale,0.25,0.5
+swiftglass,regular-interactive 74x56,light,none,scale,0.5,0.5
+swiftglass,regular-interactive 74x56,light,none,scale,0.75,0.5
+swiftglass,regular-interactive 74x56,light,none,scale,1,0.125
+swiftglass,regular-rect20 74x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,regular-rect20 74x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,regular-rect20 74x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,regular-rect20 74x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,regular-rect20 74x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,regular-rect20 74x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-rect20 74x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-rect20 74x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-rect20 74x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-rect20 74x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-rect20 74x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,regular-rect20 74x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,regular-rect20 74x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,regular-rect20 74x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,regular-rect20 74x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,regular-rect20 74x56,dark,none,scale,0,0.5
+swiftglass,regular-rect20 74x56,dark,none,scale,0.25,0.5
+swiftglass,regular-rect20 74x56,dark,none,scale,0.5,0.5
+swiftglass,regular-rect20 74x56,dark,none,scale,0.75,0.5
+swiftglass,regular-rect20 74x56,dark,none,scale,1,0.125
+swiftglass,regular-rect20 74x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,regular-rect20 74x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,regular-rect20 74x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,regular-rect20 74x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,regular-rect20 74x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,regular-rect20 74x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-rect20 74x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-rect20 74x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-rect20 74x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-rect20 74x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-rect20 74x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,regular-rect20 74x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,regular-rect20 74x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,regular-rect20 74x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,regular-rect20 74x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,regular-rect20 74x56,light,none,scale,0,0.5
+swiftglass,regular-rect20 74x56,light,none,scale,0.25,0.5
+swiftglass,regular-rect20 74x56,light,none,scale,0.5,0.5
+swiftglass,regular-rect20 74x56,light,none,scale,0.75,0.5
+swiftglass,regular-rect20 74x56,light,none,scale,1,0.125
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-tint-blue50 74x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-tint-blue50 74x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,regular-tint-blue50 74x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,regular-tint-blue50 74x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,regular-tint-blue50 74x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,regular-tint-blue50 74x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,regular-tint-blue50 74x56,dark,none,scale,0,0.5
+swiftglass,regular-tint-blue50 74x56,dark,none,scale,0.25,0.5
+swiftglass,regular-tint-blue50 74x56,dark,none,scale,0.5,0.5
+swiftglass,regular-tint-blue50 74x56,dark,none,scale,0.75,0.5
+swiftglass,regular-tint-blue50 74x56,dark,none,scale,1,0.125
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-tint-blue50 74x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-tint-blue50 74x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,regular-tint-blue50 74x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,regular-tint-blue50 74x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,regular-tint-blue50 74x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,regular-tint-blue50 74x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,regular-tint-blue50 74x56,light,none,scale,0,0.5
+swiftglass,regular-tint-blue50 74x56,light,none,scale,0.25,0.5
+swiftglass,regular-tint-blue50 74x56,light,none,scale,0.5,0.5
+swiftglass,regular-tint-blue50 74x56,light,none,scale,0.75,0.5
+swiftglass,regular-tint-blue50 74x56,light,none,scale,1,0.125
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-tint-red 74x56,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-tint-red 74x56,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,regular-tint-red 74x56,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,regular-tint-red 74x56,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,regular-tint-red 74x56,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,regular-tint-red 74x56,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,regular-tint-red 74x56,dark,none,scale,0,0.5
+swiftglass,regular-tint-red 74x56,dark,none,scale,0.25,0.5
+swiftglass,regular-tint-red 74x56,dark,none,scale,0.5,0.5
+swiftglass,regular-tint-red 74x56,dark,none,scale,0.75,0.5
+swiftglass,regular-tint-red 74x56,dark,none,scale,1,0.125
+swiftglass,regular-tint-red 74x56,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,regular-tint-red 74x56,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,regular-tint-red 74x56,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,regular-tint-red 74x56,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,regular-tint-red 74x56,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,regular-tint-red 74x56,light,none,BlurFillNormalOpacity,0,0
+swiftglass,regular-tint-red 74x56,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,regular-tint-red 74x56,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,regular-tint-red 74x56,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,regular-tint-red 74x56,light,none,BlurFillNormalOpacity,1,1
+swiftglass,regular-tint-red 74x56,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,regular-tint-red 74x56,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,regular-tint-red 74x56,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,regular-tint-red 74x56,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,regular-tint-red 74x56,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,regular-tint-red 74x56,light,none,scale,0,0.5
+swiftglass,regular-tint-red 74x56,light,none,scale,0.25,0.5
+swiftglass,regular-tint-red 74x56,light,none,scale,0.5,0.5
+swiftglass,regular-tint-red 74x56,light,none,scale,0.75,0.5
+swiftglass,regular-tint-red 74x56,light,none,scale,1,0.125
+swiftglass,small-circle 30x30,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftglass,small-circle 30x30,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftglass,small-circle 30x30,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftglass,small-circle 30x30,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftglass,small-circle 30x30,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftglass,small-circle 30x30,dark,none,BlurFillNormalOpacity,0,0
+swiftglass,small-circle 30x30,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,small-circle 30x30,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,small-circle 30x30,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,small-circle 30x30,dark,none,BlurFillNormalOpacity,1,1
+swiftglass,small-circle 30x30,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftglass,small-circle 30x30,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftglass,small-circle 30x30,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftglass,small-circle 30x30,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftglass,small-circle 30x30,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftglass,small-circle 30x30,dark,none,scale,0,0.5
+swiftglass,small-circle 30x30,dark,none,scale,0.25,0.5
+swiftglass,small-circle 30x30,dark,none,scale,0.5,0.5
+swiftglass,small-circle 30x30,dark,none,scale,0.75,0.5
+swiftglass,small-circle 30x30,dark,none,scale,1,0.125
+swiftglass,small-circle 30x30,light,none,BlurFillLightenOpacity,0,0.675
+swiftglass,small-circle 30x30,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftglass,small-circle 30x30,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftglass,small-circle 30x30,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftglass,small-circle 30x30,light,none,BlurFillLightenOpacity,1,0.9
+swiftglass,small-circle 30x30,light,none,BlurFillNormalOpacity,0,0
+swiftglass,small-circle 30x30,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftglass,small-circle 30x30,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftglass,small-circle 30x30,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftglass,small-circle 30x30,light,none,BlurFillNormalOpacity,1,1
+swiftglass,small-circle 30x30,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftglass,small-circle 30x30,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftglass,small-circle 30x30,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftglass,small-circle 30x30,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftglass,small-circle 30x30,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftglass,small-circle 30x30,light,none,scale,0,0.5
+swiftglass,small-circle 30x30,light,none,scale,0.25,0.5
+swiftglass,small-circle 30x30,light,none,scale,0.5,0.5
+swiftglass,small-circle 30x30,light,none,scale,0.75,0.5
+swiftglass,small-circle 30x30,light,none,scale,1,0.125
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0,0
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,1,1
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,scale,0,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,scale,0.25,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,scale,0.5,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,scale,0.75,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,dark,none,scale,1,0.125
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0,0.675
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,1,0.9
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0,0
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,1,1
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,scale,0,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,scale,0.25,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,scale,0.5,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,scale,0.75,0.5
+swiftwin,edge-hard@w/2/1/0/1/0 700x48,light,none,scale,1,0.125
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0,0
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,BlurFillNormalOpacity,1,1
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,scale,0,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,scale,0.25,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,scale,0.5,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,scale,0.75,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,dark,none,scale,1,0.125
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0,0.675
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillLightenOpacity,1,0.9
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0,0
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,BlurFillNormalOpacity,1,1
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,scale,0,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,scale,0.25,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,scale,0.5,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,scale,0.75,0.5
+swiftwin,edge-soft@w/2/1/0/1/0 700x48,light,none,scale,1,0.125
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillNormalOpacity,0,0.25
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillNormalOpacity,0.25,0.375
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,BlurFillNormalOpacity,1,1
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,scale,0,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,scale,0.25,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,scale,0.5,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,scale,0.75,0.25
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,dark,none,scale,1,0.25
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillDarkenOpacity,0,0.675
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillDarkenOpacity,0.25,0.7875
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillDarkenOpacity,0.5,0.9
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillDarkenOpacity,0.75,0.9
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillDarkenOpacity,1,0.9
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillNormalOpacity,0,0
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillNormalOpacity,0.25,0.25
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,BlurFillNormalOpacity,1,1
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,scale,0,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,scale,0.25,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,scale,0.5,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,scale,0.75,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,dark,none,scale,1,0.125
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillLightenOpacity,0,0.675
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillLightenOpacity,1,0.9
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillNormalOpacity,0,0.25
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillNormalOpacity,0.25,0.375
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,BlurFillNormalOpacity,1,1
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,scale,0,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,scale,0.25,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,scale,0.5,0.5
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,scale,0.75,0.25
+swiftwin,split-toolbar@w/2/0/0/0/4/0/1/0/0/1/0 144x500,light,none,scale,1,0.25
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillLightenOpacity,0,0.675
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillLightenOpacity,0.25,0.7875
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillLightenOpacity,0.5,0.9
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillLightenOpacity,0.75,0.9
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillLightenOpacity,1,0.9
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillNormalOpacity,0,0
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillNormalOpacity,0.25,0.25
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillNormalOpacity,0.5,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillNormalOpacity,0.75,0.75
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,BlurFillNormalOpacity,1,1
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,scale,0,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,scale,0.25,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,scale,0.5,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,scale,0.75,0.5
+swiftwin,split-toolbar@w/3/0/1/1/1/0/0/1/0 540x36,light,none,scale,1,0.125
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,dark,none,FaceColorMatrixFillColor,0,0.125;0.125;0.125;0
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,dark,none,FaceColorMatrixFillColor,0.25,0.0625;0.0625;0.0625;0
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,dark,none,FaceColorMatrixFillColor,0.5,0;0;0;0
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,dark,none,FaceColorMatrixFillColor,0.75,0.0625;0.0625;0.0625;0.25
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,dark,none,FaceColorMatrixFillColor,1,0.125;0.125;0.125;0.5
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,light,none,FaceColorMatrixFillColor,0,1;1;1;0
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,light,none,FaceColorMatrixFillColor,0.25,1;1;1;0.1
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,light,none,FaceColorMatrixFillColor,0.5,1;1;1;0.2
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,light,none,FaceColorMatrixFillColor,0.75,1;1;1;0.35
+swiftwin,tabs@w/3/0/0/1/0/2/0/1/0 49x20,light,none,FaceColorMatrixFillColor,1,1;1;1;0.5
