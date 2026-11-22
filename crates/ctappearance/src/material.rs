@@ -142,7 +142,7 @@ mod tests {
         Material::UnderWindowBackground,
         Material::UnderPageBackground,
     ];
-    const SWIFTUI: [[MaterialLook; 2]; 6] = [
+    const SWIFTUI: [[MaterialSet; 2]; 6] = [
         [MATERIAL_ULTRA_THIN_LIGHT, MATERIAL_ULTRA_THIN_DARK],
         [MATERIAL_THIN_LIGHT, MATERIAL_THIN_DARK],
         [MATERIAL_REGULAR_LIGHT, MATERIAL_REGULAR_DARK],
@@ -265,7 +265,7 @@ mod tests {
     fn the_swiftui_materials_show_the_gray_ramps_of_the_captures() {
         let ramp: Vec<f32> = (0..1024).map(|row| (row / 4) as f32 / 255.0).collect();
         for (index, dark, levels) in rows("swiftui") {
-            let look = SWIFTUI[index][usize::from(dark)];
+            let look = SWIFTUI[index][usize::from(dark)].active;
             let behind = [blur_region(&ramp, look.sigma)[usize::from(levels[0]) * 4 + 2]; 3];
             let shown = over(&look, behind);
             let error = worst(shown, &levels[3..]);
@@ -274,6 +274,32 @@ mod tests {
                 "SwiftUI material {index} dark {dark} over {:?} is {error} from {:?}",
                 &levels[..3],
                 &levels[3..]
+            );
+        }
+    }
+
+    #[test]
+    fn the_swiftui_looks_of_reduced_transparency_are_solids_and_only_the_bar_goes_inactive() {
+        for (index, dark, levels) in rows("swiftreduced") {
+            let set = SWIFTUI[index][usize::from(dark)];
+            for (look, measured) in [
+                (set.reduced, &levels[..3]),
+                (set.reduced_contrast, &levels[3..]),
+            ] {
+                assert_eq!(
+                    look.sigma, 0.0,
+                    "SwiftUI material {index} dark {dark} reduced blurs"
+                );
+                let error = worst(over(&look, [0.5; 3]), measured);
+                assert!(
+                    error <= 1.0,
+                    "SwiftUI material {index} dark {dark} reduced is {error} from {measured:?}"
+                );
+            }
+            assert_eq!(
+                set.inactive.sigma == 0.0,
+                index == 5,
+                "SwiftUI material {index} dark {dark} inactive"
             );
         }
     }

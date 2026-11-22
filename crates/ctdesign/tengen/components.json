@@ -1383,28 +1383,88 @@
     "swiftui": {
       "blur-sigma": 59.2,
       "ultra-thin": {
-        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#f6f6f65c", "cap": 0.975, "floor": 0, "gain": 1, "bias": 0},
-        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.6, "veil": "#28282866", "cap": 1, "floor": 0.08, "gain": 1, "bias": 0}
+        "light": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#f6f6f65c", "cap": 0.975, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#f6f6f65c", "cap": 0.975, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#dededeff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#d2d2d2ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.6, "veil": "#28282866", "cap": 1, "floor": 0.08, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.6, "veil": "#28282866", "cap": 1, "floor": 0.08, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#202020ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#000000ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
       },
       "thin": {
-        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.9, "veil": "#f6f6f67a", "cap": 0.96, "floor": 0, "gain": 1, "bias": 0},
-        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#28282880", "cap": 1, "floor": 0.095, "gain": 1, "bias": 0}
+        "light": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.9, "veil": "#f6f6f67a", "cap": 0.96, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.9, "veil": "#f6f6f67a", "cap": 0.96, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#e4e4e4ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#dcdcdcff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#28282880", "cap": 1, "floor": 0.095, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#28282880", "cap": 1, "floor": 0.095, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#262626ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#0a0a0aff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
       },
       "regular": {
-        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#f6f6f699", "cap": 0.945, "floor": 0, "gain": 1, "bias": 0},
-        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#28282899", "cap": 1, "floor": 0.11, "gain": 1, "bias": 0}
+        "light": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#f6f6f699", "cap": 0.945, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#f6f6f699", "cap": 0.945, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#eaeaeaff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#e6e6e6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#28282899", "cap": 1, "floor": 0.11, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#28282899", "cap": 1, "floor": 0.11, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#2c2c2cff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#141414ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
       },
       "thick": {
-        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.1, "veil": "#f6f6f6b8", "cap": 0.93, "floor": 0, "gain": 1, "bias": 0},
-        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#282828b2", "cap": 1, "floor": 0.125, "gain": 1, "bias": 0}
+        "light": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.1, "veil": "#f6f6f6b8", "cap": 0.93, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.1, "veil": "#f6f6f6b8", "cap": 0.93, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#282828b2", "cap": 1, "floor": 0.125, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#282828b2", "cap": 1, "floor": 0.125, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#323232ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
       },
       "ultra-thick": {
-        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#f6f6f6d6", "cap": 0.915, "floor": 0, "gain": 1, "bias": 0},
-        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.4, "veil": "#282828cc", "cap": 1, "floor": 0.14, "gain": 1, "bias": 0}
+        "light": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#f6f6f6d6", "cap": 0.915, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#f6f6f6d6", "cap": 0.915, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#fafafaff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.4, "veil": "#282828cc", "cap": 1, "floor": 0.14, "gain": 1, "bias": 0},
+          "inactive": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.4, "veil": "#282828cc", "cap": 1, "floor": 0.14, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#383838ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
       },
       "bar": {
-        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1, "veil": "#ffffffcc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
-        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1, "veil": "#1e1e1ecc", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        "light": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1, "veil": "#ffffffcc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1, "veil": "#1e1e1ecc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
       }
     }
     },

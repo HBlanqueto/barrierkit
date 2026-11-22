@@ -1054,7 +1054,8 @@ Contrast alone changes no blur. A `MaterialLook` is:
 | `floor` | 0..1 | per-channel maximum after the cap (dark schemes; 0 is none) |
 | `gain`, `bias` | factor, 0..1 | affine map after the floor; 1 and 0 except in `selection` |
 
-The six SwiftUI thicknesses are `MaterialLook`s, the active look only:
+The six SwiftUI thicknesses are `MaterialSet`s of the same four looks (in a window
+that is not key only `.bar` turns solid):
 `MATERIAL_ULTRA_THIN_LIGHT` and `_DARK`, `MATERIAL_THIN_*`, `MATERIAL_REGULAR_*`,
 `MATERIAL_THICK_*`, `MATERIAL_ULTRA_THICK_*` and `MATERIAL_BAR_*`
 (`components.material.swiftui`, sigma 59.2). They are the AppKit values with the

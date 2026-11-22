@@ -23,6 +23,9 @@ gaps.
 5. Read the per-element blur and lensing matrix in
    [`macos-blur.md`](macos-blur.md).
 6. Do not copy Apple material images or SF Symbols.
+7. To implement the blur of a window material in the compositor, read only
+   [section 10.10](#1010-for-the-compositor): it holds the order per pixel, the
+   units, the region, the Kawase verdict and the parity check in one place.
 
 ---
 
@@ -502,10 +505,11 @@ within 2 and 26 solids within 1.
 | Scale 2 (Retina) of every cell above | the only display of this host is 1x; a HiDPI mode is a global system setting, which this study did not change (a message from another session is not the user's authorisation) | the panel in its 1280x720 HiDPI mode (2560x1440 px at 180 Hz), set by the user; the layouts need halving to fit 720 pt |
 | The system switch of Reduce Transparency and Increase Contrast | the per-process flags (`-reduceTransparency 1`, `-increaseContrast 1`) were used; the tree and the pixels of a material change with them, so the system switch probably gives the same | the system switches set by the user (`com.apple.universalaccess reduceTransparency` and `increaseContrast`) and restored |
 | The materials over an animated or live backdrop | out of scope | |
-| The frequency response between the step and the checker (stripes or a chirp of 16 to 128 px) | the step and the ramp fix sigma within 0.1 px and the shape within 0.3 rms; no layout of stripes was built | a `stripes` layout in `materials.swift` |
+| The frequency response beyond 192 px periods and of a 8 px checker | the stripes of 48 to 192 px are in 14.4; the checker was captured by an earlier session | an impulse or a checker over a tile at scale 0.125 |
 | Scroll edge effects: what `soft` and `hard` change | their layer trees are identical (section 16); the style set on a titlebar accessory builds the same stack | a scroll view pinned under a floating bar with `scrollEdgeEffectStyle` in SwiftUI |
 | The title bar's scroll pocket and the private material 30 of the titled windows | their trees are listed in section 13; the pixels were not fitted | a ramp behind a window whose content is transparent |
-| The SwiftUI materials: inactive, Reduce Transparency, `behindWindow`, colours | only the active `withinWindow` gray ramp and step were captured | `set=swiftui` with the accessibility flags |
+| The coloured ramps of the SwiftUI materials | the model reproduces the gray path and not the saturated colours (section 11.3) | a probe that reads what the hosting layer does with colour |
+| The alpha of a see-through backdrop (a clear area of the same window) | not captured | a tile over a transparent region and a known layer under the window |
 
 ### 10.9 Corrections
 
@@ -527,31 +531,57 @@ within 2 and 26 solids within 1.
 
 ### 10.10 For the compositor
 
-1. **Read** `MATERIAL_<NAME>_LIGHT` or `_DARK` (dark tint takes the dark one) and
-   pick the look: `active`; `inactive` when the window is not active;
+One place for an implementer. Everything here is measured or observed in the
+sections it names; nothing else is needed to reproduce a window material.
+
+1. **Pick the look.** Read `MATERIAL_<NAME>_LIGHT` or `_DARK` (dark tint takes the
+   dark one) and take `active`; `inactive` when the window is not active (a
+   window that is not key with `followsWindowActiveState` is inactive);
    `reduced` with Reduce Transparency; `reduced_contrast` with Reduce
    Transparency and Increase Contrast. Increase Contrast alone keeps `active`.
-2. **Units.** `sigma` is in pixels at scale 1 (macOS reports `inputRadius` 30
-   points); `saturation` is a factor; `veil` is straight RGBA with the alpha
-   rounded to 1/255; `cap`, `floor` and `bias` are fractions of 1; all colours
-   are encoded values in the output's own space. Scale 2 is not measured: the
-   design keeps the radius in logical pixels ([ADR 0091](../decisions.md)).
-3. **Order**, per pixel of the region: blur the backdrop of the region with the
-   Gaussian, saturate about the luma `0.2126 r + 0.7152 g + 0.0722 b` and clamp,
-   mix the veil over it, take the per-channel minimum with `cap` and the maximum
-   with `floor`, then `gain * c + bias` (only `selection` has them).
-   `ctappearance::material::over` is that function.
-4. **Region.** The blur reads only the pixels of the region and renormalises
-   its weights at the border (section 10.2). A compositor that blurs the
-   backdrop of a larger area and crops it shows a leak at the border.
-5. **A solid** has `sigma` 0 and a veil of alpha 1: draw it without sampling the
-   backdrop.
-6. **Kawase.** Malaysia's dual Kawase (`blur_down.frag`, `blur_up.frag`, read and
-   simulated in `~/src/probes/kawase.py`) reaches sigma 27.6 px with 3 passes at
-   offset 4.95, 4 passes at 2.38 or 5 at 1.02. Its step differs from the Gaussian
-   by at most 4.0 % of the step with 3 passes and 2.4 % with 4 (10.3 and 6.2
-   levels of a full white to black step, 0.6 to 4 after the veil): the parity
-   check of section 10.7 tells whether that is enough.
+   The SwiftUI thicknesses are `MATERIAL_<THICKNESS>_LIGHT` and `_DARK`, active
+   only (section 11). A real popover or menu is glass, not `MATERIAL_POPOVER_*` or
+   `MATERIAL_MENU_*` (section 13).
+2. **Units.** `sigma` is in pixels at scale 1 (27.6; SwiftUI 59.2); `saturation`
+   is a factor; `veil` is straight RGBA with the alpha rounded to 1/255; `cap`,
+   `floor` and `bias` are fractions of 1; `gain` is a factor. All colours are
+   encoded values in the output's own space, not sRGB conversions of macOS's
+   result. Scale 2 is not measured: the design keeps the radius in logical
+   pixels ([ADR 0091](../decisions.md)).
+3. **Order**, per pixel of the region:
+   1. blur the backdrop of the region with the Gaussian of `sigma`;
+   2. saturate about the luma `0.2126 r + 0.7152 g + 0.0722 b` (`luma + saturation
+      * (c - luma)`) and clamp to 0..1;
+   3. mix the veil: `c + (veil - c) * alpha`;
+   4. take the per-channel minimum with `cap` and the maximum with `floor`;
+   5. `gain * c + bias` (only `selection` has them).
+   `ctappearance::material::over` is steps 2 to 5; `blur_region` is step 1.
+4. **Region.** The blur reads only the pixels of the region and renormalises its
+   weights at the region's border. Blurring a larger area and cropping it
+   leaks the neighbours; clamping to the edge of a texture differs by up to 1.5
+   levels on a ramp and more on content that changes across the border.
+5. **Resolution.** macOS runs the blur on a backdrop at one eighth of the
+   resolution (SwiftUI one quarter, glass one half; section 14.3). A box
+   downsample by 8, a Gaussian of 3.44 low-resolution pixels and a linear upsample
+   reproduce the Gaussian of 27.6 within 0.3 level.
+6. **Solids.** A look with `sigma` 0 and a veil of alpha 1 is one colour: draw it
+   without sampling the backdrop.
+7. **Dual Kawase** (`blur_down.frag`, `blur_up.frag`; `kawase.py`,
+   `kawasecheck.py`; section 14.2). Today's 3 passes at offset 3.0 give sigma 16.8:
+   too small. At the offsets that fit sigma 27.6 (3 passes 4.70, 4 passes 2.24,
+   5 passes 1.06) the largest difference to the Gaussian through the stacks is 2.0,
+   1.5 and 1.3 levels, and the rms against the captured steps 0.77, 0.64 and
+   0.52 against 0.36 for the Gaussian: inside the tolerance of step 8 only with 5
+   passes.
+8. **Parity check.** Draw the layout of `materials.swift` (ramp tiles of 40 x 1024
+   px, 256 bands of 4 px; step tiles of 200 x 200 px), capture the output as raw
+   PNG bytes, and run `matcompare.py ramp|edge <macos-prefix> <candidate-prefix>`.
+   It passes with `max <= 2.0` and `rms <= 0.8` per channel over all 256 levels
+   and the 200 px of the step, and with the 40 px inside a border-aligned step
+   equal to the plateau (section 10.7).
+9. **Not here.** Scale 2, the system accessibility switches, the lens of glass,
+   the title bar's scroll pocket and the real sidebar are listed in 10.8 and
+   section 13.
 
 ## 11. SwiftUI materials, measured 2026-11-22
 
@@ -559,8 +589,9 @@ within 2 and 26 solids within 1.
 (`.ultraThinMaterial` to `.ultraThickMaterial` and `.bar`) next to the
 materials of AppKit.
 **Scope:** a hosted `Rectangle().fill(material)` over the gray ramp and the
-step, in `withinWindow`, light and dark, active, at scale 1. Inactive, Reduce
-Transparency, `behindWindow` and the coloured ramps are not measured.
+step, in `withinWindow` (the gray ramp also in `behindWindow`), light and dark,
+active, in a window that is not key and with Reduce Transparency and Increase
+Contrast by process flag, at scale 1; and the coloured ramps.
 **Reader:** whoever reads `MATERIAL_<THICKNESS>_LIGHT` and `_DARK`.
 **Input:** the probe set `set=swiftui` of `materials.swift`; the method of
 [section 10.1](#101-method).
@@ -616,8 +647,18 @@ Levels of 255; `fit` is over the gray ramp blurred inside its region with sigma
 | bar | light | - | 255 / 0.80 | - | 0.15 | 0.20 / 0.4 |
 | bar | dark | - | 30 / 0.80 | - | 0.15 | 0.20 / 0.4 |
 
-The tokens are `MATERIAL_ULTRA_THIN_LIGHT` to `MATERIAL_BAR_DARK`
-(`MaterialLook`, the active look) of `components.material.swiftui`.
+The tokens are `MATERIAL_ULTRA_THIN_LIGHT` to `MATERIAL_BAR_DARK` (`MaterialSet`)
+of `components.material.swiftui`.
+
+### 11.3 States
+
+| Question | Result | Evidence |
+|---|---|---|
+| `behindWindow` | the same tree and pixels as `withinWindow` | gray ramp, 6 materials, both schemes: error 0.2 to 0.4 rms |
+| Window not key | the five blurred materials stay active, unlike AppKit; `.bar` becomes a solid, 255 in light and 30 in dark | difference 0.00 for five tiles, `.bar` 49 levels |
+| Reduce Transparency (flag) | every thickness is a solid, light (dark): `.ultraThin` 222 (32), `.thin` 228 (38), `.regular` 234 (44), `.thick` 240 (50), `.ultraThick` 246 (56), `.bar` 255 (30) | flat within 0.01 level; `.thin` to `.ultraThick` are the values of the AppKit family of section 10.4 |
+| Reduce Transparency with Increase Contrast | light (dark): `.ultraThin` 210 (0), `.thin` 220 (10), `.regular` 230 (20), `.thick` 240 (30), `.ultraThick` 250 (40), `.bar` 255 (30) | same |
+| The coloured ramps | **not reproduced**: gray is exact (rms 0.38 at most) but the red, green and blue ramps give rms 7.7 and max 18.8 in light and rms 15.2 and max 64 in dark, in either order of saturation and blur and with any luma weights tried | the saturate-then-blur order of the tree, the clamp before and after, and six luma weights were tried; the cause is open |
 
 ---
 
@@ -827,12 +868,38 @@ within 0.3 level through the stack (section 14.2). A compositor that blurs at
 1/8 resolution with that Gaussian follows the structure macOS has, and costs
 1/64 of the pixels.
 
+| Square waves of 48, 64, 96, 128 and 192 px (3 periods per tile, `stripes` layout) | see 14.4 |
+
 | Question | State |
 |---|---|
 | The filter used to downsample the backdrop (box, bilinear, mip) and to upsample it | not told apart by the step; an impulse or a checker over a tile at scale 0.125 would |
 | The frequency response between the step and the checker | not captured (section 10.8) |
 | The alpha of a backdrop that is transparent (a window behind a see-through window) | not measured |
 | The glass kernel | another session measures it |
+
+### 14.4 Square waves
+
+Square waves of 48 to 192 px (`stripes-<appearance>-<blend>`; `matstripes.py`)
+through `titlebar`, `sidebar` and `hudWindow`, `withinWindow` and
+`behindWindow`, light and dark, give the transfer of the blur between the step
+and the checker. Measured swing over the middle period, in levels: 1 to 4 at 48
+and 64 px, 12 to 43 at 96, 16 to 129 at 192 (a Gaussian of 27.6 px passes 0.0013
+of a 48 px fundamental and 0.665 of a 192 px one).
+
+- A Gaussian that sees only its tile (weights renormalised) fits each tile with
+  sigma 27.1 to 28.3 px for the periods of 96 to 192 (rms 0.4 to 2.8; the 48 and
+  64 px tiles carry too little signal: sigma 22 to 27).
+- With clamp-to-edge weights instead of renormalised ones the same Gaussian is
+  4 times worse (rms 6.9 to 18.4, maximum 35 to 52 levels against 1.5 to 4.3 and 5
+  to 13): for content that changes across the border of the region the region
+  semantics weigh more than the kernel shape.
+- A triple box (width 49 to 55) fits as well as the Gaussian (mean rms 1.3 to 1.4
+  against 1.3 to 1.65); the 3-pass dual Kawase gives 2.2 to 2.5, the downsample by
+  8 with a Gaussian 2.5 to 2.6 and the 5-pass dual Kawase did not simulate
+  reliably. The stripes do not separate the Gaussian from a triple box, as the
+  step did not; they confirm that the response follows a Gaussian of 27 to 28 px.
+- The rms of 1.3 to 1.7 over the stripes is larger than the 0.36 of the steps and
+  is open: the grid of the 1/8 backdrop may be involved.
 
 ---
 
