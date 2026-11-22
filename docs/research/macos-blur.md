@@ -619,6 +619,14 @@ What the fits leave out:
   `inputBleedBlurRadius` 42 would give a glass filter; it is measured here, not
   read from a layer tree.
 
+The tone of the menu panel is that of the regular dark glass tile of a window
+([`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22), over
+gray 0, 32, 64, 128, 192, 224, 255 it shows 42, 59, 84, 123, 144, 147, 151; the panel
+shows 32, 57, 82, 122, 143, 147, 146): within 2 levels from 32 to 224, 10 apart over black
+and 5 over white. The shell's panel is the same filter family with other inputs, not a
+copy of the tile; no shell surface was fitted to the inputs of
+[`macos-liquid-glass.md`](macos-liquid-glass.md).
+
 Malaysia's wallpaper blur (3 passes at offset 3.0) is a Gaussian of sigma 17.2
 (second moment); the in-window materials use 27.6 ([`macos-materials.md`](macos-materials.md#14-the-blur-algorithm-and-malaysias-dual-kawase-2026-11-22)).
 The shell surfaces blur much less: 0.75 px (Dock), 1 (backing panel), 3.5 (tile) and 9.5 (menu panel). A Dual Kawase of 3 passes
