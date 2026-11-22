@@ -24,15 +24,10 @@ fn main() -> Result<(), RunError> {
                             .child(IconButton::new(Symbol::Ellipsis, "More")),
                     ),
                 )
-                .child(
-                    rect()
-                        .expanded()
-                        .center()
-                        .child(ContentUnavailableView::new(
-                            "No Note Selected",
-                            Symbol::DocText,
-                        )),
-                );
+                .child(ContentUnavailableView::new(
+                    "No Note Selected",
+                    Symbol::DocText,
+                ));
             SplitView::new(
                 Sidebar::new()
                     .traffic_lights(true)
