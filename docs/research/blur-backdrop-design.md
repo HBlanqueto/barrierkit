@@ -68,9 +68,13 @@ rest of this document serves them.
 
 | Area | Measured by | Document | Covers |
 |---|---|---|---|
-| Materials in windows | session `blur-macos-ventanas` | [`macos-materials.md`](macos-materials.md) | the 14 `NSVisualEffectView` materials in both blending modes, light and dark, active and inactive; sidebar, toolbar, title bar, sheet, popover, HUD, tooltip and scroll edge effect |
-| Desktop surfaces | session `blur-macos-escritorio` | [`macos-blur.md`](macos-blur.md) | every shell surface listed in requirement 1, in light and dark |
-| Liquid Glass | no session assigned on 2026-11-22 | [`macos-liquid-glass.md`](macos-liquid-glass.md) | `NSGlassEffectView` regular and clear, its tint and interaction, the merging of a container, SwiftUI `glassEffect`. Only the blur extent of the two styles is measured so far ([`blur-ownership.md`](blur-ownership.md#14-what-the-app-sets-and-what-the-system-decides)) |
+| Materials in windows | session `blur-macos-ventanas` | [`macos-materials.md`](macos-materials.md) | the 14 `NSVisualEffectView` materials in both blending modes, light and dark, active and inactive; sidebars, toolbars, title bars, sheets, popovers, HUD windows and tooltips. Tokens: the `material` group |
+| Desktop surfaces | session `blur-macos-escritorio` | [`macos-blur.md`](macos-blur.md) | the menu bar, menus, Dock, Control Center, Notification Center, banners, Spotlight, Mission Control, Launchpad and the lock screen, in light and dark. Tokens: the desktop surfaces' |
+| Liquid Glass | session `blur-liquid-glass` | [`macos-liquid-glass.md`](macos-liquid-glass.md) | the lens, refraction, highlights, shadows, adaptation, interaction and merging of a container, in SwiftUI and AppKit. Tokens: the `liquid-glass` group. Before it, only the blur extent of `NSGlassEffectView` regular and clear was measured ([`blur-ownership.md`](blur-ownership.md#14-what-the-app-sets-and-what-the-system-decides)) |
+
+All three also measure the algorithm (the kernel, the color space and the
+order of the filters) and the configuration, and say whether Malaysia's Dual
+Kawase reproduces what they measured (requirement 4).
 
 Their tokens go to Tengen (`crates/ctdesign/tengen/components.json`, read by
 `ctdesign/build.rs`, [ADR 0032 · 0046](../decisions.md)), never to the
@@ -504,8 +508,9 @@ Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/
 Does version 10 carry all the configuration macOS has, or must it grow before
 Malaysia serves it? Until Malaysia advertises version 10 nothing sends these
 requests, so version 10 can still change in place; afterwards each addition is
-a new version. The XML does not change now. Review each row against the
-measurement sessions' results: a setting is added only if the look of macOS
+a new version. The XML does not change now. When the three measurement
+sessions of "Who measures what" finish, their reports complete this section.
+Review each row against them: a setting is added only if the look of macOS
 changes with it, and the measurement says so.
 
 | macOS setting | Where | Version 10 |
