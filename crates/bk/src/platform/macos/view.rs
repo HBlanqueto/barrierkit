@@ -1,17 +1,21 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
 use freya_core::integration::{KeyboardEventName, MouseEventName, PlatformEvent};
 use freya_core::prelude::CursorIcon;
 use objc2::rc::Retained;
+use objc2::runtime::AnyObject;
 use objc2::runtime::ProtocolObject;
 use objc2::{
     AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
 };
 use objc2_app_kit::{
-    NSBackingStoreType, NSEvent, NSPanel, NSTrackingArea, NSTrackingAreaOptions, NSView,
-    NSWindowDelegate, NSWindowStyleMask,
+    NSBackingStoreType, NSEvent, NSEventModifierFlags, NSPanel, NSTextInputClient, NSTrackingArea,
+    NSTrackingAreaOptions, NSView, NSWindowDelegate, NSWindowStyleMask,
 };
-use objc2_foundation::{NSNotification, NSObject, NSObjectProtocol, NSRect, NSSize};
+use objc2_foundation::{
+    NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification, NSObject,
+    NSObjectProtocol, NSPoint, NSRange, NSRect, NSSize, NSString, NSUInteger,
+};
 use objc2_quartz_core::{CALayer, CAMetalLayer};
 use torin::prelude::CursorPoint;
 
@@ -20,6 +24,9 @@ use super::{input, with_runtime};
 pub(super) struct ViewIvars {
     id: u64,
     wheel_started: Cell<bool>,
+    // The text an input method is composing, and the keys it took, whose release is not the app's.
+    marked: RefCell<String>,
+    routed: RefCell<Vec<u16>>,
 }
 
 define_class!(
@@ -161,25 +168,141 @@ define_class!(
 
         #[unsafe(method(keyDown:))]
         fn key_down(&self, event: &NSEvent) {
+            if self.for_input_method(event)
+                && let Some(context) = self.inputContext()
+                && context.handleEvent(event)
+            {
+                self.ivars().routed.borrow_mut().push(event.keyCode());
+                return;
+            }
             self.send(input::key(event, KeyboardEventName::KeyDown));
         }
 
         #[unsafe(method(keyUp:))]
         fn key_up(&self, event: &NSEvent) {
+            let mut routed = self.ivars().routed.borrow_mut();
+            if let Some(index) = routed.iter().position(|code| *code == event.keyCode()) {
+                routed.remove(index);
+                return;
+            }
+            drop(routed);
             self.send(input::key(event, KeyboardEventName::KeyUp));
+        }
+
+        #[unsafe(method(flagsChanged:))]
+        fn flags_changed(&self, event: &NSEvent) {
+            super::super::input::store_modifier_flags(input::modifiers(event.modifierFlags()));
+        }
+    }
+
+    unsafe impl NSTextInputClient for ContentView {
+        #[unsafe(method(insertText:replacementRange:))]
+        fn insert_text(&self, string: &AnyObject, _: NSRange) {
+            self.ivars().marked.borrow_mut().clear();
+            let text = text_of(string);
+            with_runtime(|runtime| runtime.commit_text(self.ivars().id, text));
+        }
+
+        #[unsafe(method(setMarkedText:selectedRange:replacementRange:))]
+        fn set_marked_text(&self, string: &AnyObject, _: NSRange, _: NSRange) {
+            let text = text_of(string);
+            self.ivars().marked.replace(text.clone());
+            with_runtime(|runtime| runtime.set_preedit(self.ivars().id, text));
+        }
+
+        #[unsafe(method(unmarkText))]
+        fn unmark_text(&self) {
+            self.ivars().marked.borrow_mut().clear();
+            with_runtime(|runtime| runtime.set_preedit(self.ivars().id, String::new()));
+        }
+
+        #[unsafe(method(selectedRange))]
+        fn selected_range(&self) -> NSRange {
+            NSRange::new(self.ivars().marked.borrow().encode_utf16().count(), 0)
+        }
+
+        #[unsafe(method(markedRange))]
+        fn marked_range(&self) -> NSRange {
+            match self.ivars().marked.borrow().encode_utf16().count() {
+                0 => NSRange::new(NSNotFound as usize, 0),
+                length => NSRange::new(0, length),
+            }
+        }
+
+        #[unsafe(method(hasMarkedText))]
+        fn has_marked_text(&self) -> bool {
+            !self.ivars().marked.borrow().is_empty()
+        }
+
+        #[unsafe(method(attributedSubstringForProposedRange:actualRange:))]
+        fn attributed_substring(
+            &self,
+            _: NSRange,
+            _: *mut NSRange,
+        ) -> *mut NSAttributedString {
+            std::ptr::null_mut()
+        }
+
+        #[unsafe(method(validAttributesForMarkedText))]
+        fn valid_attributes_for_marked_text(&self) -> *mut NSArray<NSAttributedStringKey> {
+            Retained::autorelease_return(NSArray::new())
+        }
+
+        #[unsafe(method(firstRectForCharacterRange:actualRange:))]
+        fn first_rect(&self, _: NSRange, _: *mut NSRange) -> NSRect {
+            let (x, y, width, height) = with_runtime(|runtime| runtime.ime_area(self.ivars().id))
+                .flatten()
+                .unwrap_or((0, 0, 0, 0));
+            let area = NSRect::new(
+                NSPoint::new(f64::from(x), f64::from(y)),
+                NSSize::new(f64::from(width.max(1)), f64::from(height.max(1))),
+            );
+            let in_window = self.convertRect_toView(area, None);
+            self.window()
+                .map_or(in_window, |window| window.convertRectToScreen(in_window))
+        }
+
+        #[unsafe(method(characterIndexForPoint:))]
+        fn character_index_for_point(&self, _: NSPoint) -> NSUInteger {
+            NSNotFound as NSUInteger
         }
     }
 );
+
+fn text_of(string: &AnyObject) -> String {
+    if let Some(attributed) = string.downcast_ref::<NSAttributedString>() {
+        attributed.string().to_string()
+    } else if let Some(plain) = string.downcast_ref::<NSString>() {
+        plain.to_string()
+    } else {
+        String::new()
+    }
+}
 
 impl ContentView {
     pub(super) fn new(mtm: MainThreadMarker, id: u64, frame: NSRect) -> Retained<Self> {
         let this = Self::alloc(mtm).set_ivars(ViewIvars {
             id,
             wheel_started: Cell::new(false),
+            marked: RefCell::new(String::new()),
+            routed: RefCell::new(Vec::new()),
         });
         let this: Retained<Self> = unsafe { msg_send![super(this), initWithFrame: frame] };
         this.setWantsLayer(true);
         this
+    }
+
+    // Keys that make text go to the input method: while it composes, and for the characters of a focused text field.
+    fn for_input_method(&self, event: &NSEvent) -> bool {
+        if !self.ivars().marked.borrow().is_empty() {
+            return true;
+        }
+        let chord = event
+            .modifierFlags()
+            .intersects(NSEventModifierFlags::Command | NSEventModifierFlags::Control);
+        !chord
+            && !input::is_named(event.keyCode())
+            && with_runtime(|runtime| runtime.text_field_focused(self.ivars().id)).unwrap_or(false)
     }
 
     fn scale(&self) -> f64 {

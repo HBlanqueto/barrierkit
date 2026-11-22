@@ -9,6 +9,11 @@ thread_local! {
         const { std::cell::Cell::new(Modifiers::empty()) };
 }
 
+#[cfg(target_os = "macos")]
+pub(super) fn store_modifier_flags(flags: Modifiers) {
+    MODIFIER_FLAGS.set(flags);
+}
+
 pub fn modifier_flags() -> Modifiers {
     MODIFIER_FLAGS.get()
 }

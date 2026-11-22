@@ -8,9 +8,11 @@ use calloop::{EventLoop, ping::make_ping};
 use ctappearance::{Resolved, load_appearance, load_dominant, resolve};
 use dispatch2::{DispatchQueue, DispatchTime};
 use freya_core::integration::{
-    AppComponent, GlobalContexts, NodeId, Platform, PlatformEvent, UserEvent,
+    AppComponent, GlobalContexts, KeyboardEventName, NodeId, Platform, PlatformEvent, UserEvent,
 };
-use freya_core::prelude::{AccessibilityFocusStrategy, CursorIcon, Key, State};
+use freya_core::prelude::{
+    AccessibilityFocusStrategy, Code, CursorIcon, Key, Modifiers, State, WritableUtils,
+};
 use freya_engine::prelude::{
     ColorType, DirectContext, SurfaceOrigin, backend_render_targets, direct_contexts, mtl,
     wrap_backend_render_target,
@@ -77,6 +79,7 @@ struct Window {
     app: AppInstance,
     controls: Option<WindowControls>,
     popup: Option<PopupState>,
+    ime_area: Option<ImeArea>,
     // A window the process lives for: not a popup, a sheet or a utility window.
     main: bool,
     needs_redraw: bool,
@@ -103,6 +106,9 @@ pub(super) struct Runtime {
     pointer_window: Option<u64>,
     cursor: CursorIcon,
 }
+
+// Where the focused text field wants the input method's candidates, in the window's logical pixels.
+type ImeArea = (i32, i32, i32, i32);
 
 enum Native {
     Close,
@@ -321,6 +327,7 @@ impl Runtime {
             app: instance,
             controls: Some(controls),
             popup: None,
+            ime_area: None,
             main: !utility,
             needs_redraw: true,
         });
@@ -394,6 +401,39 @@ impl Runtime {
         }
         if let Some(window) = self.window(id) {
             window.app.push(event);
+        }
+    }
+
+    pub(super) fn text_field_focused(&mut self, id: u64) -> bool {
+        self.window(id)
+            .is_some_and(|window| window.app.text_field_focused())
+    }
+
+    pub(super) fn ime_area(&mut self, id: u64) -> Option<ImeArea> {
+        self.window(id)?.ime_area
+    }
+
+    pub(super) fn set_preedit(&mut self, id: u64, text: String) {
+        if let Some(controls) = self.window(id).and_then(|window| window.controls.as_ref()) {
+            let mut preedit = controls.ime_preedit;
+            preedit.set_if_modified(text);
+        }
+        self.ping.ping();
+    }
+
+    // An input method's committed text reaches the field as the key that types it, as on Wayland.
+    pub(super) fn commit_text(&mut self, id: u64, text: String) {
+        self.set_preedit(id, String::new());
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        for name in [KeyboardEventName::KeyDown, KeyboardEventName::KeyUp] {
+            window.app.push(PlatformEvent::Keyboard {
+                name,
+                key: Key::Character(text.clone()),
+                code: Code::Unidentified,
+                modifiers: Modifiers::empty(),
+            });
         }
     }
 
@@ -547,6 +587,7 @@ impl Runtime {
 
     fn process_window_commands(&mut self) {
         let mut open = Vec::new();
+        let mut areas = Vec::new();
         for window in &self.windows {
             let Some(controls) = &window.controls else {
                 continue;
@@ -562,10 +603,16 @@ impl Runtime {
                     WindowCommand::Present(_) | WindowCommand::MakeKey => later(id, Native::Front),
                     WindowCommand::SetTitle(title) => later(id, Native::Title(title.to_string())),
                     WindowCommand::Fit((width, height)) => later(id, Native::Size(width, height)),
+                    WindowCommand::ImeCursor(area) => areas.push((id, area)),
                     WindowCommand::Open(window) => open.push((window, None)),
                     WindowCommand::Sheet(window) => open.push((window, Some(id))),
                     _ => {}
                 }
+            }
+        }
+        for (id, area) in areas {
+            if let Some(window) = self.window(id) {
+                window.ime_area = Some(area);
             }
         }
         for (window, parent) in open {

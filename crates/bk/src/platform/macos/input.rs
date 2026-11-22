@@ -79,6 +79,10 @@ pub(super) fn wheel(event: &NSEvent, position: CursorPoint, started: &mut bool) 
     }
 }
 
+pub(super) fn is_named(code: u16) -> bool {
+    named(code).is_some()
+}
+
 fn named(code: u16) -> Option<NamedKey> {
     Some(match code {
         36 | 76 => NamedKey::Enter,

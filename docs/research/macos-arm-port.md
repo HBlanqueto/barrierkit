@@ -256,7 +256,24 @@ Findings and limits:
 4. `NSCursor::columnResizeCursor` needs macOS 15, so the floor is macOS 15.
 5. Cursors are implemented with cursor rects and were not looked at on screen.
 
-Still not done after M2: scale 2, IME, the native menu bar,
+### IME result (2026-11-22, uncommitted)
+
+`ContentView` implements `NSTextInputClient` (`view.rs`). A key goes to the
+input method while it composes, and for the characters of a focused text field
+(no Command or Control, not a named key); what it does not take is sent to the
+kit as before. `insertText` pushes the key events the Wayland runner pushes on
+`commit_string`, `setMarkedText` sets `WindowControls::ime_preedit`, and
+`firstRectForCharacterRange` converts the area of `set_ime_cursor_area` to
+screen coordinates. `flagsChanged` now feeds `modifier_flags()`.
+
+Checked: on this Mac (Spanish ISO layout) a dead acute then `a` types `á` in
+the `binding` field; Option+e types `€`; plain letters and the earlier
+mouse and key checks still work. Not checked: a CJK input method and its
+candidate window (switching the input source is a system setting, so it was
+left to the owner), the preedit text drawn in a field (`TextField` shows
+nothing while a dead key waits), and an IME inside a popup's search field.
+
+Still not done after M2: scale 2, the native menu bar,
 the live system appearance, the title bar mode choice (SSD only), clippy on the
 macOS code (the toolchain has no `cargo-clippy`), and tests for the runner.
 
