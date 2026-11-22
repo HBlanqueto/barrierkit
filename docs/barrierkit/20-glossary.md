@@ -111,8 +111,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `elements::Text` | struct | `Text` | `NSTextField(labelWithString:)` | Text with `BODY` and the label color by default; wraps | [2](02-first-app.md#text-and-stacks) |
 | `elements::Text::line_limit` | method | `.lineLimit(_:)` | `NSTextField.maximumNumberOfLines` | Shows at most `n` lines | [2](02-first-app.md#text-and-stacks) |
 | `elements::Label` | struct | `Label(_:systemImage:)` | `NSTextField` beside an `NSImageView` | A `Symbol` before a title, in the font and color of `Text`, `SPACE_1` apart | [2](02-first-app.md#text-and-stacks) |
-| `elements::VStack` | struct | `VStack` | `NSStackView` (vertical) | Column of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
-| `elements::HStack` | struct | `HStack` | `NSStackView` (horizontal) | Row of children, centered, `SPACE_3` apart | [2](02-first-app.md#text-and-stacks) |
+| `elements::VStack` | struct | `VStack` | `NSStackView` (vertical) | Column of children, centered, `SPACE_2` apart | [2](02-first-app.md#text-and-stacks) |
+| `elements::HStack` | struct | `HStack` | `NSStackView` (horizontal) | Row of children, centered, `SPACE_2` apart | [2](02-first-app.md#text-and-stacks) |
 
 ## Style and palette
 

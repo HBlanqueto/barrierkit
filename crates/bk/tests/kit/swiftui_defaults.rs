@@ -140,3 +140,34 @@ fn the_text_styles_have_the_line_heights_of_swiftui() {
         assert_eq!(text_height(font), height, "{}pt", font.size);
     }
 }
+
+fn size_of(build: impl Fn() -> Element + 'static) -> (f32, f32) {
+    let test = runner(move || rect().probe("stack").child(build()).into_element());
+    let found = area(&test, "stack");
+    (found.width(), found.height())
+}
+
+// SwiftUI puts 8 between buttons in either stack (fittingSize 74 x 24 and 33 x 56 for "A" and "B").
+#[test]
+fn a_stack_of_buttons_is_8_apart_as_in_swiftui() {
+    let (button_width, button_height) = size_of(|| Button::new("A").into_element());
+    let (row_width, row_height) = size_of(|| {
+        HStack::new()
+            .child(Button::new("A"))
+            .child(Button::new("B"))
+            .into_element()
+    });
+    let (column_width, column_height) = size_of(|| {
+        VStack::new()
+            .child(Button::new("A"))
+            .child(Button::new("B"))
+            .into_element()
+    });
+    assert_eq!(row_height, button_height);
+    assert!(
+        (row_width - (2.0 * button_width + 8.0)).abs() < 1.0,
+        "{row_width}"
+    );
+    assert_eq!(column_height, 2.0 * button_height + 8.0);
+    assert!(column_width < row_width);
+}

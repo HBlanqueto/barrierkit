@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use ctdesign::{Font, SPACE_1, SPACE_3};
+use ctdesign::{Font, SPACE_1, SPACE_2};
 use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction};
@@ -284,5 +284,5 @@ fn stack(direction: Direction) -> Rect {
         .direction(direction)
         .main_align(Alignment::Center)
         .cross_align(Alignment::Center)
-        .spacing(SPACE_3)
+        .spacing(SPACE_2)
 }
