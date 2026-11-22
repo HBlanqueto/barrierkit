@@ -266,7 +266,8 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 | Sheets with `beginSheet`, utility windows as child windows | Drag and drop |
 | Input methods and dead keys through `NSTextInputClient`: the committed text reaches the field as the key that types it, the composing text goes to `WindowControls::ime_preedit`, `set_ime_cursor_area` places the candidates | |
 | Mouse, scroll, keyboard (Command acts as Ctrl), cursors | |
-| Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | A native menu bar from `MainMenu`, notifications, file panels, accessibility |
+| The menu bar from the key window's `MainMenu`, after the standard app menu: Command key equivalents for the Ctrl shortcuts, checkmarks, disabled items, patched when the menu changes. A key that edits a focused text field goes to the field, not to the menu | Palettes, search fields, icons and badges of a menu item; `Header` is a disabled item |
+| Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | Notifications, file panels, accessibility |
 | `Timers`, `WakeHandle`, clipboard text | Blur and glass (the kit draws the opaque solid), the live system appearance |
 
 The window and its popups take the kit's scheme (`appearance.domain`), not the system's. The `shell` feature does not build on macOS.

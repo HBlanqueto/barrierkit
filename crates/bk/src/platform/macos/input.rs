@@ -175,6 +175,34 @@ pub(super) fn key(event: &NSEvent, name: KeyboardEventName) -> PlatformEvent {
     }
 }
 
+fn as_meta(modifiers: Modifiers) -> Modifiers {
+    (modifiers - Modifiers::CONTROL) | Modifiers::META
+}
+
+// Freya's text editor reads Command as META on macOS, while the kit's shortcuts read it as Ctrl.
+pub(super) fn edit_chord(event: &NSEvent) -> Option<PlatformEvent> {
+    if !event
+        .modifierFlags()
+        .contains(NSEventModifierFlags::Command)
+    {
+        return None;
+    }
+    match key(event, KeyboardEventName::KeyDown) {
+        PlatformEvent::Keyboard {
+            name,
+            key,
+            code,
+            modifiers,
+        } if crate::main_menu::edits_text(modifiers, &key) => Some(PlatformEvent::Keyboard {
+            name,
+            key,
+            code,
+            modifiers: as_meta(modifiers),
+        }),
+        _ => None,
+    }
+}
+
 pub(super) fn cursor(icon: CursorIcon) -> Retained<NSCursor> {
     match icon {
         CursorIcon::Text => NSCursor::IBeamCursor(),
@@ -196,5 +224,18 @@ pub(super) fn cursor(icon: CursorIcon) -> Retained<NSCursor> {
         | CursorIcon::NsResize
         | CursorIcon::RowResize => NSCursor::rowResizeCursor(),
         _ => NSCursor::arrowCursor(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_field_reads_command_as_meta_and_keeps_shift() {
+        assert_eq!(
+            as_meta(Modifiers::CONTROL | Modifiers::SHIFT),
+            Modifiers::META | Modifiers::SHIFT
+        );
     }
 }

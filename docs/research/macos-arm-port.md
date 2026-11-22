@@ -309,6 +309,22 @@ the kit `Titlebar` drawn under native lights (needs a way to reserve their room)
 the Settings recipe in the three modes, and the zoom button on a borderless
 window.
 
+### M3 result: native menu bar (2026-11-22)
+
+`platform/macos/menu.rs` builds the menu bar from `MenuHandle::snapshot()` of
+the key window. The standard app menu (About, Hide, Hide Others, Show All, Quit
+with Command+Q; texts in `bk.ftl`) stays first; the kit's menus follow it.
+
+| Rule | Where |
+|---|---|
+| Ctrl is Command, Alt is Option, Shift is Shift, Super is Control; letters lowercase, named keys and F1 to F12 become AppKit's function characters | `key_equivalent` (16 unit tests with the rest of the mapping) |
+| `CheckState` On is a checkmark (radio too, as AppKit's own menus), `Mixed` the dash, a disabled item or submenu is disabled | `entries`, `state` |
+| Palettes, search fields and search results are dropped; a header is a disabled item; icons and badges are not shown | `entries` |
+| The menu follows the key window; a window without `options.menu` keeps the last one; closing the owner clears it | `register`, `show`, `forget` |
+| A new `MenuHandle::revision()` patches the items in place, so an open menu keeps its items | `sync` from `poll_all`, `apply` |
+| An action calls `menu_actions.dispatch(id)` of the window that owns the menu, then polls and redraws | `fire` |
+| `performKeyEquivalent:` of `ContentView` gives a Command chord to a focused text field when `edits_text` matches, so Command+C reaches the field and not the menu; the field gets it as META, because Freya's editor reads Command as META on macOS (before, Command+C typed a `c`) | `view.rs`, `input::edit_chord` |
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

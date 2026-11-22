@@ -3,8 +3,8 @@ use std::cell::{Cell, RefCell};
 use freya_core::integration::{KeyboardEventName, MouseEventName, PlatformEvent};
 use freya_core::prelude::CursorIcon;
 use objc2::rc::Retained;
-use objc2::runtime::AnyObject;
 use objc2::runtime::ProtocolObject;
+use objc2::runtime::{AnyObject, Bool};
 use objc2::{
     AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
 };
@@ -176,6 +176,19 @@ define_class!(
                 return;
             }
             self.send(input::key(event, KeyboardEventName::KeyDown));
+        }
+
+        // A key that edits text goes to the focused field, not to the menu bar's equivalent of the same chord.
+        #[unsafe(method(performKeyEquivalent:))]
+        fn perform_key_equivalent(&self, event: &NSEvent) -> Bool {
+            let chord = input::edit_chord(event);
+            let edits = chord.is_some()
+                && with_runtime(|runtime| runtime.text_field_focused(self.ivars().id))
+                    .unwrap_or(false);
+            if let Some(chord) = chord.filter(|_| edits) {
+                self.send(chord);
+            }
+            Bool::new(edits)
         }
 
         #[unsafe(method(keyUp:))]

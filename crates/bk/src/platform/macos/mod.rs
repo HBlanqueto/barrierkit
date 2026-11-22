@@ -17,14 +17,14 @@ use freya_engine::prelude::{
     ColorType, DirectContext, SurfaceOrigin, backend_render_targets, direct_contexts, mtl,
     wrap_backend_render_target,
 };
+use objc2::MainThreadMarker;
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
-use objc2::{MainThreadMarker, MainThreadOnly, sel};
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
     NSApplication, NSApplicationActivationPolicy, NSColor, NSEvent, NSEventModifierFlags,
-    NSEventType, NSMenu, NSMenuItem, NSWindow, NSWindowDelegate, NSWindowOrderingMode,
-    NSWindowStyleMask, NSWindowTitleVisibility,
+    NSEventType, NSWindow, NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask,
+    NSWindowTitleVisibility,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -49,6 +49,7 @@ use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
 mod frame;
 mod input;
+mod menu;
 mod place;
 mod popups;
 mod view;
@@ -328,6 +329,14 @@ impl Runtime {
             primary: self.primary.clone(),
             clipboard: self.clipboard.clone(),
         };
+        let menu = options.menu.clone().map(|menu| {
+            crate::main_menu::MenuHandle::new(
+                menu,
+                Some(crate::platform::WakeHandle::from_ping(
+                    self.wake.ping.clone(),
+                )),
+            )
+        });
         let scale = window.backingScaleFactor();
         let physical = (
             (f64::from(width) * scale) as u32,
@@ -341,7 +350,7 @@ impl Runtime {
             physical,
             InstanceRole::Window {
                 controls: Box::new(controls.clone()),
-                menu: None,
+                menu: menu.clone(),
                 theme: options.theme.clone(),
                 resolved: State::create_global(*self.resolved.peek()),
             },
@@ -360,6 +369,9 @@ impl Runtime {
             main: !utility,
             needs_redraw: true,
         });
+        if let Some(menu) = menu {
+            menu::register(id, menu);
+        }
         match &parent {
             Some(parent) if sheet => {
                 parent.beginSheet_completionHandler(&window, None);
@@ -488,6 +500,9 @@ impl Runtime {
     }
 
     pub(super) fn key_changed(&mut self, id: u64, key: bool) {
+        if key {
+            menu::show(id);
+        }
         let popup = self.window(id).is_some_and(|window| window.popup.is_some());
         if popup && !key {
             DispatchQueue::main().exec_async(|| {
@@ -507,6 +522,7 @@ impl Runtime {
             self.close_popup(popup);
         }
         self.windows.retain(|window| window.id != id);
+        menu::forget(id);
         if !self.windows.iter().any(|window| window.main) {
             stop(self.mtm);
         }
@@ -596,6 +612,7 @@ impl Runtime {
         self.process_window_commands();
         self.process_popup_commands();
         self.sync_cursor();
+        menu::sync();
     }
 
     fn sync_cursor(&mut self) {
@@ -748,25 +765,6 @@ fn stop(mtm: MainThreadMarker) {
     }
 }
 
-fn install_menu(mtm: MainThreadMarker, app: &NSApplication, name: &str) {
-    let main = NSMenu::new(mtm);
-    let item = NSMenuItem::new(mtm);
-    main.addItem(&item);
-    let submenu = NSMenu::new(mtm);
-    // SAFETY: `terminate:` is NSApplication's own action.
-    let quit = unsafe {
-        NSMenuItem::initWithTitle_action_keyEquivalent(
-            NSMenuItem::alloc(mtm),
-            &NSString::from_str(&format!("Quit {name}")),
-            Some(sel!(terminate:)),
-            &NSString::from_str("q"),
-        )
-    };
-    submenu.addItem(&quit);
-    item.setSubmenu(Some(&submenu));
-    app.setMainMenu(Some(&main));
-}
-
 // The loop of `calloop` serves the pings; AppKit's run loop wakes it when its poll descriptor is readable.
 fn serve_loop(event_loop: EventLoop<'static, ()>) -> Result<(), RunError> {
     let fd = event_loop.as_raw_fd();
@@ -809,7 +807,7 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
     let mtm = MainThreadMarker::new().ok_or(RunError::EventLoop("not on the main thread"))?;
     let application = NSApplication::sharedApplication(mtm);
     application.setActivationPolicy(NSApplicationActivationPolicy::Regular);
-    install_menu(mtm, &application, &options.app_name);
+    menu::install(mtm, &application, &options.app_name);
 
     let event_loop: EventLoop<'static, ()> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;

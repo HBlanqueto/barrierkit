@@ -148,6 +148,11 @@ impl MenuHandle {
         }
     }
 
+    #[cfg(target_os = "macos")]
+    pub(crate) fn revision(&self) -> u32 {
+        self.state.lock().expect("menu state poisoned").revision
+    }
+
     pub(crate) fn snapshot(&self) -> (MainMenu, u32) {
         let state = self.state.lock().expect("menu state poisoned");
         (state.menu.clone(), state.revision)
