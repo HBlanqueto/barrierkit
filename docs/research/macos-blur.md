@@ -50,6 +50,11 @@ There is no 2x capture on this host, so one-pixel rims are not comparable at
 Retina density. The lock screen was not captured. This host has no desktop
 widgets; Notification Center only exposes its clock pill.
 
+The materials of windows (`NSVisualEffectView`, in-window blur) are measured
+apart, from raw pixels and the layer tree, in
+[`macos-materials.md`](macos-materials.md#10-materials-in-windows-measured-2026-11-22)
+(2026-11-22). This file keeps the desktop surfaces.
+
 ## 2. The material classes observed
 
 | Class | Surfaces |

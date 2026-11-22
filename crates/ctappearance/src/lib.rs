@@ -6,6 +6,7 @@ pub mod icon_plate;
 pub mod icon_style;
 pub mod ini;
 pub mod language;
+pub mod material;
 pub mod menu;
 pub mod menubar;
 pub mod notifications;

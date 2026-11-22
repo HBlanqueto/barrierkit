@@ -1148,6 +1148,25 @@ pub struct MaterialThickness {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MaterialLook {
+    pub sigma: f32,
+    pub saturation: f32,
+    pub veil: Rgba,
+    pub cap: f32,
+    pub floor: f32,
+    pub gain: f32,
+    pub bias: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct MaterialSet {
+    pub active: MaterialLook,
+    pub inactive: MaterialLook,
+    pub reduced: MaterialLook,
+    pub reduced_contrast: MaterialLook,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,

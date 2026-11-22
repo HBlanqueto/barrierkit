@@ -1180,7 +1180,233 @@
       "thin": { "opacity": 0.5, "blur": 20 },
       "regular": { "opacity": 0.65, "blur": "components.media.material-blur" },
       "thick": { "opacity": 0.8, "blur": 36 },
-      "ultra-thick": { "opacity": 0.92, "blur": 44 }
+      "ultra-thick": { "opacity": 0.92, "blur": 44 },
+    "visual-effect": {
+      "blur-sigma": 27.6,
+      "titlebar": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1, "veil": "#fdfdfdcc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#fdfdfdff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1, "veil": "#3c3c3ccc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#262626ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#383838ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "selection": {
+        "light": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.932, "bias": -0.0244},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.968, "bias": -0.0117},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.933, "bias": -0.0245},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.76, "bias": -0.0873}
+        },
+        "dark": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.905, "bias": 0.1288},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.954, "bias": 0.0627},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.906, "bias": 0.1286},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#00000000", "cap": 1, "floor": 0, "gain": 0.795, "bias": 0.2794}
+        }
+      },
+      "menu": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.1, "veil": "#f6f6f6b8", "cap": 0.93, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#ecececff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.2, "veil": "#282828b2", "cap": 1, "floor": 0.125, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#323232ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#141414ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "popover": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.0, "veil": "#f6f6f699", "cap": 0.945, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#eaeaeaff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#e6e6e6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.0, "veil": "#28282899", "cap": 1, "floor": 0.11, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#2c2c2cff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#141414ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "sidebar": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.2, "veil": "#f6f6f6d6", "cap": 0.915, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#fafafaff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.4, "veil": "#282828cc", "cap": 1, "floor": 0.14, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#383838ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "header-view": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1, "veil": "#ffffffcc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1, "veil": "#1e1e1ecc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "sheet": {
+        "light": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#e6e6e6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#1e1e1ee6", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#1e1e1ee6", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#2d2d2dff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "window-background": {
+        "light": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#202020ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "hud-window": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1.9, "veil": "#f6f6f67a", "cap": 0.96, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#e4e4e4ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#dcdcdcff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1.6, "veil": "#28282866", "cap": 1, "floor": 0.08, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#262626ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#0a0a0aff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "full-screen-ui": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1.9, "veil": "#f6f6f67a", "cap": 0.96, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#e4e4e4ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#dcdcdcff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 1.8, "veil": "#28282880", "cap": 1, "floor": 0.095, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#262626ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#0a0a0aff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "tool-tip": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.2, "veil": "#f6f6f6d6", "cap": 0.915, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#fafafaff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.4, "veil": "#282828cc", "cap": 1, "floor": 0.14, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#383838ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "content-background": {
+        "light": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#ffffffff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#1e1e1eff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#202020ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "under-window-background": {
+        "light": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.2, "veil": "#f6f6f6d6", "cap": 0.915, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f0f0f0ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#fafafaff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": "components.material.visual-effect.blur-sigma", "saturation": 2.4, "veil": "#282828cc", "cap": 1, "floor": 0.14, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#383838ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#282828ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      },
+      "under-page-background": {
+        "light": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#f6f6f6ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        },
+        "dark": {
+          "active": {"sigma": 0, "saturation": 1, "veil": "#141414ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "inactive": {"sigma": 0, "saturation": 1, "veil": "#141414ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced": {"sigma": 0, "saturation": 1, "veil": "#141414ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+          "reduced-contrast": {"sigma": 0, "saturation": 1, "veil": "#141414ff", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+        }
+      }
+    },
+    "swiftui": {
+      "blur-sigma": 59.2,
+      "ultra-thin": {
+        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#f6f6f65c", "cap": 0.975, "floor": 0, "gain": 1, "bias": 0},
+        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.6, "veil": "#28282866", "cap": 1, "floor": 0.08, "gain": 1, "bias": 0}
+      },
+      "thin": {
+        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.9, "veil": "#f6f6f67a", "cap": 0.96, "floor": 0, "gain": 1, "bias": 0},
+        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1.8, "veil": "#28282880", "cap": 1, "floor": 0.095, "gain": 1, "bias": 0}
+      },
+      "regular": {
+        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#f6f6f699", "cap": 0.945, "floor": 0, "gain": 1, "bias": 0},
+        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.0, "veil": "#28282899", "cap": 1, "floor": 0.11, "gain": 1, "bias": 0}
+      },
+      "thick": {
+        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.1, "veil": "#f6f6f6b8", "cap": 0.93, "floor": 0, "gain": 1, "bias": 0},
+        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#282828b2", "cap": 1, "floor": 0.125, "gain": 1, "bias": 0}
+      },
+      "ultra-thick": {
+        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.2, "veil": "#f6f6f6d6", "cap": 0.915, "floor": 0, "gain": 1, "bias": 0},
+        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 2.4, "veil": "#282828cc", "cap": 1, "floor": 0.14, "gain": 1, "bias": 0}
+      },
+      "bar": {
+        "light": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1, "veil": "#ffffffcc", "cap": 1, "floor": 0, "gain": 1, "bias": 0},
+        "dark": {"sigma": "components.material.swiftui.blur-sigma", "saturation": 1, "veil": "#1e1e1ecc", "cap": 1, "floor": 0, "gain": 1, "bias": 0}
+      }
+    }
     },
     "scroll-bar": {
       "hide-delay": 800,

@@ -1010,6 +1010,44 @@ nothing is blurred.
 | `thick` | 0.8 | 36 |
 | `ultra_thick` | 0.92 | 44 |
 
+### Window materials
+
+`MATERIAL_<NAME>_LIGHT` and `MATERIAL_<NAME>_DARK` (`<NAME>` is one of the 14
+materials of `NSVisualEffectView.Material`: `TITLEBAR`, `SELECTION`, `MENU`,
+`POPOVER`, `SIDEBAR`, `HEADER_VIEW`, `SHEET`, `WINDOW_BACKGROUND`,
+`HUD_WINDOW`, `FULL_SCREEN_UI`, `TOOL_TIP`, `CONTENT_BACKGROUND`,
+`UNDER_WINDOW_BACKGROUND`, `UNDER_PAGE_BACKGROUND`) are `MaterialSet`s of
+`components.material.visual-effect`. A `MaterialSet` has the `active` look, the
+`inactive` look and the looks under Reduce Transparency (`reduced`) and under
+Reduce Transparency with Increase Contrast (`reduced_contrast`); Increase
+Contrast alone changes no blur. A `MaterialLook` is:
+
+| Field | Unit | Meaning |
+|---|---|---|
+| `sigma` | px at scale 1 | Gaussian of the blur; 0 for a solid. `components.material.visual-effect.blur-sigma`, 27.6 |
+| `saturation` | factor | `colorSaturate` about the Rec. 709 luma, clamped to 0..1 |
+| `veil` | encoded RGBA | colour and alpha mixed over the saturated backdrop |
+| `cap` | 0..1 | per-channel minimum after the veil (light schemes; 1 is none) |
+| `floor` | 0..1 | per-channel maximum after the cap (dark schemes; 0 is none) |
+| `gain`, `bias` | factor, 0..1 | affine map after the floor; 1 and 0 except in `selection` |
+
+The six SwiftUI thicknesses are `MaterialLook`s, the active look only:
+`MATERIAL_ULTRA_THIN_LIGHT` and `_DARK`, `MATERIAL_THIN_*`, `MATERIAL_REGULAR_*`,
+`MATERIAL_THICK_*`, `MATERIAL_ULTRA_THICK_*` and `MATERIAL_BAR_*`
+(`components.material.swiftui`, sigma 59.2). They are the AppKit values with the
+wider blur.
+
+`ctappearance::material::looks(material, scheme)` returns the set of a
+`material::Material` (dark tint takes the dark one). `over(&look, backdrop)`
+is the colour a look shows over one blurred backdrop pixel and `blur_region(line,
+sigma)` the Gaussian over one line of a region that sees only itself: the
+weights are renormalised at the border, so nothing outside the region reaches
+the pixels inside. The values are numbers of the macOS 27.2.1 stack, measured at
+scale 1 and in the display's device space; the compositor applies them in its
+own output space ([research](../research/macos-materials.md#10-materials-in-windows-measured-2026-11-22)).
+The tests of `ctappearance::material` reproduce 286 ramp samples within 1.5
+levels of 255, 6 step profiles within 2 and 26 solids within 1.
+
 ### Colors
 
 | Constants | Type | What they are |

@@ -80,6 +80,12 @@ lines stay unshifted near the menu, Dock, Control Center and banner edges, so
 no surface shows measurable refraction at this scale. Treat the materials as
 adaptive blur and tint with specular edges, not as lensing glass.
 
+In windows (2026-11-22) `NSGlassEffectView` and `glassEffect` are one
+`glassBackground` filter whose inputs, gray tone and blur width are listed in
+[`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22),
+and real popovers and menus are glass windows, not `NSVisualEffectView`
+materials ([section 13](macos-materials.md#13-real-controls-first-captures-2026-11-22)).
+
 ## 3. The existing Malaysia model
 
 Malaysia already has more than a blur token:
