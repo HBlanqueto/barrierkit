@@ -110,15 +110,15 @@ The app does nothing:
 
 | `Titlebar` | `Bar` | Height | Radius (`WINDOW_CORNER`) |
 |---|---|---|---|
-| Panel (`UtilityWindow`) | `Utility` | `TITLEBAR.thickness` (32) | `utility` (15) |
+| Panel (`UtilityWindow`) | `Utility` | `TITLEBAR.thickness` (32) | `utility` (16) |
 | `.close_only(true)` or HUD window | `Titlebar` | `TITLEBAR.thickness` (32) | `titlebar` (16) |
-| `.with_sidebar(true)` | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (26) |
-| The rest | `UnifiedCompact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `unified_compact` (20) |
+| `.with_sidebar(true)` | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (16) |
+| The rest | `UnifiedCompact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `unified_compact` (16) |
 
 `Bar` (`bk::platform`) comes from the Infinity protocol and has four
 values, each an AppKit window kind: `Titlebar` (no toolbar), `UnifiedCompact`
 (`NSWindow.ToolbarStyle.unifiedCompact`), `Unified` (`.unified`) and
-`Utility` (a panel, radius 15).
+`Utility` (a panel, radius 16). Every radius is 16, as macOS 27.2.1 gives every window kind; the silhouette to draw is `CORNER_WINDOW.fitted` (16.8, [Corners](04-appearance-and-tokens.md#corners)).
 
 An app that draws its own
 bar without `Titlebar` declares it with

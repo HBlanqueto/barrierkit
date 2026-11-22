@@ -379,7 +379,7 @@ Read with `~/src/probes/tooltip.swift` (a borderless window of one color with `N
 - **Wrapping.** A text stays on one line up to a width of about 330 (326.3 is one line, 332.2 wraps) and then breaks at about 250 (the lines of wrapped tooltips are 240, 245 and 248 wide); the window is its longest line plus 12 (`TOOLTIP.wrap_after`, `wrap_width`). The kit drew one line only.
 - **Fill.** The window's content is opaque, and the composite over white and over black gives a translucent fill: light `e6e6e6` at 90% (233 over white, 207 over black), dark `2e2e2e` at 82% (84 and 37). With Increase Contrast and Reduce Transparency it is opaque, `fafafa` light and `282828` dark.
 - **Ink.** `464646` light, `ececec` dark, `000000` and `ffffff` with Increase Contrast (from the ink mass against the Increase Contrast capture, whose ink reaches the extreme).
-- **Corner.** A circle of radius 5.25 fits the alpha of the corner pixels (a superellipse of exponent 2.5 fits at 6.25); the kit's was square. The edge pixel and the shadow belong to the compositor, so the kit draws no border: it drew a hairline `separator` border.
+- **Corner.** A circle of radius 5.25 fits the alpha of the corner pixels (a superellipse of exponent 2.5 fits at 6.25; the box-filtered fit of 2026-11-22 gives 5.2 for a circle and for a smoothed corner, [macOS corners](macos-corners.md#4-popovers-menus-and-tooltips)); the kit's was square. The edge pixel and the shadow belong to the compositor, so the kit draws no border: it drew a hairline `separator` border.
 - **The kit** reads the fill and the ink from `TOOLTIP` per appearance and wraps with `measure_wrapped`; it has no tooltip golden because the tooltip is a popup. `TooltipMetrics` holds the numbers above.
 
 ## Alerts
@@ -589,7 +589,7 @@ Not drawn yet: the `expanded` style (28 high platters under a 32 title row); the
 ## Toolbar tabs and window corners
 
 - Settings-style tabs (`NSTabViewController` with `tabStyle = .toolbar`, `~/src/probes/tabs.swift`): the title bar is 88 (32 plus a 56 toolbar), each tab is a platter 48 high whose `NSGlassEffectView.cornerRadius` is 8, as wide as its title plus 13 and never under 55, with 1 between tabs; the strip is centered and has no box of its own. The selected tab shows its icon and title in the accent, the others in the secondary label. The toolbar's single and group platters report `cornerRadius` 18, a capsule.
-- Window corner: the alpha of a window capture (`-o`) reaches the full edge 15 rows below the top in the plain titled window, in the toolbar-tab window and in the unified toolbar window alike, so no style got the 26 the kit assumes for `unified`. Whether the kit's nominal radius plus `WINDOW_CORNER.expansion` draws that extent has not been compared; it is the compositor that draws the window shape.
+- Window corner: the alpha of a window capture (`-o`) reaches the full edge 15 rows below the top in the plain titled window, in the toolbar-tab window and in the unified toolbar window alike, so no style got the 26 the kit assumed for `unified`. Measured on 2026-11-22 in [macOS corners](macos-corners.md): the API radius is 16 for every window kind, the silhouette is a continuous corner of 16.8, and `WINDOW_CORNER.unified_compact`, `unified` and `utility` are 16.
 
 ## Traffic lights (macOS 27)
 

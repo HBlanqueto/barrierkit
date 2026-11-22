@@ -116,7 +116,7 @@ flat windows are in its left part (x under 1060).
 | Result row | about 36 | 44 | `LAUNCHER_RESULT_HEIGHT` | Malaysia rows are taller |
 | Result gap | not measured | 4 | `LAUNCHER_RESULT_GAP` | Unverified |
 | Result icon | not measured | 32 | `LAUNCHER_ICON_SIZE` | Unverified |
-| Panel radius | not measured | 16 | `LAUNCHER_CORNER_RADIUS` | Unverified |
+| Panel radius | 24.3 to 24.8 at the top corners (2026-11-22) | 24.5 (was 16) | `LAUNCHER_CORNER_RADIUS` | Matches ([macOS corners](macos-corners.md#5-the-desktop-shell)) |
 | Max results | not counted | 8 | `LAUNCHER_MAX_RESULTS` | Unverified |
 | Open duration | not measured | 180 ms | `LAUNCHER_OPEN_MS` | Unverified |
 | Close duration | not measured | 120 ms | `LAUNCHER_CLOSE_MS` | Unverified |

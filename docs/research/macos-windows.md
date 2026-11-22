@@ -84,10 +84,14 @@ not expose:
 | Content | `#282828` | `#f5f5f5` |
 | Frame outline | 1 px dark plus 1 px light bevel | same structure |
 
-Corner radius was not exposed by a public API and was not measured from a
-screenshot in this pass. The live screenshots suggest a radius in the low
-teens, but it is **estimated**, not measured. Do not treat the Malaysia
-16/20/26 values as confirmed macOS values.
+Corner radius, measured on 2026-11-22 ([macOS corners](macos-corners.md)):
+`NSView.effectiveCornerRadii` of the frame view is **16** on every corner of
+every window kind (titled, toolbar styles, sidebar, utility, HUD, sheet,
+tabbed, document, Finder), light and dark, active and inactive, and the alpha
+of the window capture agrees with it. The shape is a continuous corner of
+radius 16.8 (smoothing 0.745); full screen is square. The earlier 20, 26 and
+15 for a compact toolbar, a unified toolbar and a utility panel were never
+measured and are wrong.
 
 ## 3. Traffic-light glyphs
 
@@ -137,7 +141,7 @@ frame-by-frame window animation was captured.
 | Traffic gap | 9 | 9 | `TITLEBAR.buttons.spacing` | Matches |
 | Traffic inset | 9 / 12 / 19 | 9 in the 32 bar, 12 in the 40 bar, centred vertically (9 and 13 from the top) | `ctappearance::traffic::inset`, `TITLEBAR.buttons.inset`, `inset_compact` | Matches 32 and 40; 19 not implemented |
 | Traffic look | Discs with a gradient, a 0.5 ring, a halo and glyphs, per appearance | The same, from `TRAFFIC_LIGHTS_*` | `ctdesign` tokens `traffic-lights` | Matches within the limits in [macOS control metrics](macos-control-metrics.md#traffic-lights-macos-27) |
-| Corner radius | Not measured; low teens | 16 / 20 / 26 / 15 | `WINDOW_CORNER` | Needs measurement |
+| Corner radius | 16 (API), silhouette 16.8, continuous, every window kind; full screen 0; alert 26 | 16 / 16 / 16 / 16 since 2026-11-22 (was 16 / 20 / 26 / 15) | `WINDOW_CORNER`, `CORNER_WINDOW` | Draw the silhouette radius `CORNER_WINDOW.fitted` ([macOS corners](macos-corners.md#3-windows-and-sheets)) |
 | Window background | `#1e1e1e` dark | Theme `bg-window` | `ctdesign` tokens | Verify against this table |
 | Title font | 13 pt | `TITLEBAR` font | `ctdesign` | Verify face and weight |
 
@@ -162,9 +166,9 @@ Copy geometry, contrast ratios and behaviour, not artwork.
    (40): `traffic::inset` returns the horizontal inset from
    `TITLEBAR.buttons.inset` and `inset_compact`, and the vertical position
    stays centred. The 19 for a 66 pt toolbar is not added (item 3).
-2. **Measure the corner radius from a live window capture.** Use the
-   existing `sample` probe on a high-contrast window edge. Only then compare
-   it with `WINDOW_CORNER`.
+2. **Measure the corner radius from a live window capture.** Done on
+   2026-11-22 with `cornerwin` ([macOS corners](macos-corners.md)); the 20,
+   26 and 15 of `WINDOW_CORNER` are now 16.
 3. **Add a toolbar title bar style** with a 66 pt bar and a 19 pt light
    inset, or document that BarrierKit deliberately stops at the compact
    style. Decided: it stops at the compact style
@@ -177,7 +181,7 @@ Copy geometry, contrast ratios and behaviour, not artwork.
 
 ## 8. Open questions
 
-- What is the live window corner radius at 1x and at 2x?
+- What is the live window corner radius at 2x? At 1x it is 16 (API) and 16.8 (silhouette); the first row of the corner is the open point ([macOS corners](macos-corners.md#8-not-measured-and-what-each-needs)).
 - Does the toolbar style centre the title vertically or align it with the
   toolbar row?
 - Do inactive windows dim the title and the lights by the same amount?

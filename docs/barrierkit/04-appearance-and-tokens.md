@@ -868,6 +868,27 @@ let x = 8.0 + i as f64 * (12.0 + 8.0);
 let (x, y, d) = ctappearance::traffic::button_rect(i);
 ```
 
+### Corners
+
+`ctappearance::corner` is the CPU reference of a rounded corner, shared by the kit and the compositor, with the measurements in [macOS corners](../research/macos-corners.md). A corner has a nominal `radius`, a `smoothing` (0 is the circle, `CORNER_SMOOTHING` the continuous curve of `cornerCurve = .continuous`) and the straight edges at `edge_x`, `edge_y` from the pixel grid:
+
+| Item | What it does |
+|---|---|
+| `edge(radius, smoothing, y) -> f32` | Where the top-left corner starts at depth `y`: the arc and the two Bezier tails of Freya's smoothed corner. |
+| `coverage(radius, smoothing, x, y, edge_x, edge_y) -> f32` | Share of the pixel at (`x`, `y`) inside the shape, 16 sub-rows. |
+| `tile(radius, smoothing, size, edge_x, edge_y) -> Vec<f32>` | The coverage of a `size` x `size` corner, row by row: the mask to compare with a capture. |
+| `superellipse_coverage(extent, exponent, x, y) -> f32` | What the compositor's shape shader draws at a pixel centre, with `WINDOW_CORNER.expansion` and `.exponent` as extent factor and exponent. |
+| `concentric(container, inset_x, inset_y, minimum) -> f32` | The radius of a nested corner (`NSViewCornerRadius.containerConcentric`, SwiftUI `ConcentricRectangle`): the container's radius minus the smaller inset, `minimum` outside the container's corner region (`CORNER_CONCENTRIC_REGION`). |
+
+Draw a window with `CORNER_WINDOW.fitted` (16.8), not its `radius` (16, the API's): the capture of a window is a continuous corner of the larger radius. The other elements have a `CornerShape` each (section [Windows and titlebars](#windows-and-titlebars)). The parity check, with its tolerance, is in [macOS corners](../research/macos-corners.md#9-parity).
+
+```rust
+// ✗ the API radius for the silhouette
+let radius = WINDOW_CORNER.titlebar as f32;
+// ✓ the measured silhouette
+let radius = ctdesign::CORNER_WINDOW.fitted;
+```
+
 ### Backdrop colors
 
 `ctappearance::backdrop` derives colors from an image, for tinted backdrops
@@ -962,7 +983,9 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `ShadowLayer` | `blur`, `y_offset`, `opacity`, `color`. |
 | `MaterialThickness` | `opacity` and `blur` of one material thickness. |
 | `ShadowStyle` | `ambient` and `contact` layers and their scale when unfocused; `layers(focused)` returns both. |
-| `WindowCorner` | Window radii (`titlebar`, `unified_compact`, `unified`, `utility`), curve `expansion` and superellipse `exponent`. |
+| `WindowCorner` | Window radii (`titlebar`, `unified_compact`, `unified`, `utility`; all 16 since 2026-11-22), curve `expansion` and superellipse `exponent`. |
+| `CornerShape` | `radius` (the API's or the design value), `fitted` (the radius that draws the measured silhouette) and `smoothing` of one element. |
+| `CornerControls` | The corner radius of each control at mini, small, regular, large and extra large: `push`, `circular`, `help`, `text_field`, `popup`, `combo_button`, `checkbox`, `radio`, `segmented`, `segmented_square`, `slider_track`, `slider_knob`, `progress_bar`. |
 | `WindowStyle` | `corner_radius` and `superellipse_exponent` of a dialog or pop-up. |
 | `WindowResize` | Width of the resize band at an `edge` and a `corner`. |
 | `Titlebar` | Server-side titlebar: `thickness`, `buttons`, `font`. |
@@ -1154,6 +1177,9 @@ background, for `reduce_transparency`.
 |---|---|---|
 | `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | `(u32, u32)` | `WindowOptions`: 480 × 360 and 640 × 420 ([8](08-windows.md)) |
 | `WINDOW_CORNER` | `WindowCorner` | `style::continuous_corner`, the compositor |
+| `CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_POPOVER`, `CORNER_MENU`, `CORNER_TOOLTIP`, `CORNER_NOTIFICATION`, `CORNER_NOTIFICATION_CENTER`, `CORNER_CONTROL_CENTER_MODULE`, `CORNER_SPOTLIGHT` | `CornerShape` | `ctappearance::corner`, the compositor and the shell: the measured radius and curve of each element |
+| `CORNER_CONTROLS` | `CornerControls` | The radii of the controls by size, read from the API |
+| `CORNER_SMOOTHING`, `CORNER_CONCENTRIC_REGION` | `f32` | `ctappearance::corner`: the smoothing of the continuous curve (0.745) and the width of the concentric region as a share of the container's radius (1.0) |
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
 | `WINDOW_CLIENT_RESIZE` | `WindowResize` | The compositor: the resize band around a window that decorates itself |
 | `WINDOW_EXPAND_MIN_MS`, `WINDOW_EXPAND_MAX_MS` | `u64` | The compositor: how long a window takes to maximize or restore, from the shortest move (300 ms) to one across the whole workspace (560 ms) |

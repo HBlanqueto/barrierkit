@@ -43,7 +43,7 @@ measured.
 | Bottom | about 565 |
 | Height | about 535 |
 | Right inset | about 15 |
-| Corner radius | about 24 |
+| Corner radius | 24.2 for a module (2026-11-22, [macOS corners](macos-corners.md#5-the-desktop-shell)) |
 | Material | dark glass |
 
 The top edge starts at the bar height, 30. The right inset is about 15 pt.

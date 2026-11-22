@@ -157,7 +157,7 @@ both.
 | Separator | 11 total | 1 + 2x5 | unchanged |
 | Panel glass | Dark matrix `#a3`/`#2b`; light matrix `#f2`/`#75` | fixed scheme glass | dark adaptive tone only |
 | Panel ink | Follows panel | follows scheme | follows the panel |
-| Panel radius | about 6 | 12 | needs review |
+| Panel radius | 12.3 to 12.6 (2026-11-22; the first pass read about 6) | 12 (`components.shell.menu.panel.radius`, was 14), `CORNER_MENU.fitted` 12.5 | Matches ([macOS corners](macos-corners.md#4-popovers-menus-and-tooltips)) |
 | Open animation | Instant | no menu animation | matches |
 
 ## 6. What not to copy
@@ -177,8 +177,8 @@ both.
 3. **Keep the 24 pt item and 11 pt separator.** These already match.
 4. **Use content-driven widths.** The 317 pt File menu and the 356 pt Shell
    menu are useful checks. Keep the 220 pt minimum.
-5. **Review the panel radius.** The measured corner is about 6, below the
-   current 12. Confirm at 2x before changing the token.
+5. **Review the panel radius.** Done on 2026-11-22: the app menu and
+   `NSMenu` measure 12.3 to 12.6, so the token is 12. Confirm at 2x.
 6. **Add a menu-bar contrast test over white, gray and black.** The clear bar
    with scheme ink must be accepted as measured, not "fixed" by adding tint.
 7. **Add the light veil set.** The dark tokens reproduce the dark matrix;

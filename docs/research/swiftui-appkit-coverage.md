@@ -433,12 +433,12 @@ The size of each control is a row in its own family.
 | `.contextMenu` | `NSMenu.popUpContextMenu` | `ViewModifiers::context_menu` | `implemented` | same look as the menu | P1 |
 | `Commands`, `CommandMenu`, `CommandGroup`, `TextEditingCommands` | main menu | `Commands`, `CommandGroup`, `MainMenu`, menu bar menu | `partial`: the App, File, Edit, Window and Help groups with the measured titles and Ctrl shortcuts; the Cut, Copy, Paste, Delete, Select All, Find and Help items start disabled until an app handles them (no responder chain, ADR 0085); no About, View, Format, sidebar, toolbar or inspector commands, no `commandsRemoved` | [`macos-standard-menus.md`](macos-standard-menus.md) | P1 |
 | `MenuBarExtra` | `NSStatusItem` | `status_item` | `partial`: a static item (icon name, title, menu) | none | P2 |
-| `.popover` | `NSPopover` | `Popover` | `partial`: `Popover::show` returns `()`, so no close, behavior or edge | none | P1 |
-| `.sheet` | `beginSheet` | `Sheet` | `partial`: light and dark only; corners, shadow and edge are the compositor's | [Sheets][m-sheets] | P1 |
+| `.popover` | `NSPopover` | `Popover` | `partial`: `Popover::show` returns `()`, so no close, behavior or edge; the corner is measured (20, continuous) | [Corners][m-corners] | P1 |
+| `.sheet` | `beginSheet` | `Sheet` | `partial`: light and dark only; the corner is measured (16 API, 16.8 silhouette, continuous; an `NSAlert` frame is 26), the shadow and edge are the compositor's | [Sheets][m-sheets], [Corners][m-corners] | P1 |
 | `.alert` | `NSAlert` (`.warning`, `.informational`, `.critical`) | `Alert` | `partial`: the geometry comes from the view tree, not pixels; icon, `.critical`, accessory view, help button and stacked buttons are implemented and measured in four appearances, `.warning` is `.informational` | [Alerts][m-alerts] | P1 |
 | `.confirmationDialog` | — | `Alert::add_button` | `implemented`: an alert whose three buttons stack; no layout of its own | [Alerts][m-alerts] | — |
 | `.fileImporter`, `.fileExporter` | `NSOpenPanel`, `NSSavePanel` | `portal::open_files`, `portal::save_file` | `partial`: the desktop's dialog, not the macOS look | none | P3 |
-| `.help` | `toolTip` | `ViewModifiers::help` | `measured`: delay, place, font, padding, corner, fill, ink and wrapping in light, dark and Increase Contrast | [Tooltips][m-tooltips] | — |
+| `.help` | `toolTip` | `ViewModifiers::help` | `measured`: delay, place, font, padding, corner (5.2), fill, ink and wrapping in light, dark and Increase Contrast | [Tooltips][m-tooltips], [Corners][m-corners] | — |
 | — | `NSPrintPanel`, `NSPageLayout` | — | `missing` | none | P3 |
 | `UNUserNotificationCenter` | banners | `notifications::post` | `implemented` | [`macos-notifications.md`](macos-notifications.md) | P2 |
 | `.draggable`, `.dropDestination` | `NSDraggingSource`, `NSDraggingDestination` | `DragSource`, `ImageWell` drop | `partial`: drag out; drop only on the image well | none | P3 |
@@ -448,7 +448,7 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| window corners | compositor | `Bar`, `WindowCorner` | `partial`: the alpha reaches the edge 15 rows down in every style; the kit's radius was not compared | [Window corners][m-tabs] | P1 |
+| window corners | compositor | `Bar`, `WindowCorner`, `CORNER_WINDOW` | `measured`: 16 (API) and 16.8 (silhouette, continuous) in every style, light and dark, active and inactive; full screen 0; `WindowCorner` was 16, 20, 26, 15 and is 16 for all; scale 2 not measured | [Window corners][m-tabs], [Corners][m-corners] | P1 |
 | traffic lights | `standardWindowButton(_:)` | `TrafficLights` | `measured`: geometry, glyphs, gradient, ring, halo and every state in light, dark and Increase Contrast, at 1x; the utility panel's 10 pt lights are not drawn and the full-screen lights are compared in light only | bench `lights`; [Traffic lights][m-lights] | P1 |
 | `.windowStyle(.titleBar)` title bar | `NSWindow` titled, 32 high | `Titlebar` | `partial` | [`macos-windows.md`](macos-windows.md) §2 | P1 |
 | `navigationTitle`, `navigationSubtitle` | `title`, `subtitle`, `titleVisibility` | `Titlebar` title only | `partial`: no subtitle | none | P1 |
@@ -647,7 +647,7 @@ No probe of `~/src/probes` renders these:
 | SwiftUI `Gauge` in each style, `ProgressView` indeterminate, `Spinner` | sizes and colors | A |
 | `NSTextView` in `NSScrollView` and SwiftUI `TextEditor` | insets, caret, selection, placeholder, find bar | B |
 | `NSColorPanel` and the SwiftUI `ColorPicker` popover | modes, sizes, alpha | B |
-| `NSPopover` and SwiftUI `.popover`, `.confirmationDialog` | size, arrow, corner | C |
+| `NSPopover` and SwiftUI `.popover`, `.confirmationDialog` | size, arrow (the corner is measured: [Corners][m-corners]) | C |
 | `NSToolbar` display modes and `NSToolbarItem` prominent, badge, spacer | widths, labels | D |
 | `NSWindow` subtitle, title bar accessory and tracking separator | heights, positions | D |
 | `NSSplitView` thin divider, `NSPathControl`, `NSImageView` | widths, heights | C |
@@ -693,6 +693,7 @@ No probe of `~/src/probes` renders these:
 [m-toolbar]: macos-control-metrics.md#toolbar-items-and-navigation-buttons
 [m-icons]: macos-icons.md
 [m-tabs]: macos-control-metrics.md#toolbar-tabs-and-window-corners
+[m-corners]: macos-corners.md
 [m-tabviews]: macos-control-metrics.md#tab-views
 [m-scrollers]: macos-control-metrics.md#scrollers
 [m-classic]: macos-control-metrics.md#classic-tables-and-outlines

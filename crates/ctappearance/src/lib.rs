@@ -1,6 +1,7 @@
 pub mod accent;
 pub mod backdrop;
 mod config;
+pub mod corner;
 pub mod dock;
 pub mod icon_plate;
 pub mod icon_style;

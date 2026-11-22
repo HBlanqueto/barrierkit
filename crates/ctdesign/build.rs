@@ -15,6 +15,19 @@ TITLEBAR_CLIENT_HEIGHT u32 size.titlebar-h
 PANEL_GLOW_DEPTH f32 size.panel-glow-depth
 TITLEBAR_DOUBLE_CLICK DoubleClick components.window.titlebar.double-click
 WINDOW_CORNER WindowCorner components.window.corner
+CORNER_SMOOTHING f32 components.corner.smoothing
+CORNER_CONCENTRIC_REGION f32 components.corner.concentric-region
+CORNER_WINDOW CornerShape components.corner.window
+CORNER_SHEET CornerShape components.corner.sheet
+CORNER_ALERT CornerShape components.corner.alert
+CORNER_POPOVER CornerShape components.corner.popover
+CORNER_MENU CornerShape components.corner.menu
+CORNER_TOOLTIP CornerShape components.corner.tooltip
+CORNER_NOTIFICATION CornerShape components.corner.notification
+CORNER_NOTIFICATION_CENTER CornerShape components.corner.notification-center
+CORNER_CONTROL_CENTER_MODULE CornerShape components.corner.control-center-module
+CORNER_SPOTLIGHT CornerShape components.corner.spotlight
+CORNER_CONTROLS CornerControls components.corner.controls
 WINDOW_RESIZE WindowResize components.window edge=resize-edge corner=resize-corner
 WINDOW_CLIENT_RESIZE WindowResize components.window edge=client-resize-edge
     corner=client-resize-corner

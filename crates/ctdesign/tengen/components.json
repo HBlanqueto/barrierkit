@@ -699,6 +699,35 @@
         ]
       }
     },
+    "corner": {
+      "smoothing": 0.745,
+      "concentric-region": 1.0,
+      "window": {"radius": "components.window.corner.titlebar", "fitted": 16.8, "smoothing": "components.corner.smoothing"},
+      "sheet": {"radius": "components.window.corner.titlebar", "fitted": 16.8, "smoothing": "components.corner.smoothing"},
+      "alert": {"radius": "components.dialog.radius", "fitted": "components.dialog.radius", "smoothing": "components.corner.smoothing"},
+      "popover": {"radius": "components.popover.radius", "fitted": 19.7, "smoothing": "components.corner.smoothing"},
+      "menu": {"radius": "components.shell.menu.panel.radius", "fitted": 12.5, "smoothing": "components.corner.smoothing"},
+      "tooltip": {"radius": "components.tooltip.radius", "fitted": 5.2, "smoothing": 0},
+      "notification": {"radius": "components.shell.notifications.radius", "fitted": 20.3, "smoothing": "components.corner.smoothing"},
+      "notification-center": {"radius": 20, "fitted": 20.5, "smoothing": "components.corner.smoothing"},
+      "control-center-module": {"radius": 24, "fitted": 24.2, "smoothing": "components.corner.smoothing"},
+      "spotlight": {"radius": "components.shell.launcher.corner-radius", "fitted": "components.shell.launcher.corner-radius", "smoothing": "components.corner.smoothing"},
+      "controls": {
+        "push": [4, 5, 6, 14, 18],
+        "circular": [6.5, 10, 12, 14, 18],
+        "help": [8, 10, 12, 14, 18],
+        "text-field": [4, 5, 6, 7, 9],
+        "popup": [4, 5, 6, 14, 18],
+        "combo-button": [2.5, 3.5, 4.5, 5.5, 6.5],
+        "checkbox": [3.5, 4.5, 5.5, 6.5, 6.5],
+        "radio": [6, 7, 8, 9, 9],
+        "segmented": [8, 10, 12, 14, 18],
+        "segmented-square": [4, 5, 6, 14, 18],
+        "slider-track": [2, 2, 3, 3, 3],
+        "slider-knob": [6, 7, 8, 10, 10],
+        "progress-bar": [3, 3, 4, 4, 4]
+      }
+    },
     "window": {
       "min-width": 480,
       "min-height": 360,
@@ -712,9 +741,9 @@
       "expand-max-ms": 560,
       "corner": {
         "titlebar": "radius.lg",
-        "unified-compact": 20,
-        "unified": 26,
-        "utility": 15,
+        "unified-compact": 16,
+        "unified": 16,
+        "utility": 16,
         "expansion": 1.52866,
         "exponent": 3.34
       },
@@ -1065,7 +1094,7 @@
       }
     },
     "dialog": {
-      "radius": "components.window.corner.unified",
+      "radius": 26,
       "padding": 20,
       "alert-icon": 64,
       "alert-icon-gap": 16,
@@ -1674,7 +1703,7 @@
       },
       "notifications": {
         "width": 330,
-        "radius": 18,
+        "radius": 20,
         "padding": 12,
         "gap": 8,
         "margin": 20,
@@ -1718,7 +1747,7 @@
         "search-height": 44,
         "result-height": 44,
         "result-gap": 4,
-        "corner-radius": 16,
+        "corner-radius": 24.5,
         "result-radius": 10,
         "icon-size": 32,
         "font-size": 14,
@@ -1742,7 +1771,7 @@
           "padding": 5,
           "min-width": 0,
           "max-width": 640,
-          "radius": 14,
+          "radius": 12,
           "bg": "bg-raised",
           "shadow": "shadow-float"
         },

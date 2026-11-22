@@ -32,12 +32,12 @@ gaps.
 | Bottom | about 100 |
 | Height | about 70 |
 | Right inset | about 20 |
-| Corner radius | about 18 |
+| Corner radius | 20.3 (measured 2026-11-22, [macOS corners](macos-corners.md#5-the-desktop-shell)) |
 | Icon | 38 |
 | Material | dark glass |
 
 The banner starts at the menu-bar height, 30, and sits 20 pt from the right
-edge. The width is 330 and the height is 70. The corner radius is about 18.
+edge. The width is 330 and the height is 70. The corner radius is 20.3 (about 18 in the first pass).
 
 The banner is a dark glass card: the desktop shows through, blurred, and the
 card has a light rim. The 2026-11-20 pass measured the glass over the checker:
@@ -92,7 +92,7 @@ and errors: [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measure
 |---|---|---|---|---|
 | Width | about 330 | 330 | `NOTIFICATION_WIDTH` | Matches |
 | Height | about 70 | Content-driven | `NOTIFICATION_PADDING` | Verify with the same text |
-| Radius | about 18 | 18 | `NOTIFICATION_RADIUS` | Matches |
+| Radius | 20.3 | 20 (was 18) | `NOTIFICATION_RADIUS` | Matches since 2026-11-22 |
 | Right inset | about 20 | 20 | `NOTIFICATION_MARGIN` | Matches |
 | Top edge | 30 | Bar height plus gap | `NOTIFICATION_GAP` | Verify the gap |
 | Icon | 38 | 38 | `NOTIFICATION_ICON_SIZE` | Matches |

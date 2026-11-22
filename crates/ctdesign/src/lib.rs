@@ -137,6 +137,30 @@ pub struct WindowStyle {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CornerShape {
+    pub radius: f32,
+    pub fitted: f32,
+    pub smoothing: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CornerControls {
+    pub push: [f32; 5],
+    pub circular: [f32; 5],
+    pub help: [f32; 5],
+    pub text_field: [f32; 5],
+    pub popup: [f32; 5],
+    pub combo_button: [f32; 5],
+    pub checkbox: [f32; 5],
+    pub radio: [f32; 5],
+    pub segmented: [f32; 5],
+    pub segmented_square: [f32; 5],
+    pub slider_track: [f32; 5],
+    pub slider_knob: [f32; 5],
+    pub progress_bar: [f32; 5],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct WindowResize {
     pub edge: f32,
     pub corner: f32,

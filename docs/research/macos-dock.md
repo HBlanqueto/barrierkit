@@ -125,7 +125,7 @@ magnification and auto-hide are **not measured**: they need `com.apple.dock` or 
 | Edge margin | 6 | 4 | 6 |
 | Padding base | about 9 | 4 plus 4.44% of tile | 6 plus 4.44% of tile |
 | Panel height at 64 | 84 | 77.7 | 84 |
-| Panel radius | about 22 | 27.2% of thickness | 27.2% of thickness |
+| Panel radius | 21.9, 27.5% of the thickness (2026-11-22; 21.5 and 27.1% in a first run) | 27.2% of thickness | 27.2% of thickness |
 | Slot spacing | 68 | 64 | 68 |
 | Visible icon body | 52 | 80.5% of the short side | unchanged |
 | Magnification floor | about 1.3x | 1.3 | 1.3 |
@@ -134,7 +134,7 @@ magnification and auto-hide are **not measured**: they need `com.apple.dock` or 
 | Dark glass re-measured | `#bebebe` over white, `#0d` over black | `#2727274e` | unchanged |
 | RT solid | scheme solid `#03` dark, `#f1` light | backdrop-tinted | needs review |
 
-The radius ratio is already close: 22/84 is 0.262 and the token is 0.272.
+The radius ratio is already close: 21.9/79.4 is 0.275 and the token is 0.272 ([macOS corners](macos-corners.md#5-the-desktop-shell)).
 The new tile, padding, slot gap and vertical padding close the size gap.
 
 ## 6. What not to copy
