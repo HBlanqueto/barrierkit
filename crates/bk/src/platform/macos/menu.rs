@@ -425,8 +425,13 @@ pub(super) fn forget(window: u64) {
         };
         installed.handles.remove(&window);
         if installed.shown.as_ref().map(|shown| shown.owner) == Some(window) {
-            apply(installed, &installed.main, 1, &[]);
-            installed.shown = None;
+            match installed.handles.keys().min().copied() {
+                Some(next) => show_in(installed, next),
+                None => {
+                    apply(installed, &installed.main, 1, &[]);
+                    installed.shown = None;
+                }
+            }
         }
     });
 }
