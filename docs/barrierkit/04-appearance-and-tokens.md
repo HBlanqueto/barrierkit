@@ -403,7 +403,6 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `contrast` | `bool` | | `false` |
 | `reduced_motion` | `bool` | | `false` |
 | `reduce_transparency` | `bool` | | `false` |
-| `glass_blur` | `f32` | from `0.0` to `GLASS_BLUR_FULL` (`0.6`; outside it stops at the nearest end): `0.0` is every glass as designed and `GLASS_BLUR_FULL` is the end of the Liquid Glass slider, short of the frosted glass. The Gaussian that softens the backdrop widens by `GLASS_BLUR_SPREAD - 1` times the square of the value (`DockSurface::soften`: 1 at rest, 2.08 at the end) and the tint mixes premultiplied a little toward `DOCK_GLASS_FROSTED`, white in light and black in dark, by the same square, as macOS 26's Liquid Glass slider does: halfway along the slider the blur has grown a quarter of the way to its end and the tint has hardly moved. It reaches the glass the compositor draws for the Dock (`Resolved::dock`), the menus and the notifications. The menus rest on their veil over the Gaussian at `MENU_GLASS_SPREAD` (`Resolved::menu_glass`), bend nothing and have the outline whole all around; the notifications wear the menus' tone and blur in the Dock's frame (`Resolved::notification_glass`); [Glass over a backdrop](#glass-over-a-backdrop) has the veil, lift and cap of each | `0.0` |
 | `scroll_bars` | `ScrollBars` | `automatic`, `when_scrolling`, `always` | `automatic` |
 | `scroll_bar_click` | `ScrollBarClick` | `next_page`, `clicked_spot` | `next_page` |
 | `window_color` | `WindowColorMode` | `neutral`, `accent` (an old `wallpaper` reads as `neutral`) | `neutral` |
@@ -444,6 +443,9 @@ Notes on the values:
   `standard`, with a warning.
 - `traffic_light_shape` is retired: the lights are discs, as in macOS 27. A file
   that still has it loads, and the next write removes it.
+- `glass_blur` is retired: macOS has no blur strength to set, so every blur is
+  the measured one of its surface. A file that still has it loads, and the next
+  write removes it ([ADR 0096](../decisions.md)).
 - The accessibility keys follow macOS System Settings › Accessibility ›
   Display. The kit applies three of them in `ControlStyle::accessible`:
   `show_borders` draws a `ControlBorder` line around icon buttons, tool groups
@@ -570,8 +572,10 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 The rules `resolve` applies:
 
 1. `reduce_transparency` or `contrast` picks the `_OPAQUE` variants of the
-   shell, menu, sidebar and toolgroup colors. macOS turns Reduce transparency
-   on with Increase contrast.
+   shell, menu, sidebar and toolgroup colors. In macOS the two are separate
+   switches and Increase contrast alone keeps the blur of every material
+   ([macOS materials](../research/macos-materials.md)); how the shell surfaces
+   change with it was not measured, so the kit keeps them solid.
 2. A tint takes the chroma of the tint color into each surface, in OKLab, so
    a surface keeps its lightness (`backdrop::take_chroma`, as the wallpaper
    tint does). The amount is `WINDOW_TINT_ACCENT` (light, dark), times the

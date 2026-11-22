@@ -1,8 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use ctdesign::{
-    COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, GLASS_BLUR_FULL, POINTER_SIZES, Rgba, TEXT_SIZES,
-    TINT_STRENGTH,
+    COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, POINTER_SIZES, Rgba, TEXT_SIZES, TINT_STRENGTH,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -101,10 +100,6 @@ fn stepped<'de, D: Deserializer<'de>>(deserializer: D, steps: &[f32]) -> Result<
 
 fn display_contrast<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
     stepped(deserializer, &DISPLAY_CONTRAST)
-}
-
-fn glass_blur<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    stepped(deserializer, &[0.0, GLASS_BLUR_FULL])
 }
 
 fn hour<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u8, D::Error> {
@@ -260,8 +255,6 @@ pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub scroll_bar_click: ScrollBarClick,
     pub reduce_transparency: bool,
-    #[serde(deserialize_with = "glass_blur")]
-    pub glass_blur: f32,
     #[serde(deserialize_with = "lenient")]
     pub window_color: WindowColorMode,
     #[serde(deserialize_with = "lenient")]
@@ -318,7 +311,6 @@ impl Default for AppearanceConfig {
             scroll_bars: ScrollBars::default(),
             scroll_bar_click: ScrollBarClick::default(),
             reduce_transparency: false,
-            glass_blur: 0.0,
             window_color: WindowColorMode::default(),
             traffic_lights: TrafficLightStyle::default(),
             tint_strength: TintStrength::default(),
@@ -457,9 +449,10 @@ pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, tom
     }
 }
 
-const RETIRED_KEYS: [&str; 5] = [
+const RETIRED_KEYS: [&str; 6] = [
     "blur_all_windows",
     "blur_behind",
+    "glass_blur",
     "tint_strength_accent",
     "traffic_light_shape",
     "window_tint_scope",
@@ -753,7 +746,6 @@ traffic_lights = "standard"
             scroll_bars: ScrollBars::WhenScrolling,
             scroll_bar_click: ScrollBarClick::ClickedSpot,
             reduce_transparency: true,
-            glass_blur: 0.6,
             window_color: WindowColorMode::Accent,
             traffic_lights: TrafficLightStyle::Accent,
             tint_strength: TintStrength::Strong,
@@ -891,14 +883,13 @@ traffic_lights = "standard"
     fn a_size_outside_its_steps_stops_at_the_nearest_one_and_nan_at_the_first() {
         let config: AppearanceConfig = toml::from_str(
             "display_contrast = 0.0\ntext_size = nan\npointer_size = 9.0\n\
-             color_filter_intensity = -inf\nglass_blur = 9.0\n[text_sizes]\ngtk = 40.0\n",
+             color_filter_intensity = -inf\n[text_sizes]\ngtk = 40.0\n",
         )
         .unwrap();
         assert_eq!(config.display_contrast, DISPLAY_CONTRAST[0]);
         assert_eq!(config.text_size, TEXT_SIZES[0]);
         assert_eq!(config.pointer_size, POINTER_SIZES[6]);
         assert_eq!(config.color_filter_intensity, COLOR_FILTER_INTENSITY[0]);
-        assert_eq!(config.glass_blur, GLASS_BLUR_FULL);
         assert_eq!(config.text_sizes.gtk, Some(TEXT_SIZES[5]));
         assert_eq!(config.text_sizes.qt, None);
     }
@@ -1020,6 +1011,24 @@ tint_parts = ["window", "halo"]
                 .unwrap()
                 .contains("traffic_light_shape")
         );
+    }
+
+    #[test]
+    fn the_retired_glass_blur_still_parses_and_a_write_removes_it() {
+        let text = "glass_blur = 0.6\nreduce_transparency = true\n";
+        let config: AppearanceConfig = toml::from_str(text).unwrap();
+        assert!(config.reduce_transparency);
+        let dir = std::env::temp_dir().join(format!("ctappearance-blur-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("appearance.domain");
+        std::fs::write(&path, text).unwrap();
+        write_appearance(&path, &config).unwrap();
+        assert!(
+            !std::fs::read_to_string(&path)
+                .unwrap()
+                .contains("glass_blur")
+        );
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

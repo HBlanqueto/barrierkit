@@ -4,33 +4,31 @@ use ctdesign::{
     BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK, BG_SURFACE_DARK_TINT,
     BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, CONTRAST_DARK,
     CONTRAST_DARK_TINT, CONTRAST_LIGHT, DARK, DARK_TINT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT,
-    DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT, DOCK_GLASS_FROSTED_DARK, DOCK_GLASS_FROSTED_DARK_TINT,
-    DOCK_GLASS_FROSTED_LIGHT, DOCK_GLASS_LIGHT, DOCK_GLASS_SOLID_DARK, DOCK_GLASS_SOLID_DARK_TINT,
-    DOCK_GLASS_SOLID_LIGHT, DOCK_LENS_DARK, DOCK_LENS_LIGHT, DOCK_OUTLINE_DARK,
-    DOCK_OUTLINE_DARK_TINT, DOCK_OUTLINE_LIGHT, DOCK_OUTLINE_SOLID_DARK,
+    DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT, DOCK_GLASS_LIGHT, DOCK_GLASS_SOLID_DARK,
+    DOCK_GLASS_SOLID_DARK_TINT, DOCK_GLASS_SOLID_LIGHT, DOCK_LENS_DARK, DOCK_LENS_LIGHT,
+    DOCK_OUTLINE_DARK, DOCK_OUTLINE_DARK_TINT, DOCK_OUTLINE_LIGHT, DOCK_OUTLINE_SOLID_DARK,
     DOCK_OUTLINE_SOLID_DARK_TINT, DOCK_OUTLINE_SOLID_LIGHT, DOCK_RIM_CORNER_DARK,
     DOCK_RIM_CORNER_LIGHT, DOCK_RIM_DARK, DOCK_RIM_GLOW, DOCK_RIM_GLOW_LIGHT, DOCK_RIM_LIGHT,
     DOCK_RIM_SIDE_DARK, DOCK_RIM_SIDE_LIGHT, DOCK_TONE_DARK, DOCK_TONE_LIGHT, DockSurface,
-    DockTone, GLASS, GLASS_BLUR_SPREAD, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL,
-    LAYER_FACTOR_LINE, LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK,
-    MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_GLASS_CAP_DARK,
-    MENU_GLASS_CAP_LIGHT, MENU_GLASS_CHROMA, MENU_GLASS_LIFT_DARK, MENU_GLASS_LIFT_LIGHT,
-    MENU_GLASS_SPREAD, MENU_GLASS_VEIL_DARK, MENU_GLASS_VEIL_LIGHT, MENU_LIGHT, MENU_LIGHT_OPAQUE,
-    MENU_SEPARATOR_INK_MIX, MenuPalette, NOTIFICATION_GLASS_VEIL_LIGHT, ON_ACCENT_MIN_CONTRAST,
-    Palette, Rgba, SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT, SHELL_DARK_TINT_OPAQUE,
-    SHELL_LIGHT, SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT,
-    SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT,
-    SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_GLASS_SOLID_DARK, SIDEBAR_GLASS_SOLID_DARK_TINT,
-    SIDEBAR_GLASS_SOLID_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
-    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette,
-    TOOLBAR_BG_DARK, TOOLBAR_BG_DARK_TINT, TOOLBAR_BG_LIGHT, TOOLBAR_LINE_DARK,
-    TOOLBAR_LINE_DARK_TINT, TOOLBAR_LINE_LIGHT, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE,
-    TOOLGROUP_BG_DARK_TINT, TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT,
-    TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT,
-    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_LIGHTS_CONTRAST_DARK, TRAFFIC_LIGHTS_CONTRAST_DARK_TINT,
-    TRAFFIC_LIGHTS_CONTRAST_LIGHT, TRAFFIC_LIGHTS_DARK, TRAFFIC_LIGHTS_DARK_TINT,
-    TRAFFIC_LIGHTS_LIGHT, ToolgroupPalette, TrafficLooks, WALLPAPER_TINTING,
-    WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
+    DockTone, GLASS, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
+    LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
+    MENU_DARK_TINT_OPAQUE, MENU_GLASS_CAP_DARK, MENU_GLASS_CAP_LIGHT, MENU_GLASS_CHROMA,
+    MENU_GLASS_LIFT_DARK, MENU_GLASS_LIFT_LIGHT, MENU_GLASS_SPREAD, MENU_GLASS_VEIL_DARK,
+    MENU_GLASS_VEIL_LIGHT, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette,
+    NOTIFICATION_GLASS_VEIL_LIGHT, ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK,
+    SHELL_DARK_OPAQUE, SHELL_DARK_TINT, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE,
+    SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE,
+    SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT,
+    SIDEBAR_GLASS_SOLID_DARK, SIDEBAR_GLASS_SOLID_DARK_TINT, SIDEBAR_GLASS_SOLID_LIGHT,
+    SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT,
+    SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TOOLBAR_BG_DARK, TOOLBAR_BG_DARK_TINT,
+    TOOLBAR_BG_LIGHT, TOOLBAR_LINE_DARK, TOOLBAR_LINE_DARK_TINT, TOOLBAR_LINE_LIGHT,
+    TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
+    TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
+    TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
+    TRAFFIC_LIGHTS_CONTRAST_DARK, TRAFFIC_LIGHTS_CONTRAST_DARK_TINT, TRAFFIC_LIGHTS_CONTRAST_LIGHT,
+    TRAFFIC_LIGHTS_DARK, TRAFFIC_LIGHTS_DARK_TINT, TRAFFIC_LIGHTS_LIGHT, ToolgroupPalette,
+    TrafficLooks, WALLPAPER_TINTING, WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
 };
 
 use crate::accent;
@@ -244,16 +242,6 @@ pub fn glass_blur_passes(scheme: ColorScheme) -> u32 {
     }
 }
 
-// `glass_blur` widens a glass's Gaussian from `rest`, as designed, to GLASS_BLUR_SPREAD.
-fn glass_soften(rest: f32, glass_blur: f32) -> f32 {
-    rest + liquid_glass(glass_blur) * (GLASS_BLUR_SPREAD - rest)
-}
-
-// Measured on macOS 26's Liquid Glass slider: halfway the blur has grown a quarter of the way and the tint has hardly moved.
-fn liquid_glass(glass_blur: f32) -> f32 {
-    glass_blur * glass_blur
-}
-
 // The wallpaper shows along the left, top and bottom edges of a panel: `intensity` at the edge, fading over `span` logical pixels, with `chroma` and `lightness` of what is `offset` logical pixels outside the window (ADR 0078).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GlassEdge {
@@ -367,24 +355,8 @@ const TOOLGROUP_BG: [[Rgba; 3]; 2] = [
     ],
 ];
 
-// Mixed premultiplied, so over any backdrop the glass lies `amount` of the way from `clear` to `frosted`.
-fn frosted_glass(clear: Rgba, frosted: Rgba, amount: f32) -> Rgba {
-    let amount = amount.clamp(0.0, 1.0);
-    let [clear, frosted] = [clear.premultiplied(), frosted.premultiplied()];
-    let [r, g, b, a] = std::array::from_fn(|i| clear[i] + (frosted[i] - clear[i]) * amount);
-    if a <= 0.0 {
-        return Rgba::TRANSPARENT;
-    }
-    Rgba {
-        r: r / a,
-        g: g / a,
-        b: b / a,
-        a,
-    }
-}
-
 // With transparency reduced the Dock is a solid grey, as in macOS, not its glass over the window colour.
-fn dock_surface(scheme: ColorScheme, opaque: bool, glass_blur: f32) -> DockSurface {
+fn dock_surface(scheme: ColorScheme, opaque: bool) -> DockSurface {
     let (rim, divider, corner, lens, tone) = if scheme.is_dark() {
         (
             DOCK_RIM_DARK,
@@ -427,15 +399,7 @@ fn dock_surface(scheme: ColorScheme, opaque: bool, glass_blur: f32) -> DockSurfa
         )
     } else {
         (
-            frosted_glass(
-                scheme.pick([DOCK_GLASS_LIGHT, DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT]),
-                scheme.pick([
-                    DOCK_GLASS_FROSTED_LIGHT,
-                    DOCK_GLASS_FROSTED_DARK,
-                    DOCK_GLASS_FROSTED_DARK_TINT,
-                ]),
-                liquid_glass(glass_blur),
-            ),
+            scheme.pick([DOCK_GLASS_LIGHT, DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT]),
             scheme.pick([
                 DOCK_OUTLINE_LIGHT,
                 DOCK_OUTLINE_DARK,
@@ -453,11 +417,11 @@ fn dock_surface(scheme: ColorScheme, opaque: bool, glass_blur: f32) -> DockSurfa
         glow,
         lens,
         tone: (!opaque).then_some(tone),
-        soften: glass_soften(1.0, glass_blur),
+        soften: 1.0,
     }
 }
 
-fn menu_glass(dock: DockSurface, scheme: ColorScheme, glass_blur: f32) -> DockSurface {
+fn menu_glass(dock: DockSurface, scheme: ColorScheme) -> DockSurface {
     let (glass, lift, cap) = if scheme.is_dark() {
         (
             MENU_GLASS_VEIL_DARK,
@@ -482,7 +446,7 @@ fn menu_glass(dock: DockSurface, scheme: ColorScheme, glass_blur: f32) -> DockSu
             cap,
             ..DOCK_TONE_DARK
         }),
-        soften: glass_soften(MENU_GLASS_SPREAD, glass_blur),
+        soften: MENU_GLASS_SPREAD,
         ..dock
     }
 }
@@ -669,12 +633,8 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     sidebar.palette.selected_ink = on_accent;
     shell.tile_active = accent;
 
-    let dock = dock_surface(
-        scheme,
-        appearance.transparency_reduced(),
-        appearance.glass_blur,
-    );
-    let menu_glass = menu_glass(dock, scheme, appearance.glass_blur);
+    let dock = dock_surface(scheme, appearance.transparency_reduced());
+    let menu_glass = menu_glass(dock, scheme);
     let untinted = Resolved {
         scheme,
         accent_colors: colors,
@@ -846,10 +806,9 @@ mod tests {
     use super::*;
     use crate::{TintStrength, TrafficLightStyle};
     use ctdesign::{
-        BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT,
-        DOCK_GLASS_FROSTED_LIGHT, DOCK_GLASS_LIGHT, GLASS_BLUR_FULL, SIDEBAR_LIGHT_OPAQUE,
-        TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN,
-        WALLPAPER_TINTING_TARGET, WINDOW_TINT_ACCENT,
+        BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT, DOCK_GLASS_LIGHT,
+        SIDEBAR_LIGHT_OPAQUE, TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN,
+        TRAFFIC_ZOOM_LIGHTEN, WALLPAPER_TINTING_TARGET, WINDOW_TINT_ACCENT,
     };
 
     fn appearance(
@@ -1777,7 +1736,7 @@ mod tests {
     }
 
     #[test]
-    fn the_glass_blur_minimum_is_the_dock_as_designed() {
+    fn the_dock_is_the_glass_as_designed_at_rest() {
         let resolved = resolve(&AppearanceConfig::default(), None);
         assert_eq!(resolved.dock.glass, DOCK_GLASS_LIGHT);
         assert_eq!(resolved.dock.soften, 1.0);
@@ -1804,86 +1763,23 @@ mod tests {
         );
     }
 
-    fn over(glass: Rgba, backdrop: f32) -> [f32; 3] {
-        [glass.r, glass.g, glass.b].map(|channel| backdrop + (channel - backdrop) * glass.a)
-    }
-
-    fn close(a: [f32; 3], b: [f32; 3]) -> bool {
-        a.iter().zip(b).all(|(a, b)| (a - b).abs() < 1e-5)
-    }
-
     #[test]
-    fn the_glass_blur_maximum_stops_short_of_the_frosted_glass_and_widens_its_taps() {
-        let config = AppearanceConfig {
-            glass_blur: GLASS_BLUR_FULL,
-            ..AppearanceConfig::default()
-        };
-        let dock = resolve(&config, None).dock;
-        let frost = GLASS_BLUR_FULL * GLASS_BLUR_FULL;
-        let reached = frosted_glass(DOCK_GLASS_LIGHT, DOCK_GLASS_FROSTED_LIGHT, frost);
-        assert!(close(over(dock.glass, 0.0), over(reached, 0.0)));
-        assert!(dock.glass.a < 0.55);
-        assert_eq!(dock.soften, 1.0 + frost * (GLASS_BLUR_SPREAD - 1.0));
-    }
-
-    #[test]
-    fn halfway_the_glass_covers_any_backdrop_halfway_between_clear_and_frosted() {
-        let half = frosted_glass(DOCK_GLASS_LIGHT, DOCK_GLASS_FROSTED_LIGHT, 0.5);
-        for backdrop in [0.0, 0.5, 1.0] {
-            let clear = over(DOCK_GLASS_LIGHT, backdrop);
-            let frosted = over(DOCK_GLASS_FROSTED_LIGHT, backdrop);
-            let between = std::array::from_fn(|i| (clear[i] + frosted[i]) / 2.0);
-            assert!(close(over(half, backdrop), between));
-        }
-    }
-
-    #[test]
-    fn halfway_the_slider_has_moved_the_blur_and_the_tint_a_quarter_of_the_way() {
-        let config = AppearanceConfig {
-            glass_blur: GLASS_BLUR_FULL / 2.0,
-            ..AppearanceConfig::default()
-        };
-        let dock = resolve(&config, None).dock;
-        let quarter = GLASS_BLUR_FULL * GLASS_BLUR_FULL / 4.0;
-        assert_eq!(dock.soften, 1.0 + quarter * (GLASS_BLUR_SPREAD - 1.0));
-        let tint = frosted_glass(DOCK_GLASS_LIGHT, DOCK_GLASS_FROSTED_LIGHT, quarter);
-        assert!(close(over(dock.glass, 0.5), over(tint, 0.5)));
-    }
-
-    #[test]
-    fn reduced_transparency_keeps_the_dock_glass_solid_whatever_the_glass_blur() {
-        let config = |glass_blur| AppearanceConfig {
-            reduce_transparency: true,
-            glass_blur,
-            ..AppearanceConfig::default()
-        };
-        assert_eq!(
-            resolve(&config(1.0), None).dock.glass,
-            resolve(&config(0.0), None).dock.glass
-        );
-    }
-
-    #[test]
-    fn the_slider_widens_the_menu_blur_and_leaves_its_veil_and_chroma_as_designed() {
-        let config = |glass_blur, reduce_transparency| AppearanceConfig {
+    fn the_menu_keeps_its_veil_and_chroma_and_the_notifications_take_the_dock_solid_when_transparency_is_reduced()
+     {
+        let config = |reduce_transparency| AppearanceConfig {
             color_scheme: ColorScheme::Dark,
             reduce_transparency,
-            glass_blur,
             ..AppearanceConfig::default()
         };
-        let clear = resolve(&config(0.0, false), None);
-        let widened = resolve(&config(1.0, false), None);
+        let clear = resolve(&config(false), None);
         assert_eq!(clear.menu_glass.glass, MENU_GLASS_VEIL_DARK);
         assert!(
             clear.menu_glass.corner[2] <= 0.0,
             "the outline is whole at vertical"
         );
         assert_eq!(clear.menu_glass.soften, MENU_GLASS_SPREAD);
-        assert_eq!(widened.menu_glass.soften, GLASS_BLUR_SPREAD);
-        assert_eq!(widened.menu_glass.glass, clear.menu_glass.glass);
-        assert_eq!(widened.menu_glass.tone, clear.menu_glass.tone);
         assert_eq!(clear.menu_glass.tone.unwrap().chroma, MENU_GLASS_CHROMA);
-        let solid = resolve(&config(0.0, true), None);
+        let solid = resolve(&config(true), None);
         assert_eq!(solid.menu_glass.glass, clear.menu_glass.glass);
         assert_eq!(solid.menu_glass.tone, clear.menu_glass.tone);
         assert_eq!(solid.notification_glass, solid.dock);
@@ -2106,23 +2002,14 @@ mod tests {
     #[test]
     fn the_notifications_wear_the_menus_tone_and_blur_in_the_docks_frame() {
         for scheme in SCHEMES {
-            for glass_blur in [0.0, 0.5, 1.0] {
-                let resolved = resolve(
-                    &AppearanceConfig {
-                        color_scheme: scheme,
-                        glass_blur,
-                        ..AppearanceConfig::default()
-                    },
-                    None,
-                );
-                let cards = resolved.notification_glass;
-                let menu = resolved.menu_glass;
-                assert_eq!((cards.tone, cards.soften), (menu.tone, menu.soften));
-                assert_eq!(
-                    (cards.lens, cards.corner),
-                    (resolved.dock.lens, resolved.dock.corner)
-                );
-            }
+            let resolved = resolved_in(scheme, false);
+            let cards = resolved.notification_glass;
+            let menu = resolved.menu_glass;
+            assert_eq!((cards.tone, cards.soften), (menu.tone, menu.soften));
+            assert_eq!(
+                (cards.lens, cards.corner),
+                (resolved.dock.lens, resolved.dock.corner)
+            );
         }
     }
 

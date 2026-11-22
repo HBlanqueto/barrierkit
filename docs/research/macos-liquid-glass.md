@@ -571,8 +571,9 @@ inside it.
   1 px structure; the white/black boundary keeps its midpoint). False for
   `NSGlassEffectView` and `glassEffect`, whose lens bends a grid by 50 px at
   the edge of a clear glass.
-- `glass_blur` as a quadratic of the slider (earlier section 3) is not
-  contradicted: the slider scales `inputBlurRadius`.
+- `glass_blur` as a quadratic of the slider (earlier section 3) is retired
+  (ADR 0096): System Settings has a tint slider, `NSGlassTintAmount`, whose effect
+  was not measured ([`macos-settings.md`](macos-settings.md)), and no blur setting.
 - The application menu is regular glass: 32, 122 and 146 over black, gray 128 and
   white, in raw device bytes. The `#a3` over white of the earlier menu tables
   was read through a probe that lifted mid-tones (the correction is in

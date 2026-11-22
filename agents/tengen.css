@@ -4691,8 +4691,6 @@
   --bk-appearance-accessibility-color-filter-intensity-4: 0.75;
   --bk-appearance-accessibility-color-filter-intensity-5: 0.9;
   --bk-appearance-accessibility-color-filter-intensity-6: 1.0;
-  --bk-appearance-glass-blur-spread: 4.0;
-  --bk-appearance-glass-blur-full: 0.6;
   --bk-appearance-layer-factors-bg-sunken: 1.4;
   --bk-appearance-layer-factors-bg-control: 1.2;
   --bk-appearance-layer-factors-line: 1.2;
@@ -4933,7 +4931,6 @@
   --bk-shell-bar: #f2f4f7e6;
   --bk-dock-bar: #b5b5b548;
   --bk-dock-bar-opaque: #f1f1f1;
-  --bk-dock-bar-frosted: #ffffffb3;
   --bk-glass-ink: #000000d9;
   --bk-glass-ink-muted: #00000080;
   --bk-glass-ink-faint: #00000042;
@@ -5191,7 +5188,6 @@
     --bk-shell-bar: #1e1e1ee6;
     --bk-dock-bar: #2727274e;
     --bk-dock-bar-opaque: #0a0a0a;
-    --bk-dock-bar-frosted: #00000075;
     --bk-glass-ink: #ffffffd9;
     --bk-glass-ink-muted: #ffffff8c;
     --bk-glass-ink-faint: #ffffff40;
@@ -5449,7 +5445,6 @@
   --bk-shell-bar: #1e1e1ee6;
   --bk-dock-bar: #2727274e;
   --bk-dock-bar-opaque: #0a0a0a;
-  --bk-dock-bar-frosted: #00000075;
   --bk-glass-ink: #ffffffd9;
   --bk-glass-ink-muted: #ffffff8c;
   --bk-glass-ink-faint: #ffffff40;
@@ -5706,7 +5701,6 @@
   --bk-shell-bar: #1d1e20e6;
   --bk-dock-bar: #2727274e;
   --bk-dock-bar-opaque: #0a0a0a;
-  --bk-dock-bar-frosted: #00000075;
   --bk-glass-ink: #ffffffd9;
   --bk-glass-ink-muted: #ffffff8c;
   --bk-glass-ink-faint: #ffffff40;
