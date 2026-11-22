@@ -1036,11 +1036,6 @@
       "dropdown": {
         "chevron-glyph": 10
       },
-      "empty": {
-        "padding-y": 48,
-        "icon": 28,
-        "gap": 6
-      },
       "wallpaper": {
         "preview-width": 136,
         "tile-width": 92,
@@ -2235,6 +2230,25 @@
           }
         }
       }
+    },
+    "content-unavailable": {
+      "icon": 45,
+      "icon-line": 44,
+      "icon-gap": 20,
+      "title": {
+        "family": "sans",
+        "size": 15,
+        "line-height": 19,
+        "weight": 700
+      },
+      "description": {
+        "family": "sans",
+        "size": 15,
+        "line-height": 19,
+        "weight": 400
+      },
+      "description-gap": 6,
+      "actions-gap": 19
     },
     "hairline": 1,
     "glass-mask": "#ffffff",

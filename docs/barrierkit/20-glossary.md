@@ -374,6 +374,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `views::feedback::Sheet::style` | method | ≈ `presentationBackground(_:)` | — | Builds the sheet again with a style; call it right after `new` | [Styles](../../crates/bk/src/styles/sheet.rs) |
 | `views::feedback::Alert::style` | method | — | — | Changes the style of one alert | [Styles](../../crates/bk/src/styles/sheet.rs) |
 | `views::feedback::ContentUnavailableView::style` | method | — | — | Builds the view again with a style; call it right after `new` | [Styles](../../crates/bk/src/styles/sheet.rs) |
+| `views::feedback::ContentUnavailableView::description` | method | `ContentUnavailableView(_:systemImage:description:)` | — | A second line under the title | [11](11-views.md#contentunavailableview) |
+| `views::feedback::ContentUnavailableView::actions` | method | `ContentUnavailableView(label:description:actions:)` | — | A row under the description, such as a button | [11](11-views.md#contentunavailableview) |
 | `patterns::settings::SettingsWindow::navigation_destination` | method | `navigationDestination(item:)` | — | Opens a pane by id on request | [12](12-patterns.md#settingswindow) |
 | `patterns::settings::SettingsWindow::style` | method | — | — | Changes the style of one preferences window | [Styles](../../crates/bk/src/styles/settings_window.rs) |
 | `patterns::about::AboutView::style` | method | — | — | Changes the style of one About view | [Styles](../../crates/bk/src/styles/settings_window.rs) |
@@ -1298,7 +1300,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
-| `views::feedback::ContentUnavailableView` | struct | `ContentUnavailableView` | — | A faint symbol over a line of text for an empty view | [11](11-views.md#contentunavailableview) |
+| `views::feedback::ContentUnavailableView` | struct | `ContentUnavailableView` | — | A faint symbol over a line of text for an empty view; it fills its space and centers its content | [11](11-views.md#contentunavailableview) |
 | `views::feedback::Sheet` | struct | `.sheet(isPresented:onDismiss:content:)` | `NSWindow.beginSheet(_:completionHandler:)` | A modal child window centered on its window (`xdg-dialog-v1`); the parent takes no clicks and cannot close while it shows | [11](11-views.md#sheet) |
 | `views::feedback::Alert` | struct | `.alert(_:isPresented:actions:message:)` | `NSAlert` | A sheet with title, message, two buttons and optional suppression checkbox | [11](11-views.md#alert) |
 | `views::feedback::SheetButtons` | struct | ≈ `ToolbarItem(placement: .confirmationAction)` | — | Cancel and default buttons at the bottom of a sheet, with an optional view at the left | [11](11-views.md#sheetbuttons) |

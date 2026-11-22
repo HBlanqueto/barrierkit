@@ -697,7 +697,18 @@ layout and style methods. `Sheet` is a component and takes none
 
 `ContentUnavailableView::new(title, symbol)` draws a large faint symbol over a
 line of text, for a view with nothing to show, like SwiftUI's
-`ContentUnavailableView`.
+`ContentUnavailableView`. It fills the space it is given and centers its
+content, as SwiftUI's does; an app adds no `center()` of its own.
+
+| Call | Adds |
+|---|---|
+| `.description(text)` | A second line under the title |
+| `.actions(element)` | A row under the description, such as a `Button` |
+
+Call them in this order, then `.style` first of all. Sizes, gaps and fonts are
+the `CONTENT_UNAVAILABLE_*` tokens ([4](04-appearance-and-tokens.md)); the
+test `swiftui_defaults` holds them to the frames SwiftUI reports
+(`~/src/probes/contentunavailable.swift`).
 
 ### `Sheet`
 

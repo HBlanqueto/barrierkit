@@ -15,6 +15,7 @@ use crate::platform::{WindowControls, WindowOptions};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
+use crate::ProbeExt;
 use crate::buttons::HelpLink;
 use crate::controls::{Button, Checkbox, ControlSize};
 use crate::i18n::text;
@@ -27,41 +28,89 @@ use crate::styles::{
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
-pub struct ContentUnavailableView(Rect, Cow<'static, str>, Symbol, Theme);
+pub struct ContentUnavailableView(
+    Rect,
+    Cow<'static, str>,
+    Symbol,
+    Option<Cow<'static, str>>,
+    Theme,
+);
 
 impl ContentUnavailableView {
     pub fn new(title: impl Into<Cow<'static, str>>, symbol: Symbol) -> Self {
-        Self::styled(title.into(), symbol, Theme::tengen())
+        Self::styled(title.into(), symbol, None, Theme::tengen())
+    }
+
+    pub fn description(self, description: impl Into<Cow<'static, str>>) -> Self {
+        Self::styled(self.1, self.2, Some(description.into()), self.4)
+    }
+
+    pub fn actions(mut self, actions: impl IntoElement) -> Self {
+        let style: ContentUnavailableViewStyle = resolve(&self.4);
+        self.0.children_mut().push(
+            rect()
+                .probe("content-unavailable-actions")
+                .margin(Gaps::new(style.actions_gap, 0.0, 0.0, 0.0))
+                .child(actions)
+                .into_element(),
+        );
+        self
     }
 
     pub fn style(
         self,
         restyle: impl Fn(ContentUnavailableViewStyle) -> ContentUnavailableViewStyle + 'static,
     ) -> Self {
-        Self::styled(self.1, self.2, self.3.style(restyle))
+        Self::styled(self.1, self.2, self.3, self.4.style(restyle))
     }
 
-    fn styled(title: Cow<'static, str>, icon: Symbol, theme: Theme) -> Self {
+    fn styled(
+        title: Cow<'static, str>,
+        icon: Symbol,
+        description: Option<Cow<'static, str>>,
+        theme: Theme,
+    ) -> Self {
         let style: ContentUnavailableViewStyle = resolve(&theme);
         let state = ControlState::default();
         let paints = Paints::current(state, style.effect);
-        let view = rect()
-            .width(Size::fill())
+        let mut view = rect()
+            .expanded()
+            .center()
             .direction(Direction::Vertical)
-            .cross_align(Alignment::Center)
-            .padding(Gaps::new(style.padding_y, 0.0, style.padding_y, 0.0))
-            .spacing(style.spacing)
-            .child(symbol(
-                icon,
-                style.symbol_size,
-                paints.color(style.symbol.resolve(state)),
-            ))
-            .child(text(
-                title.clone(),
-                style.font,
-                paints.color(style.title.resolve(state)),
-            ));
-        Self(view, title, icon, theme)
+            .child(
+                rect()
+                    .probe("content-unavailable-symbol")
+                    .height(Size::px(style.symbol_line))
+                    .center()
+                    .child(symbol(
+                        icon,
+                        style.symbol_size,
+                        paints.color(style.symbol.resolve(state)),
+                    )),
+            )
+            .child(
+                rect()
+                    .probe("content-unavailable-title")
+                    .margin(Gaps::new(style.symbol_gap, 0.0, 0.0, 0.0))
+                    .child(text(
+                        title.clone(),
+                        style.title_font,
+                        paints.color(style.title.resolve(state)),
+                    )),
+            );
+        if let Some(description) = description.clone() {
+            view = view.child(
+                rect()
+                    .probe("content-unavailable-description")
+                    .margin(Gaps::new(style.description_gap, 0.0, 0.0, 0.0))
+                    .child(text(
+                        description,
+                        style.description_font,
+                        paints.color(style.description.resolve(state)),
+                    )),
+            );
+        }
+        Self(view, title, icon, description, theme)
     }
 }
 
