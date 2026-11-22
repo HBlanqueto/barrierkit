@@ -13,12 +13,15 @@ controls ([coverage matrix](swiftui-appkit-coverage.md)).
 the [glossary](../barrierkit/20-glossary.md), `~/src/probes` and one
 experiment ([Evidence](#evidence)).
 **Output:** a design with three inputs, a minimum tool, its test, and the
-ranked gaps.
+ranked gaps. Since 2026-11-22 also the first tool, `scripts/swift-to-bk/`
+([usage](../../scripts/swift-to-bk/README.md)), and what it showed.
 
 ## Steps
 
 1. Read the [verdict](#verdict) and the [decisions](#decisions-for-the-owner).
-2. To build the tool, follow the [stages](#stages).
+2. To translate an app, follow the [usage](../../scripts/swift-to-bk/README.md);
+   to extend the tool, read the [status](#status-of-the-stages), the
+   [results](#results) and the [limits](#limits-of-the-tool).
 3. To pick kit work, take the first open row of the [gaps](#gaps-that-block-the-translator).
 
 ## Verdict
@@ -38,7 +41,8 @@ That yields a visual clone to iterate on with the [parity test](macos-arm-port.m
 | # | Experiment | Result |
 |---|---|---|
 | E5 | `swiftc -typecheck Demo.swift -Xfrontend -dump-ast` on a 10-line SwiftUI `Counter` | a typed, resolved AST of 158 KB: each call names its declaration, such as `SwiftUICore.(file).VStack.init(alignment:spacing:content:)` and `Text extension.font`; the `@State` macro is expanded |
-| E6 | The same with `swiftc -frontend … -dump-ast-format json` | fails: the macro plugin for `@State` is not loaded in `-frontend` mode. The JSON format through the driver was not tried |
+| E6 | The same with `swiftc -frontend … -dump-ast-format json` | fails: the macro plugin for `@State` is not loaded in `-frontend` mode |
+| E6b | `swiftc -typecheck F.swift -Xfrontend -dump-ast -Xfrontend -dump-ast-format -Xfrontend json` (2026-11-22) | works through the driver, but types and declarations are mangled names (`$s7SwiftUI6VStackV…`) and string literals are base64. The tool reads the text form |
 | E7 | The existing probe `~/src/probes/axdump.swift` | reads the accessibility tree (role, position, size, font of the text). Not run for this study: it needs the accessibility permission |
 
 The typed AST is the better input than syntax alone: a name such as `padding`
@@ -99,6 +103,93 @@ the recipe hides: the interpolated `"Count: \(count)"` becomes an owned
 string, and a control that takes `&'static str` needs `i18n::intern`
 ([swift-syntax-in-rust.md](swift-syntax-in-rust.md), 1.6).
 
+## Status of the stages
+
+Built on 2026-11-22 with the defaults of the decisions below: SwiftUI source
+only, the typed AST of `swiftc`, the tool beside `scripts/`.
+
+| Stage | State | Where |
+|---|---|---|
+| 1. Table | done: one JSON file of 1,897 rows | `scripts/swift-to-bk/table.json`, built by `make-table.py` from the glossary, [chapter 16](../barrierkit/16-swiftui-to-the-kit.md), the closed lists of the [API gap](swiftui-api-gap.md) and 25 hand-written rules (`rules.json`) |
+| 2. View tree | done for the constructs of the [usage](../../scripts/swift-to-bk/README.md#what-it-translates) | `translate.py`, `swiftast.py` |
+| 3. Report | done: a `TODO(swift: construct) -> row` line at the construct and a summary at the end | same |
+| 4. Check | done: 11 tests, five recipes that build on macOS | `tests/run.py`, `check.sh`, `recipe.py`, `agents/recipes/swift_*.rs` |
+| 5. Running app | not started | |
+
+The table keeps what is known: each row has the Swift name, the kit item,
+a status (`mapped`, `partial`, `missing`, `n/a`, `out-of-scope`) and, for the
+gap rows, the section of the API gap. The code keeps how a construct is
+lowered. A Swift name with a `mapped` row and no lowering reports
+`translator: not lowered yet`; a name with a `missing` row reports its gap
+row.
+
+## Results
+
+| Measure | Result |
+|---|---|
+| `Counter` ([`Counter.swift`](../../scripts/swift-to-bk/tests/counter/Counter.swift)) | the output equals [`counter.rs`](../../agents/recipes/counter.rs) except the `.options(..)` line: the recipe adds `min_size`, which has no SwiftUI source |
+| Recipes | `swift_counter`, `swift_form`, `swift_lists`, `swift_components`, `swift_styles` translate with an empty report and pass `cargo build -p bk --example` on macOS arm64. They were not run in a window |
+| Incomplete input | `tests/gaps` reports 7 constructs (`ZStack`, `foregroundStyle`, `tag` three times, `Picker`, `keyboardShortcut`) and the output still compiles, because each gap becomes a `rect()` |
+| Tests | 11: the parser, the declaration names, the table (current, statuses, gap rows) and the goldens |
+| Time | `swiftc -typecheck` takes about 1.2 s for a 10-line view; the text AST is 150 KB for it and 470 KB for a 20-line view |
+| A sample outside the tests (a to-do list with `NavigationStack`, `toolbar`, `@AppStorage`, `Label`) | 10 `TODO`s, each with its row; no crash |
+
+## Limits of the tool
+
+What the tool does not do, in the order it hurt on the samples:
+
+1. **No model code.** Only `View` structs, `@State`, `@Binding`, constants and
+   data structs used by `ForEach` are read. `@Observable` classes, methods,
+   computed properties, `@State var items: [T]` with `append`, `@AppStorage`
+   and `@Environment` become `TODO`s.
+2. **One file.** Types from another file are unknown; `swiftc` would accept
+   several files, but the tool passes one.
+3. **Modifiers set, they do not wrap.** The tool emits the kit's order-free
+   form and wraps a control in `rect()` when it needs `.padding` or `.width`.
+   `.frame` is a border-box size in the kit; the tool does not correct the
+   padding ([swift-syntax-in-rust.md](swift-syntax-in-rust.md), 1.3).
+4. **Nothing inherits.** `.font` and `.buttonStyle` on a container report a
+   `TODO`; the kit needs `.control_style` for the second.
+5. **Literals stay literals.** Text goes into the program as written; the tool
+   does not write `tr!` ids or `.ftl` files.
+6. **Defaults are fixed.** `.padding()` becomes `SPACE_4` (16) and `Toggle`
+   becomes `Checkbox`, as on macOS; the tool cannot read a default from the
+   AST.
+7. **Names.** Swift names become `snake_case`; a collision with a kit or Rust
+   name is not checked.
+
+What the typed AST does not carry:
+
+- Comments, blank lines and formatting. The tool cannot keep the author's
+  comments.
+- The value of a defaulted argument: `default_argument_expr` names only the
+  parameter. `VStack()` and `VStack(spacing: nil)` look alike.
+- A readable type for a modifier chain in the JSON form (mangled); the text
+  form has it but as a string.
+- The macro expansion is part of it: `@State` adds `_x`, `__x` and `$x`
+  declarations that the tool must recognise and skip.
+- The builder desugaring: each view of a `@ViewBuilder` appears as
+  `$__builderN`, with the written expression in `original_init` and the typed
+  one in `processed_init`. An `if` without `else` has an empty `else` arm.
+- Conditional compilation (`#if`, `#available`) is already resolved for the
+  machine that runs `swiftc`.
+
+## Next gaps, in order
+
+From the samples, closest to the translator first. The first four are tool
+work, the rest kit work from the [gaps table](#gaps-that-block-the-translator).
+
+1. Model state: `@Observable`, arrays and structs in `@State`, mutation of
+   them in actions.
+2. `Picker` and `.tag` to `PopUpButton`, `Form` and `Section` to `Form`,
+   `Button(role:)`, `.keyboardShortcut` to `Button::keyboard_shortcut`.
+3. Colours and shapes: `.foregroundStyle`, `.foregroundColor`, `.background`,
+   `.cornerRadius` to a `ShapeStyle`; the kit has no named colours.
+4. Effects and environment: `.onAppear`, `.onChange`, `.task`, `@Environment`.
+5. `NavigationStack` (top 20, row 6) and the declarative toolbar (row 7): the
+   most frequent `TODO`s of real apps.
+6. `isPresented` sheets, alerts and popovers (row 8), then `Binding` (row 9).
+
 ## What the kit has and lacks
 
 From the coverage matrix (221 rows) and the API gap (1,672 items), both
@@ -144,6 +235,10 @@ stays a non-goal.
 
 ## Decisions for the owner
 
+The first tool used these defaults, which stand until the owner decides
+otherwise: decision 1, SwiftUI source only; decision 3, the typed AST of
+`swiftc`; decision 4, beside `scripts/`, outside the workspace.
+
 1. The scope of the first translator: SwiftUI source only (stages 1 to 4), or
    also the running-app input (stage 5).
 2. Whether ADR 0085 changes: `Binding`, a minimal responder chain and window
@@ -157,7 +252,9 @@ stays a non-goal.
 
 ## Not verified
 
-- That the typed AST has every modifier chain of a larger app; E5 is ten lines.
-- The JSON form of the dump (E6).
+- That the typed AST has every modifier chain of a larger app; the samples are
+  at most 25 lines.
+- That the five recipes look right in a window: they were built, not run.
+- Clippy on the five recipes under the Linux toolchain (see the commit).
 - That the accessibility dump of an app gives enough to lay out a window.
 - Any size above S for the gaps; they come from the earlier studies.

@@ -107,6 +107,7 @@ version.
 | Find the name of anything (control, view, token, hook) | [`20-glossary.md`](../docs/barrierkit/20-glossary.md) |
 | Write `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, an action or an effect | [`16-swiftui-to-the-kit.md`](../docs/barrierkit/16-swiftui-to-the-kit.md) |
 | Copy a working program | [`recipes.md`](recipes.md) |
+| Translate a SwiftUI file with a tool | [`scripts/swift-to-bk/README.md`](../scripts/swift-to-bk/README.md) |
 | Check your work before you answer | [`checklist.md`](checklist.md) |
 | Understand the first app line by line | [`02-first-app.md`](../docs/barrierkit/02-first-app.md) |
 | Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../docs/barrierkit/04-appearance-and-tokens.md) |

@@ -181,6 +181,26 @@ name = "styled_control"
 path = "../../agents/recipes/styled_control.rs"
 
 [[example]]
+name = "swift_components"
+path = "../../agents/recipes/swift_components.rs"
+
+[[example]]
+name = "swift_counter"
+path = "../../agents/recipes/swift_counter.rs"
+
+[[example]]
+name = "swift_form"
+path = "../../agents/recipes/swift_form.rs"
+
+[[example]]
+name = "swift_lists"
+path = "../../agents/recipes/swift_lists.rs"
+
+[[example]]
+name = "swift_styles"
+path = "../../agents/recipes/swift_styles.rs"
+
+[[example]]
 name = "titlebar_over_gradient"
 path = "../../agents/recipes/titlebar_over_gradient.rs"
 
