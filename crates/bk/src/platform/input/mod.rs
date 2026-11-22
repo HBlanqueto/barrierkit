@@ -1,4 +1,7 @@
-use freya_core::prelude::{Code, Key, Modifiers, MouseButton, NamedKey};
+use freya_core::prelude::Modifiers;
+#[cfg(target_os = "linux")]
+use freya_core::prelude::{Code, Key, MouseButton, NamedKey};
+#[cfg(target_os = "linux")]
 use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
 
 thread_local! {
@@ -10,10 +13,12 @@ pub fn modifier_flags() -> Modifiers {
     MODIFIER_FLAGS.get()
 }
 
+#[cfg(target_os = "linux")]
 pub(super) fn set_modifier_flags(flags: SctkModifiers) {
     MODIFIER_FLAGS.set(modifiers(flags));
 }
 
+#[cfg(target_os = "linux")]
 pub fn modifiers(m: SctkModifiers) -> Modifiers {
     let mut out = Modifiers::empty();
     out.set(Modifiers::CONTROL, m.ctrl);
@@ -23,6 +28,7 @@ pub fn modifiers(m: SctkModifiers) -> Modifiers {
     out
 }
 
+#[cfg(target_os = "linux")]
 fn named(keysym: Keysym) -> Option<NamedKey> {
     Some(match keysym {
         Keysym::Return | Keysym::KP_Enter => NamedKey::Enter,
@@ -61,6 +67,7 @@ fn named(keysym: Keysym) -> Option<NamedKey> {
     })
 }
 
+#[cfg(target_os = "linux")]
 fn code(keysym: Keysym) -> Code {
     match keysym {
         Keysym::Return | Keysym::KP_Enter => Code::Enter,
@@ -95,6 +102,7 @@ pub fn inserts_text(modifiers: Modifiers) -> bool {
     !modifiers.intersects(Modifiers::CONTROL | Modifiers::ALT | Modifiers::META)
 }
 
+#[cfg(target_os = "linux")]
 pub fn map_key(keysym: Keysym, utf8: Option<&str>) -> Key {
     if keysym == Keysym::space {
         return Key::Character(" ".into());
@@ -116,8 +124,10 @@ pub fn map_key(keysym: Keysym, utf8: Option<&str>) -> Key {
     }
 }
 
+#[cfg(target_os = "linux")]
 pub(super) mod seat;
 
+#[cfg(target_os = "linux")]
 pub fn mouse_button(button: u32) -> MouseButton {
     use sctk::seat::pointer::{BTN_BACK, BTN_FORWARD, BTN_LEFT, BTN_MIDDLE, BTN_RIGHT};
     match button {
@@ -130,7 +140,7 @@ pub fn mouse_button(button: u32) -> MouseButton {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod tests {
     use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
 

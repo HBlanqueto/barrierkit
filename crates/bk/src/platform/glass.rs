@@ -1,13 +1,20 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+#[cfg(target_os = "linux")]
 use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
 
+#[cfg(target_os = "linux")]
 use super::runtime::Runtime;
+#[cfg(target_os = "linux")]
 use super::surface::SurfaceWindow;
-use super::window_style::{BlendingMode, InfinityWindowStyleV1, Knob, WireMaterial};
+#[cfg(target_os = "linux")]
+use super::window_style::{BlendingMode, InfinityWindowStyleV1, WireMaterial};
+use super::window_style::Knob;
 
+#[cfg(target_os = "linux")]
 const MINIMUM_VERSION: u32 = 6;
+#[cfg(target_os = "linux")]
 const KNOB_VERSION: u32 = 9;
 
 pub(crate) type Rects = Vec<(i32, i32, i32, i32)>;
@@ -86,6 +93,7 @@ impl KnobOutbox {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Runtime {
     pub(crate) fn glass_style(&self) -> Option<InfinityWindowStyleV1> {
         self.window_style
@@ -113,6 +121,7 @@ impl Runtime {
 }
 
 // A compositor that offers `set_backdrop` draws the sidebar as the measured material behind the window.
+#[cfg(target_os = "linux")]
 fn send_panels(
     style: &InfinityWindowStyleV1,
     surface: &WlSurface,
@@ -140,6 +149,7 @@ fn send_panels(
     }
 }
 
+#[cfg(target_os = "linux")]
 impl SurfaceWindow {
     // The panels go out before the buffer they describe, so both land in one commit.
     pub(crate) fn flush_glass(&mut self) {
@@ -158,7 +168,7 @@ impl SurfaceWindow {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod tests {
     use super::super::fake_server::{Probe, Seen};
     use super::*;

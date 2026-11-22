@@ -1,10 +1,10 @@
 use freya_core::integration::AppComponent;
 use freya_core::prelude::State;
+#[cfg(target_os = "linux")]
 use sctk::{
     delegate_xdg_popup,
     reexports::{
-        calloop::ping::Ping,
-        client::{Connection, Proxy, QueueHandle, backend::ObjectId},
+        client::{Connection, Proxy, QueueHandle},
         protocols::xdg::shell::client::xdg_positioner::{
             Anchor as SctkAnchorPos, ConstraintAdjustment as SctkConstraint, Gravity as SctkGravity,
         },
@@ -19,16 +19,17 @@ use std::{
     rc::Rc,
 };
 
+use super::{ObjectId, calloop::ping::Ping, window_style::PopoverShape};
+#[cfg(target_os = "linux")]
 use super::{
     app::{AppInstance, InstanceRole},
     runtime::Runtime,
     surface::{SurfaceRole, buffer_size},
-    window_style::PopoverShape,
 };
 use crate::styles::{PopupRoot, current_theme};
 
 #[cfg(test)]
-use sctk::reexports::calloop;
+use super::calloop;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct PopupId(u64);
@@ -274,6 +275,7 @@ pub(crate) enum PopupCommand {
         id: PopupId,
     },
 }
+#[cfg(target_os = "linux")]
 fn anchor_to_sctk(anchor: PopupAnchor) -> SctkAnchorPos {
     match anchor {
         PopupAnchor::TopLeft => SctkAnchorPos::TopLeft,
@@ -286,6 +288,7 @@ fn anchor_to_sctk(anchor: PopupAnchor) -> SctkAnchorPos {
         PopupAnchor::BottomRight => SctkAnchorPos::BottomRight,
     }
 }
+#[cfg(target_os = "linux")]
 fn gravity_to_sctk(gravity: PopupGravity) -> SctkGravity {
     match gravity {
         PopupGravity::TopLeft => SctkGravity::TopLeft,
@@ -298,6 +301,7 @@ fn gravity_to_sctk(gravity: PopupGravity) -> SctkGravity {
         PopupGravity::BottomRight => SctkGravity::BottomRight,
     }
 }
+#[cfg(target_os = "linux")]
 fn constraint_to_sctk(c: PopupConstraintAdjustment) -> SctkConstraint {
     [
         (c.flip_x, SctkConstraint::FlipX),
@@ -311,6 +315,7 @@ fn constraint_to_sctk(c: PopupConstraintAdjustment) -> SctkConstraint {
     .fold(SctkConstraint::empty(), |all, (_, flag)| all | flag)
 }
 
+#[cfg(target_os = "linux")]
 fn positioner(xdg_shell: &XdgShell, spec: &PopupSpec) -> Option<XdgPositioner> {
     let positioner = XdgPositioner::new(xdg_shell)
         .inspect_err(|error| tracing::error!(%error, "BarrierKit: could not create xdg_positioner"))
@@ -326,6 +331,7 @@ fn positioner(xdg_shell: &XdgShell, spec: &PopupSpec) -> Option<XdgPositioner> {
     positioner.set_constraint_adjustment(constraint_to_sctk(spec.constraint_adjustment));
     Some(positioner)
 }
+#[cfg(target_os = "linux")]
 impl Runtime {
     pub(crate) fn process_popup_commands(&mut self) {
         let commands = std::mem::take(&mut *self.popup_commands.borrow_mut());
@@ -562,6 +568,7 @@ impl Runtime {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl PopupHandler for Runtime {
     fn configure(
         &mut self,
@@ -593,6 +600,7 @@ impl PopupHandler for Runtime {
         }
     }
 }
+#[cfg(target_os = "linux")]
 delegate_xdg_popup!(Runtime);
 
 pub(crate) fn anchor_rect(area: torin::prelude::Area) -> (i32, i32, u32, u32) {

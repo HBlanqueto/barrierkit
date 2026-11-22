@@ -1,11 +1,13 @@
 use freya_core::{
     integration::AppComponent,
-    prelude::{State, WritableUtils},
+    prelude::State,
 };
+#[cfg(target_os = "linux")]
+use freya_core::prelude::WritableUtils;
+#[cfg(target_os = "linux")]
 use sctk::{
     reexports::{
-        calloop::ping::Ping,
-        client::{Connection, Proxy, QueueHandle, backend::ObjectId},
+        client::{Connection, Proxy, QueueHandle},
         protocols::xdg::shell::client::xdg_toplevel,
     },
     shell::{
@@ -16,13 +18,13 @@ use sctk::{
 use std::borrow::Cow;
 use std::{cell::RefCell, rc::Rc};
 
+use super::{ObjectId, RunError, calloop::ping::Ping, window_style::Bar};
+#[cfg(target_os = "linux")]
 use super::{
-    RunError,
+    timer::WakeHandle,
     app::{AppInstance, InstanceRole},
     runtime::{Connected, Runtime, WindowContext},
     surface::SurfaceRole,
-    timer::WakeHandle,
-    window_style::Bar,
 };
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
@@ -364,6 +366,7 @@ pub(crate) enum WindowCommand {
     ImeCursor((i32, i32, i32, i32)),
 }
 
+#[cfg(target_os = "linux")]
 pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
     match edge {
         WindowEdge::Top => xdg_toplevel::ResizeEdge::Top,
@@ -376,9 +379,11 @@ pub(super) fn resize_edge(edge: WindowEdge) -> xdg_toplevel::ResizeEdge {
         WindowEdge::BottomRight => xdg_toplevel::ResizeEdge::BottomRight,
     }
 }
+#[cfg(target_os = "linux")]
 pub(super) fn clamp_toplevel_size_dimension(value: u32) -> u32 {
     if value > i32::MAX as u32 { 0 } else { value }
 }
+#[cfg(target_os = "linux")]
 pub(super) fn resize_edge_at(
     (x, y): (f64, f64),
     (width, height): (u32, u32),
@@ -404,6 +409,7 @@ pub(super) fn resize_edge_at(
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Runtime {
     pub(super) fn resize_edge(&self, index: usize, position: (f64, f64)) -> Option<WindowEdge> {
         let surface = &self.surfaces[index];
@@ -452,6 +458,7 @@ pub(crate) fn open_utility_window(app: AppComponent, options: WindowOptions) {
     super::KitSender::get().send(OpenUtility { app, options });
 }
 
+#[cfg(target_os = "linux")]
 pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Result<(), RunError> {
     let Connected {
         conn,
@@ -465,6 +472,12 @@ pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Resul
 
     shell.run(conn, event_queue, |_, _| {})
 }
+
+#[cfg(target_os = "macos")]
+pub fn run_window(_: impl Into<AppComponent>, _: WindowOptions) -> Result<(), RunError> {
+    Err(RunError::NoRunner)
+}
+#[cfg(target_os = "linux")]
 impl Runtime {
     pub(super) fn create_window(
         &mut self,
@@ -765,6 +778,7 @@ impl Runtime {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl WindowHandler for Runtime {
     fn request_close(&mut self, _: &Connection, _: &QueueHandle<Self>, window: &Window) {
         // AppKit: only its own buttons dismiss a sheet; closed from outside, its parent stays dimmed.
@@ -812,6 +826,7 @@ impl WindowHandler for Runtime {
         }
     }
 }
+#[cfg(target_os = "linux")]
 impl Runtime {
     pub(super) fn apply_pending_window_configures(&mut self) {
         for index in 0..self.surfaces.len() {
@@ -860,6 +875,7 @@ impl Runtime {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Runtime {
     fn fit_window(&mut self, surface_id: &ObjectId, size: (u32, u32)) {
         let Some(index) = self.surface_index_by_id(surface_id) else {

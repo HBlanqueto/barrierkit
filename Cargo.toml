@@ -62,7 +62,7 @@ futures-channel = "0.3"
 accesskit = "0.25"
 accesskit_unix = "0.24"
 
-wayland-client = { version = "0.31", features = ["system"] }
+wayland-client = "0.31"
 wayland-server = "0.31"
 wayland-backend = "0.3"
 wayland-scanner = "0.31"

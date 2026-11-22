@@ -17,6 +17,7 @@ pub mod shell_glass;
 pub mod tinting;
 pub mod traffic;
 mod wallpaper;
+#[cfg(target_os = "linux")]
 pub mod watch;
 pub mod window;
 pub mod xdg;

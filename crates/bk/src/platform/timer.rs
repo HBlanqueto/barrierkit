@@ -1,7 +1,8 @@
 use futures_util::task::ArcWake;
-use sctk::reexports::calloop::{
+use super::calloop::ping::Ping;
+#[cfg(target_os = "linux")]
+use super::calloop::{
     LoopHandle,
-    ping::Ping,
     timer::{TimeoutAction, Timer},
 };
 use std::{
@@ -11,6 +12,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+#[cfg(target_os = "linux")]
 use super::runtime::Runtime;
 
 pub(crate) type TimerQueue = Rc<RefCell<Vec<(Duration, Rc<dyn Fn()>)>>>;
@@ -98,6 +100,7 @@ impl ArcWake for PingWake {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Runtime {
     pub(crate) fn install_timers(&mut self, handle: &LoopHandle<Runtime>) {
         let pending: Vec<(Duration, Rc<dyn Fn()>)> = std::mem::take(&mut *self.timers.borrow_mut());

@@ -829,7 +829,7 @@ fn aim_at_open_submenu() -> (TestingRunner, CommandQueue, PopupId, Rc<dyn Fn()>)
     let items = vec![tall, submenu_test("B")];
     let m = MENU_LIGHT;
     let (width, _) = MenuView::preferred_size(&items, m);
-    let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
+    let (ping, _) = crate::platform::calloop::ping::make_ping().expect("test ping");
     let timers = Timers {
         queue: TimerQueue::default(),
         ping: ping.clone(),

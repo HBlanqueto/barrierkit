@@ -1,9 +1,12 @@
+#[cfg(target_os = "linux")]
 use sctk::reexports::client::{Connection, Dispatch, QueueHandle, backend::ObjectId};
+#[cfg(target_os = "linux")]
 use wayland_protocols_plasma::appmenu::client::{
     org_kde_kwin_appmenu::{self, OrgKdeKwinAppmenu},
     org_kde_kwin_appmenu_manager::{self, OrgKdeKwinAppmenuManager},
 };
 
+#[cfg(target_os = "linux")]
 use super::runtime::Runtime;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
@@ -12,6 +15,7 @@ pub struct MainMenuAddress {
     pub path: String,
 }
 
+#[cfg(target_os = "linux")]
 impl Runtime {
     pub(super) fn process_pending_menu_addresses(&mut self) {
         let pending = std::mem::take(
@@ -51,6 +55,7 @@ impl Runtime {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Dispatch<OrgKdeKwinAppmenuManager, (), Runtime> for Runtime {
     fn event(
         _: &mut Runtime,
@@ -63,6 +68,7 @@ impl Dispatch<OrgKdeKwinAppmenuManager, (), Runtime> for Runtime {
     }
 }
 
+#[cfg(target_os = "linux")]
 impl Dispatch<OrgKdeKwinAppmenu, ObjectId, Runtime> for Runtime {
     fn event(
         _: &mut Runtime,

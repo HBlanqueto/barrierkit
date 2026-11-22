@@ -1,33 +1,53 @@
+#[cfg(target_os = "linux")]
 mod activation;
+#[cfg(target_os = "linux")]
 pub(crate) mod app;
-#[cfg(feature = "a11y")]
+#[cfg(all(feature = "a11y", target_os = "linux"))]
 mod atspi;
 pub(crate) mod backdrop;
+#[cfg(target_os = "linux")]
 mod chrome_surface;
+#[cfg(target_os = "linux")]
 mod clipboard;
+#[cfg(target_os = "macos")]
+#[path = "macos/clipboard.rs"]
+mod clipboard;
+#[cfg(target_os = "linux")]
 mod dialog;
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod doc_shots;
+#[cfg(target_os = "linux")]
 pub(crate) mod extension;
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod fake_server;
+#[cfg(target_os = "linux")]
 mod focus;
 mod glass;
+#[cfg(target_os = "linux")]
 mod ime;
 mod input;
 mod main_menu_export;
 mod popup;
+#[cfg(target_os = "linux")]
 mod primary;
+#[cfg(target_os = "linux")]
 pub(crate) mod runtime;
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod scene_tests;
+#[cfg(target_os = "linux")]
 pub(crate) mod surface;
-#[cfg(test)]
+#[cfg(all(test, target_os = "linux"))]
 mod tests;
 pub(crate) mod timer;
+#[cfg(target_os = "linux")]
 mod vulkan;
 mod window;
 mod window_style;
+
+#[cfg(target_os = "linux")]
+pub(crate) use sctk::reexports::calloop;
+#[cfg(target_os = "macos")]
+pub(crate) use ::calloop;
 
 pub use input::{inserts_text, modifier_flags};
 pub use main_menu_export::MainMenuAddress;
@@ -74,7 +94,19 @@ pub(crate) use glass::{GlassOutbox, GlassPanels, GlassSupport, KnobOutbox, KnobS
 #[cfg(test)]
 pub(crate) use popup::PopupCommand;
 pub(crate) use popup::anchor_rect;
+#[cfg(target_os = "linux")]
 pub use sctk::reexports::client::backend::ObjectId;
+
+#[cfg(target_os = "macos")]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ObjectId(u64);
+
+#[cfg(target_os = "macos")]
+impl ObjectId {
+    pub fn null() -> Self {
+        Self(0)
+    }
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum RunError {
@@ -90,14 +122,19 @@ pub enum RunError {
     SurfaceLost,
     #[error("a layer surface without a width or height must be anchored to both opposite edges")]
     LayerSize,
+    #[cfg(target_os = "macos")]
+    #[error("this platform has no runner yet")]
+    NoRunner,
     #[error("the application declares no window")]
     NoWindow,
     #[error("event loop failed: {0}")]
     EventLoop(&'static str),
     #[error("Skia could not create its Vulkan context")]
     Skia,
+    #[cfg(target_os = "linux")]
     #[error(transparent)]
     Wayland(#[from] sctk::reexports::client::ConnectError),
+    #[cfg(target_os = "linux")]
     #[error(transparent)]
     Registry(#[from] sctk::reexports::client::globals::GlobalError),
     #[error(transparent)]

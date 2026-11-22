@@ -18,13 +18,12 @@ freya-core.workspace = true
 freya-components.workspace = true
 freya-edit.workspace = true
 freya-animation.workspace = true
-freya-engine = { workspace = true, features = ["vulkan"] }
+freya-engine.workspace = true
 freya-skia-safe.workspace = true
 freya-clipboard.workspace = true
 torin.workspace = true
 ragnarok.workspace = true
 accesskit.workspace = true
-accesskit_unix = { workspace = true, optional = true }
 thiserror.workspace = true
 serde.workspace = true
 spellbook.workspace = true
@@ -36,22 +35,33 @@ ctdesign.workspace = true
 ctappearance.workspace = true
 zeroize.workspace = true
 infinity-protocol = { workspace = true, features = ["client"] }
-sctk.workspace = true
-wayland-protocols = { workspace = true }
-wayland-protocols-plasma = { workspace = true, features = ["client"] }
 zbus.workspace = true
-xkbcommon.workspace = true
 i18n-embed.workspace = true
 i18n-embed-fl.workspace = true
 rust-embed.workspace = true
-ash.workspace = true
 futures-util.workspace = true
 futures-channel.workspace = true
 async-io.workspace = true
 
+[target.'cfg(target_os = "linux")'.dependencies]
+freya-engine = { workspace = true, features = ["vulkan"] }
+accesskit_unix = { workspace = true, optional = true }
+sctk.workspace = true
+wayland-client = { workspace = true, features = ["system"] }
+wayland-protocols.workspace = true
+wayland-protocols-plasma = { workspace = true, features = ["client"] }
+xkbcommon.workspace = true
+ash.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+calloop = "0.14"
+freya-engine = { workspace = true, features = ["metal"] }
+
 [dev-dependencies]
 freya-testing.workspace = true
 png.workspace = true
+
+[target.'cfg(target_os = "linux")'.dev-dependencies]
 wayland-server.workspace = true
 infinity-protocol = { workspace = true, features = ["server"] }
 

@@ -421,7 +421,7 @@ mod tests {
     }
 
     fn registered(menu: MainMenu) -> Arc<RegisteredMenu> {
-        let (ping, _) = sctk::reexports::calloop::ping::make_ping().expect("test ping");
+        let (ping, _) = crate::platform::calloop::ping::make_ping().expect("test ping");
         let wake = crate::platform::WakeHandle::from_ping(ping);
         RegisteredMenu::new(MenuHandle::new(menu, Some(wake)))
     }
