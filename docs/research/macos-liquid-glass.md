@@ -27,6 +27,9 @@ a parity procedure with its tolerance, and the shader descriptions.
 4. To draw it, follow [The model](#6-the-model) and
    [Shader descriptions](#9-shader-descriptions).
 5. To check a result, run [Parity check](#8-parity-check).
+6. To know which surfaces follow the Appearance › Liquid Glass slider, read [section 14](#14-which-surfaces-follow-the-slider-audit-2026-11-22);
+   to measure the cells it leaves open, run [section 15](#15-the-states-the-user-runs); to move a glass to the compositor, read
+   [section 16](#16-for-the-kit-when-the-glass-moves-to-the-compositor).
 
 ---
 
@@ -77,7 +80,8 @@ a parity procedure with its tolerance, and the shader descriptions.
     the blur fill, the face fill and cap and the read scale of every
     `glassBackground`: `ctappearance::liquid_glass::tinted` reproduces the tone
     within 2.3 levels and the width of a step within 2 px
-    ([section 13](#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)). `[R]` `[C]`
+    ([section 13](#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)). Which surfaces follow it is
+    [section 14](#14-which-surfaces-follow-the-slider-audit-2026-11-22). `[R]` `[C]`
 14. **Not measured:** what makes the pointer trigger it (posted events changed
     nothing), scale 2, the system switches, tint at every alpha, the outer
     refraction ([section 12](#12-not-measured)).
@@ -640,6 +644,8 @@ the regular (`reg-*`) and clear (`clr-*`) glass over `gray128`, `tone`, `grid16`
 
 After a run, fill the cells above and move them out of the table of this section.
 
+The states `lg-clear` and `lg-tinted` are the system value of the Liquid Glass slider (`NSGlassTintAmount` 0 and 1); they are in [section 15](#15-the-states-the-user-runs).
+
 ## 13. The Appearance › Liquid Glass slider (`NSGlassTintAmount`), measured 2026-11-22
 
 System Settings › Appearance has a slider named `Liquid Glass Tint Amount`, range 0 to 1, stored in the global domain as `NSGlassTintAmount` (0 on this Mac;
@@ -789,7 +795,7 @@ pixels were not captured).
 
 | Cell | What it needs |
 |---|---|
-| Whether Control Center, the notifications, Spotlight, Apps and Mission Control follow the slider (the menu bar, the application menu and the Dock are in 13.6) | the system value (a setting change): `~/src/probes/states.d/` batch `liquid-glass-tint-*` and `global-states.sh`, run by the user |
+| Whether Control Center, the notifications, Spotlight, Apps and Mission Control follow the slider (the menu bar, the application menu and the Dock are in 13.6), and the kernel of the menu and of the Dock under it | the system value (a setting change): `~/src/probes/states.d/` batch `liquid-glass-tint-*` and `global-states.sh`, run by the user: `global-states.sh run lg-clear` and `run lg-tinted` ([section 15](#15-the-states-the-user-runs)); the audit is [section 14](#14-which-surfaces-follow-the-slider-audit-2026-11-22) |
 | The pixels of the inactive look, Reduce Transparency and Increase Contrast under the slider, and of the chrome glass (toolbar, sidebar, tab pill, scroll edge) inside a window | `lgshot` with the flags and a window that hosts them; only their inputs were read (13.4) |
 | Scale 2 at other `t` | a HiDPI mode |
 | The tint over colour backdrops and the rim and shadow at other `t` | the inputs of the rim and shadow do not move; colour captures were not taken |
@@ -822,3 +828,143 @@ Raw device value of the surface plateau for a bare backdrop of the level on the 
 - **The menu bar does not follow it**: it is identical to the backdrop (clear) at 0 and at 1, as in [`macos-blur.md`](macos-blur.md) section 14.
 - **Not measured under the slider:** the kernel of the application menu and of the Dock (the rim and kernel pass was not captured at 1, so whether the menu's blur widens as
   the regular glass does in 13.2 is open), values between 0 and 1 (the model of 13.3 is assumed), light mode, Reduce Transparency, Increase Contrast and scale 2.
+## 14. Which surfaces follow the slider (audit, 2026-11-22)
+
+**Goal:** say, for each surface macOS draws as Liquid Glass, whether the Appearance › Liquid Glass slider changes it, and
+how that is known.
+**Scope:** the surfaces of applications and of the desktop on this Mac (macOS 27.2.1, one display, scale 1). It stops at what
+Malaysia does with each row ([section 14.3](#143-what-malaysia-applies)).
+**Reader:** whoever wires the slider into a glass pass, and the user who decides which cells to measure next.
+**Input:** [section 13](#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22), the shell captures of
+[`macos-blur.md`](macos-blur.md) section 14 and the Settings pane ([`macos-settings.md`](macos-settings.md) section 5.1).
+**Output:** one table per place, each row tagged.
+
+Tags: `[C]` pixels captured; `[R]` read from the layer tree of the probe's own process or from a system resource; `[A]` the
+API says it; `[I]` inferred, with the reason; `[N]` not measured.
+
+**Where the value lives.** The key is `NSGlassTintAmount`, a float in the global domain (0 on this Mac; `defaults read -g
+NSGlassTintAmount`, `[R]`). `-NSGlassTintAmount <t>` on a probe's command line gives that process the glass of position `t`
+(section 13), so the inputs of a glass are computed in the process that owns the layer, from its own defaults. The
+Appearance extension has no text for the endpoints: the two ends are icons named `Capsule Shape On A Rectangle With A Liquid
+Glass Effect` and `Capsule Shape On A Rectangle` (the accessibility tree of the pane, `[R]`); `Clear` and `Tinted` are the
+options of Icon & widget style, which is a different setting. The same extension has the string `When Reduce Transparency is on,
+adjusting Liquid Glass may turn this setting off.` (`Localizable.loctable`, `[R]`); when it applies was not observed `[N]`.
+The two-choice control of macOS 26.1 (Clear, the default, and Tinted) is the earlier form of this slider: Apple's note says
+Tinted "increases opacity of the material in apps and notifications on the Lock Screen", and a reviewer found no difference in
+the menu bar, the widgets and the Dock in light mode ([MacRumors](https://www.macrumors.com/2025/11/03/apple-releases-macos-tahoe-26-1/),
+[Eclectic Light](https://eclecticlight.co/2025/11/05/appearance-revisited-get-tahoe-26-1-looking-in-better-shape/)). Neither names the
+Dock or the menus.
+
+### 14.1 In applications
+
+| Surface | Follows the slider | Tag | Evidence |
+|---|---|---|---|
+| `NSGlassEffectView`, regular and clear, in a key and in a non-key window | Yes: blur, blur fill, fill, cap, read scale and tone | `[R]` `[C]` | section 13.1 to 13.3; pixels at 1x over gray 128, the ramp and the step edges, both schemes |
+| SwiftUI `glassEffect` (regular, clear, tint, interactive, containers, 30 to 300 px) and the glass buttons `.glass` and `.glassProminent` | Yes, the same inputs; `.identity` does not move | `[R]` | section 13.4, `swiftglass` rows of `macos-liquid-glass-tint-surfaces.csv`; no pixels |
+| A glass tile (a card or a panel built with `glassEffect`) | Yes, as the two rows above | `[R]` | same |
+| The toolbar's button glass (36 px) and the scroll-edge bar of a `NavigationSplitView` window (`safeAreaInset`, 48 px) | Yes, the inputs of the regular glass | `[R]` | section 13.4, `swiftwin` rows; no pixels |
+| The tab control's pill | Only the face fill moves | `[R]` | section 13.4 |
+| The window sidebar (variant 18) | Yes, by its own rule: blur fill 0.25, 0.5 and 1 at `t` 0, 0.5 and 1, darken or lighten as section 13.1, read scale 0.5 up to 0.5 and 0.25 from 0.75, fill fixed | `[R]` | section 13.4; not modelled (ADR 0099) |
+| The titlebar, toolbar and sidebar backdrops made of `gaussianBlur`, `colorMatrix`, `sdrNormalize`, `vibrantColorMatrix`, and the scroll-edge effect (`variableBlur`) | No: no input moves | `[R]` | section 13.4 |
+| The 14 `NSVisualEffectView` materials and the SwiftUI materials | Not measured: nothing was read or captured at another value | `[N]` | `60-materials.sh` of `lg-clear` and `lg-tinted` |
+| The application menu (`NSMenu`) | Yes, as the regular glass: over gray 128 it gives 122 at 0 and 76 at 1, the two values of the glass view; its kernel at 1 was not captured | `[C]` | section 13.6, dark, 1x |
+| Popovers (`NSPopover`) | Yes, by inference: variant 1 as the menu (section 1 item 11, 4.2) | `[I]` | not captured; Apple's 26.1 note does not name them |
+| Alerts and sheets | Not measured | `[N]` | none |
+| Tooltips | Not measured | `[N]` | none |
+| Whether a running process changes its glass at once when the value changes, or crossfades | Not measured: every read started a new process | `[N]` | a run of `lg-tinted` with the pane open |
+
+### 14.2 On the desktop
+
+The captures of [`macos-blur.md`](macos-blur.md) section 14 are at value 0. At 1 only the menu bar, the application menu and the Dock
+were captured ([section 13.6](#136-the-menu-bar-the-application-menu-and-the-dock-under-the-real-slider-measured-2026-11-22), the user
+moved the slider).
+
+| Surface | Follows the slider | Tag | Evidence |
+|---|---|---|---|
+| Application menu panel | Yes, as the regular glass (122 to 76 over gray 128, cap 146 to 86); values between 0 and 1 follow the model of 13.3 by assumption | `[C]` | section 13.6 |
+| Notification banner, Spotlight, Apps | By inference, as the menu: the four agree to 0.5 level at 0 and equal the regular dark tone | `[I]` | `macos-blur.md` 14.4 |
+| Dock | No: the tone is the same within 0.9 level and the colours within 1.4 at 0 and 1 | `[C]` | section 13.6 |
+| Menu bar | No: identical to the backdrop (clear) at 0 and at 1 | `[C]` | section 13.6, `macos-blur.md` 14.2 |
+| Notification card of Notification Center | Not measured; another variant (its tone differs from the menu's); Apple's note speaks of notifications on the Lock Screen, which is another surface | `[N]` | `lg-tinted` `20-lg-shell.sh` |
+| Control Center, tiles and backing panel | Not measured | `[N]` | same |
+| Mission Control's Spaces bar | Not measured | `[N]` | same |
+| The kernel of the menu and of the Dock at 1 | Not measured: the rim and kernel pass was not captured at 1 | `[N]` | the kernel passes of `20-lg-shell.sh` |
+| Lock screen and login window | Not reachable: a locked session captures only the wallpaper | `[N]` | none |
+
+### 14.3 What Malaysia applies
+
+The compositor reads `appearance.liquid_glass_tint` in one function, `look::glass_look`, and applies it to the active look of the
+regular and clear glass. A surface that macOS draws as a glass of table 14.1 or 14.2 with a tag `[R]`, `[C]` or `[I]` goes through
+that function when Malaysia can draw it with that model; a surface tagged `[N]` keeps the look it has at value 0 at every position
+(Malaysia ADR 0095).
+
+| Malaysia | macOS row | Takes the slider |
+|---|---|---|
+| The glass a window asks for (`glass_regular`, `glass_clear`), within or behind the window | glass views, tiles and buttons | Yes, measured |
+| Popup menus and popovers of the kit's windows, dark scheme, Reduce Transparency off, slider above 0 (at 0 the measured menu glass, whose tone the model matches within 1.4 levels) | application menu `[C]`, popovers `[I]` | Yes: the menu's tone at 1 is measured, the positions between are the model's |
+| The notification banner | banner | No: the tone is the menu's `[I]`, but its kernel and its size rule at banner size are not measured |
+| The Dock | Dock `[C]` | No: it does not follow the slider; today's look at every position |
+| The notification cards, Control Center | `[N]` rows | No: today's look; `lg-tinted` decides |
+| The menu bar | menu bar `[C]` | No: it does not follow; Malaysia's draws no blur |
+| Spotlight, Apps, Mission Control | `[I]` or `[N]` rows | Malaysia draws no blur for them |
+| The sidebar, titlebar, HUD, sheet and every other material; the scroll edge | variant 18, backdrops, materials | No: `[R]` says the backdrops do not move, the sidebar rule is not modelled, the materials are `[N]` |
+| The inactive look, Reduce Transparency and Increase Contrast | section 13.4 | No: only their inputs were read |
+
+The slider applies on the next frame and without a crossfade: a drag is continuous, and the theme fade is for a change of scheme
+or accent. Nothing in a cache is dropped by hand: each blur cache compares its look and redraws when the look changed.
+
+## 15. The states the user runs
+
+**Goal:** fill the `[N]` cells of section 14.2 with one run each, without anyone but the user changing the system value. The
+application menu, the Dock and the menu bar were already measured by moving the slider by hand ([section 13.6](#136-the-menu-bar-the-application-menu-and-the-dock-under-the-real-slider-measured-2026-11-22)); these states add
+the other surfaces, the kernels at 1 and the application glass and materials at the system value.
+**Reader:** the user.
+**Input:** the Mac unlocked, in Dark, Reduce Transparency and Increase Contrast off, scale 1; no other session holding
+`/tmp/barrierkit-screen.lock`.
+**Output:** captures in `~/src/captures/shellblur/lg-clear` and `lg-tinted`, `~/src/captures/liquidglass/states/lg-*` and
+`~/src/captures/materials/states/lg-*`, and the analysis to run on them.
+
+### Steps
+
+1. Read the plan: `~/src/probes/global-states.sh --dry-run all --only lg-clear,lg-tinted`. It changes nothing.
+2. Run both states and the restore: `~/src/probes/global-states.sh all --only lg-clear,lg-tinted`, and answer `y`. The runner
+   writes `NSGlassTintAmount` (`defaults write -g NSGlassTintAmount -float 0` or `1`), restarts the Dock, Control Center and
+   Notification Center so that they read the value again, and writes the original value back at the end.
+3. Or, with the slider set by hand in System Settings › Appearance › Liquid Glass, run one state in place:
+   `~/src/probes/global-states.sh run lg-tinted` (or `lg-clear`). It refuses when the live value is not the state's and changes no
+   setting.
+4. Analyse: `shellblur-results.py ~/src/captures/shellblur/lg-tinted appmenu cc ccpanel dock nc banner spotlight mc apps` against
+   the same call on `lg-clear`; compare `live5.json` and `live3.json` of `~/src/captures/liquidglass/states/lg-tinted` with
+   `lgmulti` at `-NSGlassTintAmount 1`; compare the ramps with `matcompare.py ramp`.
+5. Fill the tags of section 14 and the tokens: a surface that moves gets its knots (`components.shell-glass.<surface>`, at 0 and 1);
+   one that does not moves to the "No" rows.
+
+Scripts (not in the repository): `states.d/lg-shell.sh` (the desktop surfaces, the banner and the kernel passes of the menu, Control Center and the Dock), `states.d/lg-inapp.sh` (the glass of
+an application at the system value) and `states.d/materials-flags.sh` (the materials), linked as `20-lg-shell.sh`, `40-lg-inapp.sh`
+and `60-materials.sh` in `states.d/lg-clear` and `states.d/lg-tinted`. About 80 minutes for both.
+
+What the run decides: Control Center, the notification cards and the banner, Spotlight, Apps and the Spaces bar (the cells of 14.2);
+the kernel of the menu, the Dock and Control Center at 1; whether the system value equals the per-process one (`live5.json`); the
+materials (14.1). It does not decide the
+light scheme, Reduce Transparency, Increase Contrast, scale 2, whether a running process changes at once, or when the Reduce
+Transparency string of the pane applies.
+
+## 16. For the kit: when the glass moves to the compositor
+
+`GlassContainer` and the per-control materials (`ShapeStyle::Material`) still draw with Skia ([ADR 0100](../decisions.md)). When
+they request `glass_regular` or `glass_clear` through `set_backdrop`:
+
+1. **The kit sends no slider value.** The compositor reads `appearance.liquid_glass_tint`, so a glass it draws follows the slider
+   with no kit code; the kit draws no blur, tint, fill or rim for it, as `Material` does.
+2. **The Skia fallback follows it itself.** With a compositor below version 10, or when a container needs what version 10 lacks (a
+   tint colour, the interactive state, merging), `GlassContainer` keeps its SkSL of section 9 and must read the key and apply
+   `ctappearance::liquid_glass::tinted(&set, &tint(glass, scheme), amount, shorter)` (the second sampler of the blur fill at `blur_fill_sigma`
+   mixed at `blur_fill`, the fill, the cap and the tone shift table), or the two paths differ.
+3. **One value of the key, one place.** A glass drawn by the compositor must not also apply the slider in the kit.
+4. **Request the glass of the control, not of the window.** The compositor keeps 16 rectangles per request and 4 requesting surfaces
+   per toplevel: a row of glass buttons is one request with one rectangle each, a container with a union is one rectangle.
+5. **Reduce Transparency and Increase Contrast stay the kit's solid and the compositor's reduced look**; the slider does not change
+   them.
+6. **The Settings preview** (the card of 285 x 180 with a scrolling article and a glass toolbar, section 14) needs the glass of a
+   window to follow the slider while it is dragged: it works when its toolbar requests `glass_regular`.
+7. **Goldens at the default position** (value 0) do not change, because at 0 every look is the one of ADR 0095.
