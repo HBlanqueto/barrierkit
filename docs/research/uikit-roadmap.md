@@ -1,0 +1,158 @@
+# UIKit in BarrierKit: roadmap
+
+**Goal:** fix what UIKit means for BarrierKit, record the owner's decisions of
+2026-11-22, and order the work that follows from them.
+**Scope:** from the decision that UIKit is a measured reference to the first
+three sessions that can start. It covers the animation work (phase 1) in
+detail and the later phases as an order. It does not cover an iOS or iPadOS
+runner, touch on Linux, a UIKit API in the kit or a UIKit translator: the owner
+closed them ([Decisions](#decisions-taken)).
+**Snapshot:** `main` at `3512410a`, 2026-11-22. Xcode 27.2, Swift 6.4.2,
+macOS 27.2.1 on an Apple-silicon Mac.
+**Reader:** the owner, and the engineer who starts one of the sessions.
+**Input:** a debate with the owner (four rounds), [macOS arm64](macos-arm-port.md),
+[Swift app translation](swift-app-translation.md), [SwiftUI API gap](swiftui-api-gap.md),
+[AppKit gap](appkit-gap.md), [macOS animations](macos-animations.md),
+[Shader needs](shader-needs.md), [Platform](../barrierkit/18-platform.md),
+ADR 0033 and 0085, and eight checks on this Mac ([Evidence](#evidence)).
+**Output:** the decisions, the open decisions, the problem list with options,
+seven phases with checks, the risks and the first three sessions.
+
+## Steps
+
+1. Read the [verdict](#verdict) and the [decisions taken](#decisions-taken).
+2. To pick work, take the first unfinished row of the [phases](#phases).
+3. To start a session, copy its brief from [First three sessions](#first-three-sessions).
+4. Before a change that the [open decisions](#open-decisions) block, ask the owner.
+
+## Verdict
+
+UIKit is not a platform or an API for this kit. It is a source of measurements.
+Malaysia is a desktop, and the owner wants no iOS, no phone and no touch for now.
+What UIKit still gives is the look and motion of Apple's own apps, and 14 of
+them on this Mac are built on UIKit (Mac Catalyst), so they can be measured here
+without a simulator. The first thing to measure is motion, because the owner
+names it as the largest visible difference from the Apple apps.
+
+## Evidence
+
+| # | Check | Result |
+|---|---|---|
+| E1 | `swiftc -typecheck -target arm64-apple-ios27.0-macabi -sdk $(xcrun --show-sdk-path) -F <sdk>/System/iOSSupport/System/Library/Frameworks` on a `UIViewController` subclass | compiles; UIKit builds for Mac Catalyst without a simulator |
+| E2 | `otool -L` of each `/System/Applications/*.app` binary, looking for `iOSSupport/.../UIKit` | 14 link UIKit: Books, Clock, FaceTime, Find My, Home, Journal, Maps, Messages, News, Phone, Podcasts, Stocks, Voice Memos, Weather |
+| E3 | `otool -L` of Notes | AppKit and SwiftUI, no UIKit: Notes on macOS is not a UIKit app |
+| E4 | `xcrun simctl list devices available` and `rustup target list --installed` | no simulator listed; only `aarch64-apple-darwin` and `x86_64-unknown-linux-gnu` installed |
+| E5 | `freya-core-0.5.3/src/style/shader.rs`; `grep RuntimeEffect crates/bk/src` | Freya has `ShaderFill` (SkSL); the kit has two SkSL shaders (`glass_container.rs`, `app_icon.rs`) |
+| E6 | `crates/bk/src/animation.rs`; [14. Animations](../barrierkit/14-animations.md) | the kit's `Spring` is a duration plus a `bounce` in 0 to 1 with a fixed `ctdesign::SPRING_DAMPING`; no mass, stiffness or velocity; `use_animated` is private |
+| E7 | [macOS animations](macos-animations.md) sections 1 and 5 | only three timings are grounded (menu open is instant, window default 250 ms, Dock scale 1.3); every other Malaysia duration is marked unverified |
+| E8 | [macOS observations](macos-observations.md): recorders | `screencapture` video runs at about 40.43 fps; an AVFoundation recorder (`~/src/probes/record.swift`) gives 60 fps |
+
+## Decisions taken
+
+All by the owner on 2026-11-22.
+
+| # | Decision | Alternatives the owner passed over |
+|---|---|---|
+| T1 | **UIKit is a measured reference.** Probes on this Mac (Mac Catalyst) plus a document of idioms and kit gaps. | A UIKit translator; kit types with UIKit names; leaving UIKit out |
+| T2 | **Closed: no iOS or iPadOS runner, no phone, no touch, no UIKit API in the kit.** Nothing reopens it by itself; the owner reopens it. | Reopen on touch screens under Malaysia, on an app that asks, or on an iOS release |
+| T3 | **The glossary gets a UIKit column.** Same kit types; each row lists its UIKit equivalent. Zero new API. | No column; aliases with UIKit names in code |
+| T4 | **Clone targets: Maps and Weather (UIKit, Catalyst) and Notes of macOS (AppKit and SwiftUI).** Notes of iOS is not measured. | Notes of iOS in a simulator |
+| T5 | **Phase 1 is animations and transitions**, by two routes: measured tokens, and per-pixel effects with SkSL shaders. | Only tokens; shaders first |
+| T6 | **Measure with our own probes plus 60 fps recordings of Maps and Weather.** | Recordings only; probes only |
+| T7 | **Freya is worked around with kit-owned `ElementExt` elements**, not forked and not accepted as is. | A patched fork; accepting the limit; deciding per case |
+| T8 | **Phase 1 is done when** there is a table of measured tokens, one clone transition matches the real one frame by frame, and the kit has implicit animation. | |
+| T9 | **No calendar.** Each milestone is a session of a few hours. | A date; low priority |
+
+## What the owner reported
+
+| Pain | Source |
+|---|---|
+| Inner animations of the apps are incomplete; transitions are far less smooth than Apple's | owner, round 3 |
+| Scroll has no bounce and no inertia | owner, round 3; [AppKit gap](appkit-gap.md) row 20 |
+| No gesture layer | owner, round 3; [AppKit gap](appkit-gap.md) row 15 |
+| Navigation and presentation | owner, round 3; [SwiftUI API gap](swiftui-api-gap.md) row 8 |
+| State: no `Binding`, no responder chain | owner, round 3; [ADR 0085](../decisions.md) |
+| Details to take from UIKit: the blur values apps apply, animations, how apps are designed; an app structure like AppKit and Swift | owner, round 2 |
+
+## Problems and options
+
+| # | Problem | Cause | Options | Choice |
+|---|---|---|---|---|
+| 1 | Transitions are unmeasured and rougher than Apple's | Only three timings are grounded (E7); the kit has one fixed spring (E6); Freya 0.5.3 offers fixed easing functions (`freya-animation-0.5.3/src/easing.rs`, `Function`) | (a) tokens only: cheap, no new API, does not make state changes animate; (b) tokens and implicit animation (problem 2): changes how apps are written, M; (c) b plus shaders | (c), phases U1 to U3 (T5) |
+| 2 | No `withAnimation`, `Transaction` or `Transition` | Per-value hooks only ([AppKit gap](appkit-gap.md) row 19; [SwiftUI API gap](swiftui-api-gap.md) row 16) | (a) a SwiftUI-named `Animation` and `with_animation` over `use_animation_transition`; (b) per-control animation only, as today | (a). The semantics of nested and interrupted transactions are unmeasured, so U1 comes first |
+| 3 | The spring cannot copy Apple's | `Spring` has `duration` and `bounce`, no velocity (E6). Which parameters Apple's apps use is not verified | (a) keep duration and bounce and carry velocity; (b) add a physical model beside it | Open: O2 |
+| 4 | Effects per pixel are limited to fills | Freya has no hook around a subtree; shaders run only as `ShaderFill` (E5, [Shader needs](shader-needs.md) finding 4) | (a) P1, the subtree hook, as an `ElementExt` of the kit; (b) only fills until Freya changes | (a), phase U3 (T7) |
+| 5 | Scroll has no overscroll | Freya clamps scroll ([AppKit gap](appkit-gap.md) row 20) | (a) a kit scroll element that owns offset, bounce and deceleration; (b) accept | (a), phase U4. The decay constants of UIKit are documented API; not verified here |
+| 6 | No gesture layer | Freya has one handler per event; the runner binds no pointer-gestures ([AppKit gap](appkit-gap.md) row 15, D5) | (a) a SwiftUI-named `Gesture` over raw events; (b) raw events | Open: O5; phase U6 |
+| 7 | No navigation transitions or `isPresented` | [SwiftUI API gap](swiftui-api-gap.md) row 8 | (a) after implicit animation; (b) before | (a): push and pop are animation first, phase U5 |
+| 8 | No `Binding`, no responder chain | ADR 0085 made both non-goals until an app asks | (a) keep; (b) reopen when a clone needs it | Open: O6; the clones of U5 decide |
+| 9 | Apple's motion is hard to read from outside | `screencapture` video is 40.43 fps (E8); an app's private curves cannot be read from outside | (a) 60 fps recordings; (b) own probes read `CAAnimation` parameters of views we build; (c) both (T6) | (c). Do not copy private curves ([macOS animations](macos-animations.md) section 6) |
+| 10 | The glossary has no UIKit column | [Glossary](../barrierkit/20-glossary.md) lists SwiftUI and AppKit only | (a) add the column (T3); (b) none | (a). `scripts/swift-to-bk/make-table.py` reads the chapter as `c[5]` (line 53): a new column moves it, so the script changes in the same commit |
+
+## Open decisions
+
+| # | Decision | Options | Blocks |
+|---|---|---|---|
+| O1 | Margin of parity for a transition against the clone | (a) a frame count; (b) a curve error against the recording; (c) the owner's eye | U1 check |
+| O2 | The spring model | see problem 3 | U2 |
+| O3 | Where the measured motion tokens live | (a) `ctdesign` beside the existing duration tokens, as AGENTS.md asks for new metrics; (b) in `bk` | U1 |
+| O4 | Name of the implicit animation API | (a) SwiftUI names: `Animation`, `with_animation`, `Transition`; (b) AppKit: `NSAnimationContext`. The glossary rule says SwiftUI first | U2 |
+| O5 | Gesture layer (D5) | [AppKit gap](appkit-gap.md) D5 | U6 |
+| O6 | Whether ADR 0085 changes | [Swift app translation](swift-app-translation.md) open decision 2 | U5 |
+| O7 | Whether an ADR records T2 | (a) an ADR; (b) this document is the record | first sessions |
+
+## Phases
+
+| U | Output | Check |
+|---|---|---|
+| U0 | A Catalyst probe harness in `~/src/probes`: a `UIViewController` app built with the macabi target (E1) that runs a transition and records it at 60 fps (E8) | One probe window pushes a view controller and its frames extract with `frames.swift` |
+| U1 | `docs/research/uikit-animations.md`: a table of motion per transition (push and pop, sheet and its detents, popover, menu, alert, hover, press, list insert and remove) with duration, curve or spring, source and reliability, from own probes and from Maps and Weather. Tokens in `ctdesign` (O3) | Each row says measured or not; every Malaysia value in the [comparison](macos-animations.md) gets a macOS value or stays marked unverified |
+| U2 | Implicit animation in the kit: `Animation`, `with_animation`, `Transition`, interruptible, with velocity (O2, O4); the controls move to it; an ADR | A transition of a probe app matches the table of U1 in duration and curve; reduced motion still gives 0 ms (`use_reduced_motion`) |
+| U3 | Effects: P1 and P2 of [Shader needs](shader-needs.md) as kit elements; the first effects driven by a time uniform (edge of a scroll, a glass morph) | An SkSL effect of the kit equals a recorded frame of the real one within the margin of O1 |
+| U4 | Scroll physics: a kit scroll element with overscroll, deceleration and, after it, pull to refresh | Scroll of Weather and of a kit clone, recorded at 60 fps, give the same stop distance for the same flick |
+| U5 | Navigation and presentation: push and pop with transitions, `isPresented` and detents; the decision on ADR 0085 (O6) | One clone (Maps or Weather) navigates with the measured transition |
+| U6 | Gestures: the layer of D5, long press, pan arbitration with scroll | A clone's drag and long press behave as the real one |
+
+The glossary column (problem 10) goes first, in parallel with U0. U3 and U4
+start after U1.
+
+## Risks
+
+| Risk | Why | Mitigation |
+|---|---|---|
+| Apple's curves are private | A recording gives samples, not parameters ([macOS animations](macos-animations.md) section 6) | Fit a curve to frames and call it a fit; never copy code |
+| Catalyst differs from iOS | Mac Catalyst may scale and restyle controls, so a measure can differ from an iPhone; not verified | Say so in each row; do not claim iOS values |
+| Own probes miss Apple's apps | A probe reads its own `CAAnimation`s, not Maps' | Pair every probe row with a recording row (T6) |
+| Freya's frame pacing | The loop redraws everything each frame ([Shader needs](shader-needs.md), cost per frame) | Measure a kit transition against a 60 fps recording before tuning a duration |
+| Several sessions share the checkout | The sessions on the macOS runner, CSD and the translator edit the same tree | Commit by temporary index; the first sessions write docs and probes, not `crates/` |
+| The glossary column breaks the translator | `make-table.py` reads fixed columns and its tests fail while the table is stale | Change both in one commit; run `scripts/swift-to-bk/check.sh` |
+
+## First three sessions
+
+1. **Catalyst motion probes (U0 and U1 start).** Write the harness in
+   `~/src/probes` (E1), measure push and pop, sheet, popover, alert and hover,
+   record Maps and Weather at 60 fps with `record.swift`, and write
+   `docs/research/uikit-animations.md`. Touch no code in `crates/`. Done when
+   every row of the table has a measured or an unmeasured mark.
+2. **Glossary UIKit column (problem 10).** Add the column to
+   `docs/barrierkit/20-glossary.md`, fill it from the iOSSupport headers of the
+   SDK (E1), and fix `scripts/swift-to-bk/make-table.py` for the new column.
+   Done when `scripts/swift-to-bk/check.sh` passes and `./dev.sh check` is clean.
+3. **Spring and implicit animation design (U2, design only).** Decide O2 and
+   O4 from the table of session 1 and write the ADR with a sketch of
+   `Animation` and `with_animation`. No code. It starts after the first rows of
+   session 1.
+
+Each session is its own task; two sessions never edit the same files.
+
+## Not verified
+
+- Whether Maps and Weather draw their transitions with `UIView` animation or
+  with SwiftUI inside; only their link to UIKit is checked (E2).
+- The deceleration constants of `UIScrollView` and the spring parameters of a
+  push; Apple documents the API, no probe has read them.
+- Whether Mac Catalyst timings equal iOS timings.
+- Whether a 60 fps recording is enough to fit a spring; the frame step is
+  16.7 ms.
+- Whether `make-table.py` reads glossary columns elsewhere than the lines
+  checked (`GLOSSARY` and `c[5]`).
