@@ -385,7 +385,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | Name of a built-in line icon; 151 variants, listed with their Apple names in [Symbol variants](#symbol-variants) | [4](04-appearance-and-tokens.md#symbols) |
-| `symbol::FontWeight` | enum | `Font.Weight` | `NSFont.Weight` | The nine weights of a symbol: `UltraLight` to `Black`; `Regular` by default | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::SymbolWeight` | enum | `Font.Weight` | `NSFont.Weight` | The nine weights of a symbol: `UltraLight` to `Black`; `Regular` by default. Named after UIKit's `UIImage.SymbolWeight`: Freya's `FontWeight` is a number the prelude must not shadow; named `FontWeight` on 2026-11-21 only | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::ImageScale` | enum | `Image.Scale` | `NSImage.SymbolScale` | `Small`, `Medium` (default) or `Large`: the size of a symbol next to its text | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::SymbolRenderingMode` | enum | `SymbolRenderingMode` | `NSImage.SymbolConfiguration` | `Monochrome` (default) or `Hierarchical` (a dimmed second layer) | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image::font_weight` | method | `.fontWeight(_:)` | `NSImage.SymbolConfiguration(weight:)` | The weight of one symbol: its stroke | [4](04-appearance-and-tokens.md#symbols) |

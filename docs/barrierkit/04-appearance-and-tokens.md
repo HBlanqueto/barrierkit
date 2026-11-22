@@ -133,12 +133,12 @@ Image::system(Symbol::Folder)
 
 `Image::font_weight`, `Image::image_scale` and `Image::symbol_rendering_mode`
 are SwiftUI's `.fontWeight(_:)`, `.imageScale(_:)` and `.symbolRenderingMode(_:)`
-for one symbol. `FontWeight`, `ImageScale` and `SymbolRenderingMode` are in the
+for one symbol. `SymbolWeight`, `ImageScale` and `SymbolRenderingMode` are in the
 prelude.
 
 ```rust
 Image::system(Symbol::InfoCircle)
-    .font_weight(FontWeight::Semibold)
+    .font_weight(SymbolWeight::Semibold)
     .image_scale(ImageScale::Large)
     .symbol_rendering_mode(SymbolRenderingMode::Hierarchical)
 ```

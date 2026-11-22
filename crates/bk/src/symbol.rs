@@ -19,7 +19,7 @@ use torin::prelude::Size;
 use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-pub enum FontWeight {
+pub enum SymbolWeight {
     UltraLight,
     Thin,
     Light,
@@ -731,7 +731,7 @@ pub struct Image {
     source: Source,
     rendering_mode: TemplateRenderingMode,
     symbol_rendering_mode: SymbolRenderingMode,
-    weight: FontWeight,
+    weight: SymbolWeight,
     scale: ImageScale,
     icon_style: IconStyle,
     plated: bool,
@@ -763,7 +763,7 @@ impl Image {
             source,
             rendering_mode: TemplateRenderingMode::Original,
             symbol_rendering_mode: SymbolRenderingMode::default(),
-            weight: FontWeight::default(),
+            weight: SymbolWeight::default(),
             scale: ImageScale::default(),
             icon_style: IconStyle::Default,
             plated: false,
@@ -784,7 +784,7 @@ impl Image {
         self
     }
 
-    pub fn font_weight(mut self, weight: FontWeight) -> Self {
+    pub fn font_weight(mut self, weight: SymbolWeight) -> Self {
         self.weight = weight;
         self
     }

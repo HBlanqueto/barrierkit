@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use bk::symbol::{FontWeight, Image, ImageScale, Symbol, SymbolRenderingMode};
+use bk::symbol::{Image, ImageScale, Symbol, SymbolRenderingMode, SymbolWeight};
 use bk::theme;
 use ctdesign::{
     Rgba, SYMBOL, SYMBOL_HIERARCHY, SYMBOL_SCALE_SIZE, SYMBOL_WEIGHT_STROKE_LARGE,
@@ -268,15 +268,15 @@ fn a_symbol_is_not_cut_by_its_frame() {
 #[test]
 fn a_weight_and_a_scale_set_the_stroke_in_the_symbol_tokens() {
     let weights = [
-        FontWeight::UltraLight,
-        FontWeight::Thin,
-        FontWeight::Light,
-        FontWeight::Regular,
-        FontWeight::Medium,
-        FontWeight::Semibold,
-        FontWeight::Bold,
-        FontWeight::Heavy,
-        FontWeight::Black,
+        SymbolWeight::UltraLight,
+        SymbolWeight::Thin,
+        SymbolWeight::Light,
+        SymbolWeight::Regular,
+        SymbolWeight::Medium,
+        SymbolWeight::Semibold,
+        SymbolWeight::Bold,
+        SymbolWeight::Heavy,
+        SymbolWeight::Black,
     ];
     let scales = [
         (ImageScale::Small, SYMBOL_WEIGHT_STROKE_SMALL),
