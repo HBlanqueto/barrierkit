@@ -12,13 +12,16 @@ use super::{
 /// group colors.
 #[derive(Clone, Debug)]
 pub struct ToolGroupStyle {
-    /// Tengen: `(TOOLGROUP.height, TOOLGROUP.height)`: the slot of each item along the axis and
+    /// Tengen: `(TOOLGROUP.item_width, TOOLGROUP.height)`: the slot of each item along the axis and
     /// across it, which is the thickness of the group; in a compact toolbar
     /// `(TOOLGROUP.compact_width, TOOLGROUP.compact_height)`.
     pub item_size: (f32, f32),
     /// Tengen: `TOOLGROUP.padding_x`, at both ends along the axis; in a compact toolbar minus
     /// `TOOLGROUP.compact_inset`, so the first and last slot reach past the platter.
     pub padding: f32,
+    /// Tengen: `(TOOLGROUP.height - TOOLGROUP.item_width) / 2` for a group of one item, so it is a
+    /// circle; in a compact toolbar `padding`.
+    pub padding_alone: f32,
     /// Tengen: `(TOOLGROUP.separator_w, TOOLGROUP.separator_h)`: along the axis, across it; in a
     /// compact toolbar `TOOLGROUP.compact_separator_h` across.
     pub separator_size: (f32, f32),
@@ -69,12 +72,17 @@ impl ControlStyle for ToolGroupStyle {
                     TOOLGROUP.compact_height as f32,
                 )
             } else {
-                (height, height)
+                (TOOLGROUP.item_width, height)
             },
             padding: if compact {
                 -(TOOLGROUP.compact_inset as f32)
             } else {
-                TOOLGROUP.padding_x as f32
+                TOOLGROUP.padding_x
+            },
+            padding_alone: if compact {
+                -(TOOLGROUP.compact_inset as f32)
+            } else {
+                (height - TOOLGROUP.item_width) / 2.0
             },
             separator_size: (
                 TOOLGROUP.separator_w as f32,

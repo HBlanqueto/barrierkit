@@ -105,7 +105,11 @@ impl Component for ToolGroup {
             }
         }
 
-        let padding = style.padding;
+        let padding = if self.children.len() == 1 {
+            style.padding_alone
+        } else {
+            style.padding
+        };
         let root = if vertical {
             rect()
                 .direction(Direction::Vertical)

@@ -818,7 +818,7 @@
         "rim-width": 1,
         "traffic-x": 19,
         "traffic-y": 19,
-        "toggle-inset": 8.5,
+        "toggle-inset": 7.5,
         "line": "separator",
         "glass": {
           "chroma": { "light": 0.22, "dark": 0.05 },
@@ -883,7 +883,8 @@
       },
       "toolgroup": {
         "height": "size.toolgroup-h",
-        "padding-x": 0,
+        "item-width": 34.5,
+        "padding-x": 3.5,
         "separator-w": 1,
         "separator-h": 20,
         "compact-width": 36,
@@ -942,9 +943,9 @@
         "padding-top": 16
       },
       "toolbar": {
-        "gap": 12,
+        "gap": 13,
         "height": 52,
-        "padding-x": 8
+        "padding-x": 7
       },
       "accents": [
         {"name": "blue", "light": {"control": "{accent}", "selected-content": "{selected-content}", "selected-text": "#b3d7ff", "focus-ring": "{focus-ring}", "toggle": "{accent-toggle}", "toggle-disabled": "{accent-toggle-disabled}", "ring": "{accent-ring}", "pressed": "{pressed.accent}", "pressed-toggle": "{pressed.toggle-accent}", "segment-disabled": "{disabled.segment}", "sidebar-selection": "{sidebar-selection}"}, "dark": {"control": "{accent}", "selected-content": "{selected-content}", "selected-text": "#3f638b", "focus-ring": "{focus-ring}", "toggle": "{accent-toggle}", "toggle-disabled": "{accent-toggle-disabled}", "ring": "{accent-ring}", "pressed": "{pressed.accent}", "pressed-toggle": "{pressed.toggle-accent}", "segment-disabled": "{disabled.segment}", "sidebar-selection": "{sidebar-selection}"}, "light-contrast": {"control": "{contrast.accent}", "selected-content": "{contrast.selected-content}", "selected-text": "#b3c6f5", "focus-ring": "{contrast.focus-ring}", "toggle": "{contrast.accent-toggle}", "toggle-disabled": "{contrast.accent-toggle-disabled}", "ring": "{contrast.accent-ring}", "pressed": "{pressed-contrast.accent}", "pressed-toggle": "{pressed-contrast.toggle-accent}", "segment-disabled": "{disabled-contrast.segment}", "sidebar-selection": "{contrast.accent}"}, "dark-contrast": {"control": "{contrast.accent}", "selected-content": "{contrast.selected-content}", "selected-text": "#466280", "focus-ring": "{contrast.focus-ring}", "toggle": "{contrast.accent-toggle}", "toggle-disabled": "{contrast.accent-toggle-disabled}", "ring": "{contrast.accent-ring}", "pressed": "{pressed-contrast.accent}", "pressed-toggle": "{pressed-contrast.toggle-accent}", "segment-disabled": "{disabled-contrast.segment}", "sidebar-selection": "{contrast.accent}"}},

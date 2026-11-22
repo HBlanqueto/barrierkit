@@ -1505,7 +1505,8 @@ pub struct SidebarMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolgroupMetrics {
     pub height: u32,
-    pub padding_x: u32,
+    pub item_width: f32,
+    pub padding_x: f32,
     pub separator_w: u32,
     pub separator_h: u32,
     pub compact_width: u32,
