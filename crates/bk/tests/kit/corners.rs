@@ -99,8 +99,7 @@ fn a_continuous_corner_of_the_kit_is_the_reference_corner_within_the_parity_tole
     }
 }
 
-// Skia's anti-aliasing is not the reference's 16-row box filter: against it the kit's corner has rms <= 0.019 and
-// maximum <= 0.142 from radius 2.5 to 26, so the maximum against a capture is the parity check's 0.2 plus that.
+// Skia's anti-aliasing is not the 16-row box filter of the reference, so the maximum against a capture is 0.25, not 0.2 (macos-corners.md 12).
 #[test]
 fn a_continuous_corner_of_the_kit_is_the_corner_macos_draws_on_screen() {
     for (name, radius) in [
