@@ -1672,6 +1672,15 @@ pub struct DockTone {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ShellGlass {
+    pub sigma: f32,
+    pub halo_sigma: f32,
+    pub halo_weight: f32,
+    pub tone: [f32; 12],
+    pub chroma: [f32; 5],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShellPalette {
     pub bar: Rgba,
     pub text: Rgba,

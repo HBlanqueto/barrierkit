@@ -86,6 +86,12 @@ In windows (2026-11-22) `NSGlassEffectView` and `glassEffect` are one
 and real popovers and menus are glass windows, not `NSVisualEffectView`
 materials ([section 13](macos-materials.md#13-real-controls-first-captures-2026-11-22)).
 
+**Measured 2026-11-22 ([`macos-blur.md` section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)).** In the desktop shell the glass is a blur, then a tone on the luma, then a
+chroma gain. The half-way point of a step sits within 0.1 px of the edge at the centre of the application menu and a Control Center
+tile: nothing is displaced there, at scale 1. The Control Center tiles are glass over a dimming backing panel; real popovers and menus
+are glass windows ([`macos-materials.md` section 13](macos-materials.md#13-real-controls-first-captures-2026-11-22)). The lens near the rim,
+the highlight and the shadow of the tiles are not modelled.
+
 ## 3. The existing Malaysia model
 
 Malaysia already has more than a blur token:

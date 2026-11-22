@@ -11,6 +11,7 @@ pub mod menu;
 pub mod menubar;
 pub mod notifications;
 mod resolve;
+pub mod shell_glass;
 pub mod tinting;
 pub mod traffic;
 mod wallpaper;

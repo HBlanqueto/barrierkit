@@ -56,7 +56,9 @@ All evidence comes from public surfaces:
 - A Swift probe (`~/src/probes/metrics.swift`) that reads public AppKit
   values: `NSColor`, `NSFont`, `NSScreen`, `NSWindow`, `NSWorkspace` and
   `NSAnimationContext`.
-- Pixel sampling with `~/src/probes/sample.swift` over `NSBitmapImageRep`.
+- Pixel sampling with `~/src/probes/sample.swift` over `NSBitmapImageRep`. Since
+  2026-11-22 it reads the raw bytes; before that its mid-tones were too light
+  ([`macos-blur.md`](macos-blur.md#91-2026-11-21-mid-tones-read-with-sample-were-too-light)).
 - A controlled backdrop (`~/src/probes/backdrop.swift`) with white, gray,
   black, checker and colour-band regions.
 
@@ -138,6 +140,9 @@ committed assets.
   Transparency and light/dark switches were measured in both states and then
   returned to the original values. The default matrix is in
   [`macos-defaults.md`](macos-defaults.md).
+- **The session locks when idle.** A locked session (`CGSSessionScreenIsLocked`) captures only the
+  wallpaper: no windows, no menu bar, no lock-screen layer. `shellstate` reports it and the capture
+  drivers refuse to run. Probes that post events do not keep it unlocked.
 - **Lock screen was not captured.** Locking the only session would have
   stopped the host. Lock values are marked estimated.
 - **Control Center and Spotlight have no usable AX tree.** Their panels were

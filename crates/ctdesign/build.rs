@@ -473,6 +473,12 @@ MENU_SEARCH_CLEAR_GLYPH f32 components.shell.menu.search.clear-glyph
 MENU_SEARCH_PADDING_X f32 components.shell.menu.search.padding-x
 MENU_SEARCH_CLEAR_MIX f32 components.shell.menu.search.clear-mix
 MENU_HELP_ICON f32 components.shell.menu.help-icon
+SHELL_GLASS_LEVELS [f32;12] components.shell-glass.levels
+SHELL_GLASS_CHROMA_KNOTS [f32;5] components.shell-glass.chroma-knots
+SHELL_GLASS_MENU_DARK ShellGlass components.shell-glass.menu.dark
+SHELL_GLASS_CONTROL_CENTER_DARK ShellGlass components.shell-glass.control-center.dark
+SHELL_GLASS_CONTROL_CENTER_PANEL_DARK ShellGlass components.shell-glass.control-center-panel.dark
+SHELL_GLASS_DOCK_DARK ShellGlass components.shell-glass.dock.dark
 GLASS_MASK Rgba components.glass-mask
 HUD_BACKGROUND Rgba components.hud.background
 SCREENSHOT_DIM Rgba components.screenshot.dim

@@ -84,6 +84,10 @@ The durations and curves were not measured. The Malaysia tokens
 `LOCK_FADE_MS=1100`, `LOCK_SETTLE_MS=600`, `LOCK_RISE_MS=900`,
 `LOCK_RISE_OFFSET=120` and `LOCK_LOGIN_MS=600` are project values.
 
+**2026-11-22.** The lock screen cannot be measured by a probe: the session was locked while this work started and `screencapture` of a
+locked session returns only the wallpaper (no lock-screen layer, no clock), and locking the only session blocks the host. Every value
+here stays estimated.
+
 ## 5. Comparison with Malaysia
 
 | Element | macOS | Malaysia today | Token or file | Gap |

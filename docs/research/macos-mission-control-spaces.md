@@ -69,6 +69,8 @@ The open and close animations were not measured. The transition may scale the
 windows from their desktop rectangles; this is the usual macOS behaviour, but
 it is not confirmed from this capture.
 
+**2026-11-22.** The screen locked again at 07:55 before this surface was captured, so it is **not measured** on 2026-11-22; the series is queued in `shellblur-queue.sh`.
+
 ## 4. Comparison with Malaysia
 
 | Element | macOS (inferred) | Malaysia today | Token or file | Gap |

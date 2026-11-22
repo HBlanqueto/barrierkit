@@ -100,6 +100,9 @@ Observations:
   version or state.
 - Page dots and drag-to-page were not captured.
 
+**2026-11-22.** The screen locked again at 07:55 before this surface was captured, so it is **not measured** on 2026-11-22; the series is queued in `shellblur-queue.sh`. Two system permission dialogs sit over the middle of the screen (1075 to 1558 by 205 to 691), so Spotlight
+needs its left part (x under 1060) for the flat windows.
+
 ## 4. Comparison with Malaysia
 
 | Element | macOS (inferred) | Malaysia today | Token or file | Gap |

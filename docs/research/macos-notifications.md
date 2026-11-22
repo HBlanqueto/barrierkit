@@ -80,6 +80,9 @@ captured.
 Do not copy Malaysia's 450 ms slide or 260 ms slide-out as macOS values.
 They are project values.
 
+**2026-11-22.** The screen locked again at 07:55 before this surface was captured, so it is **not measured** on 2026-11-22; the series is queued in `shellblur-queue.sh`. Its Notification Center cards changed between two series of the same run (new notifications), so the
+cards need one single run: the lesson is in [`macos-blur.md` section 14.1](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22).
+
 ## 4. Comparison with Malaysia
 
 | Element | macOS (measured) | Malaysia today | Token or file | Gap |

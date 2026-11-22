@@ -75,6 +75,12 @@ panel glass nearly unchanged (`#b1` over white in dark mode). The entry point
 sits at x=2118 on the 2560x1440 display; the clock at x=2500 opens
 Notification Center.
 
+**Measured 2026-11-22 (dark, raw).** The panel opens as a stack of glass tiles (Wi-Fi, Bluetooth, AirDrop, now playing, the display
+and sound sliders, the focus and screen-mirroring buttons) over a backing panel that dims what is behind it by 0.903 and blurs it by
+about 1 px. A tile shows 186 over white, 121 over gray, 32 over black and 111 over the checker (31.7 + 0.609 in, a chroma gain of 1.08,
+a blur of 3.5 px); [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22) has the tables. The expanded modules (the Bluetooth detail of 2026-11-20) and Light mode
+were not measured.
+
 ## 4. Comparison with Malaysia
 
 Malaysia has no Control Center panel today.

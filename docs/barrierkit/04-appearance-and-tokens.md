@@ -703,6 +703,28 @@ The tests in `ctappearance::resolve` hold each panel within 8/255 per channel
 of the colours macOS shows over white, gray, black and the checker, in the
 tables of [macos-blur.md](../research/macos-blur.md#3-the-measured-matrix-dark-mode).
 
+### Shell glass
+
+`ctdesign::ShellGlass` is the glass of one desktop surface in one scheme, as macOS 27.2.1 composes it, and
+`ctappearance::shell_glass` is its reference function ([ADR 0094](../decisions.md);
+[the measurements](../research/macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)). The tokens are
+`components.shell-glass.<surface>.<scheme>`; today `menu`, `control-center`, `control-center-panel` and `dock`, dark only. Light, Reduce
+Transparency and Increase Contrast have no token: they were not measured.
+
+1. The backdrop is blurred by `sigma` px, plus `halo_weight` of a wide `halo_sigma` px blur when the weight is not 0
+   (`blurred_step(glass, d)` is that blur's response to a step `d` px from its edge; the compositor can get the same sigma from
+   a Gaussian on a downsampled backdrop, or from `kawase_reaching(sigma, offset)` passes of Malaysia's Dual Kawase).
+2. `over(glass, blurred)` takes the blurred pixel in the display's device values, the bytes the compositor writes on the measured
+   panel, and returns `tone(Y) + chroma(Y) (c - Y)` per channel: `Y` is its Rec. 709 luma, `tone` the 12-point gray response
+   (`SHELL_GLASS_LEVELS`), `chroma` the gain of the colour difference at five luma knots (`SHELL_GLASS_CHROMA_KNOTS`). It does not clamp.
+3. The tests reproduce every measured gray and colour within 2/255
+   (`crates/ctappearance/tests/data/shell-glass-samples.csv`).
+
+The menu bar needs no token: it is identical to the backdrop. `MENU_GLASS_*`, `DOCK_TONE_*`, `DOCK_GLASS_*` and
+`NOTIFICATION_GLASS_VEIL_LIGHT` were fitted to the shifted numbers of
+[section 9.1](../research/macos-blur.md#91-2026-11-21-mid-tones-read-with-sample-were-too-light) and are superseded by `SHELL_GLASS_*`;
+they stay until malaysia moves.
+
 ### Wallpaper behind a window
 
 Each window takes the average color of the wallpaper behind it into the
