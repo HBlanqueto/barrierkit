@@ -595,7 +595,7 @@ Gaussians (`shellblur-pyramid.py <dir> <surface> two`):
 | Application menu panel | 9.5 px | 128 px | 0.20 | 3.7 levels | 7.8 | 3 and 1.57 (core), 6 and 2.76 (halo) |
 | Control Center tile | 3.5 px | none | 0 | 1.1 levels | 6.9 | 3 and 0.37 |
 | Control Center backing panel | about 1 px | none | 0 | not fitted (checker lock-in, 0.7 to 1.2 px) | not measured | 1 and 0.67 |
-| Dock | about 4.5 px | none | 0 | 6.8 levels (poor) | not measured | 3 and 0.65 |
+| Dock | 0.75 px | none | 0 | 0.4 and 0.5 levels (the 0\|255 edge in the middle of the Dock, both polarities) | not measured | 1 and 0.34 |
 
 What the fits leave out:
 
@@ -608,15 +608,20 @@ What the fits leave out:
 - The tile fits every step within 0.5 level and every box of 32 px or more
   exactly, misses by 3 to 3.5 on the 16 px boxes and by 7 on the 8 px boxes: the
   kernel is not a Gaussian at the smallest scale.
-- The Dock's fit is poor: the boxes fall near its rim (the Dock is 79 px high)
-  and the 8 px checker is half visible, so its sigma is a bound, not a value.
+- The Dock is almost sharp. A 0|255 edge in the middle of its top strip (rows
+  1361 to 1370, 517 px wide) fits one Gaussian of 0.75 px with rms 0.4 (white|black)
+  and 0.5 (black|white): clear glass, like the `clear` tile of
+  [`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22)
+  (2.1 px between 10 and 90 %, sigma 0.8). That is why the 8 px checker stays
+  half visible in it. The boxes and steps of the first pass fell near its rim (the
+  Dock is 79 px high) and gave 4.5 px; they are not valid.
 - The wide halo of the menu (weight 0.20, sigma 128) is also what
   `inputBleedBlurRadius` 42 would give a glass filter; it is measured here, not
   read from a layer tree.
 
 Malaysia's wallpaper blur (3 passes at offset 3.0) is a Gaussian of sigma 17.2
 (second moment); the in-window materials use 27.6 ([`macos-materials.md`](macos-materials.md#14-the-blur-algorithm-and-malaysias-dual-kawase-2026-11-22)).
-The shell surfaces blur much less: 3.5 and 9.5 px. A Dual Kawase of 3 passes
+The shell surfaces blur much less: 0.75 px (Dock), 1 (backing panel), 3.5 (tile) and 9.5 (menu panel). A Dual Kawase of 3 passes
 with a small offset reproduces the core, but the compositor can get any sigma
 from a Gaussian on a downsampled backdrop at the same cost
 ([`ctappearance::shell_glass::kawase_reaching`](../barrierkit/04-appearance-and-tokens.md#shell-glass)
