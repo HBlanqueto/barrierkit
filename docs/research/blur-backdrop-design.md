@@ -5,7 +5,8 @@ every blur, inside the window too, so the kit can delete its Skia backdrop
 blur.
 **Scope:** the protocol that landed in `infinity-protocol` (version 10), the
 rules a compositor follows, the compositor algorithm, the kit changes, the
-phase 0 results, the GPU measurement that gates phase 2, the text of the ADRs
+phase 0 results, the GPU measurement that decides whether the in-window blur
+ships on by default, the text of the ADRs
 and the open questions. It starts at the decision in
 [`blur-ownership.md`](blur-ownership.md) and ends at the open questions. It
 adds no kit or compositor rendering code.
@@ -27,8 +28,9 @@ texts and the questions still open.
 | Requirements | The owner's, in [the Requirements section](#requirements) |
 | Phase 0 | Done, in software. The lag test passes; the frame time on a GPU is **NOT measured** |
 | Phase 1 | Done: `infinity_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), the text for Malaysia in [section 8.3](#83-malaysias-adr-ready-to-paste) |
-| Phase 2 | Not started. Gate: the GPU frame time of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) against the criterion the owner decided on 2026-11-22 |
-| Order of execution | M1, M2, K3, K4 ([section 7.1](#71-the-phases)). The owner decided on 2026-11-22 that the kit's Skia blur is deleted at the end and that Malaysia applies the measured values in every shell component |
+| Phase 2 | Started on 2026-11-22 as M2, before the GPU frame time is measured. The criterion of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) decides whether it ships on by default |
+| Order of execution | M1 done (Malaysia `df9efc81`); M2 and K3 in parallel; K4 last ([section 7.1](#71-the-phases)). The owner decided on 2026-11-22 that the kit's Skia blur is deleted at the end, that Malaysia applies the measured values in every shell component, and that M2 and K3 start before the GPU measurement |
+| Algorithm | M1 replaced Dual Kawase with the measured Gaussian pipeline. The phase 0 timings and the runbook of section 10 are of Dual Kawase and must be redone on it |
 | Verification | The VM (container, llvmpipe, no display) cannot verify K3 and K4 end to end: a real session on the owner's laptop is needed |
 | Blur values per material | Not in this document. They come from [`macos-materials.md`](macos-materials.md), [`macos-blur.md`](macos-blur.md) and [`macos-liquid-glass.md`](macos-liquid-glass.md), which the three sessions of [Who measures what](#who-measures-what) are measuring |
 | Other choices of phase 1 | Pending the owner's confirmation ([ADR 0091](../decisions.md)) |
@@ -94,9 +96,9 @@ document and the protocol carry no value.
 3. Read the protocol in section 3 and the rules in section 4.
 4. Read the phase 0 results in section 7.2 and the phase table in section 7.1.
 5. Run section 10 on a Linux machine with a GPU. Record the result in section 7.2.
-6. Session M1 pastes section 8.3 into Malaysia's `docs/decisions.md` with the
-   pin. If the measurement of section 10 passes the criterion, a later Malaysia
-   session (M2) implements section 5.
+6. Session M1 pasted section 8.3 into Malaysia's `docs/decisions.md` with the
+   pin (`df9efc81`). Session M2 implements section 5 and session K3 makes the
+   kit declare the material, both before the GPU measurement.
 7. When the measurement sessions report, review section 9.3.
 
 ---
@@ -257,6 +259,12 @@ that ignores the requests would leave the transparent rectangle empty.
 All in Malaysia. "Tested" means the phase 0 patch runs it in software
 ([section 7.2](#72-phase-0-results)); the rest is not written.
 
+Since M1 (`df9efc81`) the blur pass is the measured Gaussian pipeline of
+`blur/gaussian.rs`: a box reduction by 2, 4 or 8, a Gaussian of the remaining
+sigma, renormalised at the region's border. The Kawase offsets, passes and
+reach in step 3 are phase 0's; M2 takes the reach from `reach_in_pixels` in
+`gaussian.rs`.
+
 1. Store the requests per `wl_surface` in a `Cacheable` state, as
    `GlassPanels` and `Knobs` do in `window_style.rs`. Smithay applies a
    sub-surface's cached state in the parent's transaction. [tested, with the
@@ -330,13 +338,14 @@ blue one beside it must not. The phase 0 tests are the model for the lag test:
 |---|---|---|---|
 | 0 | The experiment of section 7.2 | 1 to 2 | Done, in software. GPU frame time **NOT measured** |
 | 1 | Protocol version 10 in `infinity-protocol`, the ADRs | 1 to 2 | Done |
-| 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Not started. Gate: the GPU frame time of section 10 against the criterion the owner decided on 2026-11-22 |
-| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Not started |
+| 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Started on 2026-11-22 (M2), before the GPU frame time is measured. The criterion of section 10 decides whether it ships on by default |
+| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Started on 2026-11-22 (K3); keeps Skia as the fallback |
 | 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Not started |
 
-If the GPU frame time fails the criterion of section 10, stop M2, K3 and K4:
-the in-window path has no value. M1 stays: it serves surfaces that already
-blur.
+If the GPU frame time fails the criterion of section 10, the in-window path
+does not ship on by default: the work of M2 and K3 may be wasted, a risk the
+owner accepted on 2026-11-22, and K4 waits for the criterion to pass because it
+removes the fallback. M1 stays: it serves surfaces that already blur.
 
 #### Order of execution
 
@@ -346,15 +355,22 @@ component, and the kit's own Skia backdrop blur is deleted at the end.
 
 | Step | Phase | Owner | Output | Condition |
 |---|---|---|---|---|
-| M1 | between 1 and 2 | session `malaysia-blur-nucleo`, in Malaysia's repository | the pin; Malaysia's ADR pasted (section 8.3); the measured algorithm in `grade-graphics` and `blur.rs`; the measured tokens wired to every shell surface that blurs today; tests on software EGL. It does not raise `VERSION` from 9 | the measurements of "Who measures what" |
-| M2 | 2 | a Malaysia session | `set_backdrop` and `set_scroll_edge` in the compositor, and the split of the surface tree (section 5) | the GPU criterion of section 10 |
-| K3 | 3 | a kit session | the kit declares the material: the sub-surface, the split of Freya's layers, input and the outbox | the GPU criterion, and M2 serving the requests |
+| M1 | between 1 and 2 | session `malaysia-blur-nucleo`, in Malaysia's repository (done: `df9efc81`) | the pin; Malaysia's ADR pasted (section 8.3); the measured algorithm in `grade-graphics` and `blur.rs`; the measured tokens wired to every shell surface that blurs today; tests on software EGL. It does not raise `VERSION` from 9 | the measurements of "Who measures what" |
+| M2 | 2 | session `malaysia-backdrop-m2`, in Malaysia's repository | `set_backdrop` and `set_scroll_edge` in the compositor, and the split of the surface tree (section 5) | the GPU criterion of section 10 |
+| K3 | 3 | session `kit-backdrop-k3` | the kit declares the material and the style when the compositor advertises version 10: the sub-surface, the split of Freya's layers, input and the outbox. It keeps Skia as the fallback and does not delete it | the GPU criterion, and M2 serving the requests |
 | K4 | 4 | a kit session | the Skia backdrop blur of `crates/bk/src/glass.rs` is deleted | last: only when the compositor serves the requests and a real session shows no regression |
 
-1. M2 and K3 stay conditioned on the GPU criterion already decided, unless the
-   owner says otherwise. M1 is not: the surfaces it serves already blur.
-2. M1 may change the algorithm (requirement 4). The measurement of section 10
-   then runs on the algorithm M1 leaves.
+1. M2 and K3 run in parallel and start before the GPU frame time is measured
+   (the owner's decision of 2026-11-22). The owner accepts the risk that the
+   work is wasted if the criterion fails; the criterion still decides whether
+   the in-window path ships on by default. M1 did not depend on it: the
+   surfaces it serves already blur.
+2. M1 changed the algorithm (requirement 4): Dual Kawase gave way to the
+   measured Gaussian pipeline of `blur/gaussian.rs` (`df9efc81`). The phase 0
+   timings and the runbook of section 10 are of Dual Kawase, so the measurement
+   is redone on the new pipeline, with a band case that M2 adds: M1's own timing
+   test (`blur/timing.rs`) covers the whole output, the Dock and a menu, not a
+   96 px band.
 3. Until K4 the kit keeps its Skia blur as the fallback when the compositor
    does not advertise version 10. After K4 it draws the solid
    ([ADR 0092](../decisions.md)).
@@ -368,6 +384,8 @@ Run on 2026-11-21 in a scratch copy of Malaysia `1a45e115` (Smithay `65aa86f`),
 inside a Linux container on llvmpipe (Mesa 26.2.5, OpenGL ES 3.2, aarch64 VM,
 6 CPUs). Code, scripts and the output:
 [`blur-phase-0/`](blur-phase-0/README.md). Nothing was committed to Malaysia.
+The blur pass it measured is Dual Kawase, which M1 replaced on 2026-11-22
+([section 7.1](#71-the-phases)).
 Labels: **[software]** ran on llvmpipe; **[code]** read in the source;
 **[not run]** the experiment did not run it.
 
@@ -461,10 +479,12 @@ and the version are new; the old second bullet (a surface gets blur only in
 the region it sends) is replaced by the third and fourth; the first bullet has
 one added sentence; "Why", "Rejected", "Pending" and "Code" changed. The
 bullets on the cached wallpaper blur, the shaders and the wallpaper tinting are
-the current ones. Session M1 pastes it with the pin, as the owner asked. Its
-lines on the Infinity requests, the in-window blur and the capture state the
-target: they hold once M2 serves the requests, and the compositor advertises
-version 9 until then.
+the current ones. Session M1 pasted it with the pin (`df9efc81`) and edited it
+there to the measured pipeline: Malaysia's `docs/decisions.md` is the source
+from now on, and this block is the text as first written. Its lines on the
+Infinity requests, the in-window blur and the capture state the target: they
+hold once M2 serves the requests, and the compositor advertises version 9 until
+then.
 
 ```markdown
 ## 0020 · 0038 · 0065 · 0071 · 0091 — Blur and wallpaper tinting
@@ -481,7 +501,7 @@ Decision:
 - `appearance.wallpaper_tinting` (default `true`, dark mode only unless `wallpaper_tinting_in_light`): the compositor averages the wallpaper grid cells behind each window and sends the color in the `wallpaper` event of `infinity_focus_surface_v1`. The kit, the patched libadwaita and the compositor's titlebar mix it in.
 Why: macOS composes every blur outside the app, in both blending modes, and the app declares the material; one place then decides radius and accessibility. No client sees other clients' pixels, so only the compositor can blur or sample what is behind a window, and it already samples a client's own pixels for `set_knobs`. The [protocol](https://wayland.app/protocols/ext-background-effect-v1) leaves strength to the compositor and has no material. `set_glass`, `set_plates` and `set_knobs` already paint for clients.
 Rejected: blurring every window by default (GPU cost); a blur drawn by the client as the shipping path (two places for Reduce Transparency, two blur algorithms); `ext-background-effect-v1` on sub-surfaces (KWin, Hyprland and niri ignore their regions); the compositor painting client backgrounds the client did not ask it to paint.
-Pending: the frame time of the in-window pass on a real GPU, which is not measured and gates phase 2 (the owner decided on 2026-11-22: median of at most 1.0 ms at 2x for a 96 px band to pass, over 2.5 ms to stop, no frame of 40 at 8.33 ms or more), and the blur values per material (being measured).
+Pending: the frame time of the in-window pass on a real GPU, which is not measured and decides whether the in-window path ships on by default (the owner decided on 2026-11-22: median of at most 1.0 ms at 2x for a 96 px band to pass, over 2.5 ms to stop, no frame of 40 at 8.33 ms or more), and the blur values per material (being measured).
 Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/window_style.rs`, `crates/malaysia-compositor/src/scene_elements.rs`, `crates/malaysia-compositor/src/capture.rs`, `crates/malaysia-compositor/src/focus_notice.rs`
 ```
 
@@ -566,7 +586,17 @@ SwiftUI ones are in [`swiftui-api-gap.md`](swiftui-api-gap.md).
 ## 10. GPU runbook: the frame time of the band pass
 
 **Goal:** measure the cost of one in-window blur band on a real GPU, the
-go/no-go of phase 2.
+criterion that decides whether the in-window path ships on by default.
+**Status on 2026-11-22:** stale until M2 adds the band case. The steps below
+measure the Dual Kawase pass of phase 0 against Malaysia `1a45e115`; M1 replaced
+that pass (`df9efc81`) and the patch was not rebased. M1's test
+`the_blur_passes_cost_this_much_per_frame` (`blur/timing.rs`, `#[ignore]`: run
+it with `--ignored --nocapture --test-threads=1`) prints `BLUR TIMING` lines
+with the renderer and the share of a 60 and a 120 Hz frame for the whole
+output, the Dock and a menu at 1x and 2x, not for a 96 px band. The criterion
+below is read from the band case M2 adds. The checkout, the dev shell and the
+probe still apply with Malaysia at `df9efc81` or later and without the patch;
+this was not tried.
 **Scope:** two tests of the phase 0 patch on a Linux machine with a GPU. It
 starts at a Malaysia checkout and ends at two `BLURP0 TIMING` lines and a
 decision. It measures one band over one window, nothing else.
@@ -644,7 +674,7 @@ display; then the criterion below.
    - The `BLURP0 Above-strip-fixed-...` line that follows has
      `equals_fresh=0` in these tests: they skip the reference render.
 7. Apply the criterion below, add the row to the table of section 7.2 and
-   change the status of phase 2.
+   record in section 7.1 whether the in-window path ships on by default.
 
 ### Pass criterion
 
@@ -654,9 +684,9 @@ median of the three runs of the 2x test, with the maximum of its 40 frames.
 
 | Median band pass at 2x | Share of a 120 Hz frame | Share of a 60 Hz frame | Reading |
 |---|---|---|---|
-| 1.0 ms or less | 12 % or less | 6 % or less | Go: phase 2 starts |
-| Over 1.0 and up to 2.5 ms | Over 12 % and up to 30 % | Over 6 % and up to 15 % | Not decided on 2026-11-22: the owner decides when a measurement lands here, between a cheaper pass and no phase 2 |
-| Over 2.5 ms | Over 30 % | Over 15 % | No-go: no later phase has value |
+| 1.0 ms or less | 12 % or less | 6 % or less | Pass: the in-window path can ship on by default |
+| Over 1.0 and up to 2.5 ms | Over 12 % and up to 30 % | Over 6 % and up to 15 % | Not decided on 2026-11-22: the owner decides when a measurement lands here, between a cheaper pass and not shipping it on by default |
+| Over 2.5 ms | Over 30 % | Over 15 % | Stop: the in-window path does not ship on by default; the work of M2 and K3 may be wasted |
 
 Also decided: no frame of the 40 at 2x may reach 8.33 ms, because one slow
 frame shows as a stutter while the window scrolls.
