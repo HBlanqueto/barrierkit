@@ -28,7 +28,9 @@ texts and the questions still open.
 | Phase 0 | Done, in software. The lag test passes; the frame time on a GPU is **NOT measured** |
 | Phase 1 | Done: `infinity_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), the text for Malaysia in [section 8.3](#83-malaysias-adr-ready-to-paste) |
 | Phase 2 | Not started. Gate: the GPU frame time of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) against the criterion the owner decided on 2026-11-22 |
-| Blur values per material | Not in this document. They come from [`macos-materials.md`](macos-materials.md) and [`macos-blur.md`](macos-blur.md), which two other sessions are measuring |
+| Order of execution | M1, M2, K3, K4 ([section 7.1](#71-the-phases)). The owner decided on 2026-11-22 that the kit's Skia blur is deleted at the end and that Malaysia applies the measured values in every shell component |
+| Verification | The VM (container, llvmpipe, no display) cannot verify K3 and K4 end to end: a real session on the owner's laptop is needed |
+| Blur values per material | Not in this document. They come from [`macos-materials.md`](macos-materials.md), [`macos-blur.md`](macos-blur.md) and [`macos-liquid-glass.md`](macos-liquid-glass.md), which the three sessions of [Who measures what](#who-measures-what) are measuring |
 | Other choices of phase 1 | Pending the owner's confirmation ([ADR 0091](../decisions.md)) |
 | Does version 10 carry all of macOS's configuration? | To review when the measurements end ([section 9.3](#93-to-review-when-the-measurements-end)) |
 
@@ -92,8 +94,9 @@ document and the protocol carry no value.
 3. Read the protocol in section 3 and the rules in section 4.
 4. Read the phase 0 results in section 7.2 and the phase table in section 7.1.
 5. Run section 10 on a Linux machine with a GPU. Record the result in section 7.2.
-6. If the measurement passes the criterion, a Malaysia session pastes section
-   8.3 into Malaysia's `docs/decisions.md` and implements section 5.
+6. Session M1 pastes section 8.3 into Malaysia's `docs/decisions.md` with the
+   pin. If the measurement of section 10 passes the criterion, a later Malaysia
+   session (M2) implements section 5.
 7. When the measurement sessions report, review section 9.3.
 
 ---
@@ -331,8 +334,33 @@ blue one beside it must not. The phase 0 tests are the model for the lag test:
 | 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Not started |
 | 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Not started |
 
-If the GPU frame time fails the criterion of section 10, stop: no later phase
-has value.
+If the GPU frame time fails the criterion of section 10, stop M2, K3 and K4:
+the in-window path has no value. M1 stays: it serves surfaces that already
+blur.
+
+#### Order of execution
+
+Decided by the owner on 2026-11-22 ([ADR 0091](../decisions.md)): once the
+measurements end, Malaysia applies the measured values in every shell
+component, and the kit's own Skia backdrop blur is deleted at the end.
+
+| Step | Phase | Owner | Output | Condition |
+|---|---|---|---|---|
+| M1 | between 1 and 2 | session `malaysia-blur-nucleo`, in Malaysia's repository | the pin; Malaysia's ADR pasted (section 8.3); the measured algorithm in `grade-graphics` and `blur.rs`; the measured tokens wired to every shell surface that blurs today; tests on software EGL. It does not raise `VERSION` from 9 | the measurements of "Who measures what" |
+| M2 | 2 | a Malaysia session | `set_backdrop` and `set_scroll_edge` in the compositor, and the split of the surface tree (section 5) | the GPU criterion of section 10 |
+| K3 | 3 | a kit session | the kit declares the material: the sub-surface, the split of Freya's layers, input and the outbox | the GPU criterion, and M2 serving the requests |
+| K4 | 4 | a kit session | the Skia backdrop blur of `crates/bk/src/glass.rs` is deleted | last: only when the compositor serves the requests and a real session shows no regression |
+
+1. M2 and K3 stay conditioned on the GPU criterion already decided, unless the
+   owner says otherwise. M1 is not: the surfaces it serves already blur.
+2. M1 may change the algorithm (requirement 4). The measurement of section 10
+   then runs on the algorithm M1 leaves.
+3. Until K4 the kit keeps its Skia blur as the fallback when the compositor
+   does not advertise version 10. After K4 it draws the solid
+   ([ADR 0092](../decisions.md)).
+4. Tests of M1 and M2 are headless and run on software EGL in the VM. The VM
+   cannot verify K3 and K4 end to end (input across two surfaces, a real scroll,
+   real presentation): a real session on the owner's laptop must.
 
 ### 7.2 Phase 0 results
 
@@ -433,8 +461,10 @@ and the version are new; the old second bullet (a surface gets blur only in
 the region it sends) is replaced by the third and fourth; the first bullet has
 one added sentence; "Why", "Rejected", "Pending" and "Code" changed. The
 bullets on the cached wallpaper blur, the shaders and the wallpaper tinting are
-the current ones. A Malaysia session pastes it when phase 2 starts, not
-before: it states what the compositor does, and today it does not.
+the current ones. Session M1 pastes it with the pin, as the owner asked. Its
+lines on the Infinity requests, the in-window blur and the capture state the
+target: they hold once M2 serves the requests, and the compositor advertises
+version 9 until then.
 
 ```markdown
 ## 0020 · 0038 · 0065 · 0071 · 0091 — Blur and wallpaper tinting
