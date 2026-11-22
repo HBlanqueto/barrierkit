@@ -1070,6 +1070,34 @@ own output space ([research](../research/macos-materials.md#10-materials-in-wind
 The tests of `ctappearance::material` reproduce 286 ramp samples within 1.5
 levels of 255, 6 step profiles within 2 and 26 solids within 1.
 
+### Liquid Glass
+
+`LIQUID_GLASS_<STYLE>_<SCHEME>` (`REGULAR` or `CLEAR`, `LIGHT` or `DARK`) are
+`GlassSet`s of `components.liquid-glass`. A `GlassSet` has the looks `active`
+(a key window or a non-activating panel), `inactive` (a non-key window),
+`reduced` (Reduce Transparency), `increased_contrast` and `reduced_contrast`
+(both), the `rim` tables and the `scale` rules. A `GlassLook` is:
+
+| Field | Unit | Meaning |
+|---|---|---|
+| `blur` | half-resolution texels | Gaussian sigma; 2 x `blur` x the share, in pixels, capped by `LIQUID_GLASS_BLUR_CAP` |
+| `blur_opacity`, `blur_distance` | share, px | the share of `blur` at each distance (negative inside) |
+| `white`, `black` | 0..1.5 | output for a white and a black input |
+| `saturation`, `max_luma` | factor | saturation about the luma; the tone is scaled by `1 - (1 - max_luma) x luma` |
+| `fill` | RGBA | mixed over the tone by its alpha |
+| `refraction` | px | `[amount, height]` of the lens |
+| `tone_delta` | levels of 255 | nine-point correction of the blur fill |
+
+`ctappearance::liquid_glass::looks(glass, scheme)` returns the set;
+`adapted(look, &set.scale, shorter)` applies the size rules to the active look.
+`face`, `blur_sigma`, `lens_offset`, `rim_levels` and `smooth_union` are the
+stages and `render(set, state, &backdrop, &shape)` the CPU reference over an
+`Image`. Values are device values at scale 1 as macOS 27.2.1 draws them; the
+compositor applies them in its own output space. The tests reproduce 33 gray
+samples within 2.5 levels, 36 colours, three line profiles within 1 level, the
+lens within 2 px and the rim tables within 10 levels
+([research](../research/macos-liquid-glass.md#6-the-model)).
+
 ### Colors
 
 | Constants | Type | What they are |

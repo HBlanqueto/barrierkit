@@ -1166,6 +1166,57 @@ pub struct MaterialSet {
     pub reduced_contrast: MaterialLook,
 }
 
+pub const RIM_BINS: usize = 35;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassLook {
+    pub blur: f32,
+    pub blur_opacity: [f32; 4],
+    pub blur_distance: [f32; 4],
+    pub white: f32,
+    pub black: f32,
+    pub saturation: f32,
+    pub max_luma: f32,
+    pub fill: Rgba,
+    pub refraction: [f32; 2],
+    pub tone_delta: [f32; 9],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassRim {
+    pub angle_1: [f32; 12],
+    pub angle_2: [f32; 12],
+    pub distance_1: [f32; RIM_BINS],
+    pub distance_2: [f32; RIM_BINS],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassScale {
+    pub refraction_amount: [f32; 4],
+    pub refraction_height: [f32; 4],
+    pub blur_opacity_0: [f32; 4],
+    pub blur_opacity_1: [f32; 4],
+    pub blur_distance_0: [f32; 4],
+    pub max_luma: [f32; 4],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassSet {
+    pub active: GlassLook,
+    pub inactive: GlassLook,
+    pub reduced: GlassLook,
+    pub increased_contrast: GlassLook,
+    pub reduced_contrast: GlassLook,
+    pub rim: GlassRim,
+    pub scale: GlassScale,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassLens {
+    pub scale: f32,
+    pub decay: f32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,

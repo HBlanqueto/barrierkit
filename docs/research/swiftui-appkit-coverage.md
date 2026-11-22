@@ -134,10 +134,10 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 12. Containers and navigation | 9 | 4 | 15 | 3 | 31 |
 | 13. Presentation | 1 | 4 | 8 | 1 | 14 |
 | 14. Windows and chrome | 1 | 4 | 12 | 13 | 30 |
-| 15. Materials and glass | 0 | 1 | 5 | 0 | 6 |
+| 15. Materials and glass | 0 | 1 | 5 | 1 | 7 |
 | 16. Symbols | 2 | 0 | 3 | 1 | 6 |
 | 17. Accessibility | 1 | 1 | 10 | 1 | 13 |
-| **All** | 65 | 36 | 81 | 38 | 220 |
+| **All** | 65 | 36 | 81 | 39 | 221 |
 
 To recount after a change, run this from the repository root:
 
@@ -485,8 +485,9 @@ The size of each control is a row in its own family.
 |---|---|---|---|---|---|
 | `Material` (`.ultraThin` to `.ultraThick`, `.bar`) | `NSVisualEffectView.Material`: 14 semantic materials | `Material`, `Thickness`; `ctappearance::material` | `partial`: the 14 semantic materials are measured in both blending modes, light and dark, active, inactive, with Reduce Transparency and Increase Contrast, at 1x, with tokens and a reference function (2026-11-22); the six SwiftUI thicknesses are measured active and `withinWindow` (sigma 59.2); the kit's `Thickness` is not mapped to them and scale 2 is not measured | [`macos-materials.md`](macos-materials.md) §10 | P2 |
 | (no public API) the desktop shell's glass: menu panel, Control Center, Dock, notifications | — | `ShellGlass`, `ctappearance::shell_glass` | `partial`: the menu bar is clear (identity to 0 levels); the app menu, Control Center tile and backing panel and Dock are measured in dark at scale 1 (tone, chroma gain, blur, edges); light, Reduce Transparency, Increase Contrast, scale 2, notification cards, banners, Spotlight, Mission Control and Apps are not | [Desktop surfaces](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22) | P1 |
-| `.glassEffect(_:in:)` (`.regular`, `.clear`) | `NSGlassEffectView` | `GlassContainer`, `WindowGlass` | `partial`: the kit asks the compositor for the glass; the filter inputs, the gray tone and the blur width of both are observed (2026-11-22), the lens is not modelled; real popovers and menus are glass | [`macos-liquid-glass.md`](macos-liquid-glass.md), [`macos-materials.md`](macos-materials.md) §12–13 | P1 |
-| `GlassEffectContainer`, `glassEffectID` | `NSGlassEffectContainerView` | `GlassContainer` | `implemented` | none | P2 |
+| `.glassEffect(_:in:)` (`.regular`, `.clear`) | `NSGlassEffectView` | `GlassContainer`, `WindowGlass`; `ctappearance::liquid_glass` | `partial`: the kit asks the compositor for the glass; the stack is read and measured at 1x (2026-11-22): half-resolution backdrop, lens, blur by depth, tone, rim and shadow, tokens per state and a reference function with its error table; the compositor does not serve it yet and scale 2 is not measured; real popovers and menus are this glass | [`macos-liquid-glass.md`](macos-liquid-glass.md) | P1 |
+| `GlassEffectContainer`, `glassEffectID` | `NSGlassEffectContainerView` | `GlassContainer` | `implemented`: the union of children is a smooth minimum of 0.8 of the spacing in the reference ([§7](macos-liquid-glass.md#7-interaction-merging-and-morphing)); the kit's own morph is not compared | [`macos-liquid-glass.md`](macos-liquid-glass.md) §7 | P2 |
+| `Glass.tint(_:)`, `Glass.interactive(_:)`, `Glass.identity`, `glassEffectUnion`, `glassEffectTransition` | `NSGlassEffectView.tintColor`, `effectIsInteractive` (27.0) | — | `missing`: the tint is an alpha blend over the glass (measured), `interactive` has no static effect and its pointer response is not measured, the union is one element, `identity` is variant 14 | [`macos-liquid-glass.md`](macos-liquid-glass.md) §6–7 | P2 |
 | `backgroundExtensionEffect` | `NSBackgroundExtensionView` | `SplitView::background_extension` | `partial`: stretches the first pixel column where Apple mirrors, and only under a docked sidebar | none | P3 |
 | `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass` | `partial`: the protocol has `set_scroll_edge` (version 10, [ADR 0091](../decisions.md)); the kit draws the effect with Skia until the compositor serves it | [Sidebar][m-sidebar] | P2 |
 | vibrancy of `.secondary` over a material | `NSVisualEffectView` vibrant labels | `Role` colors | `partial` | none | P3 |

@@ -145,6 +145,13 @@ MATERIAL_UNDER_WINDOW_BACKGROUND_LIGHT MaterialSet components.material.visual-ef
 MATERIAL_UNDER_WINDOW_BACKGROUND_DARK MaterialSet components.material.visual-effect.under-window-background.dark
 MATERIAL_UNDER_PAGE_BACKGROUND_LIGHT MaterialSet components.material.visual-effect.under-page-background.light
 MATERIAL_UNDER_PAGE_BACKGROUND_DARK MaterialSet components.material.visual-effect.under-page-background.dark
+LIQUID_GLASS_REGULAR_LIGHT GlassSet components.liquid-glass.regular.light
+LIQUID_GLASS_REGULAR_DARK GlassSet components.liquid-glass.regular.dark
+LIQUID_GLASS_CLEAR_LIGHT GlassSet components.liquid-glass.clear.light
+LIQUID_GLASS_CLEAR_DARK GlassSet components.liquid-glass.clear.dark
+LIQUID_GLASS_LENS GlassLens components.liquid-glass.lens
+LIQUID_GLASS_BLUR_CAP f32 components.liquid-glass.blur-cap
+LIQUID_GLASS_UNION f32 components.liquid-glass.union
 MATERIAL_ULTRA_THIN_LIGHT MaterialLook components.material.swiftui.ultra-thin.light
 MATERIAL_ULTRA_THIN_DARK MaterialLook components.material.swiftui.ultra-thin.dark
 MATERIAL_THIN_LIGHT MaterialLook components.material.swiftui.thin.light
