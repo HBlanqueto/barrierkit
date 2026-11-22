@@ -10,7 +10,7 @@ use dispatch2::{DispatchQueue, DispatchTime};
 use freya_core::integration::{
     AppComponent, GlobalContexts, NodeId, Platform, PlatformEvent, UserEvent,
 };
-use freya_core::prelude::{AccessibilityFocusStrategy, Key, State};
+use freya_core::prelude::{AccessibilityFocusStrategy, CursorIcon, Key, State};
 use freya_engine::prelude::{
     ColorType, DirectContext, SurfaceOrigin, backend_render_targets, direct_contexts, mtl,
     wrap_backend_render_target,
@@ -19,9 +19,10 @@ use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2::{MainThreadMarker, MainThreadOnly, sel};
 use objc2_app_kit::{
+    NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
     NSApplication, NSApplicationActivationPolicy, NSBackingStoreType, NSEvent,
     NSEventModifierFlags, NSEventType, NSMenu, NSMenuItem, NSWindow, NSWindowDelegate,
-    NSWindowStyleMask,
+    NSWindowOrderingMode, NSWindowStyleMask,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -39,12 +40,15 @@ use super::backdrop::{Pass, render_pass, render_passes};
 use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
-use super::window::{WindowCommand, WindowControls, WindowOptions, WindowStatus};
+use super::window::{OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus};
 use super::{DecorationResponse, EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
 mod input;
+mod place;
+mod popups;
 mod view;
 
+use popups::PopupState;
 use view::{ContentView, WindowDelegate};
 
 thread_local! {
@@ -71,7 +75,10 @@ struct Window {
     layer: Retained<CAMetalLayer>,
     _delegate: Retained<ProtocolObject<dyn NSWindowDelegate>>,
     app: AppInstance,
-    controls: WindowControls,
+    controls: Option<WindowControls>,
+    popup: Option<PopupState>,
+    // A window the process lives for: not a popup, a sheet or a utility window.
+    main: bool,
     needs_redraw: bool,
 }
 
@@ -93,6 +100,8 @@ pub(super) struct Runtime {
     defaults_revision: State<u64>,
     clipboard: Clipboard,
     primary: Clipboard,
+    pointer_window: Option<u64>,
+    cursor: CursorIcon,
 }
 
 enum Native {
@@ -112,7 +121,12 @@ fn native(id: u64, command: Native) {
         return;
     };
     match command {
-        Native::Close => window.close(),
+        Native::Close => {
+            if let Some(parent) = window.sheetParent() {
+                parent.endSheet(&window);
+            }
+            window.close();
+        }
         Native::Minimize => window.miniaturize(None),
         Native::Zoom => window.zoom(None),
         Native::FullScreen => window.toggleFullScreen(None),
@@ -170,6 +184,8 @@ impl Runtime {
             defaults_revision: State::create_global(0),
             clipboard,
             primary: Clipboard::primary(),
+            pointer_window: None,
+            cursor: CursorIcon::Default,
         })
     }
 
@@ -196,7 +212,10 @@ impl Runtime {
         self.windows.iter_mut().find(|window| window.id == id)
     }
 
-    fn create_window(&mut self, app: AppComponent, options: WindowOptions) {
+    fn create_window(&mut self, app: AppComponent, options: WindowOptions, parent: Option<u64>) {
+        let parent = parent.and_then(|id| self.window(id).map(|w| w.window.clone()));
+        let sheet = parent.is_some() && options.modal;
+        let utility = parent.is_some();
         let id = self.next_window;
         self.next_window += 1;
         let fixed = options.min_size.is_some() && options.min_size == options.max_size;
@@ -209,6 +228,9 @@ impl Runtime {
             | NSWindowStyleMask::Miniaturizable;
         if !fixed {
             style |= NSWindowStyleMask::Resizable;
+        }
+        if sheet {
+            style = NSWindowStyleMask::Titled;
         }
         let (width, height) = options.size;
         let frame = NSRect::new(
@@ -238,6 +260,7 @@ impl Runtime {
         let view = ContentView::new(self.mtm, id, frame);
         let layer = self.configure_layer(&view);
         window.setContentView(Some(&view));
+        self.follow_scheme(&window);
         window.center();
 
         let status = State::create_global(WindowStatus {
@@ -265,7 +288,7 @@ impl Runtime {
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
             hud: options.hud,
-            panel: false,
+            panel: utility,
             ime_preedit: State::create_global(String::new()),
             primary: self.primary.clone(),
             clipboard: self.clipboard.clone(),
@@ -296,11 +319,36 @@ impl Runtime {
             layer,
             _delegate: delegate,
             app: instance,
-            controls,
+            controls: Some(controls),
+            popup: None,
+            main: !utility,
             needs_redraw: true,
         });
-        window.makeKeyAndOrderFront(None);
+        match &parent {
+            Some(parent) if sheet => {
+                parent.beginSheet_completionHandler(&window, None);
+            }
+            Some(parent) => {
+                // SAFETY: both are live windows the runner owns.
+                unsafe { parent.addChildWindow_ordered(&window, NSWindowOrderingMode::Above) };
+                window.makeKeyAndOrderFront(None);
+            }
+            None => window.makeKeyAndOrderFront(None),
+        }
         self.resized(id);
+    }
+
+    // The system chrome and the effect views follow the kit's scheme, not the system's, until M4 reads it.
+    fn follow_scheme(&self, window: &NSWindow) {
+        // SAFETY: both names are AppKit's own constants.
+        let name = unsafe {
+            if self.resolved.peek().scheme.is_dark() {
+                NSAppearanceNameDarkAqua
+            } else {
+                NSAppearanceNameAqua
+            }
+        };
+        window.setAppearance(NSAppearance::appearanceNamed(name).as_deref());
     }
 
     fn configure_layer(&self, view: &ContentView) -> Retained<CAMetalLayer> {
@@ -341,22 +389,56 @@ impl Runtime {
     }
 
     pub(super) fn push(&mut self, id: u64, event: PlatformEvent) {
+        if matches!(event, PlatformEvent::Mouse { .. }) {
+            self.pointer_window = Some(id);
+        }
         if let Some(window) = self.window(id) {
             window.app.push(event);
         }
     }
 
-    pub(super) fn activated(&mut self, id: u64, activated: bool) {
-        if let Some(window) = self.window(id) {
-            window.controls.status.write().activated = activated;
+    pub(super) fn cursor(&self) -> CursorIcon {
+        self.cursor
+    }
+
+    // A toplevel looks active while it is the main window, whichever of its popups holds the keyboard.
+    pub(super) fn main_changed(&mut self, id: u64) {
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        let Some(controls) = &window.controls else {
+            return;
+        };
+        let activated = window.window.isMainWindow();
+        if controls.status.peek().activated != activated {
+            let mut status = controls.status;
+            status.write().activated = activated;
             window.app.set_focused(activated);
             window.needs_redraw = true;
         }
     }
 
+    pub(super) fn key_changed(&mut self, id: u64, key: bool) {
+        let popup = self.window(id).is_some_and(|window| window.popup.is_some());
+        if popup && !key {
+            DispatchQueue::main().exec_async(|| {
+                with_runtime(|runtime| runtime.dismiss_grab_without_keyboard());
+            });
+        }
+    }
+
     pub(super) fn closed(&mut self, id: u64) {
+        let owned: Vec<_> = self
+            .windows
+            .iter()
+            .filter(|window| window.popup.as_ref().is_some_and(|popup| popup.owner == id))
+            .filter_map(|window| window.popup.as_ref().map(|popup| popup.id))
+            .collect();
+        for popup in owned {
+            self.close_popup(popup);
+        }
         self.windows.retain(|window| window.id != id);
-        if self.windows.is_empty() {
+        if !self.windows.iter().any(|window| window.main) {
             stop(self.mtm);
         }
     }
@@ -370,8 +452,13 @@ impl Runtime {
         window.needs_redraw = false;
         let scale = window.window.backingScaleFactor();
         let resolved = *window.app.resolved.read();
-        let base = crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel);
-        let background = crate::theme::color(base);
+        let background = if window.popup.is_some() {
+            crate::theme::color(ctdesign::Rgba::TRANSPARENT)
+        } else {
+            let base =
+                crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel);
+            crate::theme::color(base)
+        };
         window.app.layout();
         window.app.settle_sized_reactions();
         let Some(drawable) = window.layer.nextDrawable() else {
@@ -438,11 +525,33 @@ impl Runtime {
             }
         }
         self.process_window_commands();
+        self.process_popup_commands();
+        self.sync_cursor();
+    }
+
+    fn sync_cursor(&mut self) {
+        let Some(id) = self.pointer_window else {
+            return;
+        };
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        let icon = window.app.cursor_icon();
+        let (native, view) = (window.window.clone(), window.view.clone());
+        if icon == self.cursor {
+            return;
+        }
+        self.cursor = icon;
+        native.invalidateCursorRectsForView(&view);
     }
 
     fn process_window_commands(&mut self) {
+        let mut open = Vec::new();
         for window in &self.windows {
-            let commands = std::mem::take(&mut *window.controls.queue.borrow_mut());
+            let Some(controls) = &window.controls else {
+                continue;
+            };
+            let commands = std::mem::take(&mut *controls.queue.borrow_mut());
             for command in commands {
                 let id = window.id;
                 match command {
@@ -453,9 +562,15 @@ impl Runtime {
                     WindowCommand::Present(_) | WindowCommand::MakeKey => later(id, Native::Front),
                     WindowCommand::SetTitle(title) => later(id, Native::Title(title.to_string())),
                     WindowCommand::Fit((width, height)) => later(id, Native::Size(width, height)),
+                    WindowCommand::Open(window) => open.push((window, None)),
+                    WindowCommand::Sheet(window) => open.push((window, Some(id))),
                     _ => {}
                 }
             }
+        }
+        for (window, parent) in open {
+            let (app, options) = *window;
+            self.create_window(app, options, parent);
         }
     }
 
@@ -473,6 +588,27 @@ impl Runtime {
     fn on_ping(&mut self) {
         let events = std::mem::take(&mut *self.queue.borrow_mut());
         for (owner, event) in events {
+            if let Sent::Kit(event) = event {
+                if event.is::<OpenUtility>() {
+                    if let Ok(open) = event.downcast::<OpenUtility>() {
+                        let open = *open;
+                        self.create_window(open.app, open.options, Some(owner.raw()));
+                    }
+                    continue;
+                }
+                if let Ok(shortcut) = event.downcast::<EditShortcut>()
+                    && let Some(window) = self.window(owner.raw())
+                {
+                    window.app.requested_focus =
+                        Some(AccessibilityFocusStrategy::Node(shortcut.field));
+                    window
+                        .app
+                        .pending_shortcuts
+                        .push(Key::Character(shortcut.key));
+                    window.needs_redraw = true;
+                }
+                continue;
+            }
             let Some(window) = self.window(owner.raw()) else {
                 continue;
             };
@@ -481,17 +617,6 @@ impl Runtime {
                 Sent::User(UserEvent::FocusAccessibilityNode(strategy)) => {
                     window.app.requested_focus = Some(strategy);
                     window.needs_redraw = true;
-                }
-                Sent::Kit(event) => {
-                    if let Ok(shortcut) = event.downcast::<EditShortcut>() {
-                        window.app.requested_focus =
-                            Some(AccessibilityFocusStrategy::Node(shortcut.field));
-                        window
-                            .app
-                            .pending_shortcuts
-                            .push(Key::Character(shortcut.key));
-                        window.needs_redraw = true;
-                    }
                 }
                 _ => {}
             }
@@ -609,7 +734,7 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
     application.setActivationPolicy(NSApplicationActivationPolicy::Regular);
     install_menu(mtm, &application, &options.app_name);
 
-    let mut event_loop: EventLoop<'static, ()> = EventLoop::try_new()
+    let event_loop: EventLoop<'static, ()> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
     let (ping, ping_source) =
         make_ping().map_err(|_| RunError::EventLoop("calloop ping failed"))?;
@@ -633,7 +758,7 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
     RUNTIME.with(|cell| *cell.borrow_mut() = Some(runtime));
     serve_loop(event_loop)?;
 
-    with_runtime(|runtime| runtime.create_window(app, options));
+    with_runtime(|runtime| runtime.create_window(app, options, None));
     ping.ping();
     application.activate();
     application.run();

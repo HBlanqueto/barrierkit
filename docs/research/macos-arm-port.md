@@ -223,7 +223,40 @@ Findings:
    (probe tool artifact; down, 150 ms, up works).
 3. `NSApplication.activateIgnoringOtherApps` is deprecated; `activate()` is used.
 
-Not done: scale 2, popups and menus (M2), IME, cursors, the native menu bar,
+### M2 result (2026-11-22, uncommitted)
+
+Popups, sheets, utility windows and cursors are built in `platform/macos/`
+(`popups.rs`, `place.rs`, additions to `view.rs`, `mod.rs` and `input.rs`).
+A popup is a `BKPanel` (borderless, non-activating, able to become key) added
+as a child window, with an `NSVisualEffectView` behind the Metal layer: this is
+P1 for popups. The material is `menu` for a grabbing popup, `popover` and
+`toolTip` by shape, and the corner is the measured one (`CORNER_MENU`,
+`CORNER_POPOVER`, `CORNER_TOOLTIP`). `place.rs` is `xdg_positioner` (anchor,
+gravity, offset, flip, slide, resize) against the screen's visible frame, with
+five tests.
+
+Checked on this Mac with a throw-away example (not kept):
+
+| Check | Result |
+|---|---|
+| `PopUpButton` click | a menu opens below the button, rounded, with shadow and material |
+| Pick Beta | label `Beta`, `selected 1`, menu closes |
+| Click outside the menu | the menu closes (a grabbing popup closes when it loses the key window) |
+| `.help` over a label | the tooltip appears after the delay, with the tooltip material |
+| `Alert` | opens as an attached sheet over a dimmed parent; Save closes it |
+| Title bar and effect views | follow the kit's scheme (light) instead of the system's (dark) |
+
+Findings and limits:
+
+1. The popover arrow band is the compositor's on Linux; here the band stays
+   empty and the popover is a rounded rectangle.
+2. The kind of a popup is guessed: a popover shape if it has one, else a menu
+   if it grabs, else a tooltip.
+3. The first click after launching a bare binary may only activate the app.
+4. `NSCursor::columnResizeCursor` needs macOS 15, so the floor is macOS 15.
+5. Cursors are implemented with cursor rects and were not looked at on screen.
+
+Still not done after M2: scale 2, IME, the native menu bar,
 the live system appearance, the title bar mode choice (SSD only), clippy on the
 macOS code (the toolchain has no `cargo-clippy`), and tests for the runner.
 

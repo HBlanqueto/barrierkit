@@ -1,12 +1,16 @@
 use std::cell::Cell;
 
 use freya_core::integration::{KeyboardEventName, MouseEventName, PlatformEvent};
+use freya_core::prelude::CursorIcon;
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2::{
     AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
 };
-use objc2_app_kit::{NSEvent, NSTrackingArea, NSTrackingAreaOptions, NSView, NSWindowDelegate};
+use objc2_app_kit::{
+    NSBackingStoreType, NSEvent, NSPanel, NSTrackingArea, NSTrackingAreaOptions, NSView,
+    NSWindowDelegate, NSWindowStyleMask,
+};
 use objc2_foundation::{NSNotification, NSObject, NSObjectProtocol, NSRect, NSSize};
 use objc2_quartz_core::{CALayer, CAMetalLayer};
 use torin::prelude::CursorPoint;
@@ -83,6 +87,12 @@ define_class!(
                 )
             };
             self.addTrackingArea(&area);
+        }
+
+        #[unsafe(method(resetCursorRects))]
+        fn reset_cursor_rects(&self) {
+            let icon = with_runtime(|runtime| runtime.cursor()).unwrap_or(CursorIcon::Default);
+            self.addCursorRect_cursor(self.bounds(), &input::cursor(icon));
         }
 
         #[unsafe(method(mouseDown:))]
@@ -212,12 +222,22 @@ define_class!(
     unsafe impl NSWindowDelegate for WindowDelegate {
         #[unsafe(method(windowDidBecomeKey:))]
         fn window_did_become_key(&self, _: &NSNotification) {
-            with_runtime(|runtime| runtime.activated(self.ivars().id, true));
+            with_runtime(|runtime| runtime.key_changed(self.ivars().id, true));
         }
 
         #[unsafe(method(windowDidResignKey:))]
         fn window_did_resign_key(&self, _: &NSNotification) {
-            with_runtime(|runtime| runtime.activated(self.ivars().id, false));
+            with_runtime(|runtime| runtime.key_changed(self.ivars().id, false));
+        }
+
+        #[unsafe(method(windowDidBecomeMain:))]
+        fn window_did_become_main(&self, _: &NSNotification) {
+            with_runtime(|runtime| runtime.main_changed(self.ivars().id));
+        }
+
+        #[unsafe(method(windowDidResignMain:))]
+        fn window_did_resign_main(&self, _: &NSNotification) {
+            with_runtime(|runtime| runtime.main_changed(self.ivars().id));
         }
 
         #[unsafe(method(windowWillClose:))]
@@ -235,5 +255,44 @@ impl WindowDelegate {
         let this = Self::alloc(mtm).set_ivars(DelegateIvars { id });
         let this: Retained<Self> = unsafe { msg_send![super(this), init] };
         ProtocolObject::from_retained(this)
+    }
+}
+
+define_class!(
+    // A popup that grabs takes the keyboard, so it must be able to become key; it never becomes main.
+    #[unsafe(super(NSPanel))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKPanel"]
+    pub(super) struct Panel;
+
+    impl Panel {
+        #[unsafe(method(canBecomeKeyWindow))]
+        fn can_become_key_window(&self) -> bool {
+            true
+        }
+
+        #[unsafe(method(canBecomeMainWindow))]
+        fn can_become_main_window(&self) -> bool {
+            false
+        }
+    }
+);
+
+impl Panel {
+    pub(super) fn new(mtm: MainThreadMarker, frame: NSRect) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(());
+        let style = NSWindowStyleMask::Borderless | NSWindowStyleMask::NonactivatingPanel;
+        // SAFETY: NSWindow's designated initializer, with a borderless style.
+        let this: Retained<Self> = unsafe {
+            msg_send![
+                super(this),
+                initWithContentRect: frame,
+                styleMask: style,
+                backing: NSBackingStoreType::Buffered,
+                defer: false
+            ]
+        };
+        unsafe { this.setReleasedWhenClosed(false) };
+        this
     }
 }

@@ -261,12 +261,14 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 
 | Works | Missing |
 |---|---|
-| An `NSWindow` with the system title bar and traffic lights (`DecorationResponse::Server`), min and max size, title | Popups, menus, tooltips and sheets (they are queued and never opened) |
-| Mouse, scroll, keyboard (Command acts as Ctrl) | Text input methods, cursors, drag and drop |
+| An `NSWindow` with the system title bar and traffic lights (`DecorationResponse::Server`), min and max size, title | Utility windows as panels, window tabs |
+| Popups (menus, pop-up buttons, tooltips, popovers) as child panels with a native menu, popover or tooltip material, placed by `xdg_positioner`'s rules; a grabbing popup takes the keyboard and closes when it loses it | The popover arrow band, glass drawn under other surfaces |
+| Sheets with `beginSheet`, utility windows as child windows | Text input methods, drag and drop |
+| Mouse, scroll, keyboard (Command acts as Ctrl), cursors | |
 | Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | A native menu bar from `MainMenu`, notifications, file panels, accessibility |
 | `Timers`, `WakeHandle`, clipboard text | Blur and glass (the kit draws the opaque solid), the live system appearance |
 
-The `shell` feature does not build on macOS.
+The window and its popups take the kit's scheme (`appearance.domain`), not the system's. The `shell` feature does not build on macOS.
 
 ## Accessibility
 

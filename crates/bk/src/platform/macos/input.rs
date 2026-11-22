@@ -1,8 +1,9 @@
 use freya_core::{
     integration::{KeyboardEventName, MouseEventName, PlatformEvent, WheelEventName, WheelSource},
-    prelude::{Code, Key, Modifiers, MouseButton, NamedKey, TouchPhase},
+    prelude::{Code, CursorIcon, Key, Modifiers, MouseButton, NamedKey, TouchPhase},
 };
-use objc2_app_kit::{NSEvent, NSEventModifierFlags};
+use objc2::rc::Retained;
+use objc2_app_kit::{NSCursor, NSEvent, NSEventModifierFlags};
 use torin::prelude::CursorPoint;
 
 // The kit's shortcuts are written with Ctrl, so Command is Ctrl here (docs/barrierkit/13-app.md).
@@ -167,5 +168,29 @@ pub(super) fn key(event: &NSEvent, name: KeyboardEventName) -> PlatformEvent {
         key,
         code: code(key_code),
         modifiers,
+    }
+}
+
+pub(super) fn cursor(icon: CursorIcon) -> Retained<NSCursor> {
+    match icon {
+        CursorIcon::Text => NSCursor::IBeamCursor(),
+        CursorIcon::VerticalText => NSCursor::IBeamCursorForVerticalLayout(),
+        CursorIcon::Pointer => NSCursor::pointingHandCursor(),
+        CursorIcon::Grab => NSCursor::openHandCursor(),
+        CursorIcon::Grabbing => NSCursor::closedHandCursor(),
+        CursorIcon::NotAllowed | CursorIcon::NoDrop => NSCursor::operationNotAllowedCursor(),
+        CursorIcon::Crosshair | CursorIcon::Cell => NSCursor::crosshairCursor(),
+        CursorIcon::ContextMenu => NSCursor::contextualMenuCursor(),
+        CursorIcon::Copy => NSCursor::dragCopyCursor(),
+        CursorIcon::Alias => NSCursor::dragLinkCursor(),
+        CursorIcon::EResize
+        | CursorIcon::WResize
+        | CursorIcon::EwResize
+        | CursorIcon::ColResize => NSCursor::columnResizeCursor(),
+        CursorIcon::NResize
+        | CursorIcon::SResize
+        | CursorIcon::NsResize
+        | CursorIcon::RowResize => NSCursor::rowResizeCursor(),
+        _ => NSCursor::arrowCursor(),
     }
 }
