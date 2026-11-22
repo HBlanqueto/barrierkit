@@ -80,8 +80,11 @@ captured.
 Do not copy Malaysia's 450 ms slide or 260 ms slide-out as macOS values.
 They are project values.
 
-**2026-11-22.** The screen locked again at 07:55 before this surface was captured, so it is **not measured** on 2026-11-22; the series is queued in `shellblur-queue.sh`. Its Notification Center cards changed between two series of the same run (new notifications), so the
-cards need one single run: the lesson is in [`macos-blur.md` section 14.1](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22).
+**Measured 2026-11-22 (dark, raw).** A banner has the glass of the application menu panel: 146 over white, 122 over gray 128, 32 over black
+(tone and chroma gain equal to 0.5 level and 0.01); its kernel was not measured (the banner vanished before the second pass). A
+Notification Center card is another variant: 145 over white, 116 over gray 146, 32 over black, 108 over the checker, a chroma gain of
+1.0 to 0.67 and a blur of 9.0 px plus a halo of 64 px. The cards sit in a stack with a shadow of alpha 0.21 that fades over 28 px. Tables
+and errors: [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22). Reduce Transparency and the widgets were not measured.
 
 ## 4. Comparison with Malaysia
 

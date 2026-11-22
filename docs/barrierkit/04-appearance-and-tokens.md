@@ -708,7 +708,8 @@ tables of [macos-blur.md](../research/macos-blur.md#3-the-measured-matrix-dark-m
 `ctdesign::ShellGlass` is the glass of one desktop surface in one scheme, as macOS 27.2.1 composes it, and
 `ctappearance::shell_glass` is its reference function ([ADR 0094](../decisions.md);
 [the measurements](../research/macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)). The tokens are
-`components.shell-glass.<surface>.<scheme>`; today `menu`, `control-center`, `control-center-panel` and `dock`, dark only. Light, Reduce
+`components.shell-glass.<surface>.<scheme>`; today `menu` (also the banner), `spotlight`, `apps`, `notification-card`, `control-center`,
+`control-center-panel` and `dock` (glass), and `spaces-bar` (a `MaterialLook`: use `ctappearance::material::over`), dark only. Light, Reduce
 Transparency and Increase Contrast have no token: they were not measured.
 
 1. The backdrop is blurred by `sigma` px, plus `halo_weight` of a wide `halo_sigma` px blur when the weight is not 0

@@ -483,9 +483,13 @@ MENU_HELP_ICON f32 components.shell.menu.help-icon
 SHELL_GLASS_LEVELS [f32;12] components.shell-glass.levels
 SHELL_GLASS_CHROMA_KNOTS [f32;5] components.shell-glass.chroma-knots
 SHELL_GLASS_MENU_DARK ShellGlass components.shell-glass.menu.dark
+SHELL_GLASS_SPOTLIGHT_DARK ShellGlass components.shell-glass.spotlight.dark
+SHELL_GLASS_APPS_DARK ShellGlass components.shell-glass.apps.dark
+SHELL_GLASS_NOTIFICATION_CARD_DARK ShellGlass components.shell-glass.notification-card.dark
 SHELL_GLASS_CONTROL_CENTER_DARK ShellGlass components.shell-glass.control-center.dark
 SHELL_GLASS_CONTROL_CENTER_PANEL_DARK ShellGlass components.shell-glass.control-center-panel.dark
 SHELL_GLASS_DOCK_DARK ShellGlass components.shell-glass.dock.dark
+SHELL_GLASS_SPACES_BAR_DARK MaterialLook components.shell-glass.spaces-bar.dark
 GLASS_MASK Rgba components.glass-mask
 HUD_BACKGROUND Rgba components.hud.background
 SCREENSHOT_DIM Rgba components.screenshot.dim

@@ -96,7 +96,7 @@ white it reads `#e4e4e4`, `#f0f0f0`, `#eaeaea`. The top line follows the mode:
 **Re-read 2026-11-22 (dark, raw).** The values above were read with `sample` and are shifted
 ([`macos-blur.md` section 9.1](macos-blur.md#91-2026-11-21-mid-tones-read-with-sample-were-too-light)).
 Raw, the Dock shows 175 over white, 119 over gray, 13 over black and 96 over the 8 px checker, whose cells it does not flatten:
-the blur is 0.75 px (clear glass). The rim is 1 px and lowers the glass by 72 levels over white, and nothing
+the blur is 2.0 px for the low-contrast steps and 0.75 px for a 0|255 edge (clear glass). The rim is 1 px and lowers the glass by 72 levels over white, and nothing
 lies outside it. Tone, chroma gain and kernel are in [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22). Light mode, Reduce Transparency, size, position,
 magnification and auto-hide are **not measured**: they need `com.apple.dock` or system switches the user owns.
 

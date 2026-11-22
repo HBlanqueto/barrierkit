@@ -69,7 +69,10 @@ The open and close animations were not measured. The transition may scale the
 windows from their desktop rectangles; this is the usual macOS behaviour, but
 it is not confirmed from this capture.
 
-**2026-11-22.** The screen locked again at 07:55 before this surface was captured, so it is **not measured** on 2026-11-22; the series is queued in `shellblur-queue.sh`.
+**Measured 2026-11-22 (dark, raw).** Mission Control leaves the backdrop untouched below the Spaces bar (identical to the pixel at y 250 and 700):
+no blur and no dim. The Spaces bar (2560 x 116 px under the menu bar) is a material of the in-window family: a Gaussian of 27.5 px that sees only
+its own region, a saturation of 1.6, a veil of gray 46 at alpha 0.4 and a cap of 169 per channel (18 over black, 106 over gray 146, 169 over
+white); the worst channel misses by 0.66 level over 21 samples. [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22) has the details.
 
 ## 4. Comparison with Malaysia
 

@@ -126,7 +126,7 @@ recorded under a dark wallpaper; see the corrections in
 **Re-read 2026-11-22.** The panel values above were read with `sample` and are shifted
 ([`macos-blur.md` section 9.1](macos-blur.md#91-2026-11-21-mid-tones-read-with-sample-were-too-light)).
 Raw, in dark mode, the panel shows 146 over white, 129 over gray, 32 over black and 122 over the 8 px checker, with a
-blur of 9.5 px plus a wide halo, a luma tone and a chroma gain: [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22). The bar
+blur of 9.0 px plus a wide halo, a luma tone and a chroma gain: [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22). The bar
 itself is identical to the backdrop to 0 levels over every backdrop of the series. Light mode was not measured.
 
 The ink follows the panel in both modes: `ctappearance::menu::dark_ink_over`

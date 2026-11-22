@@ -349,17 +349,19 @@ Closed on 2026-11-20 in `ctdesign` and `ctappearance`; the tests in
   exist at 1x without being measurable; Retina captures are needed.
   **Not measured (2026-11-22):** the host display runs at scale 1 and a Retina
   capture needs a scaled display mode, a system setting
-  ([section 14.7](#147-not-measured-and-why)).
+  ([section 14.9](#149-not-measured-and-why)).
 - Does the light mode track a dark wallpaper and revert to the dark matrix?
   The 2026-11-19 pass suggests it; verify with the current light wallpaper in
   dark mode and a dark wallpaper in light mode.
   **Not measured (2026-11-22):** it needs the Light appearance. The probe draws
   its own backdrop, so the wallpaper never reaches a surface that blurs.
 - Does Notification Center change under Reduce Transparency?
-  **Not measured:** it needs the system switch and the cards were not captured
-  before the screen locked.
+  **Not measured:** it needs the system switch (Reduce transparency); the cards
+  were measured in dark ([section 14.4](#144-the-numbers-dark)).
 - Does the Launchpad lift depend on the wallpaper luminance?
-  **Not measured:** Apps was not captured before the screen locked.
+  **Answered (2026-11-22):** the Launchpad of macOS 27 is Apps, a floating glass panel
+  (864 x 606 px at 848, 431) with the glass of the application menu: it blurs the
+  backdrop under it, dims nothing else and lifts nothing over the whole screen.
 - Is the compact Control Center panel the default or a host state?
   **Answered (2026-11-22):** on this host the panel opens as a stack of glass
   tiles (Wi-Fi, Bluetooth, AirDrop, now playing, the display and sound sliders)
@@ -387,7 +389,7 @@ The captures are local and not committed:
 - `~/src/captures/defaults-2026-11-20-modes/`: the backup before this pass.
 - `~/src/captures/blur-*.png`: the 2026-11-19 pass at 1920x1080.
 - `~/src/captures/shellblur/dark/<surface>-<name>.png` (2026-11-22, raw
-  captures; `<surface>` is `bar`, `appmenu`, `cc`, `nc` or `dock`; `<name>` is
+  captures; `<surface>` is `bar`, `appmenu`, `cc`, `nc`, `dock`, `banner`, `spotlight`, `apps` or `mc`; `<name>` is
   `g<level>`, `c<r>-<g>-<b>`, `checker<cell>`, `stripes<period>`, `ev|evi<d>`,
   `eh|ehi<d>`, `kg<level>`, `sl<lo>-<hi>`, `bw|bb<side>`), `<surface>-state.json`,
   `<surface>-captures.jsonl` and `results.json`; probes `backdrop`, `keys`,
@@ -447,51 +449,59 @@ and the commits.
 ## 14. Desktop surfaces as a pipeline, measured 2026-11-22
 
 **Goal:** give the compositor one function per desktop surface that reproduces
-what macOS 27.2.1 draws over any backdrop, with the error stated.
-**Scope:** the menu bar, the application menu panel, the Control Center tiles
-and their backing panel and the Dock, in dark mode, Reduce Transparency off,
-Increase Contrast off, scale 1. Section 14.7 lists what was not measured.
+what macOS 27.2.1 draws over any backdrop, with the error stated, and say how
+macOS composes and configures each blur.
+**Scope:** the menu bar, the application menu panel, notification banners and
+cards, Spotlight, Apps (the Launchpad of macOS 27), Control Center (tiles and
+backing panel), the Dock and Mission Control's Spaces bar, in dark mode, Reduce
+Transparency off, Increase Contrast off, scale 1. Section 14.9 lists what was
+not measured.
 **Reader:** whoever changes `ctappearance::shell_glass`, the compositor's glass
 pass or a Malaysia shell surface.
-**Input:** the probes of [section 14.1](#141-method) and the captures of
-[section 12](#12-evidence).
+**Input:** the probes of [section 14.1](#141-method), the captures of
+[section 12](#12-evidence) and the system resources of [section 14.8](#148-configuration-and-provenance).
 **Output:** the pipeline, its numbers per surface, the kernel, the edges, the
-parity procedure and the open points.
+error of Malaysia's blurs, the provenance of each value and the parity
+procedure.
 
 ### 14.1 Method
 
 1. **State.** `shellstate` records the appearance (dark), Reduce Transparency
    (off), Increase Contrast (off), the scale (1) and whether the session is
    locked. No system setting was changed: the Dock, the appearance and the
-   wallpaper are the user's.
+   wallpaper are the user's. The session was locked until 06:59 and again from 07:55
+   to 10:35 of 2026-11-22; a locked session captures only the wallpaper, so the
+   drivers refuse to run.
 2. **Backdrop.** `backdrop live:<file>` is an ordinary window at level 3 that
-   fills the screen and redraws whatever mode a file names: `gray:<n>`,
+   fills the screen and redraws the mode a file names: `gray:<n>`,
    `rgb:<r>,<g>,<b>`, `checker:<cell>`, `stripes:<period>`,
-   `edgev|edgevi|edgevl:<x>`, `boxat:<cx>:<cy>:<w>:<h>:<inside>:<outside>`.
-   One process serves a whole series under a surface that stays open, so the
-   surface is the same pixel for pixel across the series.
-3. **Surface.** `shellblur.sh` opens it (`mouse` on the menu-bar item, `keys`
-   for Spotlight), checks that it is open (a probe pixel differs from the
-   backdrop, three tries), captures the screen after each swap and closes it
-   with Escape. It holds `/tmp/barrierkit-screen.lock` and changes nothing.
-4. **Reading.** Every value is a raw byte of the PNG (PIL, never
-   `sample` before 2026-11-22: [section 9.1](#91-2026-11-21-mid-tones-read-with-sample-were-too-light)).
-   The input of a sample is the bare backdrop in the same capture (a 60x60
-   patch away from every surface): it equals the drawn level (16, 32, 64, 96,
-   128, 160, 192, 224, 255 read 16, 32, 64, 96, 128, 160, 192, 224, 255, std
-   0.5). The display profile has an exact sRGB curve, so a raw gray is its
-   sRGB gray. Colours are read as device values, the capture's own bytes
-   (BT.2020 primaries): the pipeline below acts on them.
-5. **Series per surface.** Twelve gray levels (0, 16, 32, 48, 64, 96, 128,
-   160, 192, 224, 240, 255) and ten more held out (8, 24, 40, 56, 80, 112, 144,
-   176, 208, 232), nine plus twenty-four colours, checkers of 2, 4, 8 and 16 px,
-   stripes of period 8, 16, 32 and 64 px, white|black edges in both polarities at
-   known positions, low-contrast steps (0|64, 48|80, 112|144, 192|255) and
-   centred boxes (8 to 256 px, white on black and black on white).
-6. **Windows.** The value of a surface is the mean of a 24x8 window that is
-   flat (within 1 level of its plateau) in the gray 128 capture and lies inside
-   the glass, found by `shellblur-fit.py geom` from where a white and a black
-   backdrop come out less than 200 levels apart.
+   `edgev|edgevi|edgevl:<x>`, `boxat:<cx>:<cy>:<w>:<h>:<inside>:<outside>`. One
+   process serves a whole series under a surface that stays open, so the surface
+   is the same pixel for pixel across the series.
+3. **Surface.** `shellblur.sh` opens it (`mouse` on the menu-bar item, `keys` for
+   Spotlight, a notification for the banner, `open -a Apps`, `open -a "Mission
+   Control"`), checks that it is open (a probe pixel differs from the backdrop,
+   three tries), captures the screen after each swap and closes it with Escape. It
+   holds `/tmp/barrierkit-screen.lock`, leaves 10 s after releasing it and changes
+   nothing.
+4. **Reading.** Every value is a raw byte of the PNG (PIL; `sample` only since the
+   fix of 2026-11-22, [section 9.1](#91-2026-11-21-mid-tones-read-with-sample-were-too-light)).
+   The input of a sample is the bare backdrop in the same capture (a 60x60 patch
+   away from every surface): it equals the drawn level (16, 32, 64, 96, 128, 160,
+   192, 224, 255 read 16, 32, 64, 96, 128, 160, 192, 224, 255, std 0.5). The
+   display profile has an exact sRGB curve, so a raw gray is its sRGB gray. Colours
+   are read as device values, the capture's own bytes (BT.2020 primaries).
+5. **Series per surface.** Twelve gray levels, nine colours, checkers of 2, 4, 8
+   and 16 px, stripes of period 8, 16, 32 and 64 px and white|black edges in both
+   polarities; then, in a second pass that captures its own gray levels and finds
+   its own geometry (the Notification Center changes between passes), ten held-out
+   gray levels, 24 more colours, low-contrast steps (0|64, 48|80, 112|144, 192|255),
+   centred boxes of 8 to 256 px (white on black and black on white) and two boxes
+   that are exactly the surface (`rimb` black over white, `rimw` white over black).
+6. **Windows.** The value of a surface is the mean of a 24x8 window that is flat
+   (within 1 level of its plateau) in the gray 128 capture and lies inside the
+   glass, found by `shellblur-fit.py geom` from where a white and a black backdrop
+   come out less than 200 levels apart.
 
 Probes, drivers and fits are in `~/src/probes` (`README.txt`); the raw captures
 are in `~/src/captures/shellblur/dark` and stay outside the repository.
@@ -499,14 +509,17 @@ are in `~/src/captures/shellblur/dark` and stay outside the repository.
 ### 14.2 The menu bar is clear
 
 The bar rows (y 4 to 26) equal the rows 32 px below in every capture of the
-series, to 0 levels: gray 0 to 255, checkers of 2, 4, 8 and 16 px and stripes of 8 to
-64 px (700 to 1000 px wide). The bar has no blur, no veil and no tint over any
+series, to 0 levels: gray 0 to 255, checkers of 2, 4, 8 and 16 px and stripes of 8
+to 64 px (700 to 1000 px wide). The bar has no blur, no veil and no tint over any
 backdrop. This confirms [section 4](#4-the-measured-matrix-light-mode)'s "clear"
 with the error bound it lacked (0 of 255); light mode was not measured.
 
 ### 14.3 The pipeline
 
-For a backdrop pixel `b` (device values 0 to 255, the bytes of the capture):
+Two families, both over device values (the bytes of the capture, 0 to 255).
+
+**Glass** (application menu panel, banner, Spotlight, Apps panel, notification
+card, Control Center tile and backing panel, Dock):
 
 ```text
 blurred = (1 - w) G(sigma) * b + w G(halo_sigma) * b
@@ -514,29 +527,45 @@ Y       = 0.2126 R + 0.7152 G + 0.0722 B   of the blurred pixel
 out_c   = tone(Y) + s(Y) (blurred_c - Y)    for each channel c
 ```
 
-`tone` is a table of the gray response (12 levels, linear between them),
-`s(Y)` a table of five knots (Y = 0, 64, 128, 192, 255) and the blur is a
-Gaussian, or a core and a wide halo. The luma has the weights of Rec. 709 and
-is taken over device values: with the BT.2020 weights the luma law of the nine
-first colours of the menu misses by 4.2 levels instead of 0.9, and over values
-converted to extended sRGB it misses by 28 (red 48 against 76, green 113 against
-141). Checks:
+`tone` is the gray response (12 levels, linear between them), `s(Y)` the gain of
+the colour difference (five knots at Y = 0, 64, 128, 192, 255). The luma has the
+weights of Rec. 709 and is taken over device values: with the BT.2020 weights the
+luma law of the nine first colours of the menu misses by 4.2 levels instead of 0.9,
+and over values converted to extended sRGB it misses by 28 (red 48 against 76, green
+113 against 141).
 
-- **Held-out grays.** Ten levels not in the table: the linear interpolation
-  misses by 1.0 level (menu, Control Center) and 0.9 (Dock) at most.
-- **Held-out colours.** The `s(Y)` knots were fitted on nine colours and tested
-  on 23 to 24 others: the worst channel misses by 1.7 (menu), 0.9 (Dock) and 2.3
-  (backing panel) levels. For the tile the nine-colour fit gives 8.1 (its
-  training set holds `rgb:0,0,255`, whose blue clips at 255 and bends `s(Y)` near
-  Y = 48) and the table fitted on all 33 colours misses by 1.3 at most. A channel
-  that reaches 255 or 0 is clipped on screen and is not compared.
-- **Mixing is in encoded values.** The 8 px checker comes out where the model
-  puts the mean of black and white, 127.5: menu 122 (model 122), tile 111 (110),
-  backing panel 115 (115).
+**Spaces bar** (Mission Control) is the layer stack of the in-window materials
+([`macos-materials.md`](macos-materials.md#102-the-pipeline)): a Gaussian of sigma
+27.5 that sees only its own region, a saturation of 1.6 (`Y + 1.6 (c - Y)`, clamped), a
+veil of gray 46 at alpha 0.4 and a cap of 169 per channel. Over 21 samples (grays and
+colours) the worst channel misses by 0.66 level; a blue backdrop (59, 28, 243) comes
+out (57, 27, 169): the blue is capped, as no luma tone would do.
+
+Checks, glass:
+
+- **Held-out grays.** Ten levels not in the table: the linear interpolation misses
+  by 1.0 level (menu, Control Center) and 0.9 (Dock) at most.
+- **Held-out colours.** The `s(Y)` knots were fitted on nine colours and tested on 23
+  to 24 others: the worst channel misses by 1.7 (menu), 0.9 (Dock) and 2.3 (backing
+  panel) levels. For the tile the nine-colour fit gives 8.1 (its training set holds
+  `rgb:0,0,255`, whose blue clips at 255 and bends `s(Y)` near Y = 48) and the table
+  fitted on all 33 colours misses by 1.3 at most. A channel that reaches 255 or 0 is
+  clipped on screen and is not compared.
+- **Mixing is in encoded values.** The 8 px checker comes out where the model puts
+  the mean of black and white, 127.5: menu 122 (model 122), tile 111 (110), backing
+  panel 115 (115). A mixing space of exponent 0.4 to 2.2 on the encoded values fits
+  the Dock's steps worse than 1.0 (0.7 to 3.9 levels against 0.5) and its 0|255 edge
+  worse too (0.5 to 2.2 against 0.4).
+- **No noise.** A flat window of the menu, banner, Spotlight and Apps has std 0.00;
+  the only grain is the capture's own (std 0.5 on the bare backdrop).
+- **Alpha.** Every capture is opaque. A glass surface shows the same pixel over a
+  backdrop whatever is under the backdrop: the glass has no transparency of its own
+  beyond the backdrop it blurs.
 
 [`ctappearance::shell_glass::over`](../barrierkit/04-appearance-and-tokens.md#shell-glass)
-is this function; its tests reproduce every gray and colour sample of the table
-within 2 levels.
+is the glass function (the Spaces bar uses `ctappearance::material::over`); the tests
+reproduce every gray and colour sample of the table within 2 levels (1 level the
+Spaces bar).
 
 ### 14.4 The numbers, dark
 
@@ -545,145 +574,231 @@ Raw output over the four classic backdrops (gray is the raw 146 that
 
 | Surface | White 255 | Gray 146 | Black 0 | Checker 8 px |
 |---|---|---|---|---|
-| Application menu panel | 146 | 129 | 32 | 122 |
+| Application menu panel, banner, Spotlight, Apps panel | 146 | 129 | 32 | 122 |
+| Notification card | 145 | 116 | 32 | 108 |
 | Control Center tile | 186 | 121 | 32 | 111 |
 | Control Center backing panel | 230 | 131 | 0 | 115 |
 | Dock | 175 | 119 | 13 | 96 (the 8 px cells are not flattened) |
+| Spaces bar | 169 | 106 | 18 | 95 |
 
 `tone`, raw output at each input level:
 
 | Surface | 0 | 16 | 32 | 48 | 64 | 96 | 128 | 160 | 192 | 224 | 240 | 255 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Application menu panel | 32 | 44 | 57 | 70 | 82 | 104 | 122 | 135 | 143 | 147 | 147 | 146 |
+| Menu panel, banner, Spotlight, Apps (the four agree to 0.5 level) | 32 | 44 | 57 | 70 | 82 | 104 | 122 | 135 | 143 | 147 | 147 | 146 |
+| Notification card | 32 | 42 | 52 | 62 | 72 | 92 | 108 | 122 | 133 | 141 | 143 | 145 |
 | Control Center tile | 32 | 41 | 51 | 61 | 71 | 90 | 110 | 129 | 149 | 168 | 178 | 186 |
 | Control Center backing panel | 0 | 14 | 29 | 43 | 58 | 87 | 115 | 144 | 173 | 202 | 217 | 230 |
 | Dock | 13 | 26 | 39 | 52 | 64 | 87 | 108 | 128 | 145 | 161 | 169 | 175 |
+| Spaces bar | 18 | 28 | 38 | 47 | 57 | 76 | 95 | 114 | 134 | 153 | 162 | 169 |
 
-The panel is a smooth shoulder, not a veil with a hard cap: out = 31.7 + 0.609 in
-for the tile is a line (veil and cap fit it with 0.4), out = 0.903 in for the
-backing panel is a pure dimming (a black veil of alpha 0.097) and the menu and
-Dock are concave (the veil and cap fit misses by 6.3 and 6.4 levels). No dither:
-a flat window of the menu has std 0.00.
+The menu panel is a smooth shoulder, not a veil with a hard cap (veil and cap
+misses by 6.3 levels). The tile is a line (31.7 + 0.609 in, veil and cap fit it with
+0.4), the backing panel a pure dimming (0.903 in: a black veil of alpha 0.097) and the
+Spaces bar a line capped at 169 (18.4 + 0.600 in). The banner, Spotlight and Apps are
+the same glass as the application menu; the notification card is another variant.
 
-`s(Y)`, the gain of the colour difference:
+`s(Y)`, the gain of the colour difference (glass family):
 
 | Surface | s(0) | s(64) | s(128) | s(192) | s(255) | worst channel, all colours |
 |---|---|---|---|---|---|---|
-| Application menu panel | 1.19 | 1.15 | 1.02 | 0.86 | 0.69 | 1.7 |
+| Menu panel | 1.19 | 1.15 | 1.02 | 0.86 | 0.69 | 1.7 |
+| Banner | 1.20 | 1.15 | 1.02 | 0.87 | 0.69 | 1.2 |
+| Spotlight | 1.20 | 1.15 | 1.02 | 0.87 | 0.69 | 1.2 |
+| Apps panel | 1.20 | 1.15 | 1.02 | 0.86 | 0.68 | 1.0 |
+| Notification card | 1.01 | 0.92 | 0.87 | 0.77 | 0.67 | 1.1 |
 | Control Center tile | 1.09 | 1.09 | 1.08 | 1.08 | 1.08 | 1.3 |
 | Control Center backing panel | 0.91 | 0.90 | 0.90 | 0.90 | 0.91 | 0.8 |
 | Dock | 1.23 | 1.17 | 1.11 | 1.05 | 0.99 | 1.0 |
 
-A saturated primary leaves the menu panel nearly unchanged (device red 208, 74,
-34 comes out 224, 79, 36) while white goes to 146: the glass caps the luma, not
-the channels.
+A saturated primary leaves the menu panel nearly unchanged (device red 208, 74, 34
+comes out 224, 79, 36) while white goes to 146: the glass caps the luma, not the
+channels. The notification card's table comes from the nine colours of its run only.
 
 ### 14.5 The kernel
 
-The checkers bound the blur from below (a Gaussian under 5.5 px leaves the
-8 px cells visible) and the steps, boxes and stripes give its width. The step
-response of a low-contrast edge (0|64) is the same for the menu and the tile
-in the sense that its half-way point sits where the edge is: **0.0 px** (menu)
-and **-0.1 px** (tile), so nothing is displaced at the centre of a surface: no
-refraction, as in [section 7.1](#71-the-boundary-test-for-refraction).
+The checkers bound the blur from below (a Gaussian under 5.5 px leaves the 8 px
+cells visible); steps, boxes and stripes give its width. The half-way point of a
+low-contrast step (0|64) sits where the edge is: **0.0 px** (menu) and **-0.1 px**
+(tile), so nothing is displaced at the centre of a surface: no refraction, as in
+[section 7.1](#71-the-boundary-test-for-refraction). Stripes and checkers do not
+distinguish a Gaussian from a Kawase; steps and boxes do (a Dual Kawase fits the
+menu's step 0.002 worse than a Gaussian and has no halo).
 
-Fitted with the tone after the blur, mixing in encoded values and one or two
-Gaussians (`shellblur-pyramid.py <dir> <surface> two`):
+Fitted with the tone after the blur, mixing in encoded values and one or two Gaussians
+(`shellblur-pyramid.py <dir> <surface> two`), from the second pass:
 
-| Surface | core sigma | halo sigma | halo weight | rms, steps and boxes | rms, stripes | Dual Kawase, passes and offset |
-|---|---|---|---|---|---|---|
-| Application menu panel | 9.5 px | 128 px | 0.20 | 3.7 levels | 7.8 | 3 and 1.57 (core), 6 and 2.76 (halo) |
-| Control Center tile | 3.5 px | none | 0 | 1.1 levels | 6.9 | 3 and 0.37 |
-| Control Center backing panel | about 1 px | none | 0 | not fitted (checker lock-in, 0.7 to 1.2 px) | not measured | 1 and 0.67 |
-| Dock | 0.75 px | none | 0 | 0.4 and 0.5 levels (the 0\|255 edge in the middle of the Dock, both polarities) | not measured | 1 and 0.34 |
+| Surface | core sigma | halo sigma | halo weight | rms, steps and boxes | rms, stripes |
+|---|---|---|---|---|---|
+| Application menu panel | 9.0 px | 128 px | 0.20 | 4.2 levels | 7.5 |
+| Spotlight | 10.5 px | 64 px | 0.20 | 4.0 | not measured |
+| Apps panel | 8.0 px | 64 px | 0.25 | 4.8 | 9.3 |
+| Notification card | 9.0 px | 64 px | 0.20 | 4.6 | 6.9 |
+| Banner | not measured (the banner vanished during the second pass) | | | | |
+| Control Center tile | 3.5 px | none | 0 | 0.9 | 6.9 |
+| Control Center backing panel | about 1 px (checker lock-in, 0.7 to 1.2) | none | 0 | not fitted | not measured |
+| Dock | 2.0 px (0.75 px for a 0\|255 edge) | none | 0 | 0.5 | not measured |
+| Spaces bar | 27.5 px | none | 0 | 1.1 | 0.3 to 0.8 |
 
 What the fits leave out:
 
-- The menu panel's black boxes of 16 and 32 px are 19 levels off (white ones 4
-  and 6.5) and its stripes of period 16, 32 and 64 are 4.9, 15.6 and 10.1 off: a
-  small box or a fine stripe shows more contrast than a blur then a tone gives. A blur that is not followed by
-  a point tone (the `glassBackground` filter has several blurs and a lighten
-  fill, [`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22))
-  would explain it; the model keeps blur then tone and states the error.
-- The tile fits every step within 0.5 level and every box of 32 px or more
-  exactly, misses by 3 to 3.5 on the 16 px boxes and by 7 on the 8 px boxes: the
+- The glass of the menu family shows more contrast in a black box of 16 or 32 px (28
+  and 17 levels off in the menu, 47 and 18 in Apps) and in fine stripes (period 32:
+  15 off) than blur then tone gives, and the white boxes of the same size are within 3
+  to 7. The error repeats between the two passes. The Dock's 0|255 edge is sharper (0.75
+  px) than its low-contrast steps and boxes (2.0): the width depends on the contrast,
+  which no linear blur followed by a point tone gives. The glass has several blurs
+  (below), so the model states its error and keeps blur then tone.
+- The Control Center tile fits every step within 0.5 level and every box of 32 px or
+  more exactly, misses by 3 to 3.5 on the 16 px boxes and by 7 on the 8 px boxes: the
   kernel is not a Gaussian at the smallest scale.
-- The Dock is almost sharp. A 0|255 edge in the middle of its top strip (rows
-  1361 to 1370, 517 px wide) fits one Gaussian of 0.75 px with rms 0.4 (white|black)
-  and 0.5 (black|white): clear glass, like the `clear` tile of
-  [`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22)
-  (2.1 px between 10 and 90 %, sigma 0.8). That is why the 8 px checker stays
-  half visible in it. The boxes and steps of the first pass fell near its rim (the
-  Dock is 79 px high) and gave 4.5 px; they are not valid.
-- The wide halo of the menu (weight 0.20, sigma 128) is also what
-  `inputBleedBlurRadius` 42 would give a glass filter; it is measured here, not
-  read from a layer tree.
+- The Dock's boxes and steps were taken in its 9 px strip above the icons: the strip
+  is flat but sits 6 to 15 px from the rim.
 
-The tone of the menu panel is that of the regular dark glass tile of a window
-([`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22), over
-gray 0, 32, 64, 128, 192, 224, 255 it shows 42, 59, 84, 123, 144, 147, 151; the panel
-shows 32, 57, 82, 122, 143, 147, 146): within 2 levels from 32 to 224, 10 apart over black
-and 5 over white. The shell's panel is the same filter family with other inputs, not a
-copy of the tile; no shell surface was fitted to the inputs of
-[`macos-liquid-glass.md`](macos-liquid-glass.md).
+The menu family's two components agree with the configuration of the glass filter read
+in a window ([`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22)
+and its probe of the blur radius: the backdrop of a glass is scaled by 0.5 and a radius
+is 0.99 sigma on it): a `inputBlurRadius` 5 is 9.9 px on screen and a bleed radius of 42
+is 83 px. A kernel with those two sigmas and a weight of 0.2 or 0.25 misses the
+captures by 4.6 to 6.3 levels (menu 5.7, Spotlight 4.6, Apps 6.3, card 6.2), 1 to 2
+levels more than the free fit: the captures decide, the configuration explains them.
+The same menu tone is also the regular dark glass tile of a window
+(over gray 0, 32, 64, 128, 192, 224, 255 it shows 42, 59, 84, 123, 144, 147, 151; the
+panel 32, 57, 82, 122, 143, 147, 146): within 2 levels from 32 to 224, 10 apart over
+black and 5 over white. The shell's panel is the same filter family with other inputs.
 
-Malaysia's wallpaper blur (3 passes at offset 3.0) is a Gaussian of sigma 17.2
-(second moment); the in-window materials use 27.6 ([`macos-materials.md`](macos-materials.md#14-the-blur-algorithm-and-malaysias-dual-kawase-2026-11-22)).
-The shell surfaces blur much less: 0.75 px (Dock), 1 (backing panel), 3.5 (tile) and 9.5 (menu panel). A Dual Kawase of 3 passes
-with a small offset reproduces the core, but the compositor can get any sigma
-from a Gaussian on a downsampled backdrop at the same cost
-([`ctappearance::shell_glass::kawase_reaching`](../barrierkit/04-appearance-and-tokens.md#shell-glass)
-gives the passes and offset for Malaysia's shaders).
+### 14.6 Edges: outline, shadow and what a blur sees beyond them
 
-### 14.6 Edges
+- **The blur does not see beyond the edge.** `rimb` (a black box that is exactly the
+  surface over white) and `rimw` (white over black) show what the glass next to its
+  own rim samples. Hypotheses: the whole kernel sees the screen; the core is
+  normalised to the region and the halo sees the screen; both are normalised.
+  Control Center tile, over the black and white boxes: 10.9 and 11.4 levels for the
+  first hypothesis, 0.0 and 2.0 for the others (measured 32 and 187 flat to the rim):
+  normalised. Spaces bar: 54 against 3.0 and 1.0: normalised. Dock: the black box
+  stays at 12 to 13 to the rim, as the normalised models say (12) and not the first
+  (34 at the rim). Application menu, black box: 23.3 (left rim) and 14.1 (right)
+  for the first, 30.3 and 29.4 for the third, **6.6 and 6.0** for the second: the
+  core is normalised to the region and the halo sees the screen (the black box
+  shows 60 to 64 near its rim, where the normalised core would give 32); the white
+  box is within 1.0 to 4.6 of all three. The Apps panel agrees with the menu (56 to 58 near the rim of
+  the black box, 51 to 56 modelled); the Notification Center's union of cards was not
+  a usable box.
+  So the blur is the `inputNormalizeEdges` of the in-window materials
+  ([`macos-materials.md`](macos-materials.md#14-the-blur-algorithm-and-malaysias-dual-kawase-2026-11-22))
+  for the core and the tiles, and the wide bleed samples outside.
+- **Outline and shadow**, over white. The pixel line at the rim (inside to
+  outside), then the black alpha of the shadow at d px:
 
-- **Application menu panel.** A 1 px outline that lowers the glass by 79 levels
-  over white (66 over 145) and 70 over gray (51 over 121) and clips to 0 over
-  black. Outside it a shadow, a black overlay of alpha 0.134 exp(-d / 12.3) at d px
-  from the edge (the first pixel measures 0.114, 226 over 255; the fit is over
-  white and gray), visible to 46 px.
-- **Dock.** A 1 px rim that lowers the glass by 72 levels over white (104 over
-  176) and 58 over gray (50 over 108), and nothing outside it, no shadow.
-- **Control Center.** The tiles sit on a backing panel that dims what is behind
-  by 0.903 and blurs it by about 1 px: the strip beyond the tiles (x 2549 to
-  2559, y 60 to 500) is flat at 0.903 of the backdrop. A tile's outline is 1 px
-  and lowers the glass by 34 levels over white (152 over 186) and 41 over gray
-  (69 over 110).
-- **How the blur samples beyond the edge** is measured by the `rimb` and `rimw`
-  boxes (a black or white box that is exactly the surface over its opposite): not
-  captured in this pass (the screen was locked), see section 14.7.
-
-### 14.7 Not measured, and why
-
-| Cell | Why | What it needs |
+| Surface | rim pixels | alpha at d = 1, 2, 5, 10, 20, 40 |
 |---|---|---|
-| Light mode, every surface | the system appearance is global | the user switches it |
-| Reduce Transparency and Increase Contrast | system switches (a per-process flag changes no desktop surface) | the user switches them |
-| Scale 2 (Retina) | the host display has no HiDPI mode in use | the user picks a scaled display mode |
-| Dock position, size, magnification and auto-hide | `com.apple.dock` preferences | the user changes them |
-| Notification Center cards, banner, Spotlight, Mission Control, Apps (Launchpad), Spaces bar | the screen locked again at 07:55 before their captures; queued in `shellblur-queue.sh` | the user unlocks |
-| Lock screen and login window | locking the only session blocks the host; a capture of a locked session shows only the wallpaper (first capture of 2026-11-22) | none reachable |
-| Stage Manager strip | the feature is off and switching it on is a system setting | the user switches it |
-| Inactive and focused states | the desktop surfaces have none | none |
+| Application menu panel | 143, 143, 145, **66** | 0.114, 0.106, 0.090, 0.063, 0.027, 0 |
+| Spotlight pill | 158, **90, 22** | 0.263, 0.251, 0.216, 0.169, 0.082, 0.016 |
+| Apps panel | 146, 148, 158, **8** | 0.329, 0.314, 0.275, 0.208, 0.106, 0.012 |
+| Notification card | 143, 143, 149, **116** | 0.208, 0.204, 0.184, 0.157, 0.106, not measured |
+| Control Center tile | 186, 186, 189, **152** | on the backing panel: 0.098 flat |
+| Spaces bar (bottom edge) | 169, 169, 169, **198** | 0.133, 0.125, 0.114, 0.090, 0.051, 0.004 |
+| Dock (left end) | 176, 176, 176, **104** | 0 |
 
-### 14.8 Parity check
+  The menu panel's shadow is also an exponential, 0.134 exp(-d / 12.3) (rms over
+  white and gray). The Control Center tiles sit on a backing panel that dims what is
+  behind by 0.903 and blurs it by about 1 px: the strip beyond them (x 2549 to
+  2559, y 60 to 500) is flat at 0.903 of the backdrop.
+
+### 14.7 Malaysia's blurs against the measured kernels
+
+Malaysia blurs the Dock with a Gaussian of sigma 3 (`dock_soften.frag`, `SIGMA` 3
+times the `soften` of 1.0), menus, popups and notifications with sigma 6 (`soften`
+2.0) and everything behind a window with a Dual Kawase of 3 passes at offset 3.0
+(sigma 17.2 by its second moment, 16.8 by the profile of
+[`macos-materials.md`](macos-materials.md#14-the-blur-algorithm-and-malaysias-dual-kawase-2026-11-22)).
+Applied to every step and box of the second pass, with the measured tone after the
+blur, the mean rms and the worst item in levels:
+
+| Surface | Malaysia's blur for it | Dock sigma 3 | Popup sigma 6 | Wallpaper Dual Kawase | Measured model |
+|---|---|---|---|---|---|
+| Application menu panel | popup | 25.7 / 88 | **17.4 / 48** | 15.2 / 54 | 4.2 / 29 |
+| Spotlight | not checked | 27.3 / 107 | 18.6 / 70 | **9.9 / 54** | 4.6 / 26 |
+| Apps panel | none (no Apps) | 21.2 / 83 | 13.8 / 41 | 15.0 / 57 | 5.9 / 50 |
+| Notification card | popup | 21.9 / 79 | **13.1 / 44** | 12.9 / 51 | 4.6 / 38 |
+| Control Center tile | none (no Control Center) | 1.9 / 13 | 9.4 / 53 | 34.7 / 125 | 0.9 / 4 |
+| Dock | Dock | **4.2 / 46** | 15.5 / 112 | 41.1 / 147 | 0.5 / 2 |
+| Spaces bar | none (no overview bar) | 55.2 / 144 | 43.7 / 121 | 17.5 / 52 | 1.1 / 3 |
+
+None of Malaysia's blurs is within 2 levels (the tolerance of
+[section 14.10](#1410-parity-check)) of the surface it draws, except the Dock's
+sigma of 3 against a Control Center tile that Malaysia does not have. The Dock's
+own error is 4.2 on average and 46 at worst (62 at its 0|255 edge); the menu's and the
+notification card's, 13 to 17 on average and 44 to 48 at worst; the Spaces bar's
+(a window overview Malaysia draws without a bar) 17.5.
+
+What reproduces them: a region-normalised Gaussian at reduced resolution, as macOS
+builds it. For the glass family, a core of sigma 9 (`inputBlurRadius` 5 on a backdrop
+scaled by 0.5) plus a bleed of sigma 64 to 128 (radius 42) at weight 0.2 to 0.25 that
+is *not* normalised, then the tone and chroma tables; for the tile and the Dock a single
+sigma of 3.5 and 2.0 (and 0.75 for the Dock's high-contrast edges); for the Spaces bar
+sigma 27.5 (radius 30 at scale 0.125). The in-window study measured that a Gaussian
+on a backdrop downsampled by 4 equals the Dual Kawase's cost for the wide sigmas
+([`macos-materials.md`](macos-materials.md#14-the-blur-algorithm-and-malaysias-dual-kawase-2026-11-22));
+the narrow sigmas (0.75 to 3.5) are a separable Gaussian of 5 to 25 taps at full or half
+resolution. Cost on a GPU was not measured here. A Dual Kawase of 1 to 3 passes with a
+small offset reproduces a single narrow sigma (`kawase_reaching`: sigma 3.5 is 3 passes
+at offset 0.37) but has no halo and does not normalise edges.
+
+### 14.8 Configuration and provenance
+
+| Value | Source | Where |
+|---|---|---|
+| Pipeline, tone, chroma, kernel, edges of each surface | measured: captures over the backdrops of section 14.1 | 14.3 to 14.6 |
+| A glass's blur radius 5, fill radius 8, bleed radius 42, backdrop scale 0.5 | read: layer tree of an `NSGlassEffectView` in the probe's own process (runtime observation, not API), by the in-window study | [`macos-materials.md`](macos-materials.md#12-glass-tiles-observed-2026-11-22), 14.3 |
+| Radius is 0.99 sigma on the scaled backdrop | read: throwaway probe with `CABackdropLayer`, by the in-window study | `macos-materials.md` section 14.3 |
+| Saturation 1.6 of the Spaces bar | measured; equal to the `saturation` of `dockDark.materialrecipe` and `modulesBackground.materialrecipe` (read) | below |
+| Dock recipe: `blurRadius` 30, `backdropScale` 0.25, `saturation` 1.6, `luminanceAmount` 0.5, `luminanceValues` [0.29, -0.2, 0.375, 0.65] | read: `CoreMaterial.framework/Versions/A/Resources/dockDark.materialrecipe` (macOS 27.2.1) | |
+| Control Center modules: `colorMatrix` (m11 0.924, m12 -0.175, m13 -0.018, m15 -0.061; m21 -0.052, m22 0.801, m23 -0.018; m31 -0.052, m32 -0.175, m33 0.958) | read: `modules.materialrecipe`; its gray gain is 0.731 against 0.609 measured on the tile | |
+| Control Center backing recipe: `blurRadius` 25, `saturation` 1.6, `luminanceAmount` 0.4, `zoom` 0.04 | read: `modulesBackground.materialrecipe` | |
+| Notification platters: `blurRadius` 30, `backdropScale` 0.25, `saturation` 1.4 (dark), `luminanceAmount` 0.4 | read: `plattersDark.materialrecipe` | |
+
+The recipes are the old CoreMaterial data; the captures do not follow them (the Dock is
+0.75 to 2 px, not radius 30 at scale 0.25; the tile's gray gain is 0.609, not 0.731), so
+they are listed for the record and the capture wins. The Dock, Control Center,
+Notification Center, Spotlight and System UI Server bundles ship no material resource.
+Nothing of Apple's was copied: the numbers carry their resource and key.
+
+### 14.9 Not measured, and why
+
+| Cell | Why | Exact setting needed |
+|---|---|---|
+| Light mode, every surface | the system appearance is global | System Settings › Appearance › Appearance = Light (`AppleInterfaceStyle` removed) |
+| Reduce Transparency | system switch; a per-process flag changes no desktop surface | System Settings › Accessibility › Display › Reduce transparency (`com.apple.universalaccess reduceTransparency`) |
+| Increase Contrast | same | Accessibility › Display › Increase contrast (`increaseContrast`) |
+| Scale 2 (Retina) | the display runs a 1x mode | System Settings › Displays › Resolution = a scaled HiDPI mode (VG27WQ3B, "Looks like 1280 x 720") |
+| Dock position, size, magnification, auto-hide | `com.apple.dock` preferences | Desktop & Dock › Size, Magnification, Position on screen, Automatically hide (`tilesize`, `largesize`, `magnification`, `orientation`, `autohide`) |
+| Banner kernel | the banner vanished before its second pass | none: repeat when a notification stays |
+| Notification Center cards under Reduce Transparency, widgets | needs the switch; the host has no widgets | Reduce transparency; Notification Center › Edit Widgets |
+| Stage Manager strip | the feature is off | Control Center › Stage Manager = on, or Desktop & Dock › Stage Manager |
+| Lock screen and login window | locking the only session blocks the host; a capture of a locked session shows only the wallpaper | none reachable |
+| Inactive and focused states | the desktop surfaces have none | none |
+| Control Center's expanded modules | not opened in this pass | none: open one module |
+| GPU cost of the algorithms of 14.7 | no GPU timing was taken | a run on a GPU |
+
+### 14.10 Parity check
 
 To compare macOS with the model or the compositor over the same backdrop:
 
-1. Draw the backdrop with `backdrop`, or show the same level or pattern in a
-   client of the compositor, and open the surface.
-2. Capture the screen (`screencapture -x` on macOS, the compositor's capture
-   elsewhere) and read the bytes: raw, no colour conversion.
-3. For each series (grays, colours, a step, a box) compare the flat window of
-   the surface with `over(glass, bare backdrop)`, where the bare backdrop is read
-   from the same capture.
-4. Accept a gray if it is within 2 levels, a colour channel within 2, a step or
-   box centre within the rms of [section 14.5](#145-the-kernel) and a surface
-   outline within 1 px.
+1. Draw the backdrop with `backdrop`, or show the same level or pattern in a client of
+   the compositor, and open the surface.
+2. Capture the screen (`screencapture -x` on macOS, the compositor's capture elsewhere)
+   and read the bytes: raw, no colour conversion.
+3. For each series (grays, colours, a step, a box, `rimb`, `rimw`) compare the flat
+   window of the surface with `over(glass, bare backdrop)`, where the bare backdrop is
+   read from the same capture.
+4. Accept a gray if it is within 2 levels, a colour channel within 2 (1 for the Spaces
+   bar), a step or box centre within the rms of [section 14.5](#145-the-kernel) and a
+   surface outline within 1 px.
 
-The 2 levels are the sum of the 1.0 level that linear interpolation of the tone
-misses at most and the 0.5 level of the quantisation of an 8-bit capture, with
-0.5 for the noise of the bare patch (std 0.5); the in-window materials use 1.5
-([`macos-materials.md`](macos-materials.md#107-parity-check)) because their
-fit is a closed form. The numbers of the tests are in
+The 2 levels are the sum of the 1.0 level that linear interpolation of the tone misses
+at most and the 0.5 level of the quantisation of an 8-bit capture, with 0.5 for the noise
+of the bare patch (std 0.5); the in-window materials use 1.5
+([`macos-materials.md`](macos-materials.md#107-parity-check)) because their fit is a
+closed form. The numbers of the tests are in
 `crates/ctappearance/tests/data/shell-glass-samples.csv`.

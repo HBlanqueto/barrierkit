@@ -100,8 +100,11 @@ Observations:
   version or state.
 - Page dots and drag-to-page were not captured.
 
-**2026-11-22.** The screen locked again at 07:55 before this surface was captured, so it is **not measured** on 2026-11-22; the series is queued in `shellblur-queue.sh`. Two system permission dialogs sit over the middle of the screen (1075 to 1558 by 205 to 691), so Spotlight
-needs its left part (x under 1060) for the flat windows.
+**Measured 2026-11-22 (dark, raw).** The Spotlight pill and the Apps panel (the Launchpad of macOS 27 is a floating glass panel of 864 x 606 px at
+848, 431, not a full-screen overlay) have the glass of the application menu panel: 146 over white, 129 over gray 146, 32 over black, 122
+over the checker; the blur is 10.5 px and 8.0 px plus a halo of 64 px. The rest of the screen is not dimmed or blurred. Tables, shadows and
+errors: [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22). Two system permission dialogs sit over the middle of the screen (1075 to 1558 by 205 to 691), so Spotlight's
+flat windows are in its left part (x under 1060).
 
 ## 4. Comparison with Malaysia
 
