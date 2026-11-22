@@ -32,8 +32,8 @@ fn switch_area(width: f32) -> Area {
 }
 
 #[test]
-fn a_narrow_form_puts_the_control_below_its_label_on_the_left() {
-    assert!(switch_area(300.0).min_x() < 100.0);
+fn a_narrow_form_keeps_the_control_on_the_right_of_its_label() {
+    assert!(switch_area(300.0).max_x() > 250.0);
 }
 
 #[test]

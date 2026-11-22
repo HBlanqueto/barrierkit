@@ -676,11 +676,10 @@
       "highlight": 0.12,
       "row-padding-x": 10,
       "label-min-share": 35,
-      "stack-below": 300,
       "section-spacing": 10,
       "columns-gap": 9.5,
       "columns-spacing": 5,
-      "row-padding-y": 6,
+      "row-padding-y": 10,
       "padding": [
         20,
         20,
@@ -694,7 +693,7 @@
         "padding": [
           0,
           10,
-          8,
+          10,
           10
         ]
       }

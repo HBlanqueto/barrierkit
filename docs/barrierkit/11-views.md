@@ -162,8 +162,9 @@ Form::new()
 
 `sections` is a public field: [`SettingsWindow`](12-patterns.md#settingswindow)
 reads it to build its search. The form is inset 20 on each side, its cards are
-10 apart, and a row is 36 high. Below `LIST_GROUP.stack_below` (300 px) of
-width, rows with a control put the label above the control.
+10 apart, and a row is its content plus 10 above and below, at least 36 high.
+The control of a row stays at the trailing edge at any width, as in a SwiftUI
+`Form`; `.stacked()` puts it under the title.
 
 With `FormStyle::columns` a row is its title on the right edge of the label
 column and its control or value after `LIST_GROUP.columns_gap` (9.5); rows are

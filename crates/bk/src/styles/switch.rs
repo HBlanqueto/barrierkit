@@ -77,6 +77,7 @@ impl SwitchStyle {
     pub(crate) fn sized(self, size: ControlSize) -> Self {
         let row = SWITCH.size(size);
         Self {
+            frame_size: (row.width, row.height),
             width: row.width,
             height: row.height,
             knob_size: (row.knob_width, row.knob_height),

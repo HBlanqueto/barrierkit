@@ -3,6 +3,7 @@ use bk::controls::Button;
 use bk::prelude::*;
 use bk::symbol::Symbol;
 use bk::views::feedback::ContentUnavailableView;
+use bk::views::form::{Form, Row, Section};
 use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
 use torin::prelude::{Area, Size2D};
@@ -170,4 +171,46 @@ fn a_stack_of_buttons_is_8_apart_as_in_swiftui() {
     );
     assert_eq!(column_height, 2.0 * button_height + 8.0);
     assert!(column_width < row_width);
+}
+
+fn form_height(width: f32, rows: fn(Section) -> Section) -> f32 {
+    let test = runner(move || {
+        rect()
+            .width(Size::px(width))
+            .probe("form")
+            .child(Form::new().section(rows(Section::titled("Ventanas"))))
+            .into_element()
+    });
+    area(&test, "form").height()
+}
+
+// A SwiftUI grouped Form on macOS 27.2 (~/src/probes/formgrouped.swift): the heading at 20 and 16 high, the card 10 under
+// it, rows of 16 plus 10 above and below with 1 between them, a control as tall as 24 makes its row 44.
+fn three_rows(section: Section) -> Section {
+    section
+        .row(Row::toggle("Ampliación", true, |_| {}))
+        .row(Row::value("Estado", "Normal"))
+        .row(Row::navigation("Avanzado", |_| {}))
+}
+
+#[test]
+fn a_form_is_a_heading_and_a_card_of_rows_36_high_as_in_swiftui() {
+    let height = form_height(360.0, three_rows);
+    assert_eq!(height, 20.0 + 16.0 + 10.0 + (3.0 * 36.0 + 2.0) + 20.0);
+}
+
+#[test]
+fn a_form_keeps_the_control_on_the_row_at_any_width() {
+    assert_eq!(
+        form_height(260.0, three_rows),
+        form_height(360.0, three_rows)
+    );
+}
+
+#[test]
+fn a_row_with_a_button_is_44_high() {
+    let height = form_height(360.0, |section| {
+        section.row(Row::new("Ventana").control(Button::new("Avanzado")))
+    });
+    assert_eq!(height, 20.0 + 16.0 + 10.0 + 44.0 + 20.0);
 }

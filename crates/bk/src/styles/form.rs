@@ -9,8 +9,7 @@ use crate::style::Palette;
 /// and `Row` are data and take no style.
 ///
 /// States: the rows of `Row::navigation` and `Row::destructive` take hovered,
-/// pressed and focused; the rest only `normal`. The width below which a row puts
-/// its control under the label stays `LIST_GROUP.stack_below`: it is layout.
+/// pressed and focused; the rest only `normal`.
 ///
 /// States: the header of `DisclosureGroup` takes hovered, pressed and focused;
 /// `GroupBox` only `normal`. The children open and close at once.

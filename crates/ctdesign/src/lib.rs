@@ -1291,7 +1291,6 @@ pub struct ListGroupMetrics {
     pub header_padding: [f32; 4],
     pub highlight: f32,
     pub label_min_share: f32,
-    pub stack_below: f32,
     pub section_spacing: f32,
     pub columns_gap: f32,
     pub columns_spacing: f32,

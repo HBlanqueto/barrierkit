@@ -397,7 +397,7 @@ The size of each control is a row in its own family.
 | sort descriptors | `NSSortDescriptor` | `SortOrder`: one column | `partial` | [Table sorted column][m-rings] | P3 |
 | `OutlineGroup` | `NSOutlineView` | `OutlineView`, `TreeNode`, `OutlineViewStyle::classic`, `full_width` | `measured`: inset and full width 5 to 6%; the source list outline is not drawn | bench `tables`; [Classic tables][m-classic] | P2 |
 | — | `NSBrowser` | `Browser` | `partial`: fixed column width, no keyboard, no column titles | none | P3 |
-| `Form` `.grouped` | — | `Form`, `Section`, `Row` | `implemented` | none; no probe has a SwiftUI `Form` | P1 |
+| `Form` `.grouped` | — | `Form`, `Section`, `Row` | `partial`: heading, card, row heights (36, 44 with a 24 control) and the trailing control are SwiftUI's; the card radius, colors and the borderless text field row are not compared | test `swiftui_defaults`; probe `formgrouped` | P1 |
 | `Form` `.columns` | `NSGridView` | `FormStyle::columns` | `measured`: 11% of the pixels differ | bench `lists`; [Forms][m-lists] | — |
 | `LabeledContent` | — | `Row` | `implemented` | none | P2 |
 | `GroupBox` | `NSBox` primary | `GroupBox` | `measured` | bench `box`; [Group box][m-rings] | — |

@@ -254,8 +254,6 @@ impl Component for Form {
         let paints = Paints::current(ControlState::default(), style.effect);
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
-        let mut width = use_state(|| f32::MAX);
-        let stacked = *width.read() < LIST_GROUP.stack_below;
         let [top, right, bottom, left] = style.header_padding;
         if style.columns {
             return self
@@ -271,7 +269,6 @@ impl Component for Form {
                     row: row.clone(),
                     first: index == 0,
                     highlighted: self.highlighted == Some(row.title.clone()),
-                    stacked,
                     style: self.style.clone(),
                 }
                 .into_element()
@@ -322,9 +319,6 @@ impl Component for Form {
                     .width(Size::fill())
                     .direction(Direction::Vertical)
                     .spacing(style.section_spacing)
-                    .on_sized(move |event: Event<SizedEventData>| {
-                        width.set_if_modified(event.area.size.width);
-                    })
                     .children(sections),
             );
         self.overrides.apply(root)
@@ -379,7 +373,6 @@ struct FormRow {
     row: Row,
     first: bool,
     highlighted: bool,
-    stacked: bool,
     style: Theme,
 }
 
@@ -427,7 +420,7 @@ impl Component for FormRow {
         let (padding_x, padding_y) = style.row_padding;
         let first_line = style.row_min_height - 2.0 * padding_y;
         let aligned_to_first_line = matches!(row.accessory, Accessory::Control(_));
-        let stacked = (self.stacked || row.stacked) && aligned_to_first_line;
+        let stacked = row.stacked && aligned_to_first_line;
         let wrapping = |content: Cow<'static, str>, face, ink| {
             text(content, face, ink).width(Size::fill()).max_lines(None)
         };
