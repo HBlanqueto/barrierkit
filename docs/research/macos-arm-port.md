@@ -203,7 +203,7 @@ Freya's own Metal driver, `crates/freya-winit/src/drivers/metal.rs` in
 [marc2332/freya](https://github.com/marc2332/freya), which fixed the objc2
 versions and the `CAMetalLayer` settings (`framebufferOnly` false).
 
-Checked on this Mac, display scale 1, captures in the session's scratchpad:
+Checked on this Mac, display scale 1 (the captures were deleted afterwards):
 
 | Check | Result |
 |---|---|
@@ -371,7 +371,8 @@ implemented or measured on a kit window.
 Decided by the owner on 2026-11-22: P1. M0 still ships the baseline.
 
 First experiment for P1 (E8, 2026-11-22, `~/src/probes/metalblur.swift`,
-captures in `~/src/captures/metalblur/`): a borderless window with a
+the captures were deleted to free disk space, the numbers below are what they
+gave): a borderless window with a
 `CAMetalLayer` view of 4 pt stripes, an `NSVisualEffectView` (`hudWindow`,
 `withinWindow`, active) over x 100 to 300 pt, and a transparent `CAMetalLayer`
 view above with an opaque red square and a half-transparent green one. Dark
