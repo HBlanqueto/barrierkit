@@ -308,6 +308,8 @@ pub struct SettingsMetrics {
     pub strength: SettingsStrength,
     pub check: SettingsCheck,
     pub dropdown_chevron_glyph: u32,
+    pub empty_padding_y: u32,
+    pub empty_gap: u32,
     pub wallpaper: SettingsWallpaper,
     pub toolbar_gap: u32,
     pub toolbar_height: u32,

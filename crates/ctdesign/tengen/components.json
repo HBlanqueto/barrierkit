@@ -1036,6 +1036,10 @@
       "dropdown": {
         "chevron-glyph": 10
       },
+      "empty": {
+        "padding-y": 48,
+        "gap": 6
+      },
       "wallpaper": {
         "preview-width": 136,
         "tile-width": 92,
