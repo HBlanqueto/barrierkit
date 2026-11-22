@@ -973,7 +973,7 @@ impl App for SidebarWindow {
         use_init_theme(|| theme::for_scheme(self.dark));
         let item = |title: &'static str, symbol: Symbol| {
             SidebarItem::new(title)
-                .symbol(symbol, Rgba::rgb8(0, 122, 255))
+                .symbol(symbol)
                 .selected(title == "Recents")
         };
         let sidebar = Sidebar::new()

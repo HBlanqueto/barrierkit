@@ -34,6 +34,14 @@ pub struct SidebarItemStyle {
     /// `selected_label` `Color` of the item and selected ink. In an inactive window the
     /// inactive colors.
     pub selected_label: StateValue<ShapeStyle>,
+    /// Tengen: `SIDEBAR.item_glyph`, the symbol drawn without a tile.
+    pub symbol_size: f32,
+    /// Tengen: `SIDEBAR.item_glyph_stroke`.
+    pub symbol_stroke: f32,
+    /// Tengen: `Color` of the sidebar icon, the accent; the inactive ink in an inactive window.
+    pub symbol: StateValue<ShapeStyle>,
+    /// Tengen: `Color` of the selected ink.
+    pub selected_symbol: StateValue<ShapeStyle>,
     /// Tengen: `selected_tile_border` `Some((Color of the selected icon rim,
     /// SIDEBAR.rim_width))`, the tile of a selected item.
     pub selected_tile_border: Option<(ShapeStyle, f32)>,
@@ -63,6 +71,10 @@ impl ControlStyle for SidebarItemStyle {
             selected_background: StateValue::new(ShapeStyle::Color(palette.selected_bg)),
             label: StateValue::new(ShapeStyle::Color(palette.item_ink)),
             selected_label: StateValue::new(ShapeStyle::Color(palette.selected_ink)),
+            symbol_size: SIDEBAR.item_glyph,
+            symbol_stroke: SIDEBAR.item_glyph_stroke,
+            symbol: StateValue::new(ShapeStyle::Color(palette.item_icon)),
+            selected_symbol: StateValue::new(ShapeStyle::Color(palette.selected_ink)),
             selected_tile_border: Some((
                 ShapeStyle::Color(palette.selected_icon_rim),
                 SIDEBAR.rim_width,

@@ -26,7 +26,7 @@ page follows the selected item.
    ```rust
    let item = |index: usize, title: &'static str, glyph: Symbol| {
        SidebarItem::new(title)
-           .symbol(glyph, ACCENT_SWATCHES[index].1)
+           .symbol(glyph)
            .selected(*page.read() == index)
            .on_select(move |_| page.set(index))
    };
@@ -141,12 +141,13 @@ Theme::tengen().style(|s: SidebarItemStyle| SidebarItemStyle {
 
 ### `SidebarItem`
 
-A row with an optional symbol tile and a one-line label.
+A row with an optional symbol and a one-line label.
 
 | Method | Default | Effect |
 |---|---|---|
 | `SidebarItem::new(label)` | — | A row with that text |
-| `.symbol(Symbol, tint)` | no tile | A [`SymbolTile`](#symboltile) of color `tint` before the label |
+| `.symbol(Symbol)` | none | A bare glyph before the label: the accent, the selected ink on the selected row, as a SwiftUI `Label` in a sidebar `List` |
+| `.symbol_tile(Symbol, tint)` | none | A [`SymbolTile`](#symboltile) of color `tint` before the label, as System Settings draws it |
 | `.selected(bool)` | `false` | Draws the row as selected. The app decides which row is selected |
 | `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent, as when the focus is elsewhere |
 | `.style(f)` | Tengen | A `SidebarItemStyle` ([Style](#style)) |

@@ -1209,7 +1209,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | What it is | Chapter |
 |---|---|---|---|---|---|
 | `sidebar::Sidebar` | struct | `SidebarListStyle` | `NSTableView.Style.sourceList` | The navigation column: flat and full height | [10](10-sidebar.md#sidebar) |
-| `sidebar::SidebarItem` | struct | ≈ `Label` | — | A sidebar row with symbol tile and label; selection set by the app | [10](10-sidebar.md#sidebaritem) |
+| `sidebar::SidebarItem` | struct | ≈ `Label` | — | A sidebar row with a bare symbol (or a tile) and label; selection set by the app | [10](10-sidebar.md#sidebaritem) |
+| `sidebar::SidebarItem::symbol_tile` | method | — | — | Draws the row's symbol on a colored tile (before 2026-11-22 `symbol(Symbol, tint)`) | [10](10-sidebar.md#sidebaritem) |
+| `styles::TitlebarStyle::line` | fn | ≈ `NSTitlebarSeparatorStyle.line` | `NSTitlebarSeparatorStyle` | The separator under the bar; `Titlebar::hairline(true)` draws it, no line is the default | [9](09-titlebars.md#titlebar) |
 | `sidebar::SidebarSection` | struct | `Section` | — | A titled, collapsible group of sidebar rows | [10](10-sidebar.md#sidebarsection) |
 | `sidebar::SidebarAccount` | struct | — | — | The account row: avatar with initials, name and a detail line | [10](10-sidebar.md#sidebaraccount) |
 | `sidebar::SidebarControl` | struct | ≈ `NavigationSplitViewVisibility` | ≈ `NSSplitViewController.toggleSidebar(_:)` | Handle to toggle, dismiss and read the enclosing `SplitView`'s sidebar | [10](10-sidebar.md#sidebarcontrol) |

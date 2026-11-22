@@ -134,16 +134,16 @@ fn item_sizes(sidebar: bool) -> (Sizes, Sizes) {
         })
     };
     (
-        sizes([(63.0, 24.0), (73.0, 36.0)]),
-        sizes([(26.0, 24.0), (36.0, 36.0)]),
+        sizes([(63.0, 24.0), (76.0, 38.0)]),
+        sizes([(26.0, 24.0), (38.0, 38.0)]),
     )
 }
 
 #[test]
-fn the_compact_bar_holds_24_high_platters_and_the_unified_bar_36_high_ones() {
+fn the_compact_bar_holds_24_high_platters_and_the_unified_bar_38_high_ones() {
     for (sidebar, pair, button) in [
         (false, (63.0, 24.0), (26.0, 24.0)),
-        (true, (73.0, 36.0), (36.0, 36.0)),
+        (true, (76.0, 38.0), (38.0, 38.0)),
     ] {
         let (pairs, buttons) = item_sizes(sidebar);
         assert!(!pairs.is_empty(), "no arrows of {pair:?}");

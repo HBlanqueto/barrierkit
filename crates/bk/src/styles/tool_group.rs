@@ -14,7 +14,7 @@ use super::{
 pub struct ToolGroupStyle {
     /// Tengen: `(TOOLGROUP.height, TOOLGROUP.height)`: the slot of each item along the axis and
     /// across it, which is the thickness of the group; in a compact toolbar
-    /// `(TOOLGROUP.height, TOOLGROUP.compact_height)`.
+    /// `(TOOLGROUP.compact_width, TOOLGROUP.compact_height)`.
     pub item_size: (f32, f32),
     /// Tengen: `TOOLGROUP.padding_x`, at both ends along the axis; in a compact toolbar minus
     /// `TOOLGROUP.compact_inset`, so the first and last slot reach past the platter.
@@ -27,8 +27,9 @@ pub struct ToolGroupStyle {
     /// Tengen: `Color` of the resolved tool group background, or `Role(ControlBackground)`
     /// inside a tinted `Backdrop`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Color` of the tool group separator, or `Role(Separator)` inside a tinted
-    /// `Backdrop`.
+    /// Tengen: `None` in a unified toolbar, whose group has no divider between its items; in a
+    /// compact toolbar the `Color` of the tool group separator, or `Role(Separator)` inside a
+    /// tinted `Backdrop`.
     pub separator: Option<StateValue<ShapeStyle>>,
     /// Tengen: the tool group rim, or `Role(CardBorder)`, `HAIRLINE` wide.
     pub border: Option<(ShapeStyle, f32)>,
@@ -63,7 +64,10 @@ impl ControlStyle for ToolGroupStyle {
         let height = TOOLGROUP.height as f32;
         Self {
             item_size: if compact {
-                (height, TOOLGROUP.compact_height as f32)
+                (
+                    TOOLGROUP.compact_width as f32,
+                    TOOLGROUP.compact_height as f32,
+                )
             } else {
                 (height, height)
             },
@@ -82,7 +86,7 @@ impl ControlStyle for ToolGroupStyle {
             ),
             shape: Shape::Capsule,
             background: StateValue::new(background),
-            separator: Some(StateValue::new(separator)),
+            separator: compact.then(|| StateValue::new(separator)),
             border: Some((rim, HAIRLINE)),
             shadows: Vec::new(),
             opacity: 1.0,

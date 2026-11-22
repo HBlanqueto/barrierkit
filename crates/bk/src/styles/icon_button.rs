@@ -14,7 +14,7 @@ use super::{
 #[derive(Clone, Debug)]
 pub struct IconButtonStyle {
     /// Tengen: width and height, `ICON_BUTTON.size` square; in a unified toolbar `TOOLGROUP.height`
-    /// square; in a compact one `TOOLGROUP.height` less twice `TOOLGROUP.compact_inset` by
+    /// square; in a compact one `TOOLGROUP.compact_width` less twice `TOOLGROUP.compact_inset` by
     /// `TOOLGROUP.compact_height`.
     pub size: (f32, f32),
     /// Tengen: `ICON_BUTTON.icon`, in a toolbar `ICON_BUTTON.toolbar_icon`.
@@ -53,7 +53,7 @@ impl ControlStyle for IconButtonStyle {
                 let height = TOOLGROUP.height as f32;
                 let size = if bar == Bar::UnifiedCompact {
                     (
-                        height - 2.0 * TOOLGROUP.compact_inset as f32,
+                        TOOLGROUP.compact_width as f32 - 2.0 * TOOLGROUP.compact_inset as f32,
                         TOOLGROUP.compact_height as f32,
                     )
                 } else {

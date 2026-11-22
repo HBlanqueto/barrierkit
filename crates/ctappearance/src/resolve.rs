@@ -629,7 +629,7 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
     } else {
         colors.sidebar_selection
     };
-    sidebar.palette.item_icon = accent;
+    sidebar.palette.item_icon = normal_accent;
     sidebar.palette.selected_ink = on_accent;
     shell.tile_active = accent;
 

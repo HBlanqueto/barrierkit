@@ -278,7 +278,7 @@ TitlebarStyle and FullscreenBarStyle:
 ```rust
 Titlebar::new().style(|s| TitlebarStyle {
     title_alignment: Alignment::Start,
-    hairline: None,
+    hairline: Some(TitlebarStyle::line()),
     ..s
 })
 ```

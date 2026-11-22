@@ -13,7 +13,7 @@ use crate::theme::{SurfaceKind, surface_background};
 ///
 /// States: focused (the window is active). In full screen the bar sits on the
 /// full-screen glass and draws no background. `.spacing(px)` is an instance
-/// override of `spacing` and `sidebar_spacing`; `.hairline(false)` sets `hairline` to `None`.
+/// override of `spacing` and `sidebar_spacing`; `.hairline(true)` sets `hairline` to `TitlebarStyle::line()`.
 ///
 /// `FullscreenBarStyle` paints the glass under the overlaid bar and the rail in
 /// full screen. The kind of bar stays `WindowOptions::fullscreen_bar`. It has no
@@ -52,7 +52,8 @@ pub struct TitlebarStyle {
     /// Tengen: `Color` of the unfocused title, focused `Color` of the focused one; over a
     /// `Backdrop` `Role(SecondaryLabel)`, focused `Role(Label)`.
     pub title: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Color of the sidebar line, HAIRLINE))`, under the bar beside a sidebar.
+    /// Tengen: `None`, as macOS draws no separator under a unified toolbar at rest.
+    /// `NSTitlebarSeparatorStyle.line` is `Some(TitlebarStyle::line())`.
     pub hairline: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -64,6 +65,17 @@ pub struct TitlebarStyle {
     pub title_font: Font,
     /// Tengen: one line, so `line_height` has no effect.
     pub sidebar_title_font: Font,
+}
+
+impl TitlebarStyle {
+    pub fn line() -> (ShapeStyle, f32) {
+        let color = if crate::backdrop::tinted().is_some() {
+            crate::sidebar::sidebar_palette().line
+        } else {
+            crate::theme::resolved().surfaces.toolbar_line
+        };
+        (ShapeStyle::Color(color), HAIRLINE)
+    }
 }
 
 impl ControlStyle for TitlebarStyle {
@@ -99,14 +111,7 @@ impl ControlStyle for TitlebarStyle {
             sidebar_background: StateValue::new(surface(resolved.surfaces.toolbar)),
             close_only_background: StateValue::new(ShapeStyle::Clear),
             title,
-            hairline: Some((
-                ShapeStyle::Color(if tinted {
-                    crate::sidebar::sidebar_palette().line
-                } else {
-                    resolved.surfaces.toolbar_line
-                }),
-                HAIRLINE,
-            )),
+            hairline: None,
             effect: system_effect,
             title_alignment: Alignment::Center,
             sidebar_title_alignment: Alignment::Start,

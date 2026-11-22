@@ -310,7 +310,7 @@ impl Component for SettingsWindow {
         let searching = *search_focused.read() && !dismissed;
         let item = |pane: &Pane| {
             SidebarItem::new(pane.title.clone())
-                .symbol(pane.symbol, pane.tint)
+                .symbol_tile(pane.symbol, pane.tint)
                 .selected(pane.with_pages().iter().any(|page| page.id == current))
                 .emphasized(!searching)
                 .on_select(open(pane.id, None))
@@ -451,7 +451,6 @@ impl Component for SettingsWindow {
                 .child(
                     Titlebar::new()
                         .with_sidebar(true)
-                        .hairline(false)
                         .spacing(style.toolbar_spacing)
                         .title(pane.map(|pane| pane.title.clone()).unwrap_or_default())
                         .left(

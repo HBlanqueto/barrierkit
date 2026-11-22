@@ -80,10 +80,12 @@ impl App for Case {
                             .traffic_lights(true)
                             .child(
                                 SidebarItem::new("Documentos")
-                                    .symbol(Symbol::SquareGrid, tint(0))
+                                    .symbol_tile(Symbol::SquareGrid, tint(0))
                                     .selected(true),
                             )
-                            .child(SidebarItem::new("Recientes").symbol(Symbol::Clock, tint(4))),
+                            .child(
+                                SidebarItem::new("Recientes").symbol_tile(Symbol::Clock, tint(4)),
+                            ),
                         detail,
                     )
                     .into_element()
@@ -122,11 +124,12 @@ impl App for Case {
                         .traffic_lights(true)
                         .child(
                             SidebarItem::new("Diseño")
-                                .symbol(Symbol::SquareGrid, tint(0))
+                                .symbol_tile(Symbol::SquareGrid, tint(0))
                                 .selected(true),
                         )
                         .child(
-                            SidebarItem::new("Medidas").symbol(Symbol::SlidersVertical, tint(4)),
+                            SidebarItem::new("Medidas")
+                                .symbol_tile(Symbol::SlidersVertical, tint(4)),
                         ),
                     detail,
                 )
@@ -180,7 +183,7 @@ impl App for Case {
                         .traffic_lights(true)
                         .children(names.iter().enumerate().map(|(i, name)| {
                             SidebarItem::new(*name)
-                                .symbol(Symbol::SquareGrid, tint(i))
+                                .symbol_tile(Symbol::SquareGrid, tint(i))
                                 .selected(i == 0)
                         })),
                     detail,

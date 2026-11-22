@@ -2,8 +2,7 @@ use bk::compact::IconButton;
 use bk::prelude::*;
 use bk::sidebar::{Sidebar, SidebarItem};
 use bk::views::feedback::ContentUnavailableView;
-use bk::views::split::{SidebarToggle, SplitView};
-use ctdesign::ACCENT_SWATCHES;
+use bk::views::split::SplitView;
 
 fn main() -> Result<(), RunError> {
     run_window(
@@ -11,7 +10,7 @@ fn main() -> Result<(), RunError> {
             let mut page = use_state(|| 0);
             let item = |index: usize, title: &'static str, glyph: Symbol| {
                 SidebarItem::new(title)
-                    .symbol(glyph, ACCENT_SWATCHES[0].1)
+                    .symbol(glyph)
                     .selected(*page.read() == index)
                     .on_select(move |_| page.set(index))
             };
@@ -19,15 +18,11 @@ fn main() -> Result<(), RunError> {
                 .expanded()
                 .direction(Direction::Vertical)
                 .child(
-                    Titlebar::new()
-                        .title("Notes")
-                        .with_sidebar(true)
-                        .left(SidebarToggle)
-                        .right(
-                            ToolGroup::new()
-                                .child(IconButton::new(Symbol::SquareAndPencil, "New note"))
-                                .child(IconButton::new(Symbol::Ellipsis, "More")),
-                        ),
+                    Titlebar::new().title("Notes").with_sidebar(true).right(
+                        ToolGroup::new()
+                            .child(IconButton::new(Symbol::SquareAndPencil, "New note"))
+                            .child(IconButton::new(Symbol::Ellipsis, "More")),
+                    ),
                 )
                 .child(
                     rect()

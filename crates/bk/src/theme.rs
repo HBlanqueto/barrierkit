@@ -402,7 +402,7 @@ mod tests {
             "light sidebar selection"
         );
         assert_eq!(
-            light.sidebar.palette.item_icon, light.accent,
+            light.sidebar.palette.item_icon, light.control_accent,
             "light sidebar icon"
         );
         assert!(
@@ -422,7 +422,7 @@ mod tests {
             "dark sidebar selection"
         );
         assert_eq!(
-            dark.sidebar.palette.item_icon, dark.accent,
+            dark.sidebar.palette.item_icon, dark.control_accent,
             "dark sidebar icon"
         );
         assert!(

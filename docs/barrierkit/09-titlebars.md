@@ -53,11 +53,11 @@ bar: traffic lights, a left zone, the title and a right zone.
 |---|---|---|
 | `Titlebar::new()` | — | A bar that reads the title and state from `WindowControls` |
 | `.title(text)` | the window title | Replaces the title shown |
-| `.left(view)`, `.right(view)` | empty | Items at each side |
+| `.left(view)`, `.right(view)` | empty; with a `SplitView` above, `left` is the `SidebarToggle` | Items at each side |
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
-| `.hairline(bool)` | `true` | The line at the bottom of the sidebar layout; `false` removes it, `true` keeps the style's |
+| `.hairline(bool)` | `false` | The line under the bar of the sidebar layout. macOS draws none under a unified toolbar at rest; `true` draws `TitlebarStyle::line()`, as `NSTitlebarSeparatorStyle.line` does |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
 
 Behavior:

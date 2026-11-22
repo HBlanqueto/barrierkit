@@ -4,6 +4,7 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
+use crate::views::split::SidebarToggle;
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
 };
@@ -105,14 +106,10 @@ impl Titlebar {
     }
 
     pub fn hairline(self, hairline: bool) -> Self {
-        if hairline {
-            self
-        } else {
-            self.style(|s| TitlebarStyle {
-                hairline: None,
-                ..s
-            })
-        }
+        self.style(move |s| TitlebarStyle {
+            hairline: hairline.then(TitlebarStyle::line),
+            ..s
+        })
     }
 
     pub fn style(mut self, restyle: impl Fn(TitlebarStyle) -> TitlebarStyle + 'static) -> Self {
@@ -316,7 +313,9 @@ impl Titlebar {
             .main_align(Alignment::Center)
             .spacing(padding_x)
             .probe("titlebar-left-slot")
-            .maybe_child(self.left.clone());
+            .maybe_child(self.left.clone().or_else(|| {
+                crate::sidebar::sidebar_control().map(|_| SidebarToggle.into_element())
+            }));
 
         let title = rect()
             .width(Size::flex(1.0))

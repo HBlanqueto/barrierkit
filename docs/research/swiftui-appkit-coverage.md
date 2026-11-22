@@ -471,8 +471,8 @@ The size of each control is a row in its own family.
 | — | `NSTrackingSeparatorToolbarItem` | — | `missing` | none | P2 |
 | — | `NSTitlebarAccessoryViewController` | — | `missing` | none | P2 |
 | `.toolbar(id:)` customization | `allowsUserCustomization` | — | `missing` | none | P3 |
-| title bar line | `NSTitlebarSeparatorStyle` | `TitlebarStyle` hairline | `partial` | none | P2 |
-| `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the glyph is a tile; no Increase Contrast | bench `sidebar`; [What the kit does][m-sidebar] | P1 |
+| title bar line | `NSTitlebarSeparatorStyle` | `TitlebarStyle` hairline | `partial`: none at rest (measured on a SwiftUI `NavigationSplitView`); the line appears there when content scrolls under the bar and is not implemented | twin `notes_sidebar` | P2 |
+| `NavigationSplitView` sidebar | `NSSplitViewItem(sidebarWithViewController:)` | `Sidebar`, `SidebarItem` | `partial`: flat, full height and within 1 of macOS 27's measures; the bare glyph (accent, 17 px clock) is the default and the tile is `symbol_tile`; no Increase Contrast | bench `sidebar`, twin `notes_sidebar`; [What the kit does][m-sidebar] | P1 |
 | full screen | `toggleFullScreen` | `FullscreenBar` | `implemented` | none | P2 |
 | `WindowGroup`, `Window`, `Settings`, `openWindow`, `dismissWindow` | `NSWindow`, `NSWindowController` | `WindowGroup`, `Window`, `Settings`, `use_open_window`, `use_dismiss_window`, `SettingsWindow` | `partial`: ids, one window per value, fronting a window that is open, and a Window menu from the kit's own list; no `openSettings` or `SettingsLink`, no launch behavior, no restore of the open windows, no position (xdg-shell) | [`macos-standard-menus.md`](macos-standard-menus.md) | P1 |
 | `UtilityWindow` | `NSPanel` | `UtilityWindow`, `PanelBehavior` | `implemented` | none | P3 |
@@ -624,7 +624,7 @@ first four areas are the sessions that run now.
 1. **P1** Unified toolbar: prominent item, glyphs other than the chevron and
    the plus, search item, offset of a lone chevron, group widths with labels,
    Increase Contrast capture ([14](#14-windows-and-chrome)).
-2. **P1** Sidebar: bare accent glyph instead of the tile, scrolling under the bar, Increase Contrast capture ([Sidebar][m-sidebar]).
+2. **P1** Sidebar: scrolling under the bar (the bare glyph is done), Increase Contrast capture ([Sidebar][m-sidebar]).
 3. **P1** Traffic lights, title bar, title with subtitle and window corner
    as bench entries.
 4. **P1** Materials and Reduce Transparency: map the 14 semantic materials;

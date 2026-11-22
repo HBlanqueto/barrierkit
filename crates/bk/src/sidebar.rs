@@ -18,7 +18,7 @@ use crate::styles::{
     SidebarSectionStyle, SidebarStyle, StateValue, SymbolTileStyle, Theme, TrafficLightsStyle,
     resolve,
 };
-use crate::symbol::{Symbol, symbol, tile_symbol};
+use crate::symbol::{Symbol, stroked_symbol, symbol, tile_symbol};
 use crate::theme;
 use crate::titlebar::window_drag_handler;
 use crate::traffic::TrafficLights;
@@ -62,6 +62,7 @@ pub(crate) fn item_palette(emphasized: bool) -> SidebarPalette {
             selected_bg: palette.inactive_selected_bg,
             selected_ink: palette.inactive_ink,
             item_ink: palette.inactive_ink,
+            item_icon: palette.inactive_ink,
             ..palette
         }
     } else if !emphasized {
@@ -424,7 +425,7 @@ impl Component for Sidebar {
 #[derive(PartialEq)]
 pub struct SidebarItem {
     label: Cow<'static, str>,
-    symbol: Option<(Symbol, Rgba)>,
+    symbol: Option<(Symbol, Option<Rgba>)>,
     selected: bool,
     style: Theme,
     on_select: Option<Callback<(), ()>>,
@@ -454,8 +455,13 @@ impl SidebarItem {
         }
     }
 
-    pub fn symbol(mut self, symbol: Symbol, tint: Rgba) -> Self {
-        self.symbol = Some((symbol, tint));
+    pub fn symbol(mut self, symbol: Symbol) -> Self {
+        self.symbol = Some((symbol, None));
+        self
+    }
+
+    pub fn symbol_tile(mut self, symbol: Symbol, tint: Rgba) -> Self {
+        self.symbol = Some((symbol, Some(tint)));
         self
     }
 
@@ -551,13 +557,36 @@ impl Component for SidebarItem {
             });
 
         if let Some((glyph, tint)) = self.symbol {
-            let border = style.selected_tile_border.clone().filter(|_| self.selected);
-            row = row.child(SymbolTile::new(glyph, tint).map(border, |tile, border| {
-                tile.style(move |s| SymbolTileStyle {
-                    border: Some(border.clone()),
-                    ..s
-                })
-            }));
+            row = match tint {
+                Some(tint) => {
+                    let border = style.selected_tile_border.clone().filter(|_| self.selected);
+                    row.child(SymbolTile::new(glyph, tint).map(border, |tile, border| {
+                        tile.style(move |s| SymbolTileStyle {
+                            border: Some(border.clone()),
+                            ..s
+                        })
+                    }))
+                }
+                None => {
+                    let ink = if self.selected {
+                        &style.selected_symbol
+                    } else {
+                        &style.symbol
+                    };
+                    row.child(
+                        rect()
+                            .width(Size::px(SIDEBAR.app_icon as f32))
+                            .height(Size::px(SIDEBAR.app_icon as f32))
+                            .center()
+                            .child(stroked_symbol(
+                                glyph,
+                                style.symbol_size,
+                                style.symbol_stroke,
+                                paints.color(ink.resolve(state)),
+                            )),
+                    )
+                }
+            };
         }
 
         row = row.child(
