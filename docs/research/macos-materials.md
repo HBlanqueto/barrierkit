@@ -295,6 +295,7 @@ What the pixels say about the parts the tree does not give:
 | Noise | None in `NSVisualEffectView`: standard deviation across a row 0.04 on average, 0.19 at most | every blurred tile of every ramp capture |
 | Saturation | Rec. 709 luma weights, clamped to 0..255 before the veil | the variants below |
 | Where the cap acts | Per channel, after the veil | the variants below |
+| Checker of 8 px | contrast 0.0 after the blur: a Gaussian of 27.6 px leaves about 1e-25 of a pattern of 16 px | the standard deviation of 0.0 of every blurred tile over an 8 px checker in [`blur-ownership.md`](blur-ownership.md) 1.2 (captured earlier, not repeated here) |
 | Space of the mix | The display's device RGB (wide gamut here), not sRGB | the titlebar over pure red shows (255, 213, 207) in device bytes; mixing the same veil in sRGB would give (253, 203, 203) |
 
 The variants of the stack against the gray, red, green and blue ramps of the
@@ -500,6 +501,7 @@ within 2 and 26 solids within 1.
 | Scale 2 (Retina) of every cell above | the only display of this host is 1x and no documented mechanism reaches a 2x mode | a HiDPI display mode of the panel (1280x720 at 2x); nothing was changed |
 | The system switch of Reduce Transparency and Increase Contrast | the per-process flags (`-reduceTransparency 1`, `-increaseContrast 1`) were used; the tree and the pixels of a material change with them, so the system switch probably gives the same | `com.apple.universalaccess reduceTransparency` and `increaseContrast` set and restored |
 | The materials over an animated or live backdrop | out of scope | |
+| The frequency response between the step and the checker (stripes or a chirp of 16 to 128 px) | the step and the ramp fix sigma within 0.1 px and the shape within 0.3 rms; no layout of stripes was built | a `stripes` layout in `materials.swift` |
 | Scroll edge effects (soft and hard) and their blur extent | `scrolledge.swift` shows no difference between the styles and is not fitted yet | a probe that reads the pocket's layer tree |
 | Real controls: sheets, sidebars, toolbars, title bars and tooltips, and every control in dark | `matcontrols.swift` has them; the screen locked again during the batch | the same ramp behind each control |
 | The SwiftUI materials: inactive, Reduce Transparency, `behindWindow`, colours | only the active `withinWindow` gray ramp and step were captured | `set=swiftui` with the accessibility flags |
@@ -693,3 +695,165 @@ On macOS 27.2.1 the popover and the menu are glass, not the `popover` and `menu`
 materials: those two are tiles that these controls do not draw here. The
 compositor must not use `MATERIAL_POPOVER_*` or `MATERIAL_MENU_*` for a popup
 menu or a popover; it needs the glass of section 12, which is not reproduced.
+
+---
+
+## 14. The blur algorithm and malaysia's Dual Kawase, 2026-11-22
+
+**Goal:** say which algorithm macOS runs for the blur of a window material, with
+what error, and whether malaysia's Dual Kawase reproduces it.
+**Scope:** the blur of the 14 AppKit materials and the six SwiftUI ones at scale
+1, from the step and ramp captures of section 10. The kernel of the glass is not
+here.
+**Reader:** whoever writes or reviews the compositor's blur pass.
+**Input:** the 10 white|black step profiles of `edge-center-<appearance>-behind`
+(`titlebar`, `menu`, `popover`, `hudWindow`, `fullScreenUI`, light and dark), the
+36 sigma fits of section 10.2, `~/src/probes/kawase.py` and `kawasecheck.py`.
+**Output:** the best model and its error, the check of the Dual Kawase, an exact
+alternative and what is still open.
+
+### 14.1 Which kernel
+
+Each candidate blurs the 200 px step inside its tile, the exact stack of section
+10.2 shades it, and the rms against the captured profile is taken (levels of
+255; mean of the 10 profiles; the best parameter of each candidate):
+
+| Candidate | rms | Parameter |
+|---|---|---|
+| Gaussian, renormalised at the border | **0.36** (0.27 to 0.53) | sigma 27.6 px |
+| Dual Kawase, 5 passes (malaysia's shaders) | 0.52 | offset 1.0 |
+| Dual Kawase, 4 passes | 0.64 | offset 2.25 |
+| Dual Kawase, 3 passes | 0.77 | offset 4.7 |
+| Triple box of the same variance | 0.31 to 0.56 per material, worse than the Gaussian in 9 of 9 | width 53 to 55 |
+
+The Gaussian is the best model and its rms is the quantisation floor (0.29 for
+a rounded value). The Dual Kawase is worse in all 10 profiles, by a factor of 1.4
+to 2.1 depending on the passes; the low-veil materials show it most (`hudWindow`
+dark: 0.45 for the Gaussian, 1.17 / 0.97 / 0.79 for 3 / 4 / 5 passes). The
+box and the Kawase are not what the render server runs.
+
+The space is encoded (linear light fits at 1.8 to 12), the weights are
+renormalised at the border of the region (0.0 levels of leak), the order is
+saturate, veil, cap or floor, and nothing is added to the colour (no noise in
+AppKit; SwiftUI dithers at 0.5 levels). The radius of the stack (`inputRadius`
+30; 60 for SwiftUI) is 1.09 and 1.01 times sigma (27.6 and 59.2): sigma is the
+measured value, the radius only names it.
+
+### 14.2 Does malaysia's Dual Kawase reproduce it?
+
+Not as it is, and only partly with the right parameters. `ctdesign` has
+`BACKGROUND_BLUR_PASSES` 3 and `BACKGROUND_BLUR_OFFSET` 3.0: that is sigma 16.8 px
+(`kawase.py table`), not 27.6. With the offset fitted to sigma 27.6, the
+check of `kawasecheck.py` (largest difference to the exact Gaussian through the
+stack of the nine blurred looks, light and dark, white|black step of 1024 px):
+
+| Algorithm | Largest difference | Taps per full-resolution pixel |
+|---|---|---|
+| Dual Kawase, 3 passes, offset 4.70 | 2.0 levels (`hudWindow` dark) | 12.1 |
+| Dual Kawase, 4 passes, offset 2.24 | 1.5 | 12.3 |
+| Dual Kawase, 5 passes, offset 1.06 | 1.3 | 12.3 |
+| Box downsample by 4, Gaussian sigma 6.9, linear upsample | 0.1 | 7.6 (3.8 with linear sampling) |
+| Box downsample by 2, Gaussian sigma 13.8 | 0.0 | 51.5 |
+| Box downsample by 8, Gaussian sigma 3.5 | 0.3 | 1.9 |
+| Triple box, width 55 | 1.4 | 6 passes of a running sum |
+
+The parity tolerance of section 10.7 is 2.0 levels and 0.8 rms. Against it:
+
+1. A Dual Kawase of 3 passes sits at the limit of the maximum and over the rms
+   for `hudWindow`, `fullScreenUI` and `popover` (0.97, 0.97 and 0.75 in light;
+   1.17 and 0.94 in dark): **no**. 4 passes: `hudWindow` dark 0.97, over. 5 passes:
+   0.79 at most, inside, at the cost of one more pass and a texture of 1/32 of the
+   area (its stability on moving content is not measured).
+2. **A downsampled Gaussian does** (0.1 level) at about the cost of the Dual
+   Kawase. It also gives any sigma by changing the Gaussian, not the pass count:
+   59.2 for SwiftUI is a downsample by 8 and a sigma of 7.4.
+3. The kernel is not the whole difference. The compositor must blur only the
+   region and renormalise at its border (section 10.2); a Kawase over a whole
+   output texture clamps at the texture, not at the region, so it leaks the
+   neighbours. A ramp blurred with clamp-to-edge instead of renormalised weights
+   differs by up to 1.5 levels, and content that differs across the border of the
+   region differs by more.
+4. The radius is in logical pixels at scale 1 (28 px, sigma 27.6); scale 2 is
+   not measured.
+
+The compositor session decides; no compositor code is written here.
+
+### 14.3 Open
+
+| Question | State |
+|---|---|
+| The radius to sigma relation for other radii, and the effect of `inputQuality`, `inputHardEdges`, `inputLinear` and `inputNormalizeEdges` on a filter built by hand | a throwaway probe with the private classes (`cafilter.swift`) is built; its captures wait for the screen |
+| The frequency response between the step and the checker | not captured (section 10.8) |
+| The glass kernel | another session measures it |
+
+---
+
+## 15. Values read from the system and where each value comes from, 2026-11-22
+
+**Goal:** record the material recipes the system ships, compare them with the
+measurements and give every value its source.
+**Scope:** `CoreMaterial.framework/Versions/A/Resources/*.materialrecipe` of macOS
+27.2.1 (build 26B131), read as data. Nothing is copied: the numbers below carry
+their resource and key. The recipes are not used by the AppKit and SwiftUI
+materials measured here.
+**Reader:** whoever compares a value of this study with Apple's own files.
+**Input:** `plutil -p` of the recipes; the layer trees and captures of section 10.
+**Output:** the recipes of the materials that look like the ones of sections 10
+and 11, the differences and a table of provenance.
+
+### 15.1 The recipes
+
+Each `.materialrecipe` is a property list with `baseMaterial.materialFiltering`.
+The keys are `blurRadius`, `backdropScale` (the blur runs on a backdrop scaled by
+that factor), `blurAtEnd`, `saturation`, `brightness`, `luminanceAmount` and
+`luminanceValues` (four values; a `luminanceColorMap.png` of 256 x 1 pixels sits
+beside them). These are the recipes whose names resemble the SwiftUI
+thicknesses and the Dock:
+
+| Recipe (`CoreMaterial.framework/Resources/<name>.materialrecipe`) | blurRadius | backdropScale | saturation | brightness | luminanceAmount | luminanceValues |
+|---|---|---|---|---|---|---|
+| platformContentUltraThinLight | 22.5 | 0.25 | 1.1 | 0.12 | 0.5 | [0.45, 0.55, 0.65, 0.68] |
+| platformContentThinLight | 30 | 0.25 | 1.35 | 0.12 | 0.6 | [0.725, 0.825, 0.76, 0.73] |
+| platformContentLight | 30 | 0.25 | 1.5 | 0.1 | 0.75 | [0.9, 0.83, 0.925, 0.815] |
+| platformContentThickLight | 45 | 0.25 | 1.5 | 0.045 | 0.88 | [0.99, 0.95, 0.98, 0.905] |
+| platformContentUltraThinDark | 22.5 | 0.25 | 1.1 | 0 | 0.5 | [0.24, 0.24, 0.3, 0.39] |
+| platformContentThinDark | 30 | 0.25 | 1.35 | 0 | 0.6 | [0.2, 0.21, 0.1, 0.15] |
+| platformContentDark | 30 | 0.25 | 1.5 | 0 | 0.75 | [0.16, 0.26, 0.1, 0.1] |
+| platformContentThickDark | 45 | 0.25 | 1.5 | 0 | 0.88 | [0.14, 0.16, 0.1, 0.03] |
+| platformChromeLight | 22.5 | 0.25 | 1.1 | 0.1 | 0.75 | [0.8, 0.9, 1.1, 0.825] |
+| platformChromeDark | 22.5 | 0.25 | 2.0 | -0.1 | 0.75 | [0.23, 0.52, 0.27, 0.255] |
+| dockLight | 30 | 0.25 | 1.8 | 0.08 | 0.5 | [0.3, 0.5, 1.0, 0.77] |
+| dockDark | 30 | 0.25 | 1.6 | - | 0.5 | [0.29, -0.2, 0.375, 0.65] |
+
+### 15.2 Against the measurements
+
+The recipes and the stacks of sections 10 and 11 differ, so the recipes are not
+the source of the window materials:
+
+- The layer trees of `NSVisualEffectView` and of SwiftUI's `Material` hold a
+  `CABackdropLayer` with `gaussianBlur`, `colorSaturate`, a veil layer and a cap
+  or floor layer. They hold no recipe, no luminance curve, no `brightness` and no
+  `backdropScale`.
+- The saturation of the recipes is 1.1 to 2.0; the stacks have 1.6 to 2.4 and none
+  in the titlebar. The radius of the recipes is 22.5, 30 and 45; the stacks 30 and
+  60.
+- Where the recipes could still explain a surface (the Dock: radius 30,
+  saturation 1.8 in light and 1.6 in dark, luminance 0.5), the capture decides:
+  [`macos-blur.md`](macos-blur.md) holds the Dock measurements and this study has
+  not cross-checked them.
+
+### 15.3 Provenance
+
+| Value | Source | Where |
+|---|---|---|
+| Stack and order of the layers, `inputRadius`, `colorSaturate`, veil colour and alpha, cap, floor, chameleon opacity | the layer tree of the probe's own process (public `CALayer` properties; runtime observation, not API) **and** the pixels | 10.2, 10.3 |
+| Sigma 27.6 px and 59.2 px, Gaussian shape, space, region edge, noise | pixels (captures) | 10.2, 11.1, 14.1 |
+| Fit error | pixels against the stack | 10.3, 10.6 |
+| The 14 materials and their order | API: `NSVisualEffectView.h`, SDK 27.2 | 10.1 |
+| Selection gain and bias, the solids of inactive, Reduce Transparency and Increase Contrast | pixels, and the tree for the solids | 10.4, 10.5 |
+| Device space of the mix, the display profile | the ICC profile of the display read with `CGDisplayCopyColorSpace` and the pixels | 10.2 |
+| The recipes of `CoreMaterial.framework` | read from the system resource; not used by these materials | 15.1 |
+| The glass inputs | the layer tree (observed) and the pixels of the gray tone | 12 |
+
+Where a read value and a capture differ the capture wins: the recipes lose to the
+trees and the pixels in 15.2.
