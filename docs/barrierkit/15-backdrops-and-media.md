@@ -128,7 +128,9 @@ are the `MEDIA` tokens of `ctdesign`, fixed for a dark image behind them.
 decoding thread, so a grid of covers does not start a thread per cover.
 
 `Material` and `TopGlass` are positioned absolutely: put them as the first
-child of the element they sit behind.
+child of the element they sit behind, and put what draws over the glass (the
+title bar, the buttons) in that same element. Under a compositor that composes
+the blur ([below](#who-draws-the-blur)) that element is the chrome.
 
 When the user reduces transparency (`reduce_transparency`, off by default),
 the glass is solid and sharp: `Material` and `GlassContainer` fill with the
@@ -137,17 +139,38 @@ in the window color, `FULLSCREEN_GLASS.height` deep.
 
 ### Who draws the blur
 
-Today `Material`, `TopGlass` and `GlassContainer` draw their blur with Skia
-(`crates/bk/src/glass.rs`). [ADR 0091](../decisions.md) and
-[ADR 0092](../decisions.md) move the blur of `Material`, `TopGlass` and the
-glass bars of [9](09-titlebars.md) to the compositor: the kit will leave the
-area transparent, draw its chrome on a sub-surface and send `set_backdrop` or
-`set_scroll_edge` (`infinity_window_style_v1`, version 10), and draw the solid
-of reduce transparency when the compositor lacks them. The protocol exists;
-the kit does not send the requests yet and Malaysia does not serve them yet.
-These elements keep their names and styles. `GlassContainer` stays as it is
-until merging has a design. The plan and its phases are in
-[the design](../research/blur-backdrop-design.md).
+[ADR 0091](../decisions.md) gives the blur of `Material`, `TopGlass` and the glass
+bars of [9](09-titlebars.md) to the compositor, and
+[ADR 0098](../decisions.md) is how the kit does it. The kit checks the
+compositor once per window:
+
+| Compositor | `Material` and `TopGlass` |
+|---|---|
+| `infinity_window_style_v1` version 10 or later (and `wl_subcompositor`) | Paint nothing and declare themselves: `TopGlass` a soft scroll edge on the top, `Material` a `within_window` backdrop of `MaterialStyle::material` with its corner radius. The compositor draws the material, with its measured blur, saturation and tint |
+| Version 9 or lower, another compositor, no global | The kit draws the blur with Skia (`crates/bk/src/glass.rs`), as before. A later change removes that path ([ADR 0092](../decisions.md)) |
+| Either, with `reduce_transparency` | The opaque solid the kit draws today |
+
+In the first row the element that holds the glass is the window's chrome: it and
+everything inside it draw on a synchronized sub-surface above the window, so
+they stay sharp over the compositor's blur. Four rules follow:
+
+1. Put the glass and what draws over it in one element, and give that element
+   something beside it in the window: a glass in the window's only top-level
+   element has nothing below it to blur and declares nothing.
+2. The chrome covers its element and its glass, cut to the window. What it
+   paints outside is cut.
+3. The chrome draws above everything else of the window, whatever the layers of
+   the rest. Popovers and menus are their own windows and are not affected.
+4. One chrome holds one material and one scroll edge: the first of each. Put a
+   second material in another element.
+
+The kit draws no tint, rim or line of its own in that mode, so `tint`, `blur`
+and `border` of `MaterialStyle` have no effect there. `FullscreenBar`,
+`GlassContainer` and `RoundButton` keep drawing with Skia until the slices of
+[the design](../research/blur-backdrop-design.md#73-k3-the-slices-and-what-they-need)
+move them. `./dev.sh check` runs the tests of this path against a fake
+compositor; a real session needs Malaysia to serve the requests
+([18](18-platform.md#glass-over-the-windows-content)).
 
 ### Style
 
@@ -157,7 +180,9 @@ until merging has a design. The plan and its phases are in
 
 `Material`, `TopGlass` and `GlassContainer` take `.style(|s| ..)` with a
 `MaterialStyle`, a `TopGlassStyle` and a `GlassContainerStyle`: tint, blur,
-rim and, for the container, the morph. Their fields are in
+rim and, for the container, the morph; `MaterialStyle::material` is the
+`NSVisualEffectView.Material` a compositor draws behind `Material` (Tengen:
+`HudWindow`). Their fields are in
 [Styles and themes](../../crates/bk/src/styles/material.rs).
 `Scrim` has no style: its gradient follows the ground color.
 

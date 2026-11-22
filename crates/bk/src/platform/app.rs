@@ -73,6 +73,8 @@ pub(crate) struct AppInstance {
     inputs: crate::spelling::InputParagraphs,
     pub(crate) glass: super::GlassOutbox,
     pub(crate) knobs: super::KnobOutbox,
+    backdrop: bool,
+    pub(crate) chromes: Vec<super::backdrop::Chrome>,
 }
 
 pub(crate) enum InstanceRole {
@@ -188,6 +190,8 @@ impl AppInstance {
         let glass = window.is_some() && rt.glass_supported();
         runner.provide_root_context(move || super::GlassSupport(glass));
         let glass_outbox = runner.provide_root_context(super::GlassOutbox::default);
+        let backdrop = window.is_some() && rt.backdrop_supported();
+        runner.provide_root_context(move || super::backdrop::BackdropSupport(backdrop));
         let knobs = window.is_some() && rt.knobs_supported();
         runner.provide_root_context(move || super::KnobSupport(knobs));
         let knob_outbox = runner.provide_root_context(super::KnobOutbox::default);
@@ -250,6 +254,8 @@ impl AppInstance {
             inputs,
             glass: glass_outbox,
             knobs: knob_outbox,
+            backdrop,
+            chromes: Vec::new(),
         }
     }
 
@@ -476,6 +482,9 @@ impl AppInstance {
             &self.fallback_fonts,
         );
         self.inputs.refresh(&self.tree);
+        if self.backdrop {
+            self.chromes = super::backdrop::collect(&self.tree, self.size);
+        }
         self.needs_layout = false;
     }
 

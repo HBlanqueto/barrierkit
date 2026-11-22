@@ -32,7 +32,12 @@ use sctk::{
 use std::time::Duration;
 use torin::prelude::CursorPoint;
 
-use super::super::{WindowEdge, runtime::Runtime, surface::physical_point, window::WindowControls};
+use super::super::{
+    WindowEdge,
+    runtime::{Runtime, Touch},
+    surface::physical_point,
+    window::WindowControls,
+};
 
 pub(crate) struct RepeatState {
     pub(in crate::platform) event: KeyEvent,
@@ -240,12 +245,17 @@ impl Runtime {
         (WheelSource::Pixel, phase)
     }
 
-    fn resize_from_edge(&mut self, index: usize, event: &PointerEvent) -> bool {
+    fn resize_from_edge(
+        &mut self,
+        index: usize,
+        event: &PointerEvent,
+        position: (f64, f64),
+    ) -> bool {
         use sctk::seat::pointer::{BTN_LEFT, PointerEventKind};
         let edge = if self.pointer_pressed {
             None
         } else {
-            self.resize_edge(index, event.position)
+            self.resize_edge(index, position)
         };
         match event.kind {
             PointerEventKind::Enter { .. } | PointerEventKind::Motion { .. } => {
@@ -296,9 +306,10 @@ impl PointerHandler for Runtime {
         events: &[PointerEvent],
     ) {
         for event in events {
-            let Some(index) = self.surface_for(&event.surface) else {
+            let Some((index, origin)) = self.window_of(&event.surface) else {
                 continue;
             };
+            let at = at_in_window(event.position, origin);
             match event.kind {
                 sctk::seat::pointer::PointerEventKind::Enter { serial } => {
                     self.last_pointer_serial.set(serial);
@@ -312,10 +323,10 @@ impl PointerHandler for Runtime {
                 _ => {}
             }
             use sctk::seat::pointer::PointerEventKind;
-            if self.resize_from_edge(index, event) {
+            if self.resize_from_edge(index, event, at) {
                 continue;
             }
-            let position = physical_point(event.position, self.surfaces[index].scale);
+            let position = physical_point(at, self.surfaces[index].scale);
             let platform_event = match event.kind {
                 PointerEventKind::Enter { .. } | PointerEventKind::Motion { .. } => {
                     PlatformEvent::Mouse {
@@ -620,13 +631,23 @@ impl TouchHandler for Runtime {
         id: i32,
         position: (f64, f64),
     ) {
-        let surface_id = surface.id();
-        if let Some(index) = self.surface_index_by_id(&surface_id) {
-            self.record_press_serial(index, serial);
-        }
-        self.touch_surfaces
-            .insert(id, (surface_id.clone(), position));
-        self.touch_event(surface_id, id, position, TouchPhase::Started);
+        let Some((index, origin)) = self.window_of(&surface) else {
+            return;
+        };
+        self.record_press_serial(index, serial);
+        let (window, at) = (
+            self.surfaces[index].surface.id(),
+            at_in_window(position, origin),
+        );
+        self.touch_surfaces.insert(
+            id,
+            Touch {
+                window: window.clone(),
+                position: at,
+                origin,
+            },
+        );
+        self.touch_event(window, id, at, TouchPhase::Started);
     }
 
     fn up(
@@ -638,10 +659,10 @@ impl TouchHandler for Runtime {
         _: u32,
         id: i32,
     ) {
-        let Some((surface_id, position)) = self.touch_surfaces.remove(&id) else {
+        let Some(touch) = self.touch_surfaces.remove(&id) else {
             return;
         };
-        self.touch_event(surface_id, id, position, TouchPhase::Ended);
+        self.touch_event(touch.window, id, touch.position, TouchPhase::Ended);
     }
 
     fn motion(
@@ -653,12 +674,12 @@ impl TouchHandler for Runtime {
         id: i32,
         position: (f64, f64),
     ) {
-        let Some((surface_id, last_position)) = self.touch_surfaces.get_mut(&id) else {
+        let Some(touch) = self.touch_surfaces.get_mut(&id) else {
             return;
         };
-        *last_position = position;
-        let surface_id = surface_id.clone();
-        self.touch_event(surface_id, id, position, TouchPhase::Moved);
+        touch.position = at_in_window(position, touch.origin);
+        let (window, at) = (touch.window.clone(), touch.position);
+        self.touch_event(window, id, at, TouchPhase::Moved);
     }
 
     fn shape(
@@ -683,8 +704,8 @@ impl TouchHandler for Runtime {
     }
 
     fn cancel(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &wl_touch::WlTouch) {
-        for (id, (surface_id, position)) in std::mem::take(&mut self.touch_surfaces) {
-            self.touch_event(surface_id, id, position, TouchPhase::Cancelled);
+        for (id, touch) in std::mem::take(&mut self.touch_surfaces) {
+            self.touch_event(touch.window, id, touch.position, TouchPhase::Cancelled);
         }
     }
 }
@@ -724,6 +745,10 @@ impl Runtime {
     }
 }
 
+pub(crate) fn at_in_window(position: (f64, f64), origin: (i32, i32)) -> (f64, f64) {
+    (position.0 + origin.0 as f64, position.1 + origin.1 as f64)
+}
+
 delegate_seat!(Runtime);
 delegate_pointer!(Runtime);
 delegate_keyboard!(Runtime);
@@ -755,4 +780,15 @@ fn layout_names(keymap: String) -> Vec<String> {
             .collect()
     })
     .unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::at_in_window;
+
+    #[test]
+    fn a_point_of_a_chrome_strip_is_the_point_of_the_window_shifted_by_the_strip() {
+        assert_eq!(at_in_window((12.5, 3.0), (0, 0)), (12.5, 3.0));
+        assert_eq!(at_in_window((12.5, 3.0), (200, 40)), (212.5, 43.0));
+    }
 }

@@ -312,3 +312,21 @@ The program is [`recipes/layout_grid.rs`](recipes/layout_grid.rs).
    sit at the ends of the row.
 4. `.frame()` then `.width(..)` and `.alignment(..)` is
    `.frame(maxWidth: .infinity, alignment: .leading)`.
+
+## 27. Glass over scrolling content
+
+SwiftUI: `ZStack(alignment: .top) { List { … }; Color.clear.frame(height: 52).background(.regularMaterial) }`, with `.scrollEdgeEffectStyle(.soft, for: .top)`.
+
+The program is [`recipes/glass_window.rs`](recipes/glass_window.rs).
+
+1. `TopGlass::new()` is the first child of the element that holds the title
+   bar, and the title bar is its second child: that element is drawn over the
+   glass. `Material::new(12.0)` is the first child of the card it sits behind.
+2. A compositor that offers `infinity_window_style_v1` 10 blurs what is under
+   them and the kit draws no blur; any other makes the kit draw it
+   ([chapter 15](../docs/barrierkit/15-backdrops-and-media.md#who-draws-the-blur)).
+3. Do not make the window's only top-level element hold the glass: it needs
+   content beside it to blur.
+4. To see the compositor's blur, run it under Malaysia as
+   [chapter 18](../docs/barrierkit/18-platform.md#glass-over-the-windows-content)
+   says.

@@ -1,0 +1,782 @@
+use std::any::Any;
+use std::borrow::Cow;
+
+use ctappearance::material::Material;
+use freya_core::data::LayoutData;
+use freya_core::element::{Element, ElementExt, RenderContext};
+use freya_core::integration::RenderPipeline;
+use freya_core::layers::Layers;
+use freya_core::node_id::NodeId;
+use freya_core::prelude::Color;
+use freya_core::tree::{DiffModifies, Tree};
+use freya_engine::prelude::{Canvas, FontCollection, FontMgr};
+use torin::prelude::{Area, Point2D, Position, Size, Size2D};
+
+use super::glass::Rects;
+use super::window_style::{Edge, ScrollEdgeEffectStyle, WireMaterial};
+
+#[derive(Clone, Copy)]
+pub(crate) struct BackdropSupport(pub(crate) bool);
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Effect {
+    ScrollEdge {
+        edge: Edge,
+        style: ScrollEdgeEffectStyle,
+    },
+    Material {
+        material: Material,
+        radius: u32,
+    },
+}
+
+#[derive(PartialEq)]
+pub(crate) struct Declared {
+    pub(crate) effect: Effect,
+    pub(crate) layout: LayoutData,
+}
+
+impl ElementExt for Declared {
+    fn changed(&self, other: &std::rc::Rc<dyn ElementExt>) -> bool {
+        !crate::style_diff(self, other).is_empty()
+    }
+
+    // The size lives in `layout`: a style-only diff leaves it at the size it was first measured.
+    fn diff(&self, other: &std::rc::Rc<dyn ElementExt>) -> DiffModifies {
+        let modifies = crate::style_diff(self, other);
+        if modifies.is_empty() {
+            modifies
+        } else {
+            modifies | DiffModifies::LAYOUT
+        }
+    }
+
+    fn layout(&'_ self) -> Cow<'_, LayoutData> {
+        Cow::Borrowed(&self.layout)
+    }
+
+    fn render(&self, _: RenderContext) {}
+}
+
+impl Declared {
+    pub(crate) fn soft_top_edge(depth: f32) -> Element {
+        crate::glass::leaf(Self {
+            effect: Effect::ScrollEdge {
+                edge: Edge::Top,
+                style: ScrollEdgeEffectStyle::Soft,
+            },
+            layout: crate::glass::layout(Size::fill(), Size::px(depth), Position::new_absolute()),
+        })
+    }
+
+    pub(crate) fn material(material: Material, radius: f32) -> Element {
+        crate::glass::leaf(Self {
+            effect: Effect::Material {
+                material,
+                radius: radius.round() as u32,
+            },
+            layout: crate::glass::layout(Size::fill(), Size::fill(), Position::new_absolute()),
+        })
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct Chrome {
+    pub(crate) root: NodeId,
+    pub(crate) nodes: Vec<NodeId>,
+    pub(crate) area: Area,
+    pub(crate) effects: Vec<(Effect, Area)>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct Placement {
+    pub(crate) origin: (i32, i32),
+    pub(crate) size: (u32, u32),
+}
+
+fn subtree(tree: &Tree, root: NodeId) -> Vec<NodeId> {
+    let mut nodes = vec![root];
+    let mut next = 0;
+    while let Some(&node) = nodes.get(next) {
+        nodes.extend(tree.children.get(&node).into_iter().flatten().copied());
+        next += 1;
+    }
+    nodes
+}
+
+pub(crate) fn collect(tree: &Tree, window: Size2D) -> Vec<Chrome> {
+    let bounds = Area::new(Point2D::zero(), window);
+    let mut chromes: Vec<Chrome> = Vec::new();
+    let mut alone: Vec<NodeId> = Vec::new();
+    for (id, element) in &tree.elements {
+        let Some(declared) = (element.as_ref() as &dyn Any).downcast_ref::<Declared>() else {
+            continue;
+        };
+        let Some(&root) = tree.parents.get(id).filter(|root| !alone.contains(root)) else {
+            continue;
+        };
+        let (Some(leaf), Some(holder)) = (tree.layout.get(id), tree.layout.get(&root)) else {
+            continue;
+        };
+        if leaf.hidden || holder.hidden {
+            continue;
+        }
+        let leaf = leaf.visible_area();
+        match chromes.iter_mut().find(|chrome| chrome.root == root) {
+            Some(chrome) => chrome.effects.push((declared.effect, leaf)),
+            None => {
+                let nodes = subtree(tree, root);
+                let ancestors = tree
+                    .heights
+                    .get(&root)
+                    .map_or(0, |height| usize::from(*height));
+                if nodes.len() + ancestors >= tree.elements.len() {
+                    alone.push(root);
+                    continue;
+                }
+                chromes.push(Chrome {
+                    root,
+                    nodes,
+                    area: holder.visible_area(),
+                    effects: vec![(declared.effect, leaf)],
+                });
+            }
+        }
+    }
+    chromes.sort_by_key(|chrome| std::cmp::Reverse(chrome.nodes.len()));
+    let mut outer: Vec<Chrome> = Vec::new();
+    for chrome in chromes {
+        match outer
+            .iter_mut()
+            .find(|other| other.nodes.contains(&chrome.root))
+        {
+            Some(other) => other.effects.extend(chrome.effects),
+            None => outer.push(chrome),
+        }
+    }
+    for chrome in &mut outer {
+        let reached = chrome
+            .effects
+            .iter()
+            .fold(chrome.area, |area, (_, leaf)| area.union(leaf));
+        chrome.area = reached.intersection(&bounds).unwrap_or_default();
+    }
+    outer.retain(|chrome| !chrome.area.is_empty());
+    outer.sort_by(|a, b| {
+        (a.area.min_y(), a.area.min_x())
+            .partial_cmp(&(b.area.min_y(), b.area.min_x()))
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    outer
+}
+
+fn floor(value: f32, scale: f32) -> i32 {
+    (value / scale).floor() as i32
+}
+
+fn ceil(value: f32, scale: f32) -> i32 {
+    (value / scale).ceil() as i32
+}
+
+impl Chrome {
+    pub(crate) fn placement(&self, scale: f32) -> Placement {
+        let (x, y) = (
+            floor(self.area.min_x(), scale),
+            floor(self.area.min_y(), scale),
+        );
+        Placement {
+            origin: (x, y),
+            size: (
+                (ceil(self.area.max_x(), scale) - x).max(1) as u32,
+                (ceil(self.area.max_y(), scale) - y).max(1) as u32,
+            ),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub(crate) struct Backdrop {
+    pub(crate) material: Option<WireMaterial>,
+    pub(crate) radius: u32,
+    pub(crate) rects: Rects,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) struct ScrollEdge {
+    pub(crate) edge: Edge,
+    pub(crate) style: ScrollEdgeEffectStyle,
+    pub(crate) depth: u32,
+}
+
+// One backdrop and one scroll edge per surface: the protocol keeps one of each.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub(crate) struct Requests {
+    pub(crate) backdrop: Backdrop,
+    pub(crate) scroll_edge: Option<ScrollEdge>,
+}
+
+pub(crate) fn wire(material: Material) -> WireMaterial {
+    match material {
+        Material::Titlebar => WireMaterial::Titlebar,
+        Material::Selection => WireMaterial::Selection,
+        Material::Menu => WireMaterial::Menu,
+        Material::Popover => WireMaterial::Popover,
+        Material::Sidebar => WireMaterial::Sidebar,
+        Material::HeaderView => WireMaterial::HeaderView,
+        Material::Sheet => WireMaterial::Sheet,
+        Material::WindowBackground => WireMaterial::WindowBackground,
+        Material::HudWindow => WireMaterial::HudWindow,
+        Material::FullScreenUi => WireMaterial::FullScreenUi,
+        Material::ToolTip => WireMaterial::ToolTip,
+        Material::ContentBackground => WireMaterial::ContentBackground,
+        Material::UnderWindowBackground => WireMaterial::UnderWindowBackground,
+        Material::UnderPageBackground => WireMaterial::UnderPageBackground,
+    }
+}
+
+impl Requests {
+    pub(crate) fn of(chrome: &Chrome, scale: f32) -> Self {
+        let placement = chrome.placement(scale);
+        let (x, y) = placement.origin;
+        let mut requests = Self::default();
+        for (effect, area) in &chrome.effects {
+            match *effect {
+                Effect::ScrollEdge { edge, style } if requests.scroll_edge.is_none() => {
+                    let depth = match edge {
+                        Edge::Leading | Edge::Trailing => ceil(area.max_x(), scale) - x,
+                        _ => ceil(area.max_y(), scale) - y,
+                    };
+                    requests.scroll_edge = Some(ScrollEdge {
+                        edge,
+                        style,
+                        depth: depth.max(0) as u32,
+                    });
+                }
+                Effect::Material { material, radius } => {
+                    let material = wire(material);
+                    let backdrop = &mut requests.backdrop;
+                    let same = *backdrop.material.get_or_insert(material) == material
+                        && (backdrop.rects.is_empty() || backdrop.radius == radius);
+                    if same {
+                        backdrop.radius = radius;
+                        let (left, top) = (
+                            floor(area.min_x(), scale) - x,
+                            floor(area.min_y(), scale) - y,
+                        );
+                        backdrop.rects.push((
+                            left,
+                            top,
+                            ceil(area.max_x(), scale) - x - left,
+                            ceil(area.max_y(), scale) - y - top,
+                        ));
+                    }
+                }
+                Effect::ScrollEdge { .. } => {}
+            }
+        }
+        requests
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Pass {
+    Content,
+    Chrome(usize),
+}
+
+pub(crate) fn render_passes(
+    tree: &mut Tree,
+    chromes: &[Vec<NodeId>],
+    mut render: impl FnMut(Pass, &Tree),
+) {
+    let members: Vec<Vec<(NodeId, i16)>> = chromes
+        .iter()
+        .map(|nodes| {
+            nodes
+                .iter()
+                .filter_map(|id| Some((*id, tree.layer_state.get(id)?.layer)))
+                .collect()
+        })
+        .collect();
+    let mut all = std::mem::take(&mut tree.layers);
+    for (id, layer) in members.iter().flatten() {
+        all.remove_node_from_layer(id, *layer);
+    }
+    tree.layers = all;
+    render(Pass::Content, tree);
+    let mut all = std::mem::take(&mut tree.layers);
+    for (index, nodes) in members.iter().enumerate() {
+        for (id, layer) in nodes {
+            tree.layers.insert_node_in_layer(*id, *layer);
+        }
+        render(Pass::Chrome(index), tree);
+        tree.layers = Layers::default();
+    }
+    for (id, layer) in members.iter().flatten() {
+        all.insert_node_in_layer(*id, *layer);
+    }
+    tree.layers = all;
+}
+
+pub(crate) fn render_pass(
+    font_collection: &mut FontCollection,
+    font_manager: &FontMgr,
+    tree: &Tree,
+    canvas: &Canvas,
+    scale: f64,
+    origin: (i32, i32),
+    background: Color,
+) {
+    canvas.save();
+    canvas.translate((
+        -(origin.0 as f64 * scale) as f32,
+        -(origin.1 as f64 * scale) as f32,
+    ));
+    RenderPipeline {
+        font_collection,
+        font_manager,
+        canvas,
+        tree,
+        scale_factor: scale,
+        background,
+    }
+    .render();
+    canvas.restore();
+}
+
+#[cfg(test)]
+mod tests {
+    use freya_components::cache::AssetCacher;
+    use freya_core::integration::{
+        AccentColor, AnimationClock, CurrentWindowId, GlobalContexts, NavigationMode, New,
+        Platform, PlatformWindow, PreferredTheme, RenderingTicker, Runner, ScreenReader, UserEvent,
+        default_fonts,
+    };
+    use freya_core::prelude::*;
+    use freya_engine::prelude::{TypefaceFontProvider, raster_n32_premul};
+    use ragnarok::NodesState;
+    use std::rc::Rc;
+
+    use super::Effect;
+    use super::*;
+
+    struct Scene {
+        tree: Tree,
+        fonts: FontCollection,
+        manager: FontMgr,
+        scale: f64,
+        _runner: Runner,
+    }
+
+    fn scene(app: impl Fn() -> Element + 'static, size: (f32, f32), scale: f64) -> Scene {
+        let contexts = GlobalContexts::register();
+        contexts.insert_context(Platform::new(|_| {}));
+        let mut runner = Runner::new(app);
+        runner.provide_root_context(ScreenReader::new);
+        let (_sender, ticker) = RenderingTicker::new();
+        runner.provide_root_context(|| ticker);
+        runner.provide_root_context(AnimationClock::new);
+        runner.provide_root_context(AssetCacher::create);
+        let mut tree = Tree::default();
+        let platform = runner.run_in(|| PlatformWindow {
+            id: 0,
+            focused_accessibility_id: State::create(
+                freya_core::accessibility::tree::ACCESSIBILITY_ROOT_ID,
+            ),
+            focused_accessibility_node: State::create(accesskit::Node::new(
+                accesskit::Role::Window,
+            )),
+            root_size: State::create(Size2D::new(size.0, size.1)),
+            scale_factor: State::create(scale),
+            custom_scale_factor: State::create(1.0),
+            navigation_mode: State::create(NavigationMode::NotKeyboard),
+            preferred_theme: State::create(PreferredTheme::Light),
+            is_app_focused: State::create(true),
+            accent_color: State::create(AccentColor::default()),
+            sender: Rc::new(|_: UserEvent| {}),
+        });
+        Platform::get().register_window(platform.clone());
+        runner.provide_root_context(|| CurrentWindowId(platform.id));
+        runner.provide_root_context(|| tree.accessibility_generator.clone());
+        let mut fonts = FontCollection::new();
+        let provider = TypefaceFontProvider::new();
+        let manager: FontMgr = provider.into();
+        fonts.set_default_font_manager(FontMgr::default(), None);
+        fonts.set_dynamic_font_manager(manager.clone());
+        runner.provide_root_context({
+            let fonts = fonts.clone();
+            move || fonts.clone()
+        });
+        let mutations = runner.sync_and_update();
+        runner.run_in(|| tree.apply_mutations(mutations, scale as f32));
+        let (events, _receiver) = futures_channel::mpsc::unbounded();
+        tree.measure_layout(
+            Size2D::new(size.0 * scale as f32, size.1 * scale as f32),
+            &mut fonts,
+            &manager,
+            &events,
+            &mut NodesState::default(),
+            scale,
+            &default_fonts(),
+        );
+        Scene {
+            tree,
+            fonts,
+            manager,
+            scale,
+            _runner: runner,
+        }
+    }
+
+    const RED: Color = Color::RED;
+    const BLUE: Color = Color::BLUE;
+
+    fn window_with_a_bar() -> Element {
+        rect()
+            .expanded()
+            .child(rect().expanded().background(RED))
+            .child(
+                rect()
+                    .position(Position::new_absolute().top(0.0).left(0.0))
+                    .width(Size::fill())
+                    .height(Size::px(40.0))
+                    .background(BLUE)
+                    .child(Declared::soft_top_edge(60.0))
+                    .child(
+                        rect()
+                            .width(Size::px(10.0))
+                            .height(Size::px(10.0))
+                            .background(Color::GREEN),
+                    ),
+            )
+            .into()
+    }
+
+    fn pixel(pixels: &[u8], width: usize, (x, y): (usize, usize)) -> [u8; 4] {
+        let at = (y * width + x) * 4;
+        [pixels[at], pixels[at + 1], pixels[at + 2], pixels[at + 3]]
+    }
+
+    fn read(surface: &mut freya_engine::prelude::Surface, size: (i32, i32)) -> Vec<u8> {
+        let info = freya_engine::prelude::ImageInfo::new(
+            size,
+            freya_engine::prelude::ColorType::RGBA8888,
+            freya_engine::prelude::AlphaType::Premul,
+            None,
+        );
+        let mut pixels = vec![0u8; (size.0 * size.1 * 4) as usize];
+        assert!(surface.read_pixels(&info, &mut pixels, (size.0 * 4) as usize, (0, 0)));
+        pixels
+    }
+
+    #[test]
+    fn a_declared_leaf_makes_its_container_a_chrome_sized_by_the_leaf_and_the_container() {
+        let mut scene = scene(window_with_a_bar, (200.0, 100.0), 1.0);
+        let chromes = collect(&scene.tree, Size2D::new(200.0, 100.0));
+        assert_eq!(chromes.len(), 1);
+        let chrome = &chromes[0];
+        assert_eq!(chrome.nodes.len(), 3);
+        assert_eq!(
+            chrome.area,
+            Area::new(Point2D::new(0.0, 0.0), Size2D::new(200.0, 60.0))
+        );
+        assert_eq!(
+            chrome.effects,
+            vec![(
+                Effect::ScrollEdge {
+                    edge: Edge::Top,
+                    style: ScrollEdgeEffectStyle::Soft
+                },
+                Area::new(Point2D::new(0.0, 0.0), Size2D::new(200.0, 60.0))
+            )]
+        );
+        let _ = &mut scene;
+    }
+
+    #[test]
+    fn a_declared_leaf_straight_under_the_window_root_declares_nothing() {
+        let scene = scene(
+            || {
+                rect()
+                    .expanded()
+                    .child(Declared::soft_top_edge(60.0))
+                    .into()
+            },
+            (200.0, 100.0),
+            1.0,
+        );
+        assert!(collect(&scene.tree, Size2D::new(200.0, 100.0)).is_empty());
+    }
+
+    #[test]
+    fn a_chrome_outside_the_window_is_dropped_and_one_that_overflows_it_is_cut() {
+        let scene = scene(window_with_a_bar, (200.0, 50.0), 1.0);
+        let chromes = collect(&scene.tree, Size2D::new(200.0, 50.0));
+        assert_eq!(chromes[0].area.size, Size2D::new(200.0, 50.0));
+        assert!(collect(&scene.tree, Size2D::new(0.0, 0.0)).is_empty());
+    }
+
+    #[test]
+    fn nested_glass_holders_merge_into_the_outer_chrome() {
+        let scene = scene(
+            || {
+                rect()
+                    .expanded()
+                    .child(rect().expanded().background(RED))
+                    .child(
+                        rect()
+                            .position(Position::new_absolute().top(0.0))
+                            .width(Size::fill())
+                            .height(Size::px(40.0))
+                            .child(Declared::soft_top_edge(30.0))
+                            .child(
+                                rect()
+                                    .width(Size::px(20.0))
+                                    .height(Size::px(20.0))
+                                    .child(Declared::material(Material::Menu, 6.0)),
+                            ),
+                    )
+                    .into()
+            },
+            (200.0, 100.0),
+            1.0,
+        );
+        let chromes = collect(&scene.tree, Size2D::new(200.0, 100.0));
+        assert_eq!(chromes.len(), 1);
+        assert_eq!(chromes[0].effects.len(), 2);
+    }
+
+    #[test]
+    fn the_chrome_is_drawn_apart_from_the_content_and_the_layers_come_back() {
+        let mut scene = scene(window_with_a_bar, (200.0, 100.0), 1.0);
+        let chromes = collect(&scene.tree, Size2D::new(200.0, 100.0));
+        let layers_before = scene.tree.layers.clone();
+        let mut content = raster_n32_premul((200, 100)).unwrap();
+        let mut strip = raster_n32_premul((200, 60)).unwrap();
+        let nodes = vec![chromes[0].nodes.clone()];
+        let (mut fonts, manager, scale) = (scene.fonts.clone(), scene.manager.clone(), scene.scale);
+        render_passes(&mut scene.tree, &nodes, |pass, tree| match pass {
+            Pass::Content => render_pass(
+                &mut fonts,
+                &manager,
+                tree,
+                content.canvas(),
+                scale,
+                (0, 0),
+                Color::WHITE,
+            ),
+            Pass::Chrome(_) => render_pass(
+                &mut fonts,
+                &manager,
+                tree,
+                strip.canvas(),
+                scale,
+                (0, 0),
+                Color::TRANSPARENT,
+            ),
+        });
+        assert_eq!(scene.tree.layers, layers_before);
+        let content = read(&mut content, (200, 100));
+        let strip = read(&mut strip, (200, 60));
+        assert_eq!(
+            pixel(&content, 200, (100, 20)),
+            [255, 0, 0, 255],
+            "red under the bar"
+        );
+        assert_eq!(
+            pixel(&content, 200, (5, 5)),
+            [255, 0, 0, 255],
+            "no green mark in the content"
+        );
+        assert_eq!(
+            pixel(&strip, 200, (100, 20)),
+            [0, 0, 255, 255],
+            "the blue plate"
+        );
+        assert_eq!(
+            pixel(&strip, 200, (5, 5)),
+            [0, 255, 0, 255],
+            "the green mark"
+        );
+        assert_eq!(
+            pixel(&strip, 200, (100, 50)),
+            [0, 0, 0, 0],
+            "clear below the plate"
+        );
+    }
+
+    #[test]
+    fn a_chrome_canvas_shifts_the_window_by_the_origin_of_its_strip() {
+        let mut scene = scene(window_with_a_bar, (200.0, 100.0), 1.0);
+        let chromes = collect(&scene.tree, Size2D::new(200.0, 100.0));
+        let mut strip = raster_n32_premul((100, 60)).unwrap();
+        let nodes = vec![chromes[0].nodes.clone()];
+        let (mut fonts, manager, scale) = (scene.fonts.clone(), scene.manager.clone(), scene.scale);
+        render_passes(&mut scene.tree, &nodes, |pass, tree| {
+            if let Pass::Chrome(_) = pass {
+                render_pass(
+                    &mut fonts,
+                    &manager,
+                    tree,
+                    strip.canvas(),
+                    scale,
+                    (100, 0),
+                    Color::TRANSPARENT,
+                );
+            }
+        });
+        let strip = read(&mut strip, (100, 60));
+        assert_eq!(
+            pixel(&strip, 100, (5, 5)),
+            [0, 0, 255, 255],
+            "the mark is 100 px to the left of the strip"
+        );
+    }
+
+    fn chrome(effects: Vec<(Effect, Area)>, area: Area) -> Chrome {
+        Chrome {
+            root: NodeId::ROOT,
+            nodes: Vec::new(),
+            area,
+            effects,
+        }
+    }
+
+    fn at(x: f32, y: f32, width: f32, height: f32) -> Area {
+        Area::new(Point2D::new(x, y), Size2D::new(width, height))
+    }
+
+    #[test]
+    fn a_strip_covers_the_whole_logical_pixels_its_area_touches() {
+        let chrome = chrome(Vec::new(), at(10.0, 15.0, 301.0, 61.0));
+        assert_eq!(
+            chrome.placement(2.0),
+            Placement {
+                origin: (5, 7),
+                size: (151, 31)
+            }
+        );
+        assert_eq!(
+            chrome.placement(1.0),
+            Placement {
+                origin: (10, 15),
+                size: (301, 61)
+            }
+        );
+    }
+
+    #[test]
+    fn a_top_edge_reaches_from_the_top_of_the_strip_to_the_bottom_of_the_glass() {
+        let effect = Effect::ScrollEdge {
+            edge: Edge::Top,
+            style: ScrollEdgeEffectStyle::Soft,
+        };
+        let chrome = chrome(
+            vec![(effect, at(0.0, 40.0, 400.0, 192.0))],
+            at(0.0, 40.0, 400.0, 104.0),
+        );
+        let requests = Requests::of(&chrome, 2.0);
+        assert_eq!(
+            requests.scroll_edge,
+            Some(ScrollEdge {
+                edge: Edge::Top,
+                style: ScrollEdgeEffectStyle::Soft,
+                depth: 96
+            })
+        );
+        assert_eq!(requests.backdrop, Backdrop::default());
+    }
+
+    #[test]
+    fn a_leading_edge_reaches_across_the_width_of_the_glass_and_the_first_edge_wins() {
+        let hard = |edge| Effect::ScrollEdge {
+            edge,
+            style: ScrollEdgeEffectStyle::Hard,
+        };
+        let chrome = chrome(
+            vec![
+                (hard(Edge::Leading), at(0.0, 0.0, 220.0, 600.0)),
+                (hard(Edge::Top), at(0.0, 0.0, 800.0, 52.0)),
+            ],
+            at(0.0, 0.0, 220.0, 600.0),
+        );
+        let requests = Requests::of(&chrome, 1.0);
+        assert_eq!(
+            requests.scroll_edge,
+            Some(ScrollEdge {
+                edge: Edge::Leading,
+                style: ScrollEdgeEffectStyle::Hard,
+                depth: 220
+            })
+        );
+    }
+
+    #[test]
+    fn a_material_rectangle_is_relative_to_its_strip_and_one_request_holds_one_material() {
+        let material = |material, radius| Effect::Material { material, radius };
+        let chrome = chrome(
+            vec![
+                (material(Material::Menu, 6), at(20.0, 30.0, 100.0, 50.0)),
+                (material(Material::Menu, 6), at(140.0, 30.0, 60.0, 50.0)),
+                (material(Material::Sheet, 6), at(0.0, 0.0, 10.0, 10.0)),
+                (material(Material::Menu, 12), at(0.0, 0.0, 10.0, 10.0)),
+            ],
+            at(10.0, 20.0, 200.0, 100.0),
+        );
+        assert_eq!(
+            Requests::of(&chrome, 1.0).backdrop,
+            Backdrop {
+                material: Some(WireMaterial::Menu),
+                radius: 6,
+                rects: vec![(10, 10, 100, 50), (130, 10, 60, 50)],
+            }
+        );
+    }
+
+    #[test]
+    fn every_material_the_kit_names_reaches_the_wire_under_the_same_name_and_number() {
+        use Material::*;
+        let in_header_order = [
+            Titlebar,
+            Selection,
+            Menu,
+            Popover,
+            Sidebar,
+            HeaderView,
+            Sheet,
+            WindowBackground,
+            HudWindow,
+            FullScreenUi,
+            ToolTip,
+            ContentBackground,
+            UnderWindowBackground,
+            UnderPageBackground,
+        ];
+        for (number, material) in in_header_order.into_iter().enumerate() {
+            assert_eq!(wire(material) as usize, number, "{material:?}");
+        }
+    }
+
+    #[test]
+    fn without_a_chrome_the_content_pass_draws_every_node() {
+        let mut scene = scene(window_with_a_bar, (200.0, 100.0), 1.0);
+        let mut content = raster_n32_premul((200, 100)).unwrap();
+        let (mut fonts, manager, scale) = (scene.fonts.clone(), scene.manager.clone(), scene.scale);
+        let mut passes = Vec::new();
+        render_passes(&mut scene.tree, &[], |pass, tree| {
+            passes.push(pass);
+            render_pass(
+                &mut fonts,
+                &manager,
+                tree,
+                content.canvas(),
+                scale,
+                (0, 0),
+                Color::WHITE,
+            );
+        });
+        assert_eq!(passes, [Pass::Content]);
+        let content = read(&mut content, (200, 100));
+        assert_eq!(pixel(&content, 200, (5, 5)), [0, 255, 0, 255]);
+    }
+}

@@ -29,6 +29,7 @@ texts and the questions still open.
 | Phase 0 | Done, in software. The lag test passes; the frame time on a GPU is **NOT measured** |
 | Phase 1 | Done: `infinity_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), the text for Malaysia in [section 8.3](#83-malaysias-adr-ready-to-paste) |
 | Phase 2 | Started on 2026-11-22 as M2, before the GPU frame time is measured. The criterion of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) decides whether it ships on by default |
+| Phase 3 | First slice done on 2026-11-22 (K3, [ADR 0098](../decisions.md)): the kit declares `TopGlass` and `Material` to a compositor that offers version 10, on a chrome sub-surface above the window, and keeps Skia for any other. Tested headlessly against a fake compositor and on raster canvases; **not run end to end**, which needs M2 on the owner's laptop ([section 7.3](#73-k3-the-slices-and-what-they-need)) |
 | Order of execution | M1 done (Malaysia `df9efc81`); M2 and K3 in parallel; K4 last ([section 7.1](#71-the-phases)). The owner decided on 2026-11-22 that the kit's Skia blur is deleted at the end, that Malaysia applies the measured values in every shell component, and that M2 and K3 start before the GPU measurement |
 | Algorithm | M1 replaced Dual Kawase with the measured Gaussian pipeline. The phase 0 timings and the runbook of section 10 are of Dual Kawase and must be redone on it |
 | Verification | The VM (container, llvmpipe, no display) cannot verify K3 and K4 end to end: a real session on the owner's laptop is needed |
@@ -311,6 +312,14 @@ blue one beside it must not. The phase 0 tests are the model for the lag test:
 
 ## 6. Kit changes
 
+Done in the first slice of K3 ([ADR 0098](../decisions.md)): items 1 to 5, for
+`TopGlass` and `Material`, with these differences from the plan below: the
+chrome covers the container that holds the glass, not a bare strip; the split
+swaps `tree.layers` per pass instead of cutting at a layer number; the
+declaration is read from the laid-out tree instead of an outbox; the bind range
+is `1..=10` because the library binds at the lower of what the compositor offers
+and 10. Item 6 is K4. The plan as first written follows.
+
 1. Two surfaces per window that has in-window glass: the content and the
    chrome. The chrome surface covers only the strip (the bar and the depth of its
    glass, or a rail), so its raster cost stays small.
@@ -339,7 +348,7 @@ blue one beside it must not. The phase 0 tests are the model for the lag test:
 | 0 | The experiment of section 7.2 | 1 to 2 | Done, in software. GPU frame time **NOT measured** |
 | 1 | Protocol version 10 in `infinity-protocol`, the ADRs | 1 to 2 | Done |
 | 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Started on 2026-11-22 (M2), before the GPU frame time is measured. The criterion of section 10 decides whether it ships on by default |
-| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Started on 2026-11-22 (K3); keeps Skia as the fallback |
+| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | First slice done on 2026-11-22 (K3a, [section 7.3](#73-k3-the-slices-and-what-they-need)); keeps Skia as the fallback |
 | 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Not started |
 
 If the GPU frame time fails the criterion of section 10, the in-window path
@@ -456,6 +465,22 @@ display; the wiring into `append_window_frame` and `clip_to_frame`
 Transparency and Increase Contrast gate; rounded corners and the soft mask of
 section 5, step 4; several rectangles; a band-only damage case.
 
+### 7.3 K3: the slices and what they need
+
+K3a is in the tree ([ADR 0098](../decisions.md)). The rest, in order of
+dependence. Sizes are sessions of one agent; "M2" is Malaysia serving
+`set_backdrop` and `set_scroll_edge` and advertising version 10.
+
+| Slice | Output | Size | Depends on M2 |
+|---|---|---|---|
+| K3a (done) | Detection, `TopGlass` and `Material` declared, chrome sub-surfaces, the render split, pointer and touch mapping, the recipe `glass_window` | 1 | Tested headlessly; end to end needs M2 |
+| K3b | The check on the owner's laptop with M2 ([chapter 18](../barrierkit/18-platform.md#glass-over-the-windows-content)) and the fixes it shows: commit order and presentation of the sub-surface, throttling with FIFO, the hover and the cursor across surfaces, scrolling over the strip | 1 | Yes: it cannot start before M2 serves the requests |
+| K3c | `FullscreenBar::Glass` and `ProgressiveGlass`, the titlebar overlay and the rail over the content: glass and bar in one container, the style `hard` for `Glass`. The glass fades with the focus bar, and version 10 has no way to fade a material | 1 to 2 | Yes, and a protocol decision: a version 11 argument or a surface alpha the material follows |
+| K3d | A chrome that draws and presents only when its nodes change (today both surfaces draw every frame), and a swapchain kept while a strip's size animates; a GPU measurement of both | 1 | No for the code; the measurement needs M2 |
+| K3e | `GlassContainer` and `RoundButton` as `glass_regular` and `glass_clear` with the container's merging (open question 3) | 2 to 3 | Yes |
+| K3f | More than one material or scroll edge per chrome (one sub-surface per group), the hover smoothed across surfaces, a chrome input region narrower than its strip | 1 | No |
+| K4 | Delete the Skia blur of `glass.rs`; the elements draw the solid when the compositor lacks version 10 | 1 | After K3b to K3e and the criterion of section 10 |
+
 ## 8. ADR texts
 
 ### 8.1 The kit ADRs
@@ -526,7 +551,10 @@ Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/
 
 1. Input, focus, cursor shape and `xdg_surface` geometry with the chrome as a
    sub-surface above, or as the root with the content below. The phase 0
-   harness has no xdg toplevel.
+   harness has no xdg toplevel. The kit chose the sub-surface above the root
+   ([ADR 0098](../decisions.md)) and maps pointer and touch events into the
+   window; that the compositor delivers them to the sub-surface and keeps
+   keyboard focus on the root is **not verified** (slice K3b).
 2. Which `NSVisualEffectView.Material` does each `styles::Thickness` take? The
    extents in [`blur-ownership.md`](blur-ownership.md) give two groups (about
    35 px and about 48 px in light).
@@ -552,6 +580,15 @@ Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/
     [`macos-blur.md`](macos-blur.md). The protocol needs none of them.
 12. Does version 10 carry all of macOS's configuration? To review when the
     measurements end (section 9.3).
+13. Which `NSVisualEffectView.Material` does the kit's `Material` take? The kit
+    sends `HudWindow` (`MaterialStyle::material`) until the owner decides; it
+    was not compared with the kit's own `MEDIA` look.
+14. How does a material follow the opacity of the surface that declares it? The
+    glass of `FullscreenBar` fades with the focus bar and version 10 carries no
+    opacity (slice K3c).
+15. Does Mesa's Wayland WSI commit a sub-surface inside `vkQueuePresentKHR` and
+    leave a synchronized one unthrottled? The kit presents the chromes before
+    the root and relies on it. **Not verified.**
 
 ### 9.3 To review when the measurements end
 

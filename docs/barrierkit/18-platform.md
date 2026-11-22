@@ -97,8 +97,11 @@ callback; the frame callback draws. One draw does this:
 4. Sends the sidebar glass panels and declares an opaque background, minus
    the panels, as the opaque region. They reach the compositor in the commit
    of the buffer they describe.
-5. Records the whole tree with Skia.
-6. Submits and presents.
+5. Opens, moves and closes the [chrome sub-surfaces](#glass-over-the-windows-content)
+   of the window's declared glass, and acquires their swapchain images.
+6. Records the tree with Skia: the chrome nodes on the canvases of their
+   sub-surfaces, the rest on the window's.
+7. Submits and presents, the chromes first and the window last.
 
 ### The first frame
 
@@ -123,7 +126,7 @@ runner uses the integer `wl_surface` buffer scale.
 | Device | The first GPU with a graphics queue that can present to the display. Mesa's device-select layer lists the compositor's GPU first |
 | Device extensions | `VK_KHR_swapchain`; `VK_EXT_swapchain_maintenance1` when present fences are supported |
 | Context | One Skia `DirectContext` for every surface of the process, with a 128 MB resource cache |
-| Swapchain | One per surface. `B8G8R8A8_UNORM`, sRGB. `MAILBOX` with 3 images when available, else `FIFO` with 2. Premultiplied alpha when the surface supports it |
+| Swapchain | One per surface, a [chrome sub-surface](#glass-over-the-windows-content) included. `B8G8R8A8_UNORM`, sRGB. `MAILBOX` with 3 images when available, else `FIFO` with 2. Premultiplied alpha when the surface supports it |
 
 Frame callbacks already pace the redraws, so the runner prefers `MAILBOX`
 ([freya#2260](https://github.com/marc2332/freya/issues/2260)). The decision
@@ -135,6 +138,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 |---|---|---|---|---|
 | `wl_compositor` | sctk | Always | Surfaces | `MissingGlobal("wl_compositor")` |
 | `xdg_wm_base` | sctk | Windows | Toplevels and popups | `run_window` returns `MissingGlobal("xdg_wm_base")` |
+| `wl_subcompositor` | sctk | No | The [chrome sub-surfaces](#glass-over-the-windows-content) of a window with glass | The glass is drawn by the kit |
 | `wl_seat` | sctk | No | Pointer, keyboard and touch | No input |
 | `wl_output` | sctk | No | Outputs; one lock surface each | — |
 | `zxdg_decoration_manager_v1` | 1 | No | The kit asks for client-side decoration; a server-side answer turns off edge resizing | Client-side |
@@ -149,7 +153,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
 | `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
 | `ext_image_copy_capture_manager_v1` + `ext_foreign_toplevel_image_capture_source_manager_v1` + `wl_shm` | 1 | No | [`capture_window`](#toplevels), in layer-shell components | `capture_window` answers `None` |
-| `infinity_window_style_v1` | 1–9 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([ADR 0065](../decisions.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content ([ADR 0091](../decisions.md)); the kit binds up to 9 and sends neither yet | The compositor guesses the window style |
+| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([ADR 0065](../decisions.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in
@@ -168,10 +172,81 @@ the runner logs it at `info` level and continues.
   current group; Up and Down move it inside a group (Freya's `integration`
   root). A focus move turns on keyboard
   navigation, which shows the focus ring.
-- Touch events go to the surface where the touch started.
+- Touch events go to the surface where the touch started. A touch or a pointer
+  event on a [chrome sub-surface](#glass-over-the-windows-content) is moved by
+  the strip's origin into the window, so one tree, one resize band and one
+  cursor serve both surfaces. Keyboard focus and the input method stay on the
+  window's own surface.
 - The cursor is the one the topmost hovered element declares with
   `.cursor(icon)`; a view that drags declares it on its container while the
   drag lasts. `CursorIcon` values map to `wp_cursor_shape_device_v1` shapes.
+
+## Glass over the window's content
+
+[ADR 0098](../decisions.md) is the decision, [the design](../research/blur-backdrop-design.md)
+the plan. This section says what the runner does and how to see it.
+
+**Goal:** draw the glass of `TopGlass` and `Material` with the compositor's
+blur, over the window's own content.
+**Scope:** a window of a compositor that offers `infinity_window_style_v1` at
+version 10 or later. Everywhere else the kit draws the glass itself
+([15](15-backdrops-and-media.md#who-draws-the-blur)).
+**Reader:** whoever changes the runner, or checks the glass on a real session.
+**Input:** a laid-out tree with declared glass. **Output:** one sub-surface per
+container that holds a glass, and the requests that describe it.
+
+### What the runner does
+
+1. Binds the global at the lower of its version and 10, and `wl_subcompositor`.
+   Both must be there for a window to take part.
+2. After each layout, reads the tree for the glass leaves (`platform::backdrop::collect`).
+   The element that holds a leaf is a chrome; chromes that contain one another
+   merge; a holder with nothing beside it in the tree is skipped.
+3. For each chrome opens a synchronized `wl_subsurface` above the window's
+   surface at the strip's position (`set_position`), with its own `wp_viewport`
+   and swapchain, and sends `set_backdrop` (`within_window`) and
+   `set_scroll_edge` to it, before its buffer and only when they changed.
+4. Draws the chrome nodes on the sub-surface's canvas, shifted by the strip's
+   origin, and everything else on the window's, then presents the sub-surfaces
+   and the window last. The window's commit applies theirs.
+5. Moves the pointer and touch events of a sub-surface into the window.
+
+A chrome that cannot be opened is dropped and its glass stays transparent over
+the content. A lost Vulkan device closes every chrome; the next draw opens them
+again.
+
+### Try it under Malaysia
+
+Needs the owner's Linux machine with a GPU and Vulkan, a Malaysia that serves
+`set_backdrop` and `set_scroll_edge` and advertises version 10 (the commit of
+session M2), and the kit checked out beside it as `../barrierkit`. The VM
+cannot run it: it has no display.
+
+1. Terminal 1, in Malaysia: `nix develop`, then `./dev.sh kit-local`,
+   `./dev.sh build` and `./dev.sh lab`. Leave it running.
+2. Terminal 2, in the kit: `nix develop`. Read the socket of the session and
+   open the window:
+
+   ```sh
+   socket=$(cd ../malaysia && ./dev.sh log | sed -n 's/.*listening on the Wayland socket socket=\(wayland-[0-9]*\).*/\1/p' | tail -n 1)
+   WAYLAND_DISPLAY=$socket RUST_LOG=bk::chrome=debug cargo run -p bk --example glass_window
+   ```
+
+3. Look at the window, the recipe [`glass_window`](../../agents/recipes/glass_window.rs):
+   - The log shows two `chrome surface opened` lines: the title bar and the
+     card at the bottom right. With a Malaysia that advertises 9 it shows none
+     and the bar is blurred by the kit.
+   - Scroll the list. Under the title bar the colored rows are blurred and fade
+     out toward the bottom of the bar; the title and the traffic lights stay
+     sharp; the blur follows the scroll without a frame behind. The card shows
+     the rows blurred behind its sharp label.
+   - Drag the window by the bar, press the traffic lights, resize the window:
+     the bar answers as before and nothing flickers.
+   - Scroll with the pointer over the bar.
+   - Turn on `reduce_transparency` ([4](04-appearance-and-tokens.md#the-appearance-file)):
+     the bar and the card become opaque and no chrome is opened.
+4. Send back the log, what looked wrong, and whether the compositor's log shows
+   a protocol error.
 
 ## Accessibility
 

@@ -52,6 +52,8 @@ async-io.workspace = true
 [dev-dependencies]
 freya-testing.workspace = true
 png.workspace = true
+wayland-server.workspace = true
+infinity-protocol = { workspace = true, features = ["server"] }
 
 [package.metadata.cargo-machete]
 ignored = ["freya-skia-safe"]
@@ -103,6 +105,10 @@ path = "../../agents/recipes/focus_state.rs"
 [[example]]
 name = "for_each"
 path = "../../agents/recipes/for_each.rs"
+
+[[example]]
+name = "glass_window"
+path = "../../agents/recipes/glass_window.rs"
 
 [[example]]
 name = "hello_world"

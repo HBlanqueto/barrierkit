@@ -2,11 +2,15 @@ mod activation;
 pub(crate) mod app;
 #[cfg(feature = "a11y")]
 mod atspi;
+pub(crate) mod backdrop;
+mod chrome_surface;
 mod clipboard;
 mod dialog;
 #[cfg(test)]
 mod doc_shots;
 pub(crate) mod extension;
+#[cfg(test)]
+mod fake_server;
 mod focus;
 mod glass;
 mod ime;

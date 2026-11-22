@@ -3,10 +3,7 @@ use std::{fmt::Debug, rc::Rc};
 #[cfg(feature = "shell")]
 use sctk::reexports::protocols::xdg::shell::client::xdg_popup::XdgPopup;
 
-use freya_core::{
-    integration::{PlatformEvent, RenderPipeline},
-    prelude::Color,
-};
+use freya_core::{integration::PlatformEvent, prelude::Color};
 
 use super::RunError;
 use sctk::{
@@ -34,6 +31,8 @@ use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinA
 
 use super::{
     app::AppInstance,
+    backdrop::Pass,
+    chrome_surface::{ChromeHost, ChromeSurface},
     glass::Rects,
     popup::PopupInfo,
     runtime::{Runtime, WindowContext},
@@ -68,6 +67,8 @@ pub(crate) struct SurfaceWindow {
     pub(crate) viewport: Option<WpViewport>,
     pub(crate) context: Option<WindowContext>,
     pub(crate) glass_notice: Option<super::focus::InfinityFocusSurfaceV1>,
+    pub(crate) chrome_host: Option<ChromeHost>,
+    pub(crate) chromes: Vec<ChromeSurface>,
 }
 
 #[cfg(feature = "shell")]
@@ -243,28 +244,71 @@ impl SurfaceWindow {
         }
         self.flush_glass();
         self.flush_knobs();
+        self.sync_chromes();
         self.declare_opaque(compositor, background);
+        for chrome in &mut self.chromes {
+            let Some(chrome) = chrome.graphics.as_mut() else {
+                continue;
+            };
+            if let Err(error) = chrome.acquire() {
+                self.chromes.clear();
+                return self.draw_failed(error);
+            }
+        }
+        {
+            let _render = tracing::trace_span!("render").entered();
+            let scale = self.scale;
+            let nodes: Vec<_> = self
+                .chromes
+                .iter()
+                .map(|chrome| chrome.nodes.clone())
+                .collect();
+            let app = &mut self.app;
+            let chromes = &mut self.chromes;
+            let Some(content) = self
+                .graphics
+                .as_mut()
+                .and_then(|graphics| graphics.skia.as_mut())
+            else {
+                return false;
+            };
+            super::backdrop::render_passes(&mut app.tree, &nodes, |pass, tree| {
+                let (canvas, background, origin) = match pass {
+                    Pass::Content => (content.canvas(), background, (0, 0)),
+                    Pass::Chrome(index) => {
+                        let chrome = &mut chromes[index];
+                        let Some(skia) = chrome.graphics.as_mut().and_then(|g| g.skia.as_mut())
+                        else {
+                            return;
+                        };
+                        (skia.canvas(), Color::TRANSPARENT, chrome.placement.origin)
+                    }
+                };
+                super::backdrop::render_pass(
+                    &mut app.font_collection,
+                    &app.font_manager,
+                    tree,
+                    canvas,
+                    scale,
+                    origin,
+                    background,
+                );
+            });
+        }
         let Some(graphics) = self.graphics.as_mut() else {
             return false;
         };
-        {
-            let _render = tracing::trace_span!("render").entered();
-            let Some(skia) = graphics.skia.as_mut() else {
-                return false;
-            };
-            let canvas = skia.canvas();
-            RenderPipeline {
-                font_collection: &mut self.app.font_collection,
-                font_manager: &self.app.font_manager,
-                canvas,
-                tree: &self.app.tree,
-                scale_factor: self.scale,
-                background,
-            }
-            .render();
-        }
         let swap_start = std::time::Instant::now();
+        let chrome_failure = self
+            .chromes
+            .iter_mut()
+            .filter_map(|chrome| chrome.graphics.as_mut()?.present().err())
+            .last();
         if let Err(error) = tracing::trace_span!("present").in_scope(|| graphics.present()) {
+            return self.draw_failed(error);
+        }
+        if let Some(error) = chrome_failure {
+            self.chromes.clear();
             return self.draw_failed(error);
         }
         self.draw_count += 1;
@@ -326,6 +370,7 @@ impl SurfaceWindow {
 
 impl Drop for SurfaceWindow {
     fn drop(&mut self) {
+        self.chromes.clear();
         // The swapchain must go before the role destroys the wl_surface (vkCreateWaylandSurfaceKHR).
         self.graphics = None;
         if let Some(fractional) = self.fractional.take() {
@@ -359,6 +404,8 @@ impl Runtime {
             .as_ref()
             .map(|viewporter| viewporter.get_viewport(&surface, &self.qh, surface.id()));
         SurfaceWindow {
+            chrome_host: self.chrome_host(&role),
+            chromes: Vec::new(),
             surface,
             role,
             popup: None,

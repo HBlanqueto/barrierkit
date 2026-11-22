@@ -13,6 +13,7 @@ use freya_engine::prelude::{
 use torin::prelude::{Position, Size};
 
 use crate::platform::FullscreenBar;
+use crate::platform::backdrop::{BackdropSupport, Declared};
 use crate::styles::{
     ControlState, FullscreenBarStyle, MaterialStyle, Paints, Theme, TopGlassStyle, resolve,
 };
@@ -45,6 +46,11 @@ pub(crate) fn glass_tint() -> Rgba {
 
 pub(crate) fn transparency_reduced() -> bool {
     crate::theme::resolved().reduce_transparency
+}
+
+fn composed_by_compositor() -> bool {
+    !transparency_reduced()
+        && try_consume_root_context::<BackdropSupport>().is_some_and(|support| support.0)
 }
 
 pub(crate) fn material(tint: Rgba, solid: Rgba, blur: f32, opaque: bool) -> (Rgba, Option<f32>) {
@@ -172,6 +178,8 @@ impl From<TopGlass> for Element {
         let tint = paints.color(style.tint.resolve(ControlState::default()));
         if transparency_reduced() {
             solid(GlassEdge::Top, style.glass.height, Rgba { a: 1.0, ..tint })
+        } else if composed_by_compositor() {
+            Declared::soft_top_edge(style.glass.height)
         } else {
             glass(
                 GlassEdge::Top,
@@ -346,6 +354,9 @@ impl Material {
 impl From<Material> for Element {
     fn from(material: Material) -> Self {
         let style: MaterialStyle = resolve(&material.style);
+        if composed_by_compositor() {
+            return Declared::material(style.material, material.corner_radius);
+        }
         let paints = Paints::current(ControlState::default(), style.effect);
         let tint = paints.color(style.tint.resolve(ControlState::default()));
         let (tint, blur) = self::material(tint, tint, style.blur, transparency_reduced());
@@ -413,4 +424,85 @@ impl ElementExt for MaterialElement {
 
 fn rgba4f(color: Rgba) -> Color4f {
     Color4f::new(color.r, color.g, color.b, color.a)
+}
+
+#[cfg(test)]
+mod tests {
+    use ctappearance::{AppearanceConfig, resolve};
+    use freya_core::integration::AppComponent;
+    use freya_testing::TestingRunner;
+
+    use super::*;
+
+    struct Case(fn() -> Element);
+
+    impl App for Case {
+        fn render(&self) -> impl IntoElement {
+            (self.0)()
+        }
+    }
+
+    fn painted(compositor: bool, reduced: bool, glass: fn() -> Element) -> Vec<u8> {
+        let resolved = resolve(
+            &AppearanceConfig {
+                reduce_transparency: reduced,
+                ..Default::default()
+            },
+            None,
+        );
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(Case(glass)),
+            torin::prelude::Size2D::new(200.0, 100.0),
+            move |runner| {
+                runner.provide_root_context(move || State::create(resolved));
+                runner.provide_root_context(move || BackdropSupport(compositor));
+            },
+            1.0,
+        );
+        test.sync_and_update();
+        test.render().as_bytes().to_vec()
+    }
+
+    fn bare() -> Element {
+        rect().expanded().background((200, 40, 40)).into()
+    }
+
+    fn with_top_glass() -> Element {
+        rect()
+            .expanded()
+            .background((200, 40, 40))
+            .child(TopGlass::new())
+            .into()
+    }
+
+    fn with_material() -> Element {
+        rect()
+            .expanded()
+            .background((200, 40, 40))
+            .child(Material::new(12.0))
+            .into()
+    }
+
+    #[test]
+    fn a_compositor_that_composes_the_blur_leaves_the_glass_transparent() {
+        let window = painted(true, false, bare);
+        assert_eq!(painted(true, false, with_top_glass), window);
+        assert_eq!(painted(true, false, with_material), window);
+    }
+
+    #[test]
+    fn without_the_compositor_the_glass_keeps_drawing_its_own_tint() {
+        let window = painted(false, false, bare);
+        assert_ne!(painted(false, false, with_top_glass), window);
+        assert_ne!(painted(false, false, with_material), window);
+    }
+
+    #[test]
+    fn a_reduced_transparency_glass_is_the_kits_solid_whoever_composes_the_blur() {
+        for glass in [with_top_glass, with_material] {
+            let solid = painted(false, true, glass);
+            assert_eq!(painted(true, true, glass), solid);
+            assert_ne!(solid, painted(false, true, bare));
+        }
+    }
 }

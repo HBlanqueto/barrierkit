@@ -14,6 +14,10 @@ pub struct MaterialStyle {
     pub blur: f32,
     /// Tengen: `Some((Color(MEDIA.material_rim), HAIRLINE))`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `Material::HudWindow`. The material a compositor that offers `set_backdrop`
+    /// draws behind `Material`; the kit draws no blur then and ignores `tint`, `blur` and
+    /// `border`.
+    pub material: ctappearance::material::Material,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
 }
@@ -24,6 +28,7 @@ impl ControlStyle for MaterialStyle {
             tint: StateValue::new(ShapeStyle::Color(MEDIA.material_tint)),
             blur: MEDIA.material_blur,
             border: Some((ShapeStyle::Color(MEDIA.material_rim), HAIRLINE)),
+            material: ctappearance::material::Material::HudWindow,
             effect: system_effect,
         }
     }

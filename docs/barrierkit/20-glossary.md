@@ -225,7 +225,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::DividerStyle` | struct | — | ≈ `NSBox` (separator) | Thickness and paint of `Divider` | [Styles](../../crates/bk/src/styles/divider.rs) |
 | `styles::AvatarStyle` | struct | — | — | Every visual property of `Avatar` | [Styles](../../crates/bk/src/styles/avatar.rs) |
 | `styles::ImageStyle` | struct | ≈ `.imageScale(_:)`, `.foregroundStyle(_:)` | — | Default size, symbol stroke and paint of every `Image` | [Styles](../../crates/bk/src/styles/image.rs) |
-| `styles::MaterialStyle` | struct | `Material` | ≈ `NSVisualEffectView.Material` | Tint, blur and rim of `Material` | [Styles](../../crates/bk/src/styles/material.rs) |
+| `styles::MaterialStyle` | struct | `Material` | ≈ `NSVisualEffectView.Material` | Tint, blur and rim of `Material`, and the `material` (`ctappearance::material::Material`, Tengen `HudWindow`) a compositor that composes the blur draws behind it | [Styles](../../crates/bk/src/styles/material.rs) |
 | `styles::TopGlassStyle` | struct | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | Tint and glass metrics of `TopGlass` | [Styles](../../crates/bk/src/styles/top_glass.rs) |
 | `styles::GlassContainerStyle` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | Tint, solid color, rim, blur and morph of `GlassContainer` | [Styles](../../crates/bk/src/styles/glass_container.rs) |
 | `styles::BackdropStyle` | struct | — | — | Angles, opacity and fade of the gradient layers of `Backdrop` | [Styles](../../crates/bk/src/styles/backdrop.rs) |

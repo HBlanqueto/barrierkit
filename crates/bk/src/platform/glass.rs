@@ -97,6 +97,14 @@ impl Runtime {
         self.glass_style().is_some()
     }
 
+    pub(crate) fn backdrop_supported(&self) -> bool {
+        self.subcompositor.is_some()
+            && self
+                .window_style
+                .as_ref()
+                .is_some_and(super::window_style::offers_backdrop)
+    }
+
     pub(crate) fn knobs_supported(&self) -> bool {
         self.window_style
             .as_ref()

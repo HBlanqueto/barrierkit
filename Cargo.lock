@@ -370,6 +370,7 @@ dependencies = [
  "tracing-tracy",
  "wayland-protocols",
  "wayland-protocols-plasma",
+ "wayland-server",
  "xkbcommon",
  "zbus",
  "zeroize",

@@ -29,8 +29,8 @@ use freya_core::integration::{GlobalContexts, Platform, UserEvent, WritableUtils
 use sctk::{
     compositor::CompositorState,
     data_device_manager::DataDeviceManagerState,
-    delegate_compositor, delegate_output, delegate_registry, delegate_xdg_shell,
-    delegate_xdg_window,
+    delegate_compositor, delegate_output, delegate_registry, delegate_subcompositor,
+    delegate_xdg_shell, delegate_xdg_window,
     output::{OutputHandler, OutputState},
     reexports::{
         calloop::{
@@ -57,6 +57,7 @@ use sctk::{
         pointer::cursor_shape::CursorShapeManager,
     },
     shell::xdg::XdgShell,
+    subcompositor::SubcompositorState,
 };
 use wayland_protocols::wp::fractional_scale::v1::client::wp_fractional_scale_manager_v1::WpFractionalScaleManagerV1;
 use wayland_protocols::wp::text_input::zv3::client::zwp_text_input_manager_v3::ZwpTextInputManagerV3;
@@ -74,6 +75,7 @@ pub(crate) struct Connected {
 pub(crate) struct Runtime {
     pub(crate) registry: RegistryState,
     pub(crate) compositor: CompositorState,
+    pub(crate) subcompositor: Option<Rc<SubcompositorState>>,
     pub(crate) output: OutputState,
     pub(crate) xdg_shell: Option<XdgShell>,
     pub(crate) surfaces: Vec<SurfaceWindow>,
@@ -122,7 +124,7 @@ pub(crate) struct Runtime {
     pub(crate) pointer_surface: Option<WlSurface>,
     pub(crate) cursor_icon: CursorIcon,
     pub(crate) touchpad_scrolling: bool,
-    pub(crate) touch_surfaces: std::collections::HashMap<i32, (ObjectId, (f64, f64))>,
+    pub(crate) touch_surfaces: std::collections::HashMap<i32, Touch>,
     pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
     pub(crate) popup_next_id: Rc<Cell<u64>>,
     pub(crate) appearance_watch: Option<AppearanceWatch>,
@@ -138,6 +140,12 @@ pub(crate) struct Runtime {
     pub(crate) clipboard_device: Option<ClipboardDevice>,
     pub(crate) drag_target: Option<(ObjectId, CursorPoint)>,
     pub(crate) pending_drop: Option<PendingDrop>,
+}
+
+pub(crate) struct Touch {
+    pub(crate) window: ObjectId,
+    pub(crate) position: (f64, f64),
+    pub(crate) origin: (i32, i32),
 }
 
 pub(crate) struct WindowContext {
@@ -248,6 +256,7 @@ impl Runtime {
         shared.recoveries.set(self.graphics.recoveries.get() + 1);
         for surface in &mut self.surfaces {
             surface.graphics = None;
+            surface.chromes.clear();
         }
         for surface in &mut self.surfaces {
             surface.shared = shared.clone();
@@ -469,9 +478,7 @@ impl Runtime {
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=5, ())
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
-        let window_style = globals
-            .bind::<super::window_style::InfinityWindowStyleV1, _, _>(&qh, 1..=9, ())
-            .ok();
+        let window_style = super::window_style::bind(&globals, &qh);
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.
         let fractional_manager = viewporter.as_ref().and_then(|_| {
@@ -490,10 +497,18 @@ impl Runtime {
         let seat = SeatState::new(&globals, &qh);
         let seat_handle = seat.seats().next();
         let display_ptr = conn.display().id().as_ptr().cast::<c_void>();
+        let compositor = CompositorState::bind(&globals, &qh)
+            .map_err(|_| RunError::MissingGlobal("wl_compositor"))?;
         let mut shell = Runtime {
             registry: RegistryState::new(&globals),
-            compositor: CompositorState::bind(&globals, &qh)
-                .map_err(|_| RunError::MissingGlobal("wl_compositor"))?,
+            subcompositor: SubcompositorState::bind(
+                compositor.wl_compositor().clone(),
+                &globals,
+                &qh,
+            )
+            .ok()
+            .map(Rc::new),
+            compositor,
             output: OutputState::new(&globals, &qh),
             xdg_shell: XdgShell::bind(&globals, &qh).ok(),
             surfaces: Vec::new(),
@@ -611,6 +626,22 @@ impl Runtime {
         self.surfaces.iter().position(|s| s.surface == *surface)
     }
 
+    pub(crate) fn window_of(&self, surface: &WlSurface) -> Option<(usize, (i32, i32))> {
+        self.surfaces
+            .iter()
+            .enumerate()
+            .find_map(|(index, window)| {
+                if window.surface == *surface {
+                    return Some((index, (0, 0)));
+                }
+                let chrome = window
+                    .chromes
+                    .iter()
+                    .find(|chrome| chrome.surface == *surface)?;
+                Some((index, chrome.placement.origin))
+            })
+    }
+
     pub(crate) fn surface_index_by_id(&self, surface_id: &ObjectId) -> Option<usize> {
         self.surfaces
             .iter()
@@ -641,10 +672,10 @@ impl Runtime {
         if self.resize_hover.is_some() {
             return;
         }
-        let Some(index) = self
+        let Some((index, _)) = self
             .pointer_surface
             .as_ref()
-            .and_then(|surface| self.surface_for(surface))
+            .and_then(|surface| self.window_of(surface))
         else {
             return;
         };
@@ -720,6 +751,7 @@ impl OutputHandler for Runtime {
 }
 
 delegate_compositor!(Runtime);
+delegate_subcompositor!(Runtime);
 delegate_output!(Runtime);
 delegate_registry!(Runtime);
 delegate_xdg_shell!(Runtime);
