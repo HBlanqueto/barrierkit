@@ -176,10 +176,13 @@ Pane title `Appearance` / `Aspecto`. Cards in order:
    marks (left, middle, right). Left icon `Capsule Shape On A Rectangle With A
    Liquid Glass Effect`, right icon `Capsule Shape On A Rectangle`. Key
    `NSGlassTintAmount` (0 here; `NSGlassBuddyTintAmount` is 1 and
-   `NSGlassEverEditedInBuddy` is 1). Effect on blur and tint: **not measured**
-   (a comment in `ctappearance::resolve` says an earlier pass on macOS 26
-   found the blur widens with the square of the slider and the tint barely
-   moves; no capture of it is recorded).
+   `NSGlassEverEditedInBuddy` is 1). Its effect was measured per process on
+   2026-11-22 ([`macos-liquid-glass.md`](macos-liquid-glass.md) section 13):
+   the regular glass goes from its blur of 6.5 px (dark) or 8.2 px (light) to
+   15.5 or 17.5 px and from its tone to a tinted panel, the clear glass from
+   no blur to 16.5 px, with piecewise-linear inputs. An earlier comment in
+   `ctappearance` (a blur that grows with the square of the slider, a tint that
+   barely moves) did not hold: the blur grows about linearly.
 
 Heading **Theme / Tema**:
 
@@ -429,7 +432,7 @@ trees saved, and are not described here.
 | macOS setting | Where (English / Spanish) | Key | Values | Effect |
 |---|---|---|---|---|
 | Light, Dark, Auto | Appearance > Appearance | `AppleInterfaceStyle`, `AppleInterfaceStyleSwitchesAutomatically` | `Dark` or absent; absent here | Selects the light or dark material set; measured in [`macos-materials.md`](macos-materials.md) and [`macos-blur.md`](macos-blur.md) |
-| Liquid Glass | Appearance > Liquid Glass | `NSGlassTintAmount` | 0 to 1 slider, 0 here | **not measured**: the slider is a tint amount; see 5.1 |
+| Liquid Glass | Appearance > Liquid Glass | `NSGlassTintAmount` | 0 to 1 slider, 0 here | one slider for the glass of every `NSGlassEffectView`: blur sigma, tint and tone; measured per process in [`macos-liquid-glass.md`](macos-liquid-glass.md) section 13; the system surfaces were not measured |
 | Tint window background with wallpaper color | Appearance > Windows | `AppleReduceDesktopTinting` (1 = off) | switch; off here | Window backgrounds pick up the wallpaper color in dark; effect values in [`macos-blur.md`](macos-blur.md) |
 | Increase contrast | Accessibility > Display | `increaseContrast` (`com.apple.universalaccess`) | 0 or 1 | Alone it keeps every blur ([`macos-materials.md`](macos-materials.md) section 10.4) |
 | Reduce transparency | Accessibility > Display | `reduceTransparency` (`com.apple.universalaccess`) | 0 or 1 | Every blurred `NSVisualEffectView` material becomes a solid; the Dock becomes the scheme solid; the menu glass and Control Center are unchanged ([`macos-defaults.md`](macos-defaults.md) section 7b) |
@@ -443,7 +446,7 @@ Liquid Glass tint slider. A blur multiplier does not exist in System Settings.
 
 | Item | Why |
 |---|---|
-| Effect of the Liquid Glass slider at 0, 0.5 and 1 | needs the setting or the per-process argument `-NSGlassTintAmount` on `lgcfg` and `lgshot` (`~/src/probes/liquidglass`), not run |
+| Effect of the Liquid Glass slider on the Dock, the menu bar and Control Center | the per-process effect is measured ([`macos-liquid-glass.md`](macos-liquid-glass.md) section 13); the system surfaces need the setting itself |
 | Defaults of every option | the live values are the user's; a fresh account was not reset |
 | Whether Increase contrast switches Reduce transparency on | needs a setting change |
 | Window minimum and maximum size, and why the width is 740 or 865 | needs resizing or a second language run with the same frame |

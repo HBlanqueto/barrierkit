@@ -572,8 +572,8 @@ inside it.
   `NSGlassEffectView` and `glassEffect`, whose lens bends a grid by 50 px at
   the edge of a clear glass.
 - `glass_blur` as a quadratic of the slider (earlier section 3) is retired
-  (ADR 0096): System Settings has a tint slider, `NSGlassTintAmount`, whose effect
-  was not measured ([`macos-settings.md`](macos-settings.md)), and no blur setting.
+  (ADR 0096): System Settings has a tint slider, `NSGlassTintAmount`, measured in
+  section 13 ([`macos-settings.md`](macos-settings.md)), and no blur setting.
 - The application menu is regular glass: 32, 122 and 146 over black, gray 128 and
   white, in raw device bytes. The `#a3` over white of the earlier menu tables
   was read through a probe that lifted mid-tones (the correction is in
@@ -618,3 +618,75 @@ the regular (`reg-*`) and clear (`clr-*`) glass over `gray128`, `tone`, `grid16`
 | What triggers the hovered and pressed state | none | a hosted glass button or the user's own pointer; no global setting changes it |
 
 After a run, fill the cells above and move them out of the table of this section.
+
+## 13. The Appearance › Liquid Glass slider (`NSGlassTintAmount`), measured 2026-11-22
+
+System Settings › Appearance has a slider named `Liquid Glass Tint Amount`, range 0 to 1, stored in the global domain as `NSGlassTintAmount` (0 on this Mac;
+[`macos-settings.md`](macos-settings.md)). It is a per-process default too: `-NSGlassTintAmount <t>` on the command line of the probe gives that
+process the glass of that slider position and changes no system setting. Values outside 0 to 1 clamp (checked at -0.5 and 1.5). With `0` the
+live inputs equal those of a run with no argument, and the captures equal the earlier default ones (122 and 154 over gray 128, dark).
+
+**Method.** `lgmulti` (the live inputs of a key window, `plans/live5.json`: regular and clear glass, aqua and darkAqua) at 31 values of `t`
+(`macos-liquid-glass-tint.csv`, every input that moves); `lgshot -panel` windows (raw captures, never converted) of a 200 x 160 glass over gray 128 and of a
+560 x 400 glass over the gray ramp `tone` and the step edges `kern2` at `t` = 0, 0.25, 0.5, 0.75 and 1, in both appearances and both styles; the kernel is the
+step-edge fit of section 7 (`opacity` is the share of the Gaussian over the sharp step). 1x, the probe's own windows (the active look). Captures:
+`~/src/captures/liquidglass/tint/`.
+
+### 13.1 The inputs of `glassBackground` as functions of `t` (read)
+
+Every input is piecewise linear in `t`; the ones not listed do not move.
+
+| Look | Input | Value |
+|---|---|---|
+| Regular, both schemes | `inputBlurFillNormalOpacity` | `t` |
+| Regular, dark | `inputBlurFillDarkenOpacity` | `0.675 + 0.45 t` up to `t` 0.5, then 0.9 |
+| Regular, light | `inputBlurFillLightenOpacity` | the same |
+| Regular, dark | `inputFaceColorMatrixFillColor` | rgb `0.125 \|1 - 2t\|`, alpha `max(0, t - 0.5)` |
+| Regular, dark | `inputFaceColorMatrixMaxLuma`, `…SDR` | `0.45 - 0.2 t` up to `t` 0.5, then 0.35 |
+| Regular, light | `inputFaceColorMatrixFillColor` alpha | `0.4 t` up to 0.5, then `0.6 t - 0.1` (0.5 at `t` 1) |
+| Regular, dark | the backdrop layer `scale` | 0.5 up to `t` 0.40, 0.25 from 0.42 to 0.96, 0.125 from 0.98 |
+| Regular, light | the backdrop layer `scale` | 0.5 up to `t` 0.32, 0.25 from 0.34 to 0.96, 0.125 from 0.98 |
+| Clear, both schemes | `inputBlurOpacity0..3` | 0, 0, 0, 0 at `t` 0 (no blur); 1, 0.5, 0.5, 1 above |
+| Clear | `inputBlurRadius` | `1.5 t` up to 0.5, then 0.75 |
+| Clear | `inputBlurFillBlurRadius` | 0 up to `t` 0.5, then 8 |
+| Clear | `inputBlurFillNormalOpacity` | `2 max(0, t - 0.5)` |
+
+The lens, rim, shadow, refraction and every other input are the same at every `t`.
+
+### 13.2 What the pixels do (measured)
+
+Interior of the regular glass over gray 128, raw device value (clear is 154 at every `t`):
+
+| `t` | 0 | 0.25 | 0.5 | 0.75 | 1 |
+|---|---|---|---|---|---|
+| Regular, dark | 122 | 119 | 116 | 91 | 76 |
+| Regular, light | 188 | 196 | 203 | 214 | 224 |
+
+Over the ramp `tone` (input 30, 81, 132, 149 green levels): regular dark gives 55, 93, 121, 127 at `t` 0 and 44, 62, 74, 77 at 1; regular light gives
+125, 160, 192, 202 at 0 and 195, 210, 223, 227 at 1. Clear gives 61, 109, 159, 175 at 0 and 61, 109, 157, 173 at 1: the clear tone does not follow the slider.
+
+Gaussian sigma of the blur (px at 1x, 100 px in from the rim; 60 and 160 px differ by up to 1.5; `opacity` in brackets), and the contrast a white and black step keeps through the glass (levels, 223 with no glass):
+
+| `t` | 0 | 0.25 | 0.5 | 0.75 | 1 |
+|---|---|---|---|---|---|
+| Regular, dark: sigma | 6.5 (0.84) | 8.8 (0.80) | 10.2 (0.90) | 11.8 (0.92) | 15.5 (0.91) |
+| Regular, dark: contrast | 104 | 94 | 85 | 57 | 36 |
+| Regular, light: sigma | 8.2 (0.86) | 10.5 (0.87) | 13.2 (0.88) | 14.8 (0.91) | 17.5 (0.93) |
+| Regular, light: contrast | 140 | 120 | 100 | 75 | 51 |
+| Clear, both: sigma | none (0.5) | 4.5 (0.07) | 3.8 (0.18) | 14.5 (0.50) | 16.5 (0.97) |
+| Clear, both: contrast | 223 | 223 | 223 | 214 | 184 |
+
+So the slider takes the glass from the glass as designed (regular blur of 6.5 px dark and 8.2 px light, clear glass with no blur at all) to a frosted
+one: at 1 the regular glass is a tinted panel of 15.5 px (dark) and 17.5 px (light) that keeps 16 % and 23 % of the contrast of a step, and the clear glass
+a blur of 16.5 px with its tone unchanged (82 % of the contrast). The regular blur grows about linearly with `t` (0.41 of its range at 0.5 in dark), not with the
+square, and the tone does not "hardly move": in light it has covered 42 % of its range at 0.5; in dark it moves late, 13 % at 0.5 and most of it after 0.5, where the fill alpha starts.
+
+### 13.3 Not measured
+
+| Cell | What it needs |
+|---|---|
+| Whether the Dock, the menu bar, Control Center and the notifications follow the slider | the system value (a setting change), or a capture of them at another value |
+| The inactive look and scale 2 at other `t` | `lgshot -inactive` and a HiDPI mode |
+| What the slider does with Reduce Transparency or Increase Contrast on | `-reduceTransparency 1` and `-increaseContrast 1` with `-NSGlassTintAmount` |
+| The tint over colour backdrops and the rim and shadow at other `t` | the inputs of the rim and shadow do not move; colour captures were not taken |
+| Why the scale thresholds differ between dark (0.41) and light (0.33) | the scale is probably chosen from the fill's luminance; one value at each end was read |
