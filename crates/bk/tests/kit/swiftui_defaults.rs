@@ -1,3 +1,4 @@
+use bk::ProbeExt;
 use bk::controls::Button;
 use bk::prelude::*;
 use bk::symbol::Symbol;
@@ -107,5 +108,35 @@ fn the_content_starts_within_8_of_where_swiftui_puts_it() {
             (start - top).abs() <= SWIFTUI_VERTICAL_TOLERANCE,
             "{start} vs {top}"
         );
+    }
+}
+
+fn text_height(font: ctdesign::Font) -> f32 {
+    let test = runner(move || {
+        rect()
+            .probe("line")
+            .child(bk::style::text("Hxg", font, ctdesign::Rgba::rgb8(0, 0, 0)))
+            .into_element()
+    });
+    area(&test, "line").height()
+}
+
+// Heights of a SwiftUI Text on macOS 27.2 (~/src/probes/textlines.swift).
+#[test]
+fn the_text_styles_have_the_line_heights_of_swiftui() {
+    use ctdesign::*;
+    for (font, height) in [
+        (LARGE_TITLE, 31.0),
+        (TITLE, 26.0),
+        (TITLE_2, 19.0),
+        (TITLE_3, 19.0),
+        (HEADLINE, 16.0),
+        (BODY, 16.0),
+        (CALLOUT, 15.0),
+        (SUBHEADLINE, 14.0),
+        (FOOTNOTE, 13.0),
+        (CAPTION_2, 13.0),
+    ] {
+        assert_eq!(text_height(font), height, "{}pt", font.size);
     }
 }

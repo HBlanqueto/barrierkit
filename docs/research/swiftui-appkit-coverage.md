@@ -291,13 +291,13 @@ Sans, so glyph widths differ ([Limits](appkit-comparison.md#limits)).
 
 | SwiftUI | AppKit | macOS 27.2.1 | Kit | Status | Pri |
 |---|---|---|---|---|---|
-| `.largeTitle` | `.largeTitle` | 26 / 32, regular | `LARGE_TITLE` 26 / 32, 700 | `partial`: weight | P1 |
+| `.largeTitle` | `.largeTitle` | 26 / 32, regular | `LARGE_TITLE` 26 / 31, 700 | `partial`: weight | P1 |
 | `.title` | `.title1` | 22 / 26, regular | `TITLE` 22 / 26, 650 | `partial`: weight | P1 |
 | `.title2` | `.title2` | 17 / 22, regular | — | `missing` | P1 |
-| `.title3` | `.title3` | 15 / 20, regular | `TITLE_3` 15 / 20, 400 (`TITLE_2` 15 / 20, 600 stays) | `implemented` | — |
-| `.headline` | `.headline` | 13 / 16, bold | `HEADLINE` 13 / 18, 700 | `partial`: line | P1 |
-| `.body` | `.body` | 13 / 16, regular | `BODY` 13 / 18, 400 | `partial`: line | P1 |
-| `.callout` | `.callout` | 12 / 15, regular | `CALLOUT` 12 / 16, 400 | `partial`: line | P2 |
+| `.title3` | `.title3` | 15 / 20, regular | `TITLE_3` 15 / 19, 400 (`TITLE_2` 15 / 19, 600 stays) | `implemented` | — |
+| `.headline` | `.headline` | 13 / 16, bold | `HEADLINE` 13 / 16, 700 | `implemented` | — |
+| `.body` | `.body` | 13 / 16, regular | `BODY` 13 / 16, 400 | `implemented` | — |
+| `.callout` | `.callout` | 12 / 15, regular | `CALLOUT` 12 / 15, 400 | `implemented` | — |
 | `.subheadline` | `.subheadline` | 11 / 14, regular | `SUBHEADLINE` 11 / 14, 400 (`CAPTION` 11 / 14, 500 stays) | `implemented` | — |
 | `.footnote` | `.footnote` | 10 / 13, regular | `FOOTNOTE` 10 / 13, 400 | `implemented` | — |
 | `.caption` | `.caption1` | 10 / 13, regular | `FOOTNOTE` 10 / 13, 400 | `implemented` | — |

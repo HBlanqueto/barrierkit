@@ -1012,26 +1012,23 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 
 | Constant | Size / line height | Weight | SwiftUI |
 |---|---|---|---|
-| `LARGE_TITLE` | 26 / 32 | 700 | `Font.TextStyle.largeTitle` |
+| `LARGE_TITLE` | 26 / 31 | 700 | `Font.TextStyle.largeTitle` |
 | `TITLE` | 22 / 26 | 650 | `.title` |
-| `TITLE_2` | 15 / 20 | 600 | `.title2` |
-| `HEADLINE` | 13 / 18 | 700 | `.headline` |
-| `BODY` | 13 / 18 | 400 | `.body` |
-| `CALLOUT` | 12 / 16 | 400 | `.callout` |
+| `TITLE_2` | 15 / 19 | 600 | `.title2` |
+| `HEADLINE` | 13 / 16 | 700 | `.headline` |
+| `BODY` | 13 / 16 | 400 | `.body` |
+| `CALLOUT` | 12 / 15 | 400 | `.callout` |
 | `CAPTION` | 11 / 14 | 500 | the kit's own, between `.subheadline` and `.caption` |
-| `TITLE_3` | 15 / 20 | 400 | `.title3` |
+| `TITLE_3` | 15 / 19 | 400 | `.title3` |
 | `SUBHEADLINE` | 11 / 14 | 400 | `.subheadline` |
 | `FOOTNOTE` | 10 / 13 | 400 | `.footnote` and `.caption` |
 | `CAPTION_2` | 10 / 13 | 500 | `.caption2` |
 | `MONO` | 13 / 16 | 400 | `Font.monospaced()` |
 
-`TITLE_3`, `SUBHEADLINE`, `FOOTNOTE` and `CAPTION_2` are the measured values of macOS 27.2.1:
-`NSFont.preferredFont(forTextStyle:)` and SwiftUI `Font` agree (`largeTitle` 26 / 32, `title` 22 / 26, `title2` 17 / 22,
-`title3` 15 / 20, `headline` 13 / 16 bold, `subheadline` 11 / 14, `body` 13 / 16, `callout` 12 / 15, `footnote` and
-`caption` 10 / 13, `caption2` 10 / 13 medium; regular unless said, see the
-[metrics](../research/macos-control-metrics.md#type-styles)). The older constants keep the kit's own weights and
-18 high lines, and `TITLE_2` is `.title3` in size. A control's text is centered in its box, so the line height only
-matters where a text sets the height of a row.
+The line is the height of a SwiftUI `Text` on macOS 27.2 (`fittingSize`, `~/src/probes/textlines.swift`):
+13 pt is 16 high, 12 pt 15, 15 pt 19, 26 pt 31, 22 pt 26, 11 pt 14 and 10 pt 13; the test `swiftui_defaults` holds them.
+`TITLE_2` is `.title3` in size and `CAPTION` is the kit's own between `.subheadline` and `.caption`; their
+weights stay. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
 
 All use Adwaita Sans, the sans of GNOME, so `bk` text matches GTK; `MONO`
 uses Geist Mono. `SANS_FAMILIES` is the fallback list (Adwaita Sans, Inter,
