@@ -57,7 +57,9 @@ sketch, the plan for P1 and the open questions.
 6. **Measured in Skia:** a backdrop filter of `blur` then a veil-and-cap tone
    shader flattens an 8 px checker to 153/255, the value the model of
    [`macos-blur.md`](macos-blur.md) predicts (E9). So in-window materials need
-   no compositor.
+   no compositor. Superseded on 2026-11-21: the owner decided that the
+   compositor composes in-window blur too ([ADR 0091](../decisions.md)); E9
+   stays as the measurement.
 7. **Sharing GLSL and SkSL is possible only for pure functions.** Three of
    Malaysia's five `.glsl` files (`oklab.glsl`, `window_shape.glsl`,
    `lens.glsl`) compile unchanged as SkSL (E2). Entry points, samplers,
@@ -144,7 +146,7 @@ the probability that the approach works as described.
 | 16 | `TextRenderer`, `Text.Layout` | Kit | Skia `Paragraph::visit` exposes glyph runs, but Freya draws paragraphs itself, so the kit would own those text views. No compensa now: apps get gradient or shimmering text from `ShaderFill` on text. Gain would be per-glyph animation only. | L | 0.5 | Freya text path |
 | 17 | `ImageRenderer` | Kit | Render a subtree into an offscreen surface with the P1 loop. No compensa until an app asks: `doc_shots.rs` covers the kit's own captures. | M | 0.6 | P1 |
 | 18 | `rotation3DEffect`, `transformEffect`, `projectionTransform` | Kit | `Canvas::concat_44` takes a 4x4 matrix; Freya has 2D rotation only. Gain: card flips, perspective. | M | 0.7 | P1 |
-| 19 | `Material` and `NSVisualEffectView` `.withinWindow`; `.background(.ultraThinMaterial)` | Kit | Backdrop filter = blur then a veil-and-cap tone shader (E9: 153 against 153 expected). The 14 current materials need measured values, not new technique. Gain: materials over the app's own content. | M | 0.8: values come from [`macos-materials.md`](macos-materials.md) | measurements |
+| 19 | `Material` and `NSVisualEffectView` `.withinWindow`; `.background(.ultraThinMaterial)` | Kit | Backdrop filter = blur then a veil-and-cap tone shader (E9: 153 against 153 expected). The 14 current materials need measured values, not new technique. Gain: materials over the app's own content. Superseded on 2026-11-21 by [ADR 0091](../decisions.md): the compositor composes this blur and the kit sends `set_backdrop` with `within_window`. | M | 0.8: values come from [`macos-materials.md`](macos-materials.md) | measurements |
 | 20 | `NSVisualEffectView` `.behindWindow`; window and sidebar materials over the desktop | Comp | Malaysia: `ext-background-effect-v1` blur plus `set_glass`/tone shaders. Other compositors: plain blur; the app adds an alpha veil but cannot clamp luminance (the cap) or saturate; KDE's contrast request adds saturation. Gain: desktop-tinted sidebars. Ownership detail: blur-ownership research. | M | 0.8 on Malaysia; 0.5 elsewhere (unverified: no other compositor run) | Wayland has no shader upload |
 | 21 | Vibrancy: `allowsVibrancy`, `NSAppearance.vibrant*`, `.secondary` over a material | None | No compensa. Vibrant ink blends with the desktop pixels; nothing lets an app do that. The kit keeps measured ink colors (`ctappearance::menu::dark_ink_over`). Gain of more: none visible. | n/a | 0.2 for a faithful result | no protocol |
 | 22 | `glassEffect`, `Glass` (`regular`, `clear`, `tint`, `interactive`), `GlassEffectContainer`, `glassEffectID/Union/Transition`; `NSGlassEffectView`, `NSGlassEffectContainerView`, `effectIsInteractive` (27.0) | Kit; refraction None | The static look (blur, tint, rim, SDF smooth union) is `GlassContainer`, shipped. Refraction: no compensa, no lensing measured. `interactive` feedback is unmeasured. Gain: the interactive response only after a probe. | M | 0.7 static; 0 refraction | probe for `interactive` |

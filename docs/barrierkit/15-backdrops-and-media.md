@@ -135,6 +135,20 @@ the glass is solid and sharp: `Material` and `GlassContainer` fill with the
 opaque `MEDIA.material_tint` and keep their rim; `TopGlass` is an opaque band
 in the window color, `FULLSCREEN_GLASS.height` deep.
 
+### Who draws the blur
+
+Today `Material`, `TopGlass` and `GlassContainer` draw their blur with Skia
+(`crates/bk/src/glass.rs`). [ADR 0091](../decisions.md) and
+[ADR 0092](../decisions.md) move the blur of `Material`, `TopGlass` and the
+glass bars of [9](09-titlebars.md) to the compositor: the kit will leave the
+area transparent, draw its chrome on a sub-surface and send `set_backdrop` or
+`set_scroll_edge` (`infinity_window_style_v1`, version 10), and draw the solid
+of reduce transparency when the compositor lacks them. The protocol exists;
+the kit does not send the requests yet and Malaysia does not serve them yet.
+These elements keep their names and styles. `GlassContainer` stays as it is
+until merging has a design. The plan and its phases are in
+[the design](../research/blur-backdrop-design.md).
+
 ### Style
 
 `MediaButton` and `RoundButton` take `.style(|s| ..)` with a `MediaButtonStyle` and a

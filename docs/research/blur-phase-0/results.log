@@ -1,0 +1,32 @@
+   Compiling malaysia-compositor v0.1.0 (/work/target/blur-phase-0/malaysia/crates/malaysia-compositor)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.56s
+     Running unittests src/lib.rs (/target/blur-phase-0/debug/deps/malaysia_compositor-ceff6ad263260dd5)
+
+running 11 tests
+test blur::within::tests::a_desynchronized_sub_surface_tears_the_band_and_the_content_apart ... BLURP0 Above-full-moving-desync-1x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=70.6 min_corr_now=0.9025 min_corr_gain_over_previous=0.0634 mid_equals_previous=0 mid_torn=23 mid_region_previous=0 mid_region_new=23 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=4
+ok
+test blur::within::tests::above_the_parent_a_moving_band_and_the_scroll_change_in_one_frame ... BLURP0 Above-full-moving-1x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=70.6 min_corr_now=0.9025 min_corr_gain_over_previous=0.0634 mid_equals_previous=23 mid_torn=0 mid_region_previous=23 mid_region_new=0 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=4
+ok
+test blur::within::tests::above_the_parent_the_blur_follows_the_scroll_without_lag_at_1x ... BLURP0 Above-strip-fixed-1x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=70.6 min_corr_now=0.7175 min_corr_gain_over_previous=0.0769 mid_equals_previous=23 mid_torn=0 mid_region_previous=23 mid_region_new=0 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=1
+ok
+test blur::within::tests::above_the_parent_the_blur_follows_the_scroll_without_lag_at_2x ... BLURP0 Above-strip-fixed-2x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=36.6 min_corr_now=0.9636 min_corr_gain_over_previous=0.2023 mid_equals_previous=23 mid_torn=0 mid_region_previous=23 mid_region_new=0 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=12
+ok
+test blur::within::tests::below_the_parent_a_moving_band_and_the_scroll_change_in_one_frame ... BLURP0 Below-full-moving-1x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=70.6 min_corr_now=0.9025 min_corr_gain_over_previous=0.0634 mid_equals_previous=23 mid_torn=0 mid_region_previous=23 mid_region_new=0 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=4
+ok
+test blur::within::tests::below_the_parent_the_blur_follows_the_scroll_without_lag_at_1x ... BLURP0 Below-strip-fixed-1x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=70.6 min_corr_now=0.7175 min_corr_gain_over_previous=0.0769 mid_equals_previous=23 mid_torn=0 mid_region_previous=23 mid_region_new=0 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=1
+ok
+test blur::within::tests::below_the_parent_the_blur_follows_the_scroll_without_lag_at_2x ... BLURP0 Below-strip-fixed-2x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=36.6 min_corr_now=0.9636 min_corr_gain_over_previous=0.2023 mid_equals_previous=23 mid_torn=0 mid_region_previous=23 mid_region_new=0 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=12
+ok
+test blur::within::tests::the_band_blur_pass_costs_this_much_in_software_at_1x ... BLURP0 TIMING renderer llvmpipe (LLVM 21.1.8, 128 bits): 1x window 1280x800 logical, band 96 logical rows: band blur pass median 3.57 ms (min 3.29, max 3.79) over 40 frames, 21.4 % of a 60 Hz frame (16.67 ms) and 42.8 % of a 120 Hz frame (8.33 ms); full-output Kawase of the same content (the shipping wallpaper pass) median 16.16 ms
+BLURP0 Above-strip-fixed-1x frames=44 outside_mismatch=0 marks_sharp=44 equals_fresh=0 incremental_age1_equals_full_repaint=44 median_damage_fraction=1.000 min_band_deviation=70.5 min_corr_now=0.7175 min_corr_gain_over_previous=0.0769 mid_equals_previous=43 mid_torn=0 mid_region_previous=43 mid_region_new=0 region_after_parent_commit=44 seam_max_channel_diff_vs_96px_wider_source=1
+ok
+test blur::within::tests::the_band_blur_pass_costs_this_much_in_software_at_2x ... BLURP0 TIMING renderer llvmpipe (LLVM 21.1.8, 128 bits): 2x window 1280x800 logical, band 96 logical rows: band blur pass median 9.11 ms (min 8.85, max 10.58) over 40 frames, 54.6 % of a 60 Hz frame (16.67 ms) and 109.3 % of a 120 Hz frame (8.33 ms); full-output Kawase of the same content (the shipping wallpaper pass) median 59.67 ms
+BLURP0 Above-strip-fixed-2x frames=44 outside_mismatch=0 marks_sharp=44 equals_fresh=0 incremental_age1_equals_full_repaint=44 median_damage_fraction=1.000 min_band_deviation=36.5 min_corr_now=0.9629 min_corr_gain_over_previous=0.2023 mid_equals_previous=43 mid_torn=0 mid_region_previous=43 mid_region_new=0 region_after_parent_commit=44 seam_max_channel_diff_vs_96px_wider_source=12
+ok
+test blur::within::tests::the_window_capture_path_has_no_blur_and_the_split_path_has_it ... BLURP0 capture band deviation from sharp: build_window_elements=0.0 split=83.7
+BLURP0 Above-strip-fixed-1x frames=24 outside_mismatch=0 marks_sharp=24 equals_fresh=24 incremental_age1_equals_full_repaint=24 median_damage_fraction=1.000 min_band_deviation=70.6 min_corr_now=0.7175 min_corr_gain_over_previous=0.0769 mid_equals_previous=23 mid_torn=0 mid_region_previous=23 mid_region_new=0 region_after_parent_commit=24 seam_max_channel_diff_vs_96px_wider_source=1
+ok
+test input::tests::a_second_press_within_the_double_click_interval_zooms ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 287 filtered out; finished in 13.60s
+

@@ -483,11 +483,11 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `Material` (`.ultraThin` to `.ultraThick`, `.bar`) | `NSVisualEffectView.Material`: 14 semantic materials | `Material`, `Thickness` | `partial`: composites measured for the Dock, menu and Control Center; the 14 semantic materials are not mapped | [`macos-materials.md`](macos-materials.md) §2–3 | P2 |
+| `Material` (`.ultraThin` to `.ultraThick`, `.bar`) | `NSVisualEffectView.Material`: 14 semantic materials | `Material`, `Thickness` | `partial`: composites measured for the Dock, menu and Control Center; the 14 semantic materials are named in `infinity_window_style_v1` version 10 (`set_backdrop`, [ADR 0091](../decisions.md)) but not measured or mapped to `Thickness`; the kit blurs `Material` itself with Skia until the compositor serves the request | [`macos-materials.md`](macos-materials.md) §2–3 | P2 |
 | `.glassEffect(_:in:)` (`.regular`, `.clear`) | `NSGlassEffectView` | `GlassContainer`, `WindowGlass` | `partial`: the kit asks the compositor for the glass | [`macos-liquid-glass.md`](macos-liquid-glass.md) | P1 |
 | `GlassEffectContainer`, `glassEffectID` | `NSGlassEffectContainerView` | `GlassContainer` | `implemented` | none | P2 |
 | `backgroundExtensionEffect` | `NSBackgroundExtensionView` | `SplitView::background_extension` | `partial`: stretches the first pixel column where Apple mirrors, and only under a docked sidebar | none | P3 |
-| `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass` | `partial` | [Sidebar][m-sidebar] | P2 |
+| `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass` | `partial`: the protocol has `set_scroll_edge` (version 10, [ADR 0091](../decisions.md)); the kit draws the effect with Skia until the compositor serves it | [Sidebar][m-sidebar] | P2 |
 | vibrancy of `.secondary` over a material | `NSVisualEffectView` vibrant labels | `Role` colors | `partial` | none | P3 |
 
 ## 16. Symbols

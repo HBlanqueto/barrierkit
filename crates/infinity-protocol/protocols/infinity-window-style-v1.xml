@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="9">
+  <interface name="infinity_window_style_v1" version="10">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A
@@ -248,6 +248,138 @@
       <arg name="kind" type="uint" enum="knob"/>
       <arg name="tint" type="uint"/>
       <arg name="knobs" type="array"/>
+    </request>
+
+    <enum name="blending_mode" since="10">
+      <description summary="where a material takes its pixels">
+        As NSVisualEffectView.BlendingMode.
+      </description>
+      <entry name="behind_window" value="0"
+             summary="what lies behind the toplevel: the wallpaper and the windows below it"/>
+      <entry name="within_window" value="1"
+             summary="what the surfaces of the toplevel draw below the requesting surface"/>
+    </enum>
+
+    <enum name="material" since="10">
+      <description summary="how a backdrop looks">
+        The semantic materials of NSVisualEffectView.Material that the macOS
+        27.2 SDK does not deprecate, in the order of its header
+        (AppKit.framework/Headers/NSVisualEffectView.h), then the two styles
+        of NSGlassEffectView (NSGlassEffectView.h). The values are this
+        protocol's own, not the SDK's raw values. What a material looks like
+        (blur, saturation, tint, lens) belongs to the compositor, as in
+        macOS. A value this version does not define makes the request
+        ignored.
+      </description>
+      <entry name="titlebar" value="0" summary="window titlebars"/>
+      <entry name="selection" value="1" summary="the selection of a table view or a menu"/>
+      <entry name="menu" value="2" summary="menus"/>
+      <entry name="popover" value="3" summary="the background of popovers"/>
+      <entry name="sidebar" value="4" summary="the background of window sidebars"/>
+      <entry name="header_view" value="5" summary="in-line header and footer views"/>
+      <entry name="sheet" value="6" summary="the background of sheets"/>
+      <entry name="window_background" value="7" summary="opaque window backgrounds"/>
+      <entry name="hud_window" value="8" summary="the background of heads-up display windows"/>
+      <entry name="full_screen_ui" value="9" summary="the background of full-screen modal UI"/>
+      <entry name="tool_tip" value="10" summary="the background of tool tips"/>
+      <entry name="content_background" value="11" summary="the opaque background of content"/>
+      <entry name="under_window_background" value="12" summary="under window backgrounds"/>
+      <entry name="under_page_background" value="13" summary="behind document pages"/>
+      <entry name="glass_regular" value="14" summary="NSGlassEffectView.Style.regular"/>
+      <entry name="glass_clear" value="15" summary="NSGlassEffectView.Style.clear"/>
+    </enum>
+
+    <enum name="edge" since="10">
+      <description summary="a side of a surface">
+        As SwiftUI's Edge, with physical sides: leading is the left side and
+        trailing the right side, whatever the layout direction.
+      </description>
+      <entry name="top" value="0"/>
+      <entry name="leading" value="1"/>
+      <entry name="bottom" value="2"/>
+      <entry name="trailing" value="3"/>
+    </enum>
+
+    <enum name="scroll_edge_effect_style" since="10">
+      <description summary="how a scroll edge effect ends">
+        As SwiftUI's ScrollEdgeEffectStyle.
+      </description>
+      <entry name="automatic" value="0" summary="the compositor picks soft or hard"/>
+      <entry name="soft" value="1" summary="the blur fades to none across the depth"/>
+      <entry name="hard" value="2" summary="the blur is uniform across the depth and ends in an edge"/>
+    </enum>
+
+    <request name="set_backdrop" since="10">
+      <description summary="the surface has a material over what lies below it">
+        Tells the compositor that the surface whose wl_surface is given has a
+        material in rects. The array holds int32 quadruples x, y, width and
+        height in surface-local logical pixels, clipped to the surface. At
+        most 16 are kept. The compositor draws the material in each
+        rectangle, around a continuous corner of the given radius in
+        logical pixels, under the surface's own pixels and over the pixels
+        that lie below. The client leaves the rectangle transparent where
+        the material shows and draws its content over it. The compositor
+        picks the blur radius, the saturation, the tint and the lens, and
+        draws the material's solid under Reduce Transparency and Increase
+        Contrast. Its blur reaches the same distance in logical pixels at
+        every output scale.
+
+        With within_window, what lies below is every surface of the
+        toplevel's tree that is drawn before the requesting surface: its
+        parent, the sub-surfaces placed under it and their children. The
+        requesting surface may be a sub-surface above its parent, a
+        sub-surface below it, or the toplevel's own surface with a
+        sub-surface placed under it. The blur never takes pixels from
+        another toplevel or from the wallpaper. With nothing below the
+        surface, the request has no effect. A capture of the toplevel alone
+        includes this material.
+
+        With behind_window, what lies below is what lies behind the toplevel,
+        as with ext_background_effect_surface_v1.set_blur_region, with the
+        radius, saturation and tint of the material. A capture of the
+        toplevel alone does not include it. A surface that sends this
+        request and set_blur_region gets this one.
+
+        It is double-buffered and applies on the next wl_surface.commit. On
+        a synchronized sub-surface it applies with its parent's commit, as
+        its buffer does, so the material and the pixels below it change in
+        one frame; on a desynchronized one it applies at its own commit,
+        and a frame can show it over the pixels of the frame before or
+        after. A later request replaces the backdrop; an empty array removes
+        it. It lasts for the lifetime of the wl_surface. The compositor
+        ignores it from a surface that is not in the tree of a toplevel of a
+        BarrierKit client.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="blending" type="uint" enum="blending_mode"/>
+      <arg name="material" type="uint" enum="material"/>
+      <arg name="radius" type="uint"/>
+      <arg name="rects" type="array"/>
+    </request>
+
+    <request name="set_scroll_edge" since="10">
+      <description summary="the surface has a scroll edge effect">
+        Tells the compositor that the surface whose wl_surface is given has a
+        scroll edge effect, as a toolbar over scrolling content. The
+        compositor blurs what lies below the surface, as set_backdrop with
+        within_window defines it, in a strip of depth logical pixels along
+        edge, from the surface's own edge inward. With soft the blur fades
+        to none across the depth. With hard it is uniform and ends in an
+        edge. The compositor picks the radius, the saturation and the tint.
+        The client leaves the strip transparent and draws its content over
+        it.
+
+        It is double-buffered and applies on the next wl_surface.commit,
+        and on a sub-surface with its parent's commit, as set_backdrop
+        does. A later request replaces the effect; a depth of 0 removes it.
+        It lasts for the lifetime of the wl_surface. The compositor ignores
+        it from a surface that is not in the tree of a toplevel of a
+        BarrierKit client.
+      </description>
+      <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="edge" type="uint" enum="edge"/>
+      <arg name="style" type="uint" enum="scroll_edge_effect_style"/>
+      <arg name="depth" type="uint"/>
     </request>
   </interface>
 </protocol>

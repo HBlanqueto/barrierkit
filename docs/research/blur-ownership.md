@@ -14,6 +14,12 @@ linked in each section.
 **Output:** the macOS truth with its evidence, the current split, four
 options with cost, risk and probability, and the questions that decide.
 
+**Status (2026-11-21):** the owner chose to compose all blur in the compositor
+(option C). The protocol, the phases and the first experiment are in
+[`blur-backdrop-design.md`](blur-backdrop-design.md) and
+[ADR 0091](../decisions.md). Sections 2 and 5 to 7 below describe the state and
+the options before that decision.
+
 ## Steps
 
 1. Read the evidence tiers in section 1.1; every claim carries one.

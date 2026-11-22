@@ -1,27 +1,42 @@
-# Compositor-composed backdrop: protocol and ADR draft
+# Compositor-composed backdrop: protocol, phases and GPU runbook
 
-**Goal:** design how a BarrierKit app declares a material and Malaysia
-composes every blur, inside the window too, so the kit can delete its Skia
-backdrop blur.
-**Scope:** the draft of an Infinity request, the compositor algorithm, the
-kit changes, the first experiment and the text of the two ADRs. It starts at
-the decision in [`blur-ownership.md`](blur-ownership.md) and ends at the
-open questions. It changes no code.
-**Reader:** whoever runs the first experiment on Malaysia or implements a
-phase.
-**Input:** the decision of 2026-11-21 (all blur is the compositor's), the
-macOS measurements in [`blur-ownership.md`](blur-ownership.md) and the code
-of both repos.
-**Output:** a protocol draft, an algorithm, a phase list with acceptance
-tests, two ADR drafts and the questions the experiment must answer.
+**Goal:** declare how a BarrierKit app asks for a material and Malaysia composes
+every blur, inside the window too, so the kit can delete its Skia backdrop
+blur.
+**Scope:** the protocol that landed in `infinity-protocol` (version 10), the
+rules a compositor follows, the compositor algorithm, the kit changes, the
+phase 0 results, the GPU measurement that gates phase 2, the text of the ADRs
+and the open questions. It starts at the decision in
+[`blur-ownership.md`](blur-ownership.md) and ends at the open questions. It
+adds no kit or compositor rendering code.
+**Reader:** whoever implements a phase, runs the GPU measurement or pastes the
+Malaysia ADR.
+**Input:** the decision of 2026-11-21 (all blur is the compositor's), the macOS
+measurements in [`blur-ownership.md`](blur-ownership.md), the phase 0
+experiment in [`blur-phase-0/`](blur-phase-0/README.md) and the code of both
+repos.
+**Output:** a protocol, an algorithm, a phase table with its status, the phase 0
+results with their labels, a GPU runbook with a pass criterion, three ADR
+texts and the questions still open.
+
+## Status
+
+| What | State on 2026-11-21 |
+|---|---|
+| Decision | Taken by the owner: the compositor composes all blur; the kit drops its Skia in-window blur |
+| Phase 0 | Done, in software. The lag test passes; the frame time on a GPU is **NOT measured** |
+| Phase 1 | Done: `infinity_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), the text for Malaysia in [section 8.3](#83-malaysias-adr-ready-to-paste) |
+| Phase 2 | Not started. Gate: the GPU frame time of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) |
+| Blur values per material | Not in this document. They come from [`macos-materials.md`](macos-materials.md) and [`macos-blur.md`](macos-blur.md), which two other sessions are measuring |
 
 ## Steps
 
 1. Read the decision and its consequences in section 1.
-2. Read the protocol draft in section 3 and the rules in section 4.
-3. Run the experiment in section 7 before any other phase.
-4. Move the ADR drafts of section 8 into the two `decisions.md` files when
-   phase 1 lands.
+2. Read the protocol in section 3 and the rules in section 4.
+3. Read the phase 0 results in section 7.2 and the phase table in section 7.1.
+4. Run section 10 on a Linux machine with a GPU. Record the result in section 7.2.
+5. If the owner approves phase 2, a Malaysia session pastes section 8.3 into
+   Malaysia's `docs/decisions.md` and implements section 5.
 
 ---
 
@@ -34,12 +49,15 @@ and draws no blur. This is the split macOS has
 Consequences:
 
 1. The kit deletes the Skia backdrop blur of `crates/bk/src/glass.rs` once
-   the compositor path works.
-2. Without the compositor path (another compositor, or an old Malaysia), the
-   kit draws the solid it already draws under Reduce Transparency
-   (`FullscreenBar::Solid`, the `solid` of `Material`).
+   the compositor path works (phase 4). Until then the kit draws it and its
+   chapters say so.
+2. Without the compositor path (another compositor, or a Malaysia that
+   advertises version 9), the kit draws the solid it already draws under
+   Reduce Transparency (`FullscreenBar::Solid`, the `solid` of `Material`).
 3. Kit goldens and doc shots cannot show compositor blur. The tests of this
    blur live in Malaysia, on its headless renderer.
+4. Malaysia advertises version 10 of `infinity_window_style_v1` only when it
+   serves the new requests (section 3, "Versions").
 
 ## 2. What the kit declares
 
@@ -58,81 +76,78 @@ SwiftUI name first (AGENTS.md, "Nombres y glosario", rule 2). Which
 `NSVisualEffectView.Material` each `styles::Thickness` takes is an open
 question (section 9).
 
-## 3. Protocol draft
+## 3. The protocol
 
-An addition to `infinity_window_style_v1`, version 10, in
-`crates/infinity-protocol/protocols/infinity-window-style-v1.xml`. Names
-follow the AppKit and SwiftUI names the interface already uses for `bar`,
-`panel` and `knob`.
+Version 10 of `infinity_window_style_v1` in
+[`infinity-window-style-v1.xml`](../../crates/infinity-protocol/protocols/infinity-window-style-v1.xml).
+The XML is the only statement of each request; this section lists what it
+holds and what changed from the first draft.
 
-```xml
-<enum name="blending" since="10">
-  <description summary="where a material takes its pixels, as NSVisualEffectView.BlendingMode"/>
-  <entry name="behind_window" value="0"
-         summary="what lies behind the toplevel: the wallpaper and the windows below"/>
-  <entry name="within_window" value="1"
-         summary="what the toplevel's own surfaces draw below the requesting surface"/>
-</enum>
+| Item | Values or arguments | Name it follows |
+|---|---|---|
+| enum `blending_mode` | `behind_window`, `within_window` | `NSVisualEffectView.BlendingMode` |
+| enum `material` | `titlebar`, `selection`, `menu`, `popover`, `sidebar`, `header_view`, `sheet`, `window_background`, `hud_window`, `full_screen_ui`, `tool_tip`, `content_background`, `under_window_background`, `under_page_background`, `glass_regular`, `glass_clear` | the 14 non-deprecated values of `NSVisualEffectView.Material`, in the order of the header, then `NSGlassEffectView.Style` |
+| enum `edge` | `top`, `leading`, `bottom`, `trailing` | SwiftUI `Edge` |
+| enum `scroll_edge_effect_style` | `automatic`, `soft`, `hard` | SwiftUI `ScrollEdgeEffectStyle` |
+| request `set_backdrop` | `surface`, `blending`, `material`, `radius`, `rects` | `NSVisualEffectView` |
+| request `set_scroll_edge` | `surface`, `edge`, `style`, `depth` | `scrollEdgeEffectStyle(_:for:)` |
 
-<enum name="material" since="10">
-  <description summary="how a material looks, as NSVisualEffectView.Material"/>
-  <entry name="titlebar" value="0"/>
-  <entry name="header_view" value="1"/>
-  <entry name="sheet" value="2"/>
-  <entry name="hud_window" value="3"/>
-  <entry name="popover" value="4"/>
-  <entry name="menu" value="5"/>
-  <entry name="sidebar" value="6"/>
-  <entry name="tool_tip" value="7"/>
-  <entry name="full_screen_ui" value="8"/>
-  <entry name="under_window_background" value="9"/>
-</enum>
+The materials come from the macOS 27.2 SDK:
+`/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework/Headers/NSVisualEffectView.h`
+(`NSVisualEffectMaterial`; the five values it deprecates, `appearanceBased`,
+`light`, `dark`, `mediumLight` and `ultraDark`, are left out) and
+`.../NSGlassEffectView.h` (`NSGlassEffectViewStyle`: `regular`, `clear`). The
+values on the wire are the protocol's own, 0 to 15, not the SDK's raw
+numbers. What each material looks like stays in the compositor and in
+`ctdesign`; nothing in the XML or here gives a radius, a saturation or a tint.
 
-<enum name="edge" since="10">
-  <entry name="top" value="0"/>
-  <entry name="leading" value="1"/>
-  <entry name="bottom" value="2"/>
-  <entry name="trailing" value="3"/>
-</enum>
+What changed from the first draft of this document:
 
-<enum name="scroll_edge_style" since="10">
-  <description summary="as ScrollEdgeEffectStyle"/>
-  <entry name="automatic" value="0"/>
-  <entry name="soft" value="1"/>
-  <entry name="hard" value="2"/>
-</enum>
+1. The enums sit inside the interface, as the existing ones do, and follow the
+   AppKit and SwiftUI names: `blending_mode` (was `blending`) and
+   `scroll_edge_effect_style` (was `scroll_edge_style`).
+2. `material` lists all 14 semantic materials of the header (the draft had 10:
+   `selection`, `window_background`, `content_background` and
+   `under_page_background` were missing) and the two glass styles.
+3. `edge` is physical: `leading` is the left side and `trailing` the right side
+   whatever the layout direction, because the compositor cannot know it (right
+   to left is decision D2 of the studies, still open).
+4. `within_window` is a request of its own with an explicit blending, not a
+   region on the root surface (phase 0: the root's region feeds Malaysia's
+   wallpaper blur, `blur.rs:491`). Rule 8 of section 4 says what wins if a
+   surface sends both.
+5. The request applies with the parent's commit on a synchronized
+   sub-surface, and tears on a desynchronized one (rule 3).
+6. A window capture includes `within_window` material and not `behind_window`
+   material (rule 9).
+7. The blur radius is in logical pixels at every output scale (rule 5).
+8. A value the version does not define makes the request ignored. There is no
+   error enum.
+9. The two requests are served for any surface in the tree of a toplevel of a
+   BarrierKit client, not only for the toplevel's own surface, because the
+   requester is a sub-surface.
 
-<request name="set_backdrop" since="10">
-  <description summary="the surface has a material over what lies below it">
-    The array holds int32 quadruples x, y, width and height in
-    surface-local logical pixels, clipped to the surface, at most 16.
-    The compositor draws the material in each rectangle, under the
-    surface's own pixels, around a continuous corner of radius. The client
-    leaves the rectangle transparent where the material shows and draws
-    its content over it. The compositor chooses the radius, saturation and
-    tint, and the behavior under Reduce Transparency and Increase Contrast.
-    Double-buffered; an empty array removes the backdrop.
-  </description>
-  <arg name="surface" type="object" interface="wl_surface"/>
-  <arg name="blending" type="uint" enum="blending"/>
-  <arg name="material" type="uint" enum="material"/>
-  <arg name="radius" type="uint"/>
-  <arg name="rects" type="array"/>
-</request>
+### Versions
 
-<request name="set_scroll_edge" since="10">
-  <description summary="the surface has a scroll edge effect">
-    The compositor blurs what lies below the surface in a strip of depth
-    logical pixels along edge, from the surface's own edge inward. With
-    soft the blur fades to none across the depth. With hard it is uniform
-    and ends in a line. Double-buffered; a depth of 0 removes it.
-  </description>
-  <arg name="surface" type="object" interface="wl_surface"/>
-  <arg name="edge" type="uint" enum="edge"/>
-  <arg name="style" type="uint" enum="scroll_edge_style"/>
-  <arg name="depth" type="uint"/>
-</request>
-```
+A request newer than the version a client bound is a protocol error, not an
+ignored message (`wayland-backend` 0.3.17, `src/rs/server_impl/client.rs:580`).
+So each pairing behaves as follows:
+
+| Compositor advertises | Kit | Result |
+|---|---|---|
+| Version 9 (Malaysia today) | binds `1..=10` | binds 9, `version() >= 10` is false, the kit draws the solid and sends nothing |
+| Version 10 | binds `1..=9` (the kit of today) | binds 9; every old request works as before |
+| Version 10 | binds `1..=10` | sends `set_backdrop` and `set_scroll_edge` |
+| No global (KWin, Mutter, Hyprland...) | any | the kit draws the solid |
+
+The new requests come after `set_knobs`, so every old opcode is unchanged. The
+test `crates/infinity-protocol/tests/window_style.rs` fixes the opcode and
+`since` of all twelve requests and the signatures of the two new ones.
+
+Malaysia's `window_style.rs:259` has `_ => {}`, so a Malaysia built at the new
+kit rev compiles and ignores the two requests. It must keep advertising 9
+(`window_style.rs:99`) until it serves them: a version 10 global with a match
+that ignores the requests would leave the transparent rectangle empty.
 
 `ext-background-effect-v1` stays for every other client (GTK, Qt, terminals).
 
@@ -140,55 +155,90 @@ follow the AppKit and SwiftUI names the interface already uses for `bar`,
 
 1. **Below.** "Below the surface" means every surface of the same toplevel
    that its tree draws before it: its parent, the siblings placed under it
-   and their children. A sub-surface above its parent and a parent over a
-   sub-surface placed below it both work; the rule needs no knowledge of
-   which one the kit chooses.
+   and their children. A sub-surface above its parent, a sub-surface below
+   it and a root surface with a sub-surface placed under it all work
+   (phase 0, section 7.2); the rule needs no knowledge of which one the kit
+   chooses.
 2. **Within the window only.** `within_window` never samples another toplevel
-   or the wallpaper, as Apple documents `withinWindow`. Where the window is
-   transparent below the rectangle the compositor uses the window's
-   background color.
+   or the wallpaper, as Apple documents `withinWindow`. What it shows where
+   the toplevel draws nothing below the rectangle is not measured on macOS
+   (section 9).
 3. **Same commit.** The request is double-buffered. On a synchronized
    sub-surface it applies with its parent's commit, so material and content
-   change in one frame.
-4. **Root surface.** `within_window` on a surface with nothing below it has
-   no effect.
-5. **Compositor decides.** Radius, saturation, tint and Reduce Transparency
-   and Increase Contrast come from `ctappearance` and `ctdesign`, as for the
-   menus. The measured radius of each material is in
+   change in one frame. On a desynchronized sub-surface it applies at the
+   sub-surface's own commit and a frame can show the new region over the old
+   content (phase 0: 23 of 23 mid-frames torn).
+4. **Root surface.** `within_window` on a surface with nothing below it has no
+   effect. A root with a sub-surface placed under it has something below it.
+5. **Compositor decides.** Blur radius, saturation, tint, lens and Reduce
+   Transparency and Increase Contrast come from `ctappearance` and `ctdesign`,
+   as for the menus. The measured extent of each material is in
    [`blur-ownership.md`](blur-ownership.md#14-what-the-app-sets-and-what-the-system-decides).
-6. **No global, no effect.** A client that sees version below 10 draws the
+   The radius is in logical pixels: the Kawase offset and passes of
+   `blur.rs` are in physical pixels, so at 2x the compositor widens them to
+   reach the same logical distance (phase 0 measured the halving).
+6. **No global, no effect.** A client that sees a version below 10 draws the
    solid fallback.
 7. **Only BarrierKit clients.** As `set_glass` and `set_knobs`, the compositor
-   ignores the requests from other clients.
+   ignores the requests from other clients, and from surfaces outside the tree
+   of a BarrierKit toplevel.
+8. **One request per surface.** A surface that sends `set_backdrop` and
+   `ext_background_effect_surface_v1.set_blur_region` gets the Infinity one.
+   The in-window request never feeds the wallpaper path that reads the root's
+   region. The region of a sub-surface stays ignored.
+9. **Capture.** A capture of the toplevel alone includes `within_window`
+   material and excludes `behind_window` material, as `screencapture -l` does
+   ([`blur-ownership.md`](blur-ownership.md#12-what-the-three-images-show),
+   points 2 and 3).
 
 ## 5. Compositor algorithm
 
-All in Malaysia.
+All in Malaysia. "Tested" means the phase 0 patch runs it in software
+([section 7.2](#72-phase-0-results)); the rest is not written.
 
 1. Store the requests per `wl_surface` in a `Cacheable` state, as
-   `GlassPanels` and `Knobs` do in `window_style.rs`.
+   `GlassPanels` and `Knobs` do in `window_style.rs`. Smithay applies a
+   sub-surface's cached state in the parent's transaction. [tested, with the
+   state of `ext-background-effect`]
 2. In the window path of `scene_elements.rs`, where
    `render_elements_from_surface_tree` builds `surface_elements`, split the
-   list by owning surface. The elements of the requesting surface and the ones
-   above it stay in front. The ones below become the source.
+   list at the element whose `Id` is `Id::from_wayland_resource(requester)`.
+   The requester and what is above it stay in front. The rest is the source.
+   [tested]
 3. Render the source of each rectangle, expanded by the blur reach, into an
    offscreen texture with an `OutputDamageTracker`, as `render_behind` does,
-   and run the Kawase passes of `blur.rs`. Take passes and offset from a
-   per-material table in `ctdesign` (measured extents: 35 px for `sidebar`
-   in light, about 48 px for the others).
+   and run the Kawase passes of `blur.rs`. The reach is
+   `offset * 2^passes`: 3 * 8 = 24 physical pixels at `BACKGROUND_BLUR_PASSES`
+   3 and `BACKGROUND_BLUR_OFFSET` 3.0 (margin check in section 7.2, finding 4).
+   Take passes and
+   offset per material from a `ctdesign` table, widened at 2x (rule 5).
+   [tested for the first rectangle with the wallpaper values; the per-material
+   table and the 2x compensation are not written]
 4. For `soft`, blend the sharp source with the blurred levels by a mask along
    the edge, as the kit does today with `layer_mask`; for `hard`, use one
-   level and draw the line.
+   level and draw the edge. [not tested]
 5. Draw the result as a `RoundedTextureElement` between the two halves of the
-   list.
+   list. [tested with radius 0]
 6. The tracker invalidates the cache when the source's damage touches the
    rectangle plus the reach. A scrolling window therefore blurs every frame.
+   In every phase 0 configuration the client damaged the whole parent; a
+   band-only damage case was not run. [partly tested]
 7. When `drawn(state)` is false (Reduce Transparency, Increase Contrast),
    draw the material's solid instead, as the Dock does with `dock_solid`.
+   [not tested]
+8. Window capture (`capture.rs:281-283`, `capture_window_png` at
+   `capture.rs:592`) builds its elements with `build_window_elements`
+   (`scene_elements.rs:1246-1263`), a bare `render_elements_from_surface_tree`
+   with no compositor blur. Run the split of step 2 there for `within_window`
+   material (rule 9). [measured: the capture band deviates 0.0 from the sharp
+   content, the split path 83.7]
+9. Several rectangles of one request, rounded corners and the Reduce
+   Transparency gate are not tested: `split` uses the first rectangle only.
 
 The headless tests of `blur.rs` (`try_test_renderer`, `solid` elements) are
 the pattern for the tests: a red element below a rectangle must tint it, a
-blue one beside it must not.
+blue one beside it must not. The phase 0 tests are the model for the lag test:
+[`compositor-within.patch`](blur-phase-0/compositor-within.patch).
 
 ## 6. Kit changes
 
@@ -203,92 +253,317 @@ blue one beside it must not.
    `vulkan.rs`), a `wl_subcompositor` binding, a synchronized sub-surface.
 4. Input and focus across the two surfaces: pointer enter and leave, scroll,
    cursor shape, IME and xdg popups all map to one Freya app.
-5. Outbox for the requests, like `GlassOutbox`, flushed before the commit
-   (`flush_glass` is the model).
+5. The bind range of `infinity_window_style_v1` in `platform/runtime.rs`
+   goes from `1..=9` to `1..=10`, a `BACKDROP_VERSION` of 10 beside
+   `KNOB_VERSION`, and an outbox for the requests like `GlassOutbox`, flushed
+   before the commit (`flush_glass` is the model).
 6. `glass.rs` loses the `Glass` and `MaterialElement` backdrop code once the
    phases below pass. `05-controls.md`, `09-titlebars.md`,
    `15-backdrops-and-media.md` and `18-platform.md` change in that commit.
 
 ## 7. Phases and the first experiment
 
-| Phase | Output | Sessions |
+### 7.1 The phases
+
+| Phase | Output | Sessions | Status on 2026-11-21 |
+|---|---|---|---|
+| 0 | The experiment of section 7.2 | 1 to 2 | Done, in software. GPU frame time **NOT measured** |
+| 1 | Protocol version 10 in `infinity-protocol`, the ADRs | 1 to 2 | Done |
+| 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Not started. Gate: the GPU frame time of section 10 and the owner's approval |
+| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Not started |
+| 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Not started |
+
+If the GPU frame time fails the criterion of section 10, stop: no later phase
+has value.
+
+### 7.2 Phase 0 results
+
+Run on 2026-11-21 in a scratch copy of Malaysia `1a45e115` (Smithay `65aa86f`),
+inside a Linux container on llvmpipe (Mesa 26.2.5, OpenGL ES 3.2, aarch64 VM,
+6 CPUs). Code, scripts and the output:
+[`blur-phase-0/`](blur-phase-0/README.md). Nothing was committed to Malaysia.
+Labels: **[software]** ran on llvmpipe; **[code]** read in the source;
+**[not run]** the experiment did not run it.
+
+The harness is a lockstep stand-in for a nested session: a Wayland client over
+a socket pair, no xdg toplevel, no frame callbacks, no presentation clock. The
+client makes an opaque parent with stripes that scroll 7 px per frame, a
+synchronized sub-surface with a transparent band and one opaque mark, and a
+blur region over a 96 px band. Per frame it commits the sub-surface, then the
+parent, and the compositor renders after each message and compares pixels.
+
+**The five answers**
+
+| Question | Answer | Label |
 |---|---|---|
-| 0 | The experiment below | 1 to 2 |
-| 1 | Protocol version 10 in `infinity-protocol`, both ADRs | 1 to 2 |
-| 2 | Compositor: state, split, blur, mask, gate, tests | 3 to 5 |
-| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 |
-| 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 |
+| Does the blur follow the scrolling without a frame of lag, with the sub-surface committed in sync mode? | Yes. In six configurations (sub-surface above or below the parent; strip fixed or window-sized with a moving band; 1x and 2x), 24 frames each: no pixel outside the band differs, the mark stays sharp (24 of 24), the band equals a from-scratch render (24 of 24), a frame with age 1 equals a full repaint, and between the sub-surface's commit and the parent's the output equals the previous frame (23 of 23). The negative control, a desynchronized sub-surface, tears 23 of 23 mid-frames | [software] |
+| What is the frame time of the blur pass at 1x and 2x on the user's GPU, with the band of `FULLSCREEN_GLASS` (96 px)? | **NOT measured.** On llvmpipe: 3.57 ms at 1x and 9.11 ms at 2x (table below). They are not GPU numbers and are not evidence for or against the criterion of section 10 | [software] |
+| Does a window capture include the blur? | No, not today. The capture path builds its elements without the blur: the band deviates 0.0 from the sharp stripes, against 83.7 on the split path. It needs the same split. `./dev.sh screencopy-window` was not run (it needs a nested compositor on a display) | [software] for the deviation, [not run] for the probe |
+| Does Smithay deliver the sub-surface's `BackgroundEffectSurfaceCachedState` with the parent's commit? | Yes. `Cacheable::commit` clones it (`background_effect/mod.rs:73-91`), `MultiCache::commit` walks every cached type of the surface (`cache.rs:206-212`), `PrivateSurfaceData::commit` merges the pending transaction of every effectively synchronized child into the parent's (`tree.rs:281-312`) and `Transaction::apply` applies all cached types, children first and the parent last, inside one dispatch (`transaction.rs:261-278`) | [code], and the 24-frame lag test above |
+| Is a sub-surface below the parent as workable as one above it? | Yes for composing the blur: the Below results equal the Above ones. `place_below` reorders any entry of the parent's `children` against any other (`tree.rs:419-448`), and `render_elements_from_surface_tree` walks top to bottom (`mod.rs:351-357`). Input, `xdg_surface` geometry and hit testing of the Below layout were not exercised | [software], [code]; input [not run] |
 
-### Phase 0: the experiment
+**Frame time of the band pass** (source render, 3 down and 3 up Kawase passes
+and `glFinish`; 1280x800 logical window, 96 logical rows; 40 frames; renderer
+`llvmpipe (LLVM 21.1.8, 128 bits)`; output of
+[`results.log`](blur-phase-0/results.log)). **[software, not a GPU]**
 
-Run it where Malaysia builds and has a GPU. Use a scratch copy of the
-compositor; commit nothing.
+| Scale | Band source (physical) | Share of the output | Band pass median (min, max) | Share of a 60 Hz and a 120 Hz frame | Full-output Kawase of the same content (the shipping wallpaper pass) |
+|---|---|---|---|---|---|
+| 1x | 1280x120 | 15 % | 3.57 ms (3.29, 3.79) | 21.4 % and 42.8 % | 16.16 ms |
+| 2x | 2560x216 | 13.5 % | 9.11 ms (8.85, 10.58) | 54.6 % and 109.3 % | 59.67 ms |
+| GPU | | | **NOT measured** | | |
 
-1. A minimal sctk client: an opaque parent surface with moving stripes and a
-   synchronized sub-surface above it that is transparent in a band and has a
-   blur region over that band.
-2. In the scratch compositor, read the sub-surface's region and, for that
-   band, blur the parent's elements below it, as section 5 says.
-3. Look at the result in a nested session, scrolling the stripes.
-4. Run the window capture probe (`./dev.sh screencopy-window`) and check
-   whether the captured window has the blur.
+The other five runs of the same code (four of the first phase 0 session, one
+rerun from this repository) gave medians of 3.45 to 3.64 ms at 1x and 9.12 to
+9.37 ms at 2x.
 
-Answers it must give:
+**Other findings**
 
-- Does the blur follow the scrolling without a frame of lag, with the
-  sub-surface committed in sync mode?
-- What is the frame time of the blur pass at 1x and 2x on the user's GPU,
-  with the band of `FULLSCREEN_GLASS` (96 px)?
-- Does a window capture include the blur?
-- Does Smithay deliver the sub-surface's `BackgroundEffectSurfaceCachedState`
-  with the parent's commit?
-- Is a sub-surface below the parent as workable as one above it?
+1. **The root's region feeds the wallpaper blur.** The window path reads
+   `blur_region(window.surface())` of the root (`blur.rs:491`; for layers,
+   `scene_elements.rs:1410`) and draws the wallpaper blur under all of the
+   window's surfaces. With the chrome as the root and the content as a
+   sub-surface placed below (Below), a region on the root would meet that
+   path. With the chrome as a sub-surface above (Above), the root has no
+   region and a sub-surface's region is ignored today, so there is no clash.
+   The explicit `within_window` request of section 3 removes the clash for
+   both layouts. [code]
+2. **Scale.** The Kawase offsets and steps are in physical pixels, so at 2x the
+   logical radius halves, as the wallpaper blur does today. Rule 5 makes the
+   compositor compensate. [software]
+3. **Software EGL.** Inside the nix shell libglvnd finds no vendor file, so
+   `eglQueryDevicesEXT` returns no device and the EGL tests return early.
+   `__EGL_VENDOR_LIBRARY_DIRS=<mesa>/share/glvnd/egl_vendor.d` is enough for
+   Mesa to expose `EGL_MESA_device_software` (llvmpipe). With it Malaysia's
+   288 library tests and 15 binary tests pass in three of three runs. In one of
+   six earlier runs, with the experiment's CPU-heavy tests in the same
+   four-thread batch, the existing
+   `session::tests::a_failed_create_immed_is_drained_and_posts_the_protocol_error`
+   failed (`session/tests.rs:694`); it did not fail on the pristine tree in six
+   runs. The cause was not proven. [software]
+4. **Reach margin.** The band blurred from a source grown by 24 physical pixels
+   against one grown by 120 pixels differs by at most 1/255 in a channel at 1x
+   with a fixed strip, 4/255 at 1x with a moving band and 12/255 at 2x.
+   [software]
 
-If the frame time or the lag fails, stop: no later phase has value.
+**What phase 0 did not run:** anything on a GPU; a nested session on a
+display; the wiring into `append_window_frame` and `clip_to_frame`
+(`scene_elements.rs:1053-1085`) and into `capture.rs`; the Reduce
+Transparency and Increase Contrast gate; rounded corners and the soft mask of
+section 5, step 4; several rectangles; a band-only damage case.
 
-## 8. ADR drafts
+## 8. ADR texts
 
-For `docs/decisions.md` of Malaysia, replacing the blur lines of
-"0020 · 0038 · 0065 · 0071":
+### 8.1 The kit ADRs
+
+They are [ADR 0091](../decisions.md) (the compositor composes every blur: the
+kit side of Malaysia's «Blur and wallpaper tinting») and
+[ADR 0092](../decisions.md) (in-window glass is a request), in the kit's
+`docs/decisions.md`.
+
+### 8.2 What stays in each repo
+
+ADR 0091 holds the decision that both repos share. ADR 0092 holds the kit's
+consequences. Malaysia's entry below holds the compositor's.
+
+### 8.3 Malaysia's ADR, ready to paste
+
+For `docs/decisions.md` of Malaysia. It replaces the whole entry
+"0020 · 0038 · 0065 · 0071 — Blur and wallpaper tinting". The bullets on the
+compositor composing every blur, the Infinity requests, the capture, the scale
+and the version are new; the old second bullet (a surface gets blur only in
+the region it sends) is replaced by the third and fourth; the first bullet has
+one added sentence; "Why", "Rejected", "Pending" and "Code" changed. The
+bullets on the cached wallpaper blur, the shaders and the wallpaper tinting are
+the current ones. A Malaysia session pastes it when phase 2 starts, not
+before: it states what the compositor does, and today it does not.
 
 ```markdown
-## 0020 · 0038 · 0065 · 0071 · 00NN — Blur and wallpaper tinting
+## 0020 · 0038 · 0065 · 0071 · 0091 — Blur and wallpaper tinting
 Decision:
+- Blur is drawn only while `appearance.reduce_transparency` and `appearance.contrast` are `false` (both default `false`), except the glass of kit menus: it survives `reduce_transparency`, as on macOS, and stops only with `contrast`. `ext_background_effect_manager_v1` advertises `blur` while that glass is drawn. With either setting on, a BarrierKit material is drawn as its solid.
 - The compositor composes every blur: behind a window, behind a layer surface and inside a BarrierKit window. A client declares a material and never draws a backdrop blur.
-- Behind a window, a surface gets blur in the region it sends through `ext-background-effect-v1`. Inside a window, a BarrierKit client sends `infinity_window_style_v1.set_backdrop` or `set_scroll_edge` on the surface that draws over the content, and the compositor blurs what the toplevel's surfaces draw below it.
-- The compositor decides radius, saturation and tint per material and appearance, and drops the blur under Reduce Transparency and Increase Contrast.
-- [the remaining lines of the current decision stay]
-Why: macOS composes every blur outside the app, in both blending modes; the app declares the material. One place then decides radius and accessibility. `set_glass`, `set_plates` and `set_knobs` already paint for clients.
-Rejected: a blur drawn by the client as the shipping path (two places for Reduce Transparency, two blur algorithms); `ext-background-effect-v1` on sub-surfaces (KWin, Hyprland and niri ignore it).
-Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/window_style.rs`
+- Behind a window, a surface gets blur in the region it sends through `ext-background-effect-v1`. A BarrierKit client may send `infinity_window_style_v1.set_backdrop` with `behind_window` instead, to get the radius of a material; that request wins over the region.
+- Inside a window, a BarrierKit client sends `set_backdrop` with `within_window` or `set_scroll_edge` (`infinity_window_style_v1`, version 10) on the surface that draws over the content, and the compositor blurs what the toplevel's surfaces draw below it: the parent, the sub-surfaces under the requester and their children. It never reads the region of `ext-background-effect-v1` for this, so the wallpaper blur of the root surface is not touched.
+- The request applies with the parent's commit on a synchronized sub-surface. A window capture includes `within_window` material and not `behind_window` material.
+- The compositor decides radius, saturation, tint and lens per material and appearance from `ctdesign`. The radius is in logical pixels: at a larger output scale it widens the passes to reach the same distance.
+- The compositor advertises version 10 of `infinity_window_style_v1` only while it serves these requests, and serves them only for BarrierKit clients.
+- By default the blur shows the `Background` layer, blurred once per output into a cache. The Dock, notification cards and glass popups blur what is really behind them, each from its own cached render.
+- The shaders are Dual Kawase in `grade-graphics`. `ctdesign::BACKGROUND_BLUR_PASSES` and `BACKGROUND_BLUR_OFFSET` set the strength of the wallpaper blur; no user option does.
+- `appearance.wallpaper_tinting` (default `true`, dark mode only unless `wallpaper_tinting_in_light`): the compositor averages the wallpaper grid cells behind each window and sends the color in the `wallpaper` event of `infinity_focus_surface_v1`. The kit, the patched libadwaita and the compositor's titlebar mix it in.
+Why: macOS composes every blur outside the app, in both blending modes, and the app declares the material; one place then decides radius and accessibility. No client sees other clients' pixels, so only the compositor can blur or sample what is behind a window, and it already samples a client's own pixels for `set_knobs`. The [protocol](https://wayland.app/protocols/ext-background-effect-v1) leaves strength to the compositor and has no material. `set_glass`, `set_plates` and `set_knobs` already paint for clients.
+Rejected: blurring every window by default (GPU cost); a blur drawn by the client as the shipping path (two places for Reduce Transparency, two blur algorithms); `ext-background-effect-v1` on sub-surfaces (KWin, Hyprland and niri ignore their regions); the compositor painting client backgrounds the client did not ask it to paint.
+Pending: confirmation by the owner of the frame time of the in-window pass on a real GPU (not measured; the gate of phase 2) and of the blur values per material (being measured).
+Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/window_style.rs`, `crates/malaysia-compositor/src/scene_elements.rs`, `crates/malaysia-compositor/src/capture.rs`, `crates/malaysia-compositor/src/focus_notice.rs`
 ```
 
-For `docs/decisions.md` of BarrierKit, a new entry:
+## 9. Questions
 
-```markdown
-## 00NN — In-window glass is a request
-Decision:
-- `FullscreenBar::Glass`, `ProgressiveGlass`, `TopGlass` and `Material` draw no blur. The kit leaves the rectangle transparent, draws its chrome on a sub-surface over the content and sends `set_scroll_edge` or `set_backdrop`.
-- Without version 10 of `infinity_window_style_v1` the kit draws the solid of Reduce Transparency.
-- The kit tests of this glass check the request and the solid; the blur is tested in Malaysia.
-Why: the compositor composes every blur, as macOS does.
-Rejected: keeping the Skia backdrop blur as a second path.
-Code: `crates/bk/src/glass.rs`, `crates/bk/src/platform/glass.rs`
-```
+### 9.1 Resolved
 
-## 9. Open questions
+1. **Sub-surface above or below the parent?** Both compose the same blur
+   (section 7.2). The rule of section 4 needs no choice. Input and
+   `xdg_surface` geometry still decide which the kit uses (9.2, item 1).
+2. **Does a request on the root meet the wallpaper blur?** It would if it were
+   `ext-background-effect-v1`. The explicit `within_window` request does not
+   (rules 4 and 8).
+3. **Does a window capture have the blur?** Not today; rule 9 and section 5,
+   step 8 say what it must do.
+4. **What happens to the radius at 2x?** The compositor widens the passes
+   (rule 5).
+5. **May an old compositor or an old kit meet the new requests?** Version
+   negotiation keeps them apart (section 3, "Versions").
 
-1. Sub-surface above the parent (chrome on top, as section 6) or below it
-   (content under a root that is the chrome)? The rule in section 4 works
-   for both. Input and `xdg_surface` geometry decide.
-2. Which `NSVisualEffectView.Material` does each `styles::Thickness` take?
-   The extents in [`blur-ownership.md`](blur-ownership.md) give two groups
-   (about 35 px and about 48 px in light).
+### 9.2 Open
+
+1. Input, focus, cursor shape and `xdg_surface` geometry with the chrome as a
+   sub-surface above, or as the root with the content below. The phase 0
+   harness has no xdg toplevel.
+2. Which `NSVisualEffectView.Material` does each `styles::Thickness` take? The
+   extents in [`blur-ownership.md`](blur-ownership.md) give two groups (about
+   35 px and about 48 px in light).
 3. How does `GlassContainer` merge shapes in the compositor
    (`NSGlassEffectContainerView.spacing`)?
 4. What does `automatic` resolve to? A soft and a hard
-   `preferredScrollEdgeEffectStyle` looked the same in the probe.
+   `preferredScrollEdgeEffectStyle` looked the same in the probe. Until it is
+   measured the kit sends `soft` or `hard` itself.
 5. Should layer surfaces move from `ext-background-effect-v1` to
    `set_backdrop` with `behind_window`, to get a radius per material?
 6. How do kit doc shots show compositor glass: captures of a nested Malaysia
    session, or none?
+7. What does `within_window` show where the toplevel draws nothing below the
+   rectangle? The probe's within tiles sat over a checker. Not measured.
+8. Is the blur extent of macOS the same in points at 2x? The probes ran at
+   scale 1. Not measured; rule 5 assumes it.
+9. The frame time of the band pass on a real GPU. **NOT measured.** Section 10
+   measures it.
+10. Several rectangles, rounded corners, the soft mask, the Reduce
+    Transparency gate and a band-only damage case were not run (section 7.2).
+11. The blur values per material (radius, saturation, tint) are being measured
+    in [`macos-materials.md`](macos-materials.md) and
+    [`macos-blur.md`](macos-blur.md). The protocol needs none of them.
+
+## 10. GPU runbook: the frame time of the band pass
+
+**Goal:** measure the cost of one in-window blur band on a real GPU, the
+go/no-go of phase 2.
+**Scope:** two tests of the phase 0 patch on a Linux machine with a GPU. It
+starts at a Malaysia checkout and ends at two `BLURP0 TIMING` lines and a
+decision. It measures one band over one window, nothing else.
+**Reader:** the owner, or whoever has the machine.
+**Input:** a Linux x86_64 machine with a GPU and nix with flakes, a checkout of
+this repository and network access. Malaysia's flake has `x86_64-linux`
+outputs only. The commands were assembled from what ran in the container and
+from Malaysia's `flake.nix`; they were **not run on a GPU**, so the first run
+may need the change the probe points to.
+**Output:** the two lines, the probe's first block, and the GPU, driver and
+display; then the criterion below.
+
+### Steps
+
+1. Check that the user can open a render node: `ls -l /dev/dri/renderD*`. The
+   path to a GPU is Mesa's: Malaysia's dev shell exports Mesa's vendor file
+   (`flake.nix`, `shellHook`). A proprietary NVIDIA driver is not covered.
+2. Get Malaysia at the base revision and apply the patch. `KIT` is this
+   repository.
+
+   ```sh
+   KIT=$HOME/src/barrierkit
+   git clone https://github.com/HBlanqueto/malaysia.git malaysia-blurp0
+   cd malaysia-blurp0
+   git checkout 1a45e1159039478d5c9e5dedc17d1844f91a497f
+   patch -p1 < "$KIT/docs/research/blur-phase-0/compositor-within.patch"
+   ```
+
+3. Enter Malaysia's dev shell. The first time it builds Malaysia's patched
+   libadwaita, which is slow.
+
+   ```sh
+   nix develop
+   ```
+
+   Run steps 4 and 5 inside it. Do not source `swegl.sh` and do not set `LIBGL_ALWAYS_SOFTWARE`. Those are
+   the software run.
+4. Check that the test will use the GPU:
+
+   ```sh
+   sh "$KIT/docs/research/blur-phase-0/egl-probe.sh"
+   ```
+
+   Read the block after `=== plain`. `eglQueryDevicesEXT ok=1 n=<N>` must have
+   `N` of at least 1, and the first `GL_RENDERER=` line must name your GPU,
+   not `llvmpipe`. The test uses the first device, and Mesa lists hardware
+   devices before its software one (`src/egl/main/egldevice.c`,
+   `_eglQueryDevicesEXT`). The other three blocks are software variants:
+   ignore them. If `N` is 0, or the first renderer is `llvmpipe`, nothing below
+   measures a GPU: run `unset __EGL_VENDOR_LIBRARY_DIRS LIBGL_DRIVERS_PATH` to
+   use the system's driver and probe again (libglvnd looks in
+   `/run/opengl-driver`, `/etc/glvnd/egl_vendor.d` and
+   `/usr/share/glvnd/egl_vendor.d`; read from the `libEGL.so.1` of nix's
+   libglvnd 1.7.0). On NixOS the first of them is the system's driver; on
+   another distribution the host's driver library may not load inside nix's
+   glibc. Neither was tried.
+5. Run the two tests, on one thread, close to idle (no other GPU load):
+
+   ```sh
+   cargo test -p malaysia-compositor --lib -- the_band_blur_pass --test-threads=1 --nocapture
+   ```
+
+   Run it three times and keep the three medians.
+6. Read the output. Each test prints one line like this (the numbers are the
+   software run's):
+
+   ```text
+   BLURP0 TIMING renderer llvmpipe (LLVM 21.1.8, 128 bits): 2x window 1280x800 logical, band 96 logical rows: band blur pass median 9.11 ms (min 8.85, max 10.58) over 40 frames, 54.6 % of a 60 Hz frame (16.67 ms) and 109.3 % of a 120 Hz frame (8.33 ms); full-output Kawase of the same content (the shipping wallpaper pass) median 59.67 ms
+   ```
+
+   - `renderer` must be your GPU. `llvmpipe` means a software run.
+   - `skipped: no EGL device` means nothing was measured; the test still
+     passes.
+   - `2x` is the line the criterion uses; `1x` is reported beside it.
+   - The `BLURP0 Above-strip-fixed-...` line that follows has
+     `equals_fresh=0` in these tests: they skip the reference render.
+7. Apply the criterion below, add the row to the table of section 7.2 and
+   change the status of phase 2.
+
+### Pass criterion
+
+The criterion is **a decision of the owner**. The thresholds below are a
+proposal, not a measurement. The numbers are the median of the three runs of
+the 2x test, with the maximum of its 40 frames.
+
+| Median band pass at 2x | Share of a 120 Hz frame | Share of a 60 Hz frame | Reading |
+|---|---|---|---|
+| 1.0 ms or less | 12 % or less | 6 % or less | Go: phase 2 starts |
+| Over 1.0 and up to 2.5 ms | Over 12 % and up to 30 % | Over 6 % and up to 15 % | The owner decides: phase 2 starts with a cheaper pass, or does not start |
+| Over 2.5 ms | Over 30 % | Over 15 % | No-go: no later phase has value |
+
+Also, the maximum of the 40 frames at 2x must stay under 8.33 ms, because one
+slow frame shows as a stutter while the window scrolls.
+
+Why these figures:
+
+1. **The cost is paid per frame while content moves under a band.** The
+   compositor blurs again each time the source's damage touches the band
+   (section 5, step 6), so a scrolling window pays the whole pass every
+   frame, and a desktop can show several scrolling windows at once.
+2. **The worst common case is the reference.** 2x doubles the pixels per side
+   of the band (a source of 2560x216 against 1280x120, section 7.2), and
+   120 Hz halves the budget. The 1x and 60 Hz shares are printed on the same
+   line.
+3. **The band is one pass among others.** The frame also holds the
+   composition, the Dock, menu and card blurs that already run live, and the
+   client's own work. A band that takes a tenth of a 120 Hz frame leaves room
+   for several; one that takes a third leaves room for none.
+4. **The software run proves nothing.** llvmpipe needs 55 % of a 60 Hz frame
+   at 2x and a GPU is expected to be far below that. A reference, not a budget: on
+   llvmpipe the band pass is 15 to 22 % of the full-output pass, because it
+   touches 13.5 to 15 % of the pixels. On a GPU a ratio far above that
+   points to a fixed cost, such as setup or synchronization, and the test should
+   be repeated with a wider band before concluding.
+
+### What to send back
+
+The two `BLURP0 TIMING` lines of the median run, the `=== plain` block of the
+probe, the GPU model, the Mesa version (`GL_VERSION` in the probe) and the
+refresh rate and scale of the display the owner targets.

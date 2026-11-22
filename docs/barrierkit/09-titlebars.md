@@ -353,7 +353,9 @@ compositor bar, added to the image.
 | `Glass` | A band as tall as the title bar, across the whole window and the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![Glass band](assets/states/bar-glass-band.png) |
 | `ProgressiveGlass` | Full blur at the top that fades out over `FULLSCREEN_GLASS.height` (96 px), without a line, across the whole window and the sidebar ([ADR 0057](../decisions.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![Progressive glass](assets/states/bar-progressive-glass.png) |
 
-Only `Glass` and `ProgressiveGlass` blur. When the user reduces
+Only `Glass` and `ProgressiveGlass` blur. The kit draws that blur with Skia
+today; [ADR 0092](../decisions.md) moves it to the compositor
+(`set_scroll_edge`), with no change to the bars' look or API. When the user reduces
 transparency (`reduce_transparency`, off by default), both draw as `Solid`;
 the content keeps the offset of the chosen bar. Their tint, line and metrics
 are a `FullscreenBarStyle`, set in the theme or with `.control_style`
