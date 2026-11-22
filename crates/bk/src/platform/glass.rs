@@ -8,9 +8,9 @@ use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
 use super::runtime::Runtime;
 #[cfg(target_os = "linux")]
 use super::surface::SurfaceWindow;
+use super::window_style::Knob;
 #[cfg(target_os = "linux")]
 use super::window_style::{BlendingMode, InfinityWindowStyleV1, WireMaterial};
-use super::window_style::Knob;
 
 #[cfg(target_os = "linux")]
 const MINIMUM_VERSION: u32 = 6;

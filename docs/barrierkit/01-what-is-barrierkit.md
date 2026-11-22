@@ -96,7 +96,7 @@ Freya ([ADR 0047](../decisions.md), «Pending»).
 
 | Need | Why |
 |---|---|
-| A Wayland compositor with `wl_compositor` and `xdg_wm_base` | Without them `run_window` returns `RunError::MissingGlobal`. The other protocols are optional ([18](18-platform.md)). |
+| A Wayland compositor with `wl_compositor` and `xdg_wm_base`, or macOS 14 or later on arm64 | Without a compositor `run_window` returns `RunError::MissingGlobal`. The other protocols are optional ([18](18-platform.md)). macOS: [the runner](18-platform.md#the-macos-runner). |
 | `libvulkan` and a Vulkan driver (ICD) | Drawing and presentation. |
 | `nix develop` | The dev shell ships the Skia binaries, the Adwaita Sans, Geist Mono and Inter fonts, the Mesa Vulkan drivers. `./dev.sh` refuses to run outside it. |
 

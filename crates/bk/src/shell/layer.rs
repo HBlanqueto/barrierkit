@@ -282,12 +282,13 @@ pub fn run_layer(app: AppComponent, spec: LayerSpec) -> Result<(), RunError> {
         .app
         .clone();
     let app_instance = AppInstance::new(
-        &shell,
+        &shell.host(),
         surface.id(),
         app,
         1.0,
         size.unwrap_or((1, 1)),
         InstanceRole::Surface,
+        |runner| shell.provide_extension_contexts(runner),
     );
     let mut window = shell.surface_window(
         surface.clone(),

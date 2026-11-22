@@ -31,6 +31,12 @@ impl Runtime {
         self.extension.as_mut()?.state.downcast_mut::<T>()
     }
 
+    pub(crate) fn provide_extension_contexts(&self, runner: &mut Runner) {
+        if let Some(hooks) = self.extension_hooks() {
+            (hooks.provide_contexts)(self, runner);
+        }
+    }
+
     pub(crate) fn extension_hooks(&self) -> Option<ExtensionHooks> {
         self.extension.as_ref().map(|ext| ext.hooks)
     }

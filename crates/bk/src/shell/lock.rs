@@ -122,7 +122,15 @@ impl Runtime {
             .expect("create_lock_surface called without ShellState")
             .app
             .clone();
-        let app = AppInstance::new(self, surface.id(), app, 1.0, (1, 1), InstanceRole::Surface);
+        let app = AppInstance::new(
+            &self.host(),
+            surface.id(),
+            app,
+            1.0,
+            (1, 1),
+            InstanceRole::Surface,
+            |runner| self.provide_extension_contexts(runner),
+        );
         let mut window =
             self.surface_window(surface, SurfaceRole::Extension(Box::new(lock_surface)), app);
         window.output = Some(output.id());

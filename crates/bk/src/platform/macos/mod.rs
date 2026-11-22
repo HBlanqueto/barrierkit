@@ -1,0 +1,641 @@
+use std::cell::{Cell, RefCell};
+use std::collections::HashMap;
+use std::os::fd::AsRawFd;
+use std::rc::Rc;
+use std::time::Duration;
+
+use calloop::{EventLoop, ping::make_ping};
+use ctappearance::{Resolved, load_appearance, load_dominant, resolve};
+use dispatch2::{DispatchQueue, DispatchTime};
+use freya_core::integration::{
+    AppComponent, GlobalContexts, NodeId, Platform, PlatformEvent, UserEvent,
+};
+use freya_core::prelude::{AccessibilityFocusStrategy, Key, State};
+use freya_engine::prelude::{
+    ColorType, DirectContext, SurfaceOrigin, backend_render_targets, direct_contexts, mtl,
+    wrap_backend_render_target,
+};
+use objc2::rc::Retained;
+use objc2::runtime::ProtocolObject;
+use objc2::{MainThreadMarker, MainThreadOnly, sel};
+use objc2_app_kit::{
+    NSApplication, NSApplicationActivationPolicy, NSBackingStoreType, NSEvent,
+    NSEventModifierFlags, NSEventType, NSMenu, NSMenuItem, NSWindow, NSWindowDelegate,
+    NSWindowStyleMask,
+};
+use objc2_core_foundation::{
+    CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
+};
+use objc2_core_graphics::{CGColorSpace, kCGColorSpaceSRGB};
+use objc2_foundation::{NSPoint, NSRect, NSSize, NSString};
+use objc2_metal::{
+    MTLCommandBuffer, MTLCommandQueue, MTLCreateSystemDefaultDevice, MTLDevice, MTLDrawable,
+    MTLPixelFormat,
+};
+use objc2_quartz_core::{CAMetalDrawable, CAMetalLayer};
+
+use super::app::{AppInstance, Host, InstanceRole};
+use super::backdrop::{Pass, render_pass, render_passes};
+use super::clipboard::Clipboard;
+use super::popup::PopupCommand;
+use super::timer::{Wake, WakeQueue};
+use super::window::{WindowCommand, WindowControls, WindowOptions, WindowStatus};
+use super::{DecorationResponse, EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
+
+mod input;
+mod view;
+
+use view::{ContentView, WindowDelegate};
+
+thread_local! {
+    static RUNTIME: RefCell<Option<Runtime>> = const { RefCell::new(None) };
+    static LOOP: RefCell<Option<EventLoop<'static, ()>>> = const { RefCell::new(None) };
+}
+
+// Callbacks of AppKit reach the runner through this cell. A call made while it is borrowed (a window the runner is
+// closing tells its delegate) finds it busy and does nothing.
+pub(super) fn with_runtime<R>(f: impl FnOnce(&mut Runtime) -> R) -> Option<R> {
+    RUNTIME.with(|cell| cell.try_borrow_mut().ok()?.as_mut().map(f))
+}
+
+struct Gpu {
+    device: Retained<ProtocolObject<dyn MTLDevice>>,
+    queue: Retained<ProtocolObject<dyn MTLCommandQueue>>,
+    context: DirectContext,
+}
+
+struct Window {
+    id: u64,
+    window: Retained<NSWindow>,
+    view: Retained<ContentView>,
+    layer: Retained<CAMetalLayer>,
+    _delegate: Retained<ProtocolObject<dyn NSWindowDelegate>>,
+    app: AppInstance,
+    controls: WindowControls,
+    needs_redraw: bool,
+}
+
+pub(super) struct Runtime {
+    mtm: MainThreadMarker,
+    gpu: Gpu,
+    windows: Vec<Window>,
+    next_window: u64,
+    queue: Rc<RefCell<Vec<(ObjectId, Sent)>>>,
+    ping: Ping,
+    wake: Wake,
+    timers: super::timer::TimerQueue,
+    scheduled: HashMap<u64, Rc<dyn Fn()>>,
+    next_timer: u64,
+    popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
+    popup_next_id: Rc<Cell<u64>>,
+    last_input_serial: Rc<Cell<u32>>,
+    resolved: State<Resolved>,
+    defaults_revision: State<u64>,
+    clipboard: Clipboard,
+    primary: Clipboard,
+}
+
+enum Native {
+    Close,
+    Minimize,
+    Zoom,
+    FullScreen,
+    Front,
+    Title(String),
+    Size(u32, u32),
+}
+
+fn native(id: u64, command: Native) {
+    let Some(window) =
+        with_runtime(|runtime| runtime.window(id).map(|w| w.window.clone())).flatten()
+    else {
+        return;
+    };
+    match command {
+        Native::Close => window.close(),
+        Native::Minimize => window.miniaturize(None),
+        Native::Zoom => window.zoom(None),
+        Native::FullScreen => window.toggleFullScreen(None),
+        Native::Front => window.makeKeyAndOrderFront(None),
+        Native::Title(title) => window.setTitle(&NSString::from_str(&title)),
+        Native::Size(width, height) => {
+            window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))
+        }
+    }
+}
+
+fn later(id: u64, command: Native) {
+    DispatchQueue::main().exec_async(move || native(id, command));
+}
+
+impl Runtime {
+    fn new(mtm: MainThreadMarker, ping: Ping, wake: Wake) -> Result<Self, RunError> {
+        let device = MTLCreateSystemDefaultDevice().ok_or(RunError::Skia)?;
+        let queue = device.newCommandQueue().ok_or(RunError::Skia)?;
+        // SAFETY: the pointers are the live device and queue; Skia retains both.
+        let backend = unsafe {
+            mtl::BackendContext::new(
+                Retained::as_ptr(&device) as mtl::Handle,
+                Retained::as_ptr(&queue) as mtl::Handle,
+            )
+        };
+        let context = direct_contexts::make_metal(&backend, None).ok_or(RunError::Skia)?;
+        let contexts = GlobalContexts::register();
+        contexts.insert_context(Platform::new(|event| {
+            tracing::debug!(?event, "BarrierKit: Freya's global event has no handler");
+        }));
+        let clipboard = Clipboard::system();
+        contexts.insert_context(freya_clipboard::prelude::Clipboard::create(Some(
+            clipboard.provider(),
+        )));
+        Ok(Self {
+            mtm,
+            gpu: Gpu {
+                device,
+                queue,
+                context,
+            },
+            windows: Vec::new(),
+            next_window: 1,
+            queue: Rc::new(RefCell::new(Vec::new())),
+            ping,
+            wake,
+            timers: Rc::new(RefCell::new(Vec::new())),
+            scheduled: HashMap::new(),
+            next_timer: 0,
+            popup_commands: Rc::new(RefCell::new(Vec::new())),
+            popup_next_id: Rc::new(Cell::new(1)),
+            last_input_serial: Rc::new(Cell::new(0)),
+            resolved: State::create_global(resolve(&load_appearance(), load_dominant())),
+            defaults_revision: State::create_global(0),
+            clipboard,
+            primary: Clipboard::primary(),
+        })
+    }
+
+    fn host(&self) -> Host {
+        Host {
+            resolved: self.resolved,
+            ping: self.ping.clone(),
+            queue: self.queue.clone(),
+            popup_commands: self.popup_commands.clone(),
+            popup_next_id: self.popup_next_id.clone(),
+            last_input_serial: self.last_input_serial.clone(),
+            timers: self.timers.clone(),
+            wake: self.wake.clone(),
+            font_collection: crate::fonts::collection(),
+            font_manager: crate::fonts::manager(),
+            defaults_revision: self.defaults_revision,
+            glass: false,
+            backdrop: false,
+            knobs: false,
+        }
+    }
+
+    fn window(&mut self, id: u64) -> Option<&mut Window> {
+        self.windows.iter_mut().find(|window| window.id == id)
+    }
+
+    fn create_window(&mut self, app: AppComponent, options: WindowOptions) {
+        let id = self.next_window;
+        self.next_window += 1;
+        let fixed = options.min_size.is_some() && options.min_size == options.max_size;
+        let fixed_width = matches!(
+            (options.min_size, options.max_size),
+            (Some((min, _)), Some((max, _))) if min > 0 && min == max
+        );
+        let mut style = NSWindowStyleMask::Titled
+            | NSWindowStyleMask::Closable
+            | NSWindowStyleMask::Miniaturizable;
+        if !fixed {
+            style |= NSWindowStyleMask::Resizable;
+        }
+        let (width, height) = options.size;
+        let frame = NSRect::new(
+            NSPoint::new(0.0, 0.0),
+            NSSize::new(f64::from(width), f64::from(height)),
+        );
+        // SAFETY: a plain NSWindow; the runner owns it and `setReleasedWhenClosed(false)` keeps it valid after close.
+        let window = unsafe {
+            NSWindow::initWithContentRect_styleMask_backing_defer(
+                NSWindow::alloc(self.mtm),
+                frame,
+                style,
+                NSBackingStoreType::Buffered,
+                false,
+            )
+        };
+        unsafe { window.setReleasedWhenClosed(false) };
+        window.setTitle(&NSString::from_str(&options.title));
+        if let Some((w, h)) = options.min_size {
+            window.setContentMinSize(NSSize::new(f64::from(w), f64::from(h)));
+        }
+        if let Some((w, h)) = options.max_size.filter(|(w, h)| *w > 0 && *h > 0) {
+            window.setContentMaxSize(NSSize::new(f64::from(w), f64::from(h)));
+        }
+        let delegate = WindowDelegate::new(self.mtm, id);
+        window.setDelegate(Some(&delegate));
+        let view = ContentView::new(self.mtm, id, frame);
+        let layer = self.configure_layer(&view);
+        window.setContentView(Some(&view));
+        window.center();
+
+        let status = State::create_global(WindowStatus {
+            activated: true,
+            maximized: false,
+            fullscreen: false,
+            decoration: DecorationResponse::Server,
+            fixed,
+        });
+        let controls = WindowControls {
+            queue: Rc::new(RefCell::new(Vec::new())),
+            ping: self.ping.clone(),
+            pointer_serial: Rc::new(Cell::new(0)),
+            status,
+            title: options.title.clone(),
+            fixed,
+            fixed_width,
+            surface_id: ObjectId::from_raw(id),
+            focus_bar: State::create_global(false),
+            focus_bar_progress: State::create_global(0.0),
+            focus_overlay: false,
+            focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
+            desktop: State::create_global(None),
+            fullscreen_bar: State::create_global(options.fullscreen_bar),
+            fullscreen_push: State::create_global(options.fullscreen_push),
+            overlay_titlebar_height: State::create_global(0.0),
+            hud: options.hud,
+            panel: false,
+            ime_preedit: State::create_global(String::new()),
+            primary: self.primary.clone(),
+            clipboard: self.clipboard.clone(),
+        };
+        let scale = window.backingScaleFactor();
+        let physical = (
+            (f64::from(width) * scale) as u32,
+            (f64::from(height) * scale) as u32,
+        );
+        let instance = AppInstance::new(
+            &self.host(),
+            ObjectId::from_raw(id),
+            app,
+            scale,
+            physical,
+            InstanceRole::Window {
+                controls: Box::new(controls.clone()),
+                menu: None,
+                theme: options.theme.clone(),
+                resolved: State::create_global(*self.resolved.peek()),
+            },
+            |_| {},
+        );
+        self.windows.push(Window {
+            id,
+            window: window.clone(),
+            view,
+            layer,
+            _delegate: delegate,
+            app: instance,
+            controls,
+            needs_redraw: true,
+        });
+        window.makeKeyAndOrderFront(None);
+        self.resized(id);
+    }
+
+    fn configure_layer(&self, view: &ContentView) -> Retained<CAMetalLayer> {
+        let layer = view.layer().expect("the content view is layer-backed");
+        // SAFETY: `ContentView::makeBackingLayer` returns a CAMetalLayer.
+        let layer: Retained<CAMetalLayer> =
+            unsafe { Retained::cast_unchecked::<CAMetalLayer>(layer) };
+        layer.setDevice(Some(&self.gpu.device));
+        layer.setPixelFormat(MTLPixelFormat::BGRA8Unorm);
+        // Skia's blend modes need a texture it may read.
+        layer.setFramebufferOnly(false);
+        layer.setPresentsWithTransaction(false);
+        let srgb = CGColorSpace::with_name(Some(unsafe { kCGColorSpaceSRGB }));
+        layer.setColorspace(srgb.as_deref());
+        layer
+    }
+
+    pub(super) fn resized(&mut self, id: u64) {
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        let size = window.view.bounds().size;
+        let scale = window.window.backingScaleFactor();
+        let physical = (
+            (size.width * scale).round() as u32,
+            (size.height * scale).round() as u32,
+        );
+        if physical.0 == 0 || physical.1 == 0 {
+            return;
+        }
+        window.layer.setContentsScale(scale);
+        window
+            .layer
+            .setDrawableSize(CGSize::new(f64::from(physical.0), f64::from(physical.1)));
+        window.app.resize(physical, scale);
+        window.needs_redraw = true;
+        self.draw(id);
+    }
+
+    pub(super) fn push(&mut self, id: u64, event: PlatformEvent) {
+        if let Some(window) = self.window(id) {
+            window.app.push(event);
+        }
+    }
+
+    pub(super) fn activated(&mut self, id: u64, activated: bool) {
+        if let Some(window) = self.window(id) {
+            window.controls.status.write().activated = activated;
+            window.app.set_focused(activated);
+            window.needs_redraw = true;
+        }
+    }
+
+    pub(super) fn closed(&mut self, id: u64) {
+        self.windows.retain(|window| window.id != id);
+        if self.windows.is_empty() {
+            stop(self.mtm);
+        }
+    }
+
+    fn draw(&mut self, id: u64) {
+        let Some(index) = self.windows.iter().position(|window| window.id == id) else {
+            return;
+        };
+        let gpu = &mut self.gpu;
+        let window = &mut self.windows[index];
+        window.needs_redraw = false;
+        let scale = window.window.backingScaleFactor();
+        let resolved = *window.app.resolved.read();
+        let base = crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel);
+        let background = crate::theme::color(base);
+        window.app.layout();
+        window.app.settle_sized_reactions();
+        let Some(drawable) = window.layer.nextDrawable() else {
+            window.needs_redraw = true;
+            return;
+        };
+        let size = window.layer.drawableSize();
+        // SAFETY: the texture is the drawable's own and lives through this frame; Skia retains it.
+        let info =
+            unsafe { mtl::TextureInfo::new(Retained::as_ptr(&drawable.texture()) as mtl::Handle) };
+        let target =
+            backend_render_targets::make_mtl((size.width as i32, size.height as i32), &info);
+        let Some(mut surface) = wrap_backend_render_target(
+            &mut gpu.context,
+            &target,
+            SurfaceOrigin::TopLeft,
+            ColorType::BGRA8888,
+            None,
+            None,
+        ) else {
+            return;
+        };
+        let app = &mut window.app;
+        let no_chromes: [Vec<NodeId>; 0] = [];
+        render_passes(&mut app.tree, &no_chromes, |pass, tree| {
+            if pass == Pass::Content {
+                render_pass(
+                    &mut app.font_collection,
+                    &app.font_manager,
+                    tree,
+                    surface.canvas(),
+                    scale,
+                    (0, 0),
+                    background,
+                );
+            }
+        });
+        gpu.context.flush_and_submit();
+        drop(surface);
+        if let Some(buffer) = gpu.queue.commandBuffer() {
+            let drawable: Retained<ProtocolObject<dyn MTLDrawable>> = (&drawable).into();
+            buffer.presentDrawable(&drawable);
+            buffer.commit();
+        }
+        app.ticker_sender.notify();
+    }
+
+    fn redraw_all(&mut self) {
+        let pending: Vec<u64> = self
+            .windows
+            .iter()
+            .filter(|window| window.needs_redraw)
+            .map(|window| window.id)
+            .collect();
+        for id in pending {
+            self.draw(id);
+        }
+    }
+
+    fn poll_all(&mut self) {
+        for window in &mut self.windows {
+            if (window.app.poll() || window.app.accessibility_pending()) && window.app.update() {
+                window.needs_redraw = true;
+            }
+        }
+        self.process_window_commands();
+    }
+
+    fn process_window_commands(&mut self) {
+        for window in &self.windows {
+            let commands = std::mem::take(&mut *window.controls.queue.borrow_mut());
+            for command in commands {
+                let id = window.id;
+                match command {
+                    WindowCommand::Close => later(id, Native::Close),
+                    WindowCommand::Minimize => later(id, Native::Minimize),
+                    WindowCommand::ToggleMaximize => later(id, Native::Zoom),
+                    WindowCommand::ToggleFullscreen => later(id, Native::FullScreen),
+                    WindowCommand::Present(_) | WindowCommand::MakeKey => later(id, Native::Front),
+                    WindowCommand::SetTitle(title) => later(id, Native::Title(title.to_string())),
+                    WindowCommand::Fit((width, height)) => later(id, Native::Size(width, height)),
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    fn install_timers(&mut self) {
+        let pending = std::mem::take(&mut *self.timers.borrow_mut());
+        for (delay, callback) in pending {
+            let id = self.next_timer;
+            self.next_timer += 1;
+            self.scheduled.insert(id, callback);
+            let when = DispatchTime::NOW.time(delay.as_nanos().min(i64::MAX as u128) as i64);
+            let _ = DispatchQueue::main().after(when, move || fire(id));
+        }
+    }
+
+    fn on_ping(&mut self) {
+        let events = std::mem::take(&mut *self.queue.borrow_mut());
+        for (owner, event) in events {
+            let Some(window) = self.window(owner.raw()) else {
+                continue;
+            };
+            match event {
+                Sent::User(UserEvent::RequestRedraw) => window.needs_redraw = true,
+                Sent::User(UserEvent::FocusAccessibilityNode(strategy)) => {
+                    window.app.requested_focus = Some(strategy);
+                    window.needs_redraw = true;
+                }
+                Sent::Kit(event) => {
+                    if let Ok(shortcut) = event.downcast::<EditShortcut>() {
+                        window.app.requested_focus =
+                            Some(AccessibilityFocusStrategy::Node(shortcut.field));
+                        window
+                            .app
+                            .pending_shortcuts
+                            .push(Key::Character(shortcut.key));
+                        window.needs_redraw = true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        self.poll_all();
+        self.install_timers();
+        self.redraw_all();
+    }
+}
+
+fn fire(id: u64) {
+    let Some(callback) = with_runtime(|runtime| runtime.scheduled.remove(&id)).flatten() else {
+        return;
+    };
+    callback();
+    with_runtime(|runtime| {
+        runtime.poll_all();
+        runtime.install_timers();
+        runtime.redraw_all();
+    });
+}
+
+fn woken() {
+    let Some(callbacks) = with_runtime(|runtime| runtime.wake.callbacks.borrow().clone()) else {
+        return;
+    };
+    for callback in callbacks {
+        callback();
+    }
+    with_runtime(|runtime| {
+        runtime.poll_all();
+        runtime.redraw_all();
+    });
+}
+
+// `NSApplication::stop` takes effect with the next event, so a closed last window needs one posted.
+fn stop(mtm: MainThreadMarker) {
+    let app = NSApplication::sharedApplication(mtm);
+    app.stop(None);
+    if let Some(event) = NSEvent::otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2(
+        NSEventType::ApplicationDefined,
+        NSPoint::new(0.0, 0.0),
+        NSEventModifierFlags::empty(),
+        0.0,
+        0,
+        None,
+        0,
+        0,
+        0,
+    ) {
+        app.postEvent_atStart(&event, true);
+    }
+}
+
+fn install_menu(mtm: MainThreadMarker, app: &NSApplication, name: &str) {
+    let main = NSMenu::new(mtm);
+    let item = NSMenuItem::new(mtm);
+    main.addItem(&item);
+    let submenu = NSMenu::new(mtm);
+    // SAFETY: `terminate:` is NSApplication's own action.
+    let quit = unsafe {
+        NSMenuItem::initWithTitle_action_keyEquivalent(
+            NSMenuItem::alloc(mtm),
+            &NSString::from_str(&format!("Quit {name}")),
+            Some(sel!(terminate:)),
+            &NSString::from_str("q"),
+        )
+    };
+    submenu.addItem(&quit);
+    item.setSubmenu(Some(&submenu));
+    app.setMainMenu(Some(&main));
+}
+
+// The loop of `calloop` serves the pings; AppKit's run loop wakes it when its poll descriptor is readable.
+fn serve_loop(event_loop: EventLoop<'static, ()>) -> Result<(), RunError> {
+    let fd = event_loop.as_raw_fd();
+    LOOP.with(|slot| *slot.borrow_mut() = Some(event_loop));
+    extern "C-unwind" fn dispatch(
+        descriptor: *mut CFFileDescriptor,
+        _: usize,
+        _: *mut std::ffi::c_void,
+    ) {
+        LOOP.with(|slot| {
+            if let Some(event_loop) = slot.borrow_mut().as_mut() {
+                let _ = event_loop.dispatch(Some(Duration::ZERO), &mut ());
+            }
+        });
+        // SAFETY: CoreFoundation passes the descriptor that fired, alive for the call.
+        unsafe { (*descriptor).enable_call_backs(1) };
+    }
+    let mut context = CFFileDescriptorContext {
+        version: 0,
+        info: std::ptr::null_mut(),
+        retain: None,
+        release: None,
+        copyDescription: None,
+    };
+    // SAFETY: the descriptor belongs to the loop kept in `LOOP` for the whole run, and `close_on_invalidate` is false.
+    let descriptor =
+        unsafe { CFFileDescriptor::new(None, fd, false, Some(dispatch), &mut context) }
+            .ok_or(RunError::EventLoop("CFFileDescriptor::new failed"))?;
+    descriptor.enable_call_backs(1);
+    let source = CFFileDescriptor::new_run_loop_source(None, Some(&descriptor), 0)
+        .ok_or(RunError::EventLoop("the run loop source was not created"))?;
+    CFRunLoop::current()
+        .ok_or(RunError::EventLoop("no current run loop"))?
+        .add_source(Some(&source), unsafe { kCFRunLoopCommonModes });
+    std::mem::forget((descriptor, source));
+    Ok(())
+}
+
+pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<(), RunError> {
+    let mtm = MainThreadMarker::new().ok_or(RunError::EventLoop("not on the main thread"))?;
+    let application = NSApplication::sharedApplication(mtm);
+    application.setActivationPolicy(NSApplicationActivationPolicy::Regular);
+    install_menu(mtm, &application, &options.app_name);
+
+    let mut event_loop: EventLoop<'static, ()> = EventLoop::try_new()
+        .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;
+    let (ping, ping_source) =
+        make_ping().map_err(|_| RunError::EventLoop("calloop ping failed"))?;
+    let (wake_ping, wake_source) =
+        make_ping().map_err(|_| RunError::EventLoop("calloop wake ping failed"))?;
+    event_loop
+        .handle()
+        .insert_source(ping_source, |_, _, _| {
+            with_runtime(|runtime| runtime.on_ping());
+        })
+        .map_err(|_| RunError::EventLoop("inserting the Freya ping source"))?;
+    event_loop
+        .handle()
+        .insert_source(wake_source, |_, _, _| woken())
+        .map_err(|_| RunError::EventLoop("inserting the wake ping source"))?;
+    let wake = Wake {
+        ping: wake_ping,
+        callbacks: WakeQueue::default(),
+    };
+    let runtime = Runtime::new(mtm, ping.clone(), wake)?;
+    RUNTIME.with(|cell| *cell.borrow_mut() = Some(runtime));
+    serve_loop(event_loop)?;
+
+    with_runtime(|runtime| runtime.create_window(app, options));
+    ping.ping();
+    application.activate();
+    application.run();
+    Ok(())
+}

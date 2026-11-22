@@ -452,7 +452,7 @@ impl Runtime {
 
         let opens_left = Rc::new(Cell::new(false));
         let app = AppInstance::new(
-            self,
+            &self.host(),
             wl_surface.id(),
             content,
             scale,
@@ -461,6 +461,7 @@ impl Runtime {
                 id,
                 opens_left: opens_left.clone(),
             },
+            |runner| self.provide_extension_contexts(runner),
         );
 
         let output = self.surfaces[owner_index].output.clone();

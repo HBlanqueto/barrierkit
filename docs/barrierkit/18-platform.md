@@ -247,6 +247,27 @@ cannot run it: it has no display.
 4. Send back the log, what looked wrong, and whether the compositor's log shows
    a protocol error.
 
+## The macOS runner
+
+**Goal:** know what an app does on macOS arm64 today.
+**Scope:** `run_window` on `aarch64-apple-darwin`. Design and milestones:
+[macOS arm64](../research/macos-arm-port.md).
+**Reader:** whoever runs a kit app on a Mac.
+**Input:** an app built with `cargo run -p bk --example <name>` on the Mac.
+**Output:** a window with the system frame and the kit's content.
+
+`platform/macos/` replaces the Wayland runner. It draws with Skia on Metal into
+a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
+
+| Works | Missing |
+|---|---|
+| An `NSWindow` with the system title bar and traffic lights (`DecorationResponse::Server`), min and max size, title | Popups, menus, tooltips and sheets (they are queued and never opened) |
+| Mouse, scroll, keyboard (Command acts as Ctrl) | Text input methods, cursors, drag and drop |
+| Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | A native menu bar from `MainMenu`, notifications, file panels, accessibility |
+| `Timers`, `WakeHandle`, clipboard text | Blur and glass (the kit draws the opaque solid), the live system appearance |
+
+The `shell` feature does not build on macOS.
+
 ## Accessibility
 
 With the `a11y` feature ([1](01-what-is-barrierkit.md#the-crates)), each

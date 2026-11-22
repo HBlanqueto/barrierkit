@@ -34,8 +34,10 @@ version.
 ## What you are working with
 
 - **Language:** Rust 2024, stable toolchain.
-- **Platform:** Linux on Wayland, drawn with Vulkan and Skia. No macOS, no
-  Windows, no X11.
+- **Platform:** Linux on Wayland, drawn with Vulkan and Skia; macOS arm64
+  opens windows with the system frame, drawn with Metal and Skia ([the macOS
+  runner](../docs/barrierkit/18-platform.md#the-macos-runner)). No Windows, no
+  X11.
 - **Layers:** BarrierKit (`bk`) is built on Freya 0.5.3
   (`freya-core`), its layout engine Torin, and the design tokens of
   `ctdesign`. An app depends on `bk`; the prelude re-exports

@@ -1,9 +1,6 @@
-use freya_core::{
-    integration::AppComponent,
-    prelude::State,
-};
 #[cfg(target_os = "linux")]
 use freya_core::prelude::WritableUtils;
+use freya_core::{integration::AppComponent, prelude::State};
 #[cfg(target_os = "linux")]
 use sctk::{
     reexports::{
@@ -21,10 +18,10 @@ use std::{cell::RefCell, rc::Rc};
 use super::{ObjectId, RunError, calloop::ping::Ping, window_style::Bar};
 #[cfg(target_os = "linux")]
 use super::{
-    timer::WakeHandle,
     app::{AppInstance, InstanceRole},
     runtime::{Connected, Runtime, WindowContext},
     surface::SurfaceRole,
+    timer::WakeHandle,
 };
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
@@ -474,8 +471,8 @@ pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Resul
 }
 
 #[cfg(target_os = "macos")]
-pub fn run_window(_: impl Into<AppComponent>, _: WindowOptions) -> Result<(), RunError> {
-    Err(RunError::NoRunner)
+pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Result<(), RunError> {
+    super::macos::run_window(app.into(), options)
 }
 #[cfg(target_os = "linux")]
 impl Runtime {
@@ -635,7 +632,7 @@ impl Runtime {
         });
 
         let app_instance = AppInstance::new(
-            self,
+            &self.host(),
             surface.id(),
             app,
             1.0,
@@ -646,6 +643,7 @@ impl Runtime {
                 theme: options.theme.clone(),
                 resolved: window_resolved,
             },
+            |runner| self.provide_extension_contexts(runner),
         );
         let mut window = self.surface_window(surface, SurfaceRole::Window(window), app_instance);
         window.logical_size = options.size;

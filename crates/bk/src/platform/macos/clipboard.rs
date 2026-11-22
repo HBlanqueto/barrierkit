@@ -1,4 +1,6 @@
-use freya_clipboard::copypasta::{ClipboardContext, ClipboardProvider, nop_clipboard::NopClipboardContext};
+use freya_clipboard::copypasta::{
+    ClipboardContext, ClipboardProvider, nop_clipboard::NopClipboardContext,
+};
 
 #[derive(Clone)]
 pub(crate) struct Clipboard {

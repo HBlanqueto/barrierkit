@@ -1,10 +1,10 @@
-use futures_util::task::ArcWake;
 use super::calloop::ping::Ping;
 #[cfg(target_os = "linux")]
 use super::calloop::{
     LoopHandle,
     timer::{TimeoutAction, Timer},
 };
+use futures_util::task::ArcWake;
 use std::{
     cell::RefCell,
     rc::Rc,

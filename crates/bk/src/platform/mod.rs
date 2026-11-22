@@ -1,6 +1,5 @@
 #[cfg(target_os = "linux")]
 mod activation;
-#[cfg(target_os = "linux")]
 pub(crate) mod app;
 #[cfg(all(feature = "a11y", target_os = "linux"))]
 mod atspi;
@@ -26,6 +25,8 @@ mod glass;
 #[cfg(target_os = "linux")]
 mod ime;
 mod input;
+#[cfg(target_os = "macos")]
+mod macos;
 mod main_menu_export;
 mod popup;
 #[cfg(target_os = "linux")]
@@ -44,10 +45,10 @@ mod vulkan;
 mod window;
 mod window_style;
 
-#[cfg(target_os = "linux")]
-pub(crate) use sctk::reexports::calloop;
 #[cfg(target_os = "macos")]
 pub(crate) use ::calloop;
+#[cfg(target_os = "linux")]
+pub(crate) use sctk::reexports::calloop;
 
 pub use input::{inserts_text, modifier_flags};
 pub use main_menu_export::MainMenuAddress;
@@ -106,6 +107,14 @@ impl ObjectId {
     pub fn null() -> Self {
         Self(0)
     }
+
+    fn from_raw(id: u64) -> Self {
+        Self(id)
+    }
+
+    fn raw(&self) -> u64 {
+        self.0
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -122,9 +131,6 @@ pub enum RunError {
     SurfaceLost,
     #[error("a layer surface without a width or height must be anchored to both opposite edges")]
     LayerSize,
-    #[cfg(target_os = "macos")]
-    #[error("this platform has no runner yet")]
-    NoRunner,
     #[error("the application declares no window")]
     NoWindow,
     #[error("event loop failed: {0}")]

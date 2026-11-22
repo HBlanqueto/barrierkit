@@ -19,10 +19,9 @@ use freya_core::{
 };
 use freya_engine::prelude::{FontCollection, FontMgr};
 use ragnarok::{EventsExecutorRunner, EventsMeasurerRunner, NodesState};
-use sctk::reexports::client::backend::ObjectId;
 use std::{
     borrow::Cow,
-    cell::Cell,
+    cell::{Cell, RefCell},
     pin::pin,
     rc::Rc,
     sync::{
@@ -33,17 +32,59 @@ use std::{
 };
 use torin::prelude::Size2D;
 
+#[cfg(target_os = "linux")]
+use super::runtime::Runtime;
 use super::{
-    KitSender, Sent,
-    popup::{PopupHandle, PopupId, Popups},
-    runtime::Runtime,
-    timer::{PingWake, Timers},
+    KitSender, ObjectId, Sent,
+    calloop::ping::Ping,
+    popup::{PopupCommand, PopupHandle, PopupId, Popups},
+    timer::{PingWake, TimerQueue, Timers, Wake},
     window::WindowControls,
 };
 
 const MAX_SETTLE_PASSES: usize = 4;
 
 static NEXT_WINDOW_ID: AtomicU64 = AtomicU64::new(0);
+
+// What an instance reads from the runner that owns it, so each backend fills one and the driver knows none.
+pub(crate) struct Host {
+    pub(crate) resolved: State<Resolved>,
+    pub(crate) ping: Ping,
+    pub(crate) queue: Rc<RefCell<Vec<(ObjectId, Sent)>>>,
+    pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
+    pub(crate) popup_next_id: Rc<Cell<u64>>,
+    pub(crate) last_input_serial: Rc<Cell<u32>>,
+    pub(crate) timers: TimerQueue,
+    pub(crate) wake: Wake,
+    pub(crate) font_collection: FontCollection,
+    pub(crate) font_manager: FontMgr,
+    pub(crate) defaults_revision: State<u64>,
+    pub(crate) glass: bool,
+    pub(crate) backdrop: bool,
+    pub(crate) knobs: bool,
+}
+
+#[cfg(target_os = "linux")]
+impl Runtime {
+    pub(crate) fn host(&self) -> Host {
+        Host {
+            resolved: self.resolved,
+            ping: self.ping.clone(),
+            queue: self.queue.clone(),
+            popup_commands: self.popup_commands.clone(),
+            popup_next_id: self.popup_next_id.clone(),
+            last_input_serial: self.last_input_serial.clone(),
+            timers: self.timers.clone(),
+            wake: self.wake.clone(),
+            font_collection: self.graphics.font_collection.clone(),
+            font_manager: self.graphics.font_manager.clone(),
+            defaults_revision: self.defaults_revision,
+            glass: self.glass_supported(),
+            backdrop: self.backdrop_supported(),
+            knobs: self.knobs_supported(),
+        }
+    }
+}
 
 pub(crate) struct AppInstance {
     runner: Runner,
@@ -66,7 +107,7 @@ pub(crate) struct AppInstance {
     pub(crate) glass_luma: State<Option<f32>>,
     accessibility: AccessibilityTree,
     accessibility_initialized: bool,
-    #[cfg(feature = "a11y")]
+    #[cfg(all(feature = "a11y", target_os = "linux"))]
     atspi: Option<super::atspi::Atspi>,
     pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
     pub(crate) pending_shortcuts: Vec<Key>,
@@ -94,12 +135,13 @@ pub(crate) enum InstanceRole {
 
 impl AppInstance {
     pub(crate) fn new(
-        rt: &Runtime,
+        host: &Host,
         owner: ObjectId,
         app: AppComponent,
         scale_factor: f64,
         size: (u32, u32),
         role: InstanceRole,
+        extend: impl FnOnce(&mut Runner),
     ) -> Self {
         let (window, popup, menu_handle, theme, resolved) = match role {
             InstanceRole::Window {
@@ -113,14 +155,14 @@ impl AppInstance {
                 Some((id, opens_left)),
                 None,
                 Theme::tengen(),
-                rt.resolved,
+                host.resolved,
             ),
             #[cfg(feature = "shell")]
-            InstanceRole::Surface => (None, None, None, Theme::tengen(), rt.resolved),
+            InstanceRole::Surface => (None, None, None, Theme::tengen(), host.resolved),
         };
-        let waker = futures_util::task::waker(Arc::new(PingWake(rt.ping.clone())));
+        let waker = futures_util::task::waker(Arc::new(PingWake(host.ping.clone())));
         let send: Rc<dyn Fn(Sent)> = {
-            let (queue, ping, owner) = (rt.queue.clone(), rt.ping.clone(), owner.clone());
+            let (queue, ping, owner) = (host.queue.clone(), host.ping.clone(), owner.clone());
             Rc::new(move |event| {
                 queue.borrow_mut().push((owner.clone(), event));
                 ping.ping();
@@ -128,10 +170,10 @@ impl AppInstance {
         };
         let glass_luma = State::create_global(None);
         let popups = Popups {
-            queue: rt.popup_commands.clone(),
-            ping: rt.ping.clone(),
-            next_id: rt.popup_next_id.clone(),
-            last_serial: rt.last_input_serial.clone(),
+            queue: host.popup_commands.clone(),
+            ping: host.ping.clone(),
+            next_id: host.popup_next_id.clone(),
+            last_serial: host.last_input_serial.clone(),
             owner,
             current: popup.as_ref().map(|(id, _)| *id),
             opens_left: popup
@@ -145,13 +187,13 @@ impl AppInstance {
             popups: popups.clone(),
         });
         let timers = Timers {
-            queue: rt.timers.clone(),
-            ping: rt.ping.clone(),
-            wake: rt.wake.clone(),
+            queue: host.timers.clone(),
+            ping: host.ping.clone(),
+            wake: host.wake.clone(),
         };
-        let font_collection = rt.graphics.font_collection.clone();
-        let font_manager = rt.graphics.font_manager.clone();
-        let defaults_revision = rt.defaults_revision;
+        let font_collection = host.font_collection.clone();
+        let font_manager = host.font_manager.clone();
+        let defaults_revision = host.defaults_revision;
         let (events_sender, events_receiver) = futures_channel::mpsc::unbounded();
         let mut runner = Runner::new(move || {
             crate::chrome::window_root(theme.clone(), integration(app.clone())).into_element()
@@ -187,12 +229,12 @@ impl AppInstance {
         Platform::get().register_window(platform.clone());
         runner.provide_root_context(|| CurrentWindowId(platform.id));
         runner.provide_root_context(move || KitSender(send));
-        let glass = window.is_some() && rt.glass_supported();
+        let glass = window.is_some() && host.glass;
         runner.provide_root_context(move || super::GlassSupport(glass));
         let glass_outbox = runner.provide_root_context(super::GlassOutbox::default);
-        let backdrop = window.is_some() && rt.backdrop_supported();
+        let backdrop = window.is_some() && host.backdrop;
         runner.provide_root_context(move || super::backdrop::BackdropSupport(backdrop));
-        let knobs = window.is_some() && rt.knobs_supported();
+        let knobs = window.is_some() && host.knobs;
         runner.provide_root_context(move || super::KnobSupport(knobs));
         let knob_outbox = runner.provide_root_context(super::KnobOutbox::default);
         let inputs = runner.provide_root_context(crate::spelling::InputParagraphs::default);
@@ -200,10 +242,8 @@ impl AppInstance {
         if let Some(handle) = menu_handle {
             runner.provide_root_context(move || handle);
         }
-        if let Some(hooks) = rt.extension_hooks() {
-            (hooks.provide_contexts)(rt, &mut runner);
-        }
-        #[cfg(feature = "a11y")]
+        extend(&mut runner);
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         let window_shown = window.is_some();
         if let Some(window) = window {
             runner.provide_root_context(move || window);
@@ -223,7 +263,7 @@ impl AppInstance {
             .auto_focus;
 
         let accessibility = AccessibilityTree::default();
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         let atspi = window_shown.then(|| super::atspi::Atspi::new(waker.clone()));
 
         Self {
@@ -247,7 +287,7 @@ impl AppInstance {
             glass_luma,
             accessibility,
             accessibility_initialized: false,
-            #[cfg(feature = "a11y")]
+            #[cfg(all(feature = "a11y", target_os = "linux"))]
             atspi,
             requested_focus,
             pending_shortcuts: Vec::new(),
@@ -293,7 +333,7 @@ impl AppInstance {
 
     pub(crate) fn set_focused(&mut self, focused: bool) {
         self.platform.is_app_focused.set(focused);
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         if let Some(atspi) = &mut self.atspi {
             atspi.adapter.update_window_focus_state(focused);
         }
@@ -354,7 +394,7 @@ impl AppInstance {
     }
 
     pub(crate) fn accessibility_pending(&self) -> bool {
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         if self
             .atspi
             .as_ref()
@@ -366,9 +406,9 @@ impl AppInstance {
     }
 
     pub(crate) fn update(&mut self) -> bool {
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         let pressed = self.take_atspi_actions();
-        #[cfg(not(feature = "a11y"))]
+        #[cfg(not(all(feature = "a11y", target_os = "linux")))]
         let pressed = false;
         let requested_focus = self.requested_focus.take();
         let mutations = self.runner.sync_and_update();
@@ -384,14 +424,14 @@ impl AppInstance {
         }
         self.layout();
 
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         let full_tree = (!self.accessibility_initialized
             || self
                 .atspi
                 .as_ref()
                 .is_some_and(|atspi| atspi.tree_requested()))
         .then(|| self.accessibility.init(&mut self.tree, ""));
-        #[cfg(not(feature = "a11y"))]
+        #[cfg(not(all(feature = "a11y", target_os = "linux")))]
         if !self.accessibility_initialized {
             self.accessibility.init(&mut self.tree, "");
         }
@@ -409,13 +449,13 @@ impl AppInstance {
         let accessibility_update =
             self.accessibility
                 .process_updates(&mut self.tree, &self.events_sender, "");
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         let focus_moved =
             *self.platform.focused_accessibility_id.peek() != accessibility_update.focus;
         self.platform
             .focused_accessibility_id
             .set_if_modified(accessibility_update.focus);
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         if let Some(atspi) = &mut self.atspi {
             match full_tree {
                 Some(tree) => atspi.adapter.update_if_active(|| tree),
@@ -442,7 +482,7 @@ impl AppInstance {
     }
 
     // A Click from a screen reader is Freya's press gesture (Enter) on the node it focuses first.
-    #[cfg(feature = "a11y")]
+    #[cfg(all(feature = "a11y", target_os = "linux"))]
     fn take_atspi_actions(&mut self) -> bool {
         let Some(atspi) = &self.atspi else {
             return false;

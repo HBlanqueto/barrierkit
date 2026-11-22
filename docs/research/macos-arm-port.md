@@ -194,6 +194,39 @@ What it did, and what it found:
 5. `run_window` on macOS returns the new `RunError::NoRunner`.
 6. `ctappearance::watch` is Linux-only; M1 needs a `kqueue` watcher.
 
+### M1 result (2026-11-22, uncommitted)
+
+M1 is built as an AppKit runner in `platform/macos/` (about 1,050 lines):
+`Host` (the fields `AppInstance` reads from its runner) was extracted from
+`Runtime`, so the driver is shared; the macOS `Runtime` fills it. Reference:
+Freya's own Metal driver, `crates/freya-winit/src/drivers/metal.rs` in
+[marc2332/freya](https://github.com/marc2332/freya), which fixed the objc2
+versions and the `CAMetalLayer` settings (`framebufferOnly` false).
+
+Checked on this Mac, display scale 1, captures in the session's scratchpad:
+
+| Check | Result |
+|---|---|
+| `hello_world` | opens: system frame, traffic lights, text drawn by the kit |
+| `counter`, three clicks | shows 3 |
+| `binding`, click a field and type `hi` | field shows `hi`, focus ring, label `Hello, hi` |
+| `stopwatch`, Start | `00:02.19` after about 2.2 s: timers and the timeline run |
+| Resize to 700 × 500 through System Events | content laid out again, centered |
+| Close the window | the process exits with status 0 |
+
+Findings:
+
+1. `calloop`'s poll descriptor is itself pollable: a `CFFileDescriptor` on it
+   in the main run loop delivers pings (three of three in a spike). Its
+   timers are not descriptor-based, so `Timers` use `dispatch_after`.
+2. A `mouse click` that posts down and up with no gap loses the up event
+   (probe tool artifact; down, 150 ms, up works).
+3. `NSApplication.activateIgnoringOtherApps` is deprecated; `activate()` is used.
+
+Not done: scale 2, popups and menus (M2), IME, cursors, the native menu bar,
+the live system appearance, the title bar mode choice (SSD only), clippy on the
+macOS code (the toolchain has no `cargo-clippy`), and tests for the runner.
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.
