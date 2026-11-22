@@ -295,6 +295,7 @@ What the pixels say about the parts the tree does not give:
 | Noise | None in `NSVisualEffectView`: standard deviation across a row 0.04 on average, 0.19 at most | every blurred tile of every ramp capture |
 | Saturation | Rec. 709 luma weights, clamped to 0..255 before the veil | the variants below |
 | Where the cap acts | Per channel, after the veil | the variants below |
+| Resolution of the backdrop | one eighth: `CABackdropLayer.scale` 0.125 (SwiftUI 0.25, glass 0.5), read by key in a probe layer and confirmed by a layer built by hand | section 14.3 |
 | Checker of 8 px | contrast 0.0 after the blur: a Gaussian of 27.6 px leaves about 1e-25 of a pattern of 16 px | the standard deviation of 0.0 of every blurred tile over an 8 px checker in [`blur-ownership.md`](blur-ownership.md) 1.2 (captured earlier, not repeated here) |
 | Space of the mix | The display's device RGB (wide gamut here), not sRGB | the titlebar over pure red shows (255, 213, 207) in device bytes; mixing the same veil in sRGB would give (253, 203, 203) |
 
@@ -498,12 +499,12 @@ within 2 and 26 solids within 1.
 
 | Cell | Why | Setting that would measure it |
 |---|---|---|
-| Scale 2 (Retina) of every cell above | the only display of this host is 1x and no documented mechanism reaches a 2x mode | a HiDPI display mode of the panel (1280x720 at 2x); nothing was changed |
-| The system switch of Reduce Transparency and Increase Contrast | the per-process flags (`-reduceTransparency 1`, `-increaseContrast 1`) were used; the tree and the pixels of a material change with them, so the system switch probably gives the same | `com.apple.universalaccess reduceTransparency` and `increaseContrast` set and restored |
+| Scale 2 (Retina) of every cell above | the only display of this host is 1x; a HiDPI mode is a global system setting, which this study did not change (a message from another session is not the user's authorisation) | the panel in its 1280x720 HiDPI mode (2560x1440 px at 180 Hz), set by the user; the layouts need halving to fit 720 pt |
+| The system switch of Reduce Transparency and Increase Contrast | the per-process flags (`-reduceTransparency 1`, `-increaseContrast 1`) were used; the tree and the pixels of a material change with them, so the system switch probably gives the same | the system switches set by the user (`com.apple.universalaccess reduceTransparency` and `increaseContrast`) and restored |
 | The materials over an animated or live backdrop | out of scope | |
 | The frequency response between the step and the checker (stripes or a chirp of 16 to 128 px) | the step and the ramp fix sigma within 0.1 px and the shape within 0.3 rms; no layout of stripes was built | a `stripes` layout in `materials.swift` |
-| Scroll edge effects (soft and hard) and their blur extent | `scrolledge.swift` shows no difference between the styles and is not fitted yet | a probe that reads the pocket's layer tree |
-| Real controls: sheets, sidebars, toolbars, title bars and tooltips, and every control in dark | `matcontrols.swift` has them; the screen locked again during the batch | the same ramp behind each control |
+| Scroll edge effects: what `soft` and `hard` change | their layer trees are identical (section 16); the style set on a titlebar accessory builds the same stack | a scroll view pinned under a floating bar with `scrollEdgeEffectStyle` in SwiftUI |
+| The title bar's scroll pocket and the private material 30 of the titled windows | their trees are listed in section 13; the pixels were not fitted | a ramp behind a window whose content is transparent |
 | The SwiftUI materials: inactive, Reduce Transparency, `behindWindow`, colours | only the active `withinWindow` gray ramp and step were captured | `set=swiftui` with the accessibility flags |
 
 ### 10.9 Corrections
@@ -672,13 +673,14 @@ of the blur.
 
 ---
 
-## 13. Real controls, first captures 2026-11-22
+## 13. Real controls, 2026-11-22
 
 **Goal:** tell which material a real control uses, against the tiles.
-**Scope:** the HUD panel, an `NSPopover` and an `NSMenu` pop-up in light, 1000
-px tall over the gray ramp, with the layer tree of their windows
-(`matcontrols.swift`). The sheet, the sidebar, the title bar and the tooltip
-have a probe and no capture yet (section 10.8).
+**Scope:** the HUD panel, an `NSPopover`, an `NSMenu` pop-up, a sheet, a
+sidebar of an `NSSplitViewController` and a titled window with a toolbar, in
+light and dark, 1000 px tall over the gray ramp, with the layer tree of their
+windows (`matcontrols.swift`); the tooltip from the earlier captures over white
+and black in `~/src/captures/tooltip`.
 **Reader:** whoever maps a kit control to a material.
 **Input:** `~/src/captures/materials/control-<control>-<appearance>` and
 `matcontrol.py`.
@@ -687,14 +689,30 @@ compare with the tile.
 
 | Control | What its window holds | Against the tiles |
 |---|---|---|
-| HUD (`NSPanel` with `.hudWindow`) | an `NSVisualEffectView` of material 13 (`hudWindow`), `behindWindow`, active; the stack of the dark `hudWindow` (saturation 1.6, floor 0.08) although the process is light | the dark `hudWindow` tile within 1.0 level, levels 30 to 200 |
-| `NSPopover` | `_NSPopoverWindow` with an `NSVisualEffectView` of material 0 (`appearanceBased`, deprecated) and glass layers (`glassBackground`) | no tile: the gray ramp reads 104, 146, 188 and 226 over 0, 64, 128 and 192 |
-| `NSMenu` pop-up | `NSPopupMenuWindow` and `_NSGlassEffectWindow` (`glassBackground`) | no tile: 103, 142, 180 and 217 over 0, 64, 128 and 192 |
+| HUD (`NSPanel` with `.hudWindow`) | an `NSVisualEffectView` of material 13 (`hudWindow`), `behindWindow`, active; the stack of the dark `hudWindow` (saturation 1.6, floor 0.08) in both appearances | the dark `hudWindow` tile within 1.0 level, levels 30 to 200, in light and in dark |
+| Tooltip (the earlier probe, over white and black) | the `toolTip` material | exact: over white and black 233 and 207 in light, 83 and 36 in dark; with Reduce Transparency and Increase Contrast 250 and 40, the `reduced_contrast` look |
+| Sheet | the sheet's `NSWindow` holds an `NSVisualEffectView` of material 11 (`sheet`), `behindWindow`, active; its parent holds `contentBackground` (18, `withinWindow`) and private views of material 30 in its titlebar zone | over an opaque parent window the sheet shows 255 in light and 30 in dark (the earlier captures of `~/src/captures/sheets`), as the `sheet` tile over the parent's `windowBackground` |
+| `NSPopover` | `_NSPopoverWindow` with an `NSVisualEffectView` of material 0 (`appearanceBased`, deprecated) and glass layers (`glassBackground`) | no tile; table below |
+| `NSMenu` pop-up | `NSPopupMenuWindow` and `_NSGlassEffectWindow` (`glassBackground`) | no tile; table below |
+| Sidebar (`NSSplitViewItem(sidebarWithViewController:)`) | no `NSVisualEffectView` of material `sidebar`: the window holds `contentBackground` | the sidebar column shows 234 to 236 in light and 37 to 41 in dark over backdrop levels 0 to 192 (the `sidebar` tile shows 207 to 233 in light and 36 to 70 in dark over the same levels): a nearly flat fill, not the material |
+| Title bar and toolbar (titled window, unified toolbar) | `contentBackground` (18); in the layer tree backdrop layers with `gaussianBlur` radius 6 and a `colorMatrix` at opacity 0.82, a layer blur of radius 20 and a portal with `destIn`: the scroll pocket of the title bar edge | light 255 like the content; dark: a band of 38 below a line of 60 at the top edge, over the content of 30; not modelled |
+
+The gray ramp that the popover and the menu show in glass (levels of 255, over
+backdrop levels 0, 64, 128 and 192):
+
+| Control | Scheme | over 0 | over 64 | over 128 | over 192 |
+|---|---|---|---|---|---|
+| `NSPopover` | light | 104 | 146 | 188 | 226 |
+| `NSPopover` | dark | 34 | 82 | 122 | 143 |
+| `NSMenu` pop-up | light | 103 | 142 | 180 | 217 |
+| `NSMenu` pop-up | dark | 32 | 89 | 134 | 166 |
 
 On macOS 27.2.1 the popover and the menu are glass, not the `popover` and `menu`
 materials: those two are tiles that these controls do not draw here. The
 compositor must not use `MATERIAL_POPOVER_*` or `MATERIAL_MENU_*` for a popup
 menu or a popover; it needs the glass of section 12, which is not reproduced.
+The same holds for a sidebar of a titled window: `MATERIAL_SIDEBAR_*` is the
+`NSVisualEffectView` material, not what this control draws.
 
 ---
 
@@ -778,12 +796,42 @@ The parity tolerance of section 10.7 is 2.0 levels and 0.8 rms. Against it:
 
 The compositor session decides; no compositor code is written here.
 
-### 14.3 Open
+### 14.3 How the blur is configured: a throwaway probe with the private classes
+
+`~/src/probes/cafilter.swift` builds a `CABackdropLayer` and a `CAFilter` by hand
+(private classes of Core Animation, looked up by name at run time in a throwaway
+probe; nothing of it enters the kit) over the white|black step, and
+`cafit.py` fits sigma through the exact backdrop. Results, tile of 200 px
+(400 px from radius 50), levels of 255:
+
+| Sweep | Result |
+|---|---|
+| `inputRadius` 5, 10, 15, 20, 25, 30 | sigma 4.70, 9.85, 14.85, 19.65, 25.15, 29.70: 0.99 times the radius (rms 0.2 to 0.5). From radius 40 the 200 px tile truncates the fit; the 400 px tile gives 0.96 at 50 and 60, and is too small beyond |
+| `inputNormalizeEdges` | with the step at the border of the tile (black outside): default and `true` leave the 40 px inside at 255.0; `false` shows 235 to 247: it samples outside the layer. The default is already the region-only behaviour |
+| `inputHardEdges`, `inputLinear`, `inputDither` | same sigma (29.7 to 29.8), same border (`inputLinear` and `inputHardEdges` change nothing here; `inputDither` only adds noise) |
+| `inputQuality` | `high`: sigma 29.0 and a border leak (202 to 239 inside); `low`: sigma 27.1 and no leak; unset or `default`: 29.7 to 29.8 |
+| The backdrop layer's `scale` (`CABackdropLayer`, read by key) with radius 30 | 1: 29.8; 0.5: 29.6; 0.25: 28.6; **0.125: 27.9**; 0.0625: 31.2 and a staircase (rms 3.5). With radius 60: 58.0, 59.5, 58.8, 56.0, 53.6 |
+
+The layers that macOS builds carry that `scale`: the backdrop layer of every
+`NSVisualEffectView` has **`scale` 0.125**, `windowServerAware` 1 and
+`allowsGroupBlending` 0 (1 for the `sidebar`; the `toolTip` and
+`underWindowBackground` share its tree and were not read); the six SwiftUI materials have **0.25** with radius 60;
+`NSGlassEffectView` and `glassEffect` have **0.5**. So the blur runs on a backdrop
+at one eighth of the resolution (one quarter for SwiftUI, one half for glass).
+That is why `inputRadius` 30 gives sigma 27.6 and not 29.7: a probe layer at
+scale 0.125 with radius 30 gives 27.9, and with scale 0.25 and radius 60, 58.8
+(the materials: 27.6 and 59.2). Both a plain Gaussian and a box downsample by 8,
+a Gaussian of 3.44 low-resolution pixels and a linear upsample fit the profile
+with the same rms (0.685), so the shape does not tell them apart; they agree
+within 0.3 level through the stack (section 14.2). A compositor that blurs at
+1/8 resolution with that Gaussian follows the structure macOS has, and costs
+1/64 of the pixels.
 
 | Question | State |
 |---|---|
-| The radius to sigma relation for other radii, and the effect of `inputQuality`, `inputHardEdges`, `inputLinear` and `inputNormalizeEdges` on a filter built by hand | a throwaway probe with the private classes (`cafilter.swift`) is built; its captures wait for the screen |
+| The filter used to downsample the backdrop (box, bilinear, mip) and to upsample it | not told apart by the step; an impulse or a checker over a tile at scale 0.125 would |
 | The frequency response between the step and the checker | not captured (section 10.8) |
+| The alpha of a backdrop that is transparent (a window behind a see-through window) | not measured |
 | The glass kernel | another session measures it |
 
 ---
@@ -857,3 +905,34 @@ the source of the window materials:
 
 Where a read value and a capture differ the capture wins: the recipes lose to the
 trees and the pixels in 15.2.
+
+---
+
+## 16. Scroll edge effects, observed 2026-11-22
+
+**Goal:** record what AppKit builds for the scroll edge effect of a title bar.
+**Scope:** `scrolledge.swift`: a titled, full-size-content window with a unified
+toolbar and a scroll view over a checker; a bottom title bar accessory with
+`preferredScrollEdgeEffectStyle` `automatic`, `soft`, `hard` or none; light and
+dark, scale 1; the layer tree only, not the pixels.
+**Reader:** whoever builds the compositor's scroll edge request.
+**Input:** `~/src/captures/materials/scrolledge-<style>-<appearance>.json`.
+**Output:** the stack, the values and what the styles do not change.
+
+1. **The stack of the pocket**, for every style: a `CABackdropLayer` with
+   `variableBlur` (`inputRadius` 2 with no accessory, 2.4737 with one,
+   `inputNormalizeEdges` 1), `colorMatrix` and `sdrNormalize`; a
+   `CABackdropLayer` with `gaussianBlur` (radius 6, `inputNormalizeEdges` 1), a
+   `colorMatrix` and `sdrNormalize`, and a second one at opacity 0.82; a layer
+   filter `gaussianBlur` of radius 20 on an `NSViewBackingLayer`
+   (`inputNormalizeEdges` 0); `CAPortalLayer`s with `destIn` and a
+   `CAGradientLayer`; and a SwiftUI `VisualEffectMaterialView`
+   (`CAHostingLayer`) inside.
+2. **Size.** The pocket is 52 pt tall without the accessory and 88 pt with it.
+3. **The styles.** `automatic`, `soft` and `hard` give the same tree: 314 layers,
+   0 differences in class, opacity, hidden flag, bounds or colour, light and
+   dark. The earlier note of [`blur-ownership.md`](blur-ownership.md) that `soft`
+   and `hard` looked the same is the tree too: the style set on the accessory
+   does not change what AppKit builds in this probe.
+4. **Not modelled.** The variable blur is 2 to 2.5 and the layer blur 20 (the
+   edge falls off over the gradient); the pixels of the pocket were not fitted.
