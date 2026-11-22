@@ -168,11 +168,10 @@ they stay sharp over the compositor's blur. Four rules follow:
    not blur another's. Put a second material in another element.
 
 The kit draws no tint or rim of its own in that mode, so `tint` and `border` of
-`MaterialStyle` have no effect there. Three things keep drawing their blur with
-Skia, because the compositor does not serve them yet: `GlassContainer` (the lens
-and the merging), the per-control `ShapeStyle::Material(Thickness)` (a material
-per control would exceed the requesters) and nothing else. The sidebar is not
-Skia: from version 10 it is a `behind_window` request for the `sidebar`
+`MaterialStyle` have no effect there. Two things keep drawing their blur with Skia,
+because the compositor does not serve them yet: `GlassContainer` (the lens and
+the merging) and the per-control `ShapeStyle::Material(Thickness)` (a material per
+control would exceed the requesters). The sidebar is not Skia: from version 10 it is a `behind_window` request for the `sidebar`
 material, before that `set_glass`
 ([18](18-platform.md#wayland-protocols)). `./dev.sh check` runs the tests of
 this path against a fake compositor; a real session needs Malaysia to serve the
