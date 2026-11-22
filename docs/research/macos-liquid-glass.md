@@ -789,10 +789,36 @@ pixels were not captured).
 
 | Cell | What it needs |
 |---|---|
-| Whether the Dock, the menu bar, Control Center and the notifications follow the slider | the system value (a setting change): `~/src/probes/states.d/` batch `liquid-glass-tint-*` and `global-states.sh`, run by the user |
+| Whether Control Center, the notifications, Spotlight, Apps and Mission Control follow the slider (the menu bar, the application menu and the Dock are in 13.6) | the system value (a setting change): `~/src/probes/states.d/` batch `liquid-glass-tint-*` and `global-states.sh`, run by the user |
 | The pixels of the inactive look, Reduce Transparency and Increase Contrast under the slider, and of the chrome glass (toolbar, sidebar, tab pill, scroll edge) inside a window | `lgshot` with the flags and a window that hosts them; only their inputs were read (13.4) |
 | Scale 2 at other `t` | a HiDPI mode |
 | The tint over colour backdrops and the rim and shadow at other `t` | the inputs of the rim and shadow do not move; colour captures were not taken |
 | Why the scale thresholds differ between dark (0.41) and light (0.33) | the scale is probably chosen from the fill's luminance; one value at each end was read |
 | The sizes between 64 and 104 px under the slider (cap), clear at sizes other than 200 x 160 and 560 x 400 (blur opacities), and the thresholds of the read scale at other sizes (the 540 x 36 toolbar bar is 0.5 up to 0.75 and 0.125 at 1) | reads at those sizes |
 | The mixing order of the blur fill, the darken and lighten blend and the bleed | the filter's code; only its inputs and 1x pixels were available |
+
+### 13.6 The menu bar, the application menu and the Dock under the real slider (measured 2026-11-22)
+
+**Method.** The user moved the slider in System Settings to 1 and back to 0 (the only change to the system; it was left at 0, as found) while
+`~/src/probes/lgtint-desktop-wait.sh` read `NSGlassTintAmount` with `defaults read`, waited until the value was stable and captured with `shellblur.sh`
+(full-screen raw captures of one surface over `backdrop live:<file>`, [`macos-blur.md`](macos-blur.md) section 14). Dark, Reduce Transparency off, Increase
+Contrast off, 2560 x 1440 at scale 1, 14:41 to 14:44. Captures: `~/src/captures/shellblur/dark-tint1` (bar, appmenu and dock: 12 gray levels and 9 colours) and
+`dark-tint0` (appmenu and dock, gray levels: the drift check, equal to the earlier dark captures within 0.1 level). The slider spans 0 to 1 (`AXMinValue`, `AXMaxValue`).
+
+Raw device value of the surface plateau for a bare backdrop of the level on the first row:
+
+| Backdrop | 0 | 16 | 32 | 48 | 64 | 96 | 128 | 160 | 192 | 224 | 240 | 255 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Application menu, slider 0 | 32 | 44 | 57 | 70 | 82 | 104 | 122 | 135 | 143 | 147 | 147 | 146 |
+| Application menu, slider 1 | 32 | 39 | 46 | 52 | 58 | 68 | 76 | 82 | 85 | 86 | 86 | 86 |
+| Dock, slider 0 | 13.0 | 26.1 | 39.1 | 51.7 | 64.0 | 87.0 | 108.1 | 127.6 | 145.0 | 161.0 | 169.0 | 175.4 |
+| Dock, slider 1 | 12.1 | 26.1 | 39.1 | 51.1 | 64.1 | 87.1 | 108.1 | 128.0 | 145.0 | 161.0 | 169.0 | 176.0 |
+
+- **The application menu follows the slider** and is the regular glass of 13.2: over gray 128 it gives 122 at 0 and 76 at 1, the same two values as the `NSGlassEffectView` probe.
+  Its veil and cap fit goes from `min(143.0, 0.658 in + 36.0)` to `min(83.5, 0.345 in + 34.1)` (max error 6.3 and 2.5 levels). The colours lose gain: a red `(255, 0, 0)`
+  comes out `(275, -14, -6)` at 0 and `(168, 24, 15)` at 1, a blue `(0, 0, 255)` `(64, 29, 267)` and `(43, 27, 200)` (values as `shellblur-fit.py color` prints them).
+- **The Dock does not follow the slider**: its tone is the same within 0.9 level and its nine colours within 1.4 levels at 0 and at 1, except one channel (the red of a pure blue,
+  13.2 and 18.3, outside the sRGB range in both).
+- **The menu bar does not follow it**: it is identical to the backdrop (clear) at 0 and at 1, as in [`macos-blur.md`](macos-blur.md) section 14.
+- **Not measured under the slider:** the kernel of the application menu and of the Dock (the rim and kernel pass was not captured at 1, so whether the menu's blur widens as
+  the regular glass does in 13.2 is open), values between 0 and 1 (the model of 13.3 is assumed), light mode, Reduce Transparency, Increase Contrast and scale 2.
