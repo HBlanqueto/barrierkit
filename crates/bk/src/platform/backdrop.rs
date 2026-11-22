@@ -12,11 +12,16 @@ use freya_core::tree::{DiffModifies, Tree};
 use freya_engine::prelude::{Canvas, FontCollection, FontMgr};
 use torin::prelude::{Area, Point2D, Position, Size, Size2D};
 
+use super::FullscreenBar;
 use super::glass::Rects;
 use super::window_style::{Edge, ScrollEdgeEffectStyle, WireMaterial};
+use crate::glass::GlassEdge;
 
 #[derive(Clone, Copy)]
 pub(crate) struct BackdropSupport(pub(crate) bool);
+
+// Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own.
+const MOST_CHROMES: usize = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Effect {
@@ -59,14 +64,32 @@ impl ElementExt for Declared {
 }
 
 impl Declared {
-    pub(crate) fn soft_top_edge(depth: f32) -> Element {
+    fn scroll_edge(edge: Edge, style: ScrollEdgeEffectStyle, layout: LayoutData) -> Element {
         crate::glass::leaf(Self {
-            effect: Effect::ScrollEdge {
-                edge: Edge::Top,
-                style: ScrollEdgeEffectStyle::Soft,
-            },
-            layout: crate::glass::layout(Size::fill(), Size::px(depth), Position::new_absolute()),
+            effect: Effect::ScrollEdge { edge, style },
+            layout,
         })
+    }
+
+    pub(crate) fn soft_top_edge(depth: f32) -> Element {
+        Self::scroll_edge(
+            Edge::Top,
+            ScrollEdgeEffectStyle::Soft,
+            crate::glass::layout(Size::fill(), Size::px(depth), Position::new_absolute()),
+        )
+    }
+
+    pub(crate) fn bar(bar: FullscreenBar, edge: GlassEdge, layout: LayoutData) -> Option<Element> {
+        let style = match bar {
+            FullscreenBar::Glass => ScrollEdgeEffectStyle::Hard,
+            FullscreenBar::ProgressiveGlass => ScrollEdgeEffectStyle::Soft,
+            FullscreenBar::Solid => return None,
+        };
+        let edge = match edge {
+            GlassEdge::Top => Edge::Top,
+            GlassEdge::Left => Edge::Leading,
+        };
+        Some(Self::scroll_edge(edge, style, layout))
     }
 
     pub(crate) fn material(material: Material, radius: f32) -> Element {
@@ -167,6 +190,7 @@ pub(crate) fn collect(tree: &Tree, window: Size2D) -> Vec<Chrome> {
             .partial_cmp(&(b.area.min_y(), b.area.min_x()))
             .unwrap_or(std::cmp::Ordering::Equal)
     });
+    outer.truncate(MOST_CHROMES);
     outer
 }
 
@@ -346,6 +370,7 @@ pub(crate) fn render_pass(
 
 #[cfg(test)]
 mod tests {
+    use crate::glass::fullscreen_backdrop;
     use freya_components::cache::AssetCacher;
     use freya_core::integration::{
         AccentColor, AnimationClock, CurrentWindowId, GlobalContexts, NavigationMode, New,
@@ -778,5 +803,79 @@ mod tests {
         assert_eq!(passes, [Pass::Content]);
         let content = read(&mut content, (200, 100));
         assert_eq!(pixel(&content, 200, (5, 5)), [0, 255, 0, 255]);
+    }
+
+    struct Built(
+        Rc<std::cell::RefCell<Option<Element>>>,
+        FullscreenBar,
+        GlassEdge,
+    );
+
+    impl App for Built {
+        fn render(&self) -> impl IntoElement {
+            *self.0.borrow_mut() = Some(fullscreen_backdrop(self.1, self.2, 44.0, 1.0));
+            rect()
+        }
+    }
+
+    fn declared(
+        compositor: bool,
+        reduced: bool,
+        bar: FullscreenBar,
+        edge: GlassEdge,
+    ) -> Option<Effect> {
+        let resolved = ctappearance::resolve(
+            &ctappearance::AppearanceConfig {
+                reduce_transparency: reduced,
+                ..Default::default()
+            },
+            None,
+        );
+        let built = Rc::<std::cell::RefCell<Option<Element>>>::default();
+        let (mut test, _) = freya_testing::TestingRunner::new(
+            freya_core::integration::AppComponent::new(Built(Rc::clone(&built), bar, edge)),
+            Size2D::new(200.0, 100.0),
+            move |runner| {
+                runner.provide_root_context(move || State::create(resolved));
+                runner.provide_root_context(move || BackdropSupport(compositor));
+            },
+            1.0,
+        );
+        test.sync_and_update();
+        let Some(Element::Element { element, .. }) = built.borrow().clone() else {
+            return None;
+        };
+        (element.as_ref() as &dyn std::any::Any)
+            .downcast_ref::<Declared>()
+            .map(|declared| declared.effect)
+    }
+
+    #[test]
+    fn a_full_screen_glass_declares_its_edge_and_style_to_a_compositor_that_composes_the_blur() {
+        let edge = |edge, style| Some(Effect::ScrollEdge { edge, style });
+        assert_eq!(
+            declared(true, false, FullscreenBar::Glass, GlassEdge::Top),
+            edge(Edge::Top, ScrollEdgeEffectStyle::Hard)
+        );
+        assert_eq!(
+            declared(true, false, FullscreenBar::ProgressiveGlass, GlassEdge::Top),
+            edge(Edge::Top, ScrollEdgeEffectStyle::Soft)
+        );
+        assert_eq!(
+            declared(true, false, FullscreenBar::Glass, GlassEdge::Left),
+            edge(Edge::Leading, ScrollEdgeEffectStyle::Hard)
+        );
+    }
+
+    #[test]
+    fn a_full_screen_glass_without_compositor_blur_is_the_solid() {
+        for bar in [FullscreenBar::Glass, FullscreenBar::ProgressiveGlass] {
+            assert_eq!(declared(false, false, bar, GlassEdge::Top), None);
+            assert_eq!(declared(true, true, bar, GlassEdge::Top), None);
+        }
+        assert_eq!(
+            declared(true, false, FullscreenBar::Solid, GlassEdge::Top),
+            None
+        );
     }
 }

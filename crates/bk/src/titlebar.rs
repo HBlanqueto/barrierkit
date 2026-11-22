@@ -469,35 +469,43 @@ fn place_overlaid(
             .into_element();
     };
     let opacity = *controls.focus_bar_progress.read();
-    rect()
+    let fullscreen_bar = *controls.fullscreen_bar.read();
+    let global = Position::new_global().top(top).left(0.0);
+    let bar = rect()
+        .position(
+            Position::new_absolute()
+                .top(top - controls.push_offset())
+                .left(0.0),
+        )
         .width(Size::fill())
-        .height(Size::px(0.0))
-        // ADR 0057: the full-screen glass spans the whole window, whatever column holds the titlebar.
-        .child(
-            rect()
-                .position(Position::new_global().top(top).left(0.0))
-                .width(Size::window_percent(100.0))
-                .layer(TITLEBAR_OVERLAY_LAYER)
-                .child(crate::glass::fullscreen_backdrop(
-                    *controls.fullscreen_bar.read(),
-                    crate::glass::GlassEdge::Top,
-                    height,
-                    opacity,
-                )),
-        )
-        .child(
-            rect()
-                .position(
-                    Position::new_absolute()
-                        .top(top - controls.push_offset())
-                        .left(0.0),
-                )
-                .width(Size::fill())
-                .layer(TITLEBAR_OVERLAY_LAYER)
-                .opacity(opacity)
-                .child(bar),
-        )
-        .into_element()
+        .layer(TITLEBAR_OVERLAY_LAYER)
+        .opacity(opacity)
+        .child(bar);
+    let over = rect().width(Size::fill()).height(Size::px(0.0));
+    // ADR 0057: the full-screen glass spans the whole window, whatever column holds the titlebar.
+    match crate::glass::fullscreen_glass_at(
+        fullscreen_bar,
+        height,
+        global.clone(),
+        Size::window_percent(100.0),
+    ) {
+        Some(glass) => over.child(glass).child(bar),
+        None => over
+            .child(
+                rect()
+                    .position(global)
+                    .width(Size::window_percent(100.0))
+                    .layer(TITLEBAR_OVERLAY_LAYER)
+                    .child(crate::glass::fullscreen_backdrop(
+                        fullscreen_bar,
+                        crate::glass::GlassEdge::Top,
+                        height,
+                        opacity,
+                    )),
+            )
+            .child(bar),
+    }
+    .into_element()
 }
 
 pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;

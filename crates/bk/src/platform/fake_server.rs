@@ -62,6 +62,14 @@ pub(super) enum Seen {
         style: u32,
         depth: u32,
     },
+    Glass {
+        surface: u32,
+        radius: u32,
+        rects: Vec<i32>,
+        base: u32,
+        solid: u32,
+        chroma: u32,
+    },
 }
 
 type Log = Arc<Mutex<Vec<Seen>>>;
@@ -232,6 +240,22 @@ impl ServerDispatch<ServerStyle, ()> for Server {
                 edge: edge.into(),
                 style: style.into(),
                 depth,
+            },
+            StyleRequest::SetGlass {
+                surface,
+                radius,
+                panels,
+                base,
+                solid,
+                chroma,
+                ..
+            } => Seen::Glass {
+                surface: surface.id().protocol_id(),
+                radius,
+                rects: integers(&panels),
+                base,
+                solid,
+                chroma,
             },
             _ => return,
         };

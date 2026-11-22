@@ -350,16 +350,21 @@ compositor bar, added to the image.
 | `FullscreenBar` | What it draws | Content starts (`fullscreen_content_top`) | How it looks |
 |---|---|---|---|
 | `Solid` (default) | An opaque band in the window color, as tall as the title bar, with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![Solid](assets/states/bar-solid.png) |
-| `Glass` | A band as tall as the title bar, across the whole window and the sidebar, that blurs what is below (`FULLSCREEN_BAND`), with a tint and a line at the bottom | Bar + `FULLSCREEN_BAND.content_top` (44) | ![Glass band](assets/states/bar-glass-band.png) |
-| `ProgressiveGlass` | Full blur at the top that fades out over `FULLSCREEN_GLASS.height` (96 px), without a line, across the whole window and the sidebar ([ADR 0057](../decisions.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![Progressive glass](assets/states/bar-progressive-glass.png) |
+| `Glass` | A band as tall as the title bar, across the whole window and the sidebar, that the compositor blurs with a hard edge (`set_scroll_edge`, `hard`) | Bar + `FULLSCREEN_BAND.content_top` (44) | ![Glass band](assets/states/bar-glass-band.png) |
+| `ProgressiveGlass` | Full blur at the top that the compositor fades out over `FULLSCREEN_GLASS.height` (96 px) (`soft`), across the whole window and the sidebar ([ADR 0057](../decisions.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![Progressive glass](assets/states/bar-progressive-glass.png) |
 
-Only `Glass` and `ProgressiveGlass` blur. The kit draws that blur with Skia
-today; [ADR 0092](../decisions.md) moves it to the compositor
-(`set_scroll_edge`), with no change to the bars' look or API. When the user reduces
-transparency (`reduce_transparency`, off by default), both draw as `Solid`;
-the content keeps the offset of the chosen bar. Their tint, line and metrics
-are a `FullscreenBarStyle`, set in the theme or with `.control_style`
-([Styles and themes](../../crates/bk/src/styles/titlebar.rs)).
+Only `Glass` and `ProgressiveGlass` blur, and the compositor draws that blur
+([ADR 0100](../decisions.md)): the kit declares the band with `set_scroll_edge`
+from a chrome sub-surface that holds the bar, so the bar stays sharp over it
+([18](18-platform.md#glass-over-the-windows-content)). The glass does not
+fade with the bar: the bar's items do, and the material is there from the first
+frame. With a compositor below version 10, or when the user reduces transparency
+(`reduce_transparency`, off by default), both draw as `Solid`; the content keeps
+the offset of the chosen bar. Their tint, the depth of `ProgressiveGlass` and
+the animation are a `FullscreenBarStyle`, set in the theme or with
+`.control_style` ([Styles and themes](../../crates/bk/src/styles/titlebar.rs)).
+The screenshots of the two glass bars were rendered before the blur moved to
+the compositor and show the blur it draws.
 
 #### Pushing the content: `fullscreen_push`
 

@@ -29,7 +29,8 @@ texts and the questions still open.
 | Phase 0 | Done, in software. The lag test passes; the frame time on a GPU is **NOT measured** |
 | Phase 1 | Done: `infinity_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), the text for Malaysia in [section 8.3](#83-malaysias-adr-ready-to-paste) |
 | Phase 2 | Started on 2026-11-22 as M2, before the GPU frame time is measured. The criterion of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) decides whether it ships on by default |
-| Phase 3 | First slice done on 2026-11-22 (K3, [ADR 0098](../decisions.md)): the kit declares `TopGlass` and `Material` to a compositor that offers version 10, on a chrome sub-surface above the window, and keeps Skia for any other. Tested headlessly against a fake compositor and on raster canvases; **not run end to end**, which needs M2 on the owner's laptop ([section 7.3](#73-k3-the-slices-and-what-they-need)) |
+| Phase 3 | Done on 2026-11-22 for what the compositor serves ([ADR 0098](../decisions.md), [ADR 0100](../decisions.md)): the kit declares `TopGlass`, `Material`, the full-screen glass bars and the sidebar to a compositor that offers version 10. Tested headlessly against a fake compositor and on raster canvases; **not run end to end**, which needs M2 on the owner's laptop ([section 7.3](#73-k3-the-slices-and-what-they-need)) |
+| Phase 4 | Partly done on 2026-11-22 ([ADR 0100](../decisions.md)): the Skia blur of `TopGlass`, `Material` and the full-screen bars is deleted. `GlassContainer` and the per-control `ShapeStyle::Material` keep theirs until Malaysia serves a lens and a material per control |
 | Order of execution | M1 done (Malaysia `df9efc81`); M2 and K3 in parallel; K4 last ([section 7.1](#71-the-phases)). The owner decided on 2026-11-22 that the kit's Skia blur is deleted at the end, that Malaysia applies the measured values in every shell component, and that M2 and K3 start before the GPU measurement |
 | Algorithm | M1 replaced Dual Kawase with the measured Gaussian pipeline. The phase 0 timings and the runbook of section 10 are of Dual Kawase and must be redone on it |
 | Verification | The VM (container, llvmpipe, no display) cannot verify K3 and K4 end to end: a real session on the owner's laptop is needed |
@@ -348,8 +349,8 @@ and 10. Item 6 is K4. The plan as first written follows.
 | 0 | The experiment of section 7.2 | 1 to 2 | Done, in software. GPU frame time **NOT measured** |
 | 1 | Protocol version 10 in `infinity-protocol`, the ADRs | 1 to 2 | Done |
 | 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Started on 2026-11-22 (M2), before the GPU frame time is measured. The criterion of section 10 decides whether it ships on by default |
-| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | First slice done on 2026-11-22 (K3a, [section 7.3](#73-k3-the-slices-and-what-they-need)); keeps Skia as the fallback |
-| 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Not started |
+| 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Done on 2026-11-22 for what the compositor serves ([section 7.3](#73-k3-the-slices-and-what-they-need)) |
+| 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Partly done on 2026-11-22: deleted for `TopGlass`, `Material` and the full-screen bars; kept for `GlassContainer` and `ShapeStyle::Material` |
 
 If the GPU frame time fails the criterion of section 10, the in-window path
 does not ship on by default: the work of M2 and K3 may be wasted, a risk the
@@ -467,7 +468,7 @@ section 5, step 4; several rectangles; a band-only damage case.
 
 ### 7.3 K3: the slices and what they need
 
-K3a is in the tree ([ADR 0098](../decisions.md)). The rest, in order of
+K3a is in the tree ([ADR 0098](../decisions.md)); K3c and K4 for what the compositor serves are in the tree too ([ADR 0100](../decisions.md)). The rest, in order of
 dependence. Sizes are sessions of one agent; "M2" is Malaysia serving
 `set_backdrop` and `set_scroll_edge` and advertising version 10.
 
@@ -475,11 +476,11 @@ dependence. Sizes are sessions of one agent; "M2" is Malaysia serving
 |---|---|---|---|
 | K3a (done) | Detection, `TopGlass` and `Material` declared, chrome sub-surfaces, the render split, the recipe `glass_window` | 1 | Tested headlessly; end to end needs M2 |
 | K3b | The check on the owner's laptop with M2 ([chapter 18](../barrierkit/18-platform.md#glass-over-the-windows-content)) and the fixes it shows: commit order and presentation of the sub-surface, throttling with FIFO, the hover and the cursor over the strip, scrolling over the strip | 1 | Yes: it cannot start before M2 serves the requests |
-| K3c | `FullscreenBar::Glass` and `ProgressiveGlass`, the titlebar overlay and the rail over the content: glass and bar in one container, the style `hard` for `Glass`. The glass fades with the focus bar, and version 10 has no way to fade a material | 1 to 2 | Yes, and a protocol decision: a version 11 argument or a surface alpha the material follows |
+| K3c (done) | `FullscreenBar::Glass` and `ProgressiveGlass`, the titlebar overlay and the rail over the content: glass and bar in one container, the style `hard` for `Glass`; the sidebar as `behind_window`. The glass no longer fades with the focus bar: version 10 has no way to fade a material (a version 11 argument or a surface alpha the material follows would give it back) | 1 | The look needs M2 on a real session |
 | K3d | A chrome that draws and presents only when its nodes change (today both surfaces draw every frame), and a swapchain kept while a strip's size animates; a GPU measurement of both | 1 | No for the code; the measurement needs M2 |
-| K3e | `GlassContainer` and `RoundButton` as `glass_regular` and `glass_clear` with the container's merging (open question 3) | 2 to 3 | Yes |
+| K3e | `GlassContainer` as `glass_regular` and `glass_clear` with the container's merging (open question 3), and the per-control `ShapeStyle::Material` | 2 to 3 | Yes: M2 serves the glass without lens and 4 requesters per toplevel |
 | K3f | More than one material or scroll edge per chrome (one sub-surface per group; Malaysia serves 4 requester surfaces per toplevel and a chrome's material does not blur another's), a chrome input region narrower than its strip | 1 | No |
-| K4 | Delete the Skia blur of `glass.rs`; the elements draw the solid when the compositor lacks version 10 | 1 | After K3b to K3e and the criterion of section 10 |
+| K4 (partly done) | Delete the Skia blur of `glass.rs`: done for `TopGlass`, `Material` and the full-screen bars, which draw the solid when the compositor lacks version 10. The blur of `GlassContainer` and `ShapeStyle::Material` goes with K3e | 1 | After K3e |
 
 ## 8. ADR texts
 

@@ -323,7 +323,7 @@ The program is [`recipes/glass_window.rs`](recipes/glass_window.rs).
    bar, and the title bar is its second child: that element is drawn over the
    glass. `Material::new(12.0)` is the first child of the card it sits behind.
 2. A compositor that offers `infinity_window_style_v1` 10 blurs what is under
-   them and the kit draws no blur; any other makes the kit draw it
+   them and the kit draws no blur; any other makes the kit draw an opaque solid
    ([chapter 15](../docs/barrierkit/15-backdrops-and-media.md#who-draws-the-blur)).
 3. Do not make the window's only top-level element hold the glass: it needs
    content beside it to blur.

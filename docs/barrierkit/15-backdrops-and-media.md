@@ -139,16 +139,17 @@ in the window color, `FULLSCREEN_GLASS.height` deep.
 
 ### Who draws the blur
 
-[ADR 0091](../decisions.md) gives the blur of `Material`, `TopGlass` and the glass
-bars of [9](09-titlebars.md) to the compositor, and
-[ADR 0098](../decisions.md) is how the kit does it. The kit checks the
-compositor once per window:
+[ADR 0091](../decisions.md) gives the blur of `Material`, `TopGlass`, the glass
+bars of [9](09-titlebars.md) and the sidebar to the compositor,
+[ADR 0098](../decisions.md) is how the kit does it and
+[ADR 0100](../decisions.md) says what is moved and what is not. The kit checks
+the compositor once per window:
 
-| Compositor | `Material` and `TopGlass` |
+| Compositor | `Material`, `TopGlass`, `FullscreenBar::Glass` and `ProgressiveGlass` |
 |---|---|
-| `infinity_window_style_v1` version 10 or later (and `wl_subcompositor`) | Paint nothing and declare themselves: `TopGlass` a soft scroll edge on the top, `Material` a `within_window` backdrop of `MaterialStyle::material` with its corner radius. The compositor draws the material, with its measured blur, saturation and tint |
-| Version 9 or lower, another compositor, no global | The kit draws the blur with Skia (`crates/bk/src/glass.rs`), as before. A later change removes that path ([ADR 0092](../decisions.md)) |
-| Either, with `reduce_transparency` | The opaque solid the kit draws today |
+| `infinity_window_style_v1` version 10 or later (and `wl_subcompositor`) | Paint nothing and declare themselves: `TopGlass` and `ProgressiveGlass` a soft scroll edge, `Glass` a hard one, `Material` a `within_window` backdrop of `MaterialStyle::material` with its corner radius. The compositor draws the material, with its measured blur, saturation and tint |
+| Version 9 or lower, another compositor, no global | The opaque solid the kit draws under Reduce Transparency |
+| Either, with `reduce_transparency` | The same opaque solid |
 
 In the first row the element that holds the glass is the window's chrome: it and
 everything inside it draw on a synchronized sub-surface above the window, so
@@ -161,16 +162,21 @@ they stay sharp over the compositor's blur. Four rules follow:
    paints outside is cut.
 3. The chrome draws above everything else of the window, whatever the layers of
    the rest. Popovers and menus are their own windows and are not affected.
-4. One chrome holds one material and one scroll edge: the first of each. Put a
-   second material in another element.
+4. One chrome holds one material and one scroll edge: the first of each. Malaysia
+   serves 4 requesting surfaces per toplevel and the sidebar's is the window's
+   own, so a window opens at most 3 chromes, and the material of one chrome does
+   not blur another's. Put a second material in another element.
 
-The kit draws no tint, rim or line of its own in that mode, so `tint`, `blur`
-and `border` of `MaterialStyle` have no effect there. `FullscreenBar`,
-`GlassContainer` and `RoundButton` keep drawing with Skia until the slices of
-[the design](../research/blur-backdrop-design.md#73-k3-the-slices-and-what-they-need)
-move them. `./dev.sh check` runs the tests of this path against a fake
-compositor; a real session needs Malaysia to serve the requests
-([18](18-platform.md#glass-over-the-windows-content)).
+The kit draws no tint or rim of its own in that mode, so `tint` and `border` of
+`MaterialStyle` have no effect there. Three things keep drawing their blur with
+Skia, because the compositor does not serve them yet: `GlassContainer` (the lens
+and the merging), the per-control `ShapeStyle::Material(Thickness)` (a material
+per control would exceed the requesters) and nothing else. The sidebar is not
+Skia: from version 10 it is a `behind_window` request for the `sidebar`
+material, before that `set_glass`
+([18](18-platform.md#wayland-protocols)). `./dev.sh check` runs the tests of
+this path against a fake compositor; a real session needs Malaysia to serve the
+requests ([18](18-platform.md#glass-over-the-windows-content)).
 
 ### Style
 
@@ -180,7 +186,7 @@ compositor; a real session needs Malaysia to serve the requests
 
 `Material`, `TopGlass` and `GlassContainer` take `.style(|s| ..)` with a
 `MaterialStyle`, a `TopGlassStyle` and a `GlassContainerStyle`: tint, blur,
-rim and, for the container, the morph; `MaterialStyle::material` is the
+rim and, for the container, the morph; `MaterialStyle` has no blur: the compositor draws it, and `MaterialStyle::material` is the
 `NSVisualEffectView.Material` a compositor draws behind `Material` (Tengen:
 `HudWindow`). Their fields are in
 [Styles and themes](../../crates/bk/src/styles/material.rs).

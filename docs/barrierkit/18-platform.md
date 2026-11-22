@@ -94,9 +94,10 @@ callback; the frame callback draws. One draw does this:
 2. Acquires the next swapchain image.
 3. Lays out the tree with `torin` and settles the `on_sized` reactions, so a
    live resize paints the new layout.
-4. Sends the sidebar glass panels and declares an opaque background, minus
-   the panels, as the opaque region. They reach the compositor in the commit
-   of the buffer they describe.
+4. Sends the sidebar glass panels (`set_backdrop` with `behind_window` and the
+   `sidebar` material from version 10, `set_glass` before) and declares an opaque
+   background, minus the panels, as the opaque region. They reach the compositor
+   in the commit of the buffer they describe.
 5. Opens, moves and closes the [chrome sub-surfaces](#glass-over-the-windows-content)
    of the window's declared glass, and acquires their swapchain images.
 6. Records the tree with Skia: the chrome nodes on the canvases of their
@@ -153,7 +154,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
 | `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
 | `ext_image_copy_capture_manager_v1` + `ext_foreign_toplevel_image_capture_source_manager_v1` + `wl_shm` | 1 | No | [`capture_window`](#toplevels), in layer-shell components | `capture_window` answers `None` |
-| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([ADR 0065](../decisions.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
+| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([ADR 0065](../decisions.md)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in
