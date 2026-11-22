@@ -1100,6 +1100,12 @@ samples within 2.5 levels, 36 colours, three line profiles within 1 level, the
 lens within 2 px and the rim tables within 10 levels
 ([research](../research/macos-liquid-glass.md#6-the-model)).
 
+`LIQUID_GLASS_INTERACTION_LIGHT` and `_DARK` are a `GlassInteraction`: `hover`
+and `pressed` are the `[gain, offset]` of the device value an interactive glass
+shows under the pointer. `interacted(&interaction(scheme), pointer, rgb)`
+applies them, within 1.5 levels of the captures
+([research](../research/macos-liquid-glass.md#7-interaction-merging-and-morphing)).
+
 ### Colors
 
 | Constants | Type | What they are |

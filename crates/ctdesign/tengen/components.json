@@ -1823,6 +1823,16 @@
       },
       "blur-cap": 28,
       "union": 0.8,
+      "interaction": {
+        "dark": {
+          "hover": [0.9276, 0.0962],
+          "pressed": [0.9676, 0.0466]
+        },
+        "light": {
+          "hover": [0.9328, -0.0262],
+          "pressed": [0.9678, -0.0124]
+        }
+      },
       "regular": {
         "dark": {
           "active": {

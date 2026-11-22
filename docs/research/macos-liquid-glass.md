@@ -70,8 +70,12 @@ a parity procedure with its tolerance, and the shader descriptions.
     element before the filter reads its size. `[R]` `[C]`
 11. **Real menus and popovers** are this glass, the Dock's tone matches
     variant 3 (rms 2.4 levels) and the window sidebar is variant 18. `[C]` `[R]`
-12. **Not measured:** the pointer response of `effectIsInteractive`, scale 2,
-    the system switches, tint at every alpha, the outer refraction ([section 12](#12-not-measured)).
+12. **Interaction.** Forcing `_interactionState` to hovered or pressed maps every
+    pixel of the glass as `out' = gain x out + offset`, the same for regular and
+    clear, within 1 level ([section 7](#7-interaction-merging-and-morphing)). `[C]`
+13. **Not measured:** what makes the pointer trigger it (posted events changed
+    nothing), scale 2, the system switches, tint at every alpha, the outer
+    refraction ([section 12](#12-not-measured)).
 
 ## 2. Method
 
@@ -110,7 +114,7 @@ screen was locked for part of the run; window-id captures still worked.
 |---|---|
 | `NSGlassEffectView` backing layer | holds the content-holder layer and a hosted SwiftUI root (`_NSCoreHostingView`) |
 | `SwiftUI.SDFLayer` | the glass of one `glassEffect` or one container |
-| `CALayer` with `vibrantColorMatrix` (backdrop-aware) | the interaction veil: alpha 0 at rest, 0.1 hovered, 0.05 pressed through `_interactionState`; white in dark, near black in light |
+| `CALayer` with `vibrantColorMatrix` (backdrop-aware) | the interaction veil: layer opacity 0 at rest, 0.1 hovered, 0.05 pressed through `_interactionState`; its effect on the pixels is the affine map of [section 7](#7-interaction-merging-and-morphing) |
 | `CABackdropLayer`, filter `glassBackground`, scale 0.5, group `SwiftUI:<id>` | the glass |
 | `CASDFLayer` (`CASDFOutputEffect`, `smoothness` 8) with `CASDFElementLayer` children | the shape: `mode` bounds, `operation` union, `cornerRadius`, continuous curve |
 | `SDFPortalLayer` | the SDF read by the content |
@@ -399,12 +403,28 @@ displacement was measured outside the edge (`OuterRefraction*`), over clear
 ## 7. Interaction, merging and morphing
 
 - **Interactive.** `effectIsInteractive` changes no layer input at rest. The
-  pointer response (scale, brightening, shimmer, durations) goes through
-  `_NSFlexiglassInteractionDriver` and a presentation modifier; it is not
-  measured: a capture needs an unlocked screen and the pointer
-  (`~/src/probes/liquidglass/plan4.sh`, section J, runs it). The hover and
-  pressed states of the glass buttons (`_interactionState` 1 and 2) are a white
-  (dark) or near-black (light) veil of alpha 0.1 and 0.05 `[R]`.
+  pointer response goes through `_NSFlexiglassInteractionDriver` and a
+  presentation modifier. Forcing `_interactionState` (1 hovered, 2 pressed; 3
+  crashes the probe) on the probe's own glass maps every pixel inside the shape
+  as `out' = clamp(gain x out + offset)` on the device value, the same for
+  regular and clear and with or without `effectIsInteractive` (captures
+  `b10-int*`, 2026-11-22):
+
+  | Scheme | Hovered (gain, offset) | Pressed (gain, offset) |
+  |---|---|---|
+  | dark | 0.9276, +0.0962 | 0.9676, +0.0466 |
+  | light | 0.9328, -0.0262 | 0.9678, -0.0124 |
+
+  A clear glass over a 16 px grid (195 to 202 distinct levels from 32 to 249)
+  fits with rms 0.17 to 0.24 and at most 1.0 level; the regular glass over gray
+  128 lands within 1 level (122 to 137 hovered and 130 pressed in dark; 188 to
+  169 and 178 in light). Only gray was measured: the colour matrix is assumed
+  to act per channel. `ctappearance::liquid_glass::interacted` applies the map
+  `[C]`. A real pointer did not trigger the state: `mouse` events (move onto the
+  glass, press, release; `NSEvent.mouseLocation` confirmed the position) over a
+  key, interactive glass changed no pixel in six captures, regular and clear
+  over gray and a grid. The scale, the shimmer and the durations are not
+  measured.
 - **Merging.** Two 100 x 60 capsules of a clear container: the glass at the
   middle of the gap is 6 rows thick at spacing 0, gap 0 (touching), 32 at
   spacing 20 gap 0, 4 at gap 10, 0 at gap 20; 44 at spacing 40 gap 0, 32 at gap
@@ -435,7 +455,7 @@ displacement was measured outside the edge (`OuterRefraction*`), over clear
    quantisation, 0.5 px for displacement): interior of clear 1 level; gray tone
    of any look 2.5; colours 8 (clear), 32 (regular dark), 70 (regular light);
    the other states 20; the lens 2 px of displacement; the blur 2.5 px of
-   sigma; the rim and shadow tables 10 levels; the union 8 rows.
+   sigma; the rim and shadow tables 10 levels; the union 8 rows; the hovered and pressed map 1.5 levels.
 5. A result is not at parity where the table above is above these
    tolerances; the checker rows show it for high-frequency content next to
    the edge.
@@ -532,7 +552,8 @@ inside it.
    `adapted(look, scale, shorter)` the size-dependent inputs.
 2. Protocol version 10 carries the style (`glass_regular`, `glass_clear`), rects
    and radius. For glass it still lacks: the **tint** (an RGBA, or none), the
-   **interactive** flag, the container **spacing** with a group id per
+   **interactive** flag with its pointer state (`hovered` or `pressed`;
+   `interacted` maps the glass colour), the container **spacing** with a group id per
    element and a **union** id, and a **variant** for the chrome glass (sidebar
    = 18, Dock = 3 if confirmed). State, scheme, Reduce Transparency and the
    shorter side come from the compositor.
@@ -561,7 +582,7 @@ inside it.
 
 | Cell | What it needs |
 |---|---|
-| Pointer response of `effectIsInteractive`, glass buttons hovered and pressed | an unlocked session screen and `~/src/probes/mouse`; the plan is `plan4.sh` section J |
+| What triggers the hovered and pressed state from a real pointer, its scale, shimmer and durations, and the map over colours | posted `mouse` events changed nothing (cause unknown); a hosted glass button or the user's own pointer; colour backdrops under `_interactionState` |
 | Scale 2 | a HiDPI display mode (not authorised) |
 | Reduce Transparency and Increase Contrast as system switches | the system switches; the per-process flags were used |
 | Tint at every alpha and colour, tint over the inactive look | more captures; red, green, blue, gray, white and black at alpha 0.25 to 1 over regular dark and clear were captured |
@@ -570,3 +591,29 @@ inside it.
 | The 21 variants other than 1, 2, 3 (Dock tone), 14 and 18 | the surface that uses each |
 | Shadow of shapes under 160 px | captures of 44 and 100 px circles |
 | The depth profile of the blur between 0 and 40 px | a step at 5 to 30 px from the edge |
+
+### 12.1 Global states
+
+The cells that need a system setting run in `global-states.sh all`, which the user
+runs: each of `dark`, `light`, `rt-on`, `ic-on`, `rt-ic-on`, `light-rt-on`,
+`light-ic-on`, `light-rt-ic-on`, `hidpi-720` and `light-hidpi-720` has
+`~/src/probes/states.d/<state>/70-liquidglass.sh`, which runs
+`~/src/probes/liquidglass/lgstate.sh` under the screen lock. It writes
+`~/src/captures/liquidglass/states/<state>/`: `live5.json` and `live3.json` (layer
+tree and the 77 inputs of four looks and of 44 sizes), and raw window captures of
+the regular (`reg-*`) and clear (`clr-*`) glass over `gray128`, `tone`, `grid16`,
+`kern`, `sawx` (`reg-c3` and `reg-c7` for colour; `rampd` and `checker8` at scale 2).
+`dark` and `light` add the per-process flags (`flag-rt-*`, `flag-ic-*`,
+`flag-rtic-*`). The script was run alone in `dark`: 29 captures and 2 live files; its
+`reg-gray128` and `clr-gray128` equal the earlier captures to 0 levels, and its
+`flag-rt-live5.json` equals `live5-rt.json` in all 12 filter input sets.
+
+| Cell | State | How it is decided |
+|---|---|---|
+| The system switch of Reduce Transparency and Increase Contrast is the per-process flag | `rt-on`, `ic-on`, `rt-ic-on`, `light-rt-on`, `light-ic-on`, `light-rt-ic-on` | `live5.json` equals `flag-<rt, ic, rtic>-live5.json` of `dark` (and `light`); the `reg-*` and `clr-*` tones equal the `flag-*` ones |
+| A light system is a light window | `light` | `live5.json`, `live3.json` and the tones equal the aqua values of the 1x tables |
+| Scale 2: blur, lens and size rules in points or in pixels | `hidpi-720`, `light-hidpi-720` | `live3.json` (sizes in points) equals the 1x inputs when the rules are in points; sigma and displacement in the captures are twice the 1x ones |
+| Wallpaper adaptation of a window's glass | none | the glass reads the backdrop under it, which `lgshot` draws; the shell's glass over the wallpaper is in [`macos-blur.md`](macos-blur.md) |
+| What triggers the hovered and pressed state | none | a hosted glass button or the user's own pointer; no global setting changes it |
+
+After a run, fill the cells above and move them out of the table of this section.

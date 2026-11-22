@@ -1,7 +1,8 @@
 use ctdesign::{
-    GlassLens, GlassLook, GlassRim, GlassScale, GlassSet, LIQUID_GLASS_BLUR_CAP,
-    LIQUID_GLASS_CLEAR_DARK, LIQUID_GLASS_CLEAR_LIGHT, LIQUID_GLASS_LENS,
-    LIQUID_GLASS_REGULAR_DARK, LIQUID_GLASS_REGULAR_LIGHT, LIQUID_GLASS_UNION, RIM_BINS,
+    GlassInteraction, GlassLens, GlassLook, GlassRim, GlassScale, GlassSet, LIQUID_GLASS_BLUR_CAP,
+    LIQUID_GLASS_CLEAR_DARK, LIQUID_GLASS_CLEAR_LIGHT, LIQUID_GLASS_INTERACTION_DARK,
+    LIQUID_GLASS_INTERACTION_LIGHT, LIQUID_GLASS_LENS, LIQUID_GLASS_REGULAR_DARK,
+    LIQUID_GLASS_REGULAR_LIGHT, LIQUID_GLASS_UNION, RIM_BINS,
 };
 
 use crate::ColorScheme;
@@ -25,6 +26,12 @@ pub enum GlassState {
     Reduced,
     IncreasedContrast,
     ReducedContrast,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Interaction {
+    Hovered,
+    Pressed,
 }
 
 pub struct Image {
@@ -82,6 +89,22 @@ pub fn adapted(look: &GlassLook, scale: &GlassScale, shorter: f32) -> GlassLook 
     adapted.blur_distance[0] = rule(scale.blur_distance_0, shorter);
     adapted.max_luma = rule(scale.max_luma, shorter);
     adapted
+}
+
+pub fn interaction(scheme: ColorScheme) -> GlassInteraction {
+    scheme.pick([
+        LIQUID_GLASS_INTERACTION_LIGHT,
+        LIQUID_GLASS_INTERACTION_DARK,
+        LIQUID_GLASS_INTERACTION_DARK,
+    ])
+}
+
+pub fn interacted(interaction: &GlassInteraction, pointer: Interaction, rgb: [f32; 3]) -> [f32; 3] {
+    let [gain, offset] = match pointer {
+        Interaction::Hovered => interaction.hover,
+        Interaction::Pressed => interaction.pressed,
+    };
+    rgb.map(|channel| (channel * gain + offset).clamp(0.0, 1.0))
 }
 
 pub fn half_resolution(line: &[f32]) -> Vec<f32> {
@@ -605,6 +628,27 @@ mod tests {
                 "spacing {spacing} gap {gap}: {thickness} against {measured}"
             );
         }
+    }
+
+    #[test]
+    fn the_hovered_and_pressed_look_is_an_affine_map_within_one_and_a_half_levels() {
+        let mut worst = 0.0_f32;
+        for row in rows("interaction") {
+            let scheme = if row[0] == "light" {
+                ColorScheme::Light
+            } else {
+                ColorScheme::Dark
+            };
+            let pointer = if row[1] == "pressed" {
+                Interaction::Pressed
+            } else {
+                Interaction::Hovered
+            };
+            let shown =
+                interacted(&interaction(scheme), pointer, [levels(row[2]) / 255.0; 3])[1] * 255.0;
+            worst = worst.max((shown - levels(row[3])).abs());
+        }
+        assert!(worst <= 1.5, "worst {worst}");
     }
 
     fn pattern(width: usize, height: usize, with: impl Fn(usize, usize) -> f32) -> Image {

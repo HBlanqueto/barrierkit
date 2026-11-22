@@ -1218,6 +1218,12 @@ pub struct GlassLens {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassInteraction {
+    pub hover: [f32; 2],
+    pub pressed: [f32; 2],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,

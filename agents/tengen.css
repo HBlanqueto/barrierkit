@@ -3321,6 +3321,18 @@
   --bk-liquid-glass-lens-decay: 3.462;
   --bk-liquid-glass-blur-cap: 28;
   --bk-liquid-glass-union: 0.8;
+  --bk-liquid-glass-interaction-dark-hover: 0.9276 0.0962;
+  --bk-liquid-glass-interaction-dark-hover-0: 0.9276;
+  --bk-liquid-glass-interaction-dark-hover-1: 0.0962;
+  --bk-liquid-glass-interaction-dark-pressed: 0.9676 0.0466;
+  --bk-liquid-glass-interaction-dark-pressed-0: 0.9676;
+  --bk-liquid-glass-interaction-dark-pressed-1: 0.0466;
+  --bk-liquid-glass-interaction-light-hover: 0.9328 -0.0262;
+  --bk-liquid-glass-interaction-light-hover-0: 0.9328;
+  --bk-liquid-glass-interaction-light-hover-1: -0.0262;
+  --bk-liquid-glass-interaction-light-pressed: 0.9678 -0.0124;
+  --bk-liquid-glass-interaction-light-pressed-0: 0.9678;
+  --bk-liquid-glass-interaction-light-pressed-1: -0.0124;
   --bk-liquid-glass-regular-dark-active-blur: 5;
   --bk-liquid-glass-regular-dark-active-blur-opacity: 0.8 0.4 0.5 1;
   --bk-liquid-glass-regular-dark-active-blur-opacity-0: 0.8;
