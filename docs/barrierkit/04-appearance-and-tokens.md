@@ -121,7 +121,7 @@ of the `Palette`. `.size(f32)` and `.color(Rgba)` change them. The icons
 are drawn on a grid of `SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke`
 (1), like SF Symbols at regular weight and medium scale. Inside a `SymbolTile`
 they take `SYMBOL.fine_stroke` (1 too since 2026-11-21; malaysia still reads it).
-`Bolt` and `CircleHalf` are solid shapes without a stroke.
+`Bolt`, `CircleHalf`, `Play`, `Pause`, `Forward`, `Backward`, `Battery` and `Dot` are solid shapes without a stroke.
 
 A symbol is fitted to the SF Symbol at 16 pt, regular weight, medium scale, drawn at 20 px: one grid unit is 1.25 px and one em is 12.8 units. SF's regular stroke at medium scale is 1.31 pt on average (1.19 to 1.40 by symbol), which is 1.05 on the grid; `SYMBOL.stroke` was 1.4 until 2026-11-21, 35% too heavy, and is 1. A symbol wider than 1.25 em does not fit the grid. The inventory of the SF names, their ink and what the kit has is in [Icons macOS uses](../research/macos-icons.md).
 
@@ -176,7 +176,7 @@ The tables were measured on macOS 27.2.1 with SwiftUI's `ImageRenderer` ([Icons 
 | Window menus | `XMarkRectangle`, `PlusRectangle`, `RectangleOnRectangle`, `RectangleDashed`, `MacWindowOnRectangle` |
 | Filled | `HeartFill`, `CameraFill` |
 
-The `*Fill` states, `PersonCropCircle`, `LockFill`, `StopFill` and `Pencil` are solid shapes (the mark is cut out of them). `MusicNote`, `Scissors`, `HeartFill` and `CameraFill` are filled and stroked. `StarFill` and `CapsuleOnRectangleFill` are the older filled symbols. The kit caches the SVG of each symbol.
+The `*Fill` states, `PersonCropCircle`, `LockFill`, `StopFill` and `Pencil` are solid shapes (the mark is cut out of them). `MusicNote`, `Scissors`, `HeartFill`, `CameraFill`, `CapsuleOnRectangleFill` and `Ellipsis` are filled and stroked. `StarFill` is a solid star. The 36 older symbols redrawn on 2026-11-22 are fitted like the 83 before them; `Checkmark`, `Star`, `StarFill`, `QuestionMark` and `Dot` keep their old shapes because the checkbox, the menu check, the rating indicator, the help button and the date picker are sized to them ([Icons macOS uses](../research/macos-icons.md#33-the-65-older-symbols)). The kit caches the SVG of each symbol.
 
 Add a symbol in five steps:
 

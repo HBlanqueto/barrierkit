@@ -414,12 +414,12 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | Symbol | Apple name | Drawn |
 |---|---|---|
-| `MagnifyingGlass` | `magnifyingglass` | before 2026-11-20 |
+| `MagnifyingGlass` | `magnifyingglass` | before 2026-11-20; redrawn 2026-11-22 |
 | `XMark` | `xmark` | before 2026-11-20 |
-| `SpeakerWave` | `speaker.wave.2` | before 2026-11-20 |
+| `SpeakerWave` | `speaker.wave.2` | before 2026-11-20; redrawn 2026-11-22 |
 | `Plus` | `plus` | before 2026-11-20 |
 | `Minus` | `minus` | before 2026-11-20 |
-| `Ellipsis` | `ellipsis` | before 2026-11-20 |
+| `Ellipsis` | `ellipsis` | before 2026-11-20; redrawn 2026-11-22 |
 | `ChevronUpDown` | `chevron.up.chevron.down` | before 2026-11-20 |
 | `ChevronRight` | `chevron.right` | before 2026-11-20 |
 | `ChevronLeft` | `chevron.left` | before 2026-11-20 |
@@ -429,59 +429,59 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `TriangleRight` | `arrowtriangle.right.fill` ≈ | before 2026-11-20 |
 | `Dot` | `circle.fill` ≈ | before 2026-11-20 |
 | `CircleHalf` | `circle.lefthalf.filled` | before 2026-11-20 |
-| `Play` | `play.fill` | before 2026-11-20 |
-| `Pause` | `pause.fill` | before 2026-11-20 |
-| `Shuffle` | `shuffle` | before 2026-11-20 |
-| `ChevronLeftForwardSlashChevronRight` | `chevron.left.forwardslash.chevron.right` ≈ | before 2026-11-20 |
-| `Backward` | `backward.fill` ≈ | before 2026-11-20 |
-| `Forward` | `forward.fill` ≈ | before 2026-11-20 |
+| `Play` | `play.fill` | before 2026-11-20; redrawn 2026-11-22 |
+| `Pause` | `pause.fill` | before 2026-11-20; redrawn 2026-11-22 |
+| `Shuffle` | `shuffle` | before 2026-11-20; redrawn 2026-11-22 |
+| `ChevronLeftForwardSlashChevronRight` | `chevron.left.forwardslash.chevron.right` | before 2026-11-20; redrawn 2026-11-22 |
+| `Backward` | `backward.fill` | before 2026-11-20; redrawn 2026-11-22 |
+| `Forward` | `forward.fill` | before 2026-11-20; redrawn 2026-11-22 |
 | `ListBullet` | `list.bullet` | before 2026-11-20 |
 | `SquareGrid` | `square.grid.2x2` ≈ | before 2026-11-20 |
-| `SlidersVertical` | `slider.vertical.3` ≈ | before 2026-11-20 |
-| `SidebarLeft` | `sidebar.left` | before 2026-11-20 |
-| `House` | `house` | before 2026-11-20 |
-| `Tv` | `tv` | before 2026-11-20 |
-| `Film` | `film` | before 2026-11-20 |
+| `SlidersVertical` | `slider.vertical.3` | before 2026-11-20; redrawn 2026-11-22 |
+| `SidebarLeft` | `sidebar.left` | before 2026-11-20; redrawn 2026-11-22 |
+| `House` | `house` | before 2026-11-20; redrawn 2026-11-22 |
+| `Tv` | `tv` | before 2026-11-20; redrawn 2026-11-22 |
+| `Film` | `film` | before 2026-11-20; redrawn 2026-11-22 |
 | `Star` | `star` | before 2026-11-20 |
 | `Clock` | `clock` | before 2026-11-20 |
-| `Bookmark` | `bookmark` | before 2026-11-20 |
-| `ArrowDownToLine` | `arrow.down.to.line` ≈ | before 2026-11-20; named `ArrowDown` until 2026-11-21 |
+| `Bookmark` | `bookmark` | before 2026-11-20; redrawn 2026-11-22 |
+| `ArrowDownToLine` | `arrow.down.to.line` | before 2026-11-20; named `ArrowDown` until 2026-11-21; redrawn 2026-11-22 |
 | `Checkmark` | `checkmark` | before 2026-11-20 |
-| `Captions` | `captions.bubble` ≈ | before 2026-11-20 |
+| `Captions` | `captions.bubble` | before 2026-11-20; redrawn 2026-11-22 |
 | `Expand` | `arrow.up.left.and.arrow.down.right` ≈ | before 2026-11-20 |
-| `GoBackward` | `gobackward` | before 2026-11-20 |
-| `GoForward` | `goforward` | before 2026-11-20 |
+| `GoBackward` | `gobackward` | before 2026-11-20; redrawn 2026-11-22 |
+| `GoForward` | `goforward` | before 2026-11-20; redrawn 2026-11-22 |
 | `StarFill` | `star.fill` | before 2026-11-20 |
-| `Folder` | `folder` | before 2026-11-20 |
-| `Document` | `doc` ≈ | before 2026-11-20 |
-| `ChevronDoubleRight` | `chevron.forward.2` | before 2026-11-20 |
+| `Folder` | `folder` | before 2026-11-20; redrawn 2026-11-22 |
+| `Document` | `doc` | before 2026-11-20; redrawn 2026-11-22 |
+| `ChevronDoubleRight` | `chevron.forward.2` | before 2026-11-20; redrawn 2026-11-22 |
 | `Accessibility` | `accessibility` | before 2026-11-20 |
-| `Display` | `display` | before 2026-11-20 |
-| `MenubarDockRectangle` | `menubar.dock.rectangle` | before 2026-11-20 |
-| `Photo` | `photo` | before 2026-11-20 |
+| `Display` | `display` | before 2026-11-20; redrawn 2026-11-22 |
+| `MenubarDockRectangle` | `menubar.dock.rectangle` | before 2026-11-20; redrawn 2026-11-22 |
+| `Photo` | `photo` | before 2026-11-20; redrawn 2026-11-22 |
 | `Flower` | `camera.macro` ≈ | before 2026-11-20 |
 | `Moon` | `moon` | before 2026-11-20 |
 | `Bell` | `bell` | before 2026-11-20 |
-| `Bed` | `bed.double` ≈ | before 2026-11-20 |
+| `Bed` | `bed.double` | before 2026-11-20; redrawn 2026-11-22 |
 | `Person` | `person` | before 2026-11-20 |
-| `Briefcase` | `briefcase` | before 2026-11-20 |
-| `Printer` | `printer` | before 2026-11-20 |
+| `Briefcase` | `briefcase` | before 2026-11-20; redrawn 2026-11-22 |
+| `Printer` | `printer` | before 2026-11-20; redrawn 2026-11-22 |
 | `Phone` | `phone` | before 2026-11-20 |
-| `SquareOnSquare` | `square.on.square` | before 2026-11-20 |
+| `SquareOnSquare` | `square.on.square` | before 2026-11-20; redrawn 2026-11-22 |
 | `Wifi` | `wifi` | before 2026-11-20 |
 | `Bluetooth` | no public name | before 2026-11-20 |
 | `Network` | `network` | before 2026-11-20 |
 | `Vpn` | no public name | before 2026-11-20 |
-| `Lock` | `lock` | before 2026-11-20 |
+| `Lock` | `lock` | before 2026-11-20; redrawn 2026-11-22 |
 | `Bolt` | `bolt.fill` | before 2026-11-20 |
-| `Battery` | `battery.100` ≈ | before 2026-11-20 |
-| `Keyboard` | `keyboard` | before 2026-11-20 |
+| `Battery` | `battery.100` | before 2026-11-20; redrawn 2026-11-22 |
+| `Keyboard` | `keyboard` | before 2026-11-20; redrawn 2026-11-22 |
 | `QuestionMark` | `questionmark` | before 2026-11-20 |
 | `EllipsisCircle` | `ellipsis.circle` | before 2026-11-20 |
-| `Square` | `square` | before 2026-11-20 |
-| `Circle` | `circle` | before 2026-11-20 |
-| `CapsuleOnRectangle` | `capsule.on.rectangle` | before 2026-11-20 |
-| `CapsuleOnRectangleFill` | `capsule.on.rectangle.fill` | before 2026-11-20 |
+| `Square` | `square` | before 2026-11-20; redrawn 2026-11-22 |
+| `Circle` | `circle` | before 2026-11-20; redrawn 2026-11-22 |
+| `CapsuleOnRectangle` | `capsule.on.rectangle` | before 2026-11-20; redrawn 2026-11-22 |
+| `CapsuleOnRectangleFill` | `capsule.on.rectangle.fill` | before 2026-11-20; redrawn 2026-11-22 |
 | `ICloud` | `icloud` | 2026-11-20 |
 | `ArrowDownCircle` | `arrow.down.circle` | 2026-11-20 |
 | `MusicNote` | `music.note` | 2026-11-20 |

@@ -536,9 +536,54 @@ The frame test of the same day found four of the 56 symbols of 2026-11-20 cut by
 
 ### 3.3 The 65 older symbols
 
-The 65 older symbols were drawn before this frame, at the stroke of 1.4. Remeasured on 2026-11-21 at stroke 1.0 against the same targets, 35 of the 63 that have an SF name are more than 1.5 grid units off in the ink box: `Backward`, `Forward`, `Dot`, `ChevronLeftForwardSlashChevronRight` and `Battery` by 4 to 8; `Captions`, `Tv`, `StarFill`, `SquareOnSquare`, `GoBackward`, `GoForward`, `House`, `Display`, `SidebarLeft`, `Film`, `Photo`, `Circle`, `Keyboard`, `Bed`, `Briefcase`, `Shuffle`, `Checkmark`, `Star`, `ChevronDoubleRight`, `Folder` and `Printer` by 2 to 4. Most are too small, at 0.8 to 0.9 of SF's ink. The mass goes from 80% under (`Ellipsis`) to 30% over (`SquareGrid`). `TriangleLeft` and `TriangleRight` have no reference in `ref.json`.
+The 65 older symbols were drawn before this frame, at the stroke of 1.4. Remeasured on 2026-11-21 at stroke 1.0 against the same targets, 35 of the 63 that have an SF name were more than 1.5 grid units off in the ink box (`Backward`, `Forward`, `Dot`, `ChevronLeftForwardSlashChevronRight` and `Battery` by 4 to 8; `House`, `Folder`, `SidebarLeft`, `Star` and 21 more by 2 to 4), mostly too small, at 0.8 to 0.9 of SF's ink.
 
-They are left as they are: redrawing them moves the golden of every control that shows one, and those controls were sized to the old shapes. `Folder`, `House`, `SidebarLeft` and `Star` come first; the bench already holds a fitted `Folder` (`d1.py`, 0.1 units, mass +0.3%).
+**Redrawn on 2026-11-22.** 36 of them are drawn again with the bench (`d5.py`, `emit5.py`) and the lab (`scripts/appkit-compare.py icons`) reads them; `d box` is the larger error in grid units against the SF ink at 16 pt. `ChevronLeftForwardSlashChevronRight`, `Forward`, `Backward` and `Battery` are wider than the grid (17.3, 16.7, 16.7 and 18.5 units): they are fitted to 15.8 units wide with the same proportions, so their `d box` is the cap, not an error.
+
+| Kit symbol | Apple name | Paint | d box | d mass |
+|---|---|---|---|---|
+| `ChevronLeftForwardSlashChevronRight` | `chevron.left.forwardslash.chevron.right` | stroke | 2.10 | -22.1% |
+| `Forward` | `forward.fill` | solid | 1.40 | -11.1% |
+| `Backward` | `backward.fill` | solid | 1.33 | -11.2% |
+| `Circle` | `circle` | stroke | 0.06 | -7.2% |
+| `Square` | `square` | stroke | 0.13 | -2.2% |
+| `Battery` | `battery.100` | solid | 3.59 | -30.5% |
+| `Captions` | `captions.bubble` | stroke | 0.07 | +2.4% |
+| `Tv` | `tv` | stroke | 0.18 | -41.7% |
+| `Display` | `display` | stroke | 0.10 | -43.2% |
+| `SquareOnSquare` | `square.on.square` | stroke | 0.06 | -8.1% |
+| `GoBackward` | `gobackward` | stroke | 0.17 | -1.0% |
+| `GoForward` | `goforward` | stroke | 0.17 | -1.0% |
+| `House` | `house` | stroke | 0.08 | -14.5% |
+| `SidebarLeft` | `sidebar.left` | stroke | 0.08 | +4.4% |
+| `Film` | `film` | stroke | 0.08 | -8.3% |
+| `Photo` | `photo` | stroke | 0.08 | -32.7% |
+| `Keyboard` | `keyboard` | stroke | 0.24 | -6.5% |
+| `Briefcase` | `briefcase` | stroke | 0.11 | -8.4% |
+| `Bed` | `bed.double` | stroke | 0.10 | -16.9% |
+| `Shuffle` | `shuffle` | stroke | 0.12 | -6.1% |
+| `CapsuleOnRectangle` | `capsule.on.rectangle` | stroke | 0.10 | -11.5% |
+| `CapsuleOnRectangleFill` | `capsule.on.rectangle.fill` | both | 0.14 | -11.2% |
+| `ChevronDoubleRight` | `chevron.forward.2` | stroke | 0.11 | -20.7% |
+| `Folder` | `folder` | stroke | 0.11 | +0.5% |
+| `SlidersVertical` | `slider.vertical.3` | stroke | 0.13 | +14.7% |
+| `Printer` | `printer` | stroke | 0.07 | -18.4% |
+| `MenubarDockRectangle` | `menubar.dock.rectangle` | stroke | 0.08 | -21.4% |
+| `Ellipsis` | `ellipsis` | both | 0.16 | +5.4% |
+| `Pause` | `pause.fill` | solid | 0.08 | -10.8% |
+| `Play` | `play.fill` | solid | 0.06 | +4.1% |
+| `ArrowDownToLine` | `arrow.down.to.line` | stroke | 0.08 | -11.9% |
+| `SpeakerWave` | `speaker.wave.2` | stroke | 0.22 | +7.5% |
+| `Bookmark` | `bookmark` | stroke | 0.03 | -4.5% |
+| `Document` | `doc` | stroke | 0.10 | -6.3% |
+| `MagnifyingGlass` | `magnifyingglass` | stroke | 0.21 | -13.8% |
+| `Lock` | `lock` | stroke | 0.09 | -2.9% |
+
+All the others are within 0.25 of the box. The mass is low on the symbols whose SF stroke is thicker than the 1.0 average of a regular symbol (the chevrons and `minus` of SF are 1.12 to 1.2 units): `MagnifyingGlass`, `Printer`, `Bed`, `House`, `ArrowDownToLine`, `ChevronDoubleRight`, `MenubarDockRectangle`. `Tv` and `Display` are 42% under because the AppKit render fills the screen at about 25% alpha, which SwiftUI's monochrome mode does not draw and the kit leaves out; `Photo` is 33% under because SF fills the mountains. Of the 119 symbols of the lab, 49 are within 0.5 of the ink box and 5% of the mass and 88 within 0.5 and 10%.
+
+**Not redrawn: five symbols that a measured control draws.** `Checkmark` (the checkbox mark and the menu check), `Star` and `StarFill` (the rating indicator), `QuestionMark` (the help button) and `Dot` (the date picker's today mark) stand in for art that AppKit draws itself, and their controls were sized to the old shapes. Drawn to the SF frame, the checkbox mark went from 4.1% to 5.6% of pixels off the AppKit one, the three-star rating from 7.5% to 25.4%, and the help button from 4.9% to 5.6% (`scripts/appkit-compare.py controls`, 2026-11-22). They stay as they were until those controls draw their own mark.
+
+**Controls that changed.** The search field and the compact toolbar (`MagnifyingGlass`, `ChevronDoubleRight`), the split view toolbar (`SidebarLeft`) and the rule editor (`Ellipsis`) draw a redrawn symbol. The share of pixels off the AppKit search field moves by 0.1 percentage points and the sidebar bench is unchanged; the overflow chevrons of the compact toolbar, the rule editor's ellipsis and the split view toolbar were not compared with AppKit. The toolbar bench (`scripts/appkit-compare.py toolbar light`) improves the box of `sidebar.left` (from 16.0 x 13.5 to 19.8 x 15.5 against AppKit's 20.3 x 16.0), `ellipsis` (13.5 x 2.0 to 15.8 x 3.5 against 15.8 x 4.0) and `magnifyingglass` (15.8 x 15.8 to 17.0 x 16.5 against 16.5 x 17.3); the mass of `sidebar.left` goes from 7% under to 22% over AppKit's (the toolbar stroke of 1.6 px was fitted to the old shape).
 
 ## 4. Left out
 

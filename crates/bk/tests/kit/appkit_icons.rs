@@ -12,7 +12,7 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Position, Size, Size2D};
 
-const ICONS: [(&str, Symbol); 83] = [
+const ICONS: [(&str, Symbol); 119] = [
     ("icloud", Symbol::ICloud),
     ("arrow.down.circle", Symbol::ArrowDownCircle),
     ("music.note", Symbol::MusicNote),
@@ -105,13 +105,52 @@ const ICONS: [(&str, Symbol); 83] = [
     ("pause.circle", Symbol::PauseCircle),
     ("heart.fill", Symbol::HeartFill),
     ("camera.fill", Symbol::CameraFill),
+    (
+        "chevron.left.forwardslash.chevron.right",
+        Symbol::ChevronLeftForwardSlashChevronRight,
+    ),
+    ("forward.fill", Symbol::Forward),
+    ("backward.fill", Symbol::Backward),
+    ("circle", Symbol::Circle),
+    ("square", Symbol::Square),
+    ("battery.100", Symbol::Battery),
+    ("captions.bubble", Symbol::Captions),
+    ("tv", Symbol::Tv),
+    ("display", Symbol::Display),
+    ("square.on.square", Symbol::SquareOnSquare),
+    ("gobackward", Symbol::GoBackward),
+    ("goforward", Symbol::GoForward),
+    ("house", Symbol::House),
+    ("sidebar.left", Symbol::SidebarLeft),
+    ("film", Symbol::Film),
+    ("photo", Symbol::Photo),
+    ("keyboard", Symbol::Keyboard),
+    ("briefcase", Symbol::Briefcase),
+    ("bed.double", Symbol::Bed),
+    ("shuffle", Symbol::Shuffle),
+    ("capsule.on.rectangle", Symbol::CapsuleOnRectangle),
+    ("capsule.on.rectangle.fill", Symbol::CapsuleOnRectangleFill),
+    ("chevron.forward.2", Symbol::ChevronDoubleRight),
+    ("folder", Symbol::Folder),
+    ("slider.vertical.3", Symbol::SlidersVertical),
+    ("printer", Symbol::Printer),
+    ("menubar.dock.rectangle", Symbol::MenubarDockRectangle),
+    ("ellipsis", Symbol::Ellipsis),
+    ("pause.fill", Symbol::Pause),
+    ("play.fill", Symbol::Play),
+    ("arrow.down.to.line", Symbol::ArrowDownToLine),
+    ("speaker.wave.2", Symbol::SpeakerWave),
+    ("bookmark", Symbol::Bookmark),
+    ("doc", Symbol::Document),
+    ("magnifyingglass", Symbol::MagnifyingGlass),
+    ("lock", Symbol::Lock),
 ];
 
 const ICON_SIZE: f32 = 20.0;
 const ICON_CELL: f32 = 32.0;
 const ICON_COLUMNS: usize = 8;
 const ICON_PIXELS: usize = 4;
-const HIERARCHICAL: [Symbol; 30] = [
+const HIERARCHICAL: [Symbol; 31] = [
     Symbol::ArrowDownCircle,
     Symbol::InfoCircle,
     Symbol::PlusCircle,
@@ -142,6 +181,7 @@ const HIERARCHICAL: [Symbol; 30] = [
     Symbol::ListBullet,
     Symbol::SquareOnSquare,
     Symbol::DocOnDoc,
+    Symbol::SpeakerWave,
 ];
 
 struct Cells(Vec<Image>);
