@@ -172,11 +172,10 @@ the runner logs it at `info` level and continues.
   current group; Up and Down move it inside a group (Freya's `integration`
   root). A focus move turns on keyboard
   navigation, which shows the focus ring.
-- Touch events go to the surface where the touch started. A touch or a pointer
-  event on a [chrome sub-surface](#glass-over-the-windows-content) is moved by
-  the strip's origin into the window, so one tree, one resize band and one
-  cursor serve both surfaces. Keyboard focus and the input method stay on the
-  window's own surface.
+- Touch events go to the surface where the touch started. Malaysia sends the
+  pointer and touch events over a [chrome sub-surface](#glass-over-the-windows-content)
+  to the window's own surface, in window coordinates, so the runner maps
+  nothing; a compositor that sent them to the sub-surface would need a mapping.
 - The cursor is the one the topmost hovered element declares with
   `.cursor(icon)`; a view that drags declares it on its container while the
   drag lasts. `CursorIcon` values map to `wp_cursor_shape_device_v1` shapes.
@@ -209,7 +208,6 @@ container that holds a glass, and the requests that describe it.
 4. Draws the chrome nodes on the sub-surface's canvas, shifted by the strip's
    origin, and everything else on the window's, then presents the sub-surfaces
    and the window last. The window's commit applies theirs.
-5. Moves the pointer and touch events of a sub-surface into the window.
 
 A chrome that cannot be opened is dropped and its glass stays transparent over
 the content. A lost Vulkan device closes every chrome; the next draw opens them

@@ -473,12 +473,12 @@ dependence. Sizes are sessions of one agent; "M2" is Malaysia serving
 
 | Slice | Output | Size | Depends on M2 |
 |---|---|---|---|
-| K3a (done) | Detection, `TopGlass` and `Material` declared, chrome sub-surfaces, the render split, pointer and touch mapping, the recipe `glass_window` | 1 | Tested headlessly; end to end needs M2 |
-| K3b | The check on the owner's laptop with M2 ([chapter 18](../barrierkit/18-platform.md#glass-over-the-windows-content)) and the fixes it shows: commit order and presentation of the sub-surface, throttling with FIFO, the hover and the cursor across surfaces, scrolling over the strip | 1 | Yes: it cannot start before M2 serves the requests |
+| K3a (done) | Detection, `TopGlass` and `Material` declared, chrome sub-surfaces, the render split, the recipe `glass_window` | 1 | Tested headlessly; end to end needs M2 |
+| K3b | The check on the owner's laptop with M2 ([chapter 18](../barrierkit/18-platform.md#glass-over-the-windows-content)) and the fixes it shows: commit order and presentation of the sub-surface, throttling with FIFO, the hover and the cursor over the strip, scrolling over the strip | 1 | Yes: it cannot start before M2 serves the requests |
 | K3c | `FullscreenBar::Glass` and `ProgressiveGlass`, the titlebar overlay and the rail over the content: glass and bar in one container, the style `hard` for `Glass`. The glass fades with the focus bar, and version 10 has no way to fade a material | 1 to 2 | Yes, and a protocol decision: a version 11 argument or a surface alpha the material follows |
 | K3d | A chrome that draws and presents only when its nodes change (today both surfaces draw every frame), and a swapchain kept while a strip's size animates; a GPU measurement of both | 1 | No for the code; the measurement needs M2 |
 | K3e | `GlassContainer` and `RoundButton` as `glass_regular` and `glass_clear` with the container's merging (open question 3) | 2 to 3 | Yes |
-| K3f | More than one material or scroll edge per chrome (one sub-surface per group), the hover smoothed across surfaces, a chrome input region narrower than its strip | 1 | No |
+| K3f | More than one material or scroll edge per chrome (one sub-surface per group; Malaysia serves 4 requester surfaces per toplevel and a chrome's material does not blur another's), a chrome input region narrower than its strip | 1 | No |
 | K4 | Delete the Skia blur of `glass.rs`; the elements draw the solid when the compositor lacks version 10 | 1 | After K3b to K3e and the criterion of section 10 |
 
 ## 8. ADR texts
@@ -552,9 +552,10 @@ Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/
 1. Input, focus, cursor shape and `xdg_surface` geometry with the chrome as a
    sub-surface above, or as the root with the content below. The phase 0
    harness has no xdg toplevel. The kit chose the sub-surface above the root
-   ([ADR 0098](../decisions.md)) and maps pointer and touch events into the
-   window; that the compositor delivers them to the sub-surface and keeps
-   keyboard focus on the root is **not verified** (slice K3b).
+   ([ADR 0098](../decisions.md)). Malaysia (M2, `25167ce6`) delivers pointer and
+   touch to the root surface in window coordinates and keeps keyboard focus on
+   it, so the kit maps nothing; the hover and the cursor over the strip are
+   **not verified** in a real session (slice K3b).
 2. Which `NSVisualEffectView.Material` does each `styles::Thickness` take? The
    extents in [`blur-ownership.md`](blur-ownership.md) give two groups (about
    35 px and about 48 px in light).

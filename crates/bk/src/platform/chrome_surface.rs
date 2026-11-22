@@ -32,9 +32,9 @@ pub(crate) struct ChromeHost {
 
 // Synchronized: its commit waits for the parent's, so the material and the content below it change in one frame (ADR 0092).
 pub(crate) struct ChromeSurface {
-    pub(crate) root: NodeId,
+    root: NodeId,
     pub(crate) nodes: Vec<NodeId>,
-    pub(crate) surface: WlSurface,
+    surface: WlSurface,
     subsurface: WlSubsurface,
     viewport: Option<WpViewport>,
     pub(crate) graphics: Option<Graphics>,

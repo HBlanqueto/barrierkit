@@ -124,7 +124,7 @@ pub(crate) struct Runtime {
     pub(crate) pointer_surface: Option<WlSurface>,
     pub(crate) cursor_icon: CursorIcon,
     pub(crate) touchpad_scrolling: bool,
-    pub(crate) touch_surfaces: std::collections::HashMap<i32, Touch>,
+    pub(crate) touch_surfaces: std::collections::HashMap<i32, (ObjectId, (f64, f64))>,
     pub(crate) popup_commands: Rc<RefCell<Vec<PopupCommand>>>,
     pub(crate) popup_next_id: Rc<Cell<u64>>,
     pub(crate) appearance_watch: Option<AppearanceWatch>,
@@ -140,12 +140,6 @@ pub(crate) struct Runtime {
     pub(crate) clipboard_device: Option<ClipboardDevice>,
     pub(crate) drag_target: Option<(ObjectId, CursorPoint)>,
     pub(crate) pending_drop: Option<PendingDrop>,
-}
-
-pub(crate) struct Touch {
-    pub(crate) window: ObjectId,
-    pub(crate) position: (f64, f64),
-    pub(crate) origin: (i32, i32),
 }
 
 pub(crate) struct WindowContext {
@@ -626,22 +620,6 @@ impl Runtime {
         self.surfaces.iter().position(|s| s.surface == *surface)
     }
 
-    pub(crate) fn window_of(&self, surface: &WlSurface) -> Option<(usize, (i32, i32))> {
-        self.surfaces
-            .iter()
-            .enumerate()
-            .find_map(|(index, window)| {
-                if window.surface == *surface {
-                    return Some((index, (0, 0)));
-                }
-                let chrome = window
-                    .chromes
-                    .iter()
-                    .find(|chrome| chrome.surface == *surface)?;
-                Some((index, chrome.placement.origin))
-            })
-    }
-
     pub(crate) fn surface_index_by_id(&self, surface_id: &ObjectId) -> Option<usize> {
         self.surfaces
             .iter()
@@ -672,10 +650,10 @@ impl Runtime {
         if self.resize_hover.is_some() {
             return;
         }
-        let Some((index, _)) = self
+        let Some(index) = self
             .pointer_surface
             .as_ref()
-            .and_then(|surface| self.window_of(surface))
+            .and_then(|surface| self.surface_for(surface))
         else {
             return;
         };
