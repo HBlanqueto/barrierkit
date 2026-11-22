@@ -50,6 +50,14 @@ pub enum DecorationResponse {
     Server,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WindowStyle {
+    #[default]
+    TitleBar,
+    HiddenTitleBar,
+    Plain,
+}
+
 #[derive(Clone, Debug)]
 pub struct WindowOptions {
     pub title: Cow<'static, str>,
@@ -67,6 +75,7 @@ pub struct WindowOptions {
     pub(crate) modal: bool,
     pub theme: crate::styles::Theme,
     pub scene: Option<&'static str>,
+    pub window_style: WindowStyle,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -114,6 +123,7 @@ impl WindowOptions {
             modal: false,
             theme: crate::styles::Theme::tengen(),
             scene: None,
+            window_style: WindowStyle::TitleBar,
         }
     }
 
@@ -124,6 +134,11 @@ impl WindowOptions {
 
     pub fn theme(mut self, theme: crate::styles::Theme) -> Self {
         self.theme = theme;
+        self
+    }
+
+    pub fn window_style(mut self, window_style: WindowStyle) -> Self {
+        self.window_style = window_style;
         self
     }
 

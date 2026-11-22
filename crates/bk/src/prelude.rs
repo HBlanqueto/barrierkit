@@ -21,7 +21,7 @@ pub use crate::layout::{
     VerticalAlignment,
 };
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
-pub use crate::platform::{RunError, WindowOptions, run_window};
+pub use crate::platform::{RunError, WindowOptions, WindowStyle, run_window};
 pub use crate::style::{Palette, text};
 pub use crate::styles::*;
 pub use crate::symbol::{

@@ -10,7 +10,7 @@ use objc2::{
 };
 use objc2_app_kit::{
     NSBackingStoreType, NSEvent, NSEventModifierFlags, NSPanel, NSTextInputClient, NSTrackingArea,
-    NSTrackingAreaOptions, NSView, NSWindowDelegate, NSWindowStyleMask,
+    NSTrackingAreaOptions, NSView, NSWindow, NSWindowDelegate, NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification, NSObject,
@@ -378,6 +378,46 @@ impl WindowDelegate {
         let this = Self::alloc(mtm).set_ivars(DelegateIvars { id });
         let this: Retained<Self> = unsafe { msg_send![super(this), init] };
         ProtocolObject::from_retained(this)
+    }
+}
+
+define_class!(
+    // A borderless window refuses the keyboard unless it says otherwise.
+    #[unsafe(super(NSWindow))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKToplevel"]
+    pub(super) struct Toplevel;
+
+    impl Toplevel {
+        #[unsafe(method(canBecomeKeyWindow))]
+        fn can_become_key_window(&self) -> bool {
+            true
+        }
+
+        #[unsafe(method(canBecomeMainWindow))]
+        fn can_become_main_window(&self) -> bool {
+            true
+        }
+    }
+);
+
+impl Toplevel {
+    pub(super) fn new(
+        mtm: MainThreadMarker,
+        frame: NSRect,
+        style: NSWindowStyleMask,
+    ) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(());
+        // SAFETY: NSWindow's designated initializer.
+        unsafe {
+            msg_send![
+                super(this),
+                initWithContentRect: frame,
+                styleMask: style,
+                backing: NSBackingStoreType::Buffered,
+                defer: false
+            ]
+        }
     }
 }
 

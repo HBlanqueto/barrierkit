@@ -73,7 +73,8 @@ Behavior:
   with only close enabled. Utility and HUD windows switch to it by themselves
   ([8](08-windows.md#utility-windows)).
 - With server-side decoration (`DecorationResponse::Server`) the bar takes no
-  space: the compositor draws one.
+  space: the compositor draws one. On macOS, `WindowStyle::Plain` asks for the
+  bar ([8](08-windows.md#window-style)).
 
 ### Style
 

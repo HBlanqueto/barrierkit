@@ -254,14 +254,14 @@ cannot run it: it has no display.
 [macOS arm64](../research/macos-arm-port.md).
 **Reader:** whoever runs a kit app on a Mac.
 **Input:** an app built with `cargo run -p bk --example <name>` on the Mac.
-**Output:** a window with the system frame and the kit's content.
+**Output:** a window with the system frame or the kit's own, and the kit's content.
 
 `platform/macos/` replaces the Wayland runner. It draws with Skia on Metal into
 a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 
 | Works | Missing |
 |---|---|
-| An `NSWindow` with the system title bar and traffic lights (`DecorationResponse::Server`), min and max size, title | Utility windows as panels, window tabs |
+| An `NSWindow` with the system title bar and traffic lights (`DecorationResponse::Server`), min and max size, title; `WindowStyle::HiddenTitleBar` puts the content under the native lights; `WindowStyle::Plain` is a borderless window with shadow and the kit's `Titlebar` and `TrafficLights` (`Client`), moved and resized by AppKit ([8](08-windows.md#window-style)) | Utility windows as panels, window tabs, full screen of a `Plain` window, the kit `Titlebar` under native lights |
 | Popups (menus, pop-up buttons, tooltips, popovers) as child panels with a native menu, popover or tooltip material, placed by `xdg_positioner`'s rules; a grabbing popup takes the keyboard and closes when it loses it | The popover arrow band, glass drawn under other surfaces |
 | Sheets with `beginSheet`, utility windows as child windows | Drag and drop |
 | Input methods and dead keys through `NSTextInputClient`: the committed text reaches the field as the key that types it, the composing text goes to `WindowControls::ime_preedit`, `set_ime_cursor_area` places the candidates | |

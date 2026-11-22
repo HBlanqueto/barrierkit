@@ -277,6 +277,38 @@ Still not done after M2: scale 2, the native menu bar,
 the live system appearance, the title bar mode choice (SSD only), clippy on the
 macOS code (the toolchain has no `cargo-clippy`), and tests for the runner.
 
+### M3 result: frame modes (2026-11-22)
+
+`WindowOptions::window_style(WindowStyle)` ([8](../barrierkit/08-windows.md#window-style))
+picks the frame of a main window; `platform/macos/frame.rs` maps it to the
+style mask and to `DecorationResponse` (four unit tests).
+
+| `WindowStyle` | Result |
+|---|---|
+| `TitleBar` | The SSD window of M1, still the default |
+| `HiddenTitleBar` | The cheap hybrid: `fullSizeContentView`, transparent title bar, hidden title, native lights over the content, `Server` (the kit `Titlebar` takes no space). Run with `notes_sidebar`: the native lights sit over the sidebar, and `Sidebar::traffic_lights(true)` draws a second set there, so an app in this mode leaves it off |
+| `Plain` | The CSD window: a `BKToplevel` (an `NSWindow` that can be key and main) that is borderless, not opaque, with shadow, and a content layer with the continuous corner `CORNER_WINDOW.fitted`; `Client`, so the kit draws `Titlebar` and `TrafficLights` |
+
+Checked on this Mac with `notes_sidebar`, `custom_window` and
+`titlebar_over_gradient`: a press on the `Titlebar` moves the window
+(`performWindowDragWithEvent` on the press, from `WindowCommand::Move`); the
+edge of a borderless window with `Resizable` resizes it natively, so the kit's
+`resize_edge_at` band is not needed; close and minimize from the kit lights
+work. `notes_sidebar` has a Swift twin (`~/src/probes/csdtwin.swift`) of the
+same size, texts, scheme and position: the two lights, the sidebar edge (x 220)
+and the sidebar rows agree to 1 px, and the silhouette corner differs by at most
+2 px in the first row.
+
+Differences left: the shadow of a borderless window is the system's smaller one;
+the kit draws a hairline under the title bar and a darker, heavier title; the
+sidebar toggle has no ring; `ContentUnavailableView` is smaller and not bold;
+the sidebar icons are badges, not plain symbols; the kit's default
+`traffic_lights = "wallpaper"` tints the lights (the twin sets `"standard"`).
+Not done: full screen of a `Plain` window (`toggleFullScreen` needs `titled`),
+the kit `Titlebar` drawn under native lights (needs a way to reserve their room),
+the Settings recipe in the three modes, and the zoom button on a borderless
+window.
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

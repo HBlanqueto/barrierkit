@@ -92,6 +92,7 @@ method changes one field (the fields are also public).
 | `.status_item(StatusItem)` | none | A status icon in the menu bar ([13. App](13-app.md)) |
 | `.fullscreen_bar(FullscreenBar)` | `Solid` | How the title bar is drawn over the content in full screen ([9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar)) |
 | `.fullscreen_push(bool)` | `false` | In full screen, the bar pushes the content down instead of covering it ([9](09-titlebars.md#pushing-the-content-fullscreen_push)) |
+| `.window_style(WindowStyle)` | `TitleBar` | Who frames the window on macOS ([Window style](#window-style)); Linux ignores it |
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
 | `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves; ignored by main windows |
 | `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen bar included. `Application::theme` sets it |
@@ -158,6 +159,28 @@ in.
 
 The look of the title bar in each state is in
 [9. Titlebars](09-titlebars.md#maximized-full-screen-and-focus-mode).
+
+### Window style
+
+`WindowStyle` (like SwiftUI's `windowStyle`) says who frames a main window on
+macOS. The compositor decides on Linux, so there it has no effect. Utility
+windows and sheets are always `TitleBar`.
+
+| Variant | `NSWindow` | `WindowStatus::decoration` | Use |
+|---|---|---|---|
+| `TitleBar` | titled, native lights | `Server` | Apps that look like any Mac app |
+| `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, native lights over the content | `Server` | Content under the native lights; `Titlebar` takes no space and the sidebar draws no lights of its own (`traffic_lights(false)`) |
+| `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | The kit draws the `Titlebar` and `TrafficLights`, as on Linux |
+
+A `Plain` window moves with `WindowControls::move_window` (a press on the
+`Titlebar`) and resizes from the edge AppKit gives a resizable window. Full
+screen needs a titled window, so `Plain` has none.
+
+```rust
+WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain)
+```
+
+The program is [`recipes/notes_sidebar.rs`](../../agents/recipes/notes_sidebar.rs).
 
 ### Resizing from the edges
 

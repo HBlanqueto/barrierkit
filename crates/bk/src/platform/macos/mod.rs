@@ -22,9 +22,9 @@ use objc2::runtime::ProtocolObject;
 use objc2::{MainThreadMarker, MainThreadOnly, sel};
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
-    NSApplication, NSApplicationActivationPolicy, NSBackingStoreType, NSEvent,
-    NSEventModifierFlags, NSEventType, NSMenu, NSMenuItem, NSWindow, NSWindowDelegate,
-    NSWindowOrderingMode, NSWindowStyleMask,
+    NSApplication, NSApplicationActivationPolicy, NSColor, NSEvent, NSEventModifierFlags,
+    NSEventType, NSMenu, NSMenuItem, NSWindow, NSWindowDelegate, NSWindowOrderingMode,
+    NSWindowStyleMask, NSWindowTitleVisibility,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -35,23 +35,26 @@ use objc2_metal::{
     MTLCommandBuffer, MTLCommandQueue, MTLCreateSystemDefaultDevice, MTLDevice, MTLDrawable,
     MTLPixelFormat,
 };
-use objc2_quartz_core::{CAMetalDrawable, CAMetalLayer};
+use objc2_quartz_core::{CAMetalDrawable, CAMetalLayer, kCACornerCurveContinuous};
 
 use super::app::{AppInstance, Host, InstanceRole};
 use super::backdrop::{Pass, render_pass, render_passes};
 use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
-use super::window::{OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus};
-use super::{DecorationResponse, EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
+use super::window::{
+    OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle,
+};
+use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
+mod frame;
 mod input;
 mod place;
 mod popups;
 mod view;
 
 use popups::PopupState;
-use view::{ContentView, WindowDelegate};
+use view::{ContentView, Toplevel, WindowDelegate};
 
 thread_local! {
     static RUNTIME: RefCell<Option<Runtime>> = const { RefCell::new(None) };
@@ -118,6 +121,7 @@ enum Native {
     Front,
     Title(String),
     Size(u32, u32),
+    Drag,
 }
 
 fn native(id: u64, command: Native) {
@@ -141,7 +145,25 @@ fn native(id: u64, command: Native) {
         Native::Size(width, height) => {
             window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))
         }
+        Native::Drag => {
+            let Some(mtm) = MainThreadMarker::new() else {
+                return;
+            };
+            if let Some(press) = NSApplication::sharedApplication(mtm).currentEvent()
+                && press.r#type() == NSEventType::LeftMouseDown
+            {
+                window.performWindowDragWithEvent(&press);
+            }
+        }
     }
+}
+
+fn round_corners(layer: &CAMetalLayer) {
+    layer.setOpaque(false);
+    layer.setCornerRadius(f64::from(ctdesign::CORNER_WINDOW.fitted));
+    // SAFETY: AppKit's own constant.
+    layer.setCornerCurve(unsafe { kCACornerCurveContinuous });
+    layer.setMasksToBounds(true);
 }
 
 fn later(id: u64, command: Native) {
@@ -229,12 +251,12 @@ impl Runtime {
             (options.min_size, options.max_size),
             (Some((min, _)), Some((max, _))) if min > 0 && min == max
         );
-        let mut style = NSWindowStyleMask::Titled
-            | NSWindowStyleMask::Closable
-            | NSWindowStyleMask::Miniaturizable;
-        if !fixed {
-            style |= NSWindowStyleMask::Resizable;
-        }
+        let window_style = if utility {
+            WindowStyle::TitleBar
+        } else {
+            options.window_style
+        };
+        let (mut style, decoration) = frame::frame(window_style, !fixed);
         if sheet {
             style = NSWindowStyleMask::Titled;
         }
@@ -243,18 +265,22 @@ impl Runtime {
             NSPoint::new(0.0, 0.0),
             NSSize::new(f64::from(width), f64::from(height)),
         );
-        // SAFETY: a plain NSWindow; the runner owns it and `setReleasedWhenClosed(false)` keeps it valid after close.
-        let window = unsafe {
-            NSWindow::initWithContentRect_styleMask_backing_defer(
-                NSWindow::alloc(self.mtm),
-                frame,
-                style,
-                NSBackingStoreType::Buffered,
-                false,
-            )
-        };
+        let window = Retained::into_super(Toplevel::new(self.mtm, frame, style));
+        // SAFETY: the runner owns the window; `setReleasedWhenClosed(false)` keeps it valid after close.
         unsafe { window.setReleasedWhenClosed(false) };
         window.setTitle(&NSString::from_str(&options.title));
+        match window_style {
+            WindowStyle::TitleBar => {}
+            WindowStyle::HiddenTitleBar => {
+                window.setTitlebarAppearsTransparent(true);
+                window.setTitleVisibility(NSWindowTitleVisibility::Hidden);
+            }
+            WindowStyle::Plain => {
+                window.setOpaque(false);
+                window.setBackgroundColor(Some(&NSColor::clearColor()));
+                window.setHasShadow(true);
+            }
+        }
         if let Some((w, h)) = options.min_size {
             window.setContentMinSize(NSSize::new(f64::from(w), f64::from(h)));
         }
@@ -265,6 +291,9 @@ impl Runtime {
         window.setDelegate(Some(&delegate));
         let view = ContentView::new(self.mtm, id, frame);
         let layer = self.configure_layer(&view);
+        if window_style == WindowStyle::Plain {
+            round_corners(&layer);
+        }
         window.setContentView(Some(&view));
         self.follow_scheme(&window);
         window.center();
@@ -273,7 +302,7 @@ impl Runtime {
             activated: true,
             maximized: false,
             fullscreen: false,
-            decoration: DecorationResponse::Server,
+            decoration,
             fixed,
         });
         let controls = WindowControls {
@@ -598,6 +627,7 @@ impl Runtime {
                 match command {
                     WindowCommand::Close => later(id, Native::Close),
                     WindowCommand::Minimize => later(id, Native::Minimize),
+                    WindowCommand::Move(_) => later(id, Native::Drag),
                     WindowCommand::ToggleMaximize => later(id, Native::Zoom),
                     WindowCommand::ToggleFullscreen => later(id, Native::FullScreen),
                     WindowCommand::Present(_) | WindowCommand::MakeKey => later(id, Native::Front),

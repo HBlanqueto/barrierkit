@@ -149,6 +149,10 @@ name = "list_rows"
 path = "../../agents/recipes/list_rows.rs"
 
 [[example]]
+name = "notes_sidebar"
+path = "../../agents/recipes/notes_sidebar.rs"
+
+[[example]]
 name = "observable"
 path = "../../agents/recipes/observable.rs"
 

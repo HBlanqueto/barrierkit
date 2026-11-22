@@ -9,6 +9,6 @@ fn main() -> Result<(), RunError> {
                 .child(Titlebar::new().title("Notes").with_sidebar(true))
                 .child(Text::new("No notes yet").padding(SPACE_4))
         },
-        WindowOptions::new("Notes", "notes"),
+        WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain),
     )
 }

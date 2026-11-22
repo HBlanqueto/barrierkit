@@ -330,3 +330,18 @@ The program is [`recipes/glass_window.rs`](recipes/glass_window.rs).
 4. To see the compositor's blur, run it under Malaysia as
    [chapter 18](../docs/barrierkit/18-platform.md#glass-over-the-windows-content)
    says.
+
+## 28. A window with its own frame on macOS
+
+SwiftUI: `WindowGroup { NavigationSplitView { List { … } } detail: { … } }` with `.windowStyle(.plain)` and a `.toolbar`.
+
+The program is [`recipes/notes_sidebar.rs`](recipes/notes_sidebar.rs).
+
+1. `WindowOptions::window_style(WindowStyle::Plain)` makes the window borderless
+   on macOS, so the `Titlebar` and its traffic lights are the kit's. Linux
+   ignores it; the compositor decides there.
+2. `Sidebar::traffic_lights(true)` holds the lights while the sidebar shows, and
+   `Titlebar::with_sidebar(true)` puts the title at the start of the detail.
+   [`custom_window`](recipes/custom_window.rs) and
+   [`titlebar_over_gradient`](recipes/titlebar_over_gradient.rs) use the same
+   option.

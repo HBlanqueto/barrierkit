@@ -29,6 +29,6 @@ impl Component for Hello {
 fn main() -> Result<(), RunError> {
     run_window(
         || Backdrop::new(BackdropSource::Colors(BACKDROP_SCENES.dusk), Hello),
-        WindowOptions::new("Hello", "hello"),
+        WindowOptions::new("Hello", "hello").window_style(WindowStyle::Plain),
     )
 }
