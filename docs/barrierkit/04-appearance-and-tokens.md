@@ -109,7 +109,7 @@ ring (`docs/research/macos-control-metrics.md`). Outlines use the separator.
 | Function | What it does |
 |---|---|
 | `style::text(content, face, ink) -> Label` | A one-line Freya `label` with the family, size, weight and line height of a `Font` token and the color `ink`. For text that wraps, use `Text` ([2](02-first-app.md)). |
-| `style::continuous_corner(radius) -> CornerRadius` | A corner radius with Apple's continuous curve, smoothed as `WINDOW_CORNER.expansion` says (malaysia ADR 0059). |
+| `style::continuous_corner(radius) -> CornerRadius` | A corner radius with macOS's continuous curve, smoothed as `CORNER_SMOOTHING` says (0.745, what the window server draws for `cornerCurve = .continuous`; [ADR 0101](../decisions.md)). |
 | `style::panel_edges(body, radius, fill) -> Rect` | A card filled with `fill` and framed like a panel window: the glass inner line in dark (`panel_inner_line`: brighter top and bottom edges, inward glow), the window inner line otherwise, and the outer line, each one physical pixel wide. Same colours and widths as the compositor's panel frames. |
 | `theme::color(rgba) -> Color` | Converts a Tengen `Rgba` to Freya's `Color`. |
 
@@ -889,6 +889,8 @@ let radius = WINDOW_CORNER.titlebar as f32;
 // ✓ the measured silhouette
 let radius = ctdesign::CORNER_WINDOW.fitted;
 ```
+
+The kit draws every `CornerStyle::Continuous` shape through one function, `style::continuous`, with `CORNER_SMOOTHING`; no shape holds its own number. A control is continuous where its layer in macOS is (push, pop-up, segmented, text field, combo box, checkbox, group box, tab view, sidebar item, rows, cards, sheet) and circular where it is not or nobody measured it. A text field and a combo box take their radius from `ControlSize` (4, 5, 6, 7, 9) and the combo button 2.5, 3.5, 4.5, 5.5, 6.5. A `Sheet` is `CORNER_SHEET.fitted` and an `Alert` `CORNER_ALERT.fitted`. A shape nested in a rounded one takes `style::concentric(outer, inset)` unless its radius was measured. The table of every radius, the Skia tolerance and the parity tests are in [macOS corners](../research/macos-corners.md#12-the-kit).
 
 ### Backdrop colors
 

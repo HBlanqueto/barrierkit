@@ -1,6 +1,6 @@
 use ctdesign::{BODY, BUTTON, Font, SETTINGS, SPACE_1};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
     system_effect,
@@ -19,7 +19,7 @@ pub struct MenuButtonStyle {
     pub chevron_gap: f32,
     /// Tengen: `SETTINGS.dropdown_chevron_glyph`.
     pub chevron_size: f32,
-    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Continuous }`.
     pub shape: Shape,
     /// Tengen: `Role(ControlBackground)`, pressed `Color(PressedPalette.bezel)`.
     pub background: StateValue<ShapeStyle>,
@@ -49,7 +49,7 @@ impl ControlStyle for MenuButtonStyle {
             padding_x: BUTTON.padding_x,
             chevron_gap: SPACE_1,
             chevron_size: SETTINGS.dropdown_chevron_glyph as f32,
-            shape: rounded(BUTTON.radius),
+            shape: continuous_rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
                 .pressed(ShapeStyle::Color(pressed_palette().bezel)),
             icon_only_background: StateValue::new(ShapeStyle::Clear)

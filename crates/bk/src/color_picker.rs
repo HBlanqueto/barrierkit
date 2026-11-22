@@ -147,7 +147,7 @@ impl Component for ColorPicker {
                 rect()
                     .width(Size::px(width - 2.0 * style.inset))
                     .height(Size::px(height - 2.0 * style.inset))
-                    .corner_radius(radius.top_left() - style.inset)
+                    .corner_radius(crate::style::concentric(radius, style.inset))
                     .background(color(shown))
                     .border(
                         Border::new()

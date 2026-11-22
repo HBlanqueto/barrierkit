@@ -43,7 +43,7 @@ pub struct ButtonStyle {
     pub height: f32,
     /// Tengen: `BUTTON.padding_x`.
     pub padding_x: f32,
-    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Continuous }`.
     pub shape: Shape,
     /// Tengen: `Role(ControlBackground)`, pressed `Color(PressedPalette.bezel)`, disabled
     /// `Role(ControlBackgroundDisabled)`.
@@ -77,12 +77,23 @@ pub(super) fn rounded(radius: f32) -> Shape {
     }
 }
 
+pub(super) fn continuous_rounded(radius: f32) -> Shape {
+    Shape::RoundedRectangle {
+        radius,
+        style: CornerStyle::Continuous,
+    }
+}
+
 pub(super) fn sized_shape(radius: f32, height: f32) -> Shape {
     if 2.0 * radius >= height {
         Shape::Capsule
     } else {
-        rounded(radius)
+        continuous_rounded(radius)
     }
+}
+
+pub(super) fn corner_for(radii: [f32; 5], size: ControlSize) -> f32 {
+    radii[size as usize]
 }
 
 fn font(size: f32) -> Font {
@@ -301,7 +312,7 @@ impl ControlStyle for ButtonStyle {
         Self {
             height: BUTTON.height,
             padding_x: BUTTON.padding_x,
-            shape: rounded(BUTTON.radius),
+            shape: continuous_rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),

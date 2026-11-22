@@ -1,6 +1,6 @@
 use ctdesign::{BODY, Font, ICON_BUTTON, LARGE_TITLE, SEGMENTED};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     system_effect,
@@ -17,10 +17,10 @@ pub struct ToggleGroupStyle {
     /// Tengen: `(ICON_BUTTON.size, SEGMENTED.segment_height)`.
     pub item_size: (f32, f32),
     /// Tengen, with `item_shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Circular`.
+    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub shape: Shape,
     /// Tengen, with `shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Circular`.
+    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub item_shape: Shape,
     /// Tengen: `Role(ControlBackground)`, behind the items.
     pub background: StateValue<ShapeStyle>,
@@ -56,8 +56,8 @@ impl ControlStyle for ToggleGroupStyle {
             padding: SEGMENTED.padding,
             gap: SEGMENTED.gap,
             item_size: (ICON_BUTTON.size, SEGMENTED.segment_height),
-            shape: rounded(SEGMENTED.radius),
-            item_shape: rounded(SEGMENTED.segment_radius),
+            shape: continuous_rounded(SEGMENTED.radius),
+            item_shape: continuous_rounded(SEGMENTED.segment_radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             item: StateValue::new(ShapeStyle::Clear),
             selected: StateValue::new(ShapeStyle::Accent),

@@ -1,6 +1,6 @@
 use ctdesign::{BODY, ControlSize, Font, SEGMENTED};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::button::sized_shape;
 use super::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
@@ -24,10 +24,10 @@ pub struct SegmentedControlStyle {
     /// Tengen: `Role(SegmentDivider)`.
     pub divider: StateValue<ShapeStyle>,
     /// Tengen, with `segment_shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Circular`.
+    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub shape: Shape,
     /// Tengen, with `shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Circular`.
+    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub segment_shape: Shape,
     /// Tengen: `Role(ControlBackground)`, behind the segments.
     pub background: StateValue<ShapeStyle>,
@@ -85,8 +85,8 @@ impl ControlStyle for SegmentedControlStyle {
             segment_padding_x: SEGMENTED.segment_padding_x,
             divider_height: SEGMENTED.divider_height,
             divider: StateValue::new(ShapeStyle::Role(Role::SegmentDivider)),
-            shape: rounded(SEGMENTED.radius),
-            segment_shape: rounded(SEGMENTED.segment_radius),
+            shape: continuous_rounded(SEGMENTED.radius),
+            segment_shape: continuous_rounded(SEGMENTED.segment_radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             segment: StateValue::new(ShapeStyle::Clear),
             selected: StateValue::new(ShapeStyle::Role(Role::ToggleAccent))

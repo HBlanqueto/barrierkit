@@ -37,6 +37,8 @@ mod combo_box;
 mod combo_button;
 mod content_unavailable_view;
 mod control_group;
+#[cfg(test)]
+mod corners;
 mod date_picker;
 mod disclosure_group;
 mod divider;

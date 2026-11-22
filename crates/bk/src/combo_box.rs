@@ -44,8 +44,15 @@ impl ComboBox {
         }
     }
 
-    pub fn size(self, size: ControlSize) -> Self {
-        self.style(move |style: ComboBoxStyle| style.sized(size))
+    pub fn size(mut self, size: ControlSize) -> Self {
+        self.style = self
+            .style
+            .style(move |style: ComboBoxStyle| style.sized(size))
+            .style(move |field: TextFieldStyle| TextFieldStyle {
+                shape: field.clone().sized(size).shape,
+                ..field
+            });
+        self
     }
 
     pub fn style(mut self, restyle: impl Fn(ComboBoxStyle) -> ComboBoxStyle + 'static) -> Self {

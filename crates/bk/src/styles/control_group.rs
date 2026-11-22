@@ -1,6 +1,6 @@
 use ctdesign::{BUTTON, HAIRLINE};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
@@ -13,7 +13,7 @@ pub struct ControlGroupStyle {
     pub height: f32,
     /// Tengen: `(HAIRLINE, BUTTON.height / 2)`, between children.
     pub separator_size: (f32, f32),
-    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Continuous }`.
     pub shape: Shape,
     /// Tengen: `Role(ControlBackground)`.
     pub background: StateValue<ShapeStyle>,
@@ -34,7 +34,7 @@ impl ControlStyle for ControlGroupStyle {
         Self {
             height: BUTTON.height,
             separator_size: (HAIRLINE, BUTTON.height / 2.0),
-            shape: rounded(BUTTON.radius),
+            shape: continuous_rounded(BUTTON.radius),
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
             separator: StateValue::new(ShapeStyle::Role(Role::Separator)),
             border: None,

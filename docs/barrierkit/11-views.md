@@ -704,8 +704,8 @@ line of text, for a view with nothing to show, like SwiftUI's
 `Sheet::new(content)` covers the window with the `Palette::scrim` veil (a gray
 at 60%, as the window server veils a window under a sheet) and
 shows `content` in a dialog centered in the window. The dialog is filled with
-the window background (`DIALOG_SOLID_LIGHT` or `DIALOG_SOLID_DARK` with Increase Contrast, and a lighter veil in light) and has radius 26
-with a continuous corner, 20 of padding and the window shadow (`SHADOW`, or
+the window background (`DIALOG_SOLID_LIGHT` or `DIALOG_SOLID_DARK` with Increase Contrast, and a lighter veil in light) and has radius 16.8
+(`CORNER_SHEET.fitted`, the silhouette of a sheet; an `Alert` takes `CORNER_ALERT.fitted`, 26) with a continuous corner, 20 of padding and the window shadow (`SHADOW`, or
 `SHADOW_DARK` in dark), so it floats like a window of its own. Draw it while it should show;
 remove it to close it.
 

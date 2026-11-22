@@ -1,6 +1,6 @@
 use ctdesign::{CAPTION, Font, GROUP_BOX, HAIRLINE, Rgba};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 use crate::style::Palette;
 
@@ -15,7 +15,7 @@ pub struct GroupBoxStyle {
     /// Tengen: `GROUP_BOX.label_height`: the label row is shorter than its line, so the label
     /// overlaps the top of the box.
     pub label_height: f32,
-    /// Tengen: `RoundedRectangle { radius: GROUP_BOX.radius, style: Circular }`; a `Capsule` or
+    /// Tengen: `RoundedRectangle { radius: GROUP_BOX.radius, style: Continuous }`; a `Capsule` or
     /// `Circle` stays square.
     pub shape: Shape,
     /// Tengen: `background` `Color` of the label color at `GROUP_BOX.fill_opacity`.
@@ -37,7 +37,7 @@ impl ControlStyle for GroupBoxStyle {
             spacing: 0.0,
             label_inset: GROUP_BOX.label_inset,
             label_height: GROUP_BOX.label_height,
-            shape: rounded(GROUP_BOX.radius),
+            shape: continuous_rounded(GROUP_BOX.radius),
             background: StateValue::new(ShapeStyle::Color(Rgba {
                 a: GROUP_BOX.fill_opacity,
                 ..Palette::current().label

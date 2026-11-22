@@ -614,6 +614,9 @@ impl Component for Alert {
                 }))
                 .child(buttons),
         )
-        .style(move |sheet| SheetStyle { padding, ..sheet })
+        .style(move |sheet| SheetStyle {
+            padding,
+            ..sheet.alert()
+        })
     }
 }

@@ -9,7 +9,7 @@ pub struct SecureFieldStyle {
     pub height: f32,
     /// Tengen: `TEXT_FIELD.padding_x`.
     pub padding_x: f32,
-    /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Continuous }`.
     pub shape: Shape,
     /// Tengen: `Role(TextBackground)`.
     pub background: StateValue<ShapeStyle>,

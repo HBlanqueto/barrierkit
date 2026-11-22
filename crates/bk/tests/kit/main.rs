@@ -10,6 +10,7 @@ mod backdrop;
 mod button_label;
 mod chrome;
 mod controls;
+mod corners;
 mod focus;
 mod focus_by_name;
 mod form_stack;

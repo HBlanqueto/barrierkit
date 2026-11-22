@@ -13,6 +13,7 @@
 3. For a nested shape read the concentric rule (section 7).
 4. To compare a capture with the mask or with the compositor, follow the parity procedure (section 9).
 5. Read what is not measured and the exact state it needs (section 8) before claiming a value.
+6. For what the kit draws and why, read section 12.
 
 ## 1. Method and provenance
 
@@ -135,12 +136,13 @@ The smoothing of the shell glass is not measured at 1x (the tails are below the 
 | `borderShape` capsule | drawn 6.5, 10, 12, 14, 18 (half the height); the API reports 4, 5, 6, 7, 9 | continuous | layer |
 | `borderShape` rounded rectangle | drawn 4, 5, 6, 7, 9; the API reports 6.5, 10, 12, 14, 18 | continuous | layer |
 | Pop-up and pull-down | 4, 5, 6, 14, 18 | continuous | layer |
-| Text field and search field (bezel) | 4, 5, 6, 7, 9 | continuous | layer |
+| Text field (bezel) | 4, 5, 6, 7, 9 | continuous | layer |
+| Search field | the same layers as the text field (4, 5, 6, 7, 9), but the field is drawn as a capsule | the capture `~/src/captures/texts/aqua-white-focus-search@4x.png` shows round ends at every size, so the layer is not the drawn shape | pixels |
 | Combo box button | 2.5, 3.5, 4.5, 5.5, 6.5 | continuous | layer |
 | Checkbox | 3.5, 4.5, 5.5, 6.5, 6.5 | continuous | layer |
 | Radio button | 6, 7, 8, 9, 9 | continuous | layer |
-| Segmented control, container (rounded, textured rounded, capsule, automatic) | 8, 10, 12, 14, 18 | continuous | API |
-| Segmented control, container (round rect, textured square, small square, separated) | 4, 5, 6, 14, 18 | continuous | API |
+| Segmented control, container (rounded, textured rounded, capsule, automatic) | API 8, 10, 12, 14, 18; the layer of the control is 4, 5, 6, 14, 18 in every style | continuous | layer (the API radius is not what is drawn: the 4x captures of the bench agree with the layer) |
+| Segmented control, container (round rect, textured square, small square, separated) | 4, 5, 6, 14, 18 | continuous | API and layer |
 | Slider track and knob | 2, 2, 3, 3, 3 and 6, 7, 8, 10, 10 | continuous | layer |
 | Progress bar | 3, 3, 4, 4, 4 | circular | layer |
 | `NSBox` primary | 12 | continuous | layer |
@@ -183,6 +185,8 @@ inner = minimum                                           otherwise
 | Table rows, cards, group boxes in pixels | the corner of a row selection is 7 (control metrics, the lists session); not remeasured |
 | The context menu and submenus as separate shapes | a probe that opens them with the HID tap |
 | Switch, stepper and color well at every control size | the probe's `sizeToFit` did not resize them |
+| A continuous corner whose radius is more than a quarter of the shorter side (Freya shortens the tails by Figma's rule; the regular push button, 6 in 24, is exactly at the limit) | a layer of 12, 16 and 20 in a shape 24 to 36 high, captured at 1x and 2x |
+| The tab view's pill and box (the layers say 4 and 6, the bench 5 and 5), the stepper bezel, the icon button, collection tile, image well, settings card, menu item highlight, date picker segments and token | a layer dump per element and a capture over white and black; the layers of the tab view do not say which is which |
 
 ## 9. Parity
 
@@ -208,7 +212,7 @@ Existing tokens that changed, and why Malaysia's drawing changes with them:
 | `components.shell.menu.panel.radius` | 14 | 12 | menu 12.5 |
 | `components.shell.launcher.corner-radius` | 16 | 24.5 | Spotlight 24.5 |
 
-`components.window.corner.expansion` (1.52866) and `.exponent` (3.34) did not change: they fit a continuous layer. `components.window.corner.titlebar` (`radius.lg`, 16), `components.popover.radius` (20), `components.tooltip.radius` (5.25) and `components.shell.dock.radius` (0.272) are confirmed within the fit error. The kit's `continuous_corner` smoothing (0.52866) is not the on-screen 0.745; replacing it moves the pixels of every continuous corner of every golden, by 0.04 of coverage at radius 4 to 0.27 at radius 26 at the worst pixel, so it waits for the owner's go-ahead ([ADR 0097](../decisions.md)).
+`components.window.corner.expansion` (1.52866) and `.exponent` (3.34) did not change: they fit a continuous layer. `components.window.corner.titlebar` (`radius.lg`, 16), `components.popover.radius` (20), `components.tooltip.radius` (5.25) and `components.shell.dock.radius` (0.272) are confirmed within the fit error. The kit's `continuous_corner` smoothing was 0.52866, not the on-screen 0.745; it is `CORNER_SMOOTHING` since 2026-11-22 ([ADR 0101](../decisions.md), section 12).
 
 ## 11. Every radius token and what the measurements say
 
@@ -220,7 +224,7 @@ Existing tokens that changed, and why Malaysia's drawing changes with them:
 | `button.radius`, `mini`, `small`, `large`, `xl` | 6, 4, 5, 14, 18 | kit `Button` | agrees with the push button layers (4, 5, 6, 14, 18) |
 | `button.bezel.*.radius` (small-square 0, textured-rounded 10, textured-square 4.5, inline 9, push-disclosure 6) | | kit | cell-drawn bezels: the API reports 4, 5, 6 for the small square (not what is drawn), so these keep their 4x pixel measurements |
 | `icon-button.radius` | 8 | kit | not measured here |
-| `text-field.radius`, `search-field`, `combo-box.*button-radius` | 6; 4, 3, 4, 5, 7 | kit | text field agrees at regular (4, 5, 7, 9 are absent at the other sizes); the combo button is 2.5, 3.5, 4.5, 5.5, 6.5 in the layers, within 0.5: left |
+| `text-field.radius`, `search-field`, `combo-box.*button-radius` | 6; capsule; 2.5, 3.5, 4.5, 5.5, 6.5 (were 3, 4, 4, 5, 7) | kit | the text field is 4, 5, 6, 7, 9 by size (`CORNER_CONTROLS.text_field`); the search field is a capsule (section 6); the combo button tokens are the layers' (section 12) |
 | `stepper.*radius`, `segmented.*radius`, `segmented.segment-radius` | 6, 4, 5, 7, 9; 6, 4, 5, 14, 18 | kit | segmented agrees; the stepper layer is 0.5 and the shape is drawn by a cell: not compared |
 | `checkbox.*radius` | 5.5, 3.5, 4.5, 6.5, 6.5 | kit | agrees with the layers |
 | `group-box.radius`, `list-group.radius`, `collection.radius`, `image-well.radius` | 12, 12.5, 10, 8 | kit | `NSBox` primary is 12 in the API (agrees); the others are not compared |
@@ -228,13 +232,13 @@ Existing tokens that changed, and why Malaysia's drawing changes with them:
 | `tab-view.strip-radius`, `small`, `mini`, `pill-radius`, `box-radius`; `toolbar-tabs.container.radius`, `tab.radius` | 6, 5, 4, 5, 5; 12, 8 | kit | measured in the tab session; not remeasured |
 | `date-picker.day-radius`, `segment-radius`, `token-field.token-radius`, `color-picker.expanded-radius`, `wheel-radius`, `media.button-radius` | 4.5, 3, 2, 5, 6, 10 | kit | the color well layers are 6 (expanded) and 8: not compared |
 | `icon-plate.corner` | 0.2245 of the plate | kit, Malaysia (`dock/mod.rs:1124`) | not remeasured (icons session) |
-| `window.corner.titlebar` | 16 (`radius.lg`) | kit `glass_panel.rs`; Malaysia `window_style.rs:509` | agrees (API) |
+| `window.corner.titlebar` | 16 (`radius.lg`) | Malaysia `window_style.rs:509`; the kit's `WindowGlass` hole is `CORNER_WINDOW.fitted` | agrees (API); the silhouette is 16.8 |
 | `window.corner.unified-compact`, `unified`, `utility` | 20, 26, 15 | Malaysia `window_style.rs:509-516` | **wrong**: 16, 16, 16 |
 | `window.corner.expansion`, `exponent` | 1.52866, 3.34 | kit `style::continuous_corner`; Malaysia `window_style.rs:522`, `scene_elements.rs:492,532,766` | agree with an on-screen continuous layer (rms 0.008 to 0.015); a window needs `CORNER_WINDOW.fitted` |
 | `window.resize-corner`, `client-resize-corner` | 16, 12 | Malaysia | hit areas, not shapes |
 | `window.titlebar.rail.pill-radius`, `reveal-corner` | 13, 96 | kit | not measured |
 | `window.sidebar.item.radius`, `tile-radius`; `menu-popover.item-radius`; `settings.*` radii | 8, 4.5; 8; various | kit | not measured here |
-| `dialog.radius` | 26 (was a reference to `unified`) | kit `styles/sheet.rs`; Malaysia `scene_elements.rs:1325` | agrees with the alert frame (API 26); a plain sheet is 16.8 |
+| `dialog.radius` | 26 (was a reference to `unified`) | Malaysia `scene_elements.rs:1325`; the kit reads `CORNER_SHEET` and `CORNER_ALERT` | agrees with the alert frame (API 26); a plain sheet is 16.8 |
 | `popover.radius`, `arrow-tip-radius` | 20, 4 | Malaysia `window_style.rs:426-449`; the kit reads only the arrow band | the radius agrees (19.7 to 20.2); the tip is not a corner measurement |
 | `tooltip.radius` | 5.25 | kit `tooltip.rs:141` | agrees (5.2) |
 | `shell.menu.panel.radius` | 14 | Malaysia `window_style.rs:430`, `scene_elements.rs:1007` | **wrong**: 12 (12.5 measured) |
@@ -246,4 +250,43 @@ Existing tokens that changed, and why Malaysia's drawing changes with them:
 | `shell.menubar.title-open.radius`, `dock.label-radius`, `label-arrow-tip-radius`, `menu-arrow-tip-radius` | 12, 12, 3, 6 | Malaysia | the open pill is not measured |
 | `settings.wallpaper.crop.corner`, `corner-stroke`, `preview.*` | 16, 3, various | kit | not measured |
 
-A plain sheet in the kit (`SheetStyle.shape`, radius 26) is right for an `Alert` and 9.2 too round for a sheet, whose silhouette is 16.8; the kit's `Sheet` shares the style, so it was left.
+A plain sheet in the kit was drawn with radius 26, right for an `Alert` and 9.2 too round for a sheet, whose silhouette is 16.8; a `Sheet` is now `CORNER_SHEET.fitted` and an `Alert` `CORNER_ALERT.fitted` (section 12).
+
+## 12. The kit
+
+The kit (`crates/bk`) draws a corner through one function, `style::continuous` (`Shape::corner_radius` and `style::continuous_corner` call it), whose smoothing is `CORNER_SMOOTHING` (0.745). Decided 2026-11-22, [ADR 0101](../decisions.md).
+
+**Which curve.** The on-screen 0.745 applies to a Skia path because the kit draws what the user sees: the window server's pixels (section 2). The 0.61 of a CPU render (`CALayer.render`, `ImageRenderer`) is a different renderer and not the look on screen. A control is `Continuous` where its layer is (section 6) and `Circular` where its layer is circular or nobody measured it. A capsule and a circle are the same in both curves. Freya shortens the tails when the radius is over a quarter of the shorter side; CoreAnimation's clamp is not measured (section 8).
+
+**Skia against the reference.** Skia's anti-aliasing is not the 16-row box filter of `ctappearance::corner::coverage`. The kit's corner against the reference tile (`crates/bk/tests/kit/corners.rs`, scale 1, edges on the pixel grid): rms 0.007 to 0.019 and maximum 0.065 to 0.142 at radius 2.5, 4, 6, 7, 8, 12.5, 16.8 and 26 (the worst is radius 7). Against the five measured tiles it has rms 0.014 to 0.018 and maximum 0.149 to 0.220, so the check against a capture of the kit's own pixels is rms 0.02 and maximum 0.25. The old 0.52866 has rms 0.025 to 0.036 on the same tiles.
+
+**Radius by control: the kit before this change, what macOS gives, and the kit now.** Sizes are mini, small, regular, large, extra large. "Capsule" is a radius of half the height, which the kit draws as a `Capsule`.
+
+| Element | Kit before | Measured | Kit now |
+|---|---|---|---|
+| Push button, pop-up, pull-down | 4, 5, 6, capsule 14, capsule 18; circular | 4, 5, 6, 14, 18; continuous | same radii; continuous |
+| Segmented control, toggle group | 4, 5, 6, capsule, capsule; circular | layers 4, 5, 6, 14, 18; continuous | same radii; continuous |
+| Text field, secure field | 6 at every size; circular | 4, 5, 6, 7, 9; continuous | 4, 5, 6, 7, 9 (`TextFieldStyle::sized`); continuous |
+| Token field | field 6; token 2; circular | field as the text field; token not measured | field as the text field, continuous; token 2, circular |
+| Search field | capsule | capsule in pixels (layers 4 to 9: not what is drawn) | capsule |
+| Combo box field | 6 at every size; circular | 4, 5, 6, 7, 9 | 4, 5, 6, 7, 9 (`ComboBox::size`); continuous |
+| Combo box button | 3, 4, 4, 5, 7; circular | 2.5, 3.5, 4.5, 5.5, 6.5; continuous | 2.5, 3.5, 4.5, 5.5, 6.5; continuous |
+| Checkbox | 3.5, 4.5, 5.5, 6.5, 6.5; circular | the same; continuous | same radii; continuous |
+| Radio, round button, help button | circle | circles 12 to 36 across | circle |
+| Slider track and knob, switch, progress bar | capsules | half the height at every size | capsules |
+| Group box | 12; circular | `NSBox` primary 12; continuous | 12; continuous |
+| Tab view strip, pill, box | 6 (5, 4 at small, mini), 5, 5; circular | layers 4 and 6, continuous; the pair is not assigned | same radii; continuous |
+| Toolbar tab | container 12 (not measured), tab 8; circular | `NSGlassEffectView` 8; continuous | container 12 circular, tab 8 continuous |
+| Sidebar item selection | 8; circular | 8, continuous tail (1x capture of the SwiftUI sidebar: rms 0.025 at 0.745, 0.028 at 0.529, 0.034 circular; radius 6 gives 0.084) | 8; continuous |
+| Table, outline row selection | 7; continuous at 0.529 | 7 continuous (control metrics) | 7; continuous at 0.745 |
+| Form card | 12.5; continuous at 0.529 | 12.5 continuous (control metrics) | 12.5; continuous at 0.745 |
+| Sheet | 26; continuous at 0.529 | silhouette 16.8, continuous | 16.8 (`CORNER_SHEET.fitted`); continuous at 0.745 |
+| Alert | 26; continuous at 0.529 | 26 (API), glass not captured | 26 (`CORNER_ALERT.fitted`); continuous at 0.745 |
+| Window glass hole (`WindowGlass`) | 16 | silhouette 16.8 | 16.8 (`CORNER_WINDOW.fitted`) |
+| Tooltip | 5.25; circular | 5.2 | unchanged: 0.05 is inside the fit error |
+| Popover, menu, notifications, Dock, Spotlight | not drawn by the kit | section 4 and 5 | not drawn by the kit |
+| Icon button 8, collection tile 10, image well 8, settings card 12, menu item 8, date picker segment 3 and day 4.5, stepper 6, media button 10, titlebar rail pill 13, color well expanded 5 | circular | not measured here | unchanged |
+
+**The concentric rule in the kit.** `style::concentric(outer, inset)` applies `ctappearance::corner::concentric` to each corner with the same inset on both sides and a minimum of 0. It replaces `radius - inset` in two places: the well of a `ColorPicker` (the capsule bezel of 12 with the swatch at inset 3 gives 9, the layer of `NSColorWell` default) and the clip and inner border of an `ImageWell` (8 at inset 4 gives 4). Where a cell draws a nested shape and it was measured, the measurement stays: the tab pill (5 in a strip of 6, inset 2; the rule gives 4); the menu item (8 in a menu of 12 at padding 4) agrees with the rule. A sidebar item is not nested: the sidebar is flat (corner radius 0). A form card (12.5) with a `GroupBox` (12) or a sheet with content cards at an inset over the container's radius has `minimum` (outside the corner region), so each keeps its own measured radius.
+
+**Parity tests.** `crates/bk/src/styles/corners.rs` checks the radius and the curve of every control at every `ControlSize` against `CORNER_CONTROLS`, and the group box against 12. `crates/bk/tests/kit/corners.rs` checks the Skia corner against `ctappearance::corner::tile` (rms 0.02 and maximum 0.2) and the measured tiles (rms 0.02, maximum 0.25), and that the old smoothing fails the rms.

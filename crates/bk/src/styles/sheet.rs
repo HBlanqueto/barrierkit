@@ -1,7 +1,7 @@
 use ctappearance::ColorScheme;
 use ctdesign::{
-    DIALOG, DIALOG_PADDING, DIALOG_SOLID_DARK, DIALOG_SOLID_LIGHT, DIALOG_SOLID_SCRIM_LIGHT,
-    HAIRLINE, SHADOW, SHADOW_DARK,
+    CORNER_ALERT, CORNER_SHEET, DIALOG_PADDING, DIALOG_SOLID_DARK, DIALOG_SOLID_LIGHT,
+    DIALOG_SOLID_SCRIM_LIGHT, HAIRLINE, SHADOW, SHADOW_DARK,
 };
 
 use super::{
@@ -20,8 +20,9 @@ use super::{
 pub struct SheetStyle {
     /// Tengen: `padding`: `DIALOG_PADDING`.
     pub padding: f32,
-    /// Tengen: `RoundedRectangle { radius: DIALOG.corner_radius, style: Continuous }`; a
-    /// `Capsule` or `Circle` stays square.
+    /// Tengen: `RoundedRectangle { radius: CORNER_SHEET.fitted, style: Continuous }`, the
+    /// silhouette of a sheet; an `Alert` takes `CORNER_ALERT.fitted`. A `Capsule` or `Circle` stays
+    /// square.
     pub shape: Shape,
     /// Tengen: `scrim` `Role(Scrim)` over the window; `DIALOG_SOLID_SCRIM_LIGHT` in light with
     /// Increase Contrast, which implies Reduce Transparency.
@@ -35,6 +36,18 @@ pub struct SheetStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
+}
+
+impl SheetStyle {
+    pub(crate) fn alert(self) -> Self {
+        Self {
+            shape: Shape::RoundedRectangle {
+                radius: CORNER_ALERT.fitted,
+                style: CornerStyle::Continuous,
+            },
+            ..self
+        }
+    }
 }
 
 impl ControlStyle for SheetStyle {
@@ -56,7 +69,7 @@ impl ControlStyle for SheetStyle {
         Self {
             padding: DIALOG_PADDING,
             shape: Shape::RoundedRectangle {
-                radius: DIALOG.corner_radius as f32,
+                radius: CORNER_SHEET.fitted,
                 style: CornerStyle::Continuous,
             },
             scrim: StateValue::new(scrim),

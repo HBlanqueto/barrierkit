@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SIDEBAR};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::{ColorEffect, ControlStyle, Shape, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
@@ -12,7 +12,7 @@ pub struct SidebarItemStyle {
     pub padding_x: f32,
     /// Tengen: `item_gap`.
     pub spacing: f32,
-    /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_radius, style: Continuous }`.
     pub shape: Shape,
     /// Tengen, with `selected_background`, `label`, `selected_label`: `background` `Clear`;
     /// `selected_background` `Color` of the selection; `label`,
@@ -58,7 +58,7 @@ impl ControlStyle for SidebarItemStyle {
             height: SIDEBAR.item_height as f32,
             padding_x: SIDEBAR.item_padding_x as f32,
             spacing: SIDEBAR.item_gap as f32,
-            shape: rounded(SIDEBAR.item_radius as f32),
+            shape: continuous_rounded(SIDEBAR.item_radius as f32),
             background: StateValue::new(ShapeStyle::Clear),
             selected_background: StateValue::new(ShapeStyle::Color(palette.selected_bg)),
             label: StateValue::new(ShapeStyle::Color(palette.item_ink)),

@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use ctappearance::SidebarGlass;
-use ctdesign::{Rgba, WINDOW_CORNER};
+use ctdesign::{CORNER_WINDOW, Rgba};
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -129,7 +129,7 @@ forward_overrides!(WindowGlass);
 impl Component for WindowGlass {
     fn render(&self) -> impl IntoElement {
         let glass = sidebar_glass();
-        let radius = WINDOW_CORNER.titlebar as f32;
+        let radius = CORNER_WINDOW.fitted;
         let mut area = use_state(Area::default);
         use_publish(glass, radius, *area.read());
         let root = rect()

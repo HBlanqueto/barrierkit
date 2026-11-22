@@ -20,7 +20,7 @@ pub struct PopUpButtonStyle {
     /// is `(height - indicator_size) / 2`, so the indicator sits as far from the end as from
     /// the top.
     pub leading_padding: f32,
-    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`; the focus ring
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Continuous }`; the focus ring
     /// takes its corners.
     pub shape: Shape,
     /// Tengen: `Role(ControlBackground)`, as the bezel of a bordered button.

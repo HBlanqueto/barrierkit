@@ -1,6 +1,6 @@
 use ctdesign::{BODY, BUTTON, COLOR_PICKER, Font, SPACE_2, SPLIT_VIEW};
 
-use super::button::rounded;
+use super::button::{continuous_rounded, rounded};
 use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
@@ -21,7 +21,7 @@ pub struct ColorPickerStyle {
     pub panel_size: (f32, f32),
     /// Tengen: `SPACE_2`, between the rows of the panel.
     pub spacing: f32,
-    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Circular }`, the preview of the
+    /// Tengen: `RoundedRectangle { radius: BUTTON.radius, style: Continuous }`, the preview of the
     /// panel.
     pub shape: Shape,
     /// Tengen: `Capsule`, the well.
@@ -55,7 +55,7 @@ impl ControlStyle for ColorPickerStyle {
             size: (BUTTON.height * 2.0, BUTTON.height),
             panel_size: (SPLIT_VIEW.inspector, BODY.line_height as f32 * 7.0),
             spacing: SPACE_2,
-            shape: rounded(BUTTON.radius),
+            shape: continuous_rounded(BUTTON.radius),
             well_shape: Shape::Capsule,
             caption: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             bezel: StateValue::new(ShapeStyle::Role(Role::SystemFill)),

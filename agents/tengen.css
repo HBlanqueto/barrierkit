@@ -378,7 +378,7 @@
   --bk-combo-box-button-width: 24;
   --bk-combo-box-button-height: 20;
   --bk-combo-box-button-inset-x: 4;
-  --bk-combo-box-button-radius: var(--bk-radius-xs);
+  --bk-combo-box-button-radius: 4.5;
   --bk-combo-box-text-gap: 6;
   --bk-combo-box-chevron: 9.5;
   --bk-combo-box-chevron-stroke: 1.5;
@@ -388,7 +388,7 @@
   --bk-combo-box-mini-button-width: 16;
   --bk-combo-box-mini-button-height: 11;
   --bk-combo-box-mini-button-inset-x: 3;
-  --bk-combo-box-mini-button-radius: 3;
+  --bk-combo-box-mini-button-radius: 2.5;
   --bk-combo-box-mini-chevron: 8.2;
   --bk-combo-box-mini-chevron-stroke: 1.25;
   --bk-combo-box-small-height: 20;
@@ -397,7 +397,7 @@
   --bk-combo-box-small-button-width: 20;
   --bk-combo-box-small-button-height: 16;
   --bk-combo-box-small-button-inset-x: 3;
-  --bk-combo-box-small-button-radius: 4;
+  --bk-combo-box-small-button-radius: 3.5;
   --bk-combo-box-small-chevron: 9.5;
   --bk-combo-box-small-chevron-stroke: 1.5;
   --bk-combo-box-large-height: 28;
@@ -406,7 +406,7 @@
   --bk-combo-box-large-button-width: 23;
   --bk-combo-box-large-button-height: 21;
   --bk-combo-box-large-button-inset-x: 4;
-  --bk-combo-box-large-button-radius: 5;
+  --bk-combo-box-large-button-radius: 5.5;
   --bk-combo-box-large-chevron: 11.4;
   --bk-combo-box-large-chevron-stroke: 1.8;
   --bk-combo-box-xl-height: 36;
@@ -415,7 +415,7 @@
   --bk-combo-box-xl-button-width: 29;
   --bk-combo-box-xl-button-height: 27;
   --bk-combo-box-xl-button-inset-x: 5;
-  --bk-combo-box-xl-button-radius: 7;
+  --bk-combo-box-xl-button-radius: 6.5;
   --bk-combo-box-xl-chevron: 11.4;
   --bk-combo-box-xl-chevron-stroke: 1.8;
   --bk-help-link-glyph: 18.5;

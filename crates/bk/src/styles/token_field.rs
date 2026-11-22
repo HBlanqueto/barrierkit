@@ -30,7 +30,7 @@ pub struct TokenFieldStyle {
     pub token_label_lift: f32,
     /// Tengen: `TOKEN_FIELD.input_min_width`, the text input after the tokens.
     pub input_width: f32,
-    /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Continuous }`.
     pub shape: Shape,
     /// Tengen: `RoundedRectangle { radius: TOKEN_FIELD.token_radius, style: Circular }`.
     pub token_shape: Shape,

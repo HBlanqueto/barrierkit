@@ -65,13 +65,7 @@ impl Component for ImageWell {
             .shape
             .corner_radius(size, size, LayoutDirection::LeftToRight);
         let inset = style.inset;
-        let inner = CornerRadius::new(
-            (radius.top_left() - inset).max(0.0),
-            (radius.top_right() - inset).max(0.0),
-            (radius.bottom_right() - inset).max(0.0),
-            (radius.bottom_left() - inset).max(0.0),
-        )
-        .with_smoothing(radius.smoothing());
+        let inner = crate::style::concentric(radius, inset);
         let element = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Image)

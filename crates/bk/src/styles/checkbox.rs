@@ -1,6 +1,6 @@
 use ctdesign::{BODY, CHECKBOX, ControlSize, Font};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::{
     ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
     StateValue, disabled_palette, pressed_palette, system_effect,
@@ -22,7 +22,7 @@ pub struct CheckboxStyle {
     pub mixed_mark: (f32, f32),
     /// Tengen: `CHECKBOX.gap`.
     pub label_gap: f32,
-    /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: CHECKBOX.radius, style: Continuous }`.
     pub box_shape: Shape,
     /// Tengen, with `fill`: `Role(SystemFill)` while unchecked, `Role(ToggleAccent)` while checked;
     /// disabled `Color(DisabledPalette.off)` and `Color(DisabledPalette.on)`.
@@ -62,7 +62,7 @@ impl CheckboxStyle {
             mark_stroke: row.mark_stroke,
             mixed_mark: (row.mixed_mark, row.mixed_stroke),
             label_gap: row.gap,
-            box_shape: rounded(row.radius),
+            box_shape: continuous_rounded(row.radius),
             label_font: Font {
                 size: row.font_size as u32,
                 line_height: row.size as u32,
@@ -81,7 +81,7 @@ impl ControlStyle for CheckboxStyle {
             mark_stroke: CHECKBOX.mark_stroke,
             mixed_mark: (CHECKBOX.mixed_mark, CHECKBOX.mixed_stroke),
             label_gap: CHECKBOX.gap,
-            box_shape: rounded(CHECKBOX.radius),
+            box_shape: continuous_rounded(CHECKBOX.radius),
             box_background: StateValue::new(ShapeStyle::Role(Role::SystemFill))
                 .pressed(ShapeStyle::Color(pressed_palette().off))
                 .disabled(ShapeStyle::Color(disabled_palette().off)),

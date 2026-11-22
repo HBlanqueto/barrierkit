@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use ctdesign::{Font, Rgba, WINDOW_CORNER};
+use ctdesign::{CORNER_SMOOTHING, Font, Rgba, WINDOW_CORNER};
 use freya_core::prelude::*;
 
 use crate::theme::color;
@@ -120,9 +120,20 @@ pub fn continuous_corner(radius: f32) -> CornerRadius {
     continuous(CornerRadius::new_all(radius))
 }
 
-// Freya's smoothing s runs the curve to (1 + s) R, Apple's 1.5287 R (malaysia ADR 0059).
+// The curve macOS draws on screen for cornerCurve = .continuous: Freya's smoothing s runs it to (1 + s) R (ADR 0097).
 pub(crate) fn continuous(radius: CornerRadius) -> CornerRadius {
-    radius.with_smoothing(WINDOW_CORNER.expansion - 1.0)
+    radius.with_smoothing(CORNER_SMOOTHING)
+}
+
+pub(crate) fn concentric(outer: CornerRadius, inset: f32) -> CornerRadius {
+    let inner = |radius| ctappearance::corner::concentric(radius, inset, inset, 0.0);
+    CornerRadius::new(
+        inner(outer.top_left()),
+        inner(outer.top_right()),
+        inner(outer.bottom_right()),
+        inner(outer.bottom_left()),
+    )
+    .with_smoothing(outer.smoothing())
 }
 
 /// A card filled with `fill` and framed like a panel window: in dark the glass inner line

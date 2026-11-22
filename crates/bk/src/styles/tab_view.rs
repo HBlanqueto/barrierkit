@@ -1,6 +1,6 @@
 use ctdesign::{BODY, CAPTION, ControlSize, Font, Rgba, SPACE_2, TAB_VIEW, TOOLBAR_TABS};
 
-use super::button::rounded;
+use super::button::{continuous_rounded, rounded};
 use super::{
     ColorEffect, ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle,
     StateValue, system_effect,
@@ -167,7 +167,7 @@ impl TabViewStyle {
                 TOOLBAR_TABS.tab_padding_bottom,
             ),
             shape: rounded(TOOLBAR_TABS.radius),
-            tab_shape: rounded(TOOLBAR_TABS.tab_radius),
+            tab_shape: continuous_rounded(TOOLBAR_TABS.tab_radius),
             background: StateValue::new(ShapeStyle::Clear),
             tab_background: StateValue::new(ShapeStyle::Clear)
                 .hovered(ShapeStyle::Role(Role::ControlBackground)),
@@ -197,7 +197,7 @@ impl TabViewStyle {
             strip_inset: row.strip_inset,
             page_gap: row.page_gap,
             tab_padding_x: row.strip_padding_x,
-            shape: rounded(row.strip_radius),
+            shape: continuous_rounded(row.strip_radius),
             ..self
         }
     }
@@ -217,8 +217,8 @@ impl ControlStyle for TabViewStyle {
             tab_padding_y: TAB_VIEW.strip_padding_y,
             icon_size: TOOLBAR_TABS.icon,
             icon_spacing: TOOLBAR_TABS.icon_gap,
-            shape: rounded(TAB_VIEW.strip_radius),
-            tab_shape: rounded(TAB_VIEW.pill_radius),
+            shape: continuous_rounded(TAB_VIEW.strip_radius),
+            tab_shape: continuous_rounded(TAB_VIEW.pill_radius),
             background: StateValue::new(over_window(TAB_VIEW.strip_opacity[mode])),
             tab_background: StateValue::new(ShapeStyle::Clear),
             selected_tab_background: pill(),
@@ -242,7 +242,7 @@ impl ControlStyle for TabViewStyle {
                 spread: 1.0,
                 inner: false,
             }],
-            box_shape: rounded(TAB_VIEW.box_radius),
+            box_shape: continuous_rounded(TAB_VIEW.box_radius),
             box_background: StateValue::new(label_at(TAB_VIEW.box_fill_opacity)),
             box_border: Some((
                 label_at(TAB_VIEW.box_border_opacity[mode]),

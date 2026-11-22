@@ -227,14 +227,14 @@
       "button-width": 24,
       "button-height": 20,
       "button-inset-x": 4,
-      "button-radius": "radius.xs",
+      "button-radius": 4.5,
       "text-gap": 6,
       "chevron": 9.5,
       "chevron-stroke": 1.5,
-      "mini": {"height": 16, "font-size": 9, "line-height": 11, "button-width": 16, "button-height": 11, "button-inset-x": 3, "button-radius": 3, "chevron": 8.2, "chevron-stroke": 1.25},
-      "small": {"height": 20, "font-size": 11, "line-height": 14, "button-width": 20, "button-height": 16, "button-inset-x": 3, "button-radius": 4, "chevron": 9.5, "chevron-stroke": 1.5},
-      "large": {"height": 28, "font-size": 13, "line-height": 18, "button-width": 23, "button-height": 21, "button-inset-x": 4, "button-radius": 5, "chevron": 11.4, "chevron-stroke": 1.8},
-      "xl": {"height": 36, "font-size": 13, "line-height": 18, "button-width": 29, "button-height": 27, "button-inset-x": 5, "button-radius": 7, "chevron": 11.4, "chevron-stroke": 1.8}
+      "mini": {"height": 16, "font-size": 9, "line-height": 11, "button-width": 16, "button-height": 11, "button-inset-x": 3, "button-radius": 2.5, "chevron": 8.2, "chevron-stroke": 1.25},
+      "small": {"height": 20, "font-size": 11, "line-height": 14, "button-width": 20, "button-height": 16, "button-inset-x": 3, "button-radius": 3.5, "chevron": 9.5, "chevron-stroke": 1.5},
+      "large": {"height": 28, "font-size": 13, "line-height": 18, "button-width": 23, "button-height": 21, "button-inset-x": 4, "button-radius": 5.5, "chevron": 11.4, "chevron-stroke": 1.8},
+      "xl": {"height": 36, "font-size": 13, "line-height": 18, "button-width": 29, "button-height": 27, "button-inset-x": 5, "button-radius": 6.5, "chevron": 11.4, "chevron-stroke": 1.8}
     },
     "help-link": {
       "glyph": 18.5,

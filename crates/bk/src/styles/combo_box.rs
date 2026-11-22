@@ -1,6 +1,6 @@
 use ctdesign::{BODY, COMBO_BOX, ControlSize, Font, TEXT_FIELD};
 
-use super::button::rounded;
+use super::button::continuous_rounded;
 use super::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
@@ -28,7 +28,7 @@ pub struct ComboBoxStyle {
     pub chevron_size: f32,
     /// Tengen: `COMBO_BOX.chevron_stroke`, in points.
     pub chevron_stroke: f32,
-    /// Tengen: `RoundedRectangle { radius: COMBO_BOX.button_radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: COMBO_BOX.button_radius, style: Continuous }`.
     pub button_shape: Shape,
     /// Tengen: `Role(ComboButton)`.
     pub button: StateValue<ShapeStyle>,
@@ -64,7 +64,7 @@ impl ComboBoxStyle {
             button_inset: row.button_inset_x,
             chevron_size: row.chevron,
             chevron_stroke: row.chevron_stroke,
-            button_shape: rounded(row.button_radius),
+            button_shape: continuous_rounded(row.button_radius),
             ..self
         }
     }
@@ -80,7 +80,7 @@ impl ControlStyle for ComboBoxStyle {
             text_gap: COMBO_BOX.text_gap,
             chevron_size: COMBO_BOX.chevron,
             chevron_stroke: COMBO_BOX.chevron_stroke,
-            button_shape: rounded(COMBO_BOX.button_radius),
+            button_shape: continuous_rounded(COMBO_BOX.button_radius),
             button: StateValue::new(ShapeStyle::Role(Role::ComboButton))
                 .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
             chevron: StateValue::new(ShapeStyle::Role(Role::Label))

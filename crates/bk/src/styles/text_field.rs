@@ -1,6 +1,6 @@
-use ctdesign::{BODY, ControlSize, Font, TEXT_FIELD};
+use ctdesign::{BODY, CORNER_CONTROLS, ControlSize, Font, TEXT_FIELD};
 
-use super::button::rounded;
+use super::button::{continuous_rounded, corner_for};
 use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 
 /// Freya's `Input` draws `TextField` and `SearchField`. It paints one color per
@@ -19,7 +19,7 @@ pub struct TextFieldStyle {
     pub height: f32,
     /// Tengen: `TEXT_FIELD.padding_x`.
     pub padding_x: f32,
-    /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: TEXT_FIELD.radius, style: Continuous }`.
     pub shape: Shape,
     /// Tengen: `Role(TextBackground)`.
     pub background: StateValue<ShapeStyle>,
@@ -41,12 +41,14 @@ pub struct TextFieldStyle {
 
 impl TextFieldStyle {
     pub(crate) fn sized(self, size: ControlSize) -> Self {
+        let shape = continuous_rounded(corner_for(CORNER_CONTROLS.text_field, size));
         let row = match size {
             ControlSize::Mini => TEXT_FIELD.mini,
             ControlSize::Small => TEXT_FIELD.small,
-            _ => return self,
+            _ => return Self { shape, ..self },
         };
         Self {
+            shape,
             height: row.height,
             font: Font {
                 size: row.font_size,
@@ -69,7 +71,7 @@ impl TextFieldStyle {
 }
 
 pub(super) fn field_shape() -> Shape {
-    rounded(TEXT_FIELD.radius)
+    continuous_rounded(TEXT_FIELD.radius)
 }
 
 impl ControlStyle for TextFieldStyle {
