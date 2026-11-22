@@ -21,22 +21,76 @@ texts and the questions still open.
 
 ## Status
 
-| What | State on 2026-11-21 |
+| What | State on 2026-11-22 |
 |---|---|
 | Decision | Taken by the owner: the compositor composes all blur; the kit drops its Skia in-window blur |
+| Requirements | The owner's, in [the Requirements section](#requirements) |
 | Phase 0 | Done, in software. The lag test passes; the frame time on a GPU is **NOT measured** |
 | Phase 1 | Done: `infinity_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), the text for Malaysia in [section 8.3](#83-malaysias-adr-ready-to-paste) |
-| Phase 2 | Not started. Gate: the GPU frame time of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) |
+| Phase 2 | Not started. Gate: the GPU frame time of [section 10](#10-gpu-runbook-the-frame-time-of-the-band-pass) against the criterion the owner decided on 2026-11-22 |
 | Blur values per material | Not in this document. They come from [`macos-materials.md`](macos-materials.md) and [`macos-blur.md`](macos-blur.md), which two other sessions are measuring |
+| Other choices of phase 1 | Pending the owner's confirmation ([ADR 0091](../decisions.md)) |
+| Does version 10 carry all of macOS's configuration? | To review when the measurements end ([section 9.3](#93-to-review-when-the-measurements-end)) |
+
+## Requirements
+
+The owner's requirements for every blur, from 2026-11-21 and 2026-11-22. The
+rest of this document serves them.
+
+1. **Identical to macOS 27.2.1**, on the desktop and in windows.
+   - Desktop: the menu bar, menus, the Dock, Control Center, Notification
+     Center, banners, Spotlight, Mission Control, Launchpad, the lock screen
+     and every other surface of the shell.
+   - Windows: the 14 materials of `NSVisualEffectView` in `withinWindow` and
+     `behindWindow`, sidebars, toolbars, title bars, sheets, popovers, HUD
+     windows, tooltips, scroll edge effects and Liquid Glass
+     (`NSGlassEffectView`, SwiftUI `glassEffect`).
+2. **Exact values, measured, with provenance.** Each value comes from a
+   measurement and records its background, appearance, state, scale, date and
+   method. "Identical" is shown by comparing a capture of macOS with the
+   model's output over the same background. A value not measured is written
+   "not measured"; it is never invented and never copied from another surface.
+   A reading taken with `~/src/probes/sample` before its fix on 2026-11-21 has
+   shifted mid-tones (it read the raw bytes as Generic RGB with gamma 1.8), so
+   such a value is read again from the raw PNG.
+3. **A 1:1 replica of how it works and how it is configured.** The compositor
+   composes as macOS does, and the protocol exposes the same configuration
+   ([section 9.3](#93-to-review-when-the-measurements-end)).
+4. **Malaysia's algorithm is redone where the measurements demand it.** The
+   Kawase passes and the per-surface veils of today are a starting point. If a
+   measurement shows macOS blurs, saturates or tints differently, the
+   compositor changes. The GPU criterion of section 10 measures the algorithm
+   of phase 0; if the algorithm changes, the measurement is repeated.
+5. **Everything documented, in English**, dated, in the commit that changes it:
+   each measurement, decision, API and token.
+
+### Who measures what
+
+| Area | Measured by | Document | Covers |
+|---|---|---|---|
+| Materials in windows | session `blur-macos-ventanas` | [`macos-materials.md`](macos-materials.md) | the 14 `NSVisualEffectView` materials in both blending modes, light and dark, active and inactive; sidebar, toolbar, title bar, sheet, popover, HUD, tooltip and scroll edge effect |
+| Desktop surfaces | session `blur-macos-escritorio` | [`macos-blur.md`](macos-blur.md) | every shell surface listed in requirement 1, in light and dark |
+| Liquid Glass | no session assigned on 2026-11-22 | [`macos-liquid-glass.md`](macos-liquid-glass.md) | `NSGlassEffectView` regular and clear, its tint and interaction, the merging of a container, SwiftUI `glassEffect`. Only the blur extent of the two styles is measured so far ([`blur-ownership.md`](blur-ownership.md#14-what-the-app-sets-and-what-the-system-decides)) |
+
+Their tokens go to Tengen (`crates/ctdesign/tengen/components.json`, read by
+`ctdesign/build.rs`, [ADR 0032 · 0046](../decisions.md)), never to the
+compositor or to `bk`. Each session names its tokens under the glossary rules
+and adds them to [the glossary](../barrierkit/20-glossary.md) in its own
+commit. The windows session adds the per-material table that section 5, step
+3 reads; the desktop session refits the shell values that exist today
+(`background-blur`, and `ctappearance`'s `menu_glass` and `dock_surface`). This
+document and the protocol carry no value.
 
 ## Steps
 
-1. Read the decision and its consequences in section 1.
-2. Read the protocol in section 3 and the rules in section 4.
-3. Read the phase 0 results in section 7.2 and the phase table in section 7.1.
-4. Run section 10 on a Linux machine with a GPU. Record the result in section 7.2.
-5. If the owner approves phase 2, a Malaysia session pastes section 8.3 into
-   Malaysia's `docs/decisions.md` and implements section 5.
+1. Read the requirements.
+2. Read the decision and its consequences in section 1.
+3. Read the protocol in section 3 and the rules in section 4.
+4. Read the phase 0 results in section 7.2 and the phase table in section 7.1.
+5. Run section 10 on a Linux machine with a GPU. Record the result in section 7.2.
+6. If the measurement passes the criterion, a Malaysia session pastes section
+   8.3 into Malaysia's `docs/decisions.md` and implements section 5.
+7. When the measurement sessions report, review section 9.3.
 
 ---
 
@@ -269,7 +323,7 @@ blue one beside it must not. The phase 0 tests are the model for the lag test:
 |---|---|---|---|
 | 0 | The experiment of section 7.2 | 1 to 2 | Done, in software. GPU frame time **NOT measured** |
 | 1 | Protocol version 10 in `infinity-protocol`, the ADRs | 1 to 2 | Done |
-| 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Not started. Gate: the GPU frame time of section 10 and the owner's approval |
+| 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Not started. Gate: the GPU frame time of section 10 against the criterion the owner decided on 2026-11-22 |
 | 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Not started |
 | 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Not started |
 
@@ -393,7 +447,7 @@ Decision:
 - `appearance.wallpaper_tinting` (default `true`, dark mode only unless `wallpaper_tinting_in_light`): the compositor averages the wallpaper grid cells behind each window and sends the color in the `wallpaper` event of `infinity_focus_surface_v1`. The kit, the patched libadwaita and the compositor's titlebar mix it in.
 Why: macOS composes every blur outside the app, in both blending modes, and the app declares the material; one place then decides radius and accessibility. No client sees other clients' pixels, so only the compositor can blur or sample what is behind a window, and it already samples a client's own pixels for `set_knobs`. The [protocol](https://wayland.app/protocols/ext-background-effect-v1) leaves strength to the compositor and has no material. `set_glass`, `set_plates` and `set_knobs` already paint for clients.
 Rejected: blurring every window by default (GPU cost); a blur drawn by the client as the shipping path (two places for Reduce Transparency, two blur algorithms); `ext-background-effect-v1` on sub-surfaces (KWin, Hyprland and niri ignore their regions); the compositor painting client backgrounds the client did not ask it to paint.
-Pending: confirmation by the owner of the frame time of the in-window pass on a real GPU (not measured; the gate of phase 2) and of the blur values per material (being measured).
+Pending: the frame time of the in-window pass on a real GPU, which is not measured and gates phase 2 (the owner decided on 2026-11-22: median of at most 1.0 ms at 2x for a 96 px band to pass, over 2.5 ms to stop, no frame of 40 at 8.33 ms or more), and the blur values per material (being measured).
 Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/window_style.rs`, `crates/malaysia-compositor/src/scene_elements.rs`, `crates/malaysia-compositor/src/capture.rs`, `crates/malaysia-compositor/src/focus_notice.rs`
 ```
 
@@ -442,6 +496,37 @@ Code: `crates/malaysia-compositor/src/blur.rs`, `crates/malaysia-compositor/src/
 11. The blur values per material (radius, saturation, tint) are being measured
     in [`macos-materials.md`](macos-materials.md) and
     [`macos-blur.md`](macos-blur.md). The protocol needs none of them.
+12. Does version 10 carry all of macOS's configuration? To review when the
+    measurements end (section 9.3).
+
+### 9.3 To review when the measurements end
+
+Does version 10 carry all the configuration macOS has, or must it grow before
+Malaysia serves it? Until Malaysia advertises version 10 nothing sends these
+requests, so version 10 can still change in place; afterwards each addition is
+a new version. The XML does not change now. Review each row against the
+measurement sessions' results: a setting is added only if the look of macOS
+changes with it, and the measurement says so.
+
+| macOS setting | Where | Version 10 |
+|---|---|---|
+| `material` | `NSVisualEffectView` | `set_backdrop`, `material` (14 values) |
+| `blendingMode` | `NSVisualEffectView` | `set_backdrop`, `blending` |
+| `state` (`followsWindowActiveState`, `active`, `inactive`) | `NSVisualEffectView` | not carried: the compositor follows the toplevel's active state |
+| `isEmphasized` | `NSVisualEffectView` | not carried |
+| `maskImage` | `NSVisualEffectView` | not carried: `rects` and `radius` give rounded rectangles only |
+| `style` (`regular`, `clear`) | `NSGlassEffectView` | `material` values `glass_regular` and `glass_clear` |
+| `cornerRadius` | `NSGlassEffectView` | `set_backdrop`, `radius` |
+| `tintColor` | `NSGlassEffectView` | not carried |
+| `effectIsInteractive` (macOS 27.0) | `NSGlassEffectView` | not carried |
+| `spacing` | `NSGlassEffectContainerView` | not carried (open question 3) |
+| `Glass.tint(_:)` and `.interactive()` of `glassEffect(_:in:)` | SwiftUI | not carried; `.regular` and `.clear` as `style`, `.identity` is no request |
+| `glassEffectID`, `glassEffectUnion`, `glassEffectTransition`, `GlassEffectContainer(spacing:)` | SwiftUI | not carried |
+| `scrollEdgeEffectStyle(_:for:)`, `scrollEdgeEffectHidden` | SwiftUI | `set_scroll_edge` (`edge`, `style`, `depth`); hidden is no request |
+
+The AppKit properties are in `NSVisualEffectView.h` and `NSGlassEffectView.h`
+of the macOS 27.2 SDK ([section 3](#3-the-protocol) names the folder); the
+SwiftUI ones are in [`swiftui-api-gap.md`](swiftui-api-gap.md).
 
 ## 10. GPU runbook: the frame time of the band pass
 
@@ -528,18 +613,18 @@ display; then the criterion below.
 
 ### Pass criterion
 
-The criterion is **a decision of the owner**. The thresholds below are a
-proposal, not a measurement. The numbers are the median of the three runs of
-the 2x test, with the maximum of its 40 frames.
+**The owner decided this criterion on 2026-11-22**, approving the thresholds
+below as proposed. They are not derived from a measurement. The numbers are the
+median of the three runs of the 2x test, with the maximum of its 40 frames.
 
 | Median band pass at 2x | Share of a 120 Hz frame | Share of a 60 Hz frame | Reading |
 |---|---|---|---|
 | 1.0 ms or less | 12 % or less | 6 % or less | Go: phase 2 starts |
-| Over 1.0 and up to 2.5 ms | Over 12 % and up to 30 % | Over 6 % and up to 15 % | The owner decides: phase 2 starts with a cheaper pass, or does not start |
+| Over 1.0 and up to 2.5 ms | Over 12 % and up to 30 % | Over 6 % and up to 15 % | Not decided on 2026-11-22: the owner decides when a measurement lands here, between a cheaper pass and no phase 2 |
 | Over 2.5 ms | Over 30 % | Over 15 % | No-go: no later phase has value |
 
-Also, the maximum of the 40 frames at 2x must stay under 8.33 ms, because one
-slow frame shows as a stutter while the window scrolls.
+Also decided: no frame of the 40 at 2x may reach 8.33 ms, because one slow
+frame shows as a stutter while the window scrolls.
 
 Why these figures:
 
