@@ -3176,6 +3176,13 @@
   --bk-scroll-bar-track-opacity-2: 0.149;
   --bk-scroll-bar-track-opacity-3: 0.148;
   --bk-scroll-bar-edge-height: 24;
+  --bk-gesture-tap-distance: 4;
+  --bk-gesture-tap-interval: 330;
+  --bk-gesture-long-press-duration: 500;
+  --bk-gesture-long-press-distance: 10;
+  --bk-gesture-drag-distance: 10;
+  --bk-gesture-magnify-delta: 0.01;
+  --bk-gesture-rotate-degrees: 1;
   --bk-scroll-physics-fling-distance: 157.5;
   --bk-scroll-physics-fling-exponent: 1.3333;
   --bk-scroll-physics-min-speed: 0.05;

@@ -3,18 +3,10 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::time::Instant;
 
+use ctdesign::GESTURE;
 use freya_core::prelude::*;
 
 use crate::scroll_physics::VelocityTracker;
-
-// SwiftUI's documented defaults; none is measured on this Mac (UIKit roadmap, U6).
-const TAP_DISTANCE: f32 = 10.0;
-const TAP_INTERVAL_MS: f32 = 500.0;
-const LONG_PRESS_MS: f32 = 500.0;
-const LONG_PRESS_DISTANCE: f32 = 10.0;
-const DRAG_DISTANCE: f32 = 10.0;
-const MAGNIFY_DELTA: f32 = 0.01;
-const ROTATE_DELTA: f32 = 1.0_f32.to_radians();
 
 pub type Point = (f32, f32);
 
@@ -124,9 +116,8 @@ impl Recognizer for TapRecognizer {
                     self.state = State::Failed;
                     return Step::Failed;
                 }
-                if let Some((at, time)) = self.last
-                    && (input.time - time > TAP_INTERVAL_MS
-                        || distance(at, input.at) > TAP_DISTANCE)
+                if let Some((_, time)) = self.last
+                    && input.time - time > GESTURE.tap_interval_ms
                 {
                     self.taps = 0;
                 }
@@ -134,7 +125,9 @@ impl Recognizer for TapRecognizer {
                 Step::Idle
             }
             Phase::Move => match self.down {
-                Some((id, at)) if id == input.id && distance(at, input.at) > TAP_DISTANCE => {
+                Some((id, at))
+                    if id == input.id && distance(at, input.at) > GESTURE.tap_distance =>
+                {
                     self.reset();
                     self.state = State::Failed;
                     Step::Failed
@@ -166,7 +159,7 @@ impl Recognizer for TapRecognizer {
 
     fn deadline(&self) -> Option<f32> {
         match (self.last, self.down) {
-            (Some((_, time)), None) if self.taps > 0 => Some(time + TAP_INTERVAL_MS),
+            (Some((_, time)), None) if self.taps > 0 => Some(time + GESTURE.tap_interval_ms),
             _ => None,
         }
     }
@@ -815,8 +808,8 @@ pub struct LongPressGesture {
 impl LongPressGesture {
     pub fn new() -> Self {
         Self {
-            minimum_duration: LONG_PRESS_MS,
-            maximum_distance: LONG_PRESS_DISTANCE,
+            minimum_duration: GESTURE.long_press_ms,
+            maximum_distance: GESTURE.long_press_distance,
             callbacks: Callbacks::default(),
         }
     }
@@ -855,7 +848,7 @@ pub struct DragGesture {
 impl DragGesture {
     pub fn new() -> Self {
         Self {
-            minimum_distance: DRAG_DISTANCE,
+            minimum_distance: GESTURE.drag_distance,
             callbacks: Callbacks::default(),
         }
     }
@@ -889,7 +882,7 @@ pub struct MagnifyGesture {
 impl MagnifyGesture {
     pub fn new() -> Self {
         Self {
-            minimum_delta: MAGNIFY_DELTA,
+            minimum_delta: GESTURE.magnify_delta,
             callbacks: Callbacks::default(),
         }
     }
@@ -918,7 +911,7 @@ pub struct RotateGesture {
 impl RotateGesture {
     pub fn new() -> Self {
         Self {
-            minimum_delta: ROTATE_DELTA,
+            minimum_delta: GESTURE.rotate_degrees.to_radians(),
             callbacks: Callbacks::default(),
         }
     }
@@ -1354,14 +1347,15 @@ mod tests {
     }
 
     #[test]
-    fn a_press_that_moves_past_the_slop_is_no_tap() {
+    fn a_press_that_moves_more_than_four_points_is_no_tap() {
         let mut tap = TapRecognizer::new(1);
         tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
+        assert_eq!(tap.feed(input(1, Phase::Move, 4.0, 0.0, 30.0)), Step::Idle);
         assert_eq!(
-            tap.feed(input(1, Phase::Move, 11.0, 0.0, 30.0)),
+            tap.feed(input(1, Phase::Move, 5.0, 0.0, 40.0)),
             Step::Failed
         );
-        assert_eq!(tap.feed(input(1, Phase::Up, 11.0, 0.0, 60.0)), Step::Idle);
+        assert_eq!(tap.feed(input(1, Phase::Up, 5.0, 0.0, 60.0)), Step::Idle);
     }
 
     #[test]
@@ -1369,7 +1363,7 @@ mod tests {
         let mut tap = TapRecognizer::new(2);
         tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         assert_eq!(tap.feed(input(1, Phase::Up, 0.0, 0.0, 50.0)), Step::Idle);
-        assert_eq!(tap.deadline(), Some(550.0));
+        assert_eq!(tap.deadline(), Some(380.0));
         tap.feed(input(1, Phase::Down, 2.0, 0.0, 300.0));
         assert!(matches!(
             tap.feed(input(1, Phase::Up, 2.0, 0.0, 340.0)),
@@ -1378,21 +1372,34 @@ mod tests {
     }
 
     #[test]
-    fn a_double_tap_fails_when_the_interval_passes_and_when_the_second_tap_is_far() {
+    fn a_double_tap_fails_when_the_interval_passes_and_counts_again_after_it() {
         let mut tap = TapRecognizer::new(2);
         tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         tap.feed(input(1, Phase::Up, 0.0, 0.0, 50.0));
-        assert_eq!(tap.elapse(500.0), Step::Idle);
-        assert_eq!(tap.elapse(551.0), Step::Failed);
+        assert_eq!(tap.elapse(380.0), Step::Idle);
+        assert_eq!(tap.elapse(381.0), Step::Failed);
         tap.feed(input(1, Phase::Down, 0.0, 0.0, 600.0));
         tap.feed(input(1, Phase::Up, 0.0, 0.0, 640.0));
-        tap.feed(input(1, Phase::Down, 40.0, 0.0, 700.0));
-        assert_eq!(tap.feed(input(1, Phase::Up, 40.0, 0.0, 740.0)), Step::Idle);
+        tap.feed(input(1, Phase::Down, 0.0, 0.0, 1100.0));
+        assert_eq!(tap.feed(input(1, Phase::Up, 0.0, 0.0, 1140.0)), Step::Idle);
+    }
+
+    #[test]
+    fn the_second_tap_of_a_double_tap_may_land_far_from_the_first() {
+        let mut tap = TapRecognizer::new(2);
+        tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
+        tap.feed(input(1, Phase::Up, 0.0, 0.0, 50.0));
+        tap.feed(input(1, Phase::Down, 90.0, 0.0, 200.0));
+        assert!(matches!(
+            tap.feed(input(1, Phase::Up, 90.0, 0.0, 240.0)),
+            Step::Ended(_)
+        ));
     }
 
     #[test]
     fn a_long_press_ends_when_the_duration_has_passed_in_place() {
-        let mut press = LongPressRecognizer::new(LONG_PRESS_MS, LONG_PRESS_DISTANCE);
+        let mut press =
+            LongPressRecognizer::new(GESTURE.long_press_ms, GESTURE.long_press_distance);
         press.feed(input(1, Phase::Down, 3.0, 4.0, 100.0));
         assert_eq!(press.deadline(), Some(600.0));
         assert_eq!(press.elapse(599.0), Step::Idle);
@@ -1407,7 +1414,8 @@ mod tests {
 
     #[test]
     fn a_long_press_fails_when_released_early_or_moved_away() {
-        let mut press = LongPressRecognizer::new(LONG_PRESS_MS, LONG_PRESS_DISTANCE);
+        let mut press =
+            LongPressRecognizer::new(GESTURE.long_press_ms, GESTURE.long_press_distance);
         press.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         assert_eq!(
             press.feed(input(1, Phase::Up, 0.0, 0.0, 200.0)),
@@ -1415,7 +1423,11 @@ mod tests {
         );
         press.feed(input(1, Phase::Down, 0.0, 0.0, 300.0));
         assert_eq!(
-            press.feed(input(1, Phase::Move, 0.0, 12.0, 350.0)),
+            press.feed(input(1, Phase::Move, 0.0, 10.0, 320.0)),
+            Step::Idle
+        );
+        assert_eq!(
+            press.feed(input(1, Phase::Move, 0.0, 11.0, 350.0)),
             Step::Failed
         );
         assert_eq!(press.elapse(2000.0), Step::Idle);
@@ -1423,7 +1435,7 @@ mod tests {
 
     #[test]
     fn a_drag_begins_at_the_minimum_distance_with_the_translation_so_far() {
-        let mut drag = DragRecognizer::new(DRAG_DISTANCE);
+        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
         drag.feed(input(1, Phase::Down, 10.0, 10.0, 0.0));
         assert_eq!(
             drag.feed(input(1, Phase::Move, 15.0, 10.0, 10.0)),
@@ -1439,7 +1451,7 @@ mod tests {
 
     #[test]
     fn a_drag_reports_its_velocity_in_points_per_millisecond() {
-        let mut drag = DragRecognizer::new(DRAG_DISTANCE);
+        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
         drag.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         let mut last = Step::Idle;
         for step in 1..=10 {
@@ -1463,7 +1475,7 @@ mod tests {
 
     #[test]
     fn a_release_before_the_distance_fails_and_a_cancel_after_it_cancels() {
-        let mut drag = DragRecognizer::new(DRAG_DISTANCE);
+        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
         drag.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         assert_eq!(drag.feed(input(1, Phase::Up, 3.0, 0.0, 50.0)), Step::Failed);
         drag.feed(input(1, Phase::Down, 0.0, 0.0, 100.0));
@@ -1476,7 +1488,7 @@ mod tests {
 
     #[test]
     fn a_drag_ignores_a_second_finger() {
-        let mut drag = DragRecognizer::new(DRAG_DISTANCE);
+        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
         drag.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         drag.feed(input(2, Phase::Down, 100.0, 100.0, 5.0));
         assert_eq!(
@@ -1487,7 +1499,7 @@ mod tests {
 
     #[test]
     fn two_fingers_moving_apart_magnify_by_the_ratio_of_their_distances() {
-        let mut magnify = MagnifyRecognizer::new(MAGNIFY_DELTA);
+        let mut magnify = MagnifyRecognizer::new(GESTURE.magnify_delta);
         magnify.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         magnify.feed(input(2, Phase::Down, 100.0, 0.0, 0.0));
         assert_eq!(
@@ -1506,8 +1518,8 @@ mod tests {
 
     #[test]
     fn one_finger_never_magnifies_or_rotates() {
-        let mut magnify = MagnifyRecognizer::new(MAGNIFY_DELTA);
-        let mut rotate = RotateRecognizer::new(ROTATE_DELTA);
+        let mut magnify = MagnifyRecognizer::new(GESTURE.magnify_delta);
+        let mut rotate = RotateRecognizer::new(GESTURE.rotate_degrees.to_radians());
         for recognizer_input in [
             input(1, Phase::Down, 0.0, 0.0, 0.0),
             input(1, Phase::Move, 90.0, 50.0, 10.0),
@@ -1519,7 +1531,7 @@ mod tests {
 
     #[test]
     fn two_fingers_turning_rotate_by_the_angle_of_the_line_between_them() {
-        let mut rotate = RotateRecognizer::new(ROTATE_DELTA);
+        let mut rotate = RotateRecognizer::new(GESTURE.rotate_degrees.to_radians());
         rotate.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
         rotate.feed(input(2, Phase::Down, 100.0, 0.0, 0.0));
         let Step::Began(value) = rotate.feed(input(2, Phase::Move, 0.0, 100.0, 20.0)) else {

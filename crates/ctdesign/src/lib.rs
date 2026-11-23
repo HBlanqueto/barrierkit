@@ -1277,6 +1277,17 @@ pub struct ScrollBarMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GestureMetrics {
+    pub tap_distance: f32,
+    pub tap_interval_ms: f32,
+    pub long_press_ms: f32,
+    pub long_press_distance: f32,
+    pub drag_distance: f32,
+    pub magnify_delta: f32,
+    pub rotate_degrees: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollPhysicsMetrics {
     pub fling_distance: f32,
     pub fling_exponent: f32,

@@ -136,7 +136,7 @@ recipe 33 of [agents](../../agents/recipes.md)).
 
 | Gesture | Value | Default |
 |---|---|---|
-| `TapGesture::new().count(n)` | `TapValue { location }` | 1 tap, 10 points, 500 ms between taps |
+| `TapGesture::new().count(n)` | `TapValue { location }` | 1 tap, 4 points of movement, 330 ms from a release to the next press, any distance between the taps |
 | `LongPressGesture::new()` | `LongPressValue { location }`, once the time has passed | 500 ms, 10 points |
 | `DragGesture::new()` | `DragValue { start_location, location, translation, velocity }`, velocity in points per millisecond | 10 points |
 | `MagnifyGesture::new()` | `MagnifyValue { magnification }`, from two fingers | 0.01 |
@@ -145,7 +145,7 @@ recipe 33 of [agents](../../agents/recipes.md)).
 Each takes `.on_changed(f)` (when it begins and as it moves) and `.on_ended(f)`.
 `.updating(state, |value, state| ..)` is `@GestureState`: `use_gesture_state(initial)` gives a
 `GestureState` that follows the gesture and goes back to `initial` when it ends, fails or is
-cancelled. The defaults are SwiftUI's documented ones, not measured on this Mac.
+cancelled. The defaults of `TapGesture`, `LongPressGesture` and `DragGesture` are measured on SwiftUI on this Mac ([U6 design](../research/uikit-roadmap.md#u6-design-the-gesture-layer)), in `ctdesign::GESTURE`; the two-finger ones are SwiftUI's documented values.
 
 - A view keeps one handler per event, so two `.gesture` calls on one view replace each other.
   Put the gestures together: `a.exclusively(b)` tries `a` first (while it can still begin,

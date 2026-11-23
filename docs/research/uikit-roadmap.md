@@ -144,8 +144,8 @@ and the dimming color beyond one reading.
 
 Decided 2026-11-22 with O5 (a): a SwiftUI-named layer over Freya's raw pointer
 and touch events, in the kit, no fork (T7). Gap 15 and D5 of
-[AppKit gap](appkit-gap.md) are its source. Values here are SwiftUI's documented
-defaults; none is measured on this Mac yet.
+[AppKit gap](appkit-gap.md) are its source. The thresholds of tap, long press and
+drag are measured (below); magnify and rotate are SwiftUI's documented values.
 
 **What Freya gives.** `PointerEventData` is a mouse or a touch; a touch has a
 `finger_id` and a phase, so two fingers are two ids. A mouse drag is a pointer
@@ -159,13 +159,29 @@ builds one.
 |---|---|---|
 | Input | `Input { id, phase (down, move, up, cancel), at, time }`, one per pointer or finger | |
 | State | `State { Possible, Began, Changed, Ended, Failed, Cancelled }`, the names of `UIGestureRecognizer.State` | |
-| `TapGesture` | `count` taps, each up within the slop of its down and `count` taps within the double-click interval | 1 tap, 10 pt, 500 ms |
+| `TapGesture` | `count` taps, each up within the slop of its down and `count` taps within the interval | 1 tap, 4 pt, 330 ms |
 | `LongPressGesture` | Fires once the pointer has stayed within the slop for the duration; the recognizer reports a `deadline` and the element arms a timer | 0.5 s, 10 pt |
 | `DragGesture` | Begins when the pointer has moved the minimum distance; value: start, location, translation, velocity (pt/ms, the window of the scroll tracker) | 10 pt |
 | `MagnifyGesture` | Two fingers: the ratio of their distance to the first distance, and its velocity | 0.01 |
 | `RotateGesture` | Two fingers: the angle of the line through them, from the first | 1 degree |
 | `@GestureState` | `use_gesture_state(initial)`: a `State` that goes back to `initial` when the gesture ends or fails | |
 | Modifiers | `.gesture(g)`, `.simultaneous_gesture(g)`, `.high_priority_gesture(g)` on `ViewModifiers`, with `on_changed`, `on_ended`, `updating` on each gesture | |
+
+**Measured on SwiftUI** (2026-11-22, macOS 27.2.1, a hosted `NSHostingView`, mouse events
+posted with `CGEvent`, one run of 3 repetitions per condition; probes `gestureprobe` and
+`gesturedrive`): `DragGesture` begins at exactly 10 pt of translation on x, y and the
+diagonal (its first `onChanged` has translation 10). `TapGesture` fires when the pointer
+moved at most 4 pt between press and release and never at 5 pt or more (3 of 3 each); the
+kit's 10 pt guess was wrong. `TapGesture(count: 2)` fires when the second press follows
+the first release within about 0.33 s (0.32 s passes, 0.335 s fails, 3 of 3) and ignores
+`NSEvent.doubleClickInterval` (0.5 s); two conditions disagree with a pure release-to-press rule
+(a 0.15 s hold and a 0.2 s gap passed once in three), so the rule is not fully known. The
+second tap may land anywhere (20, 40, 60 and 100 pt away all count). `LongPressGesture`
+needs 0.5 s (a 0.48 s hold fails, 0.52 s passes, 0.5 s is at the edge) and a movement of
+at most 10 pt (11 pt cancels, 3 of 3 each); `onEnded` arrives about 0.12 s after the 0.5 s
+(logged 0.62 to 0.66 s after the press, even after an early release), which the kit does
+not copy. Not measured: magnify and rotate (a trackpad pinch cannot be posted), the
+latency of the long press, a touch.
 
 **Arbitration (pure).** Every gesture on a node competes with the gestures of its
 ancestors for the same pointer. The rules are SwiftUI's: the deepest gesture
@@ -195,8 +211,7 @@ feeds them without a change here.
 **Order.** 1. The pure recognizers and the arena, tests first (a table of
 inputs and states). 2. The element: a hook that attaches the handlers, arms the
 long-press timer and calls the arena; the modifiers. 3. The scroll pan on top of it.
-4. A trackpad pinch in each runner. Not measured: the thresholds above on SwiftUI
-and UIKit, the 150 ms delay, the touch band.
+4. A trackpad pinch in each runner. Not measured: the thresholds on UIKit, the 150 ms delay, the touch band.
 
 ## Risks
 

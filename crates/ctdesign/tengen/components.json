@@ -1542,6 +1542,15 @@
       "track-opacity": [0.05, 0.049, 0.149, 0.148],
       "edge-height": 24
     },
+    "gesture": {
+      "tap-distance": 4,
+      "tap-interval": 330,
+      "long-press-duration": 500,
+      "long-press-distance": 10,
+      "drag-distance": 10,
+      "magnify-delta": 0.01,
+      "rotate-degrees": 1
+    },
     "scroll-physics": {
       "fling-distance": 157.5,
       "fling-exponent": 1.3333,
