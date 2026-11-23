@@ -410,7 +410,11 @@ bars are `withinWindow` effect views over the content with a `CAMetalLayer`
 chrome above them, one per chrome of `collect`; the views take no event. A
 SwiftUI `NavigationSplitView` sidebar in an ordinary window is flat 237 over
 both backdrops, so the kit's flat default matches it and `WindowGlass` opts in.
-Not done: `NSGlassEffectView` for the glass styles and `GlassContainer`,
+Reduce Transparency, Increase Contrast and Reduce Motion come from `NSWorkspace` in one
+place (`macos/system.rs`) and add to `appearance.domain`; the runner resolves the
+appearance again on `NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification`
+(the notification is wired and not exercised: changing a system setting is the
+owner's). Not done: `NSGlassEffectView` for the glass styles and `GlassContainer`,
 layer-to-layer sync of the content and the chrome (both present on their own),
 and scale 2.
 

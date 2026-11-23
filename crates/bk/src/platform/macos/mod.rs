@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use calloop::{EventLoop, ping::make_ping};
 use ctappearance::material::Material;
-use ctappearance::{Resolved, load_appearance, load_dominant, resolve};
+use ctappearance::{Resolved, load_dominant, resolve};
 use dispatch2::{DispatchQueue, DispatchTime};
 use freya_core::integration::{
     AppComponent, GlobalContexts, KeyboardEventName, NodeId, Platform, PlatformEvent, UserEvent,
@@ -57,6 +57,7 @@ mod input;
 mod menu;
 mod place;
 mod popups;
+mod system;
 mod view;
 
 use popups::PopupState;
@@ -279,13 +280,25 @@ impl Runtime {
             popup_commands: Rc::new(RefCell::new(Vec::new())),
             popup_next_id: Rc::new(Cell::new(1)),
             last_input_serial: Rc::new(Cell::new(0)),
-            resolved: State::create_global(resolve(&load_appearance(), load_dominant())),
+            resolved: State::create_global(resolve(&system::appearance(), load_dominant())),
             defaults_revision: State::create_global(0),
             clipboard,
             primary: Clipboard::primary(),
             pointer_window: None,
             cursor: CursorIcon::Default,
         })
+    }
+
+    // The window and every popup follow the settings the system changed.
+    fn refresh_appearance(&mut self) {
+        let resolved = resolve(&system::appearance(), load_dominant());
+        let mut own = self.resolved;
+        own.set(resolved);
+        for window in &mut self.windows {
+            let mut state = window.app.resolved;
+            state.set(resolved);
+            window.needs_redraw = true;
+        }
     }
 
     fn host(&self) -> Host {
@@ -1084,6 +1097,7 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
     };
     let runtime = Runtime::new(mtm, ping.clone(), wake)?;
     RUNTIME.with(|cell| *cell.borrow_mut() = Some(runtime));
+    system::observe();
     serve_loop(event_loop)?;
 
     with_runtime(|runtime| runtime.create_window(app, options, None));

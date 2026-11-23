@@ -271,7 +271,7 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 | `Timers`, `WakeHandle`, clipboard text | `GlassContainer` and `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
 
-The window and its popups take the kit's scheme (`appearance.domain`), not the system's. The `shell` feature does not build on macOS.
+The window and its popups take the kit's scheme (`appearance.domain`), not the system's. Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
 
 ## Accessibility
 

@@ -341,6 +341,7 @@ dependencies = [
  "accesskit_unix",
  "ash",
  "async-io",
+ "block2 0.6.2",
  "calloop",
  "ctappearance",
  "ctdesign",
