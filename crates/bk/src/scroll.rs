@@ -1,5 +1,7 @@
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use ctappearance::{ScrollBarClick, ScrollBars};
 use ctdesign::Rgba;
@@ -12,6 +14,7 @@ use torin::prelude::{Area, Direction, Gaps, Position, Size};
 use crate::adornments::Divider;
 use crate::elements::{Overrides, forward_overrides};
 use crate::platform::Timers;
+use crate::scroll_physics::{Glide, VelocityTracker, rubber_band, rubber_band_input};
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ScrollViewStyle, ShapeStyle, StateValue, Theme, resolve,
 };
@@ -110,6 +113,169 @@ impl ScrollController {
             .scroll_to_x(clamped(x, event.delta_x, viewport.0, content.0));
         self.inner
             .scroll_to_y(clamped(y, event.delta_y, viewport.1, content.1));
+    }
+}
+
+// A touchpad scroll past an edge stretches the content and a release glides (ADR 0104). The rest offset stays
+// in Freya's controller; the stretch is a shift of the whole view, so nothing else reads it.
+#[derive(Clone)]
+pub(crate) struct Elastic {
+    over: State<f32>,
+    glide: State<Option<TaskHandle>>,
+    reduced_motion: State<bool>,
+    pose: Rc<Cell<(f32, f32)>>,
+    tracker: Rc<RefCell<VelocityTracker>>,
+    began: Rc<Instant>,
+}
+
+pub(crate) fn use_elastic() -> Elastic {
+    Elastic {
+        over: use_state(|| 0.0),
+        glide: use_state(|| None),
+        reduced_motion: crate::animation::use_reduced_motion(),
+        pose: use_hook(|| Rc::new(Cell::new((0.0, 0.0)))),
+        tracker: use_hook(|| Rc::new(RefCell::new(VelocityTracker::default()))),
+        began: use_hook(|| Rc::new(Instant::now())),
+    }
+}
+
+impl Elastic {
+    // The shift of the content along the axis, negative past the far edge.
+    pub(crate) fn shift(&self) -> f32 {
+        -*self.over.read()
+    }
+
+    pub(crate) fn wheel(
+        &self,
+        controller: ScrollController,
+        horizontal: bool,
+    ) -> impl Fn(Event<WheelEventData>) + 'static {
+        let this = self.clone();
+        move |event| this.handle(controller, horizontal, &event)
+    }
+
+    fn handle(
+        &self,
+        controller: ScrollController,
+        horizontal: bool,
+        event: &Event<WheelEventData>,
+    ) {
+        if event.source != WheelSource::Pixel || *self.reduced_motion.peek() {
+            return;
+        }
+        let along = |(width, height): (f32, f32)| if horizontal { width } else { height };
+        let viewport = along(*controller.viewport.peek());
+        let limit = (along(*controller.content.peek()) - viewport).max(0.0);
+        let delta = -(if horizontal {
+            event.delta_x
+        } else {
+            event.delta_y
+        }) as f32;
+        let inner: (i32, i32) = controller.into();
+        let rest = -(if horizontal { inner.0 } else { inner.1 }) as f32;
+        if limit == 0.0 && *self.over.peek() == 0.0 {
+            return;
+        }
+        event.stop_propagation();
+        match event.phase {
+            TouchPhase::Started => {
+                self.grab(rest, viewport);
+                self.drag(controller, horizontal, (viewport, limit), delta);
+            }
+            TouchPhase::Moved => self.drag(controller, horizontal, (viewport, limit), delta),
+            TouchPhase::Ended => self.release(controller, horizontal, limit, true),
+            TouchPhase::Cancelled => self.release(controller, horizontal, limit, false),
+        }
+    }
+
+    fn now(&self) -> f32 {
+        self.began.elapsed().as_secs_f32() * 1000.0
+    }
+
+    fn stop(&self) {
+        let task = self.glide.clone().write().take();
+        if let Some(task) = task {
+            task.cancel();
+        }
+    }
+
+    fn grab(&self, rest: f32, viewport: f32) {
+        self.stop();
+        self.tracker.borrow_mut().clear();
+        self.pose
+            .set((rest, rubber_band_input(*self.over.peek(), viewport)));
+    }
+
+    fn drag(
+        &self,
+        controller: ScrollController,
+        horizontal: bool,
+        (viewport, limit): (f32, f32),
+        delta: f32,
+    ) {
+        self.tracker.borrow_mut().push(self.now(), delta);
+        let (rest, raw) = self.pose.get();
+        let position = rest + raw + delta;
+        let rest = position.clamp(0.0, limit);
+        self.pose.set((rest, position - rest));
+        scroll_to(controller, horizontal, rest);
+        let mut over = self.over;
+        over.set(rubber_band(position - rest, viewport));
+    }
+
+    fn release(&self, controller: ScrollController, horizontal: bool, limit: f32, flung: bool) {
+        let speed = if flung && !cfg!(target_os = "macos") {
+            self.tracker.borrow().velocity(self.now())
+        } else {
+            0.0
+        };
+        self.tracker.borrow_mut().clear();
+        let glide = Glide::new(self.pose.get().0, speed, limit, *self.over.peek());
+        if glide.at(0.0).done {
+            let mut over = self.over;
+            over.set(0.0);
+            return;
+        }
+        let (over, pose) = (self.over, self.pose.clone());
+        let (ticker, platform, clock) = (
+            RenderingTicker::get(),
+            Platform::get().current_window(),
+            AnimationClock::get(),
+        );
+        let mut task = self.glide;
+        let handle = spawn(async move {
+            let (mut at, mut previous) = (0.0, Instant::now());
+            loop {
+                ticker.tick().await;
+                at += clock
+                    .correct_elapsed_duration(previous.elapsed())
+                    .as_secs_f32()
+                    * 1000.0;
+                previous = Instant::now();
+                let position = glide.at(at);
+                pose.set((position.rest, 0.0));
+                scroll_to(controller, horizontal, position.rest);
+                let mut over = over;
+                over.set(position.over);
+                if position.done {
+                    over.set(0.0);
+                    break;
+                }
+                platform.send(UserEvent::RequestRedraw);
+            }
+            task.write().take();
+        });
+        task.write().replace(handle);
+    }
+}
+
+fn scroll_to(controller: ScrollController, horizontal: bool, rest: f32) {
+    let mut inner = controller.inner;
+    let to = -rest.round() as i32;
+    if horizontal {
+        inner.scroll_to_x(to);
+    } else {
+        inner.scroll_to_y(to);
     }
 }
 
@@ -411,6 +577,7 @@ impl Component for ScrollView {
         let along = move |(width, height): (f32, f32)| if horizontal { width } else { height };
         let size = |area: Area| (area.width(), area.height());
         let bars = use_scroll_bar(controller, horizontal, self.scroll_bar, &style);
+        let elastic = use_elastic();
         let reserved = bars.reserved;
         let root = rect()
             .width(self.width.clone())
@@ -419,22 +586,30 @@ impl Component for ScrollView {
                 viewport.set_if_modified(size(event.area))
             })
             .child(
-                Scroller::new_controlled(controller.inner)
-                    .direction(self.direction)
-                    .margin(if horizontal {
-                        Gaps::new(0.0, 0.0, reserved, 0.0)
-                    } else {
-                        Gaps::new(0.0, reserved, 0.0, 0.0)
-                    })
-                    .show_scrollbar(false)
+                rect()
+                    .expanded()
+                    .overflow(Overflow::Clip)
+                    .maybe(horizontal, |el| el.offset_x(elastic.shift()))
+                    .maybe(!horizontal, |el| el.offset_y(elastic.shift()))
                     .child(
-                        rect()
+                        Scroller::new_controlled(controller.inner)
                             .direction(self.direction)
-                            .maybe(!horizontal, |el| el.width(Size::fill()))
-                            .on_sized(move |event: Event<SizedEventData>| {
-                                content.set_if_modified(size(event.area))
+                            .margin(if horizontal {
+                                Gaps::new(0.0, 0.0, reserved, 0.0)
+                            } else {
+                                Gaps::new(0.0, reserved, 0.0, 0.0)
                             })
-                            .children(self.children.clone()),
+                            .show_scrollbar(false)
+                            .child(
+                                rect()
+                                    .direction(self.direction)
+                                    .maybe(!horizontal, |el| el.width(Size::fill()))
+                                    .on_wheel(elastic.wheel(controller, horizontal))
+                                    .on_sized(move |event: Event<SizedEventData>| {
+                                        content.set_if_modified(size(event.area))
+                                    })
+                                    .children(self.children.clone()),
+                            ),
                     ),
             )
             .maybe_child((self.edge_effect && scrolled < 0).then(|| {

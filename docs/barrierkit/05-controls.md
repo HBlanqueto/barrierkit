@@ -888,6 +888,15 @@ change with Increase Contrast ([measured](../research/macos-control-metrics.md#s
 the track pages toward the click, or with `scroll_bar_click = "clicked_spot"`
 centers the thumb there, like the macOS Appearance setting.
 
+A touchpad scroll (a scroll event with a gesture phase) moves the content 1:1,
+stretches it past an edge by a rubber band and, on release, glides to a stop with
+the distance and the path measured on a Mac Catalyst `UIScrollView`; a glide that
+reaches an edge bounces. A mouse wheel steps as before, with no stretch, and with
+reduced motion nothing stretches or glides. On macOS the system's momentum events
+already glide, so only the stretch and the return act. The constants and their
+measures are in [UIKit animations](../research/uikit-animations.md#6-scroll) and
+[ADR 0104](../decisions.md); `List` and `OutlineView` inherit it.
+
 `use_scroll_controller()` returns a `ScrollController` (`Copy`):
 
 | Method | Effect |

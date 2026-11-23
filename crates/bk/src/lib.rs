@@ -39,6 +39,7 @@ pub mod progress;
 pub mod media;
 
 mod scroll;
+mod scroll_physics;
 
 pub mod level;
 
