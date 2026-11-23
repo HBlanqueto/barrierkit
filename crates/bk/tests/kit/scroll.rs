@@ -3,6 +3,7 @@ use std::time::Duration;
 use bk::ProbeExt;
 use bk::controls::ScrollView;
 use bk::prelude::*;
+use bk::views::table::Table;
 use freya_core::integration::{AppComponent, PlatformEvent, WheelEventName, WheelSource};
 use freya_testing::TestingRunner;
 use torin::prelude::{Area, Size2D};
@@ -22,13 +23,21 @@ impl App for Case {
     }
 }
 
+struct TableCase;
+
+impl App for TableCase {
+    fn render(&self) -> impl IntoElement {
+        Table::new("Files", vec!["Name"])
+            .rows((0..100).map(|row| vec![format!("File {row}")]).collect())
+    }
+}
+
 fn runner() -> TestingRunner {
-    let (mut test, _) = TestingRunner::new(
-        AppComponent::new(Case),
-        Size2D::new(400.0, VIEWPORT),
-        |_| {},
-        1.0,
-    );
+    runner_of(AppComponent::new(Case))
+}
+
+fn runner_of(app: AppComponent) -> TestingRunner {
+    let (mut test, _) = TestingRunner::new(app, Size2D::new(400.0, VIEWPORT), |_| {}, 1.0);
     test.sync_and_update();
     test.sync_and_update();
     test
@@ -40,6 +49,15 @@ fn top(test: &TestingRunner) -> f32 {
             .then(|| -> Area { node.layout().area })
     })
     .expect("first")
+    .min_y()
+}
+
+fn first_row(test: &TestingRunner) -> f32 {
+    test.find(|node, element| {
+        (element.accessibility().builder.role() == AccessibilityRole::Row)
+            .then(|| -> Area { node.layout().area })
+    })
+    .expect("a row")
     .min_y()
 }
 
@@ -122,4 +140,15 @@ fn a_mouse_wheel_does_not_stretch_the_content() {
     let mut test = runner();
     wheel(&mut test, WheelSource::Line, TouchPhase::Moved, 100.0);
     assert_eq!(top(&test), 0.0);
+}
+
+#[test]
+fn a_table_stretches_past_its_start_under_a_touchpad_pull() {
+    let mut test = runner_of(AppComponent::new(TableCase));
+    let rest = first_row(&test);
+    drag(&mut test, 1, 100.0);
+    assert!(first_row(&test) > rest + 3.0);
+    wheel(&mut test, WheelSource::Pixel, TouchPhase::Ended, 0.0);
+    test.poll(Duration::from_millis(8), Duration::from_millis(900));
+    assert!((first_row(&test) - rest).abs() < 0.01);
 }

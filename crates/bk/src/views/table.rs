@@ -9,7 +9,7 @@ use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
-use crate::scroll::{use_scroll_bar, use_scroll_controller};
+use crate::scroll::{use_elastic, use_scroll_bar, use_scroll_controller};
 use crate::style::{continuous_corner, text};
 use crate::styles::{
     ControlState, Painted, Paints, ScrollViewStyle, ShapeStyle, StateValue, TableStyle,
@@ -225,6 +225,7 @@ impl Component for Table {
         let mut drag = use_state(|| None::<(usize, f64, f32)>);
         let mut body_height = use_state(|| 0.0f32);
         let controller = use_scroll_controller();
+        let elastic = use_elastic();
         let scroll_style: ScrollViewStyle = resolve(&self.style);
         if widths.peek().len() != self.columns.len() {
             widths.write().resize(self.columns.len(), None);
@@ -423,10 +424,11 @@ impl Component for Table {
                     )
             })
             .collect::<Vec<_>>();
+        let row_elastic = elastic.clone();
         let body = VirtualScrollView::new_with_data(
             data,
-            |item,
-             (
+            move |item,
+                  (
                 rows,
                 views,
                 selected,
@@ -504,6 +506,7 @@ impl Component for Table {
                     .width(Size::fill())
                     .height(Size::px(*row_height))
                     .padding(Gaps::new(0.0, *inset, 0.0, *inset))
+                    .on_wheel(row_elastic.wheel(controller, false))
                     .a11y_role(AccessibilityRole::Row)
                     .a11y_builder(move |node| node.set_selected(selected_row))
                     .child(
@@ -573,6 +576,7 @@ impl Component for Table {
             .child(
                 rect()
                     .expanded()
+                    .overflow(Overflow::Clip)
                     .on_sized(move |event: Event<SizedEventData>| {
                         body_height.set_if_modified(event.area.height());
                         controller.set_viewport((event.area.width(), event.area.height()));
@@ -582,6 +586,7 @@ impl Component for Table {
                     .child(
                         rect()
                             .expanded()
+                            .offset_y(elastic.shift())
                             .padding(Gaps::new(style.body_inset, bars.reserved, 0.0, 0.0))
                             .children(empty_stripes)
                             .child(body),
