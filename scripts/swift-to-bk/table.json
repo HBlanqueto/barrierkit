@@ -1195,6 +1195,7 @@
 {"gap": "swiftui-api-gap.md §3.2 types, absent", "origin": "gap", "status": "missing", "swift": "SplitArrangementViewStyle"},
 {"blocker": "measurement (no SwiftUI probe of `.smooth`/`.snappy`/`.bouncy`; `macos-animations.md` §1 measures only desktop animations: menu instant, window 250 ms)", "chapter": "[14](14-animations.md#spring)", "gap": "swiftui-api-gap.md §8.2 types, partial", "kit": "animation::Spring", "origin": "glossary", "size": "M", "status": "mapped", "swift": "Spring"},
 {"chapter": "[4](04-appearance-and-tokens.md#motion)", "kit": "ctdesign::SPRING_DAMPING", "origin": "glossary", "status": "partial", "swift": "Spring.damping"},
+{"chapter": "[4](04-appearance-and-tokens.md#motion)", "kit": "ctdesign::SPRING_SHEET_MS", "origin": "glossary", "status": "partial", "swift": "Spring.duration"},
 {"blocker": "none", "gap": "swiftui-api-gap.md §8.2 types, absent", "origin": "gap", "size": "M", "status": "missing", "swift": "SpringKeyframe"},
 {"blocker": "none, after the drag-and-drop row", "gap": "swiftui-api-gap.md §6.2 types, absent", "origin": "gap", "size": "S", "status": "missing", "swift": "SpringLoadingBehavior"},
 {"gap": "swiftui-api-gap.md §5.2 types, n/a", "origin": "gap", "status": "n/a", "swift": "SquareAzimuth"},

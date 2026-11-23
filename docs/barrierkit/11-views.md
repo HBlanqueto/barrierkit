@@ -161,7 +161,7 @@ Form::new()
 | `.highlighted(Option<Cow<'static, str>>)` | Tints the row with that title with the accent at 12 % |
 
 `sections` is a public field: [`SettingsWindow`](12-patterns.md#settingswindow)
-reads it to build its search. The form is inset 20 on each side, its cards are
+reads it to build its search. The form is inset 20 on each side and its cards are at most 704 wide, centered, as in a SwiftUI grouped `Form`; its cards are
 10 apart, and a row is its content plus 10 above and below, at least 36 high.
 The control of a row stays at the trailing edge at any width, as in a SwiftUI
 `Form`; `.stacked()` puts it under the title.
@@ -206,7 +206,7 @@ Form::new().style(FormStyle::columns).section(
 
 | Method | Effect |
 |---|---|
-| `.control(view)` | The control on the right, aligned with the first line of the title |
+| `.control(view)` | The control on the right, aligned with the first line of the title; a `TextField` fills the row after the title, with no border and its text ending at the right, as in a SwiftUI `Form` |
 | `.detail(text)` | An explanation under the title |
 | `.symbol(symbol, tint)` | A [`SymbolTile`](10-sidebar.md#symboltile) before the title |
 | `.icon(view)` | Any view before the title, such as a device picture; it replaces `.symbol` |

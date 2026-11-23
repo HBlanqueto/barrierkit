@@ -1295,6 +1295,9 @@ pub struct ListGroupMetrics {
     pub section_spacing: f32,
     pub columns_gap: f32,
     pub columns_spacing: f32,
+    pub max_width: f32,
+    pub card: [Rgba; 4],
+    pub separator_line: [Rgba; 4],
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

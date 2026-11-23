@@ -1031,6 +1031,17 @@
   --bk-list-group-columns-gap: 9.5;
   --bk-list-group-columns-spacing: 5;
   --bk-list-group-row-padding-y: 10;
+  --bk-list-group-max-width: 704;
+  --bk-list-group-card: #f7f7f7 #252525 #f7f7f7 #252525;
+  --bk-list-group-card-0: #f7f7f7;
+  --bk-list-group-card-1: #252525;
+  --bk-list-group-card-2: #f7f7f7;
+  --bk-list-group-card-3: #252525;
+  --bk-list-group-separator-line: #0000000c #ffffff0c #00000033 #ffffff33;
+  --bk-list-group-separator-line-0: #0000000c;
+  --bk-list-group-separator-line-1: #ffffff0c;
+  --bk-list-group-separator-line-2: #00000033;
+  --bk-list-group-separator-line-3: #ffffff33;
   --bk-list-group-padding: 20 20 20 20;
   --bk-list-group-padding-0: 20;
   --bk-list-group-padding-1: 20;

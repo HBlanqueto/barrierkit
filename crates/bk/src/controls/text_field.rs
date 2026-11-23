@@ -267,6 +267,7 @@ impl Component for TextField {
             Gaps::new(margin_y, style.padding_x, margin_y, style.padding_x),
         )
         .height(Size::px(style.height))
+        .text_align(style.text_align)
         .enabled(!disabled)
         .auto_focus(self.auto_focus);
         let input = match self.on_submit.clone() {

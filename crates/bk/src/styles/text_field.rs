@@ -1,3 +1,5 @@
+use freya_core::prelude::TextAlign;
+
 use ctdesign::{BODY, CORNER_CONTROLS, ControlSize, Font, TEXT_FIELD};
 
 use super::button::{continuous_rounded, corner_for};
@@ -37,6 +39,8 @@ pub struct TextFieldStyle {
     pub effect: ColorEffect,
     /// Tengen: `BODY`; the text sits (`height` − `line_height`) / 2 from the top.
     pub font: Font,
+    /// Tengen: `Start`; a `Form` row ends it, as SwiftUI does.
+    pub text_align: TextAlign,
 }
 
 impl TextFieldStyle {
@@ -90,6 +94,7 @@ impl ControlStyle for TextFieldStyle {
             opacity: 1.0,
             effect: system_effect,
             font: BODY,
+            text_align: TextAlign::Start,
         }
     }
 }

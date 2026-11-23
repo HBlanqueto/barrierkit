@@ -4,7 +4,9 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
-use crate::controls::{ControlSize, Switch};
+use std::any::TypeId;
+
+use crate::controls::{ControlSize, Switch, TextField};
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::measure_text_weight;
@@ -13,7 +15,8 @@ use crate::sidebar::SymbolTile;
 use crate::style::text;
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, FormStyle, LayoutDirection, Paints, ShapeStyle, StateValue, Theme, resolve,
+    ControlState, DividerStyle, FormStyle, LayoutDirection, Paints, ShapeStyle, StateValue,
+    StyleScope, TextFieldStyle, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
 
@@ -21,6 +24,7 @@ use crate::symbol::{Symbol, symbol};
 enum Accessory {
     None,
     Control(Element),
+    Field(Element),
     Value(Cow<'static, str>),
     Navigation(Callback<(), ()>),
     Page(&'static str),
@@ -89,8 +93,14 @@ impl Row {
         )
     }
 
-    pub fn control(self, control: impl IntoElement) -> Self {
-        self.with(Accessory::Control(control.into_element()))
+    // A `TextField` fills the row after its title and ends its text, as in a SwiftUI `Form`.
+    pub fn control<C: IntoElement + 'static>(self, control: C) -> Self {
+        let element = control.into_element();
+        self.with(if TypeId::of::<C>() == TypeId::of::<TextField>() {
+            Accessory::Field(element)
+        } else {
+            Accessory::Control(element)
+        })
     }
 
     pub fn detail(mut self, detail: impl Into<Cow<'static, str>>) -> Self {
@@ -313,10 +323,12 @@ impl Component for Form {
         let [form_top, form_right, form_bottom, form_left] = style.padding;
         let root = rect()
             .width(Size::fill())
+            .cross_align(Alignment::Center)
             .padding(Gaps::new(form_top, form_right, form_bottom, form_left))
             .child(
                 rect()
                     .width(Size::fill())
+                    .max_width(Size::px(LIST_GROUP.max_width))
                     .direction(Direction::Vertical)
                     .spacing(style.section_spacing)
                     .children(sections),
@@ -344,7 +356,7 @@ fn columns(sections: &[Section], style: &FormStyle, paints: &Paints) -> Rect {
         .padding(Gaps::new(top, right, bottom, left))
         .children(rows.into_iter().map(|row| {
             let control = match &row.accessory {
-                Accessory::Control(control) => Some(control.clone()),
+                Accessory::Control(control) | Accessory::Field(control) => Some(control.clone()),
                 Accessory::Value(value) => {
                     Some(text(value.clone(), style.value_font, value_ink).into_element())
                 }
@@ -404,6 +416,16 @@ impl Component for FormRow {
         let accessory: Option<Element> = match &row.accessory {
             Accessory::None | Accessory::Destructive(_) => None,
             Accessory::Control(element) => Some(element.clone()),
+            Accessory::Field(element) => Some(
+                StyleScope::new(
+                    Theme::tengen().style(|style: TextFieldStyle| TextFieldStyle {
+                        text_align: TextAlign::End,
+                        ..style.plain()
+                    }),
+                    element.clone(),
+                )
+                .into_element(),
+            ),
             Accessory::Value(value) => {
                 Some(text(value.clone(), style.value_font, ink(&style.value)).into_element())
             }
@@ -419,18 +441,24 @@ impl Component for FormRow {
 
         let (padding_x, padding_y) = style.row_padding;
         let first_line = style.row_min_height - 2.0 * padding_y;
-        let aligned_to_first_line = matches!(row.accessory, Accessory::Control(_));
+        let field = matches!(row.accessory, Accessory::Field(_));
+        let aligned_to_first_line =
+            matches!(row.accessory, Accessory::Control(_) | Accessory::Field(_));
         let stacked = row.stacked && aligned_to_first_line;
         let wrapping = |content: Cow<'static, str>, face, ink| {
-            text(content, face, ink).width(Size::fill()).max_lines(None)
+            text(content, face, ink)
+                .width(if field { Size::auto() } else { Size::fill() })
+                .max_lines(None)
         };
         let mut labels = rect()
-            .width(if stacked {
-                Size::fill()
-            } else {
-                Size::flex(1.0)
+            .width(match (stacked, field) {
+                (true, _) => Size::fill(),
+                (false, true) => Size::auto(),
+                (false, false) => Size::flex(1.0),
             })
-            .min_width(Size::percent(LIST_GROUP.label_min_share))
+            .maybe(!field, |el| {
+                el.min_width(Size::percent(LIST_GROUP.label_min_share))
+            })
             .direction(Direction::Vertical)
             .maybe(aligned_to_first_line, |el| {
                 el.padding(Gaps::new(
@@ -470,6 +498,7 @@ impl Component for FormRow {
                 rect()
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
+                    .maybe(field, |el| el.width(Size::flex(1.0)))
                     .maybe(row.hover_control.is_some(), |accessories| {
                         accessories.spacing(style.row_spacing)
                     })
@@ -493,11 +522,17 @@ impl Component for FormRow {
         if self.highlighted {
             element = element.painted(&paints, &style.highlight);
         }
+        let line = style.separator.clone();
         let separator = (!self.first).then(|| {
             rect()
                 .width(Size::fill())
                 .padding(Gaps::new(0.0, padding_x, 0.0, style.separator_inset))
-                .child(Divider::new())
+                .child(
+                    Divider::new().style(move |divider: DividerStyle| DividerStyle {
+                        line: StateValue::new(line.clone()),
+                        ..divider
+                    }),
+                )
         });
         rect()
             .width(Size::fill())

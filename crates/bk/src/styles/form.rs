@@ -1,8 +1,10 @@
 use ctdesign::{BODY, CAPTION, Font, HAIRLINE, HEADLINE, LIST_GROUP, Rgba, SPACE_3};
 
 use super::{
-    ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+    ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, appearance_index,
+    system_effect,
 };
+use crate::backdrop::tinted;
 use crate::style::Palette;
 
 /// `FormStyle` draws the whole `Form`: its sections and their rows. `Section`
@@ -36,8 +38,10 @@ pub struct FormStyle {
     /// Tengen: `RoundedRectangle { radius: LIST_GROUP.radius, style: Continuous }`, the card of a
     /// section; a `Capsule` or `Circle` has no size to round by and stays square.
     pub shape: Shape,
-    /// Tengen: `Role(ContentBackground)`, the card.
+    /// Tengen: `Color(LIST_GROUP.card)` of the appearance, the card; `Role(ContentBackground)` over a tinted backdrop.
     pub background: StateValue<ShapeStyle>,
+    /// Tengen: `Color(LIST_GROUP.separator_line)` of the appearance, the line between two rows; `Role(Separator)` over a tinted backdrop.
+    pub separator: ShapeStyle,
     /// Tengen: `Clear`, hovered `Role(ControlHover)`.
     pub row_background: StateValue<ShapeStyle>,
     /// Tengen: `Color` of the accent at `LIST_GROUP.highlight`, the row of `.highlighted(..)`.
@@ -106,7 +110,14 @@ impl ControlStyle for FormStyle {
                 radius: LIST_GROUP.radius,
                 style: CornerStyle::Continuous,
             },
-            background: StateValue::new(ShapeStyle::Role(Role::ContentBackground)),
+            background: StateValue::new(match tinted() {
+                Some(_) => ShapeStyle::Role(Role::ContentBackground),
+                None => ShapeStyle::Color(LIST_GROUP.card[appearance_index()]),
+            }),
+            separator: match tinted() {
+                Some(_) => ShapeStyle::Role(Role::Separator),
+                None => ShapeStyle::Color(LIST_GROUP.separator_line[appearance_index()]),
+            },
             row_background: StateValue::new(ShapeStyle::Clear)
                 .hovered(ShapeStyle::Role(Role::ControlHover)),
             highlight: StateValue::new(ShapeStyle::Color(Rgba {
