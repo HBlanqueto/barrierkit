@@ -74,6 +74,7 @@ Decision:
 - A light is the 14 pt disc of macOS 27: a vertical gradient fill (four stops), a 0.5 pt ring (three stops, a vertical gradient too), a halo in the light appearances and a glyph while the pointer is over the group. A pressed light grows to 16 pt and brightens (`TRAFFIC_PRESS`).
 - Every color is a token measured per appearance, light, dark and Increase Contrast (`themes.*.traffic-lights`, `traffic-lights-contrast`); none depends on the accent.
 - `standard` is that look as it is. `accent` and `wallpaper` give each light a tone and `ctappearance::traffic::looks` recolors its measured look with it: alpha, and lightness and saturation relative to the light's base, stay; the hue is the tone's; the glyph stays at 3:1.
+- On macOS the style is always `standard`, so `accent` and `wallpaper` are Linux-only. The one exception is the graphite accent, which grays the lights the way `accent` would tint them.
 - Skia rasterizes each light once per look at the window's scale (`bk/src/traffic_raster.rs`), like the symbol tiles.
 - `traffic_light_shape` is gone: macOS 27 has no square light, and the ring, the halo and the press are defined for a disc. A file that has the key still loads, and a write drops it.
 Why: the lights are the most seen control of a window, and the measurement says what they are (`docs/research/macos-control-metrics.md`, "Traffic lights (macOS 27)").

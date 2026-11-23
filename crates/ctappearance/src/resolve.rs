@@ -31,6 +31,7 @@ use ctdesign::{
     TrafficLooks, WALLPAPER_TINTING, WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
 };
 
+use crate::TrafficLightStyle;
 use crate::accent;
 use crate::backdrop::{WallpaperTinting, lift, shift_like, take_chroma, take_chroma_capped};
 use crate::icon_style::IconStyle;
@@ -592,12 +593,13 @@ pub fn resolve(appearance: &AppearanceConfig, dominant: Option<Rgba>) -> Resolve
             TRAFFIC_LIGHTS_DARK_TINT,
         ])
     };
-    let traffic_lights = crate::traffic::looks(
-        appearance.traffic_lights,
-        &standard_lights,
-        normal_accent,
-        dominant,
-    );
+    // macOS keeps its own lights: the tint styles are Linux-only, and only the graphite accent grays them.
+    let lights = match (cfg!(target_os = "macos"), &chosen) {
+        (false, _) => appearance.traffic_lights,
+        (true, Some(Chosen::Named(named))) if named.name == "graphite" => TrafficLightStyle::Accent,
+        (true, _) => TrafficLightStyle::Standard,
+    };
+    let traffic_lights = crate::traffic::looks(lights, &standard_lights, normal_accent, dominant);
 
     let (mut shell, mut menu, mut sidebar, toolgroup) =
         chrome_surfaces(scheme, appearance.transparency_reduced());
@@ -804,12 +806,14 @@ fn reach_contrast(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{TintStrength, TrafficLightStyle};
+    use crate::TintStrength;
     use ctdesign::{
         BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT, DOCK_GLASS_LIGHT,
-        SIDEBAR_LIGHT_OPAQUE, TOOLGROUP_BG_LIGHT_OPAQUE, TRAFFIC_CLOSE_MINIMIZE_DARKEN,
-        TRAFFIC_ZOOM_LIGHTEN, WALLPAPER_TINTING_TARGET, WINDOW_TINT_ACCENT,
+        SIDEBAR_LIGHT_OPAQUE, TOOLGROUP_BG_LIGHT_OPAQUE, WALLPAPER_TINTING_TARGET,
+        WINDOW_TINT_ACCENT,
     };
+    #[cfg(not(target_os = "macos"))]
+    use ctdesign::{TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN};
 
     fn appearance(
         scheme: ColorScheme,
@@ -1119,6 +1123,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(target_os = "macos"))]
     fn traffic_light_styles_are_resolved() {
         let standard = resolve(
             &appearance(
@@ -1157,6 +1162,28 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_os = "macos")]
+    fn on_macos_the_lights_are_standard_and_only_graphite_grays_them() {
+        let lights = |style, accent: Option<&str>| {
+            let mut config = appearance(ColorScheme::Light, WindowColorMode::Neutral, style, None);
+            config.accent = accent.map(str::to_owned);
+            resolve(&config, Some(dominant())).traffic_lights
+        };
+        assert_eq!(
+            lights(TrafficLightStyle::Wallpaper, None),
+            TRAFFIC_LIGHTS_LIGHT
+        );
+        assert_eq!(
+            lights(TrafficLightStyle::Accent, Some("purple")),
+            TRAFFIC_LIGHTS_LIGHT
+        );
+        let gray = lights(TrafficLightStyle::Wallpaper, Some("graphite"));
+        assert_ne!(gray.close, TRAFFIC_LIGHTS_LIGHT.close);
+        assert!(gray.close.fill.iter().all(|color| color.to_hsl().1 < 0.01));
+    }
+
+    #[test]
+    #[cfg(not(target_os = "macos"))]
     fn wallpaper_traffic_lights_follow_the_dominant_and_fall_back_to_the_accent() {
         let config = appearance(
             ColorScheme::Light,
