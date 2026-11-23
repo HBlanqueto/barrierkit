@@ -1262,7 +1262,7 @@
   --bk-window-sidebar-rim-width: 1;
   --bk-window-sidebar-traffic-x: 19;
   --bk-window-sidebar-traffic-y: 19;
-  --bk-window-sidebar-toggle-inset: 7.5;
+  --bk-window-sidebar-toggle-inset: 7;
   --bk-window-sidebar-line: var(--bk-separator);
   --bk-window-sidebar-glass-chroma-light: 0.22;
   --bk-window-sidebar-glass-chroma-dark: 0.05;
@@ -1310,7 +1310,7 @@
   --bk-window-sidebar-item-icon-ink: var(--bk-accent-strong);
   --bk-window-sidebar-item-text-size: 13;
   --bk-window-sidebar-item-weight: 400;
-  --bk-window-sidebar-item-selected-weight: 600;
+  --bk-window-sidebar-item-selected-weight: 400;
   --bk-window-sidebar-item-selected-bg: var(--bk-sidebar-selection);
   --bk-window-sidebar-item-selected-ink: var(--bk-on-accent);
   --bk-window-sidebar-item-selected-icon-rim: #00000033;

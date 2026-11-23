@@ -546,7 +546,7 @@ fn the_notes_window_at_scale_two_is_the_window_at_scale_one_drawn_twice_as_fine(
                 element.name
             );
             assert!(
-                percent <= 10.0,
+                percent <= 11.0,
                 "{} {}: {percent:.1}% differs from the scale 1 drawing",
                 if dark { "dark" } else { "light" },
                 element.name

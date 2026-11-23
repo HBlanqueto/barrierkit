@@ -353,6 +353,7 @@ impl Component for TextEditor {
         let paragraph = paragraph()
             .holder(holder.read().clone())
             .width(Size::fill())
+            .line_height(style.font.line_height as f32 / style.font.size as f32)
             .margin(Gaps::new_symmetric(padding_y, padding_x))
             .on_sized(move |event: Event<SizedEventData>| area.set(event.visible_area))
             .on_pointer_down(on_press)

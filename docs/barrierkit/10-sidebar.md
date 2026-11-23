@@ -166,7 +166,7 @@ over the content (see [Narrow windows](#narrow-windows)).
 
 **Look:** `SIDEBAR.item_height` (32) high, radius `SIDEBAR.item_radius` (8),
 text of `SIDEBAR.item_text_size` (13). The selected row has the accent
-background and semibold text; hover changes nothing, as on macOS. In an inactive
+background and white text of the same weight; hover changes nothing, as on macOS. In an inactive
 window the selection turns gray.
 
 ### `SidebarSection`
@@ -277,7 +277,7 @@ titlebar's left zone: `Titlebar::new().left(SidebarToggle)`. It takes
 `IconButtonStyle`.
 
 While the sidebar is docked the button leaves the bar and sits inside the
-sidebar, at its right end, `SIDEBAR.toggle_inset` (8.5) from the edge, as in
+sidebar, at its right end, `SIDEBAR.toggle_inset` (7) from the edge, as in
 SwiftUI's `NavigationSplitView`; the title then starts 20 from the edge. When
 the sidebar hides, the button slides to its place in the bar, after the
 traffic lights, and takes its width there. Floating over the content in a

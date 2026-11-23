@@ -840,7 +840,7 @@
         "rim-width": 1,
         "traffic-x": 19,
         "traffic-y": 19,
-        "toggle-inset": 7.5,
+        "toggle-inset": 7,
         "line": "separator",
         "glass": {
           "chroma": { "light": 0.22, "dark": 0.05 },
@@ -885,7 +885,7 @@
           "icon-ink": "accent-strong",
           "text-size": 13,
           "weight": 400,
-          "selected-weight": 600,
+          "selected-weight": 400,
           "selected-bg": "sidebar-selection",
           "selected-ink": "on-accent",
           "selected-icon-rim": "#00000033",
