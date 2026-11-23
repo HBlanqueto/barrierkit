@@ -73,7 +73,6 @@ impl Layout for ZStackLayout {
 
 trait Arrangement {
     fn place(&self, proposal: Size2D, subviews: &[Size2D]) -> Placement;
-    fn sizing(&self) -> usize;
     fn same_as(&self, other: &dyn Arrangement) -> bool;
     fn as_any(&self) -> &dyn Any;
 }
@@ -81,10 +80,6 @@ trait Arrangement {
 impl<L: Layout> Arrangement for L {
     fn place(&self, proposal: Size2D, subviews: &[Size2D]) -> Placement {
         self.place_subviews(proposal, subviews)
-    }
-
-    fn sizing(&self) -> usize {
-        self.sizing_subview()
     }
 
     fn same_as(&self, other: &dyn Arrangement) -> bool {

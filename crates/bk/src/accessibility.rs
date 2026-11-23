@@ -114,7 +114,7 @@ impl BitOr for AccessibilityTraits {
 
 /// SwiftUI's accessibility modifiers on any view that exposes Freya's accessibility data.
 pub trait AccessibilityModifiers: AccessibilityExt {
-    /// On macOS this wins over the text Freya takes from the view's children.
+    /// Wins over the text Freya takes from the view's children.
     fn accessibility_label(self, label: impl Into<String>) -> Self {
         let label = label.into();
         self.a11y_builder(|node| {
@@ -147,7 +147,7 @@ pub trait AccessibilityModifiers: AccessibilityExt {
         self.a11y_builder(|node| node.set_author_id(identifier))
     }
 
-    /// Ignore and Combine fold the children into this view; macOS applies them, Linux keeps the children.
+    /// Ignore and Combine fold the children into this view.
     fn accessibility_element(self, children: AccessibilityChildBehavior) -> Self {
         self.a11y_builder(|node| mark(node, |marks| marks.children = Some(children)))
     }

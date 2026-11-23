@@ -69,22 +69,8 @@ impl FileDialog {
         panels::present(self, window).await
     }
 
-    pub(crate) fn extensions(&self) -> Vec<&str> {
-        self.types
-            .iter()
-            .filter_map(|kind| match kind {
-                ContentType::Extension(extension) => Some(extension.as_str()),
-                ContentType::Folder => None,
-            })
-            .collect()
-    }
-
     pub(crate) fn chooses_folders(&self) -> bool {
         self.types.contains(&ContentType::Folder)
-    }
-
-    pub(crate) fn chooses_files(&self) -> bool {
-        !self.chooses_folders() || !self.extensions().is_empty()
     }
 }
 
@@ -125,31 +111,4 @@ pub(crate) fn use_file_dialog(
             }
         });
     });
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_folder_only_filter_chooses_folders_and_no_files() {
-        let dialog = FileDialog::open().allowed_content_types(vec![ContentType::Folder]);
-        assert!(dialog.chooses_folders());
-        assert!(!dialog.chooses_files());
-    }
-
-    #[test]
-    fn extensions_leave_the_folder_kind_out_and_keep_files_choosable() {
-        let dialog = FileDialog::open()
-            .allowed_content_types(vec![ContentType::Folder, ContentType::extension("png")]);
-        assert_eq!(dialog.extensions(), ["png"]);
-        assert!(dialog.chooses_folders() && dialog.chooses_files());
-    }
-
-    #[test]
-    fn no_filter_chooses_any_file() {
-        let dialog = FileDialog::open();
-        assert!(dialog.chooses_files() && !dialog.chooses_folders());
-        assert!(dialog.extensions().is_empty());
-    }
 }

@@ -62,6 +62,21 @@ pub(crate) async fn present(dialog: FileDialog, window: &WindowControls) -> Vec<
     run(dialog, Some(window.surface_id.raw())).await
 }
 
+fn extensions(dialog: &FileDialog) -> Vec<&str> {
+    dialog
+        .types
+        .iter()
+        .filter_map(|kind| match kind {
+            ContentType::Extension(extension) => Some(extension.as_str()),
+            ContentType::Folder => None,
+        })
+        .collect()
+}
+
+fn chooses_files(dialog: &FileDialog) -> bool {
+    !dialog.chooses_folders() || !extensions(dialog).is_empty()
+}
+
 // allowedContentTypes needs a UTType; the extension list does the same on every macOS the kit supports.
 #[allow(deprecated)]
 fn prepare(
@@ -82,12 +97,11 @@ fn prepare(
         panel.setCanCreateDirectories(true);
     }
     if let Some(open) = &open {
-        open.setCanChooseFiles(dialog.chooses_files());
+        open.setCanChooseFiles(chooses_files(dialog));
         open.setCanChooseDirectories(dialog.chooses_folders());
         open.setAllowsMultipleSelection(dialog.multiple);
     }
-    let extensions: Vec<_> = dialog
-        .extensions()
+    let extensions: Vec<_> = extensions(dialog)
         .into_iter()
         .map(NSString::from_str)
         .collect();
@@ -196,4 +210,31 @@ pub(crate) fn open_uri(uri: &str) {
             tracing::warn!(uri, "BarrierKit: the system could not open the address");
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_folder_only_filter_chooses_folders_and_no_files() {
+        let dialog = FileDialog::open().allowed_content_types(vec![ContentType::Folder]);
+        assert!(dialog.chooses_folders());
+        assert!(!chooses_files(&dialog));
+    }
+
+    #[test]
+    fn extensions_leave_the_folder_kind_out_and_keep_files_choosable() {
+        let dialog = FileDialog::open()
+            .allowed_content_types(vec![ContentType::Folder, ContentType::extension("png")]);
+        assert_eq!(extensions(&dialog), ["png"]);
+        assert!(dialog.chooses_folders() && chooses_files(&dialog));
+    }
+
+    #[test]
+    fn no_filter_chooses_any_file() {
+        let dialog = FileDialog::open();
+        assert!(chooses_files(&dialog) && !dialog.chooses_folders());
+        assert!(extensions(&dialog).is_empty());
+    }
 }

@@ -4,32 +4,48 @@ use std::task::Waker;
 
 use accesskit::{ActionHandler, ActionRequest, ActivationHandler, DeactivationHandler, TreeUpdate};
 
-pub(crate) struct Atspi {
-    pub(crate) adapter: accesskit_unix::Adapter,
+pub(crate) struct Bridge {
+    adapter: accesskit_unix::Adapter,
     requested: Arc<AtomicBool>,
+    engaged: Arc<AtomicBool>,
     actions: Arc<Mutex<Vec<ActionRequest>>>,
 }
 
-impl Atspi {
+impl Bridge {
     pub(crate) fn new(waker: Waker) -> Self {
         let requested = Arc::new(AtomicBool::new(false));
+        let engaged = Arc::new(AtomicBool::new(false));
         let actions = Arc::new(Mutex::new(Vec::new()));
         let adapter = accesskit_unix::Adapter::new(
             InitialTree {
                 requested: requested.clone(),
+                engaged: engaged.clone(),
                 waker: waker.clone(),
             },
             Actions {
                 queue: actions.clone(),
                 waker,
             },
-            Inactive,
+            Inactive(engaged.clone()),
         );
         Self {
             adapter,
             requested,
+            engaged,
             actions,
         }
+    }
+
+    pub(crate) fn engaged(&self) -> bool {
+        self.engaged.load(Ordering::Acquire)
+    }
+
+    pub(crate) fn update(&mut self, update: TreeUpdate) {
+        self.adapter.update_if_active(|| update);
+    }
+
+    pub(crate) fn set_focused(&mut self, focused: bool) {
+        self.adapter.update_window_focus_state(focused);
     }
 
     pub(crate) fn pending(&self) -> bool {
@@ -52,11 +68,13 @@ impl Atspi {
 // accesskit_unix calls the handlers from its own thread; the tree is built on the UI thread.
 struct InitialTree {
     requested: Arc<AtomicBool>,
+    engaged: Arc<AtomicBool>,
     waker: Waker,
 }
 
 impl ActivationHandler for InitialTree {
     fn request_initial_tree(&mut self) -> Option<TreeUpdate> {
+        self.engaged.store(true, Ordering::Release);
         self.requested.store(true, Ordering::Release);
         self.waker.wake_by_ref();
         None
@@ -77,8 +95,10 @@ impl ActionHandler for Actions {
     }
 }
 
-struct Inactive;
+struct Inactive(Arc<AtomicBool>);
 
 impl DeactivationHandler for Inactive {
-    fn deactivate_accessibility(&mut self) {}
+    fn deactivate_accessibility(&mut self) {
+        self.0.store(false, Ordering::Release);
+    }
 }
