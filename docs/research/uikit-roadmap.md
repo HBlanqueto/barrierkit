@@ -140,6 +140,64 @@ choice); transitions for `Sheet` and `Popover` inside the kit; edge-swipe pop
 Not measured: the push on macOS SwiftUI (`NavigationStack` in an AppKit window)
 and the dimming color beyond one reading.
 
+## U6 design: the gesture layer
+
+Decided 2026-11-22 with O5 (a): a SwiftUI-named layer over Freya's raw pointer
+and touch events, in the kit, no fork (T7). Gap 15 and D5 of
+[AppKit gap](appkit-gap.md) are its source. Values here are SwiftUI's documented
+defaults; none is measured on this Mac yet.
+
+**What Freya gives.** `PointerEventData` is a mouse or a touch; a touch has a
+`finger_id` and a phase, so two fingers are two ids. A mouse drag is a pointer
+with the button down. There is no pinch, rotate or swipe event: a trackpad pinch
+needs `pointer-gestures-unstable-v1` (not bound) or the macOS magnify event
+(the runner does not map it). Freya has one handler per event per node, a fixed
+500 ms and 5 px for a double click (`EventsCombos`), and no arena: the kit
+builds one.
+
+| Piece | Design | Default (SwiftUI) |
+|---|---|---|
+| Input | `Input { id, phase (down, move, up, cancel), at, time }`, one per pointer or finger | |
+| State | `State { Possible, Began, Changed, Ended, Failed, Cancelled }`, the names of `UIGestureRecognizer.State` | |
+| `TapGesture` | `count` taps, each up within the slop of its down and `count` taps within the double-click interval | 1 tap, 10 pt, 500 ms |
+| `LongPressGesture` | Fires once the pointer has stayed within the slop for the duration; the recognizer reports a `deadline` and the element arms a timer | 0.5 s, 10 pt |
+| `DragGesture` | Begins when the pointer has moved the minimum distance; value: start, location, translation, velocity (pt/ms, the window of the scroll tracker) | 10 pt |
+| `MagnifyGesture` | Two fingers: the ratio of their distance to the first distance, and its velocity | 0.01 |
+| `RotateGesture` | Two fingers: the angle of the line through them, from the first | 1 degree |
+| `@GestureState` | `use_gesture_state(initial)`: a `State` that goes back to `initial` when the gesture ends or fails | |
+| Modifiers | `.gesture(g)`, `.simultaneous_gesture(g)`, `.high_priority_gesture(g)` on `ViewModifiers`, with `on_changed`, `on_ended`, `updating` on each gesture | |
+
+**Arbitration (pure).** Every gesture on a node competes with the gestures of its
+ancestors for the same pointer. The rules are SwiftUI's: the deepest gesture
+wins; a `high_priority_gesture` of an ancestor beats its descendants; a
+`simultaneous_gesture` never fails another. When a recognizer reaches `Began`,
+the others that are not simultaneous with it go to `Failed` (a tap that has
+begun to drag is no tap). A recognizer that can still become `Began` keeps
+the others from ending: a double tap makes a single tap wait the interval, as
+`exclusively(before:)` does. `exclusivity` is data of the arena, a function of
+the list of contenders, so it is tested without a window.
+
+**What the scroll element needs (U4).** Its touch pan is a `DragGesture` of the
+lowest priority on the scroll view: a child's `TapGesture` or `LongPressGesture`
+fails once the pan has moved 10 pt, and the pan's release velocity feeds
+`Glide`. UIKit also delays a touch to a child by 150 ms
+(`delaysContentTouches`); that is not measured and the kit starts with no delay.
+A mouse never pans a scroll view (measured on a Catalyst scroll view: the mouse
+drag is ignored by the pan); only a wheel and a touch do. The band of a touch
+pan is not the Mac wheel's 0.07: UIKit's documented 0.55 is a hypothesis.
+
+**Touch against pointer.** A gesture takes both. `DragGesture` with a mouse needs
+the button; hover is not a gesture (`.on_hover`). Two-finger gestures take only
+touches until a runner maps the trackpad pinch (macOS `magnify` and `rotate`,
+Wayland `pinch`); the recognizers take their values from `Input`, so a runner
+feeds them without a change here.
+
+**Order.** 1. The pure recognizers and the arena, tests first (a table of
+inputs and states). 2. The element: a hook that attaches the handlers, arms the
+long-press timer and calls the arena; the modifiers. 3. The scroll pan on top of it.
+4. A trackpad pinch in each runner. Not measured: the thresholds above on SwiftUI
+and UIKit, the 150 ms delay, the touch band.
+
 ## Risks
 
 | Risk | Why | Mitigation |
