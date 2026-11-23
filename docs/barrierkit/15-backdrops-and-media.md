@@ -192,9 +192,9 @@ and SwiftUI on the same macOS is the reference for both. Why is
 
 | Declaration | Native view |
 |---|---|
-| The sidebar's panel (`WindowGlass`, `Sidebar`) | An `NSSplitViewController` with an empty `NSSplitViewItem(sidebarWithViewController:)` below the content view, sized to the panel: AppKit draws the sidebar of the running macOS, the sidebar glass on 26 (the same `NSGlassEffectView` as SwiftUI's `NavigationSplitView`) and the behind-window material before. Under Reduce Transparency the kit paints the flat sidebar |
-| The inspector's pane (`SplitView::inspector`, with the sidebar's glass on 26) | A second `NSSplitViewController` with a collapsed content item and an empty `NSSplitViewItem(inspectorWithViewController:)`, below the content view and sized to the pane: the same `NSGlassEffectView` as SwiftUI's `.inspector` |
-| `SplitView::background_extension` (with the panes' glass) | A `CAMetalLayer` view at the bottom of the window's views, under the panes, holding the extension: the glass shows it as SwiftUI's shows `.backgroundExtensionEffect()` |
+| The sidebar's panel (`WindowGlass`, `Sidebar`) | An `NSSplitViewController` with an empty `NSSplitViewItem(sidebarWithViewController:)`, sized to the panel: AppKit draws the sidebar of the running macOS. On 26 it is the sidebar glass (the same `NSGlassEffectView` as SwiftUI's `NavigationSplitView`) above the content view, which it reads past its edge as SwiftUI's does, and the `Sidebar`'s rows are a chrome above it; its split view lets every event through to the kit. Before 26, and for `WindowGlass`, it is below the content view, which leaves the panel transparent. Under Reduce Transparency the kit paints the flat sidebar |
+| The inspector's pane (`SplitView::inspector`, with the sidebar's glass on 26) | A second `NSSplitViewController` with a collapsed content item and an empty `NSSplitViewItem(inspectorWithViewController:)`, above the content view and sized to the pane: the same `NSGlassEffectView` as SwiftUI's `.inspector`. The pane's view and its separator are a chrome above it |
+| `SplitView::background_extension` (with the panes' glass) | Drawn in the content view, under the panes: the glass shows it as SwiftUI's shows `.backgroundExtensionEffect()` |
 | The window's background (`ShapeStyle::WindowBackground`) | Nothing: a titled window keeps AppKit's own background material, an `NSVisualEffectView` that takes its tint from the wallpaper, and the kit's layer leaves it uncovered. A theme that tints the window paints its color |
 | `Material` | An `NSVisualEffectView`, `withinWindow`, of `MaterialStyle::material`, with the corner radius, over the content |
 | `TopGlass`, `ProgressiveGlass`, `FullscreenBar::Glass` | An `NSVisualEffectView` of the window background material along the edge; the soft ones have a gradient mask, the hard one none |
@@ -291,8 +291,8 @@ Text::new("Capsule").padding(14.0).glass_effect(Glass::REGULAR, Shape::Capsule)
 - On macOS each glass is its own native view with its own radius and variant,
   so a glass inside another glass composes as in SwiftUI. The compositor
   request of Malaysia holds one radius and one variant per chrome. Sibling
-  glasses are separate chromes, up to 8 per window on macOS; later ones get no
-  glass.
+  glasses are separate chromes, up to 8 per window on macOS, counting the
+  sidebar's and the inspector's; later ones get no glass.
 - `Shape::Circle` is the largest circle centered in the view. An uneven shape
   takes its largest corner. Under Reduce Transparency a regular glass is the
   toolbar's plain fill ([comparison with SwiftUI](../research/glass-effect-comparison.md)).

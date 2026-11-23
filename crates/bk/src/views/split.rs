@@ -356,7 +356,6 @@ impl Component for SplitView {
                     .transform_origin(origin)
                     .child(laid_out(-column))
             };
-            // The native glass reads past its edge, so the view also lies under the detail.
             root = root.child(
                 rect()
                     .position(Position::new_absolute().left(0.0).top(0.0))
@@ -367,12 +366,10 @@ impl Component for SplitView {
                     })
                     .height(Size::percent(100.0))
                     .overflow(Overflow::Clip)
-                    .maybe_child(native_panes.then(Declared::background_extension))
                     .maybe_child(
                         (lead > 0.0)
                             .then(|| stretched(lead - 1.0, lead, 0.0, TransformOrigin::right())),
                     )
-                    .maybe_child(native_panes.then(|| laid_out(detail.min_x())))
                     .maybe_child((trail > 0.0).then(|| {
                         stretched(
                             detail.max_x(),
@@ -445,16 +442,18 @@ impl Component for SplitView {
                     .on_sized(move |event: Event<SizedEventData>| {
                         inspector_area.set_if_modified(event.area)
                     })
-                    .maybe_child(native_panes.then(|| {
-                        let size = inspector_area.read().size;
-                        crate::glass_panel::hole((0.0, 0.0), (size.width, size.height), 0.0)
-                    }))
+                    .maybe_child(native_panes.then(Declared::pane))
                     .child(
                         rect()
                             .width(Size::px(style.inspector_width))
                             .height(Size::fill())
                             .child(inspector.clone()),
-                    ),
+                    )
+                    .maybe_child(native_panes.then(|| {
+                        line()
+                            .height(Size::percent(100.0))
+                            .position(Position::new_absolute().left(0.0).top(0.0))
+                    })),
             );
         }
         if overlay && shown > 0.0 {

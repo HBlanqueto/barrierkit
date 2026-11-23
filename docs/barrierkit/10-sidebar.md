@@ -124,7 +124,10 @@ transparent and sends it with `set_glass`; the compositor draws the material and
 the rim under and over the rows ([ADR 0065](../decisions.md)).
 The app does nothing. The kit sends the panel again whenever the sidebar's area
 changes. On macOS the panel is AppKit's own sidebar, the same glass as SwiftUI's
-`NavigationSplitView` ([15](15-backdrops-and-media.md#on-macos)).
+`NavigationSplitView` ([15](15-backdrops-and-media.md#on-macos)). On macOS 26
+the glass lies above the window's content, so it tints its inner edge with the
+detail beside it, and the kit draws the sidebar's rows in their own layer
+above the glass.
 
 A window with no sidebar, like an About box, makes the whole window glass with
 `WindowGlass::new(content)`. It leaves the window transparent and sends one
@@ -346,9 +349,11 @@ after a 1 px separator. Changing `presented` opens or closes it over
 `DURATION_BASE`, like SwiftUI's `.inspector(isPresented:content:)`.
 
 Where the sidebar is AppKit's glass (macOS 26), the inspector is too: the
-kit publishes the pane's rect, AppKit draws that split item's glass under it
-(the same `NSGlassEffectView` as SwiftUI's inspector) and the kit draws no
-separator, as SwiftUI. Elsewhere the pane is the window's background.
+kit publishes the pane's rect, AppKit draws that split item's glass over the
+content (the same `NSGlassEffectView` as SwiftUI's inspector), and the kit
+draws the pane's view and its separator in a layer above the glass, as
+SwiftUI's split view draws its divider. Elsewhere the pane is the window's
+background.
 
 ### Background extension
 
@@ -357,11 +362,8 @@ separator, as SwiftUI. Elsewhere the pane is the window's background.
 detail and its first pixel column is stretched to the window edge; Apple
 mirrors the view instead. It is not drawn while the sidebar floats.
 
-Where the panes are AppKit's glass, the kit draws the extension in its own
-layer under them, so the glass shows it as SwiftUI's does. That layer also
-holds the view under the detail, because the glass reads past its edge, and
-stretches its last column under an open inspector. Without the extension
-SwiftUI's glass still tints its inner edge with the detail beside it; the
-kit's does not, since the detail is drawn above the glass.
+Where the panes are AppKit's glass, the extension lies in the window's
+content under them, so the glass shows it as SwiftUI's does; its last column
+is also stretched under an open inspector.
 
 Next: [11. Views](11-views.md).

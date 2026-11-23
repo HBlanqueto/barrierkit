@@ -90,6 +90,7 @@ mod tests {
             solid: 2,
             chroma: 3,
             inspector: None,
+            contents_above: false,
         }
     }
 

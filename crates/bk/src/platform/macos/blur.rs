@@ -12,7 +12,7 @@ use objc2_foundation::{NSArray, NSNumber, NSObjectProtocol};
 use objc2_foundation::{NSPoint, NSRect, NSSize};
 use objc2_quartz_core::{CAGradientLayer, kCACornerCurveContinuous};
 
-use super::view::{Effect, Glass, GlassGroup};
+use super::view::{Effect, Glass, GlassGroup, PaneSplit};
 use crate::platform::backdrop::{Chrome, Effect as Declared, strip_rect};
 use crate::platform::window_style::Edge;
 
@@ -205,6 +205,7 @@ fn empty_controller(mtm: MainThreadMarker) -> Retained<NSViewController> {
 // A sidebar or inspector split item is how AppKit draws that pane on the running macOS: glass on 26, the behind-window material before.
 pub(super) fn pane(mtm: MainThreadMarker, inspector: bool) -> Retained<NSSplitViewController> {
     let split = NSSplitViewController::new(mtm);
+    split.setSplitView(&PaneSplit::new(mtm));
     let content = NSSplitViewItem::splitViewItemWithViewController(&empty_controller(mtm));
     content.setCollapsed(true);
     if inspector {

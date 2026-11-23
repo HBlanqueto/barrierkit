@@ -62,7 +62,12 @@ pub(crate) fn use_publish_inspector(area: Option<Area>) {
     });
 }
 
-pub(crate) fn use_publish(glass: Option<SidebarGlass>, radius: f32, area: Area) {
+pub(crate) fn use_publish(
+    glass: Option<SidebarGlass>,
+    radius: f32,
+    area: Area,
+    contents_above: bool,
+) {
     let sent = use_hook(|| Rc::new(RefCell::new(GlassPanels::default())));
     let panels = glass
         .filter(|_| area.width() > 0.0 && area.height() > 0.0)
@@ -73,6 +78,7 @@ pub(crate) fn use_publish(glass: Option<SidebarGlass>, radius: f32, area: Area) 
             solid: argb(glass.solid),
             chroma: (glass.chroma * infinity_protocol::THOUSANDTHS).round() as u32,
             inspector: None,
+            contents_above,
         });
     let outbox = use_hook(GlassOutbox::get);
     if *sent.borrow() != panels {
@@ -158,7 +164,7 @@ impl Component for WindowGlass {
         let glass = sidebar_glass();
         let radius = CORNER_WINDOW.fitted;
         let mut area = use_state(Area::default);
-        use_publish(glass, radius, *area.read());
+        use_publish(glass, radius, *area.read(), false);
         let root = rect()
             .expanded()
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))

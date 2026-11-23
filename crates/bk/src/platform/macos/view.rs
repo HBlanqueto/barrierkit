@@ -11,10 +11,10 @@ use objc2::{
 use objc2_app_kit::{
     NSApplication, NSApplicationPresentationOptions, NSBackingStoreType, NSDragOperation,
     NSDraggingContext, NSDraggingSession, NSDraggingSource, NSEvent, NSEventModifierFlags,
-    NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSResponder, NSTextInputClient,
-    NSTrackingArea, NSTrackingAreaOptions, NSView, NSViewFrameDidChangeNotification,
-    NSVisualEffectView, NSWindow, NSWindowButton, NSWindowDelegate, NSWindowDidMoveNotification,
-    NSWindowStyleMask,
+    NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSResponder, NSSplitView,
+    NSSplitViewDividerStyle, NSTextInputClient, NSTrackingArea, NSTrackingAreaOptions, NSView,
+    NSViewFrameDidChangeNotification, NSVisualEffectView, NSWindow, NSWindowButton,
+    NSWindowDelegate, NSWindowDidMoveNotification, NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification,
@@ -705,6 +705,35 @@ impl GlassGroup {
         let this = Self::alloc(mtm).set_ivars(());
         // SAFETY: NSGlassEffectContainerView's designated initializer.
         unsafe { msg_send![super(this), init] }
+    }
+}
+
+define_class!(
+    // A pane's split view lies above the kit's view, which takes every event over it.
+    #[unsafe(super(NSSplitView))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKPaneSplit"]
+    pub(super) struct PaneSplit;
+
+    impl PaneSplit {
+        #[unsafe(method(hitTest:))]
+        fn hit_test(&self, _: NSPoint) -> *mut NSView {
+            std::ptr::null_mut()
+        }
+    }
+);
+
+impl PaneSplit {
+    pub(super) fn new(mtm: MainThreadMarker) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(());
+        // SAFETY: NSView's designated initializer, inherited by NSSplitView.
+        let split: Retained<Self> = unsafe { msg_send![super(this), init] };
+        // As NSSplitViewController's own split view: NSSplitView's defaults stack the panes and resize the window.
+        split.setVertical(true);
+        split.setDividerStyle(NSSplitViewDividerStyle::Thin);
+        split.setArrangesAllSubviews(false);
+        split.setTranslatesAutoresizingMaskIntoConstraints(false);
+        split
     }
 }
 

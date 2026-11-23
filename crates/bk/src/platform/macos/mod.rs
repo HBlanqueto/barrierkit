@@ -131,7 +131,6 @@ struct ChromeLayer {
 enum Backing {
     Visual(Material),
     Glass,
-    Under,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -153,7 +152,7 @@ struct Bar {
     pocket: Option<Retained<Effect>>,
 }
 
-// A pane is AppKit's own split item below the content view, removed when the kit stops publishing it.
+// A pane is AppKit's own split item, above the content view when the kit draws its contents in a chrome, removed when the kit stops publishing it.
 fn place_pane(
     mtm: MainThreadMarker,
     container: &NSView,
@@ -161,6 +160,7 @@ fn place_pane(
     slot: &mut Option<Retained<NSSplitViewController>>,
     rect: Option<(i32, i32, i32, i32)>,
     inspector: bool,
+    above: bool,
 ) {
     let Some(rect) = rect else {
         if let Some(old) = slot.take() {
@@ -171,11 +171,12 @@ fn place_pane(
     let height = container.bounds().size.height;
     let split = slot.get_or_insert_with(|| {
         let split = blur::pane(mtm, inspector);
-        container.addSubview_positioned_relativeTo(
-            &split.view(),
-            NSWindowOrderingMode::Below,
-            Some(content),
-        );
+        let order = if above {
+            NSWindowOrderingMode::Above
+        } else {
+            NSWindowOrderingMode::Below
+        };
+        container.addSubview_positioned_relativeTo(&split.view(), order, Some(content));
         split
     });
     blur::place_pane(split, blur::frame(rect, height));
@@ -193,7 +194,7 @@ struct Window {
     id: u64,
     window: Retained<NSWindow>,
     view: Retained<ContentView>,
-    // The content view's parent: the native sidebar sits below the view.
+    // The content view's parent, which also holds the native panes and the chromes.
     container: Option<Retained<NSView>>,
     bar: Option<Bar>,
     sidebar: Option<Retained<NSSplitViewController>>,
@@ -244,6 +245,27 @@ impl ChromeLayer {
             view.setFrameOrigin(NSPoint::new(origin.x + dx, origin.y + dy));
         }
         self.wanted.placement.origin = (x, y);
+    }
+
+    // A pane's chrome resizes every frame while it slides; with no native view under it, its Metal layer just takes the new frame.
+    fn only_resizes_to(&self, wanted: &Wanted) -> bool {
+        self.effects.is_empty()
+            && Wanted {
+                placement: wanted.placement,
+                ..self.wanted.clone()
+            } == *wanted
+    }
+
+    fn resize(&mut self, placement: Placement, height: f64, scale: f64) {
+        let (x, y) = placement.origin;
+        let (width, strip) = placement.size;
+        self.view
+            .setFrame(blur::frame((x, y, width as i32, strip as i32), height));
+        self.layer.setDrawableSize(CGSize::new(
+            f64::from(width) * scale,
+            f64::from(strip) * scale,
+        ));
+        self.wanted.placement = placement;
     }
 }
 
@@ -1154,8 +1176,7 @@ impl Runtime {
                 native: chrome.effects.iter().find_map(|(effect, _)| match effect {
                     Declared::Material { material, .. } => Some(Backing::Visual(*material)),
                     Declared::Glass { .. } => Some(Backing::Glass),
-                    Declared::BackgroundExtension => Some(Backing::Under),
-                    Declared::ScrollEdge { .. } => None,
+                    Declared::ScrollEdge { .. } | Declared::Pane => None,
                 }),
             })
             .collect();
@@ -1168,22 +1189,24 @@ impl Runtime {
         {
             return;
         }
+        let height = container.bounds().size.height;
         // A new glass view costs AppKit a SwiftUI layout pass, which drops refreshes while the toolbar slides with the sidebar.
         if window.chromes.len() == wanted.len()
-            && window
-                .chromes
-                .iter()
-                .zip(&wanted)
-                .all(|(chrome, wanted)| chrome.only_moves_to(wanted))
+            && window.chromes.iter().zip(&wanted).all(|(chrome, wanted)| {
+                chrome.only_moves_to(wanted) || chrome.only_resizes_to(wanted)
+            })
         {
             for (chrome, wanted) in window.chromes.iter_mut().zip(&wanted) {
-                chrome.slide(wanted.placement.origin);
+                if chrome.only_moves_to(wanted) {
+                    chrome.slide(wanted.placement.origin);
+                } else {
+                    chrome.resize(wanted.placement, height, scale);
+                }
             }
             window.place_bar();
             return;
         }
         window.chromes.drain(..).for_each(ChromeLayer::remove);
-        let height = container.bounds().size.height;
         for wanted in wanted {
             let (x, y) = wanted.placement.origin;
             let (width, strip) = wanted.placement.size;
@@ -1243,7 +1266,7 @@ impl Runtime {
                         }
                     }
                 }
-                Some(Backing::Under) | None => {}
+                None => {}
             }
             // A chrome is rebuilt only when its placement changes, so a taller window must keep its distance from the top.
             let anchor = NSAutoresizingMaskOptions::ViewMinYMargin;
@@ -1254,15 +1277,7 @@ impl Runtime {
             let view =
                 ChromeView::new(mtm, blur::frame((x, y, width as i32, strip as i32), height));
             view.setAutoresizingMask(anchor);
-            if wanted.native == Some(Backing::Under) {
-                container.addSubview_positioned_relativeTo(
-                    &view,
-                    NSWindowOrderingMode::Below,
-                    None,
-                );
-            } else {
-                container.addSubview(&view);
-            }
+            container.addSubview(&view);
             let layer = configure_metal_layer(&device, &view);
             layer.setOpaque(false);
             layer.setContentsScale(scale);
@@ -1328,7 +1343,7 @@ impl Runtime {
         menu::sync();
     }
 
-    // The sidebar is AppKit's own, behind the window's content: the kit leaves its panel transparent.
+    // The sidebar and the inspector are AppKit's own glass, which reads the content beside it as SwiftUI's does.
     fn sync_glass(&mut self) {
         let mtm = self.mtm;
         for window in &mut self.windows {
@@ -1339,11 +1354,16 @@ impl Runtime {
             };
             window.needs_redraw = true;
             let panes = [
-                (&mut window.sidebar, panels.rects.first().copied(), false),
-                (&mut window.inspector, panels.inspector, true),
+                (
+                    &mut window.sidebar,
+                    panels.rects.first().copied(),
+                    false,
+                    panels.contents_above,
+                ),
+                (&mut window.inspector, panels.inspector, true, true),
             ];
-            for (slot, rect, inspector) in panes {
-                place_pane(mtm, &container, &window.view, slot, rect, inspector);
+            for (slot, rect, inspector, above) in panes {
+                place_pane(mtm, &container, &window.view, slot, rect, inspector, above);
             }
             window.layer.setOpaque(false);
         }

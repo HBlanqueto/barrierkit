@@ -54,8 +54,8 @@ pub(crate) enum Effect {
         spacing: u32,
         tint: Option<Rgba>,
     },
-    // Drawn under the panes' native glass, so that the glass shows it.
-    BackgroundExtension,
+    // The platform's own pane glass lies under the container, so the content beside it shows through the glass.
+    Pane,
 }
 
 // How a glass looks: SwiftUI's `Glass.clear` and `Glass.tint`, and how near two glasses of one container merge.
@@ -144,9 +144,9 @@ impl Declared {
         })
     }
 
-    pub(crate) fn background_extension() -> Element {
+    pub(crate) fn pane() -> Element {
         crate::glass::leaf(Self {
-            effect: Effect::BackgroundExtension,
+            effect: Effect::Pane,
             layout: crate::glass::layout(Size::fill(), Size::fill(), Position::new_absolute()),
         })
     }
@@ -246,9 +246,16 @@ pub(crate) fn collect(tree: &Tree, window: Size2D) -> Vec<Chrome> {
         chrome.area = reached.intersection(&bounds).unwrap_or_default();
     }
     outer.retain(|chrome| !chrome.area.is_empty());
+    // A pane's chrome goes first, so that every other chrome lies above its glass.
+    let not_pane = |chrome: &Chrome| {
+        !chrome
+            .effects
+            .iter()
+            .any(|(effect, _)| *effect == Effect::Pane)
+    };
     outer.sort_by(|a, b| {
-        (a.area.min_y(), a.area.min_x())
-            .partial_cmp(&(b.area.min_y(), b.area.min_x()))
+        (not_pane(a), a.area.min_y(), a.area.min_x())
+            .partial_cmp(&(not_pane(b), b.area.min_y(), b.area.min_x()))
             .unwrap_or(std::cmp::Ordering::Equal)
     });
     outer.truncate(MOST_CHROMES);
@@ -357,7 +364,7 @@ impl Requests {
                         requests.glass_spacing = requests.glass_spacing.max(spacing);
                     }
                 }
-                Effect::ScrollEdge { .. } | Effect::BackgroundExtension => {}
+                Effect::ScrollEdge { .. } | Effect::Pane => {}
             }
         }
         requests

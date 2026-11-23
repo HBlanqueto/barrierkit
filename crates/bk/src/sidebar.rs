@@ -371,7 +371,8 @@ impl Component for Sidebar {
         let focus = use_focus_state::<InSidebar>();
         use_provide_context(move || focus);
         let mut panel_area = use_state(Area::default);
-        crate::glass_panel::use_publish(glass, 0.0, *panel_area.read());
+        let native_pane = crate::glass_panel::native_pane_glass();
+        crate::glass_panel::use_publish(glass, 0.0, *panel_area.read(), native_pane);
         let span = controls.as_ref().map(|controls| controls.sidebar_span);
         if let Some(mut span) = span {
             let area = *panel_area.read();
@@ -389,7 +390,7 @@ impl Component for Sidebar {
             .a11y_role(AccessibilityRole::Navigation)
             .on_sized(move |event: Event<SizedEventData>| panel_area.set_if_modified(event.area))
             .padding(Gaps::new(top_height, padding_x, 0.0, padding_x + reserved))
-            .maybe_child(glass.map(|_| {
+            .maybe_child(glass.filter(|_| !native_pane).map(|_| {
                 let size = panel_area.read().size;
                 crate::glass_panel::hole((-padding_x, -top_height), (size.width, size.height), 0.0)
             }))
@@ -407,7 +408,10 @@ impl Component for Sidebar {
                 ScrollView::new().children(self.children.iter().cloned()),
             ));
 
-        let mut root = rect().expanded().child(sidebar_body);
+        let mut root = rect()
+            .expanded()
+            .child(sidebar_body)
+            .maybe_child(native_pane.then(crate::platform::backdrop::Declared::pane));
 
         let sidebar_shown = sidebar_control().is_none_or(|control| control.settled());
         if lights_column {

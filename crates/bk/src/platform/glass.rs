@@ -27,6 +27,8 @@ pub(crate) struct GlassPanels {
     pub(crate) solid: u32,
     pub(crate) chroma: u32,
     pub(crate) inspector: Option<(i32, i32, i32, i32)>,
+    // The kit draws the sidebar's contents in a chrome above its glass, so the glass lies above the content.
+    pub(crate) contents_above: bool,
 }
 
 // The last panels and whether the platform has yet to take them.
