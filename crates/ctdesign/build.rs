@@ -276,7 +276,14 @@ DURATION_BASE u64 duration.base
 DURATION_FAST_MS u64 duration.fast
 DURATION_SLOW_MS u64 duration.slow
 THEME_FADE_WAIT_MS u64 duration.wait-max
+DURATION_LIST_ROW_MS u64 duration.list-row
+DURATION_MENU_CLOSE_MS u64 duration.menu-close
+DURATION_POPOVER_IN_MS u64 duration.popover-in
+DURATION_POPOVER_OUT_MS u64 duration.popover-out
 SPRING_DAMPING f32 spring.damping
+SPRING_SHEET_MS u64 spring.sheet-duration
+SPRING_ALERT_MS u64 spring.alert-duration
+SPRING_PUSH_MS u64 spring.push-duration
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
 MENUBAR_HEIGHT_WIDE i32 components.shell.menubar.height-wide

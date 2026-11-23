@@ -1043,6 +1043,8 @@ the kit measures text without laying it out.
 | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 250, 420 ms |
 | `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
 | `SPRING_DAMPING` | 5, damping of the kit's spring ([14](14-animations.md)) |
+| `DURATION_LIST_ROW_MS`, `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | 300, 200, 210, 120 ms: rows inserted or removed, a menu closing, a popover in and out (Mac Catalyst; [UIKit animations](../research/uikit-animations.md#2-motion-table)) |
+| `SPRING_SHEET_MS`, `SPRING_ALERT_MS`, `SPRING_PUSH_MS` | 344, 274, 251 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents, an alert, a push and pop; the last is a fit |
 
 ### Materials
 

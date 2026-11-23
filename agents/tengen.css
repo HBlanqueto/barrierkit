@@ -19,7 +19,14 @@
   --bk-duration-base: 250;
   --bk-duration-slow: 420;
   --bk-duration-wait-max: 150;
+  --bk-duration-list-row: 300;
+  --bk-duration-menu-close: 200;
+  --bk-duration-popover-in: 210;
+  --bk-duration-popover-out: 120;
   --bk-spring-damping: 5;
+  --bk-spring-sheet-duration: 344;
+  --bk-spring-alert-duration: 274;
+  --bk-spring-push-duration: 251;
   --bk-font-families-sans: Adwaita Sans, Inter, "Noto Sans CJK SC", system-ui, sans-serif;
   --bk-font-families-mono: Geist Mono, monospace;
   --bk-font-styles-mono-family: mono;
