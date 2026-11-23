@@ -136,6 +136,7 @@ impl Component for ToolGroup {
                 0.0
             };
             let along = 2.0 * padding + count * slot_width + separators * separator_width;
+            // The native glass draws its HAIRLINE rim outside its frame, and the group's size includes the rim.
             let glass_size = if vertical {
                 (
                     thickness,
@@ -144,6 +145,7 @@ impl Component for ToolGroup {
             } else {
                 (along, thickness)
             };
+            let glass_size = (glass_size.0 - 2.0 * HAIRLINE, glass_size.1 - 2.0 * HAIRLINE);
             let (width, height) = if vertical {
                 (Size::px(thickness), Size::auto())
             } else {
@@ -159,7 +161,7 @@ impl Component for ToolGroup {
                         .corner_radius(glass_size.0, glass_size.1, LayoutDirection::LeftToRight)
                         .top_left(),
                     glass_size,
-                    (0.0, 0.0),
+                    (HAIRLINE, HAIRLINE),
                     crate::platform::backdrop::GlassLook::default(),
                 ))
                 .child(root);
