@@ -36,10 +36,10 @@ use wayland_server::{
     },
 };
 
-use super::window_style::InfinityWindowStyleV1;
+use crate::platform::window_style::InfinityWindowStyleV1;
 
 #[derive(Clone, Debug, PartialEq)]
-pub(super) enum Seen {
+pub(crate) enum Seen {
     Subsurface {
         child: u32,
         parent: u32,
@@ -263,8 +263,8 @@ impl ServerDispatch<ServerStyle, ()> for Server {
     }
 }
 
-pub(super) struct FakeServer {
-    pub(super) seen: Log,
+pub(crate) struct FakeServer {
+    pub(crate) seen: Log,
     stop: Arc<AtomicBool>,
     thread: Option<JoinHandle<()>>,
 }
@@ -299,7 +299,7 @@ impl FakeServer {
         }
     }
 
-    pub(super) fn seen(&self) -> Vec<Seen> {
+    pub(crate) fn seen(&self) -> Vec<Seen> {
         self.seen.lock().unwrap().clone()
     }
 }
@@ -313,17 +313,17 @@ impl Drop for FakeServer {
     }
 }
 
-pub(super) struct Probe {
+pub(crate) struct Probe {
     registry: RegistryState,
     output: OutputState,
-    pub(super) compositor: CompositorState,
-    pub(super) subcompositor: SubcompositorState,
-    pub(super) style: Option<InfinityWindowStyleV1>,
-    pub(super) queue: QueueHandle<Probe>,
+    pub(crate) compositor: CompositorState,
+    pub(crate) subcompositor: SubcompositorState,
+    pub(crate) style: Option<InfinityWindowStyleV1>,
+    pub(crate) queue: QueueHandle<Probe>,
 }
 
 impl Probe {
-    pub(super) fn connect(style_version: Option<u32>) -> (Self, EventQueue<Self>, FakeServer) {
+    pub(crate) fn connect(style_version: Option<u32>) -> (Self, EventQueue<Self>, FakeServer) {
         let (client, server) = UnixStream::pair().unwrap();
         let server = FakeServer::start(server, style_version);
         let connection = Connection::from_socket(client).unwrap();
@@ -337,7 +337,7 @@ impl Probe {
             registry: RegistryState::new(&globals),
             output: OutputState::new(&globals, &handle),
             subcompositor,
-            style: super::window_style::bind(&globals, &handle),
+            style: crate::platform::window_style::bind(&globals, &handle),
             compositor,
             queue: handle,
         };
@@ -345,7 +345,7 @@ impl Probe {
         (probe, queue, server)
     }
 
-    pub(super) fn surface(&self) -> WlSurface {
+    pub(crate) fn surface(&self) -> WlSurface {
         self.compositor.create_surface(&self.queue)
     }
 }
@@ -442,7 +442,7 @@ fn a_compositor_that_offers_version_ten_gets_version_ten() {
     let (probe, _queue, _server) = Probe::connect(Some(10));
     let style = probe.style.as_ref().unwrap();
     assert_eq!(style.version(), 10);
-    assert!(super::window_style::offers_backdrop(style));
+    assert!(crate::platform::window_style::offers_backdrop(style));
 }
 
 #[test]
@@ -450,7 +450,7 @@ fn a_compositor_that_offers_version_nine_gets_version_nine_and_no_backdrop() {
     let (probe, _queue, _server) = Probe::connect(Some(9));
     let style = probe.style.as_ref().unwrap();
     assert_eq!(style.version(), 9);
-    assert!(!super::window_style::offers_backdrop(style));
+    assert!(!crate::platform::window_style::offers_backdrop(style));
 }
 
 #[test]

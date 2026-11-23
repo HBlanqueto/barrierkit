@@ -113,7 +113,7 @@ pub(crate) struct AppInstance {
     accessibility: AccessibilityTree,
     accessibility_initialized: bool,
     #[cfg(all(feature = "a11y", target_os = "linux"))]
-    atspi: Option<super::atspi::Atspi>,
+    atspi: Option<super::linux::atspi::Atspi>,
     #[cfg(all(feature = "a11y", target_os = "macos"))]
     bridge: Option<super::macos::accessibility::Bridge>,
     #[cfg(all(feature = "a11y", target_os = "macos"))]
@@ -276,7 +276,7 @@ impl AppInstance {
 
         let accessibility = AccessibilityTree::default();
         #[cfg(all(feature = "a11y", target_os = "linux"))]
-        let atspi = window_shown.then(|| super::atspi::Atspi::new(waker.clone()));
+        let atspi = window_shown.then(|| super::linux::atspi::Atspi::new(waker.clone()));
 
         Self {
             runner,
@@ -423,7 +423,7 @@ impl AppInstance {
         if self
             .atspi
             .as_ref()
-            .is_some_and(super::atspi::Atspi::pending)
+            .is_some_and(super::linux::atspi::Atspi::pending)
         {
             return true;
         }

@@ -383,14 +383,14 @@ app calls, who answers on macOS, who answers on Linux.
 | Traffic lights, title bar | The kit draws them ([ADR 0082](../decisions.md)); the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
 | Frame pacing | One `CADisplayLink` per window | The frame callback of the surface ([The frame](#the-frame)) | both |
 | Full screen (the green light) | `toggleFullScreen` for a titled window and the window's own frame for a `Plain` one; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../agents/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |
-| Clipboard | `macos/clipboard.rs` (text) and `macos/pasteboard.rs` (typed: text, HTML, PNG and TIFF, file URLs, private boards) on `NSPasteboard` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection; `platform/pasteboard.rs` holds text only, so images, files and named boards report false | both; typed on macOS only |
+| Clipboard | `macos/clipboard.rs` (text) and `macos/pasteboard.rs` (typed: text, HTML, PNG and TIFF, file URLs, private boards) on `NSPasteboard` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection; `linux/pasteboard.rs` holds text only, so images, files and named boards report false | both; typed on macOS only |
 | Drag and drop | Out: an `NSDraggingSession` from the content view with `NSPasteboardItem`s (`macos/view.rs`, `macos/pasteboard.rs`); in: no code | `wl_data_device`; out offers text, `text/html`, `image/png` and `text/uri-list`; in accepts only `text/uri-list` | Linux both ways; macOS out only (not run with a real drag) |
 | Text input | Key events with `insertText`; marked text is not verified | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
 | Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
 | Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, and the app menu event of `infinity_window_manager_v1` | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
-| File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal: no parent window, no filters, no start folder (`platform/panels.rs`, `portal.rs`) | both, Linux partial |
-| Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | None: nothing is vetoed, the alert and the open events are not served (`platform/panels.rs`) | macOS only |
+| File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal: no parent window, no filters, no start folder (`linux/panels.rs`, `portal.rs`) | both, Linux partial |
+| Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | None: nothing is vetoed, the alert and the open events are not served (`linux/panels.rs`) | macOS only |
 | Notifications | `UserNotifications` | `org.freedesktop.Notifications` and the portal | both |
 | Secrets | Keychain (`security-framework`) | Secret Service | both |
 | Single instance | `macos/instance.rs` | `org.freedesktop.Application` | both |
@@ -413,7 +413,7 @@ How to keep it true:
 1. A new capability gets its row in the commit that adds it.
 2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 9 cannot send `set_backdrop` ([ADR 0091](../decisions.md)).
 3. A function that needs a new request goes into `infinity-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
-4. `cfg(target_os)` stays in `platform/` ([AGENTS.md](../../AGENTS.md)); the matrix names the file.
+4. `cfg(target_os)` stays in `platform/` ([AGENTS.md](../../AGENTS.md)): `platform/macos/` and `platform/linux/` hold what one system uses, and `platform/` holds what both use. The matrix names the file.
 
 ## Errors
 

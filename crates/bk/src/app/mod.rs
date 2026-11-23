@@ -16,7 +16,7 @@ pub use commands::{
     DELETE, FIND, FIND_AND_REPLACE, FIND_NEXT, FIND_PREVIOUS, HELP, JUMP_TO_SELECTION, MINIMIZE,
     NEW_WINDOW, PASTE, QUIT, SELECT_ALL, SETTINGS, USE_SELECTION_FOR_FIND, ZOOM,
 };
-pub(crate) use defaults::{DefaultsRevision, domain};
+pub(crate) use defaults::{DefaultsRevision, domain, try_read_toml};
 pub use defaults::{
     load_defaults, load_restoration, read_toml, save_defaults, save_restoration, update_defaults,
     use_defaults, use_watched, write_toml,

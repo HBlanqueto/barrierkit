@@ -1,4 +1,4 @@
-use super::RunError;
+use crate::platform::RunError;
 use ash::{
     Device, Entry, Instance,
     khr::{surface, swapchain, wayland_surface},

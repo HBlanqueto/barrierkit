@@ -17,7 +17,7 @@ pixels; it does not change the artifact or the kit.
 | `docs/barrierkit/assets/states/*.png` | `doc_shots` ([assets README](../docs/barrierkit/assets/README.md)) | Whole windows |
 
 The scenes are the functions in `crates/bk/tests/kit/controls.rs` and
-`crates/bk/src/platform/doc_shots.rs`. An app of your own gets reference
+`crates/bk/src/platform/linux/doc_shots.rs`. An app of your own gets reference
 images the same way: render its view with `freya_testing::TestingRunner` and
 `render_to_file`.
 

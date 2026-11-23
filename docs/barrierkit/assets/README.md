@@ -15,7 +15,7 @@ renders of the current code, never retouched.
 | Folder | Holds | Produced by |
 |---|---|---|
 | `crates/bk/tests/golden/` | One control or view per image, `<name>-light.png` and `<name>-dark.png`; the chapters link them directly | The golden tests in `crates/bk/tests/kit/` |
-| `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | The `doc_shots` test in `crates/bk/src/platform/doc_shots.rs` |
+| `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | The `doc_shots` test in `crates/bk/src/platform/linux/doc_shots.rs` |
 | `brand/` | The BarrierKit icon and banner, as SVG | Drawn by hand; the repository has no script for them |
 
 Both tests render with `freya-testing` on the CPU at scale 1, without a

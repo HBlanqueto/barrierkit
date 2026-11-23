@@ -5,7 +5,6 @@ use freya_testing::TestingRunner;
 use std::{cell::RefCell, rc::Rc};
 use torin::prelude::Size2D;
 
-use super::window::{WindowCommand, WindowControls, WindowOptions, WindowStatus};
 use crate::app::{
     Application, Commands, DismissWindowAction, MenuActions, OpenWindowAction, Window, WindowGroup,
     ZOOM, use_dismiss_window, use_open_window,
@@ -13,6 +12,7 @@ use crate::app::{
 use crate::i18n::text;
 use crate::main_menu::MenuHandle;
 use crate::menu::{CheckState, MenuItem};
+use crate::platform::window::{WindowCommand, WindowControls, WindowOptions, WindowStatus};
 
 type Queue = Rc<RefCell<Vec<WindowCommand>>>;
 

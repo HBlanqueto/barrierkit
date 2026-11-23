@@ -14,9 +14,9 @@ use std::{
 pub(super) const REVEAL_STEP: Duration = Duration::from_millis(16);
 pub(super) const REVEAL_TIME: Duration = Duration::from_millis(ctdesign::DURATION_BASE + 100);
 
-use super::{
+use super::surface::buffer_size;
+use crate::platform::{
     input::seat::{RepeatState, released_repeated_key, should_repeat_key, stop_repeat},
-    surface::buffer_size,
     timer::{Timers, Wake, WakeQueue},
     window::{
         WindowControls, WindowEdge, WindowStatus, clamp_toplevel_size_dimension, resize_edge_at,
@@ -41,7 +41,7 @@ pub(super) fn window_controls(status: WindowStatus) -> WindowControls {
         focus_overlay: false,
         focus_bar_height: freya_core::prelude::State::create(ctdesign::MENUBAR_HEIGHT as f32),
         desktop: freya_core::prelude::State::create(None),
-        fullscreen_bar: freya_core::prelude::State::create(super::FullscreenBar::Solid),
+        fullscreen_bar: freya_core::prelude::State::create(crate::platform::FullscreenBar::Solid),
         fullscreen_push: freya_core::prelude::State::create(false),
         overlay_titlebar_height: freya_core::prelude::State::create(0.0),
         hud: false,

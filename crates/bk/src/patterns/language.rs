@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use ctappearance::language::read_language;
 use freya_core::prelude::*;
 
-use crate::app::{read_toml, write_toml};
+use crate::app::{try_read_toml, write_toml};
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::popup_button::PopUpButton;
@@ -73,7 +73,7 @@ impl Component for LanguagePicker {
 }
 
 pub fn write_language(path: &Path, language: Option<&str>) -> io::Result<()> {
-    let mut table: toml::Table = read_toml(path);
+    let mut table: toml::Table = try_read_toml(path)?;
     match language {
         Some(language) => table.insert("language".into(), language.into()),
         None => table.remove("language"),

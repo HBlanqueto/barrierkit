@@ -13,12 +13,14 @@ use sctk::{
 };
 
 use super::{
-    RunError,
-    backdrop::{Chrome, Placement, Requests},
-    glass::packed,
     runtime::Runtime,
     surface::{SurfaceRole, SurfaceWindow, buffer_size},
     vulkan::{Graphics, GraphicsShared},
+};
+use crate::platform::{
+    RunError,
+    backdrop::{Chrome, Placement, Requests},
+    glass::packed,
     window_style::{BlendingMode, InfinityWindowStyleV1},
 };
 
@@ -208,7 +210,7 @@ impl Runtime {
             style: self
                 .window_style
                 .clone()
-                .filter(super::window_style::offers_backdrop)?,
+                .filter(crate::platform::window_style::offers_backdrop)?,
             viewporter: self.viewporter.clone(),
             queue: self.qh.clone(),
         })
@@ -219,10 +221,10 @@ impl Runtime {
 mod tests {
     use sctk::reexports::client::Proxy;
 
-    use super::super::backdrop::{Backdrop, ScrollEdge};
     use super::super::fake_server::{Probe, Seen};
-    use super::super::window_style::{Edge, ScrollEdgeEffectStyle, WireMaterial};
     use super::*;
+    use crate::platform::backdrop::{Backdrop, ScrollEdge};
+    use crate::platform::window_style::{Edge, ScrollEdgeEffectStyle, WireMaterial};
 
     fn menu() -> Requests {
         Requests {

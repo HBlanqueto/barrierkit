@@ -5,7 +5,7 @@ use sctk::reexports::protocols::xdg::shell::client::xdg_popup::XdgPopup;
 
 use freya_core::{integration::PlatformEvent, prelude::Color};
 
-use super::RunError;
+use crate::platform::RunError;
 use sctk::{
     compositor::{CompositorHandler, CompositorState, Region},
     reexports::{
@@ -30,14 +30,11 @@ use torin::prelude::CursorPoint;
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu::OrgKdeKwinAppmenu;
 
 use super::{
-    app::AppInstance,
-    backdrop::Pass,
     chrome_surface::{ChromeHost, ChromeSurface},
-    glass::Rects,
-    popup::PopupInfo,
     runtime::{Runtime, WindowContext},
     vulkan::{Graphics, GraphicsShared},
 };
+use crate::platform::{app::AppInstance, backdrop::Pass, glass::Rects, popup::PopupInfo};
 
 pub(crate) struct SurfaceWindow {
     pub(crate) surface: WlSurface,
@@ -57,7 +54,7 @@ pub(crate) struct SurfaceWindow {
     failing: bool,
     pub(crate) opaque_region: Option<((u32, u32), Rects)>,
     pub(crate) glass_holes: Rects,
-    pub(crate) glass_style: Option<super::window_style::InfinityWindowStyleV1>,
+    pub(crate) glass_style: Option<crate::platform::window_style::InfinityWindowStyleV1>,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
@@ -272,7 +269,7 @@ impl SurfaceWindow {
             else {
                 return false;
             };
-            super::backdrop::render_passes(&mut app.tree, &nodes, |pass, tree| {
+            crate::platform::backdrop::render_passes(&mut app.tree, &nodes, |pass, tree| {
                 let (canvas, background, origin) = match pass {
                     Pass::Content => (content.canvas(), background, (0, 0)),
                     Pass::Chrome(index) => {
@@ -284,7 +281,7 @@ impl SurfaceWindow {
                         (skia.canvas(), Color::TRANSPARENT, chrome.placement.origin)
                     }
                 };
-                super::backdrop::render_pass(
+                crate::platform::backdrop::render_pass(
                     &mut app.font_collection,
                     &app.font_manager,
                     tree,

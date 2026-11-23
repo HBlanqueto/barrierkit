@@ -1,13 +1,15 @@
 use super::{
-    EditShortcut, ObjectId, RunError, Sent,
     clipboard::{Clipboard, ClipboardDevice, PendingDrop},
     extension::Extension,
+    surface::SurfaceWindow,
+    vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
+};
+use crate::platform::{
+    EditShortcut, ObjectId, RunError, Sent,
     input::seat::{RepeatState, cursor_shape_from_icon},
     main_menu_export::MainMenuAddress,
     popup::PopupCommand,
-    surface::SurfaceWindow,
     timer::{TimerQueue, Wake},
-    vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
     window::WindowControls,
 };
 use freya_core::prelude::{AccessibilityFocusStrategy, CursorIcon, Key, State};
@@ -100,7 +102,7 @@ pub(crate) struct Runtime {
     pub(crate) needs_exit: bool,
     pub(crate) recover_failed: bool,
     pub(crate) request_redraw_all: bool,
-    pub(crate) queue: Rc<RefCell<Vec<(ObjectId, super::Sent)>>>,
+    pub(crate) queue: Rc<RefCell<Vec<(ObjectId, crate::platform::Sent)>>>,
     pub(crate) ping: Ping,
     pub(crate) ping_source: Option<PingSource>,
     pub(crate) wake: Wake,
@@ -111,7 +113,7 @@ pub(crate) struct Runtime {
     pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
     pub(crate) dialog_manager:
         Option<wayland_protocols::xdg::dialog::v1::client::xdg_wm_dialog_v1::XdgWmDialogV1>,
-    pub(crate) window_style: Option<super::window_style::InfinityWindowStyleV1>,
+    pub(crate) window_style: Option<crate::platform::window_style::InfinityWindowStyleV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) timers: TimerQueue,
@@ -119,7 +121,7 @@ pub(crate) struct Runtime {
     pub(crate) last_input_serial: Rc<Cell<u32>>,
     pub(crate) last_input_surface: Option<WlSurface>,
     pub(crate) last_pointer_serial: Cell<u32>,
-    pub(crate) resize_hover: Option<super::WindowEdge>,
+    pub(crate) resize_hover: Option<crate::platform::WindowEdge>,
     pub(crate) pointer_pressed: bool,
     pub(crate) pointer_surface: Option<WlSurface>,
     pub(crate) cursor_icon: CursorIcon,
@@ -292,8 +294,8 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         }
                     }
                     Sent::User(UserEvent::SetCustomScaleFactor(_)) => {}
-                    Sent::Kit(event) if event.is::<super::window::OpenUtility>() => {
-                        if let Ok(open) = event.downcast::<super::window::OpenUtility>() {
+                    Sent::Kit(event) if event.is::<crate::platform::window::OpenUtility>() => {
+                        if let Ok(open) = event.downcast::<crate::platform::window::OpenUtility>() {
                             let open = *open;
                             shell.create_window(open.app, open.options, Some(&surface_id));
                         }
@@ -453,7 +455,8 @@ impl Runtime {
         let conn = Connection::connect_to_env().map_err(|_| RunError::NoDisplay)?;
         let (globals, event_queue) = registry_queue_init::<Runtime>(&conn)?;
         let qh = event_queue.handle();
-        let queue: Rc<RefCell<Vec<(ObjectId, super::Sent)>>> = Rc::new(RefCell::new(Vec::new()));
+        let queue: Rc<RefCell<Vec<(ObjectId, crate::platform::Sent)>>> =
+            Rc::new(RefCell::new(Vec::new()));
         let contexts = GlobalContexts::register();
         contexts.insert_context(Platform::new(|event| {
             tracing::debug!(?event, "BarrierKit: Freya's global event has no handler");
@@ -473,7 +476,7 @@ impl Runtime {
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=5, ())
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
-        let window_style = super::window_style::bind(&globals, &qh);
+        let window_style = crate::platform::window_style::bind(&globals, &qh);
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.
         let fractional_manager = viewporter.as_ref().and_then(|_| {

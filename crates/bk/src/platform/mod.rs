@@ -1,58 +1,23 @@
-#[cfg(target_os = "linux")]
-mod activation;
 pub(crate) mod app;
-#[cfg(all(feature = "a11y", target_os = "linux"))]
-mod atspi;
 pub(crate) mod backdrop;
-#[cfg(target_os = "linux")]
-mod chrome_surface;
-#[cfg(target_os = "linux")]
-mod clipboard;
-#[cfg(target_os = "macos")]
-#[path = "macos/clipboard.rs"]
-mod clipboard;
-#[cfg(target_os = "linux")]
-mod dialog;
-#[cfg(all(test, target_os = "linux"))]
-mod doc_shots;
-#[cfg(target_os = "linux")]
-pub(crate) mod extension;
-#[cfg(all(test, target_os = "linux"))]
-mod fake_server;
-#[cfg(target_os = "linux")]
-mod focus;
 mod glass;
-#[cfg(target_os = "linux")]
-mod ime;
 mod input;
+#[cfg(target_os = "linux")]
+mod linux;
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(target_os = "linux")]
-pub(crate) mod pasteboard;
-#[cfg(target_os = "macos")]
-#[path = "macos/pasteboard.rs"]
-pub(crate) mod pasteboard;
-#[cfg(target_os = "macos")]
-pub(crate) use macos::{instance, keychain, notifications, panels};
 mod main_menu_export;
-#[cfg(target_os = "linux")]
-pub(crate) mod panels;
 mod popup;
-#[cfg(target_os = "linux")]
-mod primary;
-#[cfg(target_os = "linux")]
-pub(crate) mod runtime;
-#[cfg(all(test, target_os = "linux"))]
-mod scene_tests;
-#[cfg(target_os = "linux")]
-pub(crate) mod surface;
-#[cfg(all(test, target_os = "linux"))]
-mod tests;
 pub(crate) mod timer;
-#[cfg(target_os = "linux")]
-mod vulkan;
 mod window;
 mod window_style;
+
+#[cfg(all(feature = "shell", target_os = "linux"))]
+pub(crate) use linux::extension;
+#[cfg(target_os = "linux")]
+pub(crate) use linux::{clipboard, panels, pasteboard, runtime, surface};
+#[cfg(target_os = "macos")]
+pub(crate) use macos::{clipboard, instance, keychain, notifications, panels, pasteboard};
 
 #[cfg(target_os = "macos")]
 pub(crate) use ::calloop;

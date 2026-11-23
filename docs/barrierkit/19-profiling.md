@@ -50,13 +50,13 @@ filter, no layer wants them, so they cost almost nothing.
 
 | Zone | Measures | Code |
 |---|---|---|
-| `draw` | One surface's whole frame | `platform/surface.rs` |
-| `acquire` | The wait for the next swapchain image | `platform/surface.rs` |
-| `layout` | Layout and the `on_sized` reactions | `platform/surface.rs` |
-| `render` | Recording the Skia commands for the whole tree | `platform/surface.rs` |
+| `draw` | One surface's whole frame | `platform/linux/surface.rs` |
+| `acquire` | The wait for the next swapchain image | `platform/linux/surface.rs` |
+| `layout` | Layout and the `on_sized` reactions | `platform/linux/surface.rs` |
+| `render` | Recording the Skia commands for the whole tree | `platform/linux/surface.rs` |
 | `glass` | The progressive glass, one pass per layer | `glass.rs` |
 | `material` | The blurred material | `glass.rs` |
-| `present` | Submitting to the GPU and presenting | `platform/surface.rs` |
+| `present` | Submitting to the GPU and presenting | `platform/linux/surface.rs` |
 
 After `present`, the runner sends a Tracy frame mark when a viewer is
 connected.

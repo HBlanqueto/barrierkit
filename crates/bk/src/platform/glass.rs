@@ -170,8 +170,8 @@ impl SurfaceWindow {
 
 #[cfg(all(test, target_os = "linux"))]
 mod tests {
-    use super::super::fake_server::{Probe, Seen};
     use super::*;
+    use crate::platform::linux::fake_server::{Probe, Seen};
 
     fn panels() -> GlassPanels {
         GlassPanels {

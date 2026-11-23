@@ -73,7 +73,7 @@ pub fn read_toml<T: DeserializeOwned + Default>(path: &Path) -> T {
 }
 
 // A missing file is the defaults; a file that exists but cannot be read is an error, so a save never replaces it.
-fn try_read_toml<T: DeserializeOwned + Default>(path: &Path) -> io::Result<T> {
+pub(crate) fn try_read_toml<T: DeserializeOwned + Default>(path: &Path) -> io::Result<T> {
     let text = match std::fs::read_to_string(path) {
         Ok(text) => text,
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(T::default()),
