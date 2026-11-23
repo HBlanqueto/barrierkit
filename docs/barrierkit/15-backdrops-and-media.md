@@ -185,7 +185,10 @@ requests ([18](18-platform.md#glass-over-the-windows-content)).
 ### On macOS
 
 WindowServer is the compositor, so the same declarations become native views
-(`platform/macos/blur.rs`), as in the table's first row:
+(`platform/macos/blur.rs`), as in the table's first row. The kit draws no blur
+or glass of its own on macOS. It draws the content and the ink over the glass,
+and SwiftUI on the same macOS is the reference for both. Why is
+[ADR 0118](../decisions.md#0118--on-macos-appkit-composes-every-blur-and-glass-and-swiftui-is-the-reference).
 
 | Declaration | Native view |
 |---|---|

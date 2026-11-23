@@ -500,6 +500,26 @@ Rejected: a handle that carries an id table the app fills (the context needs not
 Pending: a visual check of a continuous clip against the system's; `scrollTargetBehavior(.paging)`; arbitrary clips (T7).
 Code: `crates/bk/src/scroll/position.rs`, `crates/bk/src/scroll.rs`, `crates/bk/src/shapes.rs`, `crates/bk/tests/kit/scroll.rs`, `crates/bk/tests/kit/shapes.rs`, `agents/recipes/scroll_position.rs`, `agents/recipes/shapes.rs`, [Scrolling](barrierkit/05-controls.md#scroll-position), [Shapes](barrierkit/05-controls.md#shapes)
 
+## 0118 — On macOS AppKit composes every blur and glass, and SwiftUI is the reference
+Date: 2026-11-23
+Decision:
+- On macOS the kit draws no blur or glass of its own. Each declaration that [ADR 0091](decisions.md) sends to Malaysia as a request becomes the native view that composes the same effect in WindowServer: an `NSVisualEffectView` for a material, an `NSGlassEffectView` (in an `NSGlassEffectContainerView` when shapes merge) for Liquid Glass, an `NSSplitViewItem` for the sidebar and inspector panes, an `NSPopover` for a popover, and AppKit's own window background. [Backdrops and media](barrierkit/15-backdrops-and-media.md#on-macos) lists each one.
+- The kit's Metal layer draws the content and the ink over the glass: text, symbols, and the selection, hover and pressed colors. Those colors are measured against a SwiftUI twin on the same macOS, in light and dark.
+- SwiftUI on the running macOS is the reference. Each piece is compared with its SwiftUI twin at the same frame. What no public AppKit API reproduces is recorded as a ceiling, not imitated with a shader.
+- The kit calls AppKit from Rust through `objc2` and holds no Swift code. Interactive glass (`effectIsInteractive`) needs macOS 27. Before macOS 26 there is no `NSGlassEffectView`, and the controls paint their own fill.
+- An app may still add its own effects on top of the system's (`GroupEffect`, a Skia shader). They are extras; the system's materials are never redrawn by the kit.
+Why: the kit gives apps the look and behavior of their desktop, as SwiftUI does on macOS. When one owner, the compositor, draws every blur, every app stays in step with the desktop. The radius, the wallpaper tint, Reduce Transparency, Increase Contrast and the look of each new release come from the system, the same in every app, and the glass never lags the content. macOS offers that owner through public views. Malaysia offers it on Linux through `infinity_window_style_v1` ([ADR 0091](decisions.md)). So one declaration in the kit maps to the same model on both systems, and the macOS port is the test that the model holds. Liquid Glass recreated in Skia would drift with each macOS release and could not match the lens, the wallpaper tint or the system settings.
+Rejected: Freya or Skia shaders for the system's materials (a second implementation that drifts from the system); Swift or SwiftUI code inside the kit (a second language and build step for what AppKit already gives). Swift is to be considered again only for an effect that exists only in SwiftUI, such as `glassEffectID`, `glassEffectUnion` and `glassEffectTransition`.
+Pending: the ceilings measured on 2026-11-23:
+- the press glow of the toolbar glass in dark is 93 where SwiftUI's is 116;
+- a held knob's lens fills with the track;
+- the dark toolbar pieces are 7 levels off;
+- the scroll edge under the bar over kit content;
+- the glass morph transitions.
+
+The press feedback on macOS 26 is not verified.
+Code: `crates/bk/src/platform/macos/blur.rs`, `crates/bk/src/platform/macos/view.rs`, `crates/bk/src/platform/macos/mod.rs`, `crates/bk/src/platform/macos/popups.rs`, [Backdrops and media](barrierkit/15-backdrops-and-media.md#on-macos), [Liquid Glass measurements](research/macos-liquid-glass.md), [Who composes the blur](research/blur-ownership.md)
+
 ## 0117 — `min_size` and `max_size` count the content below the window's bar
 Date: 2026-11-23
 Decision:
