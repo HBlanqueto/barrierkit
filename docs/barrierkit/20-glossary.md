@@ -319,6 +319,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `gesture::TrackpadKind` | enum | — | `NSEvent.magnification`, `NSEvent.rotation` | — | The change in magnification or in degrees | [5](05-controls.md#gestures) |
 | `gesture::TrackpadPhase` | enum | — | `NSEvent.phase` | — | Began, changed or ended | [5](05-controls.md#gestures) |
 | `gesture::trackpad` | fn | — | `NSView.magnify(with:)`, `NSView.rotate(with:)` | — | Gives a trackpad gesture to the gestures under the pointer; the macOS runner calls it | [5](05-controls.md#gestures) |
+| `gesture::SequenceGesture` | struct | `SequenceGesture` | — | — | The first gesture, then the second from where it ended | [5](05-controls.md#gestures) |
+| `gesture::SequenceValue` | enum | `SequenceGesture.Value` | — | — | First, or second with the first's value and the second's if it began | [5](05-controls.md#gestures) |
+| `gesture::SequenceRecognizer` | struct | — | — | — | The state machine of `SequenceGesture` | [5](05-controls.md#gestures) |
+| `gesture::Gesture::sequenced_before` | method | `.sequenced(before:)` | — | — | `next` can begin once this gesture has ended | [5](05-controls.md#gestures) |
 | `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | ≈ `UILabel.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../../agents/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | ≈ `UIView.layer` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../../agents/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | ≈ `CALayer.shadowOpacity` | Adds a list of `ShadowStyle` to a view | [Styles](../../agents/styles.md#paint-on-views) |

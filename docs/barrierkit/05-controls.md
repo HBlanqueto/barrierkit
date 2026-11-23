@@ -141,6 +141,7 @@ recipe 33 of [agents](../../agents/recipes.md)).
 | `DragGesture::new()` | `DragValue { start_location, location, translation, velocity }`, velocity in points per millisecond | 10 points |
 | `MagnifyGesture::new()` | `MagnifyValue { magnification }`, from two fingers | 0.01 |
 | `RotateGesture::new()` | `RotateValue { rotation }` in radians, from two fingers | 1 degree |
+| `a.sequenced_before(b)` | `SequenceValue::First(a)`, then `Second(a, None)` once `a` has ended, then `Second(a, Some(b))`; `b` starts from the press that is still down (after a long press) or from the next press (after a tap) | |
 
 Each takes `.on_changed(f)` (when it begins and as it moves) and `.on_ended(f)`.
 `.updating(state, |value, state| ..)` is `@GestureState`: `use_gesture_state(initial)` gives a

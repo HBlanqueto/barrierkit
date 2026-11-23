@@ -3,8 +3,8 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use bk::gesture::{
-    Attachable, DragGesture, DragValue, LongPressGesture, MagnifyGesture, MagnifyValue,
-    RotateGesture, RotateValue, TapGesture, Trackpad, TrackpadKind, TrackpadPhase,
+    Attachable, DragGesture, DragValue, Gesture, LongPressGesture, MagnifyGesture, MagnifyValue,
+    RotateGesture, RotateValue, SequenceValue, TapGesture, Trackpad, TrackpadKind, TrackpadPhase,
     use_gesture_state,
 };
 use bk::modifiers::ViewModifiers;
@@ -335,4 +335,40 @@ fn a_trackpad_pinch_and_rotation_reach_the_gestures_under_the_pointer() {
         (turned - std::f32::consts::FRAC_PI_2).abs() < 0.01,
         "turned by {turned}"
     );
+}
+
+fn long_press_then_drag(log: &Rc<Log>) -> Element {
+    let (changed, ended) = (log.clone(), log.clone());
+    square()
+        .gesture(
+            LongPressGesture::new()
+                .sequenced_before(DragGesture::new())
+                .on_changed(move |value: SequenceValue<_, DragValue>| {
+                    if let SequenceValue::Second(_, Some(drag)) = value {
+                        changed.drags.borrow_mut().push(drag);
+                    }
+                })
+                .on_ended(move |value: SequenceValue<_, DragValue>| {
+                    if let SequenceValue::Second(_, Some(_)) = value {
+                        bump(&ended.drag_ended);
+                    }
+                }),
+        )
+        .into_element()
+}
+
+#[test]
+fn a_drag_after_a_long_press_is_a_sequence_and_a_quick_drag_is_not() {
+    let log = Rc::new(Log::default());
+    let mut test = runner(&log, long_press_then_drag);
+    test.press_cursor((20.0, 20.0));
+    test.move_cursor((60.0, 20.0));
+    test.release_cursor((60.0, 20.0));
+    assert!(log.drags.borrow().is_empty(), "no long press: no drag");
+    test.press_cursor((20.0, 20.0));
+    test.poll(Duration::from_millis(16), Duration::from_millis(700));
+    test.move_cursor((60.0, 20.0));
+    test.release_cursor((60.0, 20.0));
+    assert_eq!(log.drag_ended.get(), 1);
+    assert_eq!(log.drags.borrow().last().unwrap().translation, (40.0, 0.0));
 }

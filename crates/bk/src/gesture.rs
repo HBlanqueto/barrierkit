@@ -575,6 +575,167 @@ impl Recognizer for RotateRecognizer {
     }
 }
 
+/// What a `SequenceGesture` has: the first alone, then the first and the second once it can begin.
+#[derive(Clone, Debug, PartialEq)]
+pub enum SequenceValue<A, B> {
+    First(A),
+    Second(A, Option<B>),
+}
+
+// The second begins when the first has ended: from the press that is still down, or from the next press when
+// the first ended on a release (a tap).
+pub struct SequenceRecognizer<A: Recognizer, B: Recognizer> {
+    first: A,
+    second: B,
+    done: Option<A::Value>,
+    awaiting_press: bool,
+    last: Option<Input>,
+    state: State,
+}
+
+impl<A: Recognizer, B: Recognizer> SequenceRecognizer<A, B> {
+    pub fn new(first: A, second: B) -> Self {
+        Self {
+            first,
+            second,
+            done: None,
+            awaiting_press: false,
+            last: None,
+            state: State::Possible,
+        }
+    }
+}
+
+impl<A: Recognizer, B: Recognizer> SequenceRecognizer<A, B>
+where
+    A::Value: Clone,
+    B::Value: Clone,
+{
+    fn first_step(
+        &mut self,
+        step: Step<A::Value>,
+        released: bool,
+        now: f32,
+    ) -> Step<SequenceValue<A::Value, B::Value>> {
+        match step {
+            Step::Idle => Step::Idle,
+            Step::Failed => {
+                self.state = State::Failed;
+                Step::Failed
+            }
+            Step::Cancelled => {
+                self.state = State::Cancelled;
+                Step::Cancelled
+            }
+            Step::Began(value) | Step::Changed(value) => {
+                self.state = State::Changed;
+                Step::Changed(SequenceValue::First(value))
+            }
+            Step::Ended(value) => {
+                self.done = Some(value.clone());
+                self.state = State::Changed;
+                self.awaiting_press = released;
+                if let (false, Some(last)) = (released, self.last) {
+                    self.second.feed(Input {
+                        phase: Phase::Down,
+                        time: now,
+                        ..last
+                    });
+                }
+                Step::Changed(SequenceValue::Second(value, None))
+            }
+        }
+    }
+
+    fn second_step(
+        &mut self,
+        step: Step<B::Value>,
+        released: bool,
+    ) -> Step<SequenceValue<A::Value, B::Value>> {
+        let Some(first) = self.done.clone() else {
+            return Step::Idle;
+        };
+        match step {
+            Step::Began(value) | Step::Changed(value) => {
+                self.state = State::Changed;
+                Step::Changed(SequenceValue::Second(first, Some(value)))
+            }
+            Step::Ended(value) => {
+                self.state = State::Ended;
+                Step::Ended(SequenceValue::Second(first, Some(value)))
+            }
+            Step::Cancelled => {
+                self.state = State::Cancelled;
+                Step::Cancelled
+            }
+            Step::Failed | Step::Idle if released => {
+                self.state = State::Ended;
+                Step::Ended(SequenceValue::Second(first, None))
+            }
+            Step::Failed => {
+                self.state = State::Failed;
+                Step::Failed
+            }
+            Step::Idle => Step::Idle,
+        }
+    }
+}
+
+impl<A: Recognizer, B: Recognizer> Recognizer for SequenceRecognizer<A, B>
+where
+    A::Value: Clone,
+    B::Value: Clone,
+{
+    type Value = SequenceValue<A::Value, B::Value>;
+    const TRACKPAD: bool = A::TRACKPAD || B::TRACKPAD;
+
+    fn feed(&mut self, input: Input) -> Step<Self::Value> {
+        self.last = Some(input);
+        let released = matches!(input.phase, Phase::Up);
+        if self.done.is_none() {
+            let step = self.first.feed(input);
+            return self.first_step(step, released, input.time);
+        }
+        if self.awaiting_press {
+            if input.phase != Phase::Down {
+                return Step::Idle;
+            }
+            self.awaiting_press = false;
+        }
+        let step = self.second.feed(input);
+        self.second_step(step, released)
+    }
+
+    fn deadline(&self) -> Option<f32> {
+        if self.done.is_none() {
+            self.first.deadline()
+        } else {
+            self.second.deadline()
+        }
+    }
+
+    fn elapse(&mut self, now: f32) -> Step<Self::Value> {
+        if self.done.is_none() {
+            let step = self.first.elapse(now);
+            self.first_step(step, false, now)
+        } else {
+            let step = self.second.elapse(now);
+            self.second_step(step, false)
+        }
+    }
+
+    fn state(&self) -> State {
+        self.state
+    }
+
+    fn fail(&mut self) {
+        self.first.fail();
+        self.second.fail();
+        self.done = None;
+        self.state = State::Failed;
+    }
+}
+
 /// How a gesture takes part in the arena, from the modifier that attached it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Priority {
@@ -767,6 +928,18 @@ pub trait Gesture {
     fn recognizer(&self) -> Self::Recognizer;
 
     fn callbacks(&self) -> Callbacks<Self::Value>;
+
+    /// `sequenced(before:)`: `next` can begin once `self` has ended.
+    fn sequenced_before<B: Gesture>(self, next: B) -> SequenceGesture<Self, B>
+    where
+        Self: Sized,
+    {
+        SequenceGesture {
+            first: self,
+            second: next,
+            callbacks: Callbacks::default(),
+        }
+    }
 }
 
 /// `TapGesture`: `count` taps in a row.
@@ -935,6 +1108,48 @@ gesture!(
     |g: &RotateGesture| RotateRecognizer::new(g.minimum_delta),
     true
 );
+
+/// `SequenceGesture`: the first gesture, then the second from where the first ended.
+pub struct SequenceGesture<A: Gesture, B: Gesture> {
+    first: A,
+    second: B,
+    callbacks: Callbacks<SequenceValue<A::Value, B::Value>>,
+}
+
+impl<A: Gesture, B: Gesture> SequenceGesture<A, B> {
+    pub fn on_changed(
+        mut self,
+        callback: impl Into<Callback<SequenceValue<A::Value, B::Value>, ()>>,
+    ) -> Self {
+        self.callbacks.changed.push(callback.into());
+        self
+    }
+
+    pub fn on_ended(
+        mut self,
+        callback: impl Into<Callback<SequenceValue<A::Value, B::Value>, ()>>,
+    ) -> Self {
+        self.callbacks.ended = Some(callback.into());
+        self
+    }
+}
+
+impl<A: Gesture, B: Gesture> Gesture for SequenceGesture<A, B>
+where
+    A::Value: Clone,
+    B::Value: Clone,
+{
+    type Recognizer = SequenceRecognizer<A::Recognizer, B::Recognizer>;
+    type Value = SequenceValue<A::Value, B::Value>;
+
+    fn recognizer(&self) -> Self::Recognizer {
+        SequenceRecognizer::new(self.first.recognizer(), self.second.recognizer())
+    }
+
+    fn callbacks(&self) -> Callbacks<Self::Value> {
+        self.callbacks.clone()
+    }
+}
 
 // The pointers of a window: who has claimed each one. A gesture that begins claims its pointer, so the
 // gestures of the views above it, which see the event later, fail; a high-priority gesture that can still
@@ -1772,5 +1987,80 @@ mod tests {
             verdicts(&[first, first]),
             vec![Verdict::Deliver, Verdict::Fail]
         );
+    }
+
+    #[test]
+    fn a_long_press_then_a_drag_is_one_sequence() {
+        let mut sequence = SequenceRecognizer::new(
+            LongPressRecognizer::new(500.0, 10.0),
+            DragRecognizer::new(10.0),
+        );
+        sequence.feed(input(1, Phase::Down, 5.0, 5.0, 0.0));
+        let Step::Changed(SequenceValue::Second(press, None)) = sequence.elapse(500.0) else {
+            panic!("the long press ended and the drag may begin");
+        };
+        assert_eq!(press.location, (5.0, 5.0));
+        assert_eq!(
+            sequence.feed(input(1, Phase::Move, 10.0, 5.0, 520.0)),
+            Step::Idle
+        );
+        let Step::Changed(SequenceValue::Second(_, Some(drag))) =
+            sequence.feed(input(1, Phase::Move, 20.0, 5.0, 540.0))
+        else {
+            panic!("the drag began");
+        };
+        assert_eq!(drag.translation, (15.0, 0.0));
+        assert!(matches!(
+            sequence.feed(input(1, Phase::Up, 30.0, 5.0, 600.0)),
+            Step::Ended(SequenceValue::Second(_, Some(_)))
+        ));
+    }
+
+    #[test]
+    fn a_release_after_the_first_ends_the_sequence_without_the_second() {
+        let mut sequence = SequenceRecognizer::new(
+            LongPressRecognizer::new(500.0, 10.0),
+            DragRecognizer::new(10.0),
+        );
+        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
+        sequence.elapse(500.0);
+        assert!(matches!(
+            sequence.feed(input(1, Phase::Up, 0.0, 0.0, 700.0)),
+            Step::Ended(SequenceValue::Second(_, None))
+        ));
+    }
+
+    #[test]
+    fn a_sequence_fails_when_its_first_gesture_does() {
+        let mut sequence = SequenceRecognizer::new(
+            LongPressRecognizer::new(500.0, 10.0),
+            DragRecognizer::new(10.0),
+        );
+        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
+        assert_eq!(
+            sequence.feed(input(1, Phase::Up, 0.0, 0.0, 100.0)),
+            Step::Failed
+        );
+        assert_eq!(sequence.state(), State::Failed);
+    }
+
+    #[test]
+    fn a_sequence_whose_first_gesture_ended_on_a_release_waits_for_the_next_press() {
+        let mut sequence =
+            SequenceRecognizer::new(TapRecognizer::new(1), DragRecognizer::new(10.0));
+        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
+        assert!(matches!(
+            sequence.feed(input(1, Phase::Up, 0.0, 0.0, 50.0)),
+            Step::Changed(SequenceValue::Second(_, None))
+        ));
+        assert_eq!(
+            sequence.feed(input(1, Phase::Move, 30.0, 0.0, 80.0)),
+            Step::Idle
+        );
+        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 200.0));
+        assert!(matches!(
+            sequence.feed(input(1, Phase::Move, 20.0, 0.0, 220.0)),
+            Step::Changed(SequenceValue::Second(_, Some(_)))
+        ));
     }
 }
