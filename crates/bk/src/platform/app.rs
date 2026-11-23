@@ -64,6 +64,7 @@ pub(crate) struct Host {
     pub(crate) backdrop: bool,
     pub(crate) native_glass: bool,
     pub(crate) native_sheets: bool,
+    pub(crate) native_popovers: bool,
     pub(crate) window_background: bool,
     pub(crate) knobs: bool,
 }
@@ -222,6 +223,7 @@ impl AppInstance {
         let native_glass = backdrop && host.native_glass;
         runner.provide_root_context(move || super::backdrop::NativeGlass(native_glass));
         runner.provide_root_context(move || super::backdrop::NativeSheets(host.native_sheets));
+        runner.provide_root_context(move || super::backdrop::NativePopovers(host.native_popovers));
         let window_background = window.is_some() && host.window_background;
         runner.provide_root_context(move || {
             super::backdrop::SystemWindowBackground(window_background)

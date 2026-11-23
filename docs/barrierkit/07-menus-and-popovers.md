@@ -373,14 +373,19 @@ modifier is the caller's and is not changed.
 
 | Argument | What it is |
 |---|---|
-| `size` | `(width, height)` of the content, which is the whole card, as in `NSPopover`: its `contentSize` is the card (200 × 120 content gives a 200 × 120 card with a 13 high arrow). The popup adds only the arrow band, `POPOVER.arrow_height` (13), on top. Pad the content in the closure |
-| `content` | A closure that returns the content as an `Element`. The popover paints the background |
+| `size` | `(width, height)` of the content, which is the whole card, as in `NSPopover`: its `contentSize` is the card (200 × 120 content gives a 200 × 120 card with a 13 high arrow). On Linux the popup adds the arrow band, `POPOVER.arrow_height` (13), on top; on macOS AppKit draws the arrow outside the content. Pad the content in the closure |
+| `content` | A closure that returns the content as an `Element`. The popover draws the background |
 | `anchor` | The area the arrow points at |
 
-It opens with a grab: a click outside closes it. It slides sideways to stay on
-screen.
+It opens with a grab: a click outside closes it, and on macOS Escape too. It
+slides sideways to stay on screen.
 
-The app asks Malaysia, with `infinity_window_style_v1.set_popover` (version
+On macOS it is a real `NSPopover`, transient as SwiftUI's `.popover`, whose
+content view is the kit's Metal layer drawn clear: AppKit draws the Liquid
+Glass body, the arrow, the shadow and the placement, and follows Reduce
+Transparency. A click in a popup opened from the popover keeps it open.
+
+On Linux the app asks Malaysia, with `infinity_window_style_v1.set_popover` (version
 2), for the shape of `NSPopover` on macOS 26: a continuous 20 px corner and a
 25.42 × 13 px arrow with a round tip, filleted into the body, pointing at the
 centre of the anchor. The compositor clips, borders and shadows that shape
@@ -410,14 +415,12 @@ empty in `content`.
 `Menu` and `Label` need `infinity_window_style_v1.set_popover_shape`
 (version 7). Without it, the popup keeps a plain frame.
 
-On macOS the runner draws the shape itself (`platform/macos/arrow.rs`): the
-body and the arrow are one outline of circular arcs, which is the
-`maskImage` of the popup's `NSVisualEffectView`, so the material and the
-window shadow follow it, and a mask of the content layer. The edge and the
-tip follow the compositor's rules above. A `Popover` takes the arrow
-fitted to `NSPopover` (`POPOVER_APPKIT_ARROW_*`: 26.17 wide at the body,
-the sharp apex 12.41 above it, tip radius 4.46, fillet 4.83), drawn over the
-13 px band; `Menu` and `Label` keep the tokens above.
+On macOS the runner draws `Menu` and `Label` itself
+(`platform/macos/arrow.rs`): the body and the arrow are one outline of
+circular arcs, which is the `maskImage` of the popup's `NSVisualEffectView`,
+so the material and the window shadow follow it, and a mask of the content
+layer. The edge and the tip follow the compositor's rules above. A `Popover`
+is an `NSPopover` ([`Popover`](#popover)).
 
 ## Helpers
 

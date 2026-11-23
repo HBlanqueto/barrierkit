@@ -7,7 +7,8 @@ use freya_core::prelude::*;
 use torin::prelude::{Area, Gaps};
 
 use crate::platform::{
-    PopoverShape, PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupId, PopupSpec, Popups,
+    PopoverShape, PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId,
+    PopupSpec, Popups,
 };
 use crate::theme::color;
 
@@ -33,14 +34,14 @@ impl Popover {
 
     pub fn show(self, anchor: Area) -> PopupId {
         let size = self.size;
+        let native = try_consume_root_context::<crate::platform::backdrop::NativePopovers>()
+            .is_some_and(|popovers| popovers.0);
+        let arrow = if native { 0.0 } else { POPOVER.arrow_height };
         let spec = PopupSpec {
             anchor_rect: crate::platform::anchor_rect(anchor),
             anchor: PopupAnchor::Bottom,
             gravity: PopupGravity::Bottom,
-            size: (
-                size.0.ceil() as u32,
-                (size.1 + POPOVER.arrow_height).ceil() as u32,
-            ),
+            size: (size.0.ceil() as u32, (size.1 + arrow).ceil() as u32),
             constraint_adjustment: PopupConstraintAdjustment {
                 slide_x: true,
                 ..PopupConstraintAdjustment::default()
@@ -51,7 +52,7 @@ impl Popover {
         };
         Popups::get().open_popover(
             spec,
-            AppComponent::new(PopoverBody(self.content)),
+            AppComponent::new(PopoverBody(self.content, native)),
             PopoverShape::Popover,
         )
     }
@@ -104,16 +105,28 @@ pub(crate) fn use_popover<E: EventHandlersExt + LayoutExt>(
     element.on_sized(move |event: Event<SizedEventData>| anchor.set_if_modified(event.area))
 }
 
-struct PopoverBody(Rc<dyn Fn() -> Element>);
+struct PopoverBody(Rc<dyn Fn() -> Element>, bool);
 
 impl App for PopoverBody {
     fn render(&self) -> impl IntoElement {
-        let menu = crate::styles::popover_style();
+        let PopoverBody(content, native) = self;
+        let handle: Option<PopupHandle> = try_consume_root_context();
         rect()
             .expanded()
-            .background(color(menu.bg))
-            .padding(Gaps::new(POPOVER.arrow_height, 0.0, 0.0, 0.0))
-            .child((self.0)())
+            .maybe(!native, |body| {
+                body.background(color(crate::styles::popover_style().bg))
+                    .padding(Gaps::new(POPOVER.arrow_height, 0.0, 0.0, 0.0))
+            })
+            .maybe(*native, |body| {
+                body.on_global_key_down(move |event: Event<KeyboardEventData>| {
+                    if event.key == Key::Named(NamedKey::Escape)
+                        && let Some(handle) = &handle
+                    {
+                        handle.close();
+                    }
+                })
+            })
+            .child(content())
     }
 }
 

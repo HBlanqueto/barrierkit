@@ -80,7 +80,7 @@ SURFACES = [
     Surface(
         "popover", "popups", "matrixpopups",
         [("arrow", (212, 236, 268, 262)), ("body", (130, 262, 350, 380))],
-        {"blur": {"arrow": 62.0, "body": 88.0}, "rt": {"arrow": 62.0, "body": 88.0}}, probe_args=["popover"], live=True,
+        {"blur": {"arrow": 26.0, "body": 6.0}, "rt": {"arrow": 62.0, "body": 88.0}}, probe_args=["popover"], live=True,
     ),
     Surface(
         "sheet", "popups", "matrixpopups",

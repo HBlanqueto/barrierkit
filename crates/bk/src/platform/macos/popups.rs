@@ -3,20 +3,24 @@ use std::rc::Rc;
 
 use dispatch2::DispatchQueue;
 use freya_core::integration::AppComponent;
-use objc2::MainThreadMarker;
 use objc2::rc::Retained;
+use objc2::runtime::ProtocolObject;
+use objc2::{DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send};
 use objc2_app_kit::{
-    NSApplication, NSAutoresizingMaskOptions, NSColor, NSPopUpMenuWindowLevel, NSScreen, NSView,
+    NSApplication, NSAutoresizingMaskOptions, NSColor, NSPopUpMenuWindowLevel, NSPopover,
+    NSPopoverBehavior, NSPopoverDelegate, NSScreen, NSView, NSViewController,
     NSVisualEffectBlendingMode, NSVisualEffectMaterial, NSVisualEffectState, NSVisualEffectView,
     NSWindow, NSWindowOrderingMode,
 };
-use objc2_foundation::{NSPoint, NSRect, NSSize};
+use objc2_foundation::{
+    NSNotification, NSObject, NSObjectProtocol, NSPoint, NSRect, NSRectEdge, NSSize,
+};
 use objc2_quartz_core::CAShapeLayer;
 
 use super::arrow;
 use super::place::{Rect, place};
 use super::view::{ContentView, Panel, WindowDelegate};
-use super::{Runtime, Window};
+use super::{Runtime, Window, with_runtime};
 use crate::platform::ObjectId;
 use crate::platform::app::{AppInstance, InstanceRole};
 use crate::platform::popup::{PopupCommand, PopupId, PopupSpec};
@@ -30,6 +34,45 @@ pub(super) struct PopupState {
     opens_left: Rc<Cell<bool>>,
     grabbed: bool,
     arrowed: Option<(Retained<NSVisualEffectView>, PopoverShape)>,
+    popover: Option<(Retained<NSPopover>, Retained<PopoverDelegate>)>,
+}
+
+pub(super) struct PopoverIvars {
+    id: PopupId,
+}
+
+define_class!(
+    // A transient popover closes itself on a click outside it and its child windows; the popup closes with it.
+    #[unsafe(super(NSObject))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKPopoverDelegate"]
+    #[ivars = PopoverIvars]
+    pub(super) struct PopoverDelegate;
+
+    // SAFETY: NSObjectProtocol has no methods to implement.
+    unsafe impl NSObjectProtocol for PopoverDelegate {}
+
+    // SAFETY: the method keeps the selector and signature of NSPopoverDelegate.
+    unsafe impl NSPopoverDelegate for PopoverDelegate {
+        #[unsafe(method(popoverDidClose:))]
+        fn popover_did_close(&self, _: &NSNotification) {
+            let id = self.ivars().id;
+            DispatchQueue::main().exec_async(move || {
+                with_runtime(|runtime| {
+                    runtime.close_popup(id);
+                    runtime.redraw_all();
+                });
+            });
+        }
+    }
+);
+
+impl PopoverDelegate {
+    fn new(mtm: MainThreadMarker, id: PopupId) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(PopoverIvars { id });
+        // SAFETY: init is NSObject's initializer, called once on the allocated object.
+        unsafe { msg_send![super(this), init] }
+    }
 }
 
 // The material and the content take the shape of the body and the arrow that points at the anchor.
@@ -71,15 +114,32 @@ fn shape_effect(
     }
 }
 
-struct Closing(Retained<NSWindow>);
+struct Closing(Retained<NSWindow>, Option<Retained<NSPopover>>);
 
 // SAFETY: built on the main thread and consumed by a block that runs on the main queue.
 unsafe impl Send for Closing {}
 
 impl Closing {
     fn close(self) {
-        self.0.close();
+        match self.1 {
+            Some(popover) => popover.close(),
+            None => self.0.close(),
+        }
     }
+}
+
+// AppKit draws the popover's glass body, arrow and shadow, and places it below the anchor of the flipped content view.
+fn show_popover(popover: &NSPopover, parent: &NSView, spec: &PopupSpec, drop: f64) {
+    let (x, y, width, height) = spec.anchor_rect;
+    popover.setContentSize(NSSize::new(f64::from(spec.size.0), f64::from(spec.size.1)));
+    popover.showRelativeToRect_ofView_preferredEdge(
+        NSRect::new(
+            NSPoint::new(f64::from(x), f64::from(y) + drop),
+            NSSize::new(f64::from(width), f64::from(height)),
+        ),
+        parent,
+        NSRectEdge::MaxY,
+    );
 }
 
 // AppKit's origin is the bottom left of the primary screen; the kit's popups are placed from the top left.
@@ -154,17 +214,18 @@ impl Runtime {
         }
     }
 
+    fn drop_of(parent: &Parent, spec: &PopupSpec) -> f64 {
+        let (_, anchor_top, _, anchor_height) = spec.anchor_rect;
+        if crate::titlebar::in_bar_row(anchor_top as f32, anchor_height as f32, parent.bar_row) {
+            parent.bar_drop
+        } else {
+            0.0
+        }
+    }
+
     fn frame_of(parent: &Parent, spec: &PopupSpec, primary: f64) -> (NSRect, bool, Rect) {
         let placed = place(spec, parent.bounds);
-        let (_, anchor_top, _, anchor_height) = spec.anchor_rect;
-        let drop =
-            if crate::titlebar::in_bar_row(anchor_top as f32, anchor_height as f32, parent.bar_row)
-            {
-                parent.bar_drop
-            } else {
-                0.0
-            };
-        let top = parent.origin.1 + drop + f64::from(placed.y);
+        let top = parent.origin.1 + Self::drop_of(parent, spec) + f64::from(placed.y);
         let frame = NSRect::new(
             NSPoint::new(
                 parent.origin.0 + f64::from(placed.x),
@@ -192,38 +253,7 @@ impl Runtime {
         let window_id = self.next_window;
         self.next_window += 1;
 
-        let panel = Panel::new(self.mtm, frame);
-        panel.setOpaque(false);
-        panel.setBackgroundColor(Some(&NSColor::clearColor()));
-        panel.setHasShadow(true);
-        panel.setLevel(NSPopUpMenuWindowLevel);
-        let (material, corner) = match popover {
-            Some(PopoverShape::Popover) => (
-                NSVisualEffectMaterial::Popover,
-                ctdesign::CORNER_POPOVER.radius,
-            ),
-            Some(PopoverShape::Label) => (
-                NSVisualEffectMaterial::ToolTip,
-                ctdesign::CORNER_TOOLTIP.radius,
-            ),
-            Some(_) => (NSVisualEffectMaterial::Menu, ctdesign::CORNER_MENU.radius),
-            None if spec.grab => (NSVisualEffectMaterial::Menu, ctdesign::CORNER_MENU.radius),
-            None => (
-                NSVisualEffectMaterial::ToolTip,
-                ctdesign::CORNER_TOOLTIP.radius,
-            ),
-        };
         let bounds = NSRect::new(NSPoint::new(0.0, 0.0), frame.size);
-        let effect = NSVisualEffectView::new(self.mtm);
-        effect.setFrame(bounds);
-        effect.setMaterial(material);
-        effect.setBlendingMode(NSVisualEffectBlendingMode::BehindWindow);
-        effect.setState(NSVisualEffectState::Active);
-        effect.setWantsLayer(true);
-        if let Some(layer) = effect.layer() {
-            layer.setCornerRadius(f64::from(corner));
-            layer.setMasksToBounds(true);
-        }
         let view = ContentView::new(self.mtm, window_id, bounds);
         view.setAutoresizingMask(
             NSAutoresizingMaskOptions::ViewWidthSizable
@@ -231,11 +261,69 @@ impl Runtime {
         );
         let layer = self.configure_layer(&view);
         layer.setOpaque(false);
-        effect.addSubview(&view);
-        panel.setContentView(Some(&effect));
-        self.follow_scheme(&panel);
+        let (native, arrowed, shown) = if popover == Some(PopoverShape::Popover) {
+            let Some(owner_view) = self.window(owner.raw()).map(|window| window.view.clone())
+            else {
+                return;
+            };
+            let controller = NSViewController::new(self.mtm);
+            controller.setView(&view);
+            let shown = NSPopover::new(self.mtm);
+            let delegate = PopoverDelegate::new(self.mtm, id);
+            shown.setBehavior(NSPopoverBehavior::Transient);
+            shown.setDelegate(Some(ProtocolObject::from_ref(&*delegate)));
+            shown.setContentViewController(Some(&controller));
+            show_popover(
+                &shown,
+                &owner_view,
+                &spec,
+                Self::drop_of(&parent_window, &spec),
+            );
+            let Some(window) = view.window() else {
+                shown.close();
+                return;
+            };
+            (window, None, Some((shown, delegate)))
+        } else {
+            let panel = Panel::new(self.mtm, frame);
+            panel.setOpaque(false);
+            panel.setBackgroundColor(Some(&NSColor::clearColor()));
+            panel.setHasShadow(true);
+            panel.setLevel(NSPopUpMenuWindowLevel);
+            let (material, corner) = match popover {
+                Some(PopoverShape::Label) => (
+                    NSVisualEffectMaterial::ToolTip,
+                    ctdesign::CORNER_TOOLTIP.radius,
+                ),
+                Some(_) => (NSVisualEffectMaterial::Menu, ctdesign::CORNER_MENU.radius),
+                None if spec.grab => (NSVisualEffectMaterial::Menu, ctdesign::CORNER_MENU.radius),
+                None => (
+                    NSVisualEffectMaterial::ToolTip,
+                    ctdesign::CORNER_TOOLTIP.radius,
+                ),
+            };
+            let effect = NSVisualEffectView::new(self.mtm);
+            effect.setFrame(bounds);
+            effect.setMaterial(material);
+            effect.setBlendingMode(NSVisualEffectBlendingMode::BehindWindow);
+            effect.setState(NSVisualEffectState::Active);
+            effect.setWantsLayer(true);
+            if let Some(layer) = effect.layer() {
+                layer.setCornerRadius(f64::from(corner));
+                layer.setMasksToBounds(true);
+            }
+            effect.addSubview(&view);
+            panel.setContentView(Some(&effect));
+            let arrowed = popover.map(|shape| {
+                shape_effect(&effect, &view, shape, spec.anchor_rect, placed);
+                (effect.clone(), shape)
+            });
+            let native: Retained<NSWindow> = Retained::into_super(Retained::into_super(panel));
+            (native, arrowed, None)
+        };
+        self.follow_scheme(&native);
         let delegate = WindowDelegate::object(self.mtm, window_id);
-        panel.setDelegate(Some(&delegate));
+        native.setDelegate(Some(&delegate));
 
         let scale = parent_window.window.backingScaleFactor();
         let physical = (
@@ -256,11 +344,7 @@ impl Runtime {
             |_| {},
         );
         let grabbed = spec.grab;
-        let arrowed = popover.map(|shape| {
-            shape_effect(&effect, &view, shape, spec.anchor_rect, placed);
-            (effect.clone(), shape)
-        });
-        let native: Retained<NSWindow> = Retained::into_super(Retained::into_super(panel));
+        let in_popover = shown.is_some();
         self.windows.push(Window {
             id: window_id,
             window: native.clone(),
@@ -283,16 +367,19 @@ impl Runtime {
                 opens_left: opens_left_flag,
                 grabbed,
                 arrowed,
+                popover: shown,
             }),
             main: false,
             needs_redraw: true,
         });
-        // SAFETY: both are live windows the runner owns; the child is removed before it closes.
-        unsafe {
-            parent_window
-                .window
-                .addChildWindow_ordered(&native, NSWindowOrderingMode::Above)
-        };
+        if !in_popover {
+            // SAFETY: both are live windows the runner owns; the child is removed before it closes.
+            unsafe {
+                parent_window
+                    .window
+                    .addChildWindow_ordered(&native, NSWindowOrderingMode::Above)
+            };
+        }
         if grabbed {
             native.makeKeyAndOrderFront(None);
         } else {
@@ -313,9 +400,21 @@ impl Runtime {
         };
         let primary = primary_height(self.mtm);
         let (frame, opens_left, placed) = Self::frame_of(&parent, spec, primary);
+        let drop = Self::drop_of(&parent, spec);
+        let owner_view = self.window(owner).map(|window| window.view.clone());
         if let Some(window) = self.window(window_id) {
             if let Some(popup) = &window.popup {
                 popup.opens_left.set(opens_left);
+            }
+            if let (Some(shown), Some(owner_view)) = (
+                window
+                    .popup
+                    .as_ref()
+                    .and_then(|popup| popup.popover.as_ref().map(|(shown, _)| shown)),
+                &owner_view,
+            ) {
+                show_popover(shown, owner_view, spec, drop);
+                return;
             }
             window.window.setFrame_display(frame, true);
             if let Some((effect, shape)) = window
@@ -348,6 +447,9 @@ impl Runtime {
         };
         let mut window = self.windows.remove(index);
         let popup = window.popup.take();
+        let shown = popup
+            .as_ref()
+            .and_then(|popup| popup.popover.as_ref().map(|(shown, _)| shown.clone()));
         if let Some(popup) = popup {
             if let Some(callback) = &popup.on_dismissed {
                 callback();
@@ -365,10 +467,12 @@ impl Runtime {
                 parent_popup.window.makeKeyWindow();
             }
         }
-        if let Some(parent) = window.window.parentWindow() {
+        if shown.is_none()
+            && let Some(parent) = window.window.parentWindow()
+        {
             parent.removeChildWindow(&window.window);
         }
-        let closing = Closing(window.window.clone());
+        let closing = Closing(window.window.clone(), shown);
         DispatchQueue::main().exec_async(move || closing.close());
     }
 

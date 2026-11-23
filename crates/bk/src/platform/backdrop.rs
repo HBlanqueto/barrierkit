@@ -29,6 +29,10 @@ pub(crate) struct NativeGlass(pub(crate) bool);
 #[derive(Clone, Copy)]
 pub(crate) struct NativeSheets(pub(crate) bool);
 
+// The platform draws a popover's body, arrow and shadow itself (AppKit's `NSPopover`).
+#[derive(Clone, Copy)]
+pub(crate) struct NativePopovers(pub(crate) bool);
+
 // The platform draws the window's background material itself (AppKit's titled windows).
 #[derive(Clone, Copy)]
 pub(crate) struct SystemWindowBackground(pub(crate) bool);

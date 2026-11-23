@@ -527,6 +527,7 @@ impl Runtime {
             backdrop: true,
             native_glass: blur::glass_available(),
             native_sheets: true,
+            native_popovers: true,
             window_background: false,
             knobs: blur::glass_available(),
         }

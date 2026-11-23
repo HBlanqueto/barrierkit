@@ -223,12 +223,6 @@
       "arrow-tip-radius": 4,
       "arrow-fillet": 4
     },
-    "popover-appkit-arrow": {
-      "width": 26.17,
-      "apex-height": 12.41,
-      "tip-radius": 4.46,
-      "fillet": 4.83
-    },
     "combo-box": {
       "button-width": 24,
       "button-height": 20,

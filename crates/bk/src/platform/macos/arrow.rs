@@ -41,13 +41,6 @@ pub(super) fn metrics(shape: PopoverShape) -> Shape {
         fillet: f64::from(fillet),
     };
     match shape {
-        PopoverShape::Menu => drawn(
-            ctdesign::POPUP.corner_radius as f32,
-            popover.arrow_width,
-            popover.arrow_height,
-            ctdesign::DOCK_MENU_ARROW_TIP_RADIUS,
-            ctdesign::DOCK_MENU_ARROW_FILLET,
-        ),
         PopoverShape::Label => drawn(
             ctdesign::DOCK_LABEL_RADIUS,
             ctdesign::DOCK_LABEL_ARROW_WIDTH,
@@ -56,11 +49,11 @@ pub(super) fn metrics(shape: PopoverShape) -> Shape {
             ctdesign::DOCK_LABEL_ARROW_FILLET,
         ),
         _ => drawn(
-            popover.radius,
-            ctdesign::POPOVER_APPKIT_ARROW_WIDTH,
-            ctdesign::POPOVER_APPKIT_ARROW_APEX_HEIGHT,
-            ctdesign::POPOVER_APPKIT_ARROW_TIP_RADIUS,
-            ctdesign::POPOVER_APPKIT_ARROW_FILLET,
+            ctdesign::POPUP.corner_radius as f32,
+            popover.arrow_width,
+            popover.arrow_height,
+            ctdesign::DOCK_MENU_ARROW_TIP_RADIUS,
+            ctdesign::DOCK_MENU_ARROW_FILLET,
         ),
     }
 }
@@ -226,7 +219,7 @@ mod tests {
 
     #[test]
     fn the_arrow_points_at_the_anchor_centre_but_stays_clear_of_the_corners() {
-        let shape = metrics(PopoverShape::Popover);
+        let shape = metrics(PopoverShape::Menu);
         let popup = rect(100, 40, 240, 160);
         let reach = base_reach(&shape);
         let at = |anchor_x| tip(rect(anchor_x, 0, 40, 20), popup, Edge::Top, &shape);
@@ -237,14 +230,14 @@ mod tests {
 
     #[test]
     fn a_body_narrower_than_the_arrow_needs_gets_the_arrow_in_the_middle() {
-        let shape = metrics(PopoverShape::Popover);
-        let popup = rect(0, 40, 60, 160);
-        assert_eq!(tip(rect(500, 0, 40, 20), popup, Edge::Top, &shape), 30.0);
+        let shape = metrics(PopoverShape::Menu);
+        let popup = rect(0, 40, 50, 160);
+        assert_eq!(tip(rect(500, 0, 40, 20), popup, Edge::Top, &shape), 25.0);
     }
 
     #[test]
     fn the_apex_is_its_height_above_the_body_on_whichever_edge_faces_the_anchor() {
-        let shape = metrics(PopoverShape::Popover);
+        let shape = metrics(PopoverShape::Menu);
         let apex = shape.band - shape.height;
         let at = |edge, size| outline(size, edge, 100.0, &shape)[2].0;
         assert_eq!(at(Edge::Top, (240.0, 173.0)), (100.0, apex));
@@ -255,7 +248,7 @@ mod tests {
 
     #[test]
     fn the_body_starts_one_band_from_the_edge_that_faces_the_anchor() {
-        let shape = metrics(PopoverShape::Popover);
+        let shape = metrics(PopoverShape::Menu);
         let outline = outline((240.0, 173.0), Edge::Top, 100.0, &shape);
         assert_eq!(outline[0].0, (0.0, shape.band));
         assert_eq!(outline[5].0, (240.0, 173.0));

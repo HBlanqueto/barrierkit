@@ -42,8 +42,8 @@
 | | rows | 10.1 | 10.1 | 12 | SwiftUI draws a scroller the kit does not |
 | `GlassContainer` | regular pair | 30 | 27 | 32 | the glyph ink of `IconButton` and the lens highlight; varies between runs with the key state |
 | | clear pair | 16 | 28 | 30 | the same |
-| Popover | arrow | 25 | 60 | 62 | NSPopover is Liquid Glass on macOS 26; see below |
-| | body | 4 | 86 | 88 | the same |
+| Popover | arrow | 23 | 24 | 26 | the probe's button is wider and has a focus ring inside the arrow's box; below the button 0.0 and 2.0 |
+| | body | 4 | 4 | 6 | the label sits 33 px lower in the probe; the glass is the same (254 light, 60 dark) |
 | Sheet | sheet and veil | 0.0 | 0.0 | 2 | |
 
 The bench for the five twins holds its per-element ceilings in `swiftui_twin.rs`; the blur cells are its `light` and `dark`.
@@ -60,7 +60,7 @@ Measured with the system switch on, turned on by the user for one batch (`--tran
 | | title bar veil | 17 | 17 | 20 | the veil is a solid white band; SwiftUI's is 52 deep, the kit's 96 |
 | | rows | 4 | 4 | 6 | the scroller |
 | `GlassContainer` | pairs | 29 | 29 | 32 | the kit's solid is the media material tint (dark); SwiftUI's is light |
-| Popover | arrow, body | 23, 4 | 60, 86 | as blur | as in blur |
+| Popover | arrow, body | 23, 4 | 60, 86 | as blur | measured with the kit's own popover; the `NSPopover` (2026-11-23) follows the switch itself and was not captured |
 | Sheet | sheet and veil | 0.0 | 0.0 | 2 | |
 | Tasks twin | title bar edge | 12.5 | 12.5 | 13 | a hairline SwiftUI draws under the toolbar when Reduce Transparency replaces its scroll-edge effect; the kit draws none (blur: 0.0) |
 | Notes twin | sidebar selected row | 14.4 | 14.3 | 15 | blur 11 |
@@ -86,7 +86,7 @@ The cause of the first direction is not found: the same code draws the solid vei
 
 - **Sheet veil.** AppKit already veils the window under `beginSheet`: the kit drew its own scrim over it, so a light parent was 184 where AppKit's is 204. The kit now draws no scrim when the platform veils (`Host::native_sheets`, `NativeSheets`). Sheet and veil are 0.0% in light and dark.
 - **Toolbar glass.** SwiftUI's scroll-edge effect under a toolbar is hard and as deep as the bar (52 px, an 8 px blend); `TopGlass` is the full-screen bar glass of Malaysia, soft and 96 px deep (`FULLSCREEN_GLASS`). A window-toolbar variant of `TopGlass` (hard edge, depth of the title bar) is not built. In dark the kit's veil is also lighter (143 against 116 over the red row). Held at a ceiling until then.
-- **Popover.** The popover of macOS 26 is Liquid Glass; `NSGlassEffectView` takes no shape but a corner radius, so the arrow cannot be given to it. The kit draws its own fill under the arrow-shaped material: white in light (matches, 4%), dark `popover_style().bg` (26) against NSPopover's 56 over a 30 backdrop. A native material under a clear kit fill was tried: it comes out gray (222 in light, 94 in dark) and is worse.
+- **Popover.** The popover of macOS 26 is Liquid Glass, and `NSGlassEffectView` takes no arrow. The kit now shows a real `NSPopover` with its Metal layer, clear, as the content view (2026-11-23): body and arrow match the probe and a SwiftUI `.popover` (`~/src/probes/swiftpopover`) in both appearances. Measured with the kit forced to light by `RESONANCE_APPEARANCE=light` (`~/src/probes/resonance/libdump.dylib`): the kit's `appearance.domain` no longer sets its scheme on macOS (ADR 0114), so the script's own light cell captures a dark kit. Reduce Transparency is AppKit's and was not measured again.
 - **GlassContainer.** With the media `RoundButton` the glass was doubled (the button paints its own); `IconButton` is the SwiftUI twin of the probe. What is left is the ink and the lens.
 
 ## Not in the matrix
