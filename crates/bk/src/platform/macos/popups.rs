@@ -204,6 +204,9 @@ impl Runtime {
             _delegate: delegate,
             app,
             controls: None,
+            container: None,
+            behind: None,
+            chromes: Vec::new(),
             restore: None,
             ime_area: None,
             popup: Some(PopupState {

@@ -54,7 +54,7 @@ impl GlassOutbox {
         *self.0.borrow_mut() = Some(panels);
     }
 
-    fn take(&self) -> Option<GlassPanels> {
+    pub(crate) fn take(&self) -> Option<GlassPanels> {
         self.0.borrow_mut().take()
     }
 }

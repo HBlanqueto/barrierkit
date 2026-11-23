@@ -391,6 +391,29 @@ of lag (the layers present with a transaction or not), a rounded or soft mask,
 `behindWindow`, `NSGlassEffectView` and its container, scale 2, light and
 Increase Contrast, and the other 13 materials.
 
+Follow-ups of E8 (2026-11-22, `~/src/probes/metalblur2.swift` and `behind.swift`,
+captures deleted), light appearance, scale 1, through the capture's ICC profile:
+
+| Measure | Result |
+|---|---|
+| Lag of the blur behind a bar that moves 480 px/s, 5 captures each, `presentsWithTransaction` off and on | the blurred bar's centroid minus the bar: +1.6 ± 3.3 px and +0.4 ± 3.2 px; one frame of lag would be -8 px, so there is none in either |
+| Rounded effect view (`cornerRadius` 24, `masksToBounds`) | the interior is flat, 93 for `hudWindow`, with the corner cut |
+| Soft edge (`CAGradientLayer` as the view's layer mask, 40% of 120 px) | the stripe contrast falls from 126 to 0 over 48 rows, linearly |
+| `NSGlassEffectView` regular and clear over stripes | both blur them flat (118.1 and 116.3); two views in an `NSGlassEffectContainerView` merge with a neck and the lens at the rim |
+| Within-window material over 8 pt stripes, light and dark | menu 213 and 66, sidebar 227 and 58, sheet 255 and 40 (stripes of 13 left), windowBackground 255 and 30, hud 185 and 93, contentBackground 255 and 30, underWindowBackground 227 and 58 |
+| `-increaseContrast 1` and `-reduceTransparency 1` as process arguments | no change of an effect view: AppKit reads the system setting, which the probe did not toggle |
+| `behindWindow` `sidebar` over a black and a white backdrop, borderless and non-opaque | a borderless non-opaque window: 33 and 255 (a see-through of the backdrop); an opaque borderless window 60 and 60, a titled one 55 and 60 in both backdrops, flat even when non-opaque (not isolated why: the probe's titled window kept its title bar) |
+
+The kit side (2026-11-22): `platform/macos/blur.rs`. The sidebar glass is a
+`behindWindow` effect view below the content; `Material`, `TopGlass` and the glass
+bars are `withinWindow` effect views over the content with a `CAMetalLayer`
+chrome above them, one per chrome of `collect`; the views take no event. A
+SwiftUI `NavigationSplitView` sidebar in an ordinary window is flat 237 over
+both backdrops, so the kit's flat default matches it and `WindowGlass` opts in.
+Not done: `NSGlassEffectView` for the glass styles and `GlassContainer`,
+layer-to-layer sync of the content and the chrome (both present on their own),
+and scale 2.
+
 Other things macOS draws that the kit does not, with the proposal:
 
 | Item | State | Proposal |

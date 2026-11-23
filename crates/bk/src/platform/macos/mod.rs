@@ -5,6 +5,7 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use calloop::{EventLoop, ping::make_ping};
+use ctappearance::material::Material;
 use ctappearance::{Resolved, load_appearance, load_dominant, resolve};
 use dispatch2::{DispatchQueue, DispatchTime};
 use freya_core::integration::{
@@ -14,7 +15,7 @@ use freya_core::prelude::{
     AccessibilityFocusStrategy, Code, CursorIcon, Key, Modifiers, State, WritableUtils,
 };
 use freya_engine::prelude::{
-    ColorType, DirectContext, SurfaceOrigin, backend_render_targets, direct_contexts, mtl,
+    ColorType, DirectContext, Surface, SurfaceOrigin, backend_render_targets, direct_contexts, mtl,
     wrap_backend_render_target,
 };
 use objc2::MainThreadMarker;
@@ -22,9 +23,10 @@ use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
-    NSApplication, NSApplicationActivationPolicy, NSApplicationPresentationOptions, NSColor,
-    NSEvent, NSEventModifierFlags, NSEventType, NSTitlebarSeparatorStyle, NSToolbar, NSWindow,
-    NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
+    NSApplication, NSApplicationActivationPolicy, NSApplicationPresentationOptions,
+    NSAutoresizingMaskOptions, NSColor, NSEvent, NSEventModifierFlags, NSEventType,
+    NSTitlebarSeparatorStyle, NSToolbar, NSView, NSVisualEffectBlendingMode, NSVisualEffectView,
+    NSWindow, NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
     NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
@@ -39,15 +41,17 @@ use objc2_metal::{
 use objc2_quartz_core::{CAMetalDrawable, CAMetalLayer, kCACornerCurveContinuous};
 
 use super::app::{AppInstance, Host, InstanceRole};
-use super::backdrop::{Pass, render_pass, render_passes};
+use super::backdrop::{Effect as Declared, Pass, Placement, Requests, render_pass, render_passes};
 use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
 use super::window::{
     OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle,
 };
+use super::window_style::ScrollEdgeEffectStyle;
 use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
+mod blur;
 mod frame;
 mod input;
 mod menu;
@@ -56,7 +60,7 @@ mod popups;
 mod view;
 
 use popups::PopupState;
-use view::{ContentView, Toplevel, WindowDelegate};
+use view::{ChromeView, ContentView, Effect, Toplevel, WindowDelegate};
 
 thread_local! {
     static RUNTIME: RefCell<Option<Runtime>> = const { RefCell::new(None) };
@@ -75,10 +79,29 @@ struct Gpu {
     context: DirectContext,
 }
 
+// A declared glass: native effect views over the content and, above them, a Metal layer with what the kit draws over the glass.
+struct ChromeLayer {
+    wanted: Wanted,
+    view: Retained<ChromeView>,
+    layer: Retained<CAMetalLayer>,
+    effects: Vec<Retained<Effect>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct Wanted {
+    placement: Placement,
+    requests: Requests,
+    material: Option<Material>,
+}
+
 struct Window {
     id: u64,
     window: Retained<NSWindow>,
     view: Retained<ContentView>,
+    // The content view's parent: the effect view of a sidebar sits below the view.
+    container: Option<Retained<NSView>>,
+    behind: Option<Retained<Effect>>,
+    chromes: Vec<ChromeLayer>,
     layer: Retained<CAMetalLayer>,
     _delegate: Retained<ProtocolObject<dyn NSWindowDelegate>>,
     app: AppInstance,
@@ -167,6 +190,45 @@ fn native(id: u64, command: Native) {
     }
 }
 
+fn configure_metal_layer(
+    device: &Retained<ProtocolObject<dyn MTLDevice>>,
+    view: &NSView,
+) -> Retained<CAMetalLayer> {
+    let layer = view.layer().expect("the view is layer-backed");
+    // SAFETY: the content and chrome views return a CAMetalLayer from `makeBackingLayer`.
+    let layer: Retained<CAMetalLayer> = unsafe { Retained::cast_unchecked::<CAMetalLayer>(layer) };
+    layer.setDevice(Some(device));
+    layer.setPixelFormat(MTLPixelFormat::BGRA8Unorm);
+    // Skia's blend modes need a texture it may read.
+    layer.setFramebufferOnly(false);
+    layer.setPresentsWithTransaction(false);
+    let srgb = CGColorSpace::with_name(Some(unsafe { kCGColorSpaceSRGB }));
+    layer.setColorspace(srgb.as_deref());
+    layer
+}
+
+// A frame to draw: the layer's next drawable and a Skia surface over its texture.
+fn target(
+    gpu: &mut Gpu,
+    layer: &CAMetalLayer,
+) -> Option<(Retained<ProtocolObject<dyn CAMetalDrawable>>, Surface)> {
+    let drawable = layer.nextDrawable()?;
+    let size = layer.drawableSize();
+    // SAFETY: the texture is the drawable's own and lives through this frame; Skia retains it.
+    let info =
+        unsafe { mtl::TextureInfo::new(Retained::as_ptr(&drawable.texture()) as mtl::Handle) };
+    let target = backend_render_targets::make_mtl((size.width as i32, size.height as i32), &info);
+    let surface = wrap_backend_render_target(
+        &mut gpu.context,
+        &target,
+        SurfaceOrigin::TopLeft,
+        ColorType::BGRA8888,
+        None,
+        None,
+    )?;
+    Some((drawable, surface))
+}
+
 fn round_corners(layer: &CAMetalLayer) {
     layer.setOpaque(false);
     layer.setCornerRadius(f64::from(ctdesign::CORNER_WINDOW.fitted));
@@ -239,8 +301,8 @@ impl Runtime {
             font_collection: crate::fonts::collection(),
             font_manager: crate::fonts::manager(),
             defaults_revision: self.defaults_revision,
-            glass: false,
-            backdrop: false,
+            glass: true,
+            backdrop: true,
             knobs: false,
         }
     }
@@ -342,7 +404,13 @@ impl Runtime {
         if window_style == WindowStyle::Plain {
             round_corners(&layer);
         }
-        window.setContentView(Some(&view));
+        let container = blur::container(self.mtm, frame);
+        view.setAutoresizingMask(
+            NSAutoresizingMaskOptions::ViewWidthSizable
+                | NSAutoresizingMaskOptions::ViewHeightSizable,
+        );
+        container.addSubview(&view);
+        window.setContentView(Some(&container));
         self.follow_scheme(&window);
         window.center();
 
@@ -407,6 +475,9 @@ impl Runtime {
             id,
             window: window.clone(),
             view,
+            container: Some(container),
+            behind: None,
+            chromes: Vec::new(),
             layer,
             _delegate: delegate,
             app: instance,
@@ -448,18 +519,7 @@ impl Runtime {
     }
 
     fn configure_layer(&self, view: &ContentView) -> Retained<CAMetalLayer> {
-        let layer = view.layer().expect("the content view is layer-backed");
-        // SAFETY: `ContentView::makeBackingLayer` returns a CAMetalLayer.
-        let layer: Retained<CAMetalLayer> =
-            unsafe { Retained::cast_unchecked::<CAMetalLayer>(layer) };
-        layer.setDevice(Some(&self.gpu.device));
-        layer.setPixelFormat(MTLPixelFormat::BGRA8Unorm);
-        // Skia's blend modes need a texture it may read.
-        layer.setFramebufferOnly(false);
-        layer.setPresentsWithTransaction(false);
-        let srgb = CGColorSpace::with_name(Some(unsafe { kCGColorSpaceSRGB }));
-        layer.setColorspace(srgb.as_deref());
-        layer
+        configure_metal_layer(&self.gpu.device, view)
     }
 
     pub(super) fn resized(&mut self, id: u64) {
@@ -580,9 +640,15 @@ impl Runtime {
         let Some(index) = self.windows.iter().position(|window| window.id == id) else {
             return;
         };
+        {
+            let window = &mut self.windows[index];
+            window.needs_redraw = false;
+            window.app.layout();
+            window.app.settle_sized_reactions();
+        }
+        self.sync_chromes(index);
         let gpu = &mut self.gpu;
         let window = &mut self.windows[index];
-        window.needs_redraw = false;
         let scale = window.window.backingScaleFactor();
         let resolved = *window.app.resolved.read();
         let background = if window.popup.is_some() {
@@ -592,51 +658,150 @@ impl Runtime {
                 crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel);
             crate::theme::color(base)
         };
-        window.app.layout();
-        window.app.settle_sized_reactions();
-        let Some(drawable) = window.layer.nextDrawable() else {
+        let Some((content, mut surface)) = target(gpu, &window.layer) else {
             window.needs_redraw = true;
             return;
         };
-        let size = window.layer.drawableSize();
-        // SAFETY: the texture is the drawable's own and lives through this frame; Skia retains it.
-        let info =
-            unsafe { mtl::TextureInfo::new(Retained::as_ptr(&drawable.texture()) as mtl::Handle) };
-        let target =
-            backend_render_targets::make_mtl((size.width as i32, size.height as i32), &info);
-        let Some(mut surface) = wrap_backend_render_target(
-            &mut gpu.context,
-            &target,
-            SurfaceOrigin::TopLeft,
-            ColorType::BGRA8888,
-            None,
-            None,
-        ) else {
-            return;
-        };
+        let mut presented = Vec::new();
         let app = &mut window.app;
-        let no_chromes: [Vec<NodeId>; 0] = [];
-        render_passes(&mut app.tree, &no_chromes, |pass, tree| {
-            if pass == Pass::Content {
+        let nodes: Vec<Vec<NodeId>> = app
+            .chromes
+            .iter()
+            .map(|chrome| chrome.nodes.clone())
+            .collect();
+        let layers = &window.chromes;
+        render_passes(&mut app.tree, &nodes, |pass, tree| match pass {
+            Pass::Content => render_pass(
+                &mut app.font_collection,
+                &app.font_manager,
+                tree,
+                surface.canvas(),
+                scale,
+                (0, 0),
+                background,
+            ),
+            Pass::Chrome(index) => {
+                let Some(chrome) = layers.get(index) else {
+                    return;
+                };
+                let Some((drawable, mut own)) = target(gpu, &chrome.layer) else {
+                    return;
+                };
                 render_pass(
                     &mut app.font_collection,
                     &app.font_manager,
                     tree,
-                    surface.canvas(),
+                    own.canvas(),
                     scale,
-                    (0, 0),
-                    background,
+                    chrome.wanted.placement.origin,
+                    freya_core::prelude::Color::TRANSPARENT,
                 );
+                gpu.context.flush_and_submit();
+                presented.push(drawable);
             }
         });
         gpu.context.flush_and_submit();
         drop(surface);
+        presented.push(content);
         if let Some(buffer) = gpu.queue.commandBuffer() {
-            let drawable: Retained<ProtocolObject<dyn MTLDrawable>> = (&drawable).into();
-            buffer.presentDrawable(&drawable);
+            for drawable in &presented {
+                let drawable: Retained<ProtocolObject<dyn MTLDrawable>> = drawable.into();
+                buffer.presentDrawable(&drawable);
+            }
             buffer.commit();
         }
         app.ticker_sender.notify();
+    }
+
+    // What the kit declared since the last frame becomes native views: the effects over the content and the chrome above them.
+    fn sync_chromes(&mut self, index: usize) {
+        let mtm = self.mtm;
+        let device = self.gpu.device.clone();
+        let window = &mut self.windows[index];
+        let Some(container) = window.container.clone() else {
+            return;
+        };
+        let scale = window.window.backingScaleFactor();
+        let wanted: Vec<Wanted> = window
+            .app
+            .chromes
+            .iter()
+            .map(|chrome| Wanted {
+                placement: chrome.placement(scale as f32),
+                requests: Requests::of(chrome, scale as f32),
+                material: chrome.effects.iter().find_map(|(effect, _)| match effect {
+                    Declared::Material { material, .. } => Some(*material),
+                    Declared::ScrollEdge { .. } => None,
+                }),
+            })
+            .collect();
+        if wanted
+            == window
+                .chromes
+                .iter()
+                .map(|chrome| chrome.wanted.clone())
+                .collect::<Vec<_>>()
+        {
+            return;
+        }
+        for chrome in window.chromes.drain(..) {
+            chrome.view.removeFromSuperview();
+            for effect in chrome.effects {
+                effect.removeFromSuperview();
+            }
+        }
+        let height = container.bounds().size.height;
+        for wanted in wanted {
+            let (x, y) = wanted.placement.origin;
+            let (width, strip) = wanted.placement.size;
+            let mut effects = Vec::new();
+            if let Some(material) = wanted.material {
+                for &(left, top, w, h) in &wanted.requests.backdrop.rects {
+                    let effect = blur::effect(
+                        mtm,
+                        material,
+                        NSVisualEffectBlendingMode::WithinWindow,
+                        wanted.requests.backdrop.radius as f32,
+                    );
+                    effect.setFrame(blur::frame((x + left, y + top, w, h), height));
+                    effects.push(effect);
+                }
+            }
+            if let Some(edge) = wanted.requests.scroll_edge {
+                let rect = blur::edge_rect(edge.edge, (x, y), (width, strip), edge.depth);
+                let effect = blur::effect(
+                    mtm,
+                    Material::WindowBackground,
+                    NSVisualEffectBlendingMode::WithinWindow,
+                    0.0,
+                );
+                effect.setFrame(blur::frame(rect, height));
+                if edge.style == ScrollEdgeEffectStyle::Soft {
+                    blur::fade(&effect, edge.edge);
+                }
+                effects.push(effect);
+            }
+            for effect in &effects {
+                container.addSubview(effect);
+            }
+            let view =
+                ChromeView::new(mtm, blur::frame((x, y, width as i32, strip as i32), height));
+            container.addSubview(&view);
+            let layer = configure_metal_layer(&device, &view);
+            layer.setOpaque(false);
+            layer.setContentsScale(scale);
+            layer.setDrawableSize(CGSize::new(
+                f64::from(width) * scale,
+                f64::from(strip) * scale,
+            ));
+            window.chromes.push(ChromeLayer {
+                wanted,
+                view,
+                layer,
+                effects,
+            });
+        }
+        window.needs_redraw = true;
     }
 
     fn redraw_all(&mut self) {
@@ -659,8 +824,48 @@ impl Runtime {
         }
         self.process_window_commands();
         self.process_popup_commands();
+        self.sync_glass();
         self.sync_cursor();
         menu::sync();
+    }
+
+    // The glass of a sidebar is a native view behind the window's own: the kit leaves its panel transparent.
+    fn sync_glass(&mut self) {
+        let mtm = self.mtm;
+        for window in &mut self.windows {
+            let (Some(container), Some(panels)) =
+                (window.container.clone(), window.app.glass.take())
+            else {
+                continue;
+            };
+            if let Some(old) = window.behind.take() {
+                old.removeFromSuperview();
+            }
+            window.needs_redraw = true;
+            let Some(&rect) = panels.rects.first() else {
+                continue;
+            };
+            let height = container.bounds().size.height;
+            let effect = blur::effect(
+                mtm,
+                Material::Sidebar,
+                NSVisualEffectBlendingMode::BehindWindow,
+                panels.radius as f32,
+            );
+            effect.setFrame(blur::frame(rect, height));
+            effect.setAutoresizingMask(blur::autoresizing(rect, height));
+            container.addSubview_positioned_relativeTo(
+                &effect,
+                NSWindowOrderingMode::Below,
+                Some(&window.view),
+            );
+            window.window.setOpaque(false);
+            window
+                .window
+                .setBackgroundColor(Some(&NSColor::clearColor()));
+            window.layer.setOpaque(false);
+            window.behind = Some(effect);
+        }
     }
 
     fn sync_cursor(&mut self) {

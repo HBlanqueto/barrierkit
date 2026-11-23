@@ -177,6 +177,23 @@ material, before that `set_glass`
 this path against a fake compositor; a real session needs Malaysia to serve the
 requests ([18](18-platform.md#glass-over-the-windows-content)).
 
+### On macOS
+
+WindowServer is the compositor, so the same declarations become native views
+(`platform/macos/blur.rs`), as in the table's first row:
+
+| Declaration | Native view |
+|---|---|
+| The sidebar's panel (`WindowGlass`, `Sidebar`) | An `NSVisualEffectView`, `sidebar` material, `behindWindow`, below the content view; the window turns non-opaque |
+| `Material` | An `NSVisualEffectView`, `withinWindow`, of `MaterialStyle::material`, with the corner radius, over the content |
+| `TopGlass`, `ProgressiveGlass`, `FullscreenBar::Glass` | An `NSVisualEffectView` of the window background material along the edge; the soft ones have a gradient mask, the hard one none |
+| The chrome of a glass | A second `CAMetalLayer` view above the effect, which takes no event |
+
+The effect views read what the content layer drew, with no frame of lag
+([measurements](../research/macos-arm-port.md#blur-three-proposals)); Reduce
+Transparency and Increase Contrast are AppKit's. The glass styles of
+`NSGlassEffectView` and `GlassContainer` are not mapped yet.
+
 ### Style
 
 `MediaButton` and `RoundButton` take `.style(|s| ..)` with a `MediaButtonStyle` and a

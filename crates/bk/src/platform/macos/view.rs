@@ -10,7 +10,8 @@ use objc2::{
 };
 use objc2_app_kit::{
     NSBackingStoreType, NSEvent, NSEventModifierFlags, NSPanel, NSTextInputClient, NSTrackingArea,
-    NSTrackingAreaOptions, NSView, NSWindow, NSWindowDelegate, NSWindowStyleMask,
+    NSTrackingAreaOptions, NSView, NSVisualEffectView, NSWindow, NSWindowDelegate,
+    NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification, NSObject,
@@ -391,6 +392,69 @@ impl WindowDelegate {
         let this = Self::alloc(mtm).set_ivars(DelegateIvars { id });
         let this: Retained<Self> = unsafe { msg_send![super(this), init] };
         ProtocolObject::from_retained(this)
+    }
+}
+
+define_class!(
+    // A native effect above the content lets every event through to it.
+    #[unsafe(super(NSVisualEffectView))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKEffectView"]
+    pub(super) struct Effect;
+
+    impl Effect {
+        #[unsafe(method(hitTest:))]
+        fn hit_test(&self, _: NSPoint) -> *mut NSView {
+            std::ptr::null_mut()
+        }
+    }
+);
+
+impl Effect {
+    pub(super) fn new(mtm: MainThreadMarker) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(());
+        // SAFETY: NSVisualEffectView's designated initializer.
+        unsafe { msg_send![super(this), init] }
+    }
+}
+
+define_class!(
+    // The chrome of a declared glass: a Metal layer above the effect, which never takes an event.
+    #[unsafe(super(NSView))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKChromeView"]
+    pub(super) struct ChromeView;
+
+    impl ChromeView {
+        #[unsafe(method(makeBackingLayer))]
+        fn make_backing_layer(&self) -> *mut CALayer {
+            Retained::into_raw(Retained::into_super(CAMetalLayer::new()))
+        }
+
+        #[unsafe(method(wantsUpdateLayer))]
+        fn wants_update_layer(&self) -> bool {
+            true
+        }
+
+        #[unsafe(method(isFlipped))]
+        fn is_flipped(&self) -> bool {
+            true
+        }
+
+        #[unsafe(method(hitTest:))]
+        fn hit_test(&self, _: NSPoint) -> *mut NSView {
+            std::ptr::null_mut()
+        }
+    }
+);
+
+impl ChromeView {
+    pub(super) fn new(mtm: MainThreadMarker, frame: NSRect) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(());
+        // SAFETY: NSView's designated initializer.
+        let this: Retained<Self> = unsafe { msg_send![super(this), initWithFrame: frame] };
+        this.setWantsLayer(true);
+        this
     }
 }
 
