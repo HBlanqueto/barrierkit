@@ -1911,6 +1911,20 @@ pub const SIDEBAR_GLASS_SELECTION_DARK: GlassSelection = GlassSelection {
     inactive: Rgba::rgba8(255, 255, 255, 0.063),
 };
 
+// A SwiftUI toolbar item on glass: the circle under the pointer, inset in the capsule, as measured on macOS 27.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ToolbarItemHighlight {
+    pub size: f32,
+    pub hover_light: Rgba,
+    pub hover_dark: Rgba,
+}
+
+pub const TOOLBAR_ITEM_HIGHLIGHT: ToolbarItemHighlight = ToolbarItemHighlight {
+    size: 32.0,
+    hover_light: Rgba::rgba8(0, 0, 0, 0.048),
+    hover_dark: Rgba::rgba8(255, 255, 255, 0.047),
+};
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarPalette {
     pub item_ink: Rgba,

@@ -1,13 +1,13 @@
 use ctappearance::material::Material;
 use objc2::rc::Retained;
-use objc2::{MainThreadMarker, MainThreadOnly};
+use objc2::{MainThreadMarker, MainThreadOnly, msg_send, sel};
 use objc2_app_kit::{
     NSAutoresizingMaskOptions, NSGlassEffectViewStyle, NSSplitViewController, NSSplitViewItem,
     NSView, NSViewController, NSVisualEffectBlendingMode, NSVisualEffectMaterial,
     NSVisualEffectState,
 };
 use objc2_core_graphics::CGColor;
-use objc2_foundation::{NSArray, NSNumber};
+use objc2_foundation::{NSArray, NSNumber, NSObjectProtocol};
 use objc2_foundation::{NSPoint, NSRect, NSSize};
 use objc2_quartz_core::{CAGradientLayer, kCACornerCurveContinuous};
 
@@ -156,6 +156,11 @@ pub(super) fn glass(mtm: MainThreadMarker, radius: f32, clear: bool) -> Retained
         glass.setStyle(NSGlassEffectViewStyle::Clear);
     }
     glass.setCornerRadius(f64::from(radius));
+    // A press lights the glass where it lands, as SwiftUI's toolbar does; AppKit has it from macOS 27.
+    if glass.respondsToSelector(sel!(setEffectIsInteractive:)) {
+        // SAFETY: the selector exists on this macOS and takes a BOOL.
+        let _: () = unsafe { msg_send![&*glass, setEffectIsInteractive: true] };
+    }
     glass
 }
 

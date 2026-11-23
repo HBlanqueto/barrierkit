@@ -11,9 +11,10 @@ use objc2::{
 use objc2_app_kit::{
     NSApplication, NSApplicationPresentationOptions, NSBackingStoreType, NSDragOperation,
     NSDraggingContext, NSDraggingSession, NSDraggingSource, NSEvent, NSEventModifierFlags,
-    NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSTextInputClient, NSTrackingArea,
-    NSTrackingAreaOptions, NSView, NSViewFrameDidChangeNotification, NSVisualEffectView, NSWindow,
-    NSWindowButton, NSWindowDelegate, NSWindowDidMoveNotification, NSWindowStyleMask,
+    NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSResponder, NSTextInputClient,
+    NSTrackingArea, NSTrackingAreaOptions, NSView, NSViewFrameDidChangeNotification,
+    NSVisualEffectView, NSWindow, NSWindowButton, NSWindowDelegate, NSWindowDidMoveNotification,
+    NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification,
@@ -641,19 +642,32 @@ impl Effect {
 }
 
 define_class!(
-    // Liquid Glass over the content lets every event through to it.
+    // Liquid Glass takes the events over it, so that its interactive glass answers a press, and hands them on to the kit's view.
     #[unsafe(super(NSGlassEffectView))]
     #[thread_kind = MainThreadOnly]
     #[name = "BKGlassView"]
     pub(super) struct Glass;
 
     impl Glass {
-        #[unsafe(method(hitTest:))]
-        fn hit_test(&self, _: NSPoint) -> *mut NSView {
-            std::ptr::null_mut()
+        #[unsafe(method(nextResponder))]
+        fn next_responder(&self) -> *mut NSResponder {
+            match kit_view(self) {
+                Some(view) => {
+                    Retained::autorelease_return(Retained::into_super(Retained::into_super(view)))
+                }
+                // SAFETY: NSView's own responder, for a glass riding outside the kit's window.
+                None => unsafe { msg_send![super(self), nextResponder] },
+            }
         }
     }
 );
+
+fn kit_view(view: &NSView) -> Option<Retained<ContentView>> {
+    let content = view.window()?.contentView()?;
+    std::iter::once(content.clone())
+        .chain(content.subviews())
+        .find_map(|view| view.downcast::<ContentView>().ok())
+}
 
 impl Glass {
     pub(super) fn new(mtm: MainThreadMarker) -> Retained<Self> {
@@ -664,7 +678,7 @@ impl Glass {
 }
 
 define_class!(
-    // Glass views inside it merge when they are near, and none takes an event.
+    // Glass views inside it merge when they are near; only a glass takes an event, never the group around them.
     #[unsafe(super(NSGlassEffectContainerView))]
     #[thread_kind = MainThreadOnly]
     #[name = "BKGlassGroup"]
@@ -672,8 +686,16 @@ define_class!(
 
     impl GlassGroup {
         #[unsafe(method(hitTest:))]
-        fn hit_test(&self, _: NSPoint) -> *mut NSView {
-            std::ptr::null_mut()
+        fn hit_test(&self, point: NSPoint) -> *mut NSView {
+            // SAFETY: NSView's own hit test of this group and its subviews.
+            let hit: Option<Retained<NSView>> = unsafe { msg_send![super(self), hitTest: point] };
+            let holder = self.contentView();
+            let me: &NSView = self;
+            hit.filter(|view| {
+                !std::ptr::eq(&**view, me)
+                    && holder.as_deref().is_none_or(|holder| !std::ptr::eq(&**view, holder))
+            })
+            .map_or(std::ptr::null_mut(), Retained::autorelease_return)
         }
     }
 );

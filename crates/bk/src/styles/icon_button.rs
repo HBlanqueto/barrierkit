@@ -1,5 +1,7 @@
-use ctappearance::Resolved;
-use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, SYMBOL, TOOLGROUP};
+use ctappearance::{ColorScheme, Resolved};
+use ctdesign::{
+    BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, SYMBOL, TOOLBAR_ITEM_HIGHLIGHT, TOOLGROUP,
+};
 
 use super::button::rounded;
 use super::{
@@ -7,7 +9,7 @@ use super::{
     pressed_palette, reduce_motion, show_borders, system_effect,
 };
 
-/// States: pressed, focused, disabled. `ToolbarOverflow` is an
+/// States: pressed, focused, disabled; hovered in a toolbar on native glass. `ToolbarOverflow` is an
 /// `IconButton`: its `.style` takes an `IconButtonStyle`.
 #[derive(Clone, Debug)]
 pub struct IconButtonStyle {
@@ -49,11 +51,18 @@ impl ControlStyle for IconButtonStyle {
     fn tengen() -> Self {
         let toolbar = crate::compact::toolbar_style();
         let dimmed = toolbar.is_some() && !crate::platform::window_activated();
+        // shortcut: assumes interactive glass (macOS 27+), so a press on macOS 26 shows nothing; pass the platform's answer if 26 matters.
+        let on_glass = toolbar.is_some() && crate::glass::native_glass();
         let (size, icon_size, stroke, shape) = match toolbar {
             Some(_) => {
                 let height = TOOLGROUP.height as f32;
+                let item = if on_glass {
+                    TOOLBAR_ITEM_HIGHLIGHT.size
+                } else {
+                    height
+                };
                 let size = crate::compact::slim_toolbar_items()
-                    .map_or((height, height), |(width, height, inset)| {
+                    .map_or((item, item), |(width, height, inset)| {
                         (width - 2.0 * inset, height)
                     });
                 (
@@ -75,9 +84,21 @@ impl ControlStyle for IconButtonStyle {
             icon_size,
             stroke,
             shape,
-            background: StateValue::new(ShapeStyle::Clear)
-                .pressed(ShapeStyle::Color(pressed_palette().bezel))
-                .disabled(ShapeStyle::Clear),
+            // On native glass the glass lights a press itself, as in SwiftUI, and the item only answers the pointer.
+            background: if on_glass {
+                let hover = match crate::theme::resolved().scheme {
+                    ColorScheme::Light => TOOLBAR_ITEM_HIGHLIGHT.hover_light,
+                    ColorScheme::Dark | ColorScheme::DarkTint => TOOLBAR_ITEM_HIGHLIGHT.hover_dark,
+                };
+                StateValue::new(ShapeStyle::Clear)
+                    .hovered(ShapeStyle::Color(hover))
+                    .pressed(ShapeStyle::Clear)
+                    .disabled(ShapeStyle::Clear)
+            } else {
+                StateValue::new(ShapeStyle::Clear)
+                    .pressed(ShapeStyle::Color(pressed_palette().bezel))
+                    .disabled(ShapeStyle::Clear)
+            },
             icon: StateValue::new(ShapeStyle::Role(if dimmed {
                 Role::TertiaryLabel
             } else {
