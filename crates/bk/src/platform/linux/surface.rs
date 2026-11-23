@@ -34,7 +34,7 @@ use super::{
     runtime::{Runtime, WindowContext},
     vulkan::{Graphics, GraphicsShared},
 };
-use crate::platform::{app::AppInstance, backdrop::Pass, glass::Rects, popup::PopupInfo};
+use crate::platform::{app::AppInstance, backdrop::Pass, glass::Rects, linux::popup::PopupInfo};
 
 pub(crate) struct SurfaceWindow {
     pub(crate) surface: WlSurface,
@@ -54,7 +54,7 @@ pub(crate) struct SurfaceWindow {
     failing: bool,
     pub(crate) opaque_region: Option<((u32, u32), Rects)>,
     pub(crate) glass_holes: Rects,
-    pub(crate) glass_style: Option<crate::platform::window_style::InfinityWindowStyleV1>,
+    pub(crate) glass_style: Option<crate::platform::linux::window_style::InfinityWindowStyleV1>,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,

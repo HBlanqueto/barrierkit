@@ -15,7 +15,7 @@ report() {
 production() {
     for file in $(find "$@" -name '*.rs' ! -path 'crates/ctdesign/*' ! -name tests.rs | sort); do
         awk '/#\[cfg\(test\)\]/ { pending = 1; next }
-            pending && /^mod [a-z_]+ \{/ { skip = 1 }
+            pending && /^(pub\([a-z]+\) )?mod [a-z_]+ \{/ { skip = 1 }
             { pending = 0 }
             skip { if (/^}/) skip = 0; next }
             { print FILENAME ":" FNR ":" $0 }' "$file"

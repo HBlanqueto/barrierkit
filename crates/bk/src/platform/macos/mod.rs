@@ -41,9 +41,7 @@ use objc2_metal::{
 use objc2_quartz_core::{CADisplayLink, CAMetalDrawable, CAMetalLayer, kCACornerCurveContinuous};
 
 use super::app::{AppInstance, Host, InstanceRole};
-use super::backdrop::{
-    Effect as Declared, Pass, PlacedGlass, Placement, Requests, render_pass, render_passes,
-};
+use super::backdrop::{Effect as Declared, Pass, Placement, Requests, render_pass, render_passes};
 use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
@@ -52,9 +50,14 @@ use super::window::{
 };
 use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
 use super::{EditShortcut, RunError, Sent, calloop::ping::Ping};
+use crate::platform::macos::blur::PlacedGlass;
 
 // The system delivers the momentum of a trackpad fling as scroll events.
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
+pub(crate) const MOST_CHROMES: usize = 8;
+
+#[cfg(feature = "a11y")]
+pub(super) use accessibility::Bridge;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ObjectId(u64);

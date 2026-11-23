@@ -16,11 +16,10 @@ pub(super) const REVEAL_TIME: Duration = Duration::from_millis(ctdesign::DURATIO
 
 use super::surface::buffer_size;
 use crate::platform::{
-    input::seat::{RepeatState, released_repeated_key, should_repeat_key, stop_repeat},
+    linux::seat::{RepeatState, released_repeated_key, should_repeat_key, stop_repeat},
+    linux::window::{clamp_toplevel_size_dimension, resize_edge_at},
     timer::{Timers, Wake, WakeQueue},
-    window::{
-        WindowControls, WindowEdge, WindowStatus, clamp_toplevel_size_dimension, resize_edge_at,
-    },
+    window::{WindowControls, WindowEdge, WindowStatus},
 };
 
 pub(super) fn window_controls(status: WindowStatus) -> WindowControls {

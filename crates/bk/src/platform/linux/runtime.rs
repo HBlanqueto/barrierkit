@@ -7,7 +7,7 @@ use super::{
 };
 use crate::platform::{
     EditShortcut, ObjectId, RunError, Sent,
-    input::seat::{RepeatState, cursor_shape_from_icon},
+    linux::seat::{RepeatState, cursor_shape_from_icon},
     main_menu_export::MainMenuAddress,
     popup::PopupCommand,
     timer::{TimerQueue, Wake},
@@ -114,7 +114,7 @@ pub(crate) struct Runtime {
     pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
     pub(crate) dialog_manager:
         Option<wayland_protocols::xdg::dialog::v1::client::xdg_wm_dialog_v1::XdgWmDialogV1>,
-    pub(crate) window_style: Option<crate::platform::window_style::InfinityWindowStyleV1>,
+    pub(crate) window_style: Option<crate::platform::linux::window_style::InfinityWindowStyleV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) timers: TimerQueue,
@@ -490,7 +490,7 @@ impl Runtime {
             .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=5, ())
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
-        let window_style = crate::platform::window_style::bind(&globals, &qh);
+        let window_style = crate::platform::linux::window_style::bind(&globals, &qh);
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.
         let fractional_manager = viewporter.as_ref().and_then(|_| {
