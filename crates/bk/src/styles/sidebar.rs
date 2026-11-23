@@ -26,7 +26,8 @@ pub struct SidebarStyle {
     pub lights_position: (f32, f32),
     /// Tengen: `SETTINGS.sidebar_lights_gap` between the lights and the first row.
     pub lights_gap: f32,
-    /// Tengen: `Color` of the sidebar surface; `Clear` over a `Backdrop`.
+    /// Tengen: `Color` of the sidebar surface, its `inactive_bg` in an inactive window unless
+    /// transparency is reduced; `Clear` over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -37,8 +38,15 @@ pub struct SidebarStyle {
 
 impl SidebarStyle {
     pub(crate) fn surface(self, surface: SidebarSurface) -> Self {
+        let inactive = !crate::platform::window_activated()
+            && surface.bg.a > 0.0
+            && !crate::theme::resolved().reduce_transparency;
         Self {
-            background: StateValue::new(ShapeStyle::Color(surface.bg)),
+            background: StateValue::new(ShapeStyle::Color(if inactive {
+                surface.palette.inactive_bg
+            } else {
+                surface.bg
+            })),
             ..self
         }
     }

@@ -894,6 +894,8 @@
           "selected-icon-rim": "#00000033",
           "inactive-selected-bg": "sidebar-selection-inactive",
           "inactive-ink": "ink-inactive",
+          "inactive-selected-ink": "sidebar-selected-ink-inactive",
+          "inactive-bg": "sidebar-bg-inactive",
           "count-ink": "ink-muted"
         },
         "section": {

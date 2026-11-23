@@ -1323,6 +1323,8 @@
   --bk-window-sidebar-item-selected-icon-rim: #00000033;
   --bk-window-sidebar-item-inactive-selected-bg: var(--bk-sidebar-selection-inactive);
   --bk-window-sidebar-item-inactive-ink: var(--bk-ink-inactive);
+  --bk-window-sidebar-item-inactive-selected-ink: var(--bk-sidebar-selected-ink-inactive);
+  --bk-window-sidebar-item-inactive-bg: var(--bk-sidebar-bg-inactive);
   --bk-window-sidebar-item-count-ink: var(--bk-ink-muted);
   --bk-window-sidebar-section-height: 19;
   --bk-window-sidebar-section-margin-bottom: 13;
@@ -5212,6 +5214,8 @@
   --bk-ink: #000000d8;
   --bk-ink-inactive: #8d8d8d;
   --bk-sidebar-selection-inactive: #e6e6e6;
+  --bk-sidebar-selected-ink-inactive: #828282;
+  --bk-sidebar-bg-inactive: #f1f1f1;
   --bk-ink-strong: #000000d8;
   --bk-sidebar-ink: #000000ff;
   --bk-ink-muted: #0000007f;
@@ -5475,6 +5479,8 @@
     --bk-ink: #ffffffd8;
     --bk-ink-inactive: #737373;
     --bk-sidebar-selection-inactive: #313131;
+    --bk-sidebar-selected-ink-inactive: #808080;
+    --bk-sidebar-bg-inactive: #252525;
     --bk-ink-strong: #ffffffd8;
     --bk-sidebar-ink: #ffffffd8;
     --bk-ink-muted: #ffffff8c;
@@ -5738,6 +5744,8 @@
   --bk-ink: #ffffffd8;
   --bk-ink-inactive: #737373;
   --bk-sidebar-selection-inactive: #313131;
+  --bk-sidebar-selected-ink-inactive: #808080;
+  --bk-sidebar-bg-inactive: #252525;
   --bk-ink-strong: #ffffffd8;
   --bk-sidebar-ink: #ffffffd8;
   --bk-ink-muted: #ffffff8c;
@@ -6000,6 +6008,8 @@
   --bk-ink: #dadcdf;
   --bk-ink-inactive: #737373;
   --bk-sidebar-selection-inactive: #313131;
+  --bk-sidebar-selected-ink-inactive: #808080;
+  --bk-sidebar-bg-inactive: #252628;
   --bk-ink-strong: #f4f5f6;
   --bk-sidebar-ink: #f4f5f6;
   --bk-ink-muted: #999ca3;

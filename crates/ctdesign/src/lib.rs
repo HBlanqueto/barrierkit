@@ -1903,6 +1903,8 @@ pub struct SidebarPalette {
     pub selected_icon_rim: Rgba,
     pub inactive_selected_bg: Rgba,
     pub inactive_ink: Rgba,
+    pub inactive_selected_ink: Rgba,
+    pub inactive_bg: Rgba,
     pub section_ink: Rgba,
     pub count_ink: Rgba,
     pub line: Rgba,

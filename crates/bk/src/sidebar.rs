@@ -38,6 +38,7 @@ pub(crate) fn sidebar_palette() -> SidebarPalette {
         selected_ink: ink.on_accent,
         inactive_selected_bg: ink.selected_control,
         inactive_ink: ink.secondary_label,
+        inactive_selected_ink: ink.secondary_label,
         section_ink: ink.secondary_label,
         count_ink: ink.secondary_label,
         line: ink.separator,
@@ -62,7 +63,7 @@ struct InSidebar;
 fn unemphasized(s: SidebarItemStyle) -> SidebarItemStyle {
     SidebarItemStyle {
         selected_background: StateValue::new(ShapeStyle::Color(item_palette(false).selected_bg)),
-        selected_label: s.label.clone(),
+        selected_label: StateValue::new(ShapeStyle::Color(item_palette(false).selected_ink)),
         ..s
     }
 }
@@ -72,7 +73,7 @@ pub(crate) fn item_palette(emphasized: bool) -> SidebarPalette {
     if !crate::platform::window_activated() {
         SidebarPalette {
             selected_bg: palette.inactive_selected_bg,
-            selected_ink: palette.inactive_ink,
+            selected_ink: palette.inactive_selected_ink,
             item_ink: palette.inactive_ink,
             item_icon: palette.inactive_ink,
             ..palette
