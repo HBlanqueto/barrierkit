@@ -41,6 +41,14 @@ impl ContentUnavailableView {
         Self::styled(title.into(), symbol, None, Theme::tengen())
     }
 
+    pub fn search(query: &str) -> Self {
+        Self::new(
+            text!("no-results-for", query = query),
+            Symbol::MagnifyingGlass,
+        )
+        .description(text!("check-the-spelling"))
+    }
+
     pub fn description(self, description: impl Into<Cow<'static, str>>) -> Self {
         Self::styled(self.1, self.2, Some(description.into()), self.4)
     }
@@ -691,5 +699,15 @@ impl Component for Alert {
             padding,
             ..sheet.alert()
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_search_title_carries_the_query() {
+        assert!(text!("no-results-for", query = "wifi").contains("wifi"));
     }
 }

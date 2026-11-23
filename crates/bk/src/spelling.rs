@@ -68,6 +68,8 @@ impl Personal {
         if self.unreadable || self.pending.is_empty() {
             return;
         }
+        let glued =
+            std::fs::read(path).is_ok_and(|bytes| bytes.last().is_some_and(|&last| last != b'\n'));
         let saved = path
             .parent()
             .map_or(Ok(()), std::fs::create_dir_all)
@@ -78,6 +80,9 @@ impl Personal {
                     .open(path)
             })
             .and_then(|mut file| {
+                if glued {
+                    writeln!(file)?;
+                }
                 self.pending
                     .iter()
                     .try_for_each(|word| writeln!(file, "{word}"))
@@ -530,6 +535,20 @@ mod tests {
         list.open(path.clone());
         assert_eq!(std::fs::read_to_string(&path).unwrap(), "malaysia\n");
         assert!(list.pending.is_empty());
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn a_word_learned_after_a_last_line_without_a_newline_stays_a_word_of_its_own() {
+        let path = temp_list("glued");
+        std::fs::write(&path, "uno").unwrap();
+        let mut list = Personal::default();
+        list.pending.push("dos".into());
+        list.open(path.clone());
+        assert_eq!(
+            personal_words(&std::fs::read_to_string(&path).unwrap()),
+            HashSet::from(["uno".into(), "dos".into()])
+        );
         std::fs::remove_file(path).unwrap();
     }
 

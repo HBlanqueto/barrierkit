@@ -143,3 +143,5 @@ use-selection-for-find = Usar selección para buscar
 jump-to-selection = Ir a la selección
 bring-all-to-front = Traer todo al frente
 help-app = Ayuda de { $app }
+no-results-for = Sin resultados para «{ $query }»
+check-the-spelling = Comprueba la ortografía o prueba con otra búsqueda.

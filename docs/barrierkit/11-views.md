@@ -704,6 +704,7 @@ content, as SwiftUI's does; an app adds no `center()` of its own.
 
 | Call | Adds |
 |---|---|
+| `ContentUnavailableView::search(query)` | SwiftUI's `.search(text:)`: a magnifying glass, “No Results for …” and a hint, in the app's language |
 | `.description(text)` | A second line under the title |
 | `.actions(element)` | A row under the description, such as a `Button` |
 
