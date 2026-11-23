@@ -543,9 +543,25 @@ the kit's opaque fill hid it (title bar band 30 30 30 against 32 33 38), and
 `NSGlassEffectViewStyle.regular` turns a glass into variant 1, while AppKit's
 toolbar platters are the default, variant 0. Left: the inner 4 px of the sidebar
 glass are 3 levels bluer than SwiftUI's, which lays its opaque detail under the
-glass where the kit's content is above it; the scroll pocket of a list under
-the bar stays the kit's soft edge (AppKit draws its pocket with a private
-`variableBlur` inside `NSScrollView`).
+glass where the kit's content is above it.
+
+Scroll edge under the bar (same day, probes `pocket.swift` and `swpocket.swift`
+there, dark). SwiftUI shows no edge in a `NavigationSplitView` detail: stripes
+scrolled 37 pt under the toolbar, by code or by a real scroll-wheel event, stay
+crisp (211 97 77) up to a hard line under the material (32 33 38). The kit draws
+no edge there either, since only `TopGlass` and the full-screen bars declare
+one, so Resonance needs none. A `NavigationStack` with no sidebar does veil:
+58 at the top to 113 at the bar's bottom over red 211, a soft fade with an even
+darkening. AppKit's pocket cannot be placed over the kit's Metal content with
+public API and give that result. An empty transparent `NSScrollView` above the
+content has the same layers, filters and groups as SwiftUI's (`variableBlur`, a
+0.6 `backgroundGroup` backdrop) but fades with no darkening (112 to 209). The
+content as that scroll view's document does the same (127 to 212), and its band
+at rest is 41 41 47 instead of 32 33 38. A split view controller above the
+content gives a flat veil (41 to 76). Every pocket also needs the title bar
+opaque (`titlebarAppearsTransparent` false, as SwiftUI leaves it); a transparent
+bar hides the `NSTitlebarBackgroundView` that holds it. `TopGlass` keeps the
+kit's soft edge of the `titlebar` material.
 
 Scale 2 (2026-11-22; the owner's display is 1x and no setting was changed): two
 checks that need no 2x display. The kit's own test renderer draws the notes twin at
