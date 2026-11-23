@@ -6,7 +6,7 @@ use bk::controls::{Checkbox, SegmentedControl, Slider, TextField, ToolGroup};
 use bk::date::{CivilDate, CivilDateTime};
 use bk::date_picker::DatePicker;
 use bk::elements::Label;
-use bk::indicator::Gauge;
+use bk::indicator::CapacityIndicator;
 use bk::popup_button::PopUpButton;
 use bk::progress::ProgressView;
 use bk::sidebar::{Sidebar, SidebarItem};
@@ -82,14 +82,14 @@ const FORM_ELEMENTS: [Element; 7] = [
 ];
 
 const CONTROLS_ELEMENTS: [Element; 8] = [
-    element("pop-up button", (560, 82, 725, 112), true, 44.0),
-    element("segmented control", (485, 121, 725, 150), true, 78.0),
-    element("stepper", (695, 163, 725, 191), false, 52.0),
-    element("slider", (340, 205, 725, 230), false, 36.0),
-    element("date field", (640, 240, 725, 270), true, 50.0),
-    element("progress", (28, 278, 732, 332), true, 14.0),
-    element("gauge", (28, 334, 732, 394), true, 30.0),
-    element("checkbox", (28, 396, 200, 430), true, 12.0),
+    element("pop-up button", (560, 82, 725, 112), true, 11.0),
+    element("segmented control", (485, 121, 725, 150), true, 37.0),
+    element("stepper", (695, 163, 725, 191), false, 11.0),
+    element("slider", (340, 205, 725, 230), false, 17.0),
+    element("date field", (640, 240, 725, 270), true, 26.0),
+    element("progress", (28, 278, 732, 332), true, 3.0),
+    element("capacity gauge", (28, 334, 732, 394), true, 6.0),
+    element("checkbox", (28, 396, 200, 430), true, 10.0),
 ];
 
 struct ControlsTwin {
@@ -144,11 +144,13 @@ impl App for ControlsTwin {
                         )))
                         .row(
                             Row::new("Progress")
+                                .stacked()
                                 .control(ProgressView::determinate("Progress", 0.6)),
                         )
                         .row(
                             Row::new("Level")
-                                .control(Gauge::new("Level", 0.5, "50%").capacity(true)),
+                                .stacked()
+                                .control(CapacityIndicator::new("Level", 0.5)),
                         )
                         .row(Row::new("").control(Checkbox::new("Check").checked(true))),
                 ),

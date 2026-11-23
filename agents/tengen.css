@@ -1037,6 +1037,14 @@
   --bk-list-group-row-padding-y: 10;
   --bk-list-group-max-width: 704;
   --bk-list-group-header-weight: 500;
+  --bk-list-group-popup-height: 18;
+  --bk-list-group-popup-indicator: 20;
+  --bk-list-group-popup-gap: 11;
+  --bk-list-group-popup-trailing: 3;
+  --bk-list-group-date-height: 24;
+  --bk-list-group-slider-share: 0.55;
+  --bk-list-group-control-overhang: 4;
+  --bk-list-group-capacity-frame: 24;
   --bk-list-group-card: #f7f7f7 #252525 #f7f7f7 #252525;
   --bk-list-group-card-0: #f7f7f7;
   --bk-list-group-card-1: #252525;

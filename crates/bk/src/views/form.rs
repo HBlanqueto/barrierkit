@@ -6,16 +6,21 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 use crate::adornments::Divider;
 use std::any::TypeId;
 
-use crate::controls::{ControlSize, Switch, TextField};
+use crate::compact::Stepper;
+use crate::controls::{Checkbox, ControlSize, SegmentedControl, Switch, TextField};
+use crate::date_picker::DatePicker;
 use crate::elements::{Overrides, forward_overrides};
+use crate::indicator::CapacityIndicator;
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::measure_text_weight;
 use crate::patterns::settings::PageLink;
+use crate::progress::ProgressView;
 use crate::sidebar::SymbolTile;
 use crate::style::text;
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, DividerStyle, FormStyle, LayoutDirection, Paints, ShapeStyle, StateValue,
+    ControlState, DatePickerStyle, DividerStyle, FormStyle, LayoutDirection, Paints,
+    PopUpButtonStyle, SegmentedControlStyle, ShapeStyle, SliderStyle, StateValue, StepperStyle,
     StyleScope, TextFieldStyle, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
@@ -24,6 +29,7 @@ use crate::symbol::{Symbol, symbol};
 enum Accessory {
     None,
     Control(Element),
+    Leading(Element),
     Field(Element),
     Value(Cow<'static, str>),
     Navigation(Callback<(), ()>),
@@ -41,6 +47,7 @@ pub struct Row {
     hover_control: Option<Element>,
     accessory: Accessory,
     stacked: bool,
+    tight: bool,
 }
 
 impl Row {
@@ -54,6 +61,7 @@ impl Row {
             hover_control: None,
             accessory: Accessory::None,
             stacked: false,
+            tight: false,
         }
     }
 
@@ -93,14 +101,40 @@ impl Row {
         )
     }
 
-    // A `TextField` fills the row after its title and ends its text, as in a SwiftUI `Form`.
+    // A `TextField` fills the row after its title and ends its text, as in a SwiftUI `Form`. A segmented
+    // control, a stepper and a date field draw `control_overhang` above the frame the row measures.
     pub fn control<C: IntoElement + 'static>(self, control: C) -> Self {
         let element = control.into_element();
-        self.with(if TypeId::of::<C>() == TypeId::of::<TextField>() {
-            Accessory::Field(element)
+        let kind = TypeId::of::<C>();
+        let overhangs = [
+            TypeId::of::<SegmentedControl>(),
+            TypeId::of::<Stepper>(),
+            TypeId::of::<DatePicker>(),
+        ];
+        if kind == TypeId::of::<TextField>() {
+            return self.with(Accessory::Field(element));
+        }
+        if kind == TypeId::of::<Checkbox>() {
+            return self.with(Accessory::Leading(element));
+        }
+        let bar = kind == TypeId::of::<ProgressView>();
+        let capacity = kind == TypeId::of::<CapacityIndicator>();
+        let mut row = self.with(Accessory::Control(if overhangs.contains(&kind) {
+            rect()
+                .margin(Gaps::new(-LIST_GROUP.control_overhang, 0.0, 0.0, 0.0))
+                .child(element)
+                .into_element()
+        } else if capacity {
+            rect()
+                .height(Size::px(LIST_GROUP.capacity_frame))
+                .main_align(Alignment::End)
+                .child(element)
+                .into_element()
         } else {
-            Accessory::Control(element)
-        })
+            element
+        }));
+        row.tight = bar || capacity;
+        row
     }
 
     pub fn detail(mut self, detail: impl Into<Cow<'static, str>>) -> Self {
@@ -356,7 +390,9 @@ fn columns(sections: &[Section], style: &FormStyle, paints: &Paints) -> Rect {
         .padding(Gaps::new(top, right, bottom, left))
         .children(rows.into_iter().map(|row| {
             let control = match &row.accessory {
-                Accessory::Control(control) | Accessory::Field(control) => Some(control.clone()),
+                Accessory::Control(control)
+                | Accessory::Leading(control)
+                | Accessory::Field(control) => Some(control.clone()),
                 Accessory::Value(value) => {
                     Some(text(value.clone(), style.value_font, value_ink).into_element())
                 }
@@ -413,9 +449,36 @@ impl Component for FormRow {
             Accessory::Destructive(_) => ink(&style.destructive_title),
             _ => ink(&style.title),
         };
+        let mut row_width = use_state(|| 0.0f32);
+        let slider_width =
+            (*row_width.read() - 2.0 * style.row_padding.0) * LIST_GROUP.slider_share;
         let accessory: Option<Element> = match &row.accessory {
             Accessory::None | Accessory::Destructive(_) => None,
-            Accessory::Control(element) => Some(element.clone()),
+            Accessory::Control(element) | Accessory::Leading(element) => Some(
+                StyleScope::new(
+                    Theme::tengen()
+                        .style(|style: PopUpButtonStyle| style.plain())
+                        .style(|style: SegmentedControlStyle| SegmentedControlStyle {
+                            equal_segments: true,
+                            ..style
+                        })
+                        .style(|style: StepperStyle| StepperStyle {
+                            value_position: None,
+                            ..style
+                        })
+                        .style(|style: DatePickerStyle| style.plain())
+                        .style(move |style: SliderStyle| SliderStyle {
+                            width: if slider_width > 0.0 {
+                                slider_width
+                            } else {
+                                style.width
+                            },
+                            ..style
+                        }),
+                    element.clone(),
+                )
+                .into_element(),
+            ),
             Accessory::Field(element) => Some(
                 StyleScope::new(
                     Theme::tengen().style(|style: TextFieldStyle| TextFieldStyle {
@@ -442,8 +505,11 @@ impl Component for FormRow {
         let (padding_x, padding_y) = style.row_padding;
         let first_line = style.row_min_height - 2.0 * padding_y;
         let field = matches!(row.accessory, Accessory::Field(_));
-        let aligned_to_first_line =
-            matches!(row.accessory, Accessory::Control(_) | Accessory::Field(_));
+        let leading = matches!(row.accessory, Accessory::Leading(_));
+        let aligned_to_first_line = matches!(
+            row.accessory,
+            Accessory::Control(_) | Accessory::Leading(_) | Accessory::Field(_)
+        );
         let stacked = row.stacked && aligned_to_first_line;
         let wrapping = |content: Cow<'static, str>, face, ink| {
             text(content, face, ink)
@@ -474,6 +540,9 @@ impl Component for FormRow {
         }
 
         let mut element = rect()
+            .on_sized(move |event: Event<SizedEventData>| {
+                row_width.set_if_modified(event.area.width())
+            })
             .width(Size::fill())
             .direction(if stacked {
                 Direction::Vertical
@@ -487,18 +556,22 @@ impl Component for FormRow {
                 Alignment::Center
             })
             .padding(Gaps::new(padding_y, padding_x, padding_y, padding_x))
-            .spacing(style.row_spacing)
+            .spacing(if stacked && row.tight {
+                0.0
+            } else {
+                style.row_spacing
+            })
             .painted(&paints, &style.row_background)
             .maybe_child(row.icon.clone().or_else(|| {
                 row.symbol
                     .map(|(glyph, tint)| SymbolTile::new(glyph, tint).into_element())
             }))
-            .child(labels)
+            .maybe_child((!leading).then_some(labels))
             .child(
                 rect()
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
-                    .maybe(field, |el| el.width(Size::flex(1.0)))
+                    .maybe(field || leading, |el| el.width(Size::flex(1.0)))
                     .maybe(row.hover_control.is_some(), |accessories| {
                         accessories.spacing(style.row_spacing)
                     })

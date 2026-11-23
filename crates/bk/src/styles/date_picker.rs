@@ -5,7 +5,7 @@ use ctdesign::{
     DATE_FIELD_BORDER_CONTRAST_LIGHT, DATE_FIELD_BORDER_DARK, DATE_FIELD_BORDER_DARK_TINT,
     DATE_FIELD_BORDER_LIGHT, DATE_FIELD_CONTRAST_DARK, DATE_FIELD_CONTRAST_DARK_TINT,
     DATE_FIELD_CONTRAST_LIGHT, DATE_FIELD_DARK, DATE_FIELD_DARK_TINT, DATE_FIELD_LIGHT,
-    DATE_PICKER, Font, HAIRLINE, HEADLINE, MENU_POPOVER, STEPPER,
+    DATE_PICKER, Font, HAIRLINE, HEADLINE, LIST_GROUP, MENU_POPOVER, STEPPER,
 };
 
 use super::button::rounded;
@@ -26,6 +26,8 @@ pub struct DatePickerStyle {
     pub padding_x: f32,
     /// Tengen: `DATE_PICKER.stepper_gap`, between the field and the arrows.
     pub stepper_gap: f32,
+    /// Tengen: `true`; a `Form` row shows only the field.
+    pub shows_stepper: bool,
     /// Tengen: `StepperStyle` with the `DATE_PICKER.stepper_*` measures; the arrows are centered on the field.
     pub stepper: StepperStyle,
     /// Tengen: `(DATE_PICKER.calendar_width, DATE_PICKER.calendar_height)`, without the
@@ -169,6 +171,20 @@ impl DatePickerStyle {
     }
 }
 
+impl DatePickerStyle {
+    /// The date field of a `Form` row, as SwiftUI draws it: on the row, with a `SystemFill` outline,
+    /// `LIST_GROUP.date_height` high and without the arrows.
+    pub(crate) fn plain(self) -> Self {
+        Self {
+            height: LIST_GROUP.date_height,
+            shows_stepper: false,
+            background: StateValue::new(ShapeStyle::Clear),
+            border: Some((ShapeStyle::Role(Role::SystemFill), HAIRLINE)),
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for DatePickerStyle {
     fn tengen() -> Self {
         let role = |role| StateValue::new(ShapeStyle::Role(role));
@@ -176,6 +192,7 @@ impl ControlStyle for DatePickerStyle {
             height: DATE_PICKER.height,
             padding_x: DATE_PICKER.padding_x,
             stepper_gap: DATE_PICKER.stepper_gap,
+            shows_stepper: true,
             stepper: StepperStyle {
                 arrows_size: (DATE_PICKER.stepper_width, DATE_PICKER.stepper_height),
                 chevron_size: DATE_PICKER.stepper_chevron,

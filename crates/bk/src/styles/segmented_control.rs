@@ -19,6 +19,8 @@ pub struct SegmentedControlStyle {
     pub segment_height: f32,
     /// Tengen: `SEGMENTED.segment_padding_x`.
     pub segment_padding_x: f32,
+    /// Tengen: `false`, each segment fits its title; a `Form` row sizes them all to the widest.
+    pub equal_segments: bool,
     /// Tengen: `SEGMENTED.divider_height`, a 1 wide line centered between two segments that are not chosen.
     pub divider_height: f32,
     /// Tengen: `Role(SegmentDivider)`.
@@ -83,6 +85,7 @@ impl ControlStyle for SegmentedControlStyle {
             gap: SEGMENTED.gap,
             segment_height: SEGMENTED.segment_height,
             segment_padding_x: SEGMENTED.segment_padding_x,
+            equal_segments: false,
             divider_height: SEGMENTED.divider_height,
             divider: StateValue::new(ShapeStyle::Role(Role::SegmentDivider)),
             shape: continuous_rounded(SEGMENTED.radius),

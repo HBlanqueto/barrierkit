@@ -80,8 +80,18 @@ impl Component for SegmentedControl {
         let paints = Paints::current(ControlState::default(), style.effect);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let keyed = use_state(|| false);
+        let widest = self
+            .segments
+            .iter()
+            .map(|text| measure_text(text, style.font.size as f32))
+            .fold(0.0, f32::max);
         let segments = self.segments.iter().enumerate().map(|(index, text)| {
             Segment {
+                width: if style.equal_segments {
+                    widest + 2.0 * style.segment_padding_x
+                } else {
+                    measure_text(text, style.font.size as f32) + 2.0 * style.segment_padding_x
+                },
                 text: text.clone(),
                 active: choice.is(index),
                 disabled: self.disabled,
@@ -104,7 +114,13 @@ impl Component for SegmentedControl {
         let natural_width = self
             .segments
             .iter()
-            .map(|text| measure_text(text, style.font.size as f32) + 2.0 * style.segment_padding_x)
+            .map(|text| {
+                if style.equal_segments {
+                    widest + 2.0 * style.segment_padding_x
+                } else {
+                    measure_text(text, style.font.size as f32) + 2.0 * style.segment_padding_x
+                }
+            })
             .sum::<f32>()
             + (count - 1.0).max(0.0) * style.gap
             + 2.0 * style.padding;
@@ -135,6 +151,7 @@ impl Component for SegmentedControl {
 
 #[derive(PartialEq)]
 struct Segment {
+    width: f32,
     text: Cow<'static, str>,
     active: bool,
     disabled: bool,
@@ -171,9 +188,7 @@ impl Component for Segment {
             .a11y_alt(&*self.text)
             .a11y_builder(move |node| node.set_selected(active))
             .width(match style.axis {
-                Axis::Horizontal => Size::flex(
-                    measure_text(&self.text, font.size as f32) + 2.0 * style.segment_padding_x,
-                ),
+                Axis::Horizontal => Size::flex(self.width),
                 Axis::Vertical => Size::fill(),
             })
             .height(Size::px(height))

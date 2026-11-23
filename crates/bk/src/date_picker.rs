@@ -356,7 +356,7 @@ impl Component for DatePicker {
                 dimmed(shadowed(field, &style.shadows), style.opacity),
                 field_radius.top_left(),
             ))
-            .maybe(self.stepper, |row| {
+            .maybe(self.stepper && style.shows_stepper, |row| {
                 row.child(stepper_arrows(
                     &style.stepper,
                     ControlState {

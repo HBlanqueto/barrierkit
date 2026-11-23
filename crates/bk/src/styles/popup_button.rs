@@ -1,4 +1,4 @@
-use ctdesign::{BODY, BUTTON, ControlSize, Font, SYMBOL};
+use ctdesign::{BODY, BUTTON, ControlSize, Font, LIST_GROUP, SYMBOL};
 
 use super::button::sized_shape;
 use super::{
@@ -63,6 +63,21 @@ pub struct PopUpButtonStyle {
 }
 
 impl PopUpButtonStyle {
+    /// The pop-up button of a `Form` row, as SwiftUI draws it: no bezel, the label then the
+    /// indicator in a `LIST_GROUP.popup_indicator` circle of the control fill, `LIST_GROUP.popup_height` high.
+    pub(crate) fn plain(self) -> Self {
+        Self {
+            background: StateValue::new(ShapeStyle::Clear),
+            indicator: StateValue::new(ShapeStyle::Role(Role::ControlBackground)),
+            height: LIST_GROUP.popup_height,
+            indicator_size: LIST_GROUP.popup_indicator,
+            gap: LIST_GROUP.popup_gap,
+            leading_padding: 0.0,
+            trailing_padding: LIST_GROUP.popup_trailing,
+            ..self
+        }
+    }
+
     pub(crate) fn sized(self, size: ControlSize) -> Self {
         let button = BUTTON.size(size);
         let popup = BUTTON.popup.size(size);
