@@ -2,7 +2,7 @@ use crate::elements::{Overrides, forward_container, forward_overrides};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use ctdesign::{MEDIA, Rgba};
@@ -261,13 +261,35 @@ thread_local! {
 }
 
 pub fn use_artwork(path: PathBuf) -> State<Option<ImageHandle>> {
-    let key = use_hook(|| {
-        let modified = std::fs::metadata(&path)
-            .and_then(|file| file.modified())
-            .ok();
-        (path.clone(), modified)
+    let mut artwork = use_state(|| cached(&path).1);
+    let mut loading = use_state(|| None::<TaskHandle>);
+    let path = use_reactive(&path);
+    use_hook(move || {
+        Effect::create_sync_with_gen(move |generation| {
+            let path = path.read().clone();
+            let (key, found) = cached(&path);
+            if let Some(previous) = loading.write().take() {
+                previous.cancel();
+            }
+            if found.is_none() {
+                let load = move || std::fs::read(&path).ok();
+                loading.set(Some(load_artwork(artwork, Some(key), load)));
+            }
+            if generation > 0 {
+                artwork.set(found);
+            }
+        })
     });
-    use_cached_artwork(Some(key), move || std::fs::read(&path).ok())
+    artwork
+}
+
+fn cached(path: &Path) -> (ArtworkKey, Option<ImageHandle>) {
+    let modified = std::fs::metadata(path)
+        .and_then(|file| file.modified())
+        .ok();
+    let key = (path.to_path_buf(), modified);
+    let found = ARTWORK_CACHE.with(|cache| cache.borrow().get(&key).cloned());
+    (key, found)
 }
 
 type Job = Box<dyn FnOnce() + Send>;
@@ -311,51 +333,46 @@ pub(crate) fn decode_in_background(job: impl FnOnce() + Send + 'static) {
 pub fn use_artwork_from(
     load: impl FnOnce() -> Option<Vec<u8>> + Send + 'static,
 ) -> State<Option<ImageHandle>> {
-    use_cached_artwork(None, load)
+    let artwork = use_state(|| None);
+    use_hook(move || {
+        load_artwork(artwork, None, load);
+    });
+    artwork
 }
 
-fn use_cached_artwork(
+fn load_artwork(
+    mut artwork: State<Option<ImageHandle>>,
     key: Option<ArtworkKey>,
     load: impl FnOnce() -> Option<Vec<u8>> + Send + 'static,
-) -> State<Option<ImageHandle>> {
-    let mut artwork = use_state(|| {
-        key.as_ref()
-            .and_then(|key| ARTWORK_CACHE.with(|cache| cache.borrow().get(key).cloned()))
-    });
-    use_hook(move || {
-        if artwork.peek().is_some() {
+) -> TaskHandle {
+    let (sender, receiver) = futures_channel::oneshot::channel();
+    fetch_in_background(move || {
+        if sender.is_canceled() {
             return;
         }
-        let (sender, receiver) = futures_channel::oneshot::channel();
-        fetch_in_background(move || {
+        let Some(bytes) = load() else {
+            return;
+        };
+        decode_in_background(move || {
             if sender.is_canceled() {
                 return;
             }
-            let Some(bytes) = load() else {
-                return;
-            };
-            decode_in_background(move || {
-                if sender.is_canceled() {
-                    return;
-                }
-                let decoded = freya_engine::prelude::Image::from_encoded(
-                    freya_engine::prelude::Data::new_copy(&bytes),
-                )
-                .and_then(|image| image.make_raster_image(None, None))
-                .map(|image| ImageHandle::new(image, Bytes::new()));
-                let _ = sender.send(decoded);
-            });
-        });
-        spawn(async move {
-            if let Ok(Some(handle)) = receiver.await {
-                if let Some(key) = key {
-                    remember_artwork(key, handle.clone());
-                }
-                artwork.set(Some(handle));
-            }
+            let decoded = freya_engine::prelude::Image::from_encoded(
+                freya_engine::prelude::Data::new_copy(&bytes),
+            )
+            .and_then(|image| image.make_raster_image(None, None))
+            .map(|image| ImageHandle::new(image, Bytes::new()));
+            let _ = sender.send(decoded);
         });
     });
-    artwork
+    spawn(async move {
+        if let Ok(Some(handle)) = receiver.await {
+            if let Some(key) = key {
+                remember_artwork(key, handle.clone());
+            }
+            artwork.set(Some(handle));
+        }
+    })
 }
 
 fn remember_artwork(key: ArtworkKey, handle: ImageHandle) {

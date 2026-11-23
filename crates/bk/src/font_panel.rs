@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use ctdesign::{
     BODY, BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2, SPACE_3,
 };
@@ -131,11 +134,13 @@ impl Component for FontPanel {
         let mut collection = use_state(|| Collection::All);
         let recent = RECENT.with(|recent| *recent);
         let current = font.read().clone();
-        let on_change = self.on_change.clone();
+        let on_change = use_hook(|| Rc::new(RefCell::new(self.on_change.clone())));
+        *on_change.borrow_mut() = self.on_change.clone();
         let set = move |next: FontChoice| {
             let mut recent = recent;
             remember(&mut recent.write(), &next.family);
             font.set(next.clone());
+            let on_change = on_change.borrow().clone();
             on_change.call(next);
         };
         let mut typed = use_state(|| current.size.to_string());

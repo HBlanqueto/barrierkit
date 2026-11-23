@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::path::PathBuf;
 use std::rc::Rc;
 
@@ -97,6 +97,12 @@ pub(crate) fn use_file_dialog(
     on_completion: Callback<Vec<PathBuf>, ()>,
 ) {
     let directory = use_environment::<DefaultDirectory>().0;
+    let dialog = FileDialog {
+        directory: dialog.directory.or(directory),
+        ..dialog
+    };
+    let latest = use_hook(|| Rc::new(RefCell::new((dialog.clone(), on_completion.clone()))));
+    *latest.borrow_mut() = (dialog, on_completion);
     let showing = use_hook(|| Rc::new(Cell::new(false)));
     let window = try_consume_root_context::<WindowControls>();
     use_side_effect(move || {
@@ -108,12 +114,8 @@ pub(crate) fn use_file_dialog(
             showing.set(false);
             return;
         };
-        let dialog = FileDialog {
-            directory: dialog.directory.clone().or_else(|| directory.clone()),
-            ..dialog.clone()
-        };
+        let (dialog, on_completion) = latest.borrow().clone();
         let showing = showing.clone();
-        let on_completion = on_completion.clone();
         spawn(async move {
             let chosen = dialog.present(&window).await;
             showing.set(false);

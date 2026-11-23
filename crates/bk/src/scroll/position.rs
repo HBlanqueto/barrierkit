@@ -149,6 +149,10 @@ impl ScrollController {
         self.targets.write().areas.insert(id.to_owned(), area);
     }
 
+    fn remove_target(mut self, id: &str) {
+        self.targets.write().areas.remove(id);
+    }
+
     // The offset in Freya's sign, inside the range, or none for an id no view has.
     fn target_of(self, position: &ScrollPosition) -> Option<(i32, i32)> {
         let (viewport, content) = (*self.viewport.peek(), *self.content.peek());
@@ -256,6 +260,14 @@ impl Component for ScrollTarget {
     fn render(&self) -> impl IntoElement {
         let controller = try_consume_context::<ScrollController>();
         let id = self.id.clone();
+        use_drop({
+            let id = id.clone();
+            move || {
+                if let Some(controller) = controller {
+                    controller.remove_target(&id);
+                }
+            }
+        });
         rect()
             .on_sized(move |event: Event<SizedEventData>| {
                 if let Some(controller) = controller {
@@ -345,7 +357,44 @@ pub(crate) fn use_scroll_events(
 
 #[cfg(test)]
 mod tests {
+    use freya_core::integration::AppComponent;
+    use freya_testing::TestingRunner;
+    use torin::prelude::{Size, Size2D};
+
     use super::*;
+    use crate::scroll::{ScrollView, use_scroll_controller};
+
+    type Handles = Rc<Cell<Option<(ScrollController, State<bool>)>>>;
+
+    struct Removable(Handles);
+
+    impl App for Removable {
+        fn render(&self) -> impl IntoElement {
+            let controller = use_scroll_controller();
+            let shown = use_state(|| true);
+            self.0.set(Some((controller, shown)));
+            let row = shown().then(|| rect().height(Size::px(40.0)).id("row").into_element());
+            ScrollView::new().controller(controller).children(row)
+        }
+    }
+
+    #[test]
+    fn a_removed_view_is_no_longer_a_scroll_target() {
+        let handles = Handles::default();
+        let (mut test, _) = TestingRunner::new(
+            AppComponent::new(Removable(handles.clone())),
+            Size2D::new(100.0, 100.0),
+            |_| {},
+            1.0,
+        );
+        test.sync_and_update();
+        let (controller, mut shown) = handles.get().unwrap();
+        let row = ScrollPosition::id("row", None);
+        assert!(test.run_in(|| controller.target_of(&row)).is_some());
+        test.run_in(|| shown.set(false));
+        test.sync_and_update();
+        assert!(test.run_in(|| controller.target_of(&row)).is_none());
+    }
 
     #[test]
     fn an_anchor_puts_the_same_point_of_the_view_and_of_the_viewport_together() {

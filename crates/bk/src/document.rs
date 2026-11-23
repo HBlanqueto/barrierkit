@@ -199,12 +199,15 @@ pub fn use_document(write: impl Fn(&Path) -> io::Result<()> + 'static) -> Docume
 }
 
 pub(crate) fn use_open_url(on_open: Callback<OpenedUrl, ()>) {
+    let latest = use_hook(|| Rc::new(RefCell::new(on_open.clone())));
+    *latest.borrow_mut() = on_open;
     let mut queue = opened();
     use_side_effect(move || {
         if queue.read().is_empty() {
             return;
         }
         let items = std::mem::take(&mut *queue.write());
+        let on_open = latest.borrow().clone();
         for item in items {
             on_open.call(item);
         }

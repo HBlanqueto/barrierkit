@@ -196,6 +196,9 @@ impl Component for DatePicker {
         let paints = Paints::current(state, style.effect);
         let value = use_controlled(&self.value);
         let current = *value.read();
+        let mut selected = use_state(|| 0usize);
+        let mut typed = use_state(String::new);
+        let mut area = use_state(Area::default);
         if self.graphical {
             let on_change = self.on_change.clone();
             return self.overrides.apply(rect().child(CalendarView {
@@ -216,12 +219,9 @@ impl Component for DatePicker {
         }
         let parts = parts(self.elements);
         let last = parts.len() - 1;
-        let mut selected = use_state(|| 0usize);
         if *selected.peek() > last {
             selected.set(last);
         }
-        let mut typed = use_state(String::new);
-        let mut area = use_state(Area::default);
         let on_change = self.on_change.clone();
         let change: Rc<dyn Fn(CivilDateTime)> =
             Rc::new(move |next| commit(value, &on_change, next));
