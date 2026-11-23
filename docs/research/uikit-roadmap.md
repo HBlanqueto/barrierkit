@@ -116,6 +116,30 @@ All by the owner on 2026-11-22.
 The glossary column (problem 10) goes first, in parallel with U0. U3 and U4
 start after U1.
 
+## U5 design: navigation and presentation
+
+Decided 2026-11-22 with O6 (ADR 0085 stays; a clone that needs `Binding` or a
+close veto reopens it with its own ADR). What is measured is in
+[UIKit animations](uikit-animations.md#2-motion-table), Mac Catalyst values.
+
+| Piece | Design | Motion | Status |
+|---|---|---|---|
+| `NavigationPath<R>` | A `Vec<R>` the app owns in a `State`: `push`, `pop`, `pop_to_root`, `truncate`, `len`. `History` stays for browser-like panes | none | pure, tests first |
+| `NavigationStack` | Renders the root and the last route through the destination closure; provides the path by context (`use_navigation_path::<R>()`) so a deep child pushes without a callback chain | A push moves the new page in from the right edge, 100 % of the width, and the old page 30 % of the width to the left, dimmed to a black of 0.13 (one reading) with an edge shadow; both on one critically damped spring of `SPRING_PUSH_MS` (a fit, 250 ms, `bounce` 0). Pop is the same reversed. Reduce Motion: none. A path edited mid-way carries its velocity (`use_animated`) | measured, fit |
+| `NavigationLink` | A button that pushes a value | none | after the stack |
+| `isPresented` on `Sheet`, `Alert`, `Popover` | A `State<bool>` that opens and closes the component; closing from the window (button, Esc) writes `false` | the compositor or AppKit draws them (a window); the kit animates nothing. The measured sheet (344 ms), alert (274 ms) and popover (210 ms in, 120 ms out) are tokens for Malaysia | sugar over what exists |
+| Detents | Not built: a desktop sheet is a window, it has no medium or large. UIKit detents (spring of `SPRING_SHEET_MS`) wait for a touch target (T2 closed) | n/a | deferred |
+| `NavigationSplitView` columns | A `SplitView` with a stack per column; the sidebar width and visibility animate as today | `DURATION_BASE` today; the Weather sidebar measured 380 ms, t50 100 ms | not in U5 |
+
+Rejected: a page stack that keeps every lower page mounted (Freya has no
+hidden but mounted node; the page below a push is drawn while it moves and
+dropped when the push settles, so its state is rebuilt on pop: a limit, not a
+choice); transitions for `Sheet` and `Popover` inside the kit; edge-swipe pop
+(the gesture layer is U6).
+
+Not measured: the push on macOS SwiftUI (`NavigationStack` in an AppKit window)
+and the dimming color beyond one reading.
+
 ## Risks
 
 | Risk | Why | Mitigation |
