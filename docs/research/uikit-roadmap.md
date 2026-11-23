@@ -82,7 +82,7 @@ All by the owner on 2026-11-22.
 | 2 | No `withAnimation`, `Transaction` or `Transition` | Per-value hooks only ([AppKit gap](appkit-gap.md) row 19; [SwiftUI API gap](swiftui-api-gap.md) row 16) | (a) a SwiftUI-named `Animation` and `with_animation` over `use_animation_transition`; (b) per-control animation only, as today | (a). The semantics of nested and interrupted transactions are unmeasured, so U1 comes first |
 | 3 | The spring cannot copy Apple's | `Spring` has `duration` and `bounce`, no velocity (E6). Which parameters Apple's apps use is not verified | (a) keep duration and bounce and carry velocity; (b) add a physical model beside it | Open: O2 |
 | 4 | Effects per pixel are limited to fills | Freya has no hook around a subtree; shaders run only as `ShaderFill` (E5, [Shader needs](shader-needs.md) finding 4) | (a) P1, the subtree hook, as an `ElementExt` of the kit; (b) only fills until Freya changes | (a), phase U3 (T7) |
-| 5 | Scroll has no overscroll | Freya clamps scroll ([AppKit gap](appkit-gap.md) row 20) | (a) a kit scroll element that owns offset, bounce and deceleration; (b) accept | (a), phase U4. The decay constants of UIKit are documented API; not verified here |
+| 5 | Scroll has no overscroll | Freya clamps scroll ([AppKit gap](appkit-gap.md) row 20) | (a) a kit scroll element that owns offset, bounce and deceleration; (b) accept | (a), phase U4. Measured on the Mac path of `UIScrollView`: a quartic ease-out and a stop distance of `157.5 v^(4/3)`, not the documented exponential ([UIKit animations, section 6](uikit-animations.md#6-scroll), [ADR 0104](../decisions.md)) |
 | 6 | No gesture layer | Freya has one handler per event; the runner binds no pointer-gestures ([AppKit gap](appkit-gap.md) row 15, D5) | (a) a SwiftUI-named `Gesture` over raw events; (b) raw events | Open: O5; phase U6 |
 | 7 | No navigation transitions or `isPresented` | [SwiftUI API gap](swiftui-api-gap.md) row 8 | (a) after implicit animation; (b) before | (a): push and pop are animation first, phase U5 |
 | 8 | No `Binding`, no responder chain | ADR 0085 made both non-goals until an app asks | (a) keep; (b) reopen when a clone needs it | Open: O6; the clones of U5 decide |
@@ -149,8 +149,9 @@ Each session is its own task; two sessions never edit the same files.
 
 - Whether Maps and Weather draw their transitions with `UIView` animation or
   with SwiftUI inside; only their link to UIKit is checked (E2).
-- The deceleration constants of `UIScrollView` and the spring parameters of a
-  push; Apple documents the API, no probe has read them.
+- The deceleration of `UIScrollView` on the touch path and of a real trackpad;
+  only the Mac path with posted scroll events is measured. The spring parameters
+  of a push are a fit, not a read.
 - Whether Mac Catalyst timings equal iOS timings.
 - Whether a 60 fps recording is enough to fit a spring; the frame step is
   16.7 ms.

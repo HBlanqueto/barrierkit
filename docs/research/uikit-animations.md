@@ -29,7 +29,7 @@ of what is not measured.
    only if its reliability says measured.
 3. To change a Malaysia duration, take its row in
    [the comparison](#3-malaysia-comparison).
-4. To reproduce a row, run the commands in [Reproduce](#6-reproduce).
+4. To reproduce a row, run the commands in [Reproduce](#7-reproduce).
 
 ## 1. Method and limits
 
@@ -74,7 +74,7 @@ is approximate.
 - The Hz of the display, the effect of Increase Contrast and the Reduce Motion
   setting on UIKit (it is off here) are not measured.
 - The probe sources stay outside the repo; the files are named in
-  [Reproduce](#6-reproduce).
+  [Reproduce](#7-reproduce).
 
 ## 2. Motion table
 
@@ -176,7 +176,81 @@ equivalent of each spring (Mac Catalyst values, not iOS):
 | `duration.menu-open`, press, hover | 0 ms | Menu, Press, Hover |
 | `duration.launcher-open`, `-close` | 100 ms and 80 ms (t90 81 and 64 ms) | Spotlight |
 
-## 6. Reproduce
+## 6. Scroll
+
+**What was driven.** A Mac Catalyst `UIScrollView` (700 x 500 pt, Mac idiom) and an
+`NSScrollView` of the same size, fed with continuous scroll events that carry a
+gesture phase (began, changed, ended), posted with `CGEvent` at 8 to 10 ms steps
+(`wheel` in `~/src/probes`). `UIScrollView` turns them into a pan: it calls
+`willEndDragging` with a velocity and a target, then decelerates by itself. The
+sample is `contentOffset` read every millisecond in the process
+(`uikitscroll.swift`, `appscroll.swift`, `scrollfit.py`). A mouse drag does not
+pan a Catalyst scroll view (the touches arrive as `indirectPointer` and the pan
+ignores them), a finger path cannot be posted, and the system generates the
+momentum of a real trackpad, so **the touch path of iOS and the momentum of a real
+trackpad are not measured**. The recordings of Weather were not made.
+
+**Deceleration** after a release at velocity `v` (points per millisecond, the
+`velocity` of `willEndDragging`), four flicks:
+
+| `v` (pt/ms) | 0.70 | 2.00 | 4.64 | 13.11 |
+|---|---|---|---|---|
+| Stop distance `D` (pt) | 97.0 | 396.6 | 1218.2 | 4868.5 |
+| `D / v^(4/3)` | 157.5 | 157.5 | 157.5 | 157.5 |
+| Duration `T` (ms) | 559 | 797 | 1050 | 1489 |
+| `4 D / v` (ms) | 558 | 794 | 1051 | 1486 |
+
+1. The target UIKit reports equals the stop (within 1 pt), and
+   `D = 157.5 v^(4/3)` holds exactly: the distance is **not** linear in the
+   velocity. An exponential with the documented rate 0.998 would give
+   `D = 499 v`, 997 pt for the 2.00 flick instead of 397.
+2. The path is a quartic ease-out, `y(t) = D (1 - (1 - t/T)^4)` with
+   `T = 4 D / v`, so the speed at the release is exactly `v` and the motion stops
+   at `T`. At 0.1, 0.2, 0.5 and 0.8 of `T` the three recorded runs read
+   0.35, 0.60, 0.93 and 1.00 of `D` (the model: 0.34, 0.59, 0.94, 1.00); the
+   rmse of the model is 0.5 to 1.8 % of `D`, under the 0.056 floor.
+3. `decelerationRate` has **no effect** on this path: `.fast` gave
+   `D / v^(4/3)` 157.5 as well (0.80 pt/ms to 116 pt, 2.58 to 557, 7.86 to 2463).
+   The rate 0.998 is only reported by `willBeginDecelerating`.
+
+**Rubber band** while the finger moves beyond an edge (`contentSize` 900 in a
+500 pt view, the pan moves 1:1 inside): an input of 240, 600 and 1800 pt gives an
+overscroll of 16, 39 and 103 pt on `UIScrollView`, 41 pt for 600 on
+`NSScrollView`. The three UIKit points fit
+`over = d (1 - 1 / (1 + c x / d))` with `d` the view height (500) and `c` 0.069,
+0.071 and 0.072: **`c` = 0.07**, not the 0.55 often quoted for iOS touch. One view
+size was measured, so `d` is the view length by assumption.
+
+**Return** after a release beyond the edge (no velocity: the finger stopped):
+a critically damped spring, `over(t) = o0 (1 + w t) e^(-w t)`, `w` 10.5 to 11.5
+rad/s on UIKit and 12.0 on AppKit, rmse 0.02 to 0.05 of `o0`; a power ease-out
+fits worse (0.05 to 0.075) and an exponential much worse (0.09 to 0.12). It
+settles in 0.4 to 0.6 s.
+
+**Edge hit while decelerating** (the content is 900 high, the release at 2.85
+pt/ms, 112 pt from the end): the motion reaches the edge at about 2.5 pt/ms,
+overshoots 23 pt at 75 ms and returns by `over(t) = u t e^(-w t)` with `w` 13 and
+`u` 0.83 pt/ms (checked at 0.12, 0.25 and 0.30 s after the hit, within 1 pt): the
+band takes **0.30 to 0.33 of the arrival speed**. Overshoot is `u / (w e)`.
+
+**Model for the kit** (`crates/bk/src/scroll_physics.rs`, ADR 0104):
+
+| Constant | Value | Source |
+|---|---|---|
+| Stop distance | `157.5 v^(4/3)` pt, `v` in pt/ms | deceleration |
+| Curve and duration | `D (1 - (1 - t/T)^4)`, `T = 4 D / v` | deceleration |
+| Rubber band | `d (1 - 1 / (1 + 0.07 x / d))` | rubber band |
+| Return | critically damped, `w` 12 rad/s | return, edge hit |
+| Velocity into the band | 0.3 of the arrival speed | edge hit |
+| Smallest fling | 0.05 pt/ms (50 pt/s, Freya's) | not measured |
+
+Not measured here: the minimum velocity that starts a deceleration, the
+velocity window that UIKit averages for the release, a horizontal axis, two
+view sizes, `UIRefreshControl` on the Mac, and the same flick through a real
+trackpad (the Mac adds its own momentum events, so on the kit's macOS runner a
+release already follows the system's momentum).
+
+## 7. Reproduce
 
 The sources are outside the repo, in `~/src/probes` (each has a line in its
 `README.txt`):
@@ -189,11 +263,15 @@ The sources are outside the repo, in `~/src/probes` (each has a line in its
    and keys for the three scenarios that need them.
 4. `python3 -I motionfit.py table <dir>/<scenario>-anim.json series` prints t10,
    t50, t90, settle and the two fits per moving layer.
-5. `framedump <video> x y w h step out.bin`, then `python3 -I framecurve.py
+5. `uikitscroll.sh <normal|fast|bounce> <dir> <dy> 30 8 1` (with `DRIVER=wheel`; a
+   negative `dy` scrolls down) or `appscroll.sh` for `NSScrollView` writes
+   `<dir>/<mode>-scroll.json`; `python3 -I scrollfit.py <files>` prints the release
+   velocity, the stop and a fit.
+6. `framedump <video> x y w h step out.bin`, then `python3 -I framecurve.py
    events <out.bin>` and `curve <out.bin> <start> <end>`, give the recording
    rows. `python3 -I motionfit.py test` and `framecurve.py test` run the checks.
 
-## 7. Not measured and not verified
+## 8. Not measured and not verified
 
 - Any iPhone or iPad value; the scaled-iPad idiom; Reduce Motion, Increase
   Contrast and a 120 Hz display.
@@ -203,5 +281,6 @@ The sources are outside the repo, in `~/src/probes` (each has a line in its
   latency of the sheet dismiss.
 - Maps and Weather beyond the three transitions above, and which of them use
   SwiftUI inside.
-- The decay constants of scroll, which belong to phase U4.
+- The touch path of `UIScrollView`, the system momentum of a trackpad, and Weather's
+  scroll: [section 6](#6-scroll) lists what was measured through posted scroll events.
 - Every Malaysia row marked unverified in [the comparison](#3-malaysia-comparison).
