@@ -217,6 +217,24 @@ pub(crate) fn utf16_range(text: &str, range: &Range<usize>) -> Range<usize> {
     offset(range.start)..offset(range.end)
 }
 
+pub(crate) fn utf16_ranges(text: &str, ranges: &[Range<usize>]) -> Vec<Range<usize>> {
+    let mut chars = text.chars();
+    let (mut position, mut units) = (0, 0);
+    let mut offset = |end: usize| {
+        units += chars
+            .by_ref()
+            .take(end - position)
+            .map(char::len_utf16)
+            .sum::<usize>();
+        position = end;
+        units
+    };
+    ranges
+        .iter()
+        .map(|range| offset(range.start)..offset(range.end))
+        .collect()
+}
+
 pub(crate) fn char_index(text: &str, utf16: usize) -> usize {
     let mut units = 0;
     text.chars()
@@ -459,5 +477,14 @@ mod tests {
         assert_eq!(utf16_range(text, &(2..4)), 3..5);
         assert_eq!(char_index(text, 3), 2);
         assert_eq!(replace_chars(text, 2..4, "x"), "a😀x");
+    }
+
+    #[test]
+    fn one_pass_utf16_ranges_match_the_per_range_conversion() {
+        let text = "año 😀x é😀😀 end";
+        let ranges = [0..3, 4..5, 5..5, 5..7, 8..11, 12..12, 12..14];
+        let expected: Vec<_> = ranges.iter().map(|r| utf16_range(text, r)).collect();
+        assert_eq!(utf16_ranges(text, &ranges), expected);
+        assert_eq!(utf16_ranges(text, &ranges)[1], 4..6);
     }
 }

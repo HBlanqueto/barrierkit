@@ -693,7 +693,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::xdg::cache_home` | fn | — | — | — | `$XDG_CACHE_HOME` or `~/.cache` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::tinting::WallpaperGrid` | struct | — | — | — | Average colors of the wallpaper; `from_rgba8`, `behind(output, window)` | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::watch::AppearanceWatch` | struct | — | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
-| `ctappearance::watch::AppearanceEvent` | enum | — | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
+| `ctappearance::watch::AppearanceEvent` | enum | — | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults(Option<OsString>)`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
 
 ## Appearance resolution
 
@@ -1463,7 +1463,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `app::use_published` | fn | ≈ `onReceive(_:perform:)` | — | — | Hook that shows in a `State` the last value another thread sent | [13](13-app.md#updates-from-another-thread) |
 | `app::Publisher` | struct | ≈ `PassthroughSubject` | — | — | The handle `use_published` gives to the thread; `send` hands a value over | [13](13-app.md#updates-from-another-thread) |
 | `app::use_wake` | fn | — | ≈ `NSView.needsDisplay` | — | Hook that renders the component again each time a `WakeHandle` wakes | [13](13-app.md#updates-from-another-thread) |
-| `app::use_watched` | fn | — | — | — | Hook that reruns a loader when any settings file changes | [13](13-app.md#settings-and-restoration) |
+| `app::use_watched` | fn | — | — | — | Hook that reruns a loader when any `.domain` file changes | [13](13-app.md#settings-and-restoration) |
 | `app::load_restoration` | fn | `SceneStorage` | ≈ `NSWindowRestoration` | ≈ `UIStateRestoring` | Reads the app's saved state from `<app_id>.state` | [13](13-app.md#settings-and-restoration) |
 | `app::save_restoration` | fn | `SceneStorage` | ≈ `NSWindowRestoration` | ≈ `UIStateRestoring` | Writes the app's state to `<app_id>.state` | [13](13-app.md#settings-and-restoration) |
 | `app::read_toml` | fn | — | — | — | Reads a TOML file into `T`; default on missing or invalid | [13](13-app.md#settings-and-restoration) |

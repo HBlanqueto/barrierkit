@@ -33,7 +33,7 @@ pub(crate) struct ChromeHost {
 // Synchronized: its commit waits for the parent's, so the material and the content below it change in one frame (ADR 0092).
 pub(crate) struct ChromeSurface {
     root: NodeId,
-    pub(crate) nodes: Vec<NodeId>,
+    pub(crate) nodes: Rc<[NodeId]>,
     surface: WlSurface,
     subsurface: WlSubsurface,
     viewport: Option<WpViewport>,
@@ -60,7 +60,7 @@ impl ChromeSurface {
             .map(|viewporter| viewporter.get_viewport(&surface, &host.queue, surface.id()));
         Self {
             root: chrome.root,
-            nodes: Vec::new(),
+            nodes: Rc::default(),
             surface,
             subsurface,
             viewport,

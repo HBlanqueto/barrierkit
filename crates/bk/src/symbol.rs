@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 
 pub use ctappearance::icon_style::IconStyle;
 use ctdesign::{
@@ -998,7 +999,30 @@ fn viewer(source: Bytes, size: f32, color: Rgba) -> SvgViewer {
 
 const TEMPLATE_CACHE_CAPACITY: usize = 256;
 
-type TemplateKey = (Bytes, u32, u32, (u8, [u32; 4]));
+type TemplateKey = (SourceBytes, u32, u32, (u8, [u32; 4]));
+
+// Hashing a whole 1 MB icon on every render costs more than the cache saves; equality stays exact.
+#[derive(Clone)]
+struct SourceBytes(Bytes);
+
+impl Hash for SourceBytes {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.len().hash(state);
+        let stride = (self.0.len() / 16).max(1);
+        self.0
+            .iter()
+            .step_by(stride)
+            .for_each(|byte| byte.hash(state));
+    }
+}
+
+impl PartialEq for SourceBytes {
+    fn eq(&self, other: &Self) -> bool {
+        (self.0.as_ptr() == other.0.as_ptr() && self.0.len() == other.0.len()) || self.0 == other.0
+    }
+}
+
+impl Eq for SourceBytes {}
 
 #[derive(Clone, Copy)]
 enum Treatment {
@@ -1041,7 +1065,7 @@ fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<Imag
         Source::Rgba { width, pixels, .. } => (pixels.clone(), *width),
         Source::System(_) => return None,
     };
-    let key = (bytes, width, side, treatment.key());
+    let key = (SourceBytes(bytes), width, side, treatment.key());
     TEMPLATE_CACHE.with(|cache| {
         if let Some(cached) = cache.borrow().get(&key) {
             return cached.clone();
@@ -1057,8 +1081,10 @@ fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<Imag
             }
         });
         let mut cache = cache.borrow_mut();
-        if cache.len() >= TEMPLATE_CACHE_CAPACITY {
-            cache.clear();
+        if cache.len() >= TEMPLATE_CACHE_CAPACITY
+            && let Some(evicted) = cache.keys().next().cloned()
+        {
+            cache.remove(&evicted);
         }
         cache.insert(key, image.clone());
         image

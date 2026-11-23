@@ -33,6 +33,19 @@ impl WakeHandle {
     }
 }
 
+pub(crate) struct WakeRegistration {
+    callbacks: WakeQueue,
+    callback: Rc<dyn Fn()>,
+}
+
+impl Drop for WakeRegistration {
+    fn drop(&mut self) {
+        self.callbacks
+            .borrow_mut()
+            .retain(|callback| !Rc::ptr_eq(callback, &self.callback));
+    }
+}
+
 #[derive(Clone)]
 pub(crate) struct Wake {
     pub(crate) ping: Ping,
@@ -79,6 +92,22 @@ impl Timers {
             ping: self.wake.ping.clone(),
         }
     }
+
+    pub(crate) fn wakeup_until_dropped(
+        &self,
+        callback: impl Fn() + 'static,
+    ) -> (WakeHandle, Rc<WakeRegistration>) {
+        let callback: Rc<dyn Fn()> = Rc::new(callback);
+        self.wake.callbacks.borrow_mut().push(callback.clone());
+        let registration = WakeRegistration {
+            callbacks: self.wake.callbacks.clone(),
+            callback,
+        };
+        (
+            WakeHandle::from_ping(self.wake.ping.clone()),
+            Rc::new(registration),
+        )
+    }
 }
 
 fn seconds_to_next_minute(unix_seconds: u64) -> u64 {
@@ -120,7 +149,8 @@ impl Runtime {
 
 #[cfg(test)]
 mod tests {
-    use super::seconds_to_next_minute;
+    use super::{Timers, Wake, seconds_to_next_minute};
+    use std::{cell::Cell, rc::Rc};
 
     #[test]
     fn the_minute_that_just_started_waits_a_whole_minute() {
@@ -132,5 +162,30 @@ mod tests {
     fn the_last_second_of_a_minute_waits_one_second() {
         assert_eq!(seconds_to_next_minute(59), 1);
         assert_eq!(seconds_to_next_minute(179), 1);
+    }
+
+    #[test]
+    fn a_dropped_wakeup_registration_stops_its_callback_and_frees_its_slot() {
+        let (ping, _source) = crate::platform::calloop::ping::make_ping().unwrap();
+        let timers = Timers {
+            queue: Rc::default(),
+            ping: ping.clone(),
+            wake: Wake {
+                ping,
+                callbacks: Rc::default(),
+            },
+        };
+        let calls = Rc::new(Cell::new(0));
+        let counter = calls.clone();
+        let (_, kept) = timers.wakeup_until_dropped(move || counter.set(counter.get() + 1));
+        for _ in 0..100 {
+            drop(timers.wakeup_until_dropped(|| {}));
+        }
+        let callbacks = timers.wake.callbacks.borrow().clone();
+        assert_eq!(callbacks.len(), 1);
+        callbacks.iter().for_each(|callback| callback());
+        drop(kept);
+        assert!(timers.wake.callbacks.borrow().is_empty());
+        assert_eq!(calls.get(), 1);
     }
 }

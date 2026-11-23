@@ -665,7 +665,15 @@ pub fn load_dominant() -> Option<Rgba> {
     })
 }
 
+// A state file that exists but cannot be read is never replaced; one that does not parse is copied to `.bak` first.
 pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Result<()> {
+    match std::fs::read_to_string(path) {
+        Ok(text) if toml::from_str::<WallpaperState>(&text).is_err() => {
+            std::fs::copy(path, path.with_extension("state.bak"))?;
+        }
+        Err(error) if error.kind() != std::io::ErrorKind::NotFound => return Err(error),
+        _ => {}
+    }
     if *state == WallpaperState::default() {
         return match std::fs::remove_file(path) {
             Err(error) if error.kind() != std::io::ErrorKind::NotFound => Err(error),
@@ -1009,6 +1017,31 @@ tint_parts = ["window", "halo"]
         write_wallpaper_state(&path, &WallpaperState::default()).unwrap();
         assert!(!path.exists());
         write_wallpaper_state(&path, &WallpaperState::default()).unwrap();
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn write_wallpaper_state_backs_up_a_state_that_does_not_parse_and_keeps_one_it_cannot_read() {
+        let dir =
+            std::env::temp_dir().join(format!("ctappearance-bad-state-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("wallpaper.state");
+        std::fs::write(&path, "dominant = ").unwrap();
+        let state = WallpaperState {
+            dominant: Some([0.2, 0.4, 0.6]),
+            ..WallpaperState::default()
+        };
+        write_wallpaper_state(&path, &state).unwrap();
+        assert_eq!(
+            std::fs::read(dir.join("wallpaper.state.bak")).unwrap(),
+            b"dominant = "
+        );
+        assert_eq!(read_wallpaper_state(&path), Some(state.clone()));
+
+        let unreadable = dir.join("unreadable.state");
+        std::fs::create_dir(&unreadable).unwrap();
+        assert!(write_wallpaper_state(&unreadable, &state).is_err());
+        assert!(unreadable.is_dir());
         std::fs::remove_dir_all(&dir).ok();
     }
 

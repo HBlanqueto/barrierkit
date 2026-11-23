@@ -245,6 +245,7 @@ impl Runtime {
         self.windows.push(Window {
             id: window_id,
             window: native.clone(),
+            link: super::frame_link(&native, &view),
             view,
             layer,
             _delegate: delegate,

@@ -2,10 +2,21 @@ name: check
 on:
   push:
     branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: actions/checkout@v7.0.1
+      - uses: DeterminateSystems/nix-installer-action@v23
+      - uses: DeterminateSystems/magic-nix-cache-action@v15
+      # target/ is built by the nix dev shell's rustc, which the cache key cannot see: flake.lock stands in for it.
+      - uses: Swatinem/rust-cache@v2.9.3
+        with:
+          key: ${{ hashFiles('flake.lock') }}
       - run: nix develop -c ./dev.sh check

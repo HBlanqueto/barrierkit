@@ -18,9 +18,9 @@ use freya_engine::prelude::{
     ColorType, DirectContext, Surface, SurfaceOrigin, backend_render_targets, direct_contexts, mtl,
     wrap_backend_render_target,
 };
-use objc2::MainThreadMarker;
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
+use objc2::{MainThreadMarker, sel};
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
     NSApplication, NSApplicationActivationPolicy, NSApplicationPresentationOptions,
@@ -33,12 +33,12 @@ use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
 };
 use objc2_core_graphics::{CGColorSpace, kCGColorSpaceSRGB};
-use objc2_foundation::{NSPoint, NSRect, NSSize, NSString};
+use objc2_foundation::{NSPoint, NSRect, NSRunLoop, NSRunLoopCommonModes, NSSize, NSString};
 use objc2_metal::{
     MTLCommandBuffer, MTLCommandQueue, MTLCreateSystemDefaultDevice, MTLDevice, MTLDrawable,
     MTLPixelFormat,
 };
-use objc2_quartz_core::{CAMetalDrawable, CAMetalLayer, kCACornerCurveContinuous};
+use objc2_quartz_core::{CADisplayLink, CAMetalDrawable, CAMetalLayer, kCACornerCurveContinuous};
 
 use super::app::{AppInstance, Host, InstanceRole};
 use super::backdrop::{Effect as Declared, Pass, Placement, Requests, render_pass, render_passes};
@@ -116,6 +116,8 @@ struct Window {
     behind: Option<Retained<Effect>>,
     chromes: Vec<ChromeLayer>,
     layer: Retained<CAMetalLayer>,
+    // Runs while draws are due, at most one per refresh of the window's display.
+    link: Retained<CADisplayLink>,
     _delegate: Retained<ProtocolObject<dyn NSWindowDelegate>>,
     app: AppInstance,
     controls: Option<WindowControls>,
@@ -126,6 +128,12 @@ struct Window {
     // A window the process lives for: not a popup, a sheet or a utility window.
     main: bool,
     needs_redraw: bool,
+}
+
+impl Drop for Window {
+    fn drop(&mut self) {
+        self.link.invalidate();
+    }
 }
 
 pub(super) struct Runtime {
@@ -211,6 +219,15 @@ fn native(id: u64, command: Native) {
             }
         }
     }
+}
+
+fn frame_link(window: &NSWindow, view: &ContentView) -> Retained<CADisplayLink> {
+    // SAFETY: `drawFrame:` is ContentView's method and takes the display link.
+    let link = unsafe { window.displayLinkWithTarget_selector(view.as_ref(), sel!(drawFrame:)) };
+    link.setPaused(true);
+    // SAFETY: the main run loop outlives the link, which `Window` invalidates when it drops.
+    unsafe { link.addToRunLoop_forMode(&NSRunLoop::mainRunLoop(), NSRunLoopCommonModes) };
+    link
 }
 
 fn configure_metal_layer(
@@ -517,6 +534,7 @@ impl Runtime {
         self.windows.push(Window {
             id,
             window: window.clone(),
+            link: frame_link(&window, &view),
             view,
             container: Some(container),
             behind: None,
@@ -718,7 +736,7 @@ impl Runtime {
         };
         let mut presented = Vec::new();
         let app = &mut window.app;
-        let nodes: Vec<Vec<NodeId>> = app
+        let nodes: Vec<Rc<[NodeId]>> = app
             .chromes
             .iter()
             .map(|chrome| chrome.nodes.clone())
@@ -906,15 +924,30 @@ impl Runtime {
         window.needs_redraw = true;
     }
 
+    // The first draw after an idle spell is immediate; later ones wait for the display link.
     fn redraw_all(&mut self) {
         let pending: Vec<u64> = self
             .windows
             .iter()
-            .filter(|window| window.needs_redraw)
+            .filter(|window| window.needs_redraw && window.link.isPaused())
             .map(|window| window.id)
             .collect();
         for id in pending {
+            if let Some(window) = self.window(id) {
+                window.link.setPaused(false);
+            }
             self.draw(id);
+        }
+    }
+
+    pub(super) fn frame_due(&mut self, id: u64) {
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        if window.needs_redraw {
+            self.draw(id);
+        } else {
+            window.link.setPaused(true);
         }
     }
 

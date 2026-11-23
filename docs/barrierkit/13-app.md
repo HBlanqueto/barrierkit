@@ -310,9 +310,11 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 - Writing creates the folder, writes `<file>.tmp` and renames it over the file.
 - `MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR` replace the two folders.
   Without them they are `malaysia/` under the XDG config and data homes.
-- `use_defaults` and `use_watched` reload when any `.domain` file in the
-  config folder changes, except `appearance.domain`, and when `wallpaper.state`
-  changes.
+- `use_defaults` reloads when its own `<app_id>.domain` changes and when
+  `wallpaper.state` changes. `use_watched` cannot know which file `load` reads,
+  so it reloads when any `.domain` file in the config folder changes, except
+  `appearance.domain`. An app that calls only `use_defaults` ignores the
+  settings other apps save.
 
 The window size and the maximized state are saved and restored by the kit
 ([8. Windows](08-windows.md)).
@@ -335,6 +337,8 @@ let revision = use_wake(|wake| watch_theme(move || wake.wake()));
 | `use_published(initial, start)` | Returns a `State<T>`. `start` runs once and receives a `Publisher<T>`; `send(value)` from any thread sets the state on the window's thread, only if it changed |
 | `Publisher::send(value)` | Keeps the last value and wakes the window. A burst of sends shows only the last one |
 | `use_wake(start)` | Runs `start` once with a `WakeHandle`; every `wake()` renders the component again. Returns how many wakes there have been, to use as a cache key |
+
+Both hooks stop listening when the component goes away.
 
 `T` must be `Clone + PartialEq + Send`. Both hooks follow the rules of hooks:
 call them on every render, in the same order.

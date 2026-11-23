@@ -17,7 +17,7 @@ use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification, NSObject,
     NSObjectProtocol, NSPoint, NSRange, NSRect, NSSize, NSString, NSUInteger,
 };
-use objc2_quartz_core::{CALayer, CAMetalLayer};
+use objc2_quartz_core::{CADisplayLink, CALayer, CAMetalLayer};
 use torin::prelude::CursorPoint;
 
 use super::{input, with_runtime};
@@ -75,6 +75,11 @@ define_class!(
             // SAFETY: calls NSView's own implementation, which takes no arguments.
             let _: () = unsafe { msg_send![super(self), viewDidChangeBackingProperties] };
             with_runtime(|runtime| runtime.resized(self.ivars().id));
+        }
+
+        #[unsafe(method(drawFrame:))]
+        fn draw_frame(&self, _: &CADisplayLink) {
+            with_runtime(|runtime| runtime.frame_due(self.ivars().id));
         }
 
         #[unsafe(method(updateTrackingAreas))]

@@ -15,6 +15,9 @@ use objc2_user_notifications::{
 
 use crate::notifications::{Notification, WAITING, lock, take};
 
+// customDismissAction reports only an explicit dismissal, not an ignored banner (https://developer.apple.com/documentation/usernotifications/unnotificationdismissactionidentifier), so the oldest callbacks give way.
+const WAITING_LIMIT: usize = 32;
+
 static NEXT: AtomicU32 = AtomicU32::new(0);
 static READY: Once = Once::new();
 
@@ -59,6 +62,13 @@ fn answer(identifier: &str) {
     }
 }
 
+fn push_bounded<T>(waiting: &mut Vec<T>, entry: T) {
+    waiting.push(entry);
+    if waiting.len() > WAITING_LIMIT {
+        waiting.remove(0);
+    }
+}
+
 fn id_of(identifier: &str) -> Option<u32> {
     identifier.parse().ok()
 }
@@ -71,7 +81,7 @@ fn bundled() -> bool {
 pub(crate) fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 'static) {
     let id = NEXT.fetch_add(1, Ordering::Relaxed);
     if bundled() {
-        lock(&WAITING).push((id, Box::new(clicked)));
+        push_bounded(&mut lock(&WAITING), (id, Box::new(clicked)));
     }
     notify(id.to_string(), notice.summary, notice.body);
 }
@@ -140,6 +150,17 @@ mod tests {
         answer(&u32::MAX.to_string());
         answer(&u32::MAX.to_string());
         assert_eq!(runs.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn the_oldest_waiting_callback_is_dropped_beyond_the_limit() {
+        let mut waiting = Vec::new();
+        for id in 0..=WAITING_LIMIT {
+            push_bounded(&mut waiting, id);
+        }
+        assert_eq!(waiting.len(), WAITING_LIMIT);
+        assert_eq!(waiting.first(), Some(&1));
+        assert_eq!(waiting.last(), Some(&WAITING_LIMIT));
     }
 
     #[test]

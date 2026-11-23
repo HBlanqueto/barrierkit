@@ -8,22 +8,24 @@ set -eu
 
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 seconds=${SMOKE_SECONDS:-3}
-lock=/tmp/barrierkit-screen.lock
+# shellcheck source=screen-lock.sh
+. "$root/scripts/screen-lock.sh"
 work=$(mktemp -d)
-
-until mkdir "$lock" 2>/dev/null; do sleep 2; done
-trap 'rmdir "$lock"; rm -rf "$work"' EXIT
+trap 'release_screen_lock; rm -rf "$work"' EXIT
 trap 'exit 130' INT TERM
+take_screen_lock
 
 cd "$root"
-cargo build -p bk --examples
-examples=${CARGO_TARGET_DIR:-$root/target}/debug/examples
-
 if [ "$#" -gt 0 ]; then
     names=$*
 else
     names=$(for file in agents/recipes/*.rs; do basename "$file" .rs; done)
 fi
+builds=
+for name in $names; do builds="$builds --example $name"; done
+# shellcheck disable=SC2086
+cargo build -p bk $builds
+examples=${CARGO_TARGET_DIR:-$root/target}/debug/examples
 
 window_count() {
     osascript -l JavaScript -e "

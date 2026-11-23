@@ -1,6 +1,9 @@
 use crate::elements::{Overrides, forward_container, forward_overrides};
 use std::borrow::Cow;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::path::PathBuf;
+use std::time::SystemTime;
 
 use ctdesign::{MEDIA, Rgba};
 use freya_core::elements::image::ImageHandle;
@@ -249,22 +252,46 @@ impl Component for RoundButton {
     }
 }
 
+const ARTWORK_CACHE_CAPACITY: usize = 32;
+
+type ArtworkKey = (PathBuf, Option<SystemTime>);
+
+thread_local! {
+    static ARTWORK_CACHE: RefCell<HashMap<ArtworkKey, ImageHandle>> = RefCell::new(HashMap::new());
+}
+
 pub fn use_artwork(path: PathBuf) -> State<Option<ImageHandle>> {
-    use_artwork_from(move || std::fs::read(&path).ok())
+    let key = use_hook(|| {
+        let modified = std::fs::metadata(&path)
+            .and_then(|file| file.modified())
+            .ok();
+        (path.clone(), modified)
+    });
+    use_cached_artwork(Some(key), move || std::fs::read(&path).ok())
 }
 
 type Job = Box<dyn FnOnce() + Send>;
 type Worker = std::sync::OnceLock<Option<std::sync::mpsc::Sender<Job>>>;
 
-// A grid of covers would otherwise start one thread per cover at once.
+const WORKERS: usize = 3;
+
+// A grid of covers would otherwise start one thread per cover at once; a few workers keep one slow load from blocking the rest.
 fn run_on(worker: &'static Worker, name: &str, job: impl FnOnce() + Send + 'static) {
     let worker = worker.get_or_init(|| {
         let (jobs, queue) = std::sync::mpsc::channel::<Job>();
-        std::thread::Builder::new()
-            .name(name.into())
-            .spawn(move || queue.into_iter().for_each(|job| job()))
-            .ok()
-            .map(|_| jobs)
+        let queue = std::sync::Arc::new(std::sync::Mutex::new(queue));
+        let started = (0..WORKERS)
+            .filter(|index| {
+                let queue = queue.clone();
+                std::thread::Builder::new()
+                    .name(format!("{name}-{index}"))
+                    .spawn(move || {
+                        std::iter::from_fn(|| queue.lock().ok()?.recv().ok()).for_each(|job| job())
+                    })
+                    .is_ok()
+            })
+            .count();
+        (started > 0).then_some(jobs)
     });
     if let Some(worker) = worker {
         let _ = worker.send(Box::new(job));
@@ -284,14 +311,33 @@ pub(crate) fn decode_in_background(job: impl FnOnce() + Send + 'static) {
 pub fn use_artwork_from(
     load: impl FnOnce() -> Option<Vec<u8>> + Send + 'static,
 ) -> State<Option<ImageHandle>> {
-    let mut artwork = use_state(|| None);
+    use_cached_artwork(None, load)
+}
+
+fn use_cached_artwork(
+    key: Option<ArtworkKey>,
+    load: impl FnOnce() -> Option<Vec<u8>> + Send + 'static,
+) -> State<Option<ImageHandle>> {
+    let mut artwork = use_state(|| {
+        key.as_ref()
+            .and_then(|key| ARTWORK_CACHE.with(|cache| cache.borrow().get(key).cloned()))
+    });
     use_hook(move || {
+        if artwork.peek().is_some() {
+            return;
+        }
         let (sender, receiver) = futures_channel::oneshot::channel();
         fetch_in_background(move || {
+            if sender.is_canceled() {
+                return;
+            }
             let Some(bytes) = load() else {
                 return;
             };
             decode_in_background(move || {
+                if sender.is_canceled() {
+                    return;
+                }
                 let decoded = freya_engine::prelude::Image::from_encoded(
                     freya_engine::prelude::Data::new_copy(&bytes),
                 )
@@ -302,9 +348,24 @@ pub fn use_artwork_from(
         });
         spawn(async move {
             if let Ok(Some(handle)) = receiver.await {
+                if let Some(key) = key {
+                    remember_artwork(key, handle.clone());
+                }
                 artwork.set(Some(handle));
             }
         });
     });
     artwork
+}
+
+fn remember_artwork(key: ArtworkKey, handle: ImageHandle) {
+    ARTWORK_CACHE.with(|cache| {
+        let mut cache = cache.borrow_mut();
+        if cache.len() >= ARTWORK_CACHE_CAPACITY
+            && let Some(evicted) = cache.keys().next().cloned()
+        {
+            cache.remove(&evicted);
+        }
+        cache.insert(key, handle);
+    });
 }

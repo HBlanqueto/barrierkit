@@ -1,3 +1,4 @@
+use std::ffi::{OsStr, OsString};
 use std::io;
 use std::os::fd::AsFd;
 use std::os::unix::ffi::OsStrExt;
@@ -8,16 +9,16 @@ use nix::sys::inotify::{AddWatchFlags, InitFlags, Inotify, InotifyEvent, WatchDe
 use crate::config::create_private_dir;
 use crate::{config_dir, data_dir};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AppearanceEvent {
     Appearance,
     Wallpaper,
     WallpaperSelection,
-    Defaults,
+    Defaults(Option<OsString>),
 }
 
 impl AppearanceEvent {
-    pub fn restyles(self) -> bool {
+    pub fn restyles(&self) -> bool {
         matches!(self, Self::Appearance | Self::Wallpaper)
     }
 }
@@ -25,6 +26,8 @@ impl AppearanceEvent {
 #[derive(Debug)]
 pub struct AppearanceWatch {
     inotify: Inotify,
+    config_dir: PathBuf,
+    data_dir: PathBuf,
     config: WatchDescriptor,
     data: WatchDescriptor,
 }
@@ -43,6 +46,8 @@ impl AppearanceWatch {
 
         Ok(Self {
             inotify,
+            config_dir,
+            data_dir,
             config,
             data,
         })
@@ -57,7 +62,7 @@ impl AppearanceWatch {
             | AddWatchFlags::IN_MOVE_SELF
     }
 
-    pub fn drain(&self) -> io::Result<Vec<AppearanceEvent>> {
+    pub fn drain(&mut self) -> io::Result<Vec<AppearanceEvent>> {
         let mut events = Vec::with_capacity(2);
         loop {
             match self.inotify.read_events() {
@@ -66,6 +71,13 @@ impl AppearanceWatch {
                         break;
                     }
                     for event in batch {
+                        if event
+                            .mask
+                            .intersects(AddWatchFlags::IN_DELETE_SELF | AddWatchFlags::IN_MOVE_SELF)
+                            && let Err(error) = self.rewatch(event.wd)
+                        {
+                            tracing::warn!(%error, "watching the settings folders again");
+                        }
                         self.classify(&event, &mut events);
                     }
                 }
@@ -74,6 +86,21 @@ impl AppearanceWatch {
             }
         }
         Ok(events)
+    }
+
+    // inotify(7): a deleted directory loses its watch and a moved one keeps watching the old inode.
+    fn rewatch(&mut self, lost: WatchDescriptor) -> io::Result<()> {
+        for (watch, dir) in [
+            (&mut self.config, &self.config_dir),
+            (&mut self.data, &self.data_dir),
+        ] {
+            if *watch == lost {
+                let _ = self.inotify.rm_watch(lost);
+                create_private_dir(dir)?;
+                *watch = self.inotify.add_watch(dir, Self::flags())?;
+            }
+        }
+        Ok(())
     }
 
     fn classify(&self, event: &InotifyEvent, out: &mut Vec<AppearanceEvent>) {
@@ -86,7 +113,7 @@ impl AppearanceWatch {
                 AppearanceEvent::Appearance,
                 AppearanceEvent::Wallpaper,
                 AppearanceEvent::WallpaperSelection,
-                AppearanceEvent::Defaults,
+                AppearanceEvent::Defaults(None),
             ] {
                 push_unique(out, lost);
             }
@@ -104,7 +131,9 @@ impl AppearanceWatch {
             b"appearance.domain" if in_config => AppearanceEvent::Appearance,
             b"wallpaper-selection.state" if in_data => AppearanceEvent::WallpaperSelection,
             b"wallpaper.state" if in_data => AppearanceEvent::Wallpaper,
-            _ if in_config && name.ends_with(b".domain") => AppearanceEvent::Defaults,
+            _ if in_config && name.ends_with(b".domain") => {
+                AppearanceEvent::Defaults(Some(OsStr::from_bytes(name).to_owned()))
+            }
             _ => return,
         };
         push_unique(out, kind);
@@ -131,7 +160,7 @@ mod tests {
     fn only_appearance_and_wallpaper_changes_restyle_the_desktop() {
         assert!(AppearanceEvent::Appearance.restyles());
         assert!(AppearanceEvent::Wallpaper.restyles());
-        assert!(!AppearanceEvent::Defaults.restyles());
+        assert!(!AppearanceEvent::Defaults(None).restyles());
         assert!(!AppearanceEvent::WallpaperSelection.restyles());
     }
     use std::path::Path;
@@ -169,7 +198,7 @@ mod tests {
         assert!(!config_dir.exists());
         assert!(!data_dir.exists());
 
-        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
+        let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
         assert!(config_dir.exists());
         assert!(data_dir.exists());
 
@@ -198,7 +227,7 @@ mod tests {
     #[test]
     fn detects_appearance_domain_rename() {
         let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
+        let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
         let path = config_dir.join("appearance.domain");
 
         write(&path, "color_scheme = \"dark\"\n");
@@ -217,33 +246,68 @@ mod tests {
         assert!(found, "appearance.domain rename was not detected");
     }
 
+    fn defaults(name: &str) -> AppearanceEvent {
+        AppearanceEvent::Defaults(Some(name.into()))
+    }
+
     #[test]
-    fn an_app_domain_change_is_reported_as_defaults() {
+    fn an_app_domain_change_is_reported_as_defaults_with_its_file_name() {
         let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
-        write(
-            &config_dir.join("org.malaysia.Contador.domain"),
-            "step = 5\n",
-        );
+        let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
+        write(&config_dir.join("one.domain"), "step = 5\n");
+        write(&config_dir.join("two.domain"), "step = 6\n");
 
         let deadline = Instant::now() + Duration::from_secs(2);
-        let mut found = false;
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::Defaults)
-            {
-                found = true;
-                break;
+        let mut events = Vec::new();
+        while Instant::now() < deadline && events.len() < 2 {
+            for event in watch.drain().unwrap() {
+                push_unique(&mut events, event);
             }
             std::thread::sleep(Duration::from_millis(5));
         }
-        assert!(found, "an app domain change was not detected");
+        assert_eq!(events, [defaults("one.domain"), defaults("two.domain")]);
+    }
+
+    #[test]
+    fn a_deleted_or_moved_config_folder_is_created_and_watched_again() {
+        for moved in [false, true] {
+            let (config_dir, data_dir) = tmp_dirs();
+            let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir).unwrap();
+            if moved {
+                std::fs::rename(&config_dir, config_dir.with_extension("moved")).unwrap();
+            } else {
+                std::fs::remove_dir_all(&config_dir).unwrap();
+            }
+            let deadline = Instant::now() + Duration::from_secs(2);
+            while Instant::now() < deadline && !config_dir.exists() {
+                let _ = watch.drain();
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            assert!(config_dir.exists());
+
+            write(
+                &config_dir.join("appearance.domain"),
+                "color_scheme = \"dark\"\n",
+            );
+            let mut found = false;
+            while Instant::now() < deadline && !found {
+                found = watch
+                    .drain()
+                    .unwrap()
+                    .contains(&AppearanceEvent::Appearance);
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            assert!(
+                found,
+                "no event after the folder came back (moved: {moved})"
+            );
+        }
     }
 
     #[test]
     fn a_domain_in_the_data_dir_is_not_reported_as_defaults() {
         let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
+        let mut watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
         write(&data_dir.join("example.domain"), "key = 1\n");
         write(
             &data_dir.join("wallpaper.state"),
@@ -262,7 +326,7 @@ mod tests {
     #[test]
     fn detects_wallpaper_state_close_write() {
         let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
+        let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
         let path = data_dir.join("wallpaper.state");
 
         write(&path, "dominant = [0.8, 0.2, 0.1]\n");
@@ -284,7 +348,7 @@ mod tests {
     #[test]
     fn detects_wallpaper_selection_rename() {
         let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
+        let mut watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
         let path = data_dir.join("wallpaper-selection.state");
 
         write(&path, "[desktops]\ndefault = \"file:///Solid Gray.png\"\n");
@@ -304,7 +368,7 @@ mod tests {
     #[test]
     fn detects_appearance_domain_moved_away() {
         let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir.clone(), data_dir).unwrap();
+        let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir).unwrap();
         let path = config_dir.join("appearance.domain");
 
         write(&path, "color_scheme = \"dark\"\n");
@@ -327,7 +391,7 @@ mod tests {
     #[test]
     fn detects_wallpaper_state_delete() {
         let (config_dir, data_dir) = tmp_dirs();
-        let watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
+        let mut watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
         let path = data_dir.join("wallpaper.state");
 
         write(&path, "dominant = [0.8, 0.2, 0.1]\n");

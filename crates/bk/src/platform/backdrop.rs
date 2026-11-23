@@ -1,5 +1,6 @@
 use std::any::Any;
 use std::borrow::Cow;
+use std::rc::Rc;
 
 use ctappearance::material::Material;
 use freya_core::data::LayoutData;
@@ -146,7 +147,7 @@ impl Declared {
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Chrome {
     pub(crate) root: NodeId,
-    pub(crate) nodes: Vec<NodeId>,
+    pub(crate) nodes: Rc<[NodeId]>,
     pub(crate) area: Area,
     pub(crate) effects: Vec<(Effect, Area)>,
 }
@@ -199,7 +200,7 @@ pub(crate) fn collect(tree: &Tree, window: Size2D) -> Vec<Chrome> {
                 }
                 chromes.push(Chrome {
                     root,
-                    nodes,
+                    nodes: nodes.into(),
                     area: holder.visible_area(),
                     effects: vec![(declared.effect, leaf)],
                 });
@@ -209,9 +210,11 @@ pub(crate) fn collect(tree: &Tree, window: Size2D) -> Vec<Chrome> {
     chromes.sort_by_key(|chrome| std::cmp::Reverse(chrome.nodes.len()));
     let mut outer: Vec<Chrome> = Vec::new();
     for chrome in chromes {
+        let ancestors =
+            std::iter::successors(tree.parents.get(&chrome.root), |id| tree.parents.get(id));
         match outer
             .iter_mut()
-            .find(|other| other.nodes.contains(&chrome.root))
+            .find(|other| ancestors.clone().any(|ancestor| *ancestor == other.root))
         {
             Some(other) => other.effects.extend(chrome.effects),
             None => outer.push(chrome),
@@ -377,7 +380,7 @@ pub(crate) enum Pass {
 
 pub(crate) fn render_passes(
     tree: &mut Tree,
-    chromes: &[Vec<NodeId>],
+    chromes: &[Rc<[NodeId]>],
     mut render: impl FnMut(Pass, &Tree),
 ) {
     let members: Vec<Vec<(NodeId, i16)>> = chromes
@@ -728,7 +731,7 @@ mod tests {
     fn chrome(effects: Vec<(Effect, Area)>, area: Area) -> Chrome {
         Chrome {
             root: NodeId::ROOT,
-            nodes: Vec::new(),
+            nodes: Rc::default(),
             area,
             effects,
         }

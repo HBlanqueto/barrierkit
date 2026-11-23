@@ -1,5 +1,8 @@
+use std::ffi::OsString;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use freya_core::prelude::*;
 use serde::Serialize;
@@ -8,14 +11,43 @@ use serde::de::DeserializeOwned;
 #[derive(Clone, Copy)]
 pub(crate) struct DefaultsRevision(pub(crate) State<u64>);
 
+static WATCHED_DOMAINS: Mutex<Vec<OsString>> = Mutex::new(Vec::new());
+static WATCHES_EVERY_DOMAIN: AtomicBool = AtomicBool::new(false);
+
+impl DefaultsRevision {
+    // window.domain is read by the title bar, not by a hook.
+    #[cfg(target_os = "linux")]
+    pub(crate) fn concerns(domain: &std::ffi::OsStr) -> bool {
+        domain == "window.domain"
+            || WATCHES_EVERY_DOMAIN.load(Ordering::Relaxed)
+            || WATCHED_DOMAINS
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|watched| watched == domain)
+    }
+}
+
 pub fn use_defaults<T>(app_id: &'static str) -> Memo<T>
 where
     T: DeserializeOwned + Default + PartialEq + Clone + 'static,
 {
-    use_watched(move || load_defaults(app_id))
+    let file = domain(app_id).file_name().unwrap_or_default().to_owned();
+    let mut watched = WATCHED_DOMAINS.lock().unwrap();
+    if !watched.contains(&file) {
+        watched.push(file);
+    }
+    drop(watched);
+    reload_on_revision(move || load_defaults(app_id))
 }
 
+// The loader may read any file, so every domain change reaches this process.
 pub fn use_watched<T: PartialEq + Clone + 'static>(load: impl Fn() -> T + 'static) -> Memo<T> {
+    WATCHES_EVERY_DOMAIN.store(true, Ordering::Relaxed);
+    reload_on_revision(load)
+}
+
+fn reload_on_revision<T: PartialEq + Clone + 'static>(load: impl Fn() -> T + 'static) -> Memo<T> {
     let revision = try_consume_root_context::<DefaultsRevision>();
     use_memo(move || {
         if let Some(DefaultsRevision(revision)) = revision {

@@ -124,8 +124,11 @@ are the `MEDIA` tokens of `ctdesign`, fixed for a dark image behind them.
 | `use_artwork(path)` | Reads and decodes an image in the background; returns `State<Option<ImageHandle>>`, `None` until it is ready |
 | `use_artwork_from(load)` | The same with bytes from `load: FnOnce() -> Option<Vec<u8>> + Send` |
 
-`use_artwork` runs once per component. Loads share one reading thread and one
-decoding thread, so a grid of covers does not start a thread per cover.
+`use_artwork` runs once per component. Loads share three reading threads and three
+decoding threads, so a grid of covers does not start a thread per cover and one slow
+file does not block the rest. A component that unmounts before its turn skips the
+load. `use_artwork` keeps the last 32 decoded files, keyed by path and modification
+time; `use_artwork_from` has no key and keeps none.
 
 `Material` and `TopGlass` are positioned absolutely: put them as the first
 child of the element they sit behind, and put what draws over the glass (the

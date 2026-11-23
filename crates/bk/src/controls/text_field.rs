@@ -280,18 +280,21 @@ impl Component for TextField {
         let text_left = use_hook(|| std::rc::Rc::new(std::cell::Cell::new(padding_x)));
         let left = text_left.clone();
         let value = self.value;
-        let text = value.read().clone();
         let checked = !self.autocorrection_disabled;
-        let ranges = checked
-            .then(dictionary)
-            .flatten()
-            .map(|dictionary| {
-                misspelled(&text, |word| known(dictionary, word))
-                    .iter()
-                    .map(|range| utf16_range(&text, range))
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
+        let loaded = use_reactive(&(checked && dictionary().is_some()));
+        let ranges = use_memo(move || {
+            let text = value.read();
+            loaded
+                .read()
+                .then(dictionary)
+                .flatten()
+                .map(|dictionary| {
+                    let found = misspelled(&text, |word| known(dictionary, word));
+                    utf16_ranges(&text, &found)
+                })
+                .unwrap_or_default()
+        });
+        let ranges = ranges.read().clone();
         let root = edit_menu(
             dimmed(
                 text_style(rect().width(self.width.clone()), style.font),

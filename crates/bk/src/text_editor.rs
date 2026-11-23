@@ -22,7 +22,9 @@ use crate::context_menu::{Spelling, edit_menu};
 use crate::controls::{dimmed, text_style};
 use crate::interaction::ring;
 use crate::scroll::{ScrollView, use_scroll_controller};
-use crate::spelling::{Squiggles, char_index, dictionary, known, misspelled, utf16_range};
+use crate::spelling::{
+    Squiggles, char_index, dictionary, known, misspelled, utf16_range, utf16_ranges,
+};
 use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextEditorStyle, Theme, resolve,
@@ -400,10 +402,8 @@ impl Component for TextEditor {
                 .then(dictionary)
                 .flatten()
                 .map(|dictionary| {
-                    misspelled(&text, |word| known(dictionary, word))
-                        .iter()
-                        .map(|range| utf16_range(&text, range))
-                        .collect::<Vec<_>>()
+                    let found = misspelled(&text, |word| known(dictionary, word));
+                    utf16_ranges(&text, &found)
                 })
                 .unwrap_or_default()
         });

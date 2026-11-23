@@ -410,15 +410,16 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
         .insert_source(
             Generic::new(watch_fd, Interest::READ, Mode::Level),
             |_, _, shell: &mut Runtime| {
-                if let Some(watch) = shell.appearance_watch.as_ref()
+                if let Some(watch) = shell.appearance_watch.as_mut()
                     && let Ok(events) = watch.drain()
                     && !events.is_empty()
                 {
-                    if events.iter().any(|event| {
-                        matches!(
-                            event,
-                            AppearanceEvent::Defaults | AppearanceEvent::Wallpaper
-                        )
+                    if events.iter().any(|event| match event {
+                        AppearanceEvent::Defaults(domain) => domain
+                            .as_deref()
+                            .is_none_or(crate::app::DefaultsRevision::concerns),
+                        AppearanceEvent::Wallpaper => true,
+                        _ => false,
                     }) {
                         *shell.defaults_revision.write() += 1;
                         shell.request_redraw_all = true;

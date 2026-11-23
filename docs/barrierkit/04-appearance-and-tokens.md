@@ -469,7 +469,7 @@ Notes on the values:
 | `write_appearance(path, config)` | Writes the config and keeps other keys and comments. A file that does not parse as an appearance config is first copied to `.domain.bak`. The file is replaced atomically. |
 | `replace_file(path, text)` | Writes `text` to a temporary file beside `path`, syncs it and renames it over `path`. Creates the directory with mode `0700`. |
 | `load_dominant()` | Reads `dominant` from `wallpaper.state`. |
-| `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. |
+| `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. A file that does not parse is first copied to `.state.bak`; one that cannot be read is left alone and the call fails. |
 | `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
 
 ### The wallpaper files
@@ -763,7 +763,9 @@ what changed as `AppearanceEvent`s:
 | `Appearance` | `appearance.domain` |
 | `Wallpaper` | `wallpaper.state` |
 | `WallpaperSelection` | `wallpaper-selection.state` in the data directory |
-| `Defaults` | any other `.domain` in the config folder |
+| `Defaults(name)` | any other `.domain` in the config folder; `name` is its file name, `None` after a lost event |
+
+If a watched folder is deleted or moved, `drain()` creates it again and watches it again.
 
 `restyles()` is true for `Appearance` and `Wallpaper`. The kit's runner already
 uses it; an app needs it only with its own event loop.

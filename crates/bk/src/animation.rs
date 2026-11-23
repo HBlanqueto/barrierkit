@@ -80,10 +80,13 @@ impl Segment {
             Animation::Spring {
                 duration_ms,
                 bounce,
-            } => Path::Spring(
-                Spring::new(from, to, Duration::from_millis(duration_ms), bounce)
-                    .with_velocity(velocity),
-            ),
+            } => Path::Spring(Spring::moving(
+                from,
+                to,
+                Duration::from_millis(duration_ms),
+                bounce,
+                velocity,
+            )),
             _ => Path::Timed {
                 from,
                 duration_ms: animation.duration_ms(),
@@ -230,12 +233,16 @@ pub struct Spring {
 
 impl Spring {
     pub fn new(from: f32, to: f32, duration: Duration, bounce: f32) -> Self {
+        Self::moving(from, to, duration, bounce, 0.0)
+    }
+
+    fn moving(from: f32, to: f32, duration: Duration, bounce: f32, velocity: f32) -> Self {
         Self {
             from,
             to,
             duration,
             bounce: bounce.clamp(0.0, 0.95),
-            velocity: 0.0,
+            velocity,
             settling: Duration::ZERO,
             current: from,
         }
@@ -339,13 +346,18 @@ impl AnimatedValue for Spring {
     }
 
     fn into_reversed(self) -> Self {
-        Self {
+        let reversed = Self {
             from: self.to,
             to: self.from,
             velocity: 0.0,
             ..self
+        };
+        // Without velocity the offset only changes sign, so the settling is the same.
+        if self.velocity == 0.0 {
+            reversed
+        } else {
+            reversed.settled()
         }
-        .settled()
     }
 }
 

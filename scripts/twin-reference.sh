@@ -17,12 +17,13 @@ esac
 case "$scheme" in light) args= ;; dark) args=dark ;; *) echo "twin-reference: light or dark" >&2; exit 2 ;; esac
 
 probes=${BARRIERKIT_PROBES:-$HOME/src/probes}
+# shellcheck source=screen-lock.sh
+. "$(dirname -- "$0")/screen-lock.sh"
 work=$(mktemp -d)
-lock=/tmp/barrierkit-screen.lock
-until mkdir "$lock" 2>/dev/null; do sleep 2; done
-cleanup() { pkill -f "$work/$probe.app/" 2>/dev/null || true; rmdir "$lock"; rm -rf "$work"; }
+cleanup() { pkill -f "$work/$probe.app/" 2>/dev/null || true; release_screen_lock; rm -rf "$work"; }
 trap cleanup EXIT
 trap 'exit 130' INT TERM
+take_screen_lock
 
 [ -x "$probes/$probe" ] || swiftc -O "$probes/$probe.swift" -o "$probes/$probe"
 app=$work/$probe.app

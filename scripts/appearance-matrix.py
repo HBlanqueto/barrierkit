@@ -216,18 +216,43 @@ holding_lock = False
 
 def take_lock():
     global holding_lock
+    waiting = False
     while True:
         try:
             os.mkdir(LOCK)
             holding_lock = True
+            with open(os.path.join(LOCK, "pid"), "w") as owner:
+                owner.write(str(os.getpid()))
             return
         except FileExistsError:
+            try:
+                with open(os.path.join(LOCK, "pid")) as owner:
+                    holder = owner.read().strip()
+            except FileNotFoundError:
+                holder = ""
+            # An empty pid file means the owner is between mkdir and writing it: still held.
+            if holder and not pid_alive(int(holder)):
+                shutil.rmtree(LOCK, ignore_errors=True)
+                continue
+            if not waiting:
+                print(f"waiting for {LOCK} held by PID {holder or 'unknown'}", file=sys.stderr)
+                waiting = True
             time.sleep(2)
+
+
+def pid_alive(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
 
 
 def release_lock():
     global holding_lock
-    os.rmdir(LOCK)
+    shutil.rmtree(LOCK)
     holding_lock = False
 
 

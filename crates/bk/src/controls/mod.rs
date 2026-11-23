@@ -23,7 +23,7 @@ use crate::interaction::{control_state, use_interaction};
 use crate::level;
 use crate::password::PasswordField;
 use crate::spelling::{
-    InputParagraphs, Squiggles, char_index, dictionary, known, misspelled, utf16_range,
+    InputParagraphs, Squiggles, char_index, dictionary, known, misspelled, utf16_ranges,
 };
 use crate::style::with_font;
 use crate::styles::Painted;

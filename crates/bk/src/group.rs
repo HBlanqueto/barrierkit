@@ -319,10 +319,31 @@ impl Groups {
     }
 }
 
+// What each group paints in paint order: its own nodes and the roots of the groups that hang from them, in one pass over `order`.
+fn distribute<N: Copy + Eq + Hash>(
+    order: &[N],
+    owner: &HashMap<N, N>,
+    is_root: &dyn Fn(N) -> bool,
+    parent: &dyn Fn(N) -> Option<N>,
+) -> HashMap<N, Vec<N>> {
+    let mut lists: HashMap<N, Vec<N>> = HashMap::default();
+    for id in order {
+        if let Some(root) = owner.get(id) {
+            lists.entry(*root).or_default().push(*id);
+        }
+        if is_root(*id)
+            && let Some(outer) = parent(*id).and_then(|parent| owner.get(&parent))
+        {
+            lists.entry(*outer).or_default().push(*id);
+        }
+    }
+    lists
+}
+
 struct Painter<'a, 'b> {
     pipeline: &'a mut RenderPipeline<'b>,
     groups: Groups,
-    order: Vec<NodeId>,
+    members: HashMap<NodeId, Vec<NodeId>>,
     clip_areas: HashMap<NodeId, Area>,
 }
 
@@ -499,12 +520,7 @@ impl Painter<'_, '_> {
             scales: state.map_or(0, |state| state.scales.len()),
             opacities: state.map_or(0, |state| state.opacities.len()),
         };
-        let members: Vec<NodeId> = self
-            .order
-            .iter()
-            .copied()
-            .filter(|id| self.groups.owner.get(id) == Some(&root) || self.is_inner_root(*id, root))
-            .collect();
+        let members = self.members.remove(&root).unwrap_or_default();
         let saved = canvas.save();
         self.apply_transforms(root, applied);
         self.apply_scales(root, applied);
@@ -537,18 +553,6 @@ impl Painter<'_, '_> {
         canvas.restore_to_count(saved);
     }
 
-    fn is_inner_root(&self, id: NodeId, outer: NodeId) -> bool {
-        self.groups.effects.contains_key(&id)
-            && id != outer
-            && self
-                .pipeline
-                .tree
-                .parents
-                .get(&id)
-                .and_then(|parent| self.groups.owner.get(parent))
-                == Some(&outer)
-    }
-
     fn union(&self, members: &[NodeId], reach: f32) -> Option<SkRect> {
         let tree = self.pipeline.tree;
         let mut areas = members
@@ -577,10 +581,16 @@ pub(crate) fn render(mut pipeline: RenderPipeline<'_>) {
         .iter()
         .flat_map(|key| pipeline.tree.layers.get(key).unwrap().iter().copied())
         .collect();
+    let members = distribute(
+        &order,
+        &groups.owner,
+        &|id| groups.effects.contains_key(&id),
+        &|id| pipeline.tree.parents.get(&id).copied(),
+    );
     let mut painter = Painter {
         pipeline: &mut pipeline,
         groups,
-        order: order.clone(),
+        members,
         clip_areas: HashMap::default(),
     };
     for node_id in order {
@@ -630,6 +640,22 @@ mod tests {
     fn an_overlay_and_what_hangs_from_it_stay_out_of_the_group() {
         let found = members(1, &|id| tree(id), &|id| id == 3);
         assert_eq!(found, [1, 2, 4]);
+    }
+
+    #[test]
+    fn a_group_lists_its_nodes_and_the_roots_hanging_from_them_in_paint_order() {
+        let owner: HashMap<u32, u32> = [(1, 1), (2, 1), (3, 3), (4, 3), (6, 6)].into();
+        let parents: HashMap<u32, u32> = [(2, 1), (3, 1), (4, 3), (6, 5)].into();
+        let lists = distribute(
+            &[1, 2, 5, 3, 4, 6],
+            &owner,
+            &|id| id == 1 || id == 3 || id == 6,
+            &|id| parents.get(&id).copied(),
+        );
+        assert_eq!(lists[&1], [1, 2, 3]);
+        assert_eq!(lists[&3], [3, 4]);
+        assert_eq!(lists[&6], [6]);
+        assert_eq!(lists.len(), 3);
     }
 
     #[test]

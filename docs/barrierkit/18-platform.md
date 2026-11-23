@@ -73,7 +73,7 @@ These steps open a shell surface, the task only this chapter covers.
 | Freya ping | A component changes state or asks for a redraw | Polls every surface, opens pending popups and windows, installs timers, requests frame callbacks |
 | Wake ping | A `WakeHandle`, a D-Bus menu or another thread wakes the app | Runs the wake callbacks and menu actions, then polls |
 | Appearance watch (inotify) | `appearance.domain` or `wallpaper.state` changes | Resolves the appearance again and redraws every surface |
-| The same watch | Another `.domain` file in the config dir changes | Bumps the defaults revision, so `use_defaults` reads again |
+| The same watch | Another `.domain` file in the config dir changes | Bumps the defaults revision when the app reads that file with `use_defaults`, or calls `use_watched`; the title bar reads `window.domain` |
 | Idle timer, every 10 s | Always | Releases Skia GPU resources unused for 10 s |
 
 The loop ends when the last main window closes (utility windows do not
@@ -258,6 +258,9 @@ cannot run it: it has no display.
 
 `platform/macos/` replaces the Wayland runner. It draws with Skia on Metal into
 a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
+A window draws at once when it was idle, and then at most once per refresh of
+its display, driven by a `CADisplayLink` that pauses when nothing is due
+(macOS 14 or later). A resize draws at once.
 
 | Works | Missing |
 |---|---|
@@ -272,7 +275,7 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 | `secrets::Secrets` as the login Keychain, generic passwords (`platform/macos/keychain.rs`) | |
 | `launch` as a lock and a socket in `$TMPDIR`; a second run activates the first (`platform/macos/instance.rs`) | `ActivateAction`, files to open |
 | `WindowOptions::status_item` as an `NSStatusItem` with the items as its menu (`platform/macos/status.rs`) | A status item that changes after the window opens |
-| `notifications::post` and `portal::notify` as `UNUserNotificationCenter` banners, for a bundled app (`platform/macos/notifications.rs`) | A banner shown on screen (not run: the system refused the permission of a test bundle), action buttons |
+| `notifications::post` and `portal::notify` as `UNUserNotificationCenter` banners, for a bundled app; the click callbacks of the last 32 posts wait, the older ones are dropped (`platform/macos/notifications.rs`) | A banner shown on screen (not run: the system refused the permission of a test bundle), action buttons |
 | `Timers`, `WakeHandle`, clipboard text | `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
 | The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
@@ -286,9 +289,9 @@ The window and its popups take the kit's scheme (`appearance.domain`), not the s
 **Input:** the repository, Xcode's command line tools and `rustup`; Nix is not needed (the flake lists Linux systems only).
 **Output:** the same checks as on Linux, minus what Linux alone can run.
 
-1. Install the Rust components once: `rustup component add rustfmt clippy`.
+1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
-3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (the Wayland code is unused on macOS), the scripts of `scripts/` and `cargo test` with the `tracy` feature but not `shell`.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (the Wayland code is unused on macOS), the scripts of `scripts/` (`shellcheck` when installed, the `scripts/swift-to-bk` tests when `swiftc` is), and `cargo test` with the `tracy` feature but not `shell`.
 4. Optional: `./dev.sh macos-smoke` opens every recipe of `agents/recipes` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
 5. Four tests are ignored on macOS: they compare text with goldens drawn in the Linux fonts (`controls_match_their_golden_images`, `keyboard_focus_ring_matches_its_golden_image`, `menu_matches_its_golden_images`, `menu_renders_accents_and_long_shortcuts_without_wrapping`). Linux still runs them.
 
@@ -299,8 +302,8 @@ The window and its popups take the kit's scheme (`appearance.domain`), not the s
 **Input:** a Mac in a logged-in, unlocked session; `scripts/macos-smoke.sh [recipe...]` (`./dev.sh macos-smoke`); `SMOKE_SECONDS` (default 3) sets how long each recipe stays open.
 **Output:** one `PASS name` or `FAIL name: reason` line per recipe and the exit status 1 when any failed. It keeps no screenshots.
 
-1. The script takes `/tmp/barrierkit-screen.lock`, so it waits while another session uses the screen.
-2. It builds the examples, wraps each one in an ad-hoc signed app bundle in a temporary directory and opens it with `open -n`.
+1. The script takes `/tmp/barrierkit-screen.lock`, so it waits while another session uses the screen. The lock directory holds its owner's PID: the script prints `waiting for … held by PID n` once and removes a lock whose owner is gone.
+2. It builds the examples of the recipes it will open, wraps each one in an ad-hoc signed app bundle in a temporary directory and opens it with `open -n`.
 3. It waits up to ten seconds for a window of that process on the screen (the CoreGraphics window list, no permission needed), then waits `SMOKE_SECONDS`.
 4. It fails the recipe when no window appeared, when the process exited, or when the window went away; otherwise it ends the process.
 

@@ -24,7 +24,7 @@ pub fn use_published<T: Clone + PartialEq + Send + 'static>(
     use_hook(move || {
         let latest = Arc::new(Mutex::new(initial));
         let shared = latest.clone();
-        let wake = Timers::get().wakeup(move || {
+        let (wake, registration) = Timers::get().wakeup_until_dropped(move || {
             let mut state = state;
             state.set_if_modified(
                 shared
@@ -34,6 +34,7 @@ pub fn use_published<T: Clone + PartialEq + Send + 'static>(
             );
         });
         start(Publisher { latest, wake });
+        registration
     });
     state
 }
@@ -41,10 +42,12 @@ pub fn use_published<T: Clone + PartialEq + Send + 'static>(
 pub fn use_wake(start: impl FnOnce(WakeHandle) + 'static) -> u64 {
     let ticks = use_state(|| 0u64);
     use_hook(move || {
-        start(Timers::get().wakeup(move || {
+        let (wake, registration) = Timers::get().wakeup_until_dropped(move || {
             let mut ticks = ticks;
             *ticks.write() += 1;
-        }));
+        });
+        start(wake);
+        registration
     });
     *ticks.read()
 }
