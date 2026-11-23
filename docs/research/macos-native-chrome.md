@@ -43,9 +43,10 @@ The numbers agree with the kit's tokens (52 bar, 36 slots; [macos-control-metric
 | d | Toolbar items | `NSToolbarItem` with `isBordered`, `NSToolbarItemGroup(selectionMode: .selectOne)`, `NSSearchToolbarItem`, `.toggleSidebar`, `.sidebarTrackingSeparator`, `.flexibleSpace` all get a glass platter with no code. The SDK has `style` (macOS 26), `badge`, `backgroundTintColor`, `navigational`, `visibilityPriority`. Not measured: overflow at a narrow width, customization, `prominent` |
 | e | Sidebar and collapse | The glass is native and flat, light and dark. `toggleSidebar` takes 0.29 s: the content view grows 700 to 900 pt, the sidebar view keeps its 200 pt frame (it slides). The Metal drawable followed the view within 7 pt at the 0.1 s and 0.19 s samples: one display tick |
 | f | Does the look follow the SDK the binary links against? | Yes (below) |
+| d2 | Reduce Transparency (system setting on, the owner's) | The tree is the same (6 glass views, the pocket, 5 platters) and AppKit draws them opaque by itself: the title-bar rows are flat 255 in light, the capsules and the sidebar are solid in dark, and the red band never shows through the title bar or a capsule in 16 shots of each appearance. The kit needs no code for it in native chrome |
 | g | Light and dark | Both draw the glass, the pocket and the sidebar; the lights, the title and the platters change with the window appearance (`NSApp.appearance`) |
 
-Not measured: Reduce Transparency and Increase Contrast (they are system settings; `~/src/probes/nchrome-scroll.sh <aqua|darkAqua> <dir>` is ready to run once with each on), scale 2, a real Freya surface in place of the probe's Metal, an inspector column, and VoiceOver.
+Not measured: Increase Contrast (a system setting; `~/src/probes/nchrome-scroll.sh <aqua|darkAqua> <dir>` runs it), scale 2, a real Freya surface in place of the probe's Metal, an inspector column, and VoiceOver.
 
 ### The SDK the binary links against
 
@@ -96,7 +97,7 @@ The kit has no declarative toolbar: `Titlebar::left` and `right` take any elemen
 4. The kit must read the safe area and the native sidebar's frame each tick instead of animating `SidebarControl` itself.
 5. Apps built with an SDK older than 26 get the old chrome (table above): the docs must name the floor.
 6. The first click after activation only activates, as it does for any macOS window.
-7. Unmeasured: overflow, customization, Reduce Transparency, Increase Contrast, 2x.
+7. Unmeasured: overflow, customization, Increase Contrast, 2x.
 
 ## Proposal
 
