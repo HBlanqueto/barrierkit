@@ -365,7 +365,14 @@ let instance = match launch("io.github.hblanqueto.malaysia.notes") {
    `use_hook`.
 
 Without a session bus, `launch` returns `Err` and the app runs without a
-single instance. `Open` raises the app like `Activate`; bk has no API to open files yet, and its URIs are dropped.
+single instance. On macOS there is no bus: `launch` takes an exclusive lock on
+`$TMPDIR/<app_id>.lock` and listens on the socket `$TMPDIR/<app_id>.sock`; a second run
+connects to the socket, which is the activation, and returns `Launch::Forwarded`. The
+first run brings its window to the front and activates the app. `launch` returns `Err`
+when the socket path is too long (about 100 bytes), and the system drops the lock when
+the process ends, so a crash leaves nothing behind. Launch Services already keeps a
+bundled app to one process when it is opened from the Finder or the Dock; the lock also
+covers a bare binary and `open -n`. There is no `ActivateAction` on macOS. `Open` raises the app like `Activate`; bk has no API to open files yet, and its URIs are dropped.
 
 ## Status item
 

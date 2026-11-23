@@ -367,6 +367,17 @@ the menu opened with "Say hello", clicking it printed the action id; an item wit
 and with an image the bundle lacks showed its title and a click sent
 `status-item.activate`. The icon of a named image was seen (`NSActionTemplate`).
 
+### M4 result: single instance (2026-11-22)
+
+`app::launch` on macOS claims an `flock` on `$TMPDIR/<app_id>.lock` and listens on
+`$TMPDIR/<app_id>.sock` (`platform/macos/instance.rs`); a second run connects, which
+the first reads as `Activate`, and returns `Launch::Forwarded`. `WindowCommand::Present`
+now also activates the app. Checked with `open -n` twice on an ad-hoc bundle: the second
+process printed `FORWARDED` and left, one process stayed, and with Finder in front the
+first window came to the front. `NSApplication.activate()` did not bring it forward
+(Finder stayed in front), `activateIgnoringOtherApps(true)` did, on this macOS 27. The
+Linux `launch` and its D-Bus tests are unchanged and compiled out here.
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

@@ -1,8 +1,11 @@
+#[cfg(not(target_os = "macos"))]
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-
+#[cfg(not(target_os = "macos"))]
 use zbus::blocking::Connection;
+#[cfg(not(target_os = "macos"))]
 use zbus::fdo::{RequestNameFlags, RequestNameReply};
+#[cfg(not(target_os = "macos"))]
 use zbus::zvariant::OwnedValue;
 
 use freya_core::prelude::try_consume_root_context;
@@ -61,22 +64,19 @@ impl Instance {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 struct Activation {
     requests: Arc<Mutex<Requests>>,
 }
 
+#[cfg(not(target_os = "macos"))]
 #[zbus::interface(name = "org.freedesktop.Application")]
 impl Activation {
     fn activate(&self, platform_data: HashMap<String, OwnedValue>) {
         let token = platform_data
             .get("activation-token")
             .and_then(|value| String::try_from(value.clone()).ok());
-        if let Ok(mut pending) = self.requests.lock() {
-            pending.tokens.push(token);
-            if let Some(wake) = &pending.wake {
-                wake.wake();
-            }
-        }
+        present(&self.requests, token);
     }
 
     fn open(&self, _uris: Vec<String>, platform_data: HashMap<String, OwnedValue>) {
@@ -98,10 +98,12 @@ impl Activation {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 fn object_path(app_id: &str) -> String {
     format!("/{}", app_id.replace('.', "/").replace('-', "_"))
 }
 
+#[cfg(not(target_os = "macos"))]
 fn forward(
     connection: &Connection,
     app_id: &str,
@@ -123,7 +125,29 @@ fn forward(
     Ok(())
 }
 
+fn present(requests: &Mutex<Requests>, token: Option<String>) {
+    if let Ok(mut pending) = requests.lock() {
+        pending.tokens.push(token);
+        if let Some(wake) = &pending.wake {
+            wake.wake();
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+pub fn launch(app_id: &str) -> zbus::Result<Launch> {
+    let requests = Arc::new(Mutex::new(Requests::default()));
+    let pending = requests.clone();
+    let primary = crate::platform::instance::claim(app_id, move || present(&pending, None))?;
+    Ok(if primary {
+        Launch::Primary(Instance { requests })
+    } else {
+        Launch::Forwarded
+    })
+}
+
 // Export before owning the name: a second instance calls Activate as soon as the name is ours.
+#[cfg(not(target_os = "macos"))]
 pub fn launch(app_id: &str) -> zbus::Result<Launch> {
     let connection = crate::session_bus::blocking()?;
     let path = object_path(app_id);
@@ -159,7 +183,7 @@ pub fn launch(app_id: &str) -> zbus::Result<Launch> {
     Ok(Launch::Primary(Instance { requests }))
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(target_os = "macos")))]
 mod tests {
     use super::*;
 

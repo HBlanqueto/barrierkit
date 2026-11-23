@@ -54,6 +54,7 @@ use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 mod blur;
 mod frame;
 mod input;
+pub(crate) mod instance;
 pub(crate) mod keychain;
 mod menu;
 pub(crate) mod notifications;
@@ -158,6 +159,7 @@ enum Native {
     Zoom,
     FullScreen,
     Front,
+    Present,
     Title(String),
     Size(u32, u32),
     Drag,
@@ -185,6 +187,14 @@ fn native(id: u64, command: Native) {
             with_runtime(|runtime| runtime.toggle_borderless_fullscreen(id));
         }
         Native::Front => window.makeKeyAndOrderFront(None),
+        Native::Present => {
+            window.makeKeyAndOrderFront(None);
+            if let Some(mtm) = MainThreadMarker::new() {
+                // `activate()` leaves the app that is in front still in front (checked on macOS 27); this does not.
+                #[allow(deprecated)]
+                NSApplication::sharedApplication(mtm).activateIgnoringOtherApps(true);
+            }
+        }
         Native::Title(title) => window.setTitle(&NSString::from_str(&title)),
         Native::Size(width, height) => {
             window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))
@@ -977,7 +987,8 @@ impl Runtime {
                     WindowCommand::Move(_) => later(id, Native::Drag),
                     WindowCommand::ToggleMaximize => later(id, Native::Zoom),
                     WindowCommand::ToggleFullscreen => later(id, Native::FullScreen),
-                    WindowCommand::Present(_) | WindowCommand::MakeKey => later(id, Native::Front),
+                    WindowCommand::Present(_) => later(id, Native::Present),
+                    WindowCommand::MakeKey => later(id, Native::Front),
                     WindowCommand::SetTitle(title) => later(id, Native::Title(title.to_string())),
                     WindowCommand::Fit((width, height)) => later(id, Native::Size(width, height)),
                     WindowCommand::ImeCursor(area) => areas.push((id, area)),
