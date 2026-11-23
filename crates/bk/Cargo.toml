@@ -128,6 +128,10 @@ name = "for_each"
 path = "../../agents/recipes/for_each.rs"
 
 [[example]]
+name = "gestures"
+path = "../../agents/recipes/gestures.rs"
+
+[[example]]
 name = "glass_toolbar"
 path = "../../agents/recipes/glass_toolbar.rs"
 

@@ -110,6 +110,8 @@ pub mod elements;
 
 pub mod layout;
 
+pub mod gesture;
+
 pub mod modifiers;
 
 pub mod environment;

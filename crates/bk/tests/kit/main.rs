@@ -13,6 +13,7 @@ mod controls;
 mod corners;
 mod focus;
 mod focus_by_name;
+mod gesture;
 mod form_stack;
 mod image;
 mod layout;

@@ -29,6 +29,18 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
         self.maybe_child(presented.then(|| crate::views::feedback::Sheet::new(content())))
     }
 
+    fn gesture(self, gesture: impl crate::gesture::Attachable) -> Self {
+        crate::gesture::attach(self, gesture, crate::gesture::Priority::Normal)
+    }
+
+    fn simultaneous_gesture(self, gesture: impl crate::gesture::Attachable) -> Self {
+        crate::gesture::attach(self, gesture, crate::gesture::Priority::Simultaneous)
+    }
+
+    fn high_priority_gesture(self, gesture: impl crate::gesture::Attachable) -> Self {
+        crate::gesture::attach(self, gesture, crate::gesture::Priority::High)
+    }
+
     fn help(self, text: impl Into<Cow<'static, str>>) -> Self {
         crate::tooltip::use_tooltip(text).attach(self)
     }

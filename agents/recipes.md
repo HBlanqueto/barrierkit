@@ -405,3 +405,20 @@ The program is [`recipes/navigation_stack.rs`](recipes/navigation_stack.rs).
    ([UIKit animations](../docs/research/uikit-animations.md#2-motion-table)). Reduced motion
    shows the page at once. Wrap the change in `with_animation` to use another
    animation ([14](../docs/barrierkit/14-animations.md#implicit-animation)).
+
+## 33. A tap, a long press and a drag on one view
+
+SwiftUI: `Rectangle().gesture(LongPressGesture().exclusively(before: TapGesture())).simultaneousGesture(DragGesture().updating($offset) { value, state, _ in state = value.translation.width })`.
+
+The program is [`recipes/gestures.rs`](recipes/gestures.rs).
+
+1. `TapGesture`, `LongPressGesture`, `DragGesture`, `MagnifyGesture` and `RotateGesture` take `.on_changed` and
+   `.on_ended`; `.updating(state, |value, state| ..)` is `@GestureState`: it changes while the
+   gesture does and goes back when it ends ([`use_gesture_state`]).
+2. `.gesture(g)` attaches one gesture, `.simultaneous_gesture(g)` one that never fails the others and
+   `.high_priority_gesture(g)` one that beats those of the views below. A node keeps one handler per
+   event: put several gestures on a view with `a.exclusively(b)` (`a` first: while it can still begin,
+   `b` waits) or `a.simultaneously(b)`, not with two `.gesture` calls.
+3. The deepest view wins a pointer. A tap that has moved 10 points is no tap; a long press fires after
+   500 ms in place. Two fingers (two `finger_id`s) drive `MagnifyGesture` and `RotateGesture`; a trackpad
+   pinch needs the runner to map it.

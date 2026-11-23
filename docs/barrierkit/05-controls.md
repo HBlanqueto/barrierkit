@@ -128,6 +128,37 @@ Button::new(tr!("save")).margin(SPACE_2).help(tr!("save"))
 
 The program is [`control_modifiers.rs`](../../agents/recipes/control_modifiers.rs).
 
+## Gestures
+
+`.gesture(g)`, `.simultaneous_gesture(g)` and `.high_priority_gesture(g)` of `ViewModifiers`
+attach a gesture to any view; the gestures are in `bk::gesture` ([ADR 0105](../decisions.md),
+recipe 33 of [agents](../../agents/recipes.md)).
+
+| Gesture | Value | Default |
+|---|---|---|
+| `TapGesture::new().count(n)` | `TapValue { location }` | 1 tap, 10 points, 500 ms between taps |
+| `LongPressGesture::new()` | `LongPressValue { location }`, once the time has passed | 500 ms, 10 points |
+| `DragGesture::new()` | `DragValue { start_location, location, translation, velocity }`, velocity in points per millisecond | 10 points |
+| `MagnifyGesture::new()` | `MagnifyValue { magnification }`, from two fingers | 0.01 |
+| `RotateGesture::new()` | `RotateValue { rotation }` in radians, from two fingers | 1 degree |
+
+Each takes `.on_changed(f)` (when it begins and as it moves) and `.on_ended(f)`.
+`.updating(state, |value, state| ..)` is `@GestureState`: `use_gesture_state(initial)` gives a
+`GestureState` that follows the gesture and goes back to `initial` when it ends, fails or is
+cancelled. The defaults are SwiftUI's documented ones, not measured on this Mac.
+
+- A view keeps one handler per event, so two `.gesture` calls on one view replace each other.
+  Put the gestures together: `a.exclusively(b)` tries `a` first (while it can still begin,
+  `b` waits, as a single tap waits for a double tap; when it begins, `b` fails) and
+  `a.simultaneously(b)` lets both run.
+- Across views the deepest wins a pointer; a `.high_priority_gesture` beats the gestures of the
+  views below it, and a `.simultaneous_gesture` neither wins nor loses. A gesture that begins
+  fails the others on its pointer, so a tap that moved is no tap and a drag cancels a long press.
+- A mouse and a finger are both pointers; `MagnifyGesture` and `RotateGesture` need two fingers
+  until a runner maps the trackpad pinch (not done). Hover is not a gesture: `.on_hover`.
+- A touch pan on a scroll view is a gesture of the lowest priority (U6 step 3, not built):
+  today only the wheel scrolls it ([ADR 0104](../decisions.md)).
+
 ## Buttons
 
 `controls::Button` is a push button with a text label, and a symbol if you

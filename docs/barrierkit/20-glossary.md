@@ -278,6 +278,43 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `environment::use_is_enabled` | fn | `\.isEnabled` | `NSControl.isEnabled` | `UIControl.isEnabled` | `false` inside a view that `.disabled(true)` disabled | [16](16-swiftui-to-the-kit.md#disabled) |
 | `focus::FocusState` | struct | `FocusState` | ≈ `NSWindow.firstResponder` | `UIResponder.isFirstResponder` | Names the focus targets of a window: `get()` is the focused value, `set(Some(v))` moves the focus there, `set(None)` takes it off | [16](16-swiftui-to-the-kit.md#focus) |
 | `focus::use_focus_state` | fn | `@FocusState` | — | `UIResponder.isFirstResponder` | Hook: creates a `FocusState<T>` | [16](16-swiftui-to-the-kit.md#focus) |
+| `gesture::TapGesture` | struct | `TapGesture` | `NSClickGestureRecognizer` | `UITapGestureRecognizer` | One or more taps; `.count`, `.on_ended` | [5](05-controls.md#gestures) |
+| `gesture::LongPressGesture` | struct | `LongPressGesture` | ≈ `NSPressGestureRecognizer` | `UILongPressGestureRecognizer` | The pointer stays down in place; `.minimum_duration`, `.maximum_distance` | [5](05-controls.md#gestures) |
+| `gesture::DragGesture` | struct | `DragGesture` | ≈ `NSPanGestureRecognizer` | `UIPanGestureRecognizer` | A drag with translation and velocity; `.minimum_distance` | [5](05-controls.md#gestures) |
+| `gesture::MagnifyGesture` | struct | `MagnifyGesture` | `NSMagnificationGestureRecognizer` | `UIPinchGestureRecognizer` | Two fingers apart or together | [5](05-controls.md#gestures) |
+| `gesture::RotateGesture` | struct | `RotateGesture` | `NSRotationGestureRecognizer` | `UIRotationGestureRecognizer` | Two fingers turning | [5](05-controls.md#gestures) |
+| `gesture::GestureState` | struct | `GestureState` | — | — | A state that goes back when its gesture ends; `use_gesture_state` | [5](05-controls.md#gestures) |
+| `gesture::Attachable::exclusively` | method | `.exclusively(before:)` | ≈ `shouldRequireFailureOf` | ≈ `require(toFail:)` | The first gesture is tried first; the second waits for it | [5](05-controls.md#gestures) |
+| `gesture::Attachable::simultaneously` | method | `.simultaneously(with:)` | ≈ `shouldRecognizeSimultaneously` | ≈ `gestureRecognizer(_:shouldRecognizeSimultaneouslyWith:)` | Both gestures run | [5](05-controls.md#gestures) |
+| `modifiers::ViewModifiers::gesture` | method | `.gesture(_:)` | ≈ `NSView.addGestureRecognizer(_:)` | `UIView.addGestureRecognizer(_:)` | Attaches a gesture to a view | [5](05-controls.md#gestures) |
+| `modifiers::ViewModifiers::simultaneous_gesture` | method | `.simultaneousGesture(_:)` | — | — | A gesture that never fails the others | [5](05-controls.md#gestures) |
+| `modifiers::ViewModifiers::high_priority_gesture` | method | `.highPriorityGesture(_:)` | — | — | A gesture that beats those of the views below | [5](05-controls.md#gestures) |
+| `gesture::Point` | type | `CGPoint` | `NSPoint` | `CGPoint` | A point `(x, y)` in points | [5](05-controls.md#gestures) |
+| `gesture::Phase` | enum | ≈ `TouchPhase` | ≈ `NSEvent.EventType` | `UITouch.Phase` | Down, move, up or cancel of one pointer | [5](05-controls.md#gestures) |
+| `gesture::Input` | struct | — | ≈ `NSEvent` | ≈ `UITouch` | One pointer or finger at an instant, in milliseconds | [5](05-controls.md#gestures) |
+| `gesture::State` | enum | — | `NSGestureRecognizer.State` | `UIGestureRecognizer.State` | Possible, began, changed, ended, failed or cancelled | [5](05-controls.md#gestures) |
+| `gesture::Step` | enum | — | — | — | What a recognizer reports for one input | [5](05-controls.md#gestures) |
+| `gesture::Recognizer` | trait | — | `NSGestureRecognizer` | `UIGestureRecognizer` | A gesture's state machine over inputs | [5](05-controls.md#gestures) |
+| `gesture::TapRecognizer` | struct | — | `NSClickGestureRecognizer` | `UITapGestureRecognizer` | The state machine of `TapGesture` | [5](05-controls.md#gestures) |
+| `gesture::LongPressRecognizer` | struct | — | ≈ `NSPressGestureRecognizer` | `UILongPressGestureRecognizer` | The state machine of `LongPressGesture` | [5](05-controls.md#gestures) |
+| `gesture::DragRecognizer` | struct | — | ≈ `NSPanGestureRecognizer` | `UIPanGestureRecognizer` | The state machine of `DragGesture` | [5](05-controls.md#gestures) |
+| `gesture::MagnifyRecognizer` | struct | — | `NSMagnificationGestureRecognizer` | `UIPinchGestureRecognizer` | The state machine of `MagnifyGesture` | [5](05-controls.md#gestures) |
+| `gesture::RotateRecognizer` | struct | — | `NSRotationGestureRecognizer` | `UIRotationGestureRecognizer` | The state machine of `RotateGesture` | [5](05-controls.md#gestures) |
+| `gesture::TapValue` | struct | ≈ `SpatialTapGesture.Value` | — | — | Where a tap ended | [5](05-controls.md#gestures) |
+| `gesture::LongPressValue` | struct | — | — | — | Where a long press was held | [5](05-controls.md#gestures) |
+| `gesture::DragValue` | struct | `DragGesture.Value` | — | — | Start, location, translation and velocity of a drag | [5](05-controls.md#gestures) |
+| `gesture::MagnifyValue` | struct | `MagnifyGesture.Value` | `NSEvent.magnification` | `UIPinchGestureRecognizer.scale` | The ratio of the fingers' distance to the first | [5](05-controls.md#gestures) |
+| `gesture::RotateValue` | struct | `RotateGesture.Value` | `NSEvent.rotation` | `UIRotationGestureRecognizer.rotation` | The angle of the fingers' line from the first, in radians | [5](05-controls.md#gestures) |
+| `gesture::Priority` | enum | ≈ `GestureMask` | — | — | Normal, high or simultaneous in the arena | [5](05-controls.md#gestures) |
+| `gesture::Contender` | struct | — | — | — | One gesture's standing in the arena | [5](05-controls.md#gestures) |
+| `gesture::Verdict` | enum | — | — | — | What the arena decides for a contender | [5](05-controls.md#gestures) |
+| `gesture::verdicts` | fn | — | — | ≈ `gestureRecognizer(_:shouldBeRequiredToFailBy:)` | The arena's rule: deepest wins, high priority beats, simultaneous ignores | [5](05-controls.md#gestures) |
+| `gesture::Callbacks` | struct | — | — | — | The changed, ended and reset callbacks of a gesture | [5](05-controls.md#gestures) |
+| `gesture::Gesture` | trait | `Gesture` | — | — | A gesture the modifiers take | [5](05-controls.md#gestures) |
+| `gesture::Attachable` | trait | — | — | — | What `.gesture` takes: one gesture or several put together | [5](05-controls.md#gestures) |
+| `gesture::Combined` | struct | `SimultaneousGesture`, `ExclusiveGesture` | — | — | Gestures put together | [5](05-controls.md#gestures) |
+| `gesture::Handlers` | trait | — | — | — | The event handlers of a gesture on a view; hidden | [5](05-controls.md#gestures) |
+| `gesture::use_gesture_state` | fn | `@GestureState` | — | — | Creates a `GestureState` | [5](05-controls.md#gestures) |
 | `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | ≈ `UILabel.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../../agents/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | ≈ `UIView.layer` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../../agents/styles.md#paint-on-views) |
 | `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | ≈ `CALayer.shadowOpacity` | Adds a list of `ShadowStyle` to a view | [Styles](../../agents/styles.md#paint-on-views) |
