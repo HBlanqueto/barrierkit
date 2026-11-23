@@ -1223,6 +1223,10 @@
   --bk-window-titlebar-title-gap: 12;
   --bk-window-titlebar-expanded-title-height: 28;
   --bk-window-titlebar-expanded-title-gap: 15;
+  --bk-window-titlebar-expanded-title-toolbar-bottom: 5;
+  --bk-window-titlebar-toolbar-start-unified: 16;
+  --bk-window-titlebar-toolbar-start-compact: 22;
+  --bk-window-titlebar-toolbar-start-expanded: 11;
   --bk-window-titlebar-double-click-interval-ms: 400;
   --bk-window-titlebar-double-click-slop: 4;
   --bk-window-titlebar-rail-width: 30;
@@ -1336,6 +1340,9 @@
   --bk-window-toolgroup-compact-height: 24;
   --bk-window-toolgroup-compact-inset: 5;
   --bk-window-toolgroup-compact-separator-h: 14;
+  --bk-window-toolgroup-expanded-width: 38;
+  --bk-window-toolgroup-expanded-height: 28;
+  --bk-window-toolgroup-expanded-inset: 4;
   --bk-window-toolgroup-separator: var(--bk-toolgroup-separator);
   --bk-window-toolgroup-rim: var(--bk-toolgroup-rim);
   --bk-settings-window-width: 770;
@@ -5417,6 +5424,8 @@
   --bk-titlebar-bg-inactive: #efeff0;
   --bk-titlebar-title: #4d4d4d;
   --bk-titlebar-title-inactive: #6e6e6e;
+  --bk-titlebar-row-title: #585858;
+  --bk-titlebar-row-title-inactive: #b7b7b7;
   --bk-titlebar-line: var(--bk-separator);
   --bk-shell-bar: #f2f4f7e6;
   --bk-dock-bar: #b5b5b548;
@@ -5677,6 +5686,8 @@
     --bk-titlebar-bg-inactive: #232323;
     --bk-titlebar-title: #eaeaea;
     --bk-titlebar-title-inactive: #9b9b9b;
+    --bk-titlebar-row-title: #a5a5a6;
+    --bk-titlebar-row-title-inactive: #6a6a6b;
     --bk-titlebar-line: var(--bk-separator);
     --bk-shell-bar: #1e1e1ee6;
     --bk-dock-bar: #2727274e;
@@ -5937,6 +5948,8 @@
   --bk-titlebar-bg-inactive: #232323;
   --bk-titlebar-title: #eaeaea;
   --bk-titlebar-title-inactive: #9b9b9b;
+  --bk-titlebar-row-title: #a5a5a6;
+  --bk-titlebar-row-title-inactive: #6a6a6b;
   --bk-titlebar-line: var(--bk-separator);
   --bk-shell-bar: #1e1e1ee6;
   --bk-dock-bar: #2727274e;
@@ -6196,6 +6209,8 @@
   --bk-titlebar-bg-inactive: #151617;
   --bk-titlebar-title: #f4f5f6;
   --bk-titlebar-title-inactive: #999ca3;
+  --bk-titlebar-row-title: #a5a5a6;
+  --bk-titlebar-row-title-inactive: #6a6a6b;
   --bk-titlebar-line: var(--bk-separator);
   --bk-shell-bar: #1d1e20e6;
   --bk-dock-bar: #2727274e;

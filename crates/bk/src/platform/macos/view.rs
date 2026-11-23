@@ -441,7 +441,9 @@ define_class!(
                 let top = screen.frame();
                 frame.origin.y + frame.size.height < top.origin.y + top.size.height - 1.0
             });
-            self.show_toolbar(revealed);
+            // An expanded bar rides below AppKit's title strip, which an empty `.expanded` toolbar would make 12 taller.
+            let beside_lights = with_runtime(|runtime| runtime.rides_beside_lights(self.ivars().id));
+            self.show_toolbar(revealed && beside_lights != Some(false));
             with_runtime(|runtime| runtime.reveal_bar(self.ivars().id, revealed));
         }
     }
@@ -668,6 +670,7 @@ define_class!(
 pub(super) struct BarIvars {
     id: u64,
     container_height: Cell<f64>,
+    row_top: f64,
 }
 
 define_class!(
@@ -692,12 +695,21 @@ define_class!(
 );
 
 impl BarView {
-    pub(super) fn new(mtm: MainThreadMarker, id: u64, width: f64) -> Retained<Self> {
+    pub(super) fn new(
+        mtm: MainThreadMarker,
+        id: u64,
+        width: f64,
+        (row_top, row_height): (f32, f32),
+    ) -> Retained<Self> {
         let this = Self::alloc(mtm).set_ivars(BarIvars {
             id,
             container_height: Cell::new(0.0),
+            row_top: f64::from(row_top),
         });
-        let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(width, 52.0));
+        let frame = NSRect::new(
+            NSPoint::new(0.0, 0.0),
+            NSSize::new(width, f64::from(row_height)),
+        );
         // SAFETY: NSView's designated initializer.
         unsafe { msg_send![super(this), initWithFrame: frame] }
     }
@@ -708,15 +720,16 @@ impl BarView {
         let left = self.convertRect_toView(self.bounds(), None).origin.x;
         self.setBoundsOrigin(NSPoint::new(
             left,
-            container_height - self.frame().size.height,
+            container_height - self.ivars().row_top - self.frame().size.height,
         ));
     }
 
+    // Where the container's top would be on screen if it rode with this row.
     pub(super) fn top(&self) -> f64 {
         let frame = self.convertRect_toView(self.bounds(), None);
         self.window().map_or(0.0, |window| {
             let frame = window.convertRectToScreen(frame);
-            frame.origin.y + frame.size.height
+            frame.origin.y + frame.size.height + self.ivars().row_top
         })
     }
 

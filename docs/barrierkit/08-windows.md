@@ -210,7 +210,9 @@ controls of the title bar row into it, in an
 [`NSTitlebarAccessoryViewController`](https://developer.apple.com/documentation/appkit/nstitlebaraccessoryviewcontroller).
 They ride in one row beside the lights, as in SwiftUI, and still take clicks;
 a popover opened from them follows the row, and with the sidebar hidden the row
-makes room for the lights. The content does not move
+makes room for the lights. Under `WindowToolbarStyle::Expanded` the toolbar row
+rides instead, in a row of its own under the lights, as SwiftUI's `.expanded`
+does. The content does not move
 ([ADR 0116](../decisions.md#0116--in-full-screen-the-title-bar-row-of-a-hiddentitlebar-window-rides-with-appkits-bar)).
 
 ### Resizing from the edges

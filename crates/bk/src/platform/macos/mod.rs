@@ -120,6 +120,7 @@ struct Bar {
     accessory: Retained<NSTitlebarAccessoryViewController>,
     view: Retained<BarView>,
     revealed: bool,
+    row: (f32, f32),
 }
 
 struct Window {
@@ -162,7 +163,8 @@ impl Window {
         for chrome in &self.chromes {
             let (_, top) = chrome.wanted.placement.origin;
             let (_, strip) = chrome.wanted.placement.size;
-            let riding = bar.revealed && crate::titlebar::in_bar_row(top as f32, strip as f32);
+            let riding =
+                bar.revealed && crate::titlebar::in_bar_row(top as f32, strip as f32, bar.row);
             let parent: &NSView = if riding { &bar.view } else { container };
             let views = chrome.effects.iter().map(|effect| &**effect);
             for view in views.chain([&**chrome.view]) {
@@ -702,14 +704,22 @@ impl Runtime {
         let mtm = self.mtm;
         let window = self.window(id)?;
         window.window.toolbar()?;
-        let view = BarView::new(mtm, id, window.window.screen()?.frame().size.width);
+        // Beside the lights an `.expanded` window gives an accessory only 32 high, so its toolbar row rides as a row of its own below AppKit's strip.
+        let expanded = window.window.toolbarStyle() == NSWindowToolbarStyle::Expanded;
+        let row = crate::titlebar::bar_row(expanded);
+        let view = BarView::new(mtm, id, window.window.screen()?.frame().size.width, row);
         let accessory = NSTitlebarAccessoryViewController::new(mtm);
         accessory.setView(&view);
-        accessory.setLayoutAttribute(NSLayoutAttribute::Left);
+        accessory.setLayoutAttribute(if expanded {
+            NSLayoutAttribute::Bottom
+        } else {
+            NSLayoutAttribute::Left
+        });
         window.bar = Some(Bar {
             accessory: accessory.clone(),
             view,
             revealed: false,
+            row,
         });
         Some((window.window.clone(), accessory))
     }
@@ -720,6 +730,12 @@ impl Runtime {
     ) -> Option<Retained<NSTitlebarAccessoryViewController>> {
         self.reveal_bar(id, false);
         Some(self.window(id)?.bar.take()?.accessory)
+    }
+
+    pub(super) fn rides_beside_lights(&mut self, id: u64) -> bool {
+        self.window(id)
+            .and_then(|window| window.bar.as_ref())
+            .is_none_or(|bar| bar.row.0 == 0.0)
     }
 
     pub(super) fn bar_window(&mut self, id: u64) -> Option<Retained<NSWindow>> {

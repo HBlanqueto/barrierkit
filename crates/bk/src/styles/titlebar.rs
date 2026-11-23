@@ -1,6 +1,7 @@
 use ctappearance::palette;
 use ctdesign::{
-    Font, HAIRLINE, SETTINGS, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_PADDING_X,
+    FocusPair, Font, HAIRLINE, SETTINGS, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT,
+    TITLEBAR_PADDING_X,
 };
 use torin::prelude::Alignment;
 
@@ -55,6 +56,10 @@ pub struct TitlebarStyle {
     /// Tengen: `Color` of the unfocused title, focused `Color` of the focused one; over a
     /// `Backdrop` `Role(SecondaryLabel)`, focused `Role(Label)`.
     pub title: StateValue<ShapeStyle>,
+    /// Tengen: `Color` of the unfocused and focused `row_title`, dimmer than `title`, for the
+    /// title row of `WindowToolbarStyle::Expanded`; over a `Backdrop` `Role(TertiaryLabel)`,
+    /// focused `Role(SecondaryLabel)`.
+    pub row_title: StateValue<ShapeStyle>,
     /// Tengen: `None`, as macOS draws no separator under a unified toolbar at rest.
     /// `NSTitlebarSeparatorStyle.line` is `Some(TitlebarStyle::line())`.
     pub hairline: Option<(ShapeStyle, f32)>,
@@ -93,13 +98,20 @@ impl ControlStyle for TitlebarStyle {
             }
         };
         let active = surface(surface_background(&resolved, SurfaceKind::Toplevel));
-        let title = if tinted {
-            StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
-                .focused(ShapeStyle::Role(Role::Label))
+        let ink = palette(resolved.scheme);
+        let (title, row_title) = if tinted {
+            (
+                StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
+                    .focused(ShapeStyle::Role(Role::Label)),
+                StateValue::new(ShapeStyle::Role(Role::TertiaryLabel))
+                    .focused(ShapeStyle::Role(Role::SecondaryLabel)),
+            )
         } else {
-            let ink = palette(resolved.scheme).title;
-            StateValue::new(ShapeStyle::Color(ink.unfocused))
-                .focused(ShapeStyle::Color(ink.focused))
+            let pair = |ink: FocusPair| {
+                StateValue::new(ShapeStyle::Color(ink.unfocused))
+                    .focused(ShapeStyle::Color(ink.focused))
+            };
+            (pair(ink.title), pair(ink.row_title))
         };
         Self {
             height: TITLEBAR_CLIENT_HEIGHT as f32,
@@ -115,6 +127,7 @@ impl ControlStyle for TitlebarStyle {
             sidebar_background: StateValue::new(surface(resolved.surfaces.toolbar)),
             close_only_background: StateValue::new(ShapeStyle::Clear),
             title,
+            row_title,
             hairline: None,
             effect: system_effect,
             title_alignment: Alignment::Center,

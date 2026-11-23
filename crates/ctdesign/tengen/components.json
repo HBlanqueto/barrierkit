@@ -794,7 +794,8 @@
       "titlebar": {
         "padding-x": 10,
         "title-gap": 12,
-        "expanded-title": {"height": 28, "gap": 15},
+        "expanded-title": {"height": 28, "gap": 15, "toolbar-bottom": 5},
+        "toolbar-start": {"unified": 16, "compact": 22, "expanded": 11},
         "double-click": {
           "interval-ms": 400,
           "slop": 4
@@ -915,6 +916,9 @@
         "compact-height": 24,
         "compact-inset": 5,
         "compact-separator-h": 14,
+        "expanded-width": 38,
+        "expanded-height": 28,
+        "expanded-inset": 4,
         "separator": "toolgroup-separator",
         "rim": "toolgroup-rim"
       }

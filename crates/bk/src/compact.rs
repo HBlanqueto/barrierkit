@@ -1,4 +1,4 @@
-use ctdesign::ControlSize;
+use ctdesign::{ControlSize, TOOLGROUP};
 use freya_core::prelude::*;
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -10,7 +10,6 @@ use crate::elements::{Overrides, forward_overrides};
 use crate::environment::{use_disabled, use_is_enabled};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
-use crate::platform::Bar;
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{
@@ -18,30 +17,48 @@ use crate::styles::{
     ToggleGroupStyle, ToolbarSearchStyle, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol};
+use crate::titlebar::WindowToolbarStyle;
 
 #[derive(Clone, Copy)]
-struct ToolbarItems(State<Option<Bar>>);
+struct ToolbarItems(State<Option<WindowToolbarStyle>>);
 
-// Toolbar items are glass capsules, 36 high in the unified bar and 24 in the compact one.
-pub(crate) fn use_toolbar_items(bar: Option<Bar>) {
+// Toolbar items are glass capsules, 36 high in the unified bar, 24 in the compact one and 28 in the expanded one.
+pub(crate) fn use_toolbar_items(style: Option<WindowToolbarStyle>) {
     let mut items = use_hook(|| {
-        let items = State::create(bar);
+        let items = State::create(style);
         provide_context(ToolbarItems(items));
         items
     });
-    items.set_if_modified(bar);
+    items.set_if_modified(style);
 }
 
-pub(crate) fn use_toolbar_items_or(bar: Bar) {
+pub(crate) fn use_toolbar_items_or(style: WindowToolbarStyle) {
     use_hook(|| {
         if try_consume_context::<ToolbarItems>().is_none() {
-            provide_context(ToolbarItems(State::create(Some(bar))));
+            provide_context(ToolbarItems(State::create(Some(style))));
         }
     });
 }
 
-pub(crate) fn toolbar_bar() -> Option<Bar> {
+pub(crate) fn toolbar_style() -> Option<WindowToolbarStyle> {
     try_consume_context::<ToolbarItems>().and_then(|items| *items.0.read())
+}
+
+// The compact and expanded toolbars draw their items on a platter narrower than their slots: slot width, height, inset.
+pub(crate) fn slim_toolbar_items() -> Option<(f32, f32, f32)> {
+    match toolbar_style()? {
+        WindowToolbarStyle::Unified => None,
+        WindowToolbarStyle::UnifiedCompact => Some((
+            TOOLGROUP.compact_width as f32,
+            TOOLGROUP.compact_height as f32,
+            TOOLGROUP.compact_inset as f32,
+        )),
+        WindowToolbarStyle::Expanded => Some((
+            TOOLGROUP.expanded_width as f32,
+            TOOLGROUP.expanded_height as f32,
+            TOOLGROUP.expanded_inset as f32,
+        )),
+    }
 }
 
 #[derive(PartialEq)]

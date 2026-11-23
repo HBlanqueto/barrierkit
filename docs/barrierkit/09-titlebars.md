@@ -69,15 +69,22 @@ Behavior:
   The title uses `TITLEBAR.font`.
 - With items the bar is the unified one, as in SwiftUI: 52 high, the traffic
   lights at (19, 19) and the title `SETTINGS.toolbar_lights_gap` (22) after them, in
-  `TITLE_2`.
+  `TITLE_2`. A first `Navigation` item starts `TITLEBAR_TOOLBAR_START.unified`
+  (16) after the lights, and the title follows it `SETTINGS.toolbar_gap` (13)
+  later. In the compact bar that item starts `TITLEBAR_TOOLBAR_START.compact`
+  (22) after the lights; they land at x 95 and 94, where SwiftUI puts them.
 - With `.toolbar_style(Expanded)` the bar is two rows, as SwiftUI's
   `.expanded` on macOS 27.2: a `TITLEBAR_EXPANDED_TITLE_HEIGHT` (28) row with
   the traffic lights at (9, 9) and the title `TITLEBAR_EXPANDED_TITLE_GAP` (15) after them,
-  in `TITLEBAR.font` (hidden in full screen, as SwiftUI does until the top
-  edge), and a `TITLEBAR_CLIENT_HEIGHT` (40) toolbar row whose
-  `Navigation` and `PrimaryAction` items sit together at the start, as SwiftUI
-  puts them. It reports `Bar::Titlebar`; a `HiddenTitleBar` window then gives its empty
-  `NSToolbar` the `.expanded` style, which puts the native lights at (9, 9). Its items take the compact size (24); SwiftUI draws them 28 high.
+  in `TITLEBAR.font` and the dimmer `TitlebarStyle::row_title` ink of a title
+  row (hidden in full screen, as SwiftUI does until the top edge), and a
+  `TITLEBAR_CLIENT_HEIGHT` (40) toolbar row whose `Navigation` and
+  `PrimaryAction` items sit together from `TITLEBAR_TOOLBAR_START.expanded` (11),
+  `SETTINGS.toolbar_gap` (13) apart, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` (5) above
+  the row's middle, as SwiftUI puts them. Its items are 28 high
+  (`TOOLGROUP.expanded_*`). It reports `Bar::Titlebar`; a `HiddenTitleBar`
+  window then gives its empty `NSToolbar` the `.expanded` style, which puts the
+  native lights at (9, 9).
 - With `.with_sidebar(true)` the title goes at the start, next to `left`, in
   `TITLE_2`, as on macOS. While the sidebar shows, the traffic lights live in
   the sidebar; they keep their place while it folds.

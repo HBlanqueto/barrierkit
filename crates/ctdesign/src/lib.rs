@@ -741,6 +741,15 @@ pub struct TooltipMetrics {
     pub ink_contrast_dark: Rgba,
 }
 
+/// Where a toolbar's first item starts: after the traffic lights in the unified and compact
+/// bars, from the window edge in the expanded toolbar row.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TitlebarToolbarStart {
+    pub unified: f32,
+    pub compact: f32,
+    pub expanded: f32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TitlebarRailMetrics {
     pub width: f32,
@@ -1539,6 +1548,9 @@ pub struct ToolgroupMetrics {
     pub compact_height: u32,
     pub compact_inset: u32,
     pub compact_separator_h: u32,
+    pub expanded_width: u32,
+    pub expanded_height: u32,
+    pub expanded_inset: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1727,6 +1739,8 @@ pub struct Palette {
     pub panel_inner_line: Option<PanelLine>,
     pub outer_border: Rgba,
     pub title: FocusPair,
+    /// The title of a title row (no toolbar, or SwiftUI's `.expanded`), dimmer than `title`.
+    pub row_title: FocusPair,
     pub text: FocusPair,
     pub ink_strong: Rgba,
     pub ink_muted: Rgba,

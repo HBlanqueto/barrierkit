@@ -1,8 +1,6 @@
 use ctappearance::Resolved;
 use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, SYMBOL, TOOLGROUP};
 
-use crate::platform::Bar;
-
 use super::button::rounded;
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
@@ -15,7 +13,7 @@ use super::{
 pub struct IconButtonStyle {
     /// Tengen: width and height, `ICON_BUTTON.size` square; in a unified toolbar `TOOLGROUP.height`
     /// square; in a compact one `TOOLGROUP.compact_width` less twice `TOOLGROUP.compact_inset` by
-    /// `TOOLGROUP.compact_height`.
+    /// `TOOLGROUP.compact_height`, in an expanded one the same with the `expanded_` metrics.
     pub size: (f32, f32),
     /// Tengen: `ICON_BUTTON.icon`, in a toolbar `ICON_BUTTON.toolbar_icon`.
     pub icon_size: f32,
@@ -48,17 +46,13 @@ pub struct IconButtonStyle {
 
 impl ControlStyle for IconButtonStyle {
     fn tengen() -> Self {
-        let (size, icon_size, stroke, shape) = match crate::compact::toolbar_bar() {
-            Some(bar) => {
+        let (size, icon_size, stroke, shape) = match crate::compact::toolbar_style() {
+            Some(_) => {
                 let height = TOOLGROUP.height as f32;
-                let size = if bar == Bar::UnifiedCompact {
-                    (
-                        TOOLGROUP.compact_width as f32 - 2.0 * TOOLGROUP.compact_inset as f32,
-                        TOOLGROUP.compact_height as f32,
-                    )
-                } else {
-                    (height, height)
-                };
+                let size = crate::compact::slim_toolbar_items()
+                    .map_or((height, height), |(width, height, inset)| {
+                        (width - 2.0 * inset, height)
+                    });
                 (
                     size,
                     ICON_BUTTON.toolbar_icon,

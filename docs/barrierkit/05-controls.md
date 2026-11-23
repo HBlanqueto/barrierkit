@@ -316,7 +316,8 @@ Module `compact`.
 
 - `IconButton` is 30 × 30 with a 16 symbol (`ICON_BUTTON`). Inside a
   [`ToolGroup`](#toolbar-controls) or a `Titlebar` it becomes a capsule as tall as the bar's
-  platter, 36 × 36 in the unified bar and 26 × 24 in the compact one (`TOOLGROUP`), and its
+  platter, 36 × 36 in the unified bar, 26 × 24 in the compact one and 30 × 28 in the expanded one
+  (`TOOLGROUP`), and its
   symbol grows to 21 with a 1.6 stroke (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`): the size
   AppKit draws toolbar symbols at ([sizes](../research/macos-control-metrics.md#toolbar-items-and-navigation-buttons)).
 - `Stepper` shows the value and, 8 to its right, the arrows: 20 × 24, up above down

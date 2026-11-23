@@ -11,6 +11,7 @@ use ctappearance::window::{
 };
 use ctdesign::{
     ButtonKind, TITLEBAR_DOUBLE_CLICK, TITLEBAR_EXPANDED_TITLE_GAP, TITLEBAR_EXPANDED_TITLE_HEIGHT,
+    TITLEBAR_EXPANDED_TOOLBAR_BOTTOM, TITLEBAR_TOOLBAR_START,
 };
 use ctdesign::{NATIVE_APP_ID_PREFIX, SIDEBAR, TOOLGROUP};
 use freya_core::prelude::*;
@@ -180,11 +181,7 @@ impl Component for Titlebar {
         } else {
             Bar::UnifiedCompact
         };
-        crate::compact::use_toolbar_items(if expanded {
-            Some(Bar::UnifiedCompact)
-        } else {
-            matches!(bar, Bar::Unified | Bar::UnifiedCompact).then_some(bar)
-        });
+        crate::compact::use_toolbar_items((!panel && !close_only).then_some(toolbar_style));
         let bar_controls = controls.clone();
         use_side_effect_with_deps(&bar, move |bar| {
             if let Some(controls) = &bar_controls {
@@ -236,7 +233,12 @@ impl Component for Titlebar {
             paints.fill(&style.background)
         };
 
-        let title_color = paints.color(style.title.resolve(state));
+        let title_ink = if expanded {
+            &style.row_title
+        } else {
+            &style.title
+        };
+        let title_color = paints.color(title_ink.resolve(state));
         let lights_shown = controls
             .as_ref()
             .is_none_or(WindowControls::traffic_lights_shown);
@@ -399,9 +401,17 @@ impl Titlebar {
         let (traffic_x, traffic_y) = sidebar.lights_position;
         let lights_end = traffic_x + lights.length();
         let lights_space = !matches!(traffic, Lights::Absent);
-        let lights_beside_title = lights_space && self.left.is_none();
+        let item_first = self.left.is_none()
+            && crate::sidebar::sidebar_control().is_none()
+            && slots.navigation.is_some();
+        let lights_beside_title = lights_space && self.left.is_none() && slots.navigation.is_none();
+        let lights_gap = if item_first {
+            TITLEBAR_TOOLBAR_START.unified
+        } else {
+            padding_x
+        };
         let padding_left = if lights_space {
-            padding_x.max(lights_end + padding_x - occupied)
+            padding_x.max(lights_end + lights_gap - occupied)
         } else {
             padding_x
         };
@@ -534,10 +544,10 @@ impl Titlebar {
             .padding(Gaps::new(
                 0.0,
                 style.sidebar_padding_x,
-                0.0,
-                style.sidebar_padding_x,
+                TITLEBAR_EXPANDED_TOOLBAR_BOTTOM,
+                TITLEBAR_TOOLBAR_START.expanded,
             ))
-            .spacing(style.sidebar_padding_x)
+            .spacing(style.sidebar_spacing)
             .probe("titlebar-left-slot")
             .maybe_child(self.left.clone())
             .maybe_child(slots.navigation)
@@ -585,6 +595,11 @@ impl Titlebar {
         } else {
             style.padding_x
         };
+        let lights_gap = if self.left.is_some() || slots.navigation.is_some() {
+            TITLEBAR_TOOLBAR_START.compact
+        } else {
+            0.0
+        };
         let (left_width, right_width) = *content_widths.read();
         let slot_width = lights.length().max(left_width).max(right_width);
         let left_slot = rect()
@@ -603,7 +618,11 @@ impl Titlebar {
                         let right = content_widths.peek().1;
                         content_widths.set_if_modified((width, right));
                     })
-                    .maybe_child(traffic)
+                    .maybe_child(traffic.map(|lights| {
+                        rect()
+                            .padding(Gaps::new(0.0, lights_gap, 0.0, 0.0))
+                            .child(lights)
+                    }))
                     .maybe_child(self.left.clone())
                     .maybe_child(slots.navigation),
             );
@@ -720,9 +739,20 @@ pub fn sidebar_bar_height() -> f32 {
     style.sidebar_height
 }
 
-// What the system carries down with the menu bar in full screen: whatever lies in the title bar row.
-pub(crate) fn in_bar_row(top: f32, height: f32) -> bool {
-    top >= 0.0 && top + height <= ctdesign::SETTINGS.toolbar_height as f32
+// What the system carries down with the menu bar in full screen: the title bar row, or the toolbar row under an expanded bar's title row. Top and height.
+pub(crate) fn bar_row(expanded: bool) -> (f32, f32) {
+    if expanded {
+        (
+            TITLEBAR_EXPANDED_TITLE_HEIGHT,
+            ctdesign::TITLEBAR_CLIENT_HEIGHT as f32,
+        )
+    } else {
+        (0.0, ctdesign::SETTINGS.toolbar_height as f32)
+    }
+}
+
+pub(crate) fn in_bar_row(top: f32, height: f32, (row_top, row_height): (f32, f32)) -> bool {
+    top >= row_top && top + height <= row_top + row_height
 }
 
 // The toggle sits at the sidebar's right end while it is docked and after the traffic lights once it is not. Returns how far it moves from where the bar's left zone puts it, and the width it keeps there.

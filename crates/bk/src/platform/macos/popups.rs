@@ -97,8 +97,9 @@ struct Parent {
     window: Retained<NSWindow>,
     origin: (f64, f64),
     bounds: Rect,
-    // How far AppKit has carried the title bar row down with the menu bar.
+    // How far AppKit has carried the title bar row down with the menu bar, and that row.
     bar_drop: f64,
+    bar_row: (f32, f32),
 }
 
 impl Runtime {
@@ -109,13 +110,11 @@ impl Runtime {
         let in_window = view.convertRect_toView(view.bounds(), None);
         let on_screen = window.convertRectToScreen(in_window);
         let origin = top_left(on_screen, primary);
-        let bar_drop = parent
-            .bar
-            .as_ref()
-            .filter(|bar| bar.revealed)
-            .map_or(0.0, |bar| {
-                on_screen.origin.y + on_screen.size.height - bar.view.top()
-            });
+        let revealed = parent.bar.as_ref().filter(|bar| bar.revealed);
+        let bar_drop = revealed.map_or(0.0, |bar| {
+            on_screen.origin.y + on_screen.size.height - bar.view.top()
+        });
+        let bar_row = revealed.map_or(crate::titlebar::bar_row(false), |bar| bar.row);
         let visible = window
             .screen()
             .or_else(|| NSScreen::mainScreen(self.mtm))?
@@ -132,6 +131,7 @@ impl Runtime {
             origin,
             bounds,
             bar_drop,
+            bar_row,
         })
     }
 
@@ -157,11 +157,13 @@ impl Runtime {
     fn frame_of(parent: &Parent, spec: &PopupSpec, primary: f64) -> (NSRect, bool, Rect) {
         let placed = place(spec, parent.bounds);
         let (_, anchor_top, _, anchor_height) = spec.anchor_rect;
-        let drop = if crate::titlebar::in_bar_row(anchor_top as f32, anchor_height as f32) {
-            parent.bar_drop
-        } else {
-            0.0
-        };
+        let drop =
+            if crate::titlebar::in_bar_row(anchor_top as f32, anchor_height as f32, parent.bar_row)
+            {
+                parent.bar_drop
+            } else {
+                0.0
+            };
         let top = parent.origin.1 + drop + f64::from(placed.y);
         let frame = NSRect::new(
             NSPoint::new(

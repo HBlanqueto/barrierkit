@@ -1,5 +1,5 @@
 use super::*;
-use crate::platform::Bar;
+use crate::titlebar::WindowToolbarStyle;
 
 #[derive(PartialEq)]
 pub struct ToolGroup {
@@ -65,7 +65,7 @@ impl Component for ToolGroup {
     }
 
     fn render(&self) -> impl IntoElement {
-        crate::compact::use_toolbar_items_or(Bar::Unified);
+        crate::compact::use_toolbar_items_or(WindowToolbarStyle::Unified);
         let style: ToolGroupStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
         let vertical = style.axis == Axis::Vertical;

@@ -517,6 +517,8 @@ TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
 TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
 TITLEBAR_EXPANDED_TITLE_HEIGHT f32 components.window.titlebar.expanded-title.height
 TITLEBAR_EXPANDED_TITLE_GAP f32 components.window.titlebar.expanded-title.gap
+TITLEBAR_EXPANDED_TOOLBAR_BOTTOM f32 components.window.titlebar.expanded-title.toolbar-bottom
+TITLEBAR_TOOLBAR_START TitlebarToolbarStart components.window.titlebar.toolbar-start
 MENU_MARK_TEXT_GAP f32 components.shell.menu.mark.text-gap
 MENU_ICON_TEXT_GAP f32 components.shell.menu.icon.text-gap
 MENU_SUBMENU_INTENT_MS u64 components.shell.menu.submenu.intent-ms
@@ -784,11 +786,12 @@ fn emit_palettes(out: &mut String, tengen: &Tengen) {
             ),
         };
         out.push_str(&format!(
-            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {}, combo_button: {}, segment_divider: {}, accent_ring: {}, accent_toggle_disabled: {} }};\n\n",
+            "pub const {name}: Palette = Palette {{ titlebar_bg: {}, hairline: {}, inner_line: {inner_line}, panel_inner_line: {panel_inner_line}, outer_border: {}, title: {}, row_title: {}, text: {}, ink_strong: {}, ink_muted: {}, ink_faint: {}, line: {}, line_strong: {}, separator: {}, accent: {}, accent_inactive: {}, on_accent: {}, danger: {}, scrim: {}, selected_control: {}, card_border: {}, system_fill: {}, text_background: {}, selected_content: {}, control_disabled: {}, control: {}, accent_toggle: {}, separator_strong: {}, selected_content_inactive: {}, combo_button: {}, segment_divider: {}, accent_ring: {}, accent_toggle_disabled: {} }};\n\n",
             pair("titlebar-bg", "titlebar-bg-inactive"),
             rgba_of("titlebar-line"),
             rgba_of("window-outer"),
             pair("titlebar-title", "titlebar-title-inactive"),
+            pair("titlebar-row-title", "titlebar-row-title-inactive"),
             pair("ink", "ink-muted"),
             rgba_of("ink-strong"),
             rgba_of("ink-muted"),

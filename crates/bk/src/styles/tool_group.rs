@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{HAIRLINE, TOOLGROUP};
 
-use crate::platform::Bar;
+use crate::titlebar::WindowToolbarStyle;
 
 use super::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
@@ -14,13 +14,14 @@ use super::{
 pub struct ToolGroupStyle {
     /// Tengen: `(TOOLGROUP.item_width, TOOLGROUP.height)`: the slot of each item along the axis and
     /// across it, which is the thickness of the group; in a compact toolbar
-    /// `(TOOLGROUP.compact_width, TOOLGROUP.compact_height)`.
+    /// `(TOOLGROUP.compact_width, TOOLGROUP.compact_height)`, in an expanded one the `expanded_` pair.
     pub item_size: (f32, f32),
     /// Tengen: `TOOLGROUP.padding_x`, at both ends along the axis; in a compact toolbar minus
-    /// `TOOLGROUP.compact_inset`, so the first and last slot reach past the platter.
+    /// `TOOLGROUP.compact_inset` (expanded: `expanded_inset`), so the first and last slot reach past
+    /// the platter.
     pub padding: f32,
     /// Tengen: `(TOOLGROUP.height - TOOLGROUP.item_width) / 2` for a group of one item, so it is a
-    /// circle; in a compact toolbar `padding`.
+    /// circle; in a compact or expanded toolbar `padding`.
     pub padding_alone: f32,
     /// Tengen: `(TOOLGROUP.separator_w, TOOLGROUP.separator_h)`: along the axis, across it; in a
     /// compact toolbar `TOOLGROUP.compact_separator_h` across.
@@ -63,27 +64,17 @@ impl ControlStyle for ToolGroupStyle {
                 ShapeStyle::Color(toolgroup.palette.rim),
             )
         };
-        let compact = crate::compact::toolbar_bar() == Some(Bar::UnifiedCompact);
+        let compact = crate::compact::toolbar_style() == Some(WindowToolbarStyle::UnifiedCompact);
+        let slim = crate::compact::slim_toolbar_items();
         let height = TOOLGROUP.height as f32;
         Self {
-            item_size: if compact {
-                (
-                    TOOLGROUP.compact_width as f32,
-                    TOOLGROUP.compact_height as f32,
-                )
-            } else {
-                (TOOLGROUP.item_width, height)
-            },
-            padding: if compact {
-                -(TOOLGROUP.compact_inset as f32)
-            } else {
-                TOOLGROUP.padding_x
-            },
-            padding_alone: if compact {
-                -(TOOLGROUP.compact_inset as f32)
-            } else {
-                (height - TOOLGROUP.item_width) / 2.0
-            },
+            item_size: slim.map_or((TOOLGROUP.item_width, height), |(width, height, _)| {
+                (width, height)
+            }),
+            padding: slim.map_or(TOOLGROUP.padding_x, |(_, _, inset)| -inset),
+            padding_alone: slim.map_or((height - TOOLGROUP.item_width) / 2.0, |(_, _, inset)| {
+                -inset
+            }),
             separator_size: (
                 TOOLGROUP.separator_w as f32,
                 if compact {
