@@ -403,6 +403,13 @@ protocol:
 The specification spells the interfaces `org.freedesktop.*`; KDE,
 libayatana-appindicator and waybar use `org.kde.*`, and so does the kit.
 
+On macOS the item is an `NSStatusItem` (`platform/macos/status.rs`) that lives as long as
+its window. `icon_name` is looked up with `NSImage.imageNamed` (an image of the app's
+bundle or a system one) and drawn as a template; without one the button shows `title`.
+With items, a click opens the menu and its actions reach `use_menu_action` with their id;
+without items, a click sends `STATUS_ITEM_ACTIVATE`. The items are fixed when the window
+opens, as on Linux.
+
 ## Notifications
 
 `notifications::post(notice, clicked)` posts a notification through

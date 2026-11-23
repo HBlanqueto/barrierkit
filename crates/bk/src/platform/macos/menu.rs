@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use objc2::rc::Retained;
 use objc2::runtime::AnyObject;
-use objc2::{MainThreadMarker, MainThreadOnly, define_class, msg_send, sel};
+use objc2::{DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send, sel};
 use objc2_app_kit::{
     NSApplication, NSControlStateValueMixed, NSControlStateValueOff, NSControlStateValueOn,
     NSEventModifierFlags, NSMenu, NSMenuItem,
@@ -13,6 +13,7 @@ use objc2_foundation::{NSObject, NSObjectProtocol, NSString};
 use super::with_runtime;
 use crate::main_menu::MenuHandle;
 use crate::menu::{CheckState, MenuItem, shortcut_keys};
+use crate::status_item::STATUS_ITEM_ACTIVATE;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum State {
@@ -160,7 +161,8 @@ define_class!(
     #[unsafe(super(NSObject))]
     #[thread_kind = MainThreadOnly]
     #[name = "BKMenuTarget"]
-    struct Target;
+    #[ivars = Option<u64>]
+    pub(super) struct Target;
 
     unsafe impl NSObjectProtocol for Target {}
 
@@ -171,15 +173,20 @@ define_class!(
                 .representedObject()
                 .and_then(|object| object.downcast::<NSString>().ok())
             {
-                fire(&id.to_string());
+                fire(&id.to_string(), *self.ivars());
             }
+        }
+
+        #[unsafe(method(activate:))]
+        fn activate(&self, _: &AnyObject) {
+            fire(STATUS_ITEM_ACTIVATE, *self.ivars());
         }
     }
 );
 
 impl Target {
-    fn new(mtm: MainThreadMarker) -> Retained<Self> {
-        let this = Self::alloc(mtm).set_ivars(());
+    pub(super) fn new(mtm: MainThreadMarker, owner: Option<u64>) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(owner);
         // SAFETY: NSObject's designated initializer.
         unsafe { msg_send![super(this), init] }
     }
@@ -281,7 +288,7 @@ pub(super) fn install(mtm: MainThreadMarker, app: &NSApplication, name: &str) {
         *slot.borrow_mut() = Some(Installed {
             mtm,
             main,
-            target: Target::new(mtm),
+            target: Target::new(mtm, None),
             handles: HashMap::new(),
             shown: None,
         });
@@ -398,6 +405,24 @@ fn show_in(installed: &mut Installed, owner: u64) {
     installed.shown = Some(Shown { owner, revision });
 }
 
+pub(super) fn status_menu(
+    mtm: MainThreadMarker,
+    target: &Retained<Target>,
+    items: &[MenuItem],
+) -> Retained<NSMenu> {
+    let main = NSMenu::new(mtm);
+    main.setAutoenablesItems(false);
+    let installed = Installed {
+        mtm,
+        main: main.clone(),
+        target: target.clone(),
+        handles: HashMap::new(),
+        shown: None,
+    };
+    apply(&installed, &main, 0, &entries(items));
+    main
+}
+
 pub(super) fn register(window: u64, handle: MenuHandle) {
     MENU.with(|slot| {
         if let Some(installed) = slot.borrow_mut().as_mut() {
@@ -455,13 +480,15 @@ pub(super) fn sync() {
     });
 }
 
-fn fire(id: &str) {
-    let Some(owner) = MENU.with(|slot| {
-        slot.borrow()
-            .as_ref()?
-            .shown
-            .as_ref()
-            .map(|shown| shown.owner)
+fn fire(id: &str, owner: Option<u64>) {
+    let Some(owner) = owner.or_else(|| {
+        MENU.with(|slot| {
+            slot.borrow()
+                .as_ref()?
+                .shown
+                .as_ref()
+                .map(|shown| shown.owner)
+        })
     }) else {
         return;
     };

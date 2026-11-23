@@ -357,6 +357,16 @@ answered "Notifications are not allowed for this application" without a prompt, 
 banner on screen and a click were not seen. Granting a test bundle is a notification
 setting of the user, so it is left to them.
 
+### M4 result: status item (2026-11-22)
+
+`WindowOptions::status_item` creates an `NSStatusItem` (`platform/macos/status.rs`) that
+the runner drops with its window. The items become its `NSMenu` through the same
+`entries` and `apply` as the menu bar, with a `Target` that knows the owner window, so a
+click calls that window's `menu_actions`. Checked with an ad-hoc bundle and System Events:
+the menu opened with "Say hello", clicking it printed the action id; an item without items
+and with an image the bundle lacks showed its title and a click sent
+`status-item.activate`. The icon of a named image was seen (`NSActionTemplate`).
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

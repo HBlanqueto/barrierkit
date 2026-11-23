@@ -270,6 +270,7 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 | Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | Accessibility |
 | `portal::open_files`, `save_file` and `open_uri` as `NSOpenPanel`, `NSSavePanel` and `NSWorkspace` (`platform/macos/panels.rs`) | |
 | `secrets::Secrets` as the login Keychain, generic passwords (`platform/macos/keychain.rs`) | |
+| `WindowOptions::status_item` as an `NSStatusItem` with the items as its menu (`platform/macos/status.rs`) | A status item that changes after the window opens |
 | `notifications::post` and `portal::notify` as `UNUserNotificationCenter` banners, for a bundled app (`platform/macos/notifications.rs`) | A banner shown on screen (not run: the system refused the permission of a test bundle), action buttons |
 | `Timers`, `WakeHandle`, clipboard text | `GlassContainer` and `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
 | The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |

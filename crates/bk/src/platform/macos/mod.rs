@@ -60,6 +60,7 @@ pub(crate) mod notifications;
 pub(crate) mod panels;
 mod place;
 mod popups;
+mod status;
 mod system;
 mod view;
 
@@ -129,6 +130,7 @@ pub(super) struct Runtime {
     mtm: MainThreadMarker,
     gpu: Gpu,
     windows: Vec<Window>,
+    statuses: Vec<(u64, status::StatusBar)>,
     next_window: u64,
     queue: Rc<RefCell<Vec<(ObjectId, Sent)>>>,
     ping: Ping,
@@ -279,6 +281,7 @@ impl Runtime {
                 context,
             },
             windows: Vec::new(),
+            statuses: Vec::new(),
             next_window: 1,
             queue: Rc::new(RefCell::new(Vec::new())),
             ping,
@@ -515,6 +518,10 @@ impl Runtime {
             main: !utility,
             needs_redraw: true,
         });
+        if let Some(item) = &options.status_item {
+            self.statuses
+                .push((id, status::StatusBar::new(self.mtm, id, item)));
+        }
         if let Some(menu) = menu {
             menu::register(id, menu);
         }
@@ -658,6 +665,7 @@ impl Runtime {
         }
         self.windows.retain(|window| window.id != id);
         menu::forget(id);
+        self.statuses.retain(|(owner, _)| *owner != id);
         if !self.windows.iter().any(|window| window.main) {
             stop(self.mtm);
         }
