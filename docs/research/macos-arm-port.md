@@ -525,8 +525,27 @@ pixels and the veil is within 16 levels of SwiftUI's (a soft edge of the
 `titlebar` material at 0.6, whole over 75% of its depth); the rows differ in
 height, so the whole scene is not a percentage. A window that is
 non-opaque shows the sidebar material (`WindowOptions::opaque(false)`); the default
-stays flat, as the SwiftUI twin is. Not done: a committed bench (glass exists only in WindowServer, so `freya-testing` renders the
+stays flat, as the SwiftUI twin is (corrected below, 2026-11-23). Not done: a committed bench (glass exists only in WindowServer, so `freya-testing` renders the
 solid), and scale 2.
+
+Sidebar and window materials (2026-11-23, Resonance and its SwiftUI twin, macOS
+27.2, scale 1, both windows at the same screen frame; probes in
+`~/src/probes/resonance`: a layer dump injected with `DYLD_INSERT_LIBRARIES`).
+A SwiftUI `NavigationSplitView` sidebar is not flat: it is an `NSGlassEffectView`
+of private variant 18, radius 0, full height, which takes a tint from the
+wallpaper (dark: 36 38 52 where the kit's flat fill was 38 38 38). An empty
+`NSSplitViewItem(sidebarWithViewController:)` gives the same view, and its 77
+`glassBackground` inputs equal SwiftUI's; the kit now places one below its
+content, sized to the panel, so `WindowOptions::opaque` is gone. Every titled
+window also holds an `NSVisualEffectView` of `contentBackground` in its frame:
+the kit's opaque fill hid it (title bar band 30 30 30 against 32 33 38), and
+`ShapeStyle::WindowBackground` now leaves it uncovered. Setting
+`NSGlassEffectViewStyle.regular` turns a glass into variant 1, while AppKit's
+toolbar platters are the default, variant 0. Left: the inner 4 px of the sidebar
+glass are 3 levels bluer than SwiftUI's, which lays its opaque detail under the
+glass where the kit's content is above it; the scroll pocket of a list under
+the bar stays the kit's soft edge (AppKit draws its pocket with a private
+`variableBlur` inside `NSScrollView`).
 
 Scale 2 (2026-11-22; the owner's display is 1x and no setting was changed): two
 checks that need no 2x display. The kit's own test renderer draws the notes twin at

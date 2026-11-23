@@ -148,7 +148,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `styles` | module | — | — | — | Value types of the styling system, `Theme`, `StyleScope` and the control styles | [Styles](../../agents/styles.md) |
-| `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | ≈ `UIColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material or nothing | [Styles](../../agents/styles.md#value-types) |
+| `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | ≈ `UIColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material, the window background (`WindowBackground`, SwiftUI's `.windowBackground`: clear where the system draws the window's material) or nothing | [Styles](../../agents/styles.md#value-types) |
 | `styles::Role` | enum | ≈ semantic `Color` (`.primary`, `.secondary`) | ≈ `NSColor.labelColor`… | ≈ `UIColor.label` | One color of the `Palette` (all but `accent`), resolved late | [Styles](../../agents/styles.md#value-types) |
 | `styles::Gradient` | struct | `LinearGradient`, `AngularGradient`, `EllipticalGradient` | `NSGradient` | ≈ `CAGradientLayer` | Stops of `ShapeStyle` as a linear gradient (`new`, an angle), an angular one (`angular`) or an elliptical one (`elliptical`) | [Styles](../../agents/styles.md#value-types) |
 | `styles::Gradient::angular` | method | `AngularGradient(gradient:center:angle:)` | — | ≈ `CAGradientLayer` | Sweeps clockwise from the right, starting at an angle in degrees; the center is the view's | [Styles](../../agents/styles.md#value-types) |
@@ -1272,7 +1272,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `platform::WindowStyle` | enum | `WindowStyle` | `≈ NSWindow.StyleMask` | — | Who frames a main window on macOS: `TitleBar`, `HiddenTitleBar` or `Plain` | [8](08-windows.md#window-style) |
 | `platform::WindowOptions::min_size`, `max_size` | method | `frame(minWidth:minHeight:)` on the window's root | `NSWindow.contentMinSize` | — | Limits of the content below the window's bar; the window adds the bar (ADR 0117) | [8](08-windows.md#window-options) |
 | `platform::WindowOptions::window_style` | method | `windowStyle(_:)` | — | — | Chooses the `WindowStyle` of a window | [8](08-windows.md#window-style) |
-| `platform::WindowOptions::opaque` | method | — | `NSWindow.isOpaque` | — | Whether the window is opaque; `false` lets the sidebar glass be the system's material on macOS | [8](08-windows.md#window-options) |
 | `platform::WindowEdge` | enum | — | — | — | Edge or corner for a compositor resize | [8](08-windows.md#resizing-from-the-edges) |
 | `app::UtilityWindow` | struct | `UtilityWindow` | `≈ NSPanel` | — | A floating panel child of the current window; `.open()` shows it | [8](08-windows.md#utility-windows) |
 | `platform::PanelBehavior` | struct | — | `≈ NSPanel` | — | Panel flags: hides on deactivate, floating, key only if needed | [8](08-windows.md#utility-windows) |

@@ -5,7 +5,6 @@ use super::{
     Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
     system_effect,
 };
-use crate::theme::{SurfaceKind, surface_background};
 
 /// The widths of a `SplitView` sidebar (`.sidebar_width`, `.sidebar_range`) stay
 /// options: they are layout the user changes.
@@ -30,7 +29,7 @@ pub struct SplitViewStyle {
     pub grip_line_inset: f32,
     /// Tengen: `Capsule`.
     pub grip_shape: Shape,
-    /// Tengen: `Color` of the window surface; `Clear` over a `Backdrop`.
+    /// Tengen: `WindowBackground`; `Clear` over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Clear`; focused (keyboard) `Color` of the accent. Hover and drag show only the
     /// cursor, like an AppKit split view divider.
@@ -62,7 +61,7 @@ impl ControlStyle for SplitViewStyle {
             background: StateValue::new(if crate::backdrop::tinted().is_some() {
                 ShapeStyle::Clear
             } else {
-                ShapeStyle::Color(surface_background(&resolved, SurfaceKind::Toplevel))
+                ShapeStyle::WindowBackground
             }),
             grip: StateValue::new(ShapeStyle::Clear).focused(accent),
             scrim: StateValue::new(ShapeStyle::Role(Role::Scrim)),

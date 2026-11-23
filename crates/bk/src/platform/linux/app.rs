@@ -18,6 +18,7 @@ impl Runtime {
             backdrop: self.backdrop_supported(),
             native_glass: false,
             native_sheets: false,
+            window_background: false,
             knobs: self.knobs_supported(),
         }
     }

@@ -189,6 +189,7 @@ pub enum ShapeStyle {
     Gradient(Gradient),
     Backdrop,
     Material(Thickness),
+    WindowBackground,
     Clear,
 }
 
@@ -656,6 +657,7 @@ pub(crate) struct Paints {
     palette: Palette,
     backdrop: Option<Tinted>,
     glass: Rgba,
+    window: Rgba,
     opaque: bool,
     state: ControlState,
     effect: ColorEffect,
@@ -667,6 +669,14 @@ impl Paints {
             palette: Palette::current(),
             backdrop: crate::backdrop::tinted().filter(|_| crate::platform::window_activated()),
             glass: crate::glass::glass_tint(),
+            window: if crate::theme::window_material_here() {
+                Rgba::TRANSPARENT
+            } else {
+                crate::theme::surface_background(
+                    &crate::theme::resolved(),
+                    crate::theme::SurfaceKind::Toplevel,
+                )
+            },
             opaque: crate::glass::transparency_reduced(),
             state,
             effect,
@@ -712,6 +722,7 @@ impl Paints {
                 .backdrop
                 .map_or(self.palette.accent, |backdrop| backdrop.highlights()[0]),
             ShapeStyle::Material(thickness) => thickness.material(self.glass, self.opaque).0,
+            ShapeStyle::WindowBackground => self.window,
             ShapeStyle::Clear => Rgba::TRANSPARENT,
         }
     }

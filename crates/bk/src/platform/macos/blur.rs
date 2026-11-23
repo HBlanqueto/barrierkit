@@ -2,8 +2,9 @@ use ctappearance::material::Material;
 use objc2::rc::Retained;
 use objc2::{MainThreadMarker, MainThreadOnly};
 use objc2_app_kit::{
-    NSAutoresizingMaskOptions, NSGlassEffectViewStyle, NSView, NSVisualEffectBlendingMode,
-    NSVisualEffectMaterial, NSVisualEffectState,
+    NSAutoresizingMaskOptions, NSGlassEffectViewStyle, NSSplitViewController, NSSplitViewItem,
+    NSView, NSViewController, NSVisualEffectBlendingMode, NSVisualEffectMaterial,
+    NSVisualEffectState,
 };
 use objc2_core_graphics::CGColor;
 use objc2_foundation::{NSArray, NSNumber};
@@ -150,11 +151,10 @@ pub(super) fn glass_available() -> bool {
 
 pub(super) fn glass(mtm: MainThreadMarker, radius: f32, clear: bool) -> Retained<Glass> {
     let glass = Glass::new(mtm);
-    glass.setStyle(if clear {
-        NSGlassEffectViewStyle::Clear
-    } else {
-        NSGlassEffectViewStyle::Regular
-    });
+    // Setting `regular` turns the view into another glass than the default one AppKit's toolbar uses.
+    if clear {
+        glass.setStyle(NSGlassEffectViewStyle::Clear);
+    }
     glass.setCornerRadius(f64::from(radius));
     glass
 }
@@ -175,6 +175,32 @@ pub(super) fn glass_group(
     }
     group.setContentView(Some(&holder));
     group
+}
+
+fn empty_controller(mtm: MainThreadMarker) -> Retained<NSViewController> {
+    let controller = NSViewController::new(mtm);
+    controller.setView(&NSView::new(mtm));
+    controller
+}
+
+// A sidebar split item is how AppKit draws the sidebar of the running macOS: glass on 26, the behind-window material before.
+pub(super) fn sidebar(mtm: MainThreadMarker) -> Retained<NSSplitViewController> {
+    let split = NSSplitViewController::new(mtm);
+    split.addSplitViewItem(&NSSplitViewItem::sidebarWithViewController(
+        &empty_controller(mtm),
+    ));
+    let content = NSSplitViewItem::splitViewItemWithViewController(&empty_controller(mtm));
+    content.setCollapsed(true);
+    split.addSplitViewItem(&content);
+    split
+}
+
+pub(super) fn place_sidebar(split: &NSSplitViewController, frame: NSRect) {
+    if let Some(sidebar) = split.splitViewItems().firstObject() {
+        sidebar.setMinimumThickness(frame.size.width);
+        sidebar.setMaximumThickness(frame.size.width);
+    }
+    split.view().setFrame(frame);
 }
 
 pub(super) fn container(mtm: MainThreadMarker, frame: NSRect) -> Retained<NSView> {

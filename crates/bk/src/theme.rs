@@ -1,3 +1,4 @@
+use crate::platform::backdrop::SystemWindowBackground;
 use crate::platform::{Popups, appearance};
 use ctappearance::menu::{MenuInk, ink_over};
 use ctappearance::{AppearanceConfig, ColorScheme, Resolved, load_dominant, resolve};
@@ -69,6 +70,18 @@ pub fn over_glass(palette: MenuPalette) -> MenuPalette {
 
 fn menus_keep_glass(resolved: &Resolved) -> bool {
     !resolved.contrast
+}
+
+// The platform's window material shows where the kit paints none, unless the theme tints the window.
+pub(crate) fn window_material(resolved: &Resolved, system_draws: bool) -> bool {
+    system_draws && resolved.window_tint.is_none()
+}
+
+pub(crate) fn window_material_here() -> bool {
+    window_material(
+        &resolved(),
+        try_consume_root_context::<SystemWindowBackground>().is_some_and(|system| system.0),
+    )
 }
 
 pub fn resolved() -> Resolved {

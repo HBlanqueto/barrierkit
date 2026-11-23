@@ -122,7 +122,8 @@ Malaysia does, the sidebar is a glass panel. The kit leaves its rectangle
 transparent and sends it with `set_glass`; the compositor draws the material and
 the rim under and over the rows ([ADR 0065](../decisions.md)).
 The app does nothing. The kit sends the panel again whenever the sidebar's area
-changes.
+changes. On macOS the panel is AppKit's own sidebar, the same glass as SwiftUI's
+`NavigationSplitView` ([15](15-backdrops-and-media.md#on-macos)).
 
 A window with no sidebar, like an About box, makes the whole window glass with
 `WindowGlass::new(content)`. It leaves the window transparent and sends one

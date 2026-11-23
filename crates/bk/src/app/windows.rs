@@ -387,7 +387,11 @@ fn window_root(options: &WindowOptions, content: AppComponent) -> Element {
     rect()
         .expanded()
         .background(crate::theme::color(
-            crate::style::Palette::current().window_background,
+            if crate::theme::window_material_here() {
+                ctdesign::Rgba::TRANSPARENT
+            } else {
+                crate::style::Palette::current().window_background
+            },
         ))
         .maybe_child(
             (options.window_style == WindowStyle::TitleBar)

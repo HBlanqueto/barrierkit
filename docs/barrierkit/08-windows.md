@@ -95,7 +95,6 @@ method changes one field (the fields are also public).
 | `.fullscreen_bar(FullscreenBar)` | `Solid` | How the title bar is drawn over the content in full screen ([9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar)) |
 | `.fullscreen_push(bool)` | `false` | In full screen, the bar pushes the content down instead of covering it ([9](09-titlebars.md#pushing-the-content-fullscreen_push)) |
 | `.window_style(WindowStyle)` | `TitleBar` | Who frames the window on macOS ([Window style](#window-style)); Linux ignores it |
-| `.opaque(bool)` | `true` | With `false` the window is non-opaque on macOS and its sidebar glass is the system's material ([15](15-backdrops-and-media.md#on-macos)); Linux ignores it |
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
 | `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves; ignored by main windows |
 | `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen bar included. `Application::theme` sets it |

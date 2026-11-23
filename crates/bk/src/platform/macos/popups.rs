@@ -271,7 +271,7 @@ impl Runtime {
             app,
             controls: None,
             container: None,
-            behind: None,
+            sidebar: None,
             chromes: Vec::new(),
             bar: None,
             ime_area: None,

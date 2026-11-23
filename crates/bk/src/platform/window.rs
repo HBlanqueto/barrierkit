@@ -73,7 +73,6 @@ pub struct WindowOptions {
     pub theme: crate::styles::Theme,
     pub scene: Option<&'static str>,
     pub window_style: WindowStyle,
-    pub opaque: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -122,7 +121,6 @@ impl WindowOptions {
             theme: crate::styles::Theme::tengen(),
             scene: None,
             window_style: WindowStyle::TitleBar,
-            opaque: true,
         }
     }
 
@@ -138,11 +136,6 @@ impl WindowOptions {
 
     pub fn window_style(mut self, window_style: WindowStyle) -> Self {
         self.window_style = window_style;
-        self
-    }
-
-    pub fn opaque(mut self, opaque: bool) -> Self {
-        self.opaque = opaque;
         self
     }
 

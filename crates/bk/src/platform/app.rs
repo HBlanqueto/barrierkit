@@ -64,6 +64,7 @@ pub(crate) struct Host {
     pub(crate) backdrop: bool,
     pub(crate) native_glass: bool,
     pub(crate) native_sheets: bool,
+    pub(crate) window_background: bool,
     pub(crate) knobs: bool,
 }
 
@@ -221,6 +222,10 @@ impl AppInstance {
         let native_glass = backdrop && host.native_glass;
         runner.provide_root_context(move || super::backdrop::NativeGlass(native_glass));
         runner.provide_root_context(move || super::backdrop::NativeSheets(host.native_sheets));
+        let window_background = window.is_some() && host.window_background;
+        runner.provide_root_context(move || {
+            super::backdrop::SystemWindowBackground(window_background)
+        });
         let knobs = window.is_some() && host.knobs;
         runner.provide_root_context(move || super::KnobSupport(knobs));
         let knob_outbox = runner.provide_root_context(super::KnobOutbox::default);

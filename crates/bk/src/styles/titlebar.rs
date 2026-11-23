@@ -6,7 +6,6 @@ use ctdesign::{
 use torin::prelude::Alignment;
 
 use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
-use crate::theme::{SurfaceKind, surface_background};
 
 /// `Titlebar` has two bars: the centered one (no sidebar) and the one beside a
 /// sidebar (`.with_sidebar(true)`). Its paints are `focused` while the window is
@@ -45,8 +44,8 @@ pub struct TitlebarStyle {
     /// Tengen: `SETTINGS.toolbar_gap`, between the left zone and the title of the bar beside a
     /// sidebar: the title sits 20 from the sidebar's edge.
     pub sidebar_spacing: f32,
-    /// Tengen: `Color` of the window surface, focused or not, like a unified AppKit toolbar;
-    /// `Clear` over a `Backdrop`.
+    /// Tengen: `WindowBackground`, focused or not, like a unified AppKit toolbar; `Clear` over
+    /// a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Color` of the toolbar surface while the sidebar shows; `Clear` over a
     /// `Backdrop`.
@@ -97,7 +96,11 @@ impl ControlStyle for TitlebarStyle {
                 ShapeStyle::Color(color)
             }
         };
-        let active = surface(surface_background(&resolved, SurfaceKind::Toplevel));
+        let active = if tinted {
+            ShapeStyle::Clear
+        } else {
+            ShapeStyle::WindowBackground
+        };
         let ink = palette(resolved.scheme);
         let (title, row_title) = if tinted {
             (

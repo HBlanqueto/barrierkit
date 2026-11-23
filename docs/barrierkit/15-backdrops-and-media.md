@@ -189,10 +189,11 @@ WindowServer is the compositor, so the same declarations become native views
 
 | Declaration | Native view |
 |---|---|
-| The sidebar's panel (`WindowGlass`, `Sidebar`) | With `WindowOptions::opaque(false)`: an `NSVisualEffectView`, `sidebar` material, `behindWindow`, below the content view, and the window turns non-opaque. The default is the flat sidebar, which is what SwiftUI draws in an ordinary window |
+| The sidebar's panel (`WindowGlass`, `Sidebar`) | An `NSSplitViewController` with an empty `NSSplitViewItem(sidebarWithViewController:)` below the content view, sized to the panel: AppKit draws the sidebar of the running macOS, the sidebar glass on 26 (the same `NSGlassEffectView` as SwiftUI's `NavigationSplitView`) and the behind-window material before. Under Reduce Transparency the kit paints the flat sidebar |
+| The window's background (`ShapeStyle::WindowBackground`) | Nothing: a titled window keeps AppKit's own background material, an `NSVisualEffectView` that takes its tint from the wallpaper, and the kit's layer leaves it uncovered. A theme that tints the window paints its color |
 | `Material` | An `NSVisualEffectView`, `withinWindow`, of `MaterialStyle::material`, with the corner radius, over the content |
 | `TopGlass`, `ProgressiveGlass`, `FullscreenBar::Glass` | An `NSVisualEffectView` of the window background material along the edge; the soft ones have a gradient mask, the hard one none |
-| The glass of a `ToolGroup` (the toolbar capsules, the sidebar toggle) | An `NSGlassEffectView` (`regular`) one `HAIRLINE` inside the group, because AppKit draws the glass rim outside its frame, with the inner capsule's radius; two or more in one chrome sit in an `NSGlassEffectContainerView` and merge when near. On macOS before 26 the group paints its own fill |
+| The glass of a `ToolGroup` (the toolbar capsules, the sidebar toggle) | An `NSGlassEffectView` of the default style, as AppKit's toolbar uses (setting `regular` gives another glass), one `HAIRLINE` inside the group, because AppKit draws the glass rim outside its frame, with the inner capsule's radius; two or more in one chrome sit in an `NSGlassEffectContainerView` and merge when near. On macOS before 26 the group paints its own fill |
 | `GlassContainer` | One `NSGlassEffectView` per item at the item's frame, all in one `NSGlassEffectContainerView` whose `spacing` is the container's: shapes nearer than it merge with the system's neck and lens. `GlassContainerStyle::clear` makes them `NSGlassEffectViewStyle.clear`. `tint`, `rim` and `blur` do not apply, and the shapes jump to a new frame without the kit's morph |
 | The chrome of a glass | A second `CAMetalLayer` view above the effect, which takes no event |
 

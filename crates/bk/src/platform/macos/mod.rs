@@ -24,10 +24,11 @@ use objc2::{MainThreadMarker, MainThreadOnly, sel};
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
     NSApplication, NSApplicationActivationPolicy, NSAutoresizingMaskOptions, NSColor, NSEvent,
-    NSEventModifierFlags, NSEventType, NSLayoutAttribute, NSTitlebarAccessoryViewController,
-    NSTitlebarSeparatorStyle, NSToolbar, NSToolbarDisplayMode, NSView, NSVisualEffectBlendingMode,
-    NSWindow, NSWindowButton, NSWindowCollectionBehavior, NSWindowDelegate, NSWindowOrderingMode,
-    NSWindowStyleMask, NSWindowTitleVisibility, NSWindowToolbarStyle,
+    NSEventModifierFlags, NSEventType, NSLayoutAttribute, NSSplitViewController,
+    NSTitlebarAccessoryViewController, NSTitlebarSeparatorStyle, NSToolbar, NSToolbarDisplayMode,
+    NSView, NSVisualEffectBlendingMode, NSWindow, NSWindowButton, NSWindowCollectionBehavior,
+    NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
+    NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -155,10 +156,10 @@ struct Window {
     id: u64,
     window: Retained<NSWindow>,
     view: Retained<ContentView>,
-    // The content view's parent: the effect view of a sidebar sits below the view.
+    // The content view's parent: the native sidebar sits below the view.
     container: Option<Retained<NSView>>,
     bar: Option<Bar>,
-    behind: Option<Retained<Effect>>,
+    sidebar: Option<Retained<NSSplitViewController>>,
     chromes: Vec<ChromeLayer>,
     layer: Retained<CAMetalLayer>,
     // Runs while draws are due, at most one per refresh of the window's display.
@@ -499,6 +500,7 @@ impl Runtime {
             backdrop: true,
             native_glass: blur::glass_available(),
             native_sheets: true,
+            window_background: false,
             knobs: false,
         }
     }
@@ -569,6 +571,9 @@ impl Runtime {
         if window_style == WindowStyle::Plain {
             round_corners(&layer);
         }
+        // A titled window's frame holds AppKit's background material, which shows where the kit paints none.
+        let titled = style.contains(NSWindowStyleMask::Titled);
+        layer.setOpaque(!titled);
         let container = blur::container(self.mtm, frame);
         view.setAutoresizingMask(
             NSAutoresizingMaskOptions::ViewWidthSizable
@@ -626,7 +631,8 @@ impl Runtime {
             (f64::from(height) * scale) as u32,
         );
         let host = Host {
-            glass: !options.opaque,
+            glass: true,
+            window_background: titled,
             ..self.host()
         };
         #[cfg_attr(not(feature = "a11y"), allow(unused_mut))]
@@ -652,7 +658,7 @@ impl Runtime {
             link: frame_link(&window, &view),
             view,
             container: Some(container),
-            behind: None,
+            sidebar: None,
             chromes: Vec::new(),
             bar: None,
             layer,
@@ -971,9 +977,15 @@ impl Runtime {
         let background = if window.popup.is_some() {
             crate::theme::color(ctdesign::Rgba::TRANSPARENT)
         } else {
-            let base =
-                crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel);
-            crate::theme::color(base)
+            let titled = window
+                .window
+                .styleMask()
+                .contains(NSWindowStyleMask::Titled);
+            crate::theme::color(if crate::theme::window_material(&resolved, titled) {
+                ctdesign::Rgba::TRANSPARENT
+            } else {
+                crate::theme::surface_background(&resolved, crate::theme::SurfaceKind::Toplevel)
+            })
         };
         let Some((content, mut surface)) = target(gpu, &window.layer) else {
             window.needs_redraw = true;
@@ -1229,7 +1241,7 @@ impl Runtime {
         menu::sync();
     }
 
-    // The glass of a sidebar is a native view behind the window's own: the kit leaves its panel transparent.
+    // The sidebar is AppKit's own, behind the window's content: the kit leaves its panel transparent.
     fn sync_glass(&mut self) {
         let mtm = self.mtm;
         for window in &mut self.windows {
@@ -1238,33 +1250,28 @@ impl Runtime {
             else {
                 continue;
             };
-            if let Some(old) = window.behind.take() {
-                old.removeFromSuperview();
-            }
             window.needs_redraw = true;
             let Some(&rect) = panels.rects.first() else {
+                if let Some(old) = window.sidebar.take() {
+                    old.view().removeFromSuperview();
+                }
                 continue;
             };
             let height = container.bounds().size.height;
-            let effect = blur::effect(
-                mtm,
-                Material::Sidebar,
-                NSVisualEffectBlendingMode::BehindWindow,
-                panels.radius as f32,
-            );
-            effect.setFrame(blur::frame(rect, height));
-            effect.setAutoresizingMask(blur::autoresizing(rect, height));
-            container.addSubview_positioned_relativeTo(
-                &effect,
-                NSWindowOrderingMode::Below,
-                Some(&window.view),
-            );
-            window.window.setOpaque(false);
-            window
-                .window
-                .setBackgroundColor(Some(&NSColor::clearColor()));
+            let split = window.sidebar.get_or_insert_with(|| {
+                let split = blur::sidebar(mtm);
+                container.addSubview_positioned_relativeTo(
+                    &split.view(),
+                    NSWindowOrderingMode::Below,
+                    Some(&window.view),
+                );
+                split
+            });
+            blur::place_sidebar(split, blur::frame(rect, height));
+            split
+                .view()
+                .setAutoresizingMask(blur::autoresizing(rect, height));
             window.layer.setOpaque(false);
-            window.behind = Some(effect);
         }
     }
 
