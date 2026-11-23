@@ -1,17 +1,22 @@
 use ctdesign::{ControlSize, Rgba};
 use freya_core::prelude::*;
 use std::borrow::Cow;
+use std::path::PathBuf;
 
 use crate::app::Shortcut;
+use crate::document::OpenedUrl;
 use crate::environment::{DisabledScope, EnvironmentScope};
+use crate::file_dialog::{ContentType, DefaultDirectory, FileDialog};
 use crate::focus::{DefaultFocus, FocusState, Focused};
-use crate::layout::Frame;
+use crate::glass_container::{Glass, GlassContainer};
+use crate::layout::{Frame, LayoutDirectionScope};
 use crate::menu::MenuItem;
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, ControlStyle, Paints, ShadowStyle, ShapeStyle, StateValue, StyleScope, Theme,
-    system_effect,
+    ControlState, ControlStyle, GlassContainerStyle, LayoutDirection, Paints, ShadowStyle, Shape,
+    ShapeStyle, StateValue, StyleScope, Theme, system_effect,
 };
+use crate::transition::{ContentTransition, ContentTransitioned};
 use crate::views::feedback::Alert;
 
 pub trait ViewModifiers: EventHandlersExt + Sized {
@@ -116,6 +121,47 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
             .into_iter()
             .fold(self, |view, shadow| view.shadow(Shadow::from(shadow)))
     }
+
+    /// A sheet of the window that chooses files; `on_completion` runs with the paths only when the user chose.
+    fn file_importer(
+        self,
+        is_presented: State<bool>,
+        allowed_content_types: Vec<ContentType>,
+        allows_multiple_selection: bool,
+        on_completion: impl Into<Callback<Vec<PathBuf>, ()>>,
+    ) -> Self {
+        let dialog = FileDialog::open()
+            .allowed_content_types(allowed_content_types)
+            .allows_multiple_selection(allows_multiple_selection);
+        crate::file_dialog::use_file_dialog(is_presented, dialog, on_completion.into());
+        self
+    }
+
+    /// A sheet of the window that asks where to save; the app writes the file at the path it receives.
+    fn file_exporter(
+        self,
+        is_presented: State<bool>,
+        default_filename: impl Into<String>,
+        allowed_content_types: Vec<ContentType>,
+        on_completion: impl Into<Callback<PathBuf, ()>>,
+    ) -> Self {
+        let dialog =
+            FileDialog::save(default_filename).allowed_content_types(allowed_content_types);
+        let done = on_completion.into();
+        let first = Callback::new(move |paths: Vec<PathBuf>| {
+            if let Some(path) = paths.into_iter().next() {
+                done.call(path);
+            }
+        });
+        crate::file_dialog::use_file_dialog(is_presented, dialog, first);
+        self
+    }
+
+    /// Runs for each file or address that Finder, `open` or a link hands the app.
+    fn on_open_url(self, perform: impl Into<Callback<OpenedUrl, ()>>) -> Self {
+        crate::document::use_open_url(perform.into());
+        self
+    }
 }
 
 impl<T: EventHandlersExt> ViewModifiers for T {}
@@ -132,6 +178,32 @@ pub trait StyleModifiers: IntoElement + Sized {
     fn frame(self) -> Frame {
         Frame::new(self)
     }
+
+    /// Glass behind the view in `shape`; an uneven shape takes its largest corner as one radius. Reduce Transparency makes a regular glass the toolbar's plain fill, as SwiftUI's is.
+    fn glass_effect(self, glass: Glass, shape: Shape) -> impl IntoElement {
+        let corners = shape.corner_radius(16_384.0, 16_384.0, LayoutDirection::LeftToRight);
+        let radius = corners
+            .top_left()
+            .max(corners.top_right())
+            .max(corners.bottom_right())
+            .max(corners.bottom_left());
+        GlassContainer::new(0.0)
+            .style(move |style| GlassContainerStyle {
+                clear: glass.clear,
+                solid: if glass.clear {
+                    style.solid
+                } else {
+                    StateValue::new(ShapeStyle::Color(crate::theme::resolved().toolgroup.bg))
+                },
+                ..style
+            })
+            .shaped_item("glass", radius, matches!(shape, Shape::Circle), self)
+    }
+
+    /// Crossfades the view when it changes; it runs inside `with_animation`, as in SwiftUI.
+    fn content_transition(self, transition: ContentTransition) -> impl IntoElement {
+        ContentTransitioned::new(self.into_element(), transition)
+    }
 }
 
 impl<T: IntoElement> StyleModifiers for T {}
@@ -145,8 +217,16 @@ pub trait EnvironmentModifiers: IntoElement + Sized {
         EnvironmentScope::new(value, self)
     }
 
+    fn layout_direction(self, direction: LayoutDirection) -> impl IntoElement {
+        LayoutDirectionScope::new(direction, self)
+    }
+
     fn keyboard_shortcut(self, shortcut: Shortcut) -> impl IntoElement {
         EnvironmentScope::new(Some(shortcut), self)
+    }
+
+    fn file_dialog_default_directory(self, directory: impl Into<PathBuf>) -> impl IntoElement {
+        EnvironmentScope::new(DefaultDirectory(Some(directory.into())), self)
     }
 
     fn focused<T: Clone + PartialEq + 'static>(

@@ -278,7 +278,7 @@ Kit: `TextField`, `SearchField`, `SecureField`, `TokenField`, `ComboBox`,
 | — | `NSComboBox` | `ComboBox` | `measured` | bench `combo`, `combo-empty`, `combo-mini` to `combo-xl`, `combo-disabled` | — |
 | `TextEditor` | `NSTextView` in `NSScrollView` | `TextEditor`, `TextView` | `partial`: the field and the 13 pt text are measured; caret, selection, placeholder and the find bar are not | bench `textview-system`; [Text, date, color and image][m-texts] | P1 |
 | `TextEditorStyle` (`.automatic`, `.plain`) | `NSTextView` | `TextEditorStyle` fields, no preset | `partial` | none | P3 |
-| `TextEditor` with `AttributedString`, `AttributedTextSelection` | rich `NSTextView` | `rich_text` (bold, italic, link, family, size) | `partial`: no underline, strike, color, paragraph style or list | none | P2 |
+| `TextEditor` with `AttributedString`, `AttributedTextSelection` | rich `NSTextView` | `rich_text` (bold, italic, underline, strikethrough, link, family, size) | `partial`: no color, paragraph style or list; strikethrough has no editor shortcut | none | P2 |
 | `findNavigator` | `NSTextFinder` | `TextEditor` find bar | `implemented` | none | P2 |
 | `writingToolsBehavior`, spelling, substitutions | `NSSpellChecker`, Writing Tools | `spelling` (Hunspell) | `partial`: spelling only | none | P3 |
 | — | `NSRulerView`, `NSTextList`, `NSTextTable` | — | `missing` | none | P3 |

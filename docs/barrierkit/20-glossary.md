@@ -112,6 +112,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `prelude` | module | `import SwiftUI` | `import AppKit` | — | Re-exports the entry points, controls, Freya's prelude and the tokens | [2](02-first-app.md#the-prelude) |
 | `elements::Text` | struct | `Text` | `NSTextField(labelWithString:)` | `UILabel` | Text with `BODY` and the label color by default; wraps | [2](02-first-app.md#text-and-stacks) |
 | `elements::Text::line_limit` | method | `.lineLimit(_:)` | `NSTextField.maximumNumberOfLines` | `UILabel.numberOfLines` | Shows at most `n` lines | [2](02-first-app.md#text-and-stacks) |
+| `elements::Text::markdown` | fn | `Text("**x**")`, `AttributedString(markdown:)` | `NSAttributedString(markdown:)` | `NSAttributedString(markdown:)` | Reads inline Markdown: `**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `[title](https://x.org)`; `Text::new` keeps its string as it is | [6](06-text-and-editing.md#text-runs) |
+| `elements::Text::bold`, `italic`, `underline`, `strikethrough` | method | `.bold()`, `.italic()`, `.underline()`, `.strikethrough()` | `NSFontManager.convert(_:toHaveTrait:)`, `NSUnderlineStyle` | — | Styles one `Text`; a sum of texts keeps each part's own | [6](06-text-and-editing.md#text-runs) |
+| `elements::Text::text_selection` | method | `.textSelection(.enabled)` | `NSTextField.isSelectable` | `UILabel` (none) | Lets the reader select the text and copy it | [6](06-text-and-editing.md#text-runs) |
+| `elements::Text` `+` | operator | `Text + Text` | `NSAttributedString.append(_:)` | — | A text of the runs of both, each with its own style | [6](06-text-and-editing.md#text-runs) |
 | `elements::Label` | struct | `Label(_:systemImage:)` | `NSTextField` beside an `NSImageView` | `UILabel`, `UIImageView` | A `Symbol` in a 16 × 16.5 box before a title, 6 apart, in the font and color of `Text` (the accent in a `List` row; compact in a button label) | [2](02-first-app.md#text-and-stacks) |
 | `elements::VStack` | struct | `VStack` | `NSStackView` (vertical) | `UIStackView` | Column of children, centered, apart by the distances of SwiftUI's `VStack` between neighbouring kinds of view; `.spacing(x)` makes them all `x` | [2](02-first-app.md#text-and-stacks) |
 | `elements::HStack` | struct | `HStack` | `NSStackView` (horizontal) | `UIStackView` | Row of children, centered, `SPACE_2` apart | [2](02-first-app.md#text-and-stacks) |
@@ -161,7 +165,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::system_effect` | fn | — | ≈ `NSColor.SystemEffect` | — | Tengen's color effect: returns the color unchanged | [Styles](../../agents/styles.md#value-types) |
 | `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `NSLayoutConstraint.Axis` | `Horizontal` or `Vertical` | [Styles](../../agents/styles.md#value-types) |
 | `styles::Edge` | enum | `Edge` | `NSRectEdge` | `UIRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../../agents/styles.md#value-types) |
-| `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `UISemanticContentAttribute` | `LeftToRight` or `RightToLeft` | [Styles](../../agents/styles.md#value-types) |
+| `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `UISemanticContentAttribute` | `LeftToRight` (default) or `RightToLeft`; ambient through `.layout_direction(..)` | [Styles](../../agents/styles.md#value-types) |
 | `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | ≈ `UIContentConfiguration` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../../agents/styles.md#which-controls-take-a-style) |
 | `styles::CircularSliderStyle` | struct | — | ≈ `NSSliderCell` | — | Every visual property of `CircularSlider` | [Styles](../../crates/bk/src/styles/circular_slider.rs) |
 | `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | ≈ `UISlider` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../../agents/styles.md#the-fields-of-a-style) |
@@ -1116,7 +1120,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `controls::IdentityModifiers::id` | method | `.id(_:)` | — | — | Names a view so that `ScrollPosition::id` finds it inside a `ScrollView` | [5](05-controls.md#scroll-position) |
 | `drag::DragSource` | struct | `≈ .draggable(_:)` | `NSDraggingSource` | ≈ `UIDragInteractionDelegate` | Starts a drag to another app past a threshold | [5](05-controls.md#drag-source) |
 | `drag::use_drag_source` | fn | `≈ .draggable(_:)` | — | `UIDragInteraction` | Creates a `DragSource` | [5](05-controls.md#drag-source) |
-| `drag::DragPayload` | enum | — | `≈ NSDraggingItem` | `UIDragItem` | `Files(Vec<PathBuf>)` or `Text(String)` to drag | [5](05-controls.md#drag-source) |
+| `drag::DragPayload` | enum | — | `≈ NSDraggingItem`, `NSPasteboardItem` | `UIDragItem` | `Files`, `Text`, `Html { text, html }` or `Image(png bytes)`: what a drag or the pasteboard holds | [5](05-controls.md#drag-source) |
+| `pasteboard::Transferable` | trait | `Transferable` | `NSPasteboardWriting`, `NSPasteboardReading` | `NSItemProviderWriting` | A value with a `DragPayload` and a way back from one; `String`, `Vec<PathBuf>` and `DragPayload` have it | [13](13-app.md#clipboard) |
+| `pasteboard::Pasteboard` | struct | `≈ .copyable(_:)`, `.pasteDestination(for:)` | `NSPasteboard` | `UIPasteboard` | The system clipboard (`general`) or a private board (`named`) | [13](13-app.md#clipboard) |
+| `pasteboard::Pasteboard::copy` | method | `≈ .copyable(_:)` | `NSPasteboard.writeObjects(_:)` | `UIPasteboard.setItems(_:)` | Replaces the board with a `Transferable`; false when the platform cannot hold its type | [13](13-app.md#clipboard) |
+| `pasteboard::Pasteboard::paste` | method | `≈ .pasteDestination(for:)` | `NSPasteboard.readObjects(forClasses:)` | `UIPasteboard.items` | The richest item on the board as a `Transferable` | [13](13-app.md#clipboard) |
 | `drag::URI_LIST` | constant | — | `≈ NSPasteboard.PasteboardType.fileURL` | — | MIME type `text/uri-list` | [5](05-controls.md#drag-source) |
 | `canvas::Canvas` | struct | `Canvas` | `≈ NSView` | `UIView` | Element that paints with Skia, repainting on a new revision | [5](05-controls.md#canvas) |
 | `canvas::CanvasContext` | struct | `GraphicsContext` | `NSGraphicsContext` | ≈ `UIGraphicsImageRenderer` | Skia canvas, logical size, scale and fonts for a painter | [5](05-controls.md#canvas) |
@@ -1144,7 +1152,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `text_editor::TextEditor` | struct | `TextEditor` | `NSTextView` | `UITextView` | Multi-line editor with find bar, rich text and spelling | [6](06-text-and-editing.md#text-editor) |
 | `text_editor::find_matches` | fn | — | `≈ NSTextFinder` | `UIFindInteraction` | Case-insensitive, non-overlapping matches in character indices | [6](06-text-and-editing.md#find-bar) |
-| `rich_text::RunStyle` | struct | — | — | — | Bold, italic, underline, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::RunStyle` | struct | — | — | — | Bold, italic, underline, strikethrough, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::StyleRun` | struct | — | — | — | A `RunStyle` over a character range | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::FontChoice` | struct | `≈ Font` | `≈ NSFontDescriptor` | `UIFontDescriptor` | Family, size, bold and italic | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::Emphasis` | enum | — | `≈ NSFontDescriptor.SymbolicTraits` | — | `Bold`, `Italic` or `Underline` | [6](06-text-and-editing.md#rich-text) |
@@ -1155,6 +1163,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `rich_text::font_at` | fn | — | — | — | Font at a character, `BODY` when unset | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::apply_font` | fn | — | `≈ NSFontManager.convert(_:)` | — | Applies a font choice to a range | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::link_at` | fn | — | — | — | Link at a character, if any | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::markdown` | fn | `AttributedString(markdown:)` | `NSAttributedString(markdown:)` | `NSAttributedString(markdown:)` | The plain text and the runs of inline Markdown; unpaired marks stay literal | [6](06-text-and-editing.md#text-runs) |
 | `font_panel::FontPicker` | struct | — | `≈ NSFontPanel` | `UIFontPickerViewController` | Button with family and size that opens the font panel | [6](06-text-and-editing.md#font-panel) |
 | `font_panel::faces` | fn | — | — | — | Typefaces a family offers; Regular always | [6](06-text-and-editing.md#font-panel) |
 | `font_panel::parse_size` | fn | — | — | — | Typed font size if finite and positive | [6](06-text-and-editing.md#font-panel) |
@@ -1227,6 +1236,37 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `popover::Popover` | struct | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | `UIPopoverPresentationController` | Content in a popover with an arrow; `.show(anchor)` opens it below an area | [7](07-menus-and-popovers.md#popover) |
 | `popover::Popover::on_dismissed` | method | — | ≈ `NSPopoverDelegate.popoverDidClose(_:)` | ≈ `UIPopoverPresentationControllerDelegate.presentationControllerDidDismiss(_:)` | Calls the closure when the popup closes; `.show` returns its `PopupId` | [7](07-menus-and-popovers.md#popover) |
 | `modifiers::ViewModifiers::help` | method | `.help(_:)` | `NSView.toolTip` | `UIToolTipInteraction` | Tooltip with a fixed text after a 1 s hover | [7](07-menus-and-popovers.md#help-tooltips) |
+
+## Accessibility, file dialogs and documents
+
+| BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
+|---|---|---|---|---|---|---|
+| `accessibility::AccessibilityModifiers` | trait | Accessibility modifiers | `NSAccessibilityProtocol` | `UIAccessibilityElement` | The accessibility modifiers below, on every view that has Freya's `AccessibilityExt` | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityModifiers::accessibility_label` | method | `.accessibilityLabel(_:)` | `NSAccessibilityProtocol.accessibilityLabel()` | `UIAccessibilityElement.accessibilityLabel` | The name a screen reader speaks; on macOS it reaches AXTitle | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityModifiers::accessibility_hint` | method | `.accessibilityHint(_:)` | `NSAccessibilityProtocol.accessibilityHelp()` | `UIAccessibilityElement.accessibilityHint` | What the view does; on macOS it reaches AXHelp | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityModifiers::accessibility_value` | method | `.accessibilityValue(_:)` | `NSAccessibilityProtocol.accessibilityValue()` | `UIAccessibilityElement.accessibilityValue` | The current value of the view | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityModifiers::accessibility_hidden` | method | `.accessibilityHidden(_:)` | `NSAccessibilityProtocol.isAccessibilityElement()` | `UIAccessibilityElement.isAccessibilityElement` | Removes the view and its children from the accessibility tree | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityModifiers::accessibility_identifier` | method | `.accessibilityIdentifier(_:)` | `NSAccessibilityProtocol.accessibilityIdentifier()` | `UIAccessibilityIdentification.accessibilityIdentifier` | A stable id that the AX API reads as AXIdentifier | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityModifiers::accessibility_element` | method | `.accessibilityElement(children:)` | — | `UIAccessibilityContainerType` | Makes the view one element that combines, ignores or contains its children | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityModifiers::accessibility_add_traits` | method | `.accessibilityAddTraits(_:)` | `NSAccessibilityProtocol.accessibilityRole()` | `UIAccessibilityElement.accessibilityTraits` | Gives the view a role (button, header, link, image, static text) or selects it | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityChildBehavior` | enum | `AccessibilityChildBehavior` | — | — | `Ignore`, `Combine` or `Contain`: what the view does with its children's elements | [5](05-controls.md#accessibility-modifiers) |
+| `accessibility::AccessibilityTraits` | struct | `AccessibilityTraits` | `NSAccessibility.Role` | `UIAccessibilityTraits` | A set of `IS_BUTTON`, `IS_HEADER`, `IS_LINK`, `IS_IMAGE`, `IS_STATIC_TEXT` and `IS_SELECTED`, joined with `\|` | [5](05-controls.md#accessibility-modifiers) |
+| `file_dialog::ContentType` | enum | ≈ `UTType` | `NSSavePanel.allowedFileTypes` | `UTType` | A file kind a dialog allows: `Folder` or `extension("png")` | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog` | struct | ≈ `.fileImporter(isPresented:allowedContentTypes:onCompletion:)` | `NSOpenPanel`, `NSSavePanel` | `UIDocumentPickerViewController` | An open or save dialog with a title, kinds, a selection rule and a start folder | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog::open` | fn | — | `NSOpenPanel.openPanel()` | — | An open dialog | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog::save` | fn | — | `NSSavePanel.savePanel()` | — | A save dialog that proposes a name | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog::title` | method | — | `NSSavePanel.message` | — | The line of text above the file list | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog::allowed_content_types` | method | `allowedContentTypes` | `NSSavePanel.allowedFileTypes` | — | The kinds the dialog allows; `Folder` alone chooses a folder | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog::allows_multiple_selection` | method | `allowsMultipleSelection` | `NSOpenPanel.allowsMultipleSelection` | — | Lets the user choose several files | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog::directory` | method | ≈ `.fileDialogDefaultDirectory(_:)` | `NSSavePanel.directoryURL` | — | The folder the dialog starts in | [8](08-windows.md#documents-and-file-dialogs) |
+| `file_dialog::FileDialog::present` | method | — | `NSSavePanel.beginSheetModal(for:)` | — | Shows the dialog as a sheet of a window and returns the chosen paths; empty on cancel | [8](08-windows.md#documents-and-file-dialogs) |
+| `modifiers::ViewModifiers::file_importer` | method | `.fileImporter(isPresented:allowedContentTypes:allowsMultipleSelection:onCompletion:)` | `NSOpenPanel.beginSheetModal(for:)` | `UIDocumentPickerViewController` | A sheet that chooses files while the `State<bool>` is true | [8](08-windows.md#documents-and-file-dialogs) |
+| `modifiers::ViewModifiers::file_exporter` | method | ≈ `.fileExporter(isPresented:document:contentType:defaultFilename:onCompletion:)` | `NSSavePanel.beginSheetModal(for:)` | `UIDocumentPickerViewController` | A sheet that chooses where to save; the app writes the file | [8](08-windows.md#documents-and-file-dialogs) |
+| `modifiers::EnvironmentModifiers::file_dialog_default_directory` | method | `.fileDialogDefaultDirectory(_:)` | `NSSavePanel.directoryURL` | — | The start folder of the dialogs below the view | [8](08-windows.md#documents-and-file-dialogs) |
+| `modifiers::ViewModifiers::on_open_url` | method | `.onOpenURL(perform:)` | `NSApplicationDelegate.application(_:open:)` | `UIApplicationDelegate.application(_:open:options:)` | Runs for each file or address that Finder, `open` or a link hands to the app | [8](08-windows.md#documents-and-file-dialogs) |
+| `document::OpenedUrl` | enum | `URL` | `NSURL` | `URL` | What `on_open_url` receives: `File(path)` or `Other(text)` | [8](08-windows.md#documents-and-file-dialogs) |
+| `document::Document` | struct | `FileDocument` | `NSDocument` | `UIDocument` | A window's document: `is_edited`, `set_edited`, `url`, `set_url` and `save()` | [8](08-windows.md#documents-and-file-dialogs) |
+| `document::use_document` | fn | ≈ `DocumentGroup` | `NSDocument.isDocumentEdited` | `UIDocument.hasUnsavedChanges` | Hook: makes the window a document; an edited one asks "Save changes?" before it closes | [8](08-windows.md#documents-and-file-dialogs) |
 
 ## Windows
 
@@ -1333,8 +1373,16 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `layout::GridCell` | struct | — | `NSGridCell` | — | A view with a column span or a column alignment, returned by the two grid modifiers | [11](11-views.md#grid-and-gridrow) |
 | `layout::GridModifiers` | trait | `View` modifiers | — | — | `grid_cell_columns` (`.gridCellColumns(_:)`, ≈ `NSGridCell.mergeCells`) and `grid_column_alignment` (`.gridColumnAlignment(_:)`, ≈ `NSGridColumn.xPlacement`) | [11](11-views.md#grid-and-gridrow) |
 | `layout::ContentAlignment` | struct | `Alignment` | — | `UIStackView.Alignment` | Where content sits in its space on both axes; nine constants from `TOP_LEADING` to `BOTTOM_TRAILING`. SwiftUI's name is taken by torin's `Alignment` | [11](11-views.md#frame) |
-| `layout::HorizontalAlignment` | enum | `HorizontalAlignment` | `NSLayoutConstraint.Attribute` (`leading`, `centerX`, `trailing`) | `UIStackView.Alignment` | `Leading`, `Center` or `Trailing`; left and right until right-to-left exists | [11](11-views.md#frame) |
+| `layout::HorizontalAlignment` | enum | `HorizontalAlignment` | `NSLayoutConstraint.Attribute` (`leading`, `centerX`, `trailing`) | `UIStackView.Alignment` | `Leading`, `Center` or `Trailing`; the left or right edge by the layout direction | [11](11-views.md#frame) |
 | `layout::VerticalAlignment` | enum | `VerticalAlignment` | `NSLayoutConstraint.Attribute` (`top`, `centerY`, `bottom`) | `UIStackView.Alignment` | `Top`, `Center` or `Bottom`; no baselines | [11](11-views.md#frame) |
+| `layout::ZStack` | type | `ZStack` | — | — | A container that draws its children on top of one another; `.alignment(ContentAlignment)` places them. An alias of `LayoutContainer<ZStackLayout>` | [11](11-views.md#zstack-overlay-and-background_view) |
+| `layout::ZStackLayout` | struct | `ZStackLayout` | — | — | The `Layout` of a `ZStack`: sized by its largest child, `alignment` places the rest | [11](11-views.md#zstack-overlay-and-background_view) |
+| `layout::OverlayModifiers` | trait | `View` modifiers | — | — | `overlay` (`.overlay(alignment:content:)`) and `background_view` (`.background(alignment:content:)`; Freya's `background` is taken): the view alone sizes the result | [11](11-views.md#zstack-overlay-and-background_view) |
+| `layout::Layout` | trait | `Layout` | — | — | A rule that places subviews: `place_subviews(proposal, sizes)` returns a `Placement`. SwiftUI's `sizeThatFits` and `placeSubviews` are one call | [11](11-views.md#custom-layout) |
+| `layout::LayoutContainer` | struct | a `Layout` called as a view | — | — | The view of a `Layout`: `LayoutContainer::with_layout(layout).child(..)` | [11](11-views.md#custom-layout) |
+| `layout::Placement` | struct | `ProposedViewSize` result of `sizeThatFits` plus `place(at:)` | — | — | The size of a container and the origin of each subview in it | [11](11-views.md#custom-layout) |
+| `layout::ViewThatFits` | struct | `ViewThatFits` | — | — | Shows the first candidate whose stated extent fits the width or height offered, the last when none does | [11](11-views.md#viewthatfits) |
+| `modifiers::EnvironmentModifiers::layout_direction` | method | `.environment(\.layoutDirection, _)` | `NSView.userInterfaceLayoutDirection` | `UIView.semanticContentAttribute` | Sets the layout direction of a view: mirrors the stacks, frames, grids, ZStacks and texts already built in it and sets it for the six control styles and for everything built below | [11](11-views.md#right-to-left) |
 
 ## Forms and groups
 
@@ -1559,6 +1607,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `animation::Spring` | struct | `Spring` | ≈ `CASpringAnimation` | ≈ `CASpringAnimation` | A damped spring by perceptual duration and bounce, with initial velocity and settling duration; a Freya animated value | [14](14-animations.md#spring) |
 | `animation::with_animation` | fn | `withAnimation(_:_:)` | ≈ `NSAnimationContext.runAnimationGroup(_:)` | ≈ `UIView.animate(withDuration:animations:)` | Tags the changes of its closure with an `Animation`; the outermost call of a turn wins; `Animation::None` is `withAnimation(nil)` | [14](14-animations.md#implicit-animation) |
 | `animation::use_animated` | fn | ≈ `View.animation(_:value:)` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | Hook returning a value that follows its target with the animation of a transaction or its default; a change midway keeps the velocity | [14](14-animations.md#implicit-animation) |
+| `transition::Transition` | struct | `AnyTransition` | — | — | How a view looks when it is gone, on the way in and on the way out; `OPACITY`, `SCALE` and `IDENTITY`, built with `scale`, `offset`, `move_edge`, `combined` and `asymmetric` | [14](14-animations.md#transitions) |
+| `transition::Transition::move_edge` | fn | `.move(edge:)` | — | — | Starts or ends one of the view's own widths or heights beyond an edge | [14](14-animations.md#transitions) |
+| `transition::Presence` | struct | ≈ `if` with `.transition(_:)` | — | — | Holds a view that comes and goes: `Some` shows it, `None` removes it after its transition; `.transition(t)` | [14](14-animations.md#transitions) |
+| `transition::ContentTransition` | enum | `ContentTransition` | — | ≈ `UIView.transition(with:)` | How a changed view replaces the old one: `Identity` or `Opacity` | [14](14-animations.md#transitions) |
+| `modifiers::StyleModifiers::content_transition` | method | `.contentTransition(_:)` | — | — | Crossfades the view when it changes inside `with_animation` | [14](14-animations.md#transitions) |
 | `animation::use_reduced_motion` | fn | `EnvironmentValues.accessibilityReduceMotion` | `NSWorkspace.accessibilityDisplayShouldReduceMotion` | `UIAccessibility.isReduceMotionEnabled` | Hook returning the live reduced motion preference | [14](14-animations.md#reduced-motion) |
 | `animation::motion_ms` | fn | — | — | — | A duration, or 0 when reduced motion is on | [14](14-animations.md#reduced-motion) |
 | `animation::use_switch_progress` | fn | — | — | — | Hook easing 0–1 after a boolean state with an `Animation`; jumps with reduced motion | [14](14-animations.md#helpers) |
@@ -1590,6 +1643,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `glass_container::Morph` | struct | — | — | — | One shape's move: id, from frame, to frame | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `glass_container::plan` | fn | ≈ `.glassEffectID(_:in:)` | — | — | Pairs shown and new frames by id; new and leaving shapes use neighbours | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `glass_container::MAX_SHAPES` | constant | — | — | — | Most shapes a container draws: 8 | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `glass_container::Glass` | struct | `Glass` | `NSGlassEffectView.Style` | ≈ `UIGlassEffect.Style` | The variant of a glass: `REGULAR` or `CLEAR` | [15](15-backdrops-and-media.md#glass-on-any-view) |
+| `modifiers::StyleModifiers::glass_effect` | method | `.glassEffect(_:in:)` | `NSGlassEffectView` | `UIGlassEffect` | Puts glass in a shape behind the view: a `GlassContainer` of one item | [15](15-backdrops-and-media.md#glass-on-any-view) |
 
 ## Languages
 

@@ -80,7 +80,7 @@ class GoldenTests(unittest.TestCase):
 
     def test_a_gap_is_reported_in_the_output_and_in_the_summary(self):
         _, report = translate.translate(str(TESTS / 'gaps/Gaps.swift'))
-        self.assertIn('TODO(swift: ZStack.init) -> swiftui-api-gap.md §3.2 types, partial', report)
+        self.assertIn('TODO(swift: LazyVStack.init) -> swiftui-api-gap.md §3.2 types, absent', report)
         text = (TESTS / 'gaps/expected.rs').read_text()
         self.assertIn('// TODO(swift: View.tag)', text)
         self.assertIn('// Translation report:', text)

@@ -29,8 +29,8 @@ pub(crate) struct NativeGlass(pub(crate) bool);
 #[derive(Clone, Copy)]
 pub(crate) struct NativeSheets(pub(crate) bool);
 
-// Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own.
-const MOST_CHROMES: usize = 3;
+// Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own; macOS draws a layer per chrome (ADR 0113).
+const MOST_CHROMES: usize = if cfg!(target_os = "macos") { 8 } else { 3 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Effect {
@@ -357,18 +357,43 @@ impl Requests {
             && (backdrop.rects.is_empty() || backdrop.radius == radius);
         if same {
             backdrop.radius = radius;
-            let (left, top) = (
-                floor(area.min_x(), scale) - x,
-                floor(area.min_y(), scale) - y,
-            );
-            backdrop.rects.push((
-                left,
-                top,
-                ceil(area.max_x(), scale) - x - left,
-                ceil(area.max_y(), scale) - y - top,
-            ));
+            backdrop.rects.push(strip_rect(area, (x, y), scale));
         }
         same
+    }
+}
+
+fn strip_rect(area: &Area, (x, y): (i32, i32), scale: f32) -> (i32, i32, i32, i32) {
+    let (left, top) = (
+        floor(area.min_x(), scale) - x,
+        floor(area.min_y(), scale) - y,
+    );
+    (
+        left,
+        top,
+        ceil(area.max_x(), scale) - x - left,
+        ceil(area.max_y(), scale) - y - top,
+    )
+}
+
+// A glass in its strip: the rectangle, the radius and whether it is clear.
+#[cfg(target_os = "macos")]
+pub(crate) type PlacedGlass = ((i32, i32, i32, i32), u32, bool);
+
+#[cfg(target_os = "macos")]
+impl Chrome {
+    // The protocol's backdrop holds one radius and one variant; macOS draws a native view per glass, so a nested one keeps its own.
+    pub(crate) fn glasses(&self, scale: f32) -> Vec<PlacedGlass> {
+        let origin = self.placement(scale).origin;
+        self.effects
+            .iter()
+            .filter_map(|(effect, area)| match *effect {
+                Effect::Glass { radius, clear, .. } => {
+                    Some((strip_rect(area, origin, scale), radius, clear))
+                }
+                _ => None,
+            })
+            .collect()
     }
 }
 
@@ -642,6 +667,35 @@ mod tests {
     }
 
     #[test]
+    fn sibling_glasses_are_separate_chromes_up_to_the_most_the_platform_serves() {
+        let scene = scene(
+            || {
+                rect()
+                    .expanded()
+                    .child(rect().expanded().background(RED))
+                    .children((0..10).map(|row| {
+                        rect()
+                            .position(Position::new_absolute().top(row as f32 * 8.0))
+                            .width(Size::px(20.0))
+                            .height(Size::px(6.0))
+                            .child(Declared::glass(
+                                3.0,
+                                (20.0, 6.0),
+                                (0.0, 0.0),
+                                GlassLook::default(),
+                            ))
+                            .into_element()
+                    }))
+                    .into()
+            },
+            (200.0, 100.0),
+            1.0,
+        );
+        let chromes = collect(&scene.tree, Size2D::new(200.0, 100.0));
+        assert_eq!(chromes.len(), if cfg!(target_os = "macos") { 8 } else { 3 });
+    }
+
+    #[test]
     fn the_chrome_is_drawn_apart_from_the_content_and_the_layers_come_back() {
         let mut scene = scene(window_with_a_bar, (200.0, 100.0), 1.0);
         let chromes = collect(&scene.tree, Size2D::new(200.0, 100.0));
@@ -860,6 +914,24 @@ mod tests {
                 rects: vec![(10, 10, 76, 38), (110, 10, 38, 38)],
             }
         );
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn a_nested_glass_keeps_its_own_radius_and_variant_where_the_request_keeps_one() {
+        let outer = at(10.0, 10.0, 100.0, 60.0);
+        let chrome = chrome(
+            vec![
+                (glass(28, false, 0), outer),
+                (glass(10, true, 0), at(20.0, 20.0, 40.0, 20.0)),
+            ],
+            outer,
+        );
+        assert_eq!(
+            chrome.glasses(1.0),
+            vec![((0, 0, 100, 60), 28, false), ((10, 10, 40, 20), 10, true)]
+        );
+        assert_eq!(Requests::of(&chrome, 1.0).backdrop.rects.len(), 1);
     }
 
     #[test]

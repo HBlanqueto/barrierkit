@@ -4,7 +4,7 @@ struct Gaps: View {
     @State private var choice = 0
     var body: some View {
         VStack {
-            ZStack {
+            LazyVStack {
                 Text("Back")
                 Text("Front").foregroundStyle(.red)
             }

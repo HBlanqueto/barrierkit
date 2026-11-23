@@ -353,6 +353,9 @@ impl Component for TextField {
                     })
                 })),
         );
+        let root = root.a11y_builder(|node| {
+            crate::accessibility::mark_field(node, &self.placeholder, !self.value.read().is_empty())
+        });
         self.overrides.apply(root)
     }
 }
@@ -621,6 +624,9 @@ impl Component for SearchField {
                         crate::token_field::token_chip(token, false, &token_style).into_element()
                     })),
             )
+        });
+        let root = root.a11y_builder(|node| {
+            crate::accessibility::mark_field(node, &self.placeholder, !self.value.read().is_empty())
         });
         self.overrides.apply(root)
     }

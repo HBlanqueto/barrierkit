@@ -1000,7 +1000,14 @@ drag.attach(rect(), || DragPayload::Files(paths.clone()))
 | `DragSource::attach(element, payload)` | Starts a drag when the pointer moves more than `DRAG.threshold` (8) with the primary button down; `payload` runs then |
 | `DragPayload::Files(Vec<PathBuf>)` | Offered as `URI_LIST` and as plain text |
 | `DragPayload::Text(String)` | Offered as plain text |
+| `DragPayload::Html { text, html }` | Offered as plain text and as `text/html` (`public.html` on macOS) |
+| `DragPayload::Image(Vec<u8>)` | PNG bytes; offered as `image/png` (PNG and TIFF on macOS) |
 | `URI_LIST` | `"text/uri-list"` |
+
+A type of the app joins in through `Transferable` ([13](13-app.md#clipboard)): `drag.attach(rect(), move || note.payload())`.
+On macOS the drag is an `NSDraggingSession` started from the content view with the mouse event the pointer is making,
+and it shows the image, the file icon or a document symbol under the pointer. Dropping typed data onto the app is not
+built: only files arrive ([13](13-app.md#drag-and-drop)).
 
 ## Canvas
 
@@ -1039,6 +1046,32 @@ Freya clips with a rounded rectangle, so an ellipse or a `Path` cannot clip, and
 that is not square is a capsule.
 
 The program is [`recipes/shapes.rs`](../../agents/recipes/shapes.rs).
+
+## Accessibility modifiers
+
+SwiftUI: `.accessibilityLabel`, `.accessibilityHint`, `.accessibilityValue`,
+`.accessibilityHidden`, `.accessibilityIdentifier`, `.accessibilityElement(children:)`
+and `.accessibilityAddTraits`. The program is
+[`recipes/accessibility.rs`](../../agents/recipes/accessibility.rs).
+
+`AccessibilityModifiers` is in the prelude and works on every view and control.
+
+| Modifier | Sets | macOS AX attribute |
+|---|---|---|
+| `accessibility_label(text)` | The name; wins over the text Freya takes from the children | `AXTitle` |
+| `accessibility_hint(text)` | What the control does | `AXHelp` |
+| `accessibility_value(text)` | The current value | `AXValue` |
+| `accessibility_hidden(true)` | Removes the view and its children from the tree | none |
+| `accessibility_identifier(id)` | A stable id for tests and scripts | `AXIdentifier` |
+| `accessibility_element(AccessibilityChildBehavior::Combine)` | One element that speaks its children's labels, `Ignore` hides the children, `Contain` makes a group | role and children |
+| `accessibility_add_traits(AccessibilityTraits::IS_HEADER \| ..)` | The role: `IS_BUTTON`, `IS_HEADER`, `IS_LINK`, `IS_IMAGE`, `IS_STATIC_TEXT`; `IS_SELECTED` selects | `AXRole` |
+
+1. Call the modifier on the view or control: `Button::new("+").accessibility_label("Add a task")`.
+2. A `TextField`, `SearchField` and `TextEditor` expose their text as the value and their placeholder as the name when you give no label.
+3. On macOS each window publishes its tree to VoiceOver and to the AX API ([18](18-platform.md#accessibility)). To check it, run `axdump <pid>` from `~/src/probes` and read the title, help and identifier of each element.
+4. The tree is built only when a client asks, so a window with no screen reader costs nothing.
+
+On Linux the modifiers set the same node data and AT-SPI reads it; `accessibility_element` does nothing there ([ADR 0112](../decisions.md)).
 
 ## Building a new control
 

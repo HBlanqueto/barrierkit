@@ -9,9 +9,10 @@ use objc2::{
     AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
 };
 use objc2_app_kit::{
-    NSBackingStoreType, NSEvent, NSEventModifierFlags, NSGlassEffectContainerView,
-    NSGlassEffectView, NSPanel, NSTextInputClient, NSTrackingArea, NSTrackingAreaOptions, NSView,
-    NSVisualEffectView, NSWindow, NSWindowDelegate, NSWindowStyleMask,
+    NSApplication, NSBackingStoreType, NSDragOperation, NSDraggingContext, NSDraggingSession,
+    NSDraggingSource, NSEvent, NSEventModifierFlags, NSGlassEffectContainerView, NSGlassEffectView,
+    NSPanel, NSTextInputClient, NSTrackingArea, NSTrackingAreaOptions, NSView, NSVisualEffectView,
+    NSWindow, NSWindowDelegate, NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification, NSObject,
@@ -232,6 +233,17 @@ define_class!(
         }
     }
 
+    // SAFETY: NSObjectProtocol has no methods to implement.
+    unsafe impl NSObjectProtocol for ContentView {}
+
+    // SAFETY: the method keeps the selector and signature of NSDraggingSource.
+    unsafe impl NSDraggingSource for ContentView {
+        #[unsafe(method(draggingSession:sourceOperationMaskForDraggingContext:))]
+        fn source_operation_mask(&self, _: &NSDraggingSession, _: NSDraggingContext) -> NSDragOperation {
+            NSDragOperation::Copy
+        }
+    }
+
     // SAFETY: each method keeps the selector and signature of NSTextInputClient.
     unsafe impl NSTextInputClient for ContentView {
         #[unsafe(method(insertText:replacementRange:))]
@@ -318,6 +330,20 @@ fn text_of(string: &AnyObject) -> String {
 }
 
 impl ContentView {
+    // AppKit starts a session only from a mouse event: the drag the pointer is making.
+    pub(super) fn begin_drag(&self, payload: &crate::drag::DragPayload) {
+        let Some(event) = NSApplication::sharedApplication(self.mtm()).currentEvent() else {
+            return;
+        };
+        let at = self.convertPoint_fromView(event.locationInWindow(), None);
+        let items = crate::platform::pasteboard::dragging_items(payload, at);
+        self.beginDraggingSessionWithItems_event_source(
+            &items,
+            &event,
+            ProtocolObject::from_ref(self),
+        );
+    }
+
     pub(super) fn new(mtm: MainThreadMarker, id: u64, frame: NSRect) -> Retained<Self> {
         let this = Self::alloc(mtm).set_ivars(ViewIvars {
             id,
@@ -412,6 +438,11 @@ define_class!(
         #[unsafe(method(windowDidExitFullScreen:))]
         fn window_did_exit_full_screen(&self, _: &NSNotification) {
             with_runtime(|runtime| runtime.fullscreen_changed(self.ivars().id));
+        }
+
+        #[unsafe(method(windowShouldClose:))]
+        fn window_should_close(&self, _: &NSWindow) -> bool {
+            with_runtime(|runtime| runtime.should_close(self.ivars().id)).unwrap_or(true)
         }
 
         #[unsafe(method(windowWillClose:))]

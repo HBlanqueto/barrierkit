@@ -1,5 +1,6 @@
 use bk::ProbeExt;
 use bk::prelude::*;
+use bk::views::form::{Form, Row, Section};
 use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
 use torin::prelude::{Alignment, Area, Size, Size2D};
@@ -371,4 +372,287 @@ fn a_grid_inside_a_centered_stack_is_centered_by_its_final_width() {
     });
     assert_eq!(size(&test, "grid"), (168.0, 30.0));
     assert_eq!(at(&test, "grid").0, 116.0);
+}
+
+fn zstack(id: &'static str) -> ZStack {
+    ZStack::new().a11y_builder(move |node| node.set_author_id(id))
+}
+
+fn layers() -> ZStack {
+    zstack("z")
+        .child(block("big", 60.0, 20.0))
+        .child(block("small", 10.0, 4.0))
+}
+
+#[test]
+fn a_zstack_is_as_large_as_its_largest_child_and_centers_the_others() {
+    let test = runner(|| layers().into_element());
+    assert_eq!(size(&test, "z"), (60.0, 20.0));
+    assert_eq!(at(&test, "big"), (0.0, 0.0));
+    assert_eq!(at(&test, "small"), (25.0, 8.0));
+}
+
+#[test]
+fn a_zstack_alignment_places_every_child() {
+    let corner = |alignment| runner(move || layers().alignment(alignment).into_element());
+    assert_eq!(
+        at(&corner(ContentAlignment::TOP_LEADING), "small"),
+        (0.0, 0.0)
+    );
+    assert_eq!(
+        at(&corner(ContentAlignment::BOTTOM_TRAILING), "small"),
+        (50.0, 16.0)
+    );
+}
+
+#[test]
+fn a_zstack_whose_largest_child_is_not_first_still_ends_up_that_large() {
+    let test = runner(|| {
+        zstack("z")
+            .child(block("small", 10.0, 4.0))
+            .child(block("big", 60.0, 20.0))
+            .into_element()
+    });
+    assert_eq!(size(&test, "z"), (60.0, 20.0));
+    assert_eq!(at(&test, "small"), (25.0, 8.0));
+}
+
+#[test]
+fn an_overlay_is_placed_in_the_frame_of_the_view_and_does_not_size_it() {
+    let test = runner(|| {
+        block("base", 40.0, 20.0)
+            .overlay(
+                ContentAlignment::BOTTOM_TRAILING,
+                block("badge", 10.0, 10.0),
+            )
+            .a11y_builder(|node| node.set_author_id("o"))
+            .into_element()
+    });
+    assert_eq!(size(&test, "o"), (40.0, 20.0));
+    assert_eq!(at(&test, "base"), (0.0, 0.0));
+    assert_eq!(at(&test, "badge"), (30.0, 10.0));
+}
+
+#[test]
+fn an_overlay_larger_than_the_view_leaves_its_size_alone() {
+    let test = runner(|| {
+        block("base", 40.0, 20.0)
+            .overlay(ContentAlignment::CENTER, block("wide", 80.0, 20.0))
+            .a11y_builder(|node| node.set_author_id("o"))
+            .into_element()
+    });
+    assert_eq!(size(&test, "o"), (40.0, 20.0));
+    assert_eq!(at(&test, "wide"), (-20.0, 0.0));
+}
+
+#[test]
+fn a_background_view_sits_behind_the_view_and_is_sized_by_it() {
+    let test = runner(|| {
+        block("base", 40.0, 20.0)
+            .background_view(ContentAlignment::CENTER, block("back", 20.0, 10.0))
+            .a11y_builder(|node| node.set_author_id("b"))
+            .into_element()
+    });
+    assert_eq!(size(&test, "b"), (40.0, 20.0));
+    assert_eq!(at(&test, "base"), (0.0, 0.0));
+    assert_eq!(at(&test, "back"), (10.0, 5.0));
+}
+
+#[derive(PartialEq)]
+struct Stairs;
+
+impl Layout for Stairs {
+    fn place_subviews(&self, _proposal: Size2D, subviews: &[Size2D]) -> Placement {
+        Placement {
+            size: Size2D::new(subviews.iter().map(|size| size.width).sum(), 30.0),
+            origins: (0..subviews.len())
+                .map(|index| (index as f32 * 20.0, index as f32 * 5.0))
+                .collect(),
+        }
+    }
+}
+
+fn stairs() -> LayoutContainer<Stairs> {
+    LayoutContainer::with_layout(Stairs)
+        .a11y_builder(|node| node.set_author_id("s"))
+        .child(block("a", 20.0, 10.0))
+        .child(block("b", 20.0, 10.0))
+        .child(block("c", 20.0, 10.0))
+}
+
+#[test]
+fn a_custom_layout_places_each_subview_and_sets_the_container_size() {
+    let test = runner(|| stairs().into_element());
+    assert_eq!(size(&test, "s"), (60.0, 30.0));
+    assert_eq!(at(&test, "a"), (0.0, 0.0));
+    assert_eq!(at(&test, "b"), (20.0, 5.0));
+    assert_eq!(at(&test, "c"), (40.0, 10.0));
+}
+
+fn fits(width: f32) -> Element {
+    rect()
+        .width(Size::px(width))
+        .child(
+            ViewThatFits::new(Axis::Horizontal)
+                .candidate(300.0, block("wide", 10.0, 10.0))
+                .candidate(150.0, block("medium", 10.0, 10.0))
+                .candidate(0.0, block("narrow", 10.0, 10.0)),
+        )
+        .into_element()
+}
+
+fn shown(test: &TestingRunner) -> Vec<&'static str> {
+    ["wide", "medium", "narrow"]
+        .into_iter()
+        .filter(|id| {
+            test.find(|_, element| {
+                (element.accessibility().builder.author_id() == Some(id)).then_some(())
+            })
+            .is_some()
+        })
+        .collect()
+}
+
+#[test]
+fn view_that_fits_shows_the_first_candidate_that_fits_the_offered_width() {
+    assert_eq!(shown(&runner(|| fits(350.0))), ["wide"]);
+    assert_eq!(shown(&runner(|| fits(200.0))), ["medium"]);
+}
+
+#[test]
+fn view_that_fits_falls_back_to_the_last_candidate() {
+    assert_eq!(shown(&runner(|| fits(100.0))), ["narrow"]);
+}
+
+fn right_to_left(view: impl IntoElement) -> Element {
+    view.layout_direction(LayoutDirection::RightToLeft)
+        .into_element()
+}
+
+#[test]
+fn a_row_runs_from_the_right_in_right_to_left() {
+    let row = || {
+        HStack::new()
+            .spacing(0.0)
+            .width(Size::px(200.0))
+            .main_align(Alignment::Start)
+            .child(block("a", 40.0, 10.0))
+            .child(block("b", 20.0, 10.0))
+            .child(block("c", 10.0, 10.0))
+    };
+    let test = runner(move || right_to_left(row()));
+    assert_eq!(at(&test, "a").0, 160.0);
+    assert_eq!(at(&test, "b").0, 140.0);
+    assert_eq!(at(&test, "c").0, 130.0);
+}
+
+#[test]
+fn a_column_leading_alignment_is_the_right_edge_in_right_to_left() {
+    let test = runner(|| {
+        right_to_left(
+            VStack::new()
+                .width(Size::px(200.0))
+                .cross_align(Alignment::Start)
+                .child(block("a", 40.0, 10.0))
+                .child(block("b", 20.0, 10.0)),
+        )
+    });
+    assert_eq!(at(&test, "a").0, 160.0);
+    assert_eq!(at(&test, "b").0, 180.0);
+}
+
+#[test]
+fn a_frame_alignment_leading_is_the_right_edge_in_right_to_left() {
+    let test = runner(|| {
+        right_to_left(
+            block("a", 30.0, 10.0)
+                .frame()
+                .width(Size::px(200.0))
+                .alignment(ContentAlignment::LEADING),
+        )
+    });
+    assert_eq!(at(&test, "a").0, 170.0);
+}
+
+#[test]
+fn a_grid_runs_its_columns_from_the_right_in_right_to_left() {
+    let test = runner(|| {
+        right_to_left(
+            Grid::new()
+                .horizontal_spacing(0.0)
+                .alignment(ContentAlignment::LEADING)
+                .row(
+                    GridRow::new()
+                        .child(block("a", 40.0, 10.0))
+                        .child(block("b", 20.0, 10.0)),
+                )
+                .row(
+                    GridRow::new()
+                        .child(block("c", 20.0, 10.0))
+                        .child(block("d", 10.0, 10.0)),
+                ),
+        )
+    });
+    assert_eq!(at(&test, "a").0, 20.0);
+    assert_eq!(at(&test, "b").0, 0.0);
+    assert_eq!(at(&test, "c").0, 40.0);
+    assert_eq!(at(&test, "d").0, 10.0);
+}
+
+#[test]
+fn a_zstack_and_a_custom_layout_mirror_in_right_to_left() {
+    let test = runner(|| right_to_left(layers().alignment(ContentAlignment::TOP_LEADING)));
+    assert_eq!(at(&test, "small").0, 50.0);
+    let test = runner(|| right_to_left(stairs()));
+    assert_eq!(at(&test, "a").0, 40.0);
+    assert_eq!(at(&test, "c").0, 0.0);
+    assert_eq!(at(&test, "b").1, 5.0);
+}
+
+#[derive(PartialEq)]
+struct BuiltBelow;
+
+impl Component for BuiltBelow {
+    fn render(&self) -> impl IntoElement {
+        HStack::new()
+            .spacing(0.0)
+            .width(Size::px(200.0))
+            .main_align(Alignment::Start)
+            .child(block("a", 40.0, 10.0))
+            .child(block("b", 20.0, 10.0))
+    }
+}
+
+#[test]
+fn a_row_built_inside_a_component_below_the_scope_mirrors_once() {
+    let test = runner(|| right_to_left(BuiltBelow));
+    assert_eq!(at(&test, "a").0, 160.0);
+    assert_eq!(at(&test, "b").0, 140.0);
+}
+
+#[test]
+fn a_scope_that_repeats_the_direction_does_not_mirror_again() {
+    let test = runner(|| {
+        right_to_left(right_to_left(
+            HStack::new()
+                .spacing(0.0)
+                .width(Size::px(200.0))
+                .main_align(Alignment::Start)
+                .child(block("a", 40.0, 10.0))
+                .child(block("b", 20.0, 10.0)),
+        ))
+    });
+    assert_eq!(at(&test, "a").0, 160.0);
+}
+
+fn settings() -> Form {
+    Form::new().section(Section::new().row(Row::new("Name").control(block("c", 20.0, 10.0))))
+}
+
+#[test]
+fn a_form_row_puts_its_control_on_the_left_in_right_to_left() {
+    let left_to_right = runner(|| settings().into_element());
+    let right_to_left = runner(|| right_to_left(settings()));
+    assert!(at(&left_to_right, "c").0 > 200.0);
+    assert!(at(&right_to_left, "c").0 < 200.0);
 }

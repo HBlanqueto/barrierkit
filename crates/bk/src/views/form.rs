@@ -12,6 +12,7 @@ use crate::date_picker::DatePicker;
 use crate::elements::{Overrides, forward_overrides};
 use crate::indicator::CapacityIndicator;
 use crate::interaction::{control_state, use_interaction};
+use crate::layout::{ambient, resolve_mirrored};
 use crate::menu::measure_text_weight;
 use crate::patterns::settings::PageLink;
 use crate::progress::ProgressView;
@@ -312,7 +313,13 @@ impl Component for Form {
         let paints = Paints::current(ControlState::default(), style.effect);
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
+        let right_to_left = ambient() == LayoutDirection::RightToLeft;
         let [top, right, bottom, left] = style.header_padding;
+        let (right, left) = if right_to_left {
+            (left, right)
+        } else {
+            (right, left)
+        };
         if style.columns {
             return self
                 .overrides
@@ -331,42 +338,44 @@ impl Component for Form {
                 }
                 .into_element()
             });
-            rect()
-                .width(Size::fill())
-                .direction(Direction::Vertical)
-                .maybe_child(match (&section.header, section.title.clone()) {
-                    (Some(header), _) => Some(
+            resolve_mirrored(
+                rect()
+                    .width(Size::fill())
+                    .direction(Direction::Vertical)
+                    .maybe_child(match (&section.header, section.title.clone()) {
+                        (Some(header), _) => Some(
+                            rect()
+                                .width(Size::fill())
+                                .padding(Gaps::new(top, right, bottom, left))
+                                .child(header.clone()),
+                        ),
+                        (None, Some(title)) => Some(
+                            rect()
+                                .padding(Gaps::new(top, right, bottom, left))
+                                .child(text(title, style.header_font, ink(&style.header))),
+                        ),
+                        (None, None) => None,
+                    })
+                    .maybe_child(
+                        (!section.rows.is_empty() || section.illustration.is_some()).then(|| {
+                            rect()
+                                .width(Size::fill())
+                                .direction(Direction::Vertical)
+                                .corner_radius(corner_radius)
+                                .overflow(Overflow::Clip)
+                                .painted(&paints, &style.background)
+                                .bordered(&paints, style.border.as_ref())
+                                .maybe_child(section.illustration.clone())
+                                .children(rows)
+                        }),
+                    )
+                    .maybe_child(section.footer.clone().map(|footer| {
                         rect()
-                            .width(Size::fill())
-                            .padding(Gaps::new(top, right, bottom, left))
-                            .child(header.clone()),
-                    ),
-                    (None, Some(title)) => Some(
-                        rect()
-                            .padding(Gaps::new(top, right, bottom, left))
-                            .child(text(title, style.header_font, ink(&style.header))),
-                    ),
-                    (None, None) => None,
-                })
-                .maybe_child(
-                    (!section.rows.is_empty() || section.illustration.is_some()).then(|| {
-                        rect()
-                            .width(Size::fill())
-                            .direction(Direction::Vertical)
-                            .corner_radius(corner_radius)
-                            .overflow(Overflow::Clip)
-                            .painted(&paints, &style.background)
-                            .bordered(&paints, style.border.as_ref())
-                            .maybe_child(section.illustration.clone())
-                            .children(rows)
-                    }),
-                )
-                .maybe_child(section.footer.clone().map(|footer| {
-                    rect()
-                        .padding(Gaps::new(bottom, right, 0.0, left))
-                        .child(text(footer, style.footer_font, ink(&style.footer)))
-                }))
-                .into_element()
+                            .padding(Gaps::new(bottom, right, 0.0, left))
+                            .child(text(footer, style.footer_font, ink(&style.footer)))
+                    }))
+                    .into_element(),
+            )
         });
         let [form_top, form_right, form_bottom, form_left] = style.padding;
         let root = rect()
@@ -412,21 +421,26 @@ fn columns(sections: &[Section], style: &FormStyle, paints: &Paints) -> Rect {
                 }
                 _ => None,
             };
-            rect()
-                .width(Size::fill())
-                .direction(Direction::Horizontal)
-                .content(Content::flex())
-                .cross_align(Alignment::Center)
-                .spacing(style.columns_gap)
-                .child(
-                    rect()
-                        .width(Size::px(label_width))
-                        .main_align(Alignment::End)
-                        .direction(Direction::Horizontal)
-                        .child(text(row.title.clone(), style.title_font, ink)),
-                )
-                .maybe_child(control.map(|control| rect().width(Size::flex(1.0)).child(control)))
-                .into_element()
+            resolve_mirrored(
+                rect()
+                    .width(Size::fill())
+                    .direction(Direction::Horizontal)
+                    .content(Content::flex())
+                    .cross_align(Alignment::Center)
+                    .spacing(style.columns_gap)
+                    .child(resolve_mirrored(
+                        rect()
+                            .width(Size::px(label_width))
+                            .main_align(Alignment::End)
+                            .direction(Direction::Horizontal)
+                            .child(text(row.title.clone(), style.title_font, ink))
+                            .into_element(),
+                    ))
+                    .maybe_child(
+                        control.map(|control| rect().width(Size::flex(1.0)).child(control)),
+                    )
+                    .into_element(),
+            )
         }))
 }
 
@@ -441,6 +455,7 @@ struct FormRow {
 impl Component for FormRow {
     fn render(&self) -> impl IntoElement {
         let style: FormStyle = resolve(&self.style);
+        let right_to_left = ambient() == LayoutDirection::RightToLeft;
         let interaction = use_interaction();
         let mut hovered = use_state(|| false);
         let row = &self.row;
@@ -509,8 +524,12 @@ impl Component for FormRow {
             ),
             Accessory::Field(element) => Some(
                 StyleScope::new(
-                    Theme::tengen().style(|style: TextFieldStyle| TextFieldStyle {
-                        text_align: TextAlign::End,
+                    Theme::tengen().style(move |style: TextFieldStyle| TextFieldStyle {
+                        text_align: if right_to_left {
+                            TextAlign::Start
+                        } else {
+                            TextAlign::End
+                        },
                         ..style.plain()
                     }),
                     element.clone(),
@@ -522,7 +541,11 @@ impl Component for FormRow {
             }
             Accessory::Navigation(_) | Accessory::Page(_) => Some(
                 symbol(
-                    Symbol::ChevronRight,
+                    if right_to_left {
+                        Symbol::ChevronLeft
+                    } else {
+                        Symbol::ChevronRight
+                    },
                     style.chevron_size,
                     ink(&style.chevron),
                 )
@@ -540,9 +563,12 @@ impl Component for FormRow {
         );
         let stacked = row.stacked && aligned_to_first_line;
         let wrapping = |content: Cow<'static, str>, face, ink| {
-            text(content, face, ink)
-                .width(if field { Size::auto() } else { Size::fill() })
-                .max_lines(None)
+            resolve_mirrored(
+                text(content, face, ink)
+                    .width(if field { Size::auto() } else { Size::fill() })
+                    .max_lines(None)
+                    .into_element(),
+            )
         };
         let mut labels = rect()
             .width(match (stacked, field) {
@@ -594,8 +620,8 @@ impl Component for FormRow {
                 row.symbol
                     .map(|(glyph, tint)| SymbolTile::new(glyph, tint).into_element())
             }))
-            .maybe_child((!leading).then_some(labels))
-            .child(
+            .maybe_child((!leading).then(|| resolve_mirrored(labels.into_element())))
+            .child(resolve_mirrored(
                 rect()
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
@@ -605,8 +631,9 @@ impl Component for FormRow {
                     })
                     .child(rect().width(Size::px(0.0)).height(Size::px(first_line)))
                     .maybe_child(row.hover_control.clone().filter(|_| *hovered.read()))
-                    .maybe_child(accessory),
-            );
+                    .maybe_child(accessory)
+                    .into_element(),
+            ));
         if row.hover_control.is_some() {
             element = element
                 .on_pointer_over(move |_| hovered.set(true))
@@ -627,7 +654,11 @@ impl Component for FormRow {
         let separator = (!self.first).then(|| {
             rect()
                 .width(Size::fill())
-                .padding(Gaps::new(0.0, padding_x, 0.0, style.separator_inset))
+                .padding(if right_to_left {
+                    Gaps::new(0.0, style.separator_inset, 0.0, padding_x)
+                } else {
+                    Gaps::new(0.0, padding_x, 0.0, style.separator_inset)
+                })
                 .child(
                     Divider::new().style(move |divider: DividerStyle| DividerStyle {
                         line: StateValue::new(line.clone()),
@@ -639,6 +670,6 @@ impl Component for FormRow {
             .width(Size::fill())
             .direction(Direction::Vertical)
             .maybe_child(separator)
-            .child(element)
+            .child(resolve_mirrored(element.into_element()))
     }
 }

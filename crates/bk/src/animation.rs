@@ -146,7 +146,14 @@ pub fn use_animated(target: f32, animation: Animation) -> f32 {
         let segment = segment.clone();
         move |_: u32, _| AnimNum::new(0.0, 1.0).time(segment.get().duration_ms())
     });
+    // Freya restarts the clock one render after the serial changes; that render still reads the old one, finished.
+    let held = use_hook(|| Rc::new(Cell::new(None::<f32>)));
     let fraction = elapsed.get().value();
+    if let Some(held) = held.take()
+        && fraction >= 1.0
+    {
+        return held;
+    }
     let current = segment.get();
     let shown = current.value(fraction);
     if current.to != target {
@@ -155,6 +162,7 @@ pub fn use_animated(target: f32, animation: Animation) -> f32 {
             crate::theme::resolved().reduced_motion,
         );
         segment.set(current.retarget(fraction, target, animation));
+        held.set((animation.duration_ms() > 0).then_some(shown));
         *serial.write() += 1;
     }
     if segment.get().animation.duration_ms() == 0 {

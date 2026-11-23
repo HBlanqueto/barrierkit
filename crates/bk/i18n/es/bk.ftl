@@ -145,3 +145,7 @@ bring-all-to-front = Traer todo al frente
 help-app = Ayuda de { $app }
 no-results-for = Sin resultados para «{ $query }»
 check-the-spelling = Comprueba la ortografía o prueba con otra búsqueda.
+save-changes-message = ¿Quieres guardar los cambios realizados en el documento “{ $name }”?
+save-changes-detail = Si no guardas los cambios, se perderán.
+save = Guardar
+dont-save = No guardar

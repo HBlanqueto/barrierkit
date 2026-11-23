@@ -10,8 +10,10 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Size};
 
 use crate::controls::Checkbox;
+use crate::rich_text::styled_spans;
 use crate::style::Palette;
 use crate::style::with_font;
+use crate::styled_text::{Inline, Piece, explicit, layered};
 use crate::styles::{
     ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve,
 };
@@ -20,12 +22,9 @@ use crate::views::list::ListRow;
 
 macro_rules! forward_element {
     ($outer:ident) => {
-        impl From<$outer> for ::freya_core::prelude::Element {
-            fn from(value: $outer) -> Self {
-                $crate::layout::resolve_spacers(value.0.into())
-            }
-        }
-
+        $crate::elements::forward_element!($outer, $crate::layout::resolve_spacers);
+    };
+    ($outer:ident, custom_from) => {
         impl ::freya_core::prelude::KeyExt for $outer {
             fn key_mut(&mut self) -> &mut ::freya_core::prelude::DiffKey {
                 self.0.key_mut()
@@ -72,11 +71,23 @@ macro_rules! forward_element {
 
         impl ::freya_core::prelude::MaybeExt for $outer {}
     };
+    ($outer:ident, $resolve:path) => {
+        impl From<$outer> for ::freya_core::prelude::Element {
+            fn from(value: $outer) -> Self {
+                $resolve(value.0.into())
+            }
+        }
+
+        $crate::elements::forward_element!($outer, custom_from);
+    };
 }
 
 macro_rules! forward_container {
     ($outer:ident) => {
-        $crate::elements::forward_element!($outer);
+        $crate::elements::forward_container!($outer, $crate::layout::resolve_spacers);
+    };
+    ($outer:ident, $resolve:path) => {
+        $crate::elements::forward_element!($outer, $resolve);
 
         impl ::freya_core::prelude::ChildrenExt for $outer {
             fn children_mut(&mut self) -> &mut Vec<::freya_core::prelude::Element> {
@@ -130,6 +141,12 @@ macro_rules! forward_overrides {
             }
         }
 
+        impl ::freya_core::prelude::AccessibilityExt for $outer {
+            fn accessibility_data_mut(&mut self) -> &mut ::freya_core::prelude::AccessibilityData {
+                &mut self.overrides.accessibility
+            }
+        }
+
         impl ::freya_core::prelude::ContainerExt for $outer {}
 
         impl ::freya_core::prelude::BackgroundExt for $outer {}
@@ -148,6 +165,7 @@ pub(crate) struct Overrides {
     pub(crate) style: StyleState,
     pub(crate) effect: EffectData,
     pub(crate) handlers: EventHandlers,
+    pub(crate) accessibility: AccessibilityData,
 }
 
 macro_rules! take_set {
@@ -163,7 +181,7 @@ impl Overrides {
     // An Event cannot be cloned, so handlers cannot chain with the control's own: they sit around it.
     pub(crate) fn apply<E>(&self, mut root: E) -> Element
     where
-        E: LayoutExt + StyleExt + EffectExt + IntoElement,
+        E: LayoutExt + StyleExt + EffectExt + AccessibilityExt + IntoElement,
     {
         let unset = Self::default();
         take_set!(root.layout_mut().layout, self.layout.layout, unset.layout.layout;
@@ -180,6 +198,10 @@ impl Overrides {
             take_set!(root.effect_mut(), self.effect, unset.effect;
                 cursor, cursor_visible, overflow, rotation, scale, transform_origin, opacity, blur);
         }
+        crate::accessibility::merge(
+            &mut root.accessibility_data_mut().builder,
+            &self.accessibility.builder,
+        );
         if self.handlers.is_empty() {
             root.into_element()
         } else {
@@ -190,10 +212,14 @@ impl Overrides {
         }
     }
 
-    pub(crate) fn delegate<C>(&self, inner: C) -> C
+    pub(crate) fn delegate<C>(&self, mut inner: C) -> C
     where
-        C: LayoutExt + StyleExt + EffectExt + EventHandlersExt,
+        C: LayoutExt + StyleExt + EffectExt + EventHandlersExt + AccessibilityExt,
     {
+        crate::accessibility::merge(
+            &mut inner.accessibility_data_mut().builder,
+            &self.accessibility.builder,
+        );
         inner
             .layout(self.layout.clone())
             .style(self.style.clone())
@@ -202,37 +228,121 @@ impl Overrides {
     }
 }
 
-pub struct Text(freya_core::prelude::Label, Cow<'static, str>, Theme);
+pub struct Text(freya_core::prelude::Label, Cow<'static, str>, Theme, Inline);
 
 impl Text {
     pub fn new(content: impl Into<Cow<'static, str>>) -> Self {
         Self::styled(content.into(), Theme::tengen())
     }
 
+    /// Reads inline Markdown (`**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `[title](url)`); `new` shows its string as it is.
+    pub fn markdown(source: &str) -> Self {
+        let (content, runs) = crate::rich_text::markdown(source);
+        let mut text = Self::new(content.clone());
+        if !runs.is_empty() {
+            text.3.pieces = styled_spans(&content, &runs, Palette::current().accent);
+            for (span, _) in text.3.pieces.iter_mut().filter(|(_, link)| link.is_some()) {
+                span.text_style_data.text_decoration = None;
+            }
+        }
+        text
+    }
+
     pub fn style(self, restyle: impl Fn(TextStyle) -> TextStyle + 'static) -> Self {
-        Self::styled(self.1, self.2.style(restyle))
+        let inline = self.3;
+        let mut text = Self::styled(self.1, self.2.style(restyle));
+        text.3.pieces = inline.pieces;
+        text.3.selectable = inline.selectable;
+        text
     }
 
-    pub fn font(self, font: Font) -> Self {
+    pub fn font(mut self, font: Font) -> Self {
         let font = font.scaled(crate::theme::resolved().text_size);
-        Self(with_font(self.0, font), self.1, self.2)
+        self.3.line_height = font.line_height as f32 / font.size as f32;
+        Self(with_font(self.0, font), self.1, self.2, self.3)
     }
 
-    pub fn line_limit(self, lines: usize) -> Self {
-        Self(self.0.max_lines(lines), self.1, self.2)
+    pub fn line_limit(mut self, lines: usize) -> Self {
+        self.3.max_lines = Some(lines);
+        Self(self.0.max_lines(lines), self.1, self.2, self.3)
+    }
+
+    pub fn bold(self) -> Self {
+        self.font_weight(FontWeight::BOLD)
+    }
+
+    pub fn italic(self) -> Self {
+        self.font_slant(FontSlant::Italic)
+    }
+
+    pub fn underline(self) -> Self {
+        self.text_decoration(TextDecoration::Underline)
+    }
+
+    pub fn strikethrough(self) -> Self {
+        self.text_decoration(TextDecoration::LineThrough)
+    }
+
+    /// Lets the reader select the text with the pointer and copy it; a link of a selectable text does not open.
+    pub fn text_selection(mut self, enabled: bool) -> Self {
+        self.3.selectable = enabled;
+        self
     }
 
     fn styled(content: Cow<'static, str>, theme: Theme) -> Self {
         let style: TextStyle = resolve(&theme);
         let paints = Paints::current(ControlState::default(), style.effect);
+        let inline = Inline {
+            line_height: style.font.line_height as f32 / style.font.size as f32,
+            ..Inline::default()
+        };
         let view = with_font(label().text(content.clone()), style.font)
             .max_lines(None)
             .color(paints.fill(&style.foreground));
-        Self(view, content, theme)
+        Self(view, content, theme, inline)
+    }
+
+    // The runs of this text with what its author set on it, ready to sit beside the runs of another.
+    fn runs(mut self) -> Vec<Piece> {
+        let mut default = Self::new("");
+        let own = explicit(
+            self.0.text_style_data_mut(),
+            default.0.text_style_data_mut(),
+        );
+        if self.3.pieces.is_empty() {
+            let mut span = Span::new(self.1.into_owned());
+            span.text_style_data = own;
+            return vec![(span, None)];
+        }
+        let mut pieces = self.3.pieces;
+        for (span, _) in &mut pieces {
+            span.text_style_data = layered(&own, &span.text_style_data);
+        }
+        pieces
     }
 }
 
-forward_element!(Text);
+impl std::ops::Add for Text {
+    type Output = Text;
+
+    fn add(self, other: Text) -> Text {
+        let mut joined = Text::new(format!("{}{}", self.1, other.1));
+        joined.3.selectable = self.3.selectable || other.3.selectable;
+        joined.3.pieces = self.runs().into_iter().chain(other.runs()).collect();
+        joined
+    }
+}
+
+impl From<Text> for Element {
+    fn from(mut value: Text) -> Self {
+        if value.3.is_plain() {
+            return crate::layout::resolve_mirrored(value.0.into());
+        }
+        crate::styled_text::element(&mut value.0, &value.1, value.3)
+    }
+}
+
+forward_element!(Text, custom_from);
 
 impl TextOverflowExt for Text {}
 
@@ -272,7 +382,7 @@ impl Label {
     }
 }
 
-forward_container!(Label);
+forward_container!(Label, crate::layout::resolve_mirrored);
 
 // What a view is to its neighbours in a column: SwiftUI spaces a text, a symbol, a label, a checkbox and any other
 // control by their own preferred distances.
@@ -368,7 +478,7 @@ impl Default for VStack {
     }
 }
 
-forward_container!(VStack);
+forward_container!(VStack, crate::layout::resolve_mirrored);
 
 pub struct HStack(Rect);
 
@@ -384,7 +494,7 @@ impl Default for HStack {
     }
 }
 
-forward_container!(HStack);
+forward_container!(HStack, crate::layout::resolve_mirrored);
 
 fn stack(direction: Direction) -> Rect {
     rect()

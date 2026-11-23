@@ -1,3 +1,4 @@
+use crate::drag::DragPayload;
 use freya_clipboard::copypasta::{
     ClipboardContext, ClipboardProvider, nop_clipboard::NopClipboardContext,
 };
@@ -23,7 +24,9 @@ impl Clipboard {
         }
     }
 
-    pub(crate) fn set_rich(&self, text: String, _html: String) {
-        let _ = self.provider().set_contents(text);
+    pub(crate) fn set_rich(&self, text: String, html: String) {
+        if self.system {
+            crate::platform::pasteboard::write(None, &DragPayload::Html { text, html });
+        }
     }
 }

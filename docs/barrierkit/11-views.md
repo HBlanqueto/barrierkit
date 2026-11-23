@@ -67,7 +67,7 @@ before deleting.
 
 ## Layout
 
-`Spacer`, `Frame` and `Grid` are in `bk::layout`, and the prelude exports them.
+`Spacer`, `Frame`, `Grid`, `ZStack`, `Layout` and `ViewThatFits` are in `bk::layout`, and the prelude exports them.
 A `VStack` or an `HStack` is a column or a row; these say what a stack cannot.
 
 ### `Spacer`
@@ -131,6 +131,84 @@ The program is [`layout_grid.rs`](../../agents/recipes/layout_grid.rs). Three li
    `Start`, or give it a `.height`.
 3. There is no `gridCellAnchor`, no hidden row and no baseline alignment: torin
    cannot state a baseline ([ADR 0089](../decisions.md)).
+
+### `ZStack`, `overlay` and `background_view`
+
+`ZStack::new()` draws its children on top of one another, the last on top.
+It is as large as its largest child, and `.alignment(ContentAlignment)` places
+the others in it (`CENTER` by default). `view.overlay(alignment, content)` and
+`view.background_view(alignment, content)` draw `content` over or behind the
+view; the view alone sizes the result, so a badge larger than its icon does not
+grow it. The recipe is [`layout_layers.rs`](../../agents/recipes/layout_layers.rs).
+
+```rust
+// SwiftUI: Image(systemName: "bell").overlay(alignment: .topTrailing) { badge }
+Image::system(Symbol::Bell).overlay(ContentAlignment::TOP_TRAILING, badge)
+```
+
+Three limits ([ADR 0110](../decisions.md)):
+
+1. Torin sizes the parent from the first child (the view, for an overlay and a
+   background). A `ZStack` whose first child is not the largest is sized right
+   after the layout, but a parent that centers it was already placed by the
+   first child: put the largest child first.
+2. A child that fills (`Size::fill()`) fills what the container was offered,
+   not the base view: give the container or the base a width, or use
+   `background_style` for a plain fill.
+3. A `ZStack` with its own `.width` keeps its children at the start of it.
+
+### Custom layout
+
+`Layout` is SwiftUI's protocol in one call: `place_subviews(proposal, sizes)`
+gets the space offered and the size of each subview, and returns a `Placement`
+with the size of the container and the origin of each subview in it.
+`LayoutContainer::with_layout(layout).child(..)` is the view; `ZStack` is the
+`ZStackLayout` one. The program is `layout_layers.rs`, with a flow layout.
+
+Torin measures each subview once, with the space the container has, so a
+layout cannot ask a subview for another size (`sizeThatFits` with several
+proposals), `layoutValue` or `spacing` preferences. The same parent limit as the
+`ZStack` applies: the first subview sizes the container for its parent.
+
+### `ViewThatFits`
+
+`ViewThatFits::new(Axis::Horizontal)` takes candidates with
+`.candidate(extent, view)` and shows the first whose `extent` is at most the
+width (or height) offered; the last one shows when none fits. It fills the
+axis it watches.
+
+SwiftUI measures each candidate's ideal size. Torin cannot measure a view
+before it chooses it, and a `Text` would wrap and always fit, so each
+candidate states its extent. The first frame offers 0 and shows the last
+candidate; the measured size replaces it right after.
+
+### Right to left
+
+`view.layout_direction(LayoutDirection::RightToLeft)` is SwiftUI's
+`.environment(\.layoutDirection, .rightToLeft)`. `LayoutDirection` defaults to
+`LeftToRight`; the kit does not read the locale. Under it:
+
+| Mirrors | How |
+|---|---|
+| `HStack`, `Label`, `VStack`, `Frame`, `Text` | a row runs from the right; `Leading` and `Alignment::Start` in a column or a frame are the right edge; a `Text` with a width aligns right; one that hugs its text keeps its alignment |
+| `Grid`, `ZStack`, `LayoutContainer` | the columns and the placed origins flip inside the container |
+| `Form`, `Row` | the row runs from the right, the chevron points left, the field's text aligns left |
+| the six control styles with a layout direction | `Switch`, `Checkbox`, `RadioGroup`, `Slider`, `LevelSlider`, `Stepper` read it, with their labels |
+
+The recipe is [`right_to_left.rs`](../../agents/recipes/right_to_left.rs). Limits:
+
+1. A view mirrors when it is built under the direction (inside a component
+   below `.layout_direction`) or when it is already built in the view the
+   modifier wraps. A raw `rect()` mirrors only in the second case, and a
+   component of the kit that builds its own `rect()` (`List`, `Table`, the
+   sidebar, the title bar) does not mirror yet.
+2. Padding, margins and absolute positions are physical (Torin has `left` and
+   `right`, not leading): swap them when you read the direction.
+3. Text keeps Skia's left-to-right base direction: Freya never sets
+   `ParagraphStyle::set_text_direction`, so Arabic or Hebrew runs reorder but
+   the punctuation of a right-to-left sentence sits on the wrong side.
+4. Symbols do not flip (`flipsForRightToLeftLayoutDirection` is absent) except
+   the `Form` chevron.
 
 ## Forms
 

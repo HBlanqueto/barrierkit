@@ -23,6 +23,7 @@ swiftc -parse-as-library -O scripts/fullscreen-reference.swift -o "$work/swift-t
 swiftc -parse-as-library -O -DHIDDEN scripts/fullscreen-reference.swift -o "$work/swift-hidden-title-bar"
 swiftc -parse-as-library -O -DPLAIN scripts/fullscreen-reference.swift -o "$work/swift-plain"
 swiftc -O scripts/click.swift -o "$work/click"
+swiftc -O scripts/window-trace.swift -o "$work/window-trace"
 
 screen=$(osascript -e 'tell application "Finder" to get bounds of window of desktop' | awk -F', ' '{print $3 "x" $4}')
 
@@ -81,8 +82,9 @@ exercise() {
     osascript -e "tell application \"System Events\" to set frontmost of (first process whose unix id is $pid) to true" >/dev/null 2>&1
     sleep 0.5
     before=$(ax "$pid" 'size of window 1')
+    "$work/window-trace" "$pid" 3.5 > "$work/$name.enter" &
     if [ "$kind" = kit-plain ]; then press_kit_green "$pid"; else full_screen "$pid" true; fi
-    sleep 3
+    wait
     during=$(ax "$pid" 'size of window 1')
     [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR" && screencapture -x "$CAPTURE_DIR/$name.png"; }
     if [ "$kind" = kit-plain ]; then
@@ -94,6 +96,7 @@ exercise() {
         full_screen "$pid" false
     fi
     sleep 3
+    echo "  $name: $(wc -l < "$work/$name.enter" | tr -d ' ') bounds seen entering full screen" >&2
     after=$(ax "$pid" 'size of window 1')
     last=$(grep -q 'full-screen: true' "$work/$name.log" 2>/dev/null && echo told || echo silent)
     kill "$pid" 2>/dev/null || true

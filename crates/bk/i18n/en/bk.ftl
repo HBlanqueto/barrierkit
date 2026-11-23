@@ -145,3 +145,7 @@ bring-all-to-front = Bring All to Front
 help-app = { $app } Help
 no-results-for = No Results for “{ $query }”
 check-the-spelling = Check the spelling or try a new search.
+save-changes-message = Do you want to save the changes made to the document “{ $name }”?
+save-changes-detail = Your changes will be lost if you don’t save them.
+save = Save
+dont-save = Don’t Save

@@ -294,6 +294,10 @@ impl WindowControls {
         freya_core::prelude::consume_root_context()
     }
 
+    pub(crate) fn id(&self) -> ObjectId {
+        self.surface_id.clone()
+    }
+
     fn send(&self, command: WindowCommand) {
         self.queue.borrow_mut().push(command);
         self.ping.ping();

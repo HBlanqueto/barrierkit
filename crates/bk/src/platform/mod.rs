@@ -27,9 +27,16 @@ mod ime;
 mod input;
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "linux")]
+pub(crate) mod pasteboard;
+#[cfg(target_os = "macos")]
+#[path = "macos/pasteboard.rs"]
+pub(crate) mod pasteboard;
 #[cfg(target_os = "macos")]
 pub(crate) use macos::{instance, keychain, notifications, panels};
 mod main_menu_export;
+#[cfg(target_os = "linux")]
+pub(crate) mod panels;
 mod popup;
 #[cfg(target_os = "linux")]
 mod primary;

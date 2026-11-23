@@ -430,6 +430,24 @@ bar menu. The runner publishes it to the compositor with
 (re-exported from `wayland-backend`) that identifies a surface in those
 lists.
 
+## Documents and file dialogs
+
+SwiftUI: `.fileImporter`, `.fileExporter`, `.fileDialogDefaultDirectory`, `.onOpenURL`
+and `DocumentGroup`; AppKit: `NSOpenPanel`, `NSSavePanel` and `NSDocument`. The programs are
+[`recipes/file_dialogs.rs`](../../agents/recipes/file_dialogs.rs) and
+[`recipes/documents.rs`](../../agents/recipes/documents.rs).
+
+1. **Choose files.** `.file_importer(is_presented, types, multiple, on_completion)` and `.file_exporter(is_presented, "Name.png", types, on_completion)` take a `State<bool>`, as `sheet` does. `types` is a `Vec<ContentType>`: `ContentType::extension("png")` or `ContentType::Folder`. An empty list allows every file. `on_completion` runs only when the user chose.
+2. **Start folder.** `.file_dialog_default_directory(path)` wraps a view; the dialogs of the views below it start there. For a dialog of your own use `FileDialog::open()` or `FileDialog::save(name)`, `.directory(path)` and `.present(&WindowControls::get()).await`.
+3. **Where it opens.** On macOS the dialog is a sheet of the window. On Linux the portal opens it without a parent, filters or start folder.
+4. **Make a window a document.** Call `use_document(|path| write(path))` in the window's component. It returns a `Document`.
+5. **Keep it dirty.** `document.set_edited(true)` when the content differs from the file, `false` when it matches. An edited window shows the dot in its close button.
+6. **Save.** `document.save().await` writes through your closure, asking for a file first when `document.url()` is `None`. Use it for the Save command.
+7. **Close.** The native close button of an edited window shows the "Do you want to save the changes made to the document “name”?" sheet with Save, Cancel and Don’t Save. Save writes and closes; a write that fails keeps the window open. Cmd-W and Cmd-Q go through the same delegate methods and are meant to ask the same, but were not run.
+8. **Open.** `.on_open_url(|url: OpenedUrl| ..)` runs for each file (`OpenedUrl::File(path)`) or address (`OpenedUrl::Other(text)`) that Finder, `open` or a link hands to the app. The app declares `CFBundleDocumentTypes` and `CFBundleURLTypes` in its `Info.plist`; the kit does not generate it.
+
+`WindowControls::close()` and the kit's own traffic lights (a `Plain` window) close without asking. What is not built is in [ADR 0112](../decisions.md).
+
 ## Errors
 
 `run_window` returns `RunError` when the window cannot run:

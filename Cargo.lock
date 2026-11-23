@@ -36,6 +36,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "accesskit_macos"
+version = "0.27.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "123828ceeec755b05255e3976cb0852993202de98a0626c97dd8d34246991f84"
+dependencies = [
+ "accesskit",
+ "accesskit_consumer",
+ "hashbrown 0.17.1",
+ "objc2 0.5.3",
+ "objc2-app-kit 0.2.2",
+ "objc2-foundation 0.2.2",
+]
+
+[[package]]
 name = "accesskit_unix"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -338,6 +352,7 @@ name = "bk"
 version = "0.1.0"
 dependencies = [
  "accesskit",
+ "accesskit_macos",
  "accesskit_unix",
  "ash",
  "async-io",

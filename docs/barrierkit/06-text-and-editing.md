@@ -99,7 +99,7 @@ in character indices.
 
 | Type | Fields |
 |---|---|
-| `RunStyle` | `bold`, `italic`, `underline`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`; `Default` is plain |
+| `RunStyle` | `bold`, `italic`, `underline`, `strikethrough`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`; `Default` is plain |
 | `StyleRun` | `range: Range<usize>`, `style: RunStyle` |
 | `FontChoice` | `family`, `size`, `bold`, `italic` |
 | `Emphasis` | `Bold`, `Italic`, `Underline` |
@@ -131,6 +131,28 @@ The functions behind it are pure and work on any runs:
 | `font_at(runs, length, index)` | The `FontChoice` at a character; `BODY` when unset |
 | `apply_font(runs, length, range, &FontChoice)` | Runs with that font on `range` |
 | `link_at(runs, index)` | The link at a character, if any |
+| `markdown(source)` | The plain text and the runs of inline Markdown ([Text runs](#text-runs)) |
+
+## Text runs
+
+`Text` (recipe [42](../../agents/recipes.md#42-text-with-runs-markdown-and-selection)) takes
+SwiftUI's inline forms. Each is a `Text` again, so it keeps the layout and style modifiers.
+
+| Form | Result |
+|---|---|
+| `Text::new("a") + Text::new("b").bold()` | One paragraph of two runs; each keeps what its author set (`bold`, `italic`, `underline`, `strikethrough`, `font`, `foreground_style`). What neither set, such as a `foreground_style` on the sum, reaches both |
+| ``Text::markdown("**b** *i* ~~s~~ `c` [t](https://x.org)")`` | Bold, italic, struck, monospaced and a link in the accent; a click on the link opens it through the `OpenURI` portal. A mark without its mate (`2 * 3`), `snake_case` and `\*` stay literal. `Text::new` never reads Markdown |
+| `.text_selection(true)` | The reader selects with the pointer and copies with Command+C or Ctrl+C |
+
+Limits:
+
+1. Markdown is inline only: no headings, lists, images or line breaks of its own.
+2. A link of a selectable text does not open, and its selection draws the Freya highlight.
+3. A sum takes the line height and the paragraph options (`line_limit`, alignment) of the plain
+   `Text::new("")` it starts from; a layout modifier of an operand is dropped, as in SwiftUI.
+4. A span has one decoration, so a link or an underline hides a strikethrough on the same run.
+5. SwiftUI deprecated `Text + Text` in macOS 26 in favor of string interpolation; Rust has no
+   interpolation of views, so the kit keeps `+`.
 
 ## Font panel
 

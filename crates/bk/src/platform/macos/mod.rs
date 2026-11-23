@@ -41,18 +41,23 @@ use objc2_metal::{
 use objc2_quartz_core::{CADisplayLink, CAMetalDrawable, CAMetalLayer, kCACornerCurveContinuous};
 
 use super::app::{AppInstance, Host, InstanceRole};
-use super::backdrop::{Effect as Declared, Pass, Placement, Requests, render_pass, render_passes};
+use super::backdrop::{
+    Effect as Declared, Pass, PlacedGlass, Placement, Requests, render_pass, render_passes,
+};
 use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
 use super::window::{
     OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle,
 };
-use super::window_style::{ScrollEdgeEffectStyle, WireMaterial};
+use super::window_style::ScrollEdgeEffectStyle;
 use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
+#[cfg(feature = "a11y")]
+pub(super) mod accessibility;
 mod arrow;
 mod blur;
+mod delegate;
 mod frame;
 mod input;
 pub(crate) mod instance;
@@ -105,6 +110,7 @@ struct Wanted {
     placement: Placement,
     requests: Requests,
     native: Option<Backing>,
+    glasses: Vec<PlacedGlass>,
 }
 
 struct Window {
@@ -517,7 +523,8 @@ impl Runtime {
             glass: !options.opaque,
             ..self.host()
         };
-        let instance = AppInstance::new(
+        #[cfg_attr(not(feature = "a11y"), allow(unused_mut))]
+        let mut instance = AppInstance::new(
             &host,
             ObjectId::from_raw(id),
             app,
@@ -531,6 +538,8 @@ impl Runtime {
             },
             |_| {},
         );
+        #[cfg(feature = "a11y")]
+        instance.attach_accessibility(&view, id);
         self.windows.push(Window {
             id,
             window: window.clone(),
@@ -709,6 +718,20 @@ impl Runtime {
         }
     }
 
+    fn window_of(&mut self, id: &ObjectId) -> Option<Retained<NSWindow>> {
+        self.window(id.raw()).map(|found| found.window.clone())
+    }
+
+    // A document with unsaved changes keeps its window and asks first (crate::document).
+    pub(super) fn should_close(&mut self, id: u64) -> bool {
+        let intercepted = crate::document::intercept_close(&ObjectId::from_raw(id));
+        if intercepted {
+            self.poll_all();
+            self.redraw_all();
+        }
+        !intercepted
+    }
+
     pub(super) fn closed(&mut self, id: u64) {
         let owned: Vec<_> = self
             .windows
@@ -835,6 +858,7 @@ impl Runtime {
             .map(|chrome| Wanted {
                 placement: chrome.placement(scale as f32),
                 requests: Requests::of(chrome, scale as f32),
+                glasses: chrome.glasses(scale as f32),
                 native: chrome.effects.iter().find_map(|(effect, _)| match effect {
                     Declared::Material { material, .. } => Some(Backing::Visual(*material)),
                     Declared::Glass { .. } => Some(Backing::Glass),
@@ -891,14 +915,13 @@ impl Runtime {
                     }
                 }
                 Some(Backing::Glass) => {
-                    let rects = &wanted.requests.backdrop.rects;
-                    let clear = wanted.requests.backdrop.material == Some(WireMaterial::GlassClear);
                     let strip_frame = blur::frame((x, y, width as i32, strip as i32), height);
-                    if rects.len() > 1 {
-                        let members: Vec<_> = rects
+                    if wanted.glasses.len() > 1 && wanted.requests.glass_spacing > 0 {
+                        let members: Vec<_> = wanted
+                            .glasses
                             .iter()
-                            .map(|&(left, top, w, h)| {
-                                let glass = blur::glass(mtm, radius, clear);
+                            .map(|&((left, top, w, h), radius, clear)| {
+                                let glass = blur::glass(mtm, radius as f32, clear);
                                 glass.setFrame(blur::frame((left, top, w, h), f64::from(strip)));
                                 glass
                             })
@@ -911,8 +934,8 @@ impl Runtime {
                         );
                         effects.push(Retained::into_super(Retained::into_super(group)));
                     } else {
-                        for &(left, top, w, h) in rects {
-                            let glass = blur::glass(mtm, radius, clear);
+                        for &((left, top, w, h), radius, clear) in &wanted.glasses {
+                            let glass = blur::glass(mtm, radius as f32, clear);
                             glass.setFrame(blur::frame((x + left, y + top, w, h), height));
                             effects.push(Retained::into_super(Retained::into_super(glass)));
                         }
@@ -1098,6 +1121,14 @@ impl Runtime {
                     }
                     continue;
                 }
+                if event.is::<crate::drag::StartDrag>() {
+                    if let Ok(drag) = event.downcast::<crate::drag::StartDrag>()
+                        && let Some(window) = self.window(owner.raw())
+                    {
+                        window.view.begin_drag(&drag.0);
+                    }
+                    continue;
+                }
                 if let Ok(shortcut) = event.downcast::<EditShortcut>()
                     && let Some(window) = self.window(owner.raw())
                 {
@@ -1216,6 +1247,7 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
     let application = NSApplication::sharedApplication(mtm);
     application.setActivationPolicy(NSApplicationActivationPolicy::Regular);
     menu::install(mtm, &application, &options.app_name);
+    delegate::install(mtm, &application);
 
     let event_loop: EventLoop<'static, ()> = EventLoop::try_new()
         .map_err(|_| RunError::EventLoop("calloop EventLoop::try_new failed"))?;

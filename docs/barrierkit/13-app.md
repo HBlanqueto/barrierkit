@@ -485,6 +485,8 @@ zeroed.
 | `open_uri(uri, ask)` | `OpenURI`; `ask` lets the user pick the app | — |
 | `notify(id, title, body)` | `Notification.AddNotification`; on macOS a banner with `id` as its identifier (see [Notifications](#notifications)) | — |
 
+For a dialog that is a sheet of its window, with filters and a start folder, use `FileDialog` ([8](08-windows.md#documents-and-file-dialogs)); `open_files` and `save_file` keep the portal's arguments.
+
 `file_uri(path)` turns a path into a `file://` URI escaped like GLib;
 `file_path(uri)` does the reverse and returns `None` for other schemes.
 
@@ -504,6 +506,35 @@ Both calls read a root context, so they run inside the app: in a component or
 an event handler. Without a clipboard they return `ClipboardError::NotAvailable`.
 Text fields already copy, cut and
 paste ([6. Text and editing](06-text-and-editing.md)).
+
+### Typed clipboard
+
+Module `pasteboard`. `Pasteboard::general()` is the system clipboard and `Pasteboard::named("name")` a
+private board; recipe [43](../../agents/recipes.md#43-copy-paste-and-drag-typed-data) runs it.
+
+```rust
+use bk::drag::DragPayload;
+use bk::pasteboard::Pasteboard;
+
+let board = Pasteboard::general();
+board.copy(&DragPayload::Html { text: "Hello".into(), html: "<b>Hello</b>".into() });
+let text: Option<String> = board.paste();
+let anything: Option<DragPayload> = board.paste();
+```
+
+`copy` replaces the board and returns false when the platform cannot hold the type. `paste` reads the richest
+item (files, then an image, then rich text, then text) and gives `None` when the item is not a `T`. A type of the
+app implements `Transferable` (`payload` and `from_payload`) to travel as one of the four `DragPayload` shapes.
+
+| Payload | macOS (`NSPasteboard`) | Linux |
+|---|---|---|
+| `Text` | `public.utf8-plain-text` | the Wayland clipboard |
+| `Html { text, html }` | both types; `WindowControls::copy_rich` writes this | the Wayland clipboard keeps the text; `copy_rich` also offers `text/html` |
+| `Image(png)` | `public.png` and `public.tiff`; a TIFF alone reads as PNG | not held: `copy` returns false |
+| `Files(paths)` | one `public.file-url` item per path, with the path as text | not held: `copy` returns false |
+| a named board | private to the process, shared with others that use the name | not held: false and `None` |
+
+Linux reads text only. The read has no size cap on macOS: the system already holds the bytes.
 
 ## Drag and drop
 

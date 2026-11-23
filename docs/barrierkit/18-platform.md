@@ -266,7 +266,7 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 |---|---|
 | An `NSWindow` with the system title bar and traffic lights (`DecorationResponse::Server`), min and max size, title; `WindowStyle::HiddenTitleBar` keeps the native lights and the kit draws the bar beside them (`Hybrid`); `WindowStyle::Plain` is a borderless window with shadow and the kit's `Titlebar` and `TrafficLights` (`Client`), moved and resized by AppKit ([8](08-windows.md#window-style)) | Utility windows as panels, window tabs, a Space for the full screen of a `Plain` window |
 | Popups (menus, pop-up buttons, tooltips, popovers) as child panels with a native menu, popover or tooltip material, placed by `xdg_positioner`'s rules; a grabbing popup takes the keyboard and closes when it loses it. A `PopoverShape` popup has the arrow of its shape on the edge that faces the anchor (`platform/macos/arrow.rs`, [7](07-menus-and-popovers.md#other-popover-shapes)) | Glass drawn under other surfaces, continuous corners on a popover with an arrow |
-| Sheets with `beginSheet`, utility windows as child windows | Drag and drop |
+| Sheets with `beginSheet`, utility windows as child windows | Dropping files, text or images onto a window |
 | Input methods and dead keys through `NSTextInputClient`: the committed text reaches the field as the key that types it, the composing text goes to `WindowControls::ime_preedit`, `set_ime_cursor_area` places the candidates | A CJK input method and its candidate window (not run) |
 | Mouse, scroll, keyboard (Command acts as Ctrl), cursors | |
 | The menu bar from the key window's `MainMenu`, after the standard app menu: Command key equivalents for the Ctrl shortcuts, checkmarks, disabled items, patched when the menu changes. A key that edits a focused text field goes to the field, not to the menu | Palettes, search fields, icons and badges of a menu item; `Header` is a disabled item; the About panel of a bundled app (not run) |
@@ -276,8 +276,9 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 | `launch` as a lock and a socket in `$TMPDIR`; a second run activates the first (`platform/macos/instance.rs`) | `ActivateAction`, files to open |
 | `WindowOptions::status_item` as an `NSStatusItem` with the items as its menu (`platform/macos/status.rs`) | A status item that changes after the window opens |
 | `notifications::post` and `portal::notify` as `UNUserNotificationCenter` banners, for a bundled app; the click callbacks of the last 32 posts wait, the older ones are dropped (`platform/macos/notifications.rs`) | A banner shown on screen (not run: the system refused the permission of a test bundle), action buttons |
-| `Timers`, `WakeHandle`, clipboard text | `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
+| `Timers`, `WakeHandle`, the clipboard (typed: text, HTML, images, files), dragging typed data out | `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
 | The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |
+| `glass_effect(Glass, Shape)` on any view as an `NSGlassEffectView` behind it on macOS 26 and later, with the view drawn in a Metal chrome above; below 26 or under Reduce Transparency the kit's own blur or opaque solid. Up to 8 chromes per window here, 3 on Linux; one radius and one variant per chrome ([15](15-backdrops-and-media.md#glass-on-any-view), ADR 0113) | `tint`, `interactive`, `glassEffectUnion`, a shape per corner |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
 
 The window and its popups take the kit's scheme (`appearance.domain`), not the system's. Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
@@ -333,6 +334,23 @@ toplevel window publishes its accessibility tree over AT-SPI with
 Other actions are ignored. After the first tree, each update sends only the
 nodes that changed and the focus.
 
+On macOS each window of the runner creates an `accesskit_macos`
+`SubclassingAdapter` on its content view (`platform/macos/accessibility.rs`).
+It is lazy: the runner builds the tree only after VoiceOver or the AX API first
+asks, and answers that first query with the whole tree. A client then reads the
+role, title, value, help, identifier, frame and children of each node, and
+`AXPress` clicks it.
+
+| Screen reader asks | The runner does |
+|---|---|
+| The tree | Builds it and sends it whole |
+| `Focus` on a node | Moves the focus to that node |
+| `Click` (`AXPress`) on a node | Moves the focus to that node and presses `Enter` on it |
+
+A tree whose views use `accessibility_element` or a text field is sent whole on
+every change, because the kit folds subtrees and names the input node
+([ADR 0112](../decisions.md)). The macOS label is `AXTitle`, not `AXDescription`.
+
 ## Desktop services
 
 The kit opens one session-bus connection per process and gives every method
@@ -365,13 +383,14 @@ app calls, who answers on macOS, who answers on Linux.
 | Traffic lights, title bar | The kit draws them ([ADR 0082](../decisions.md)); the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
 | Frame pacing | One `CADisplayLink` per window | The frame callback of the surface ([The frame](#the-frame)) | both |
 | Full screen (the green light) | `toggleFullScreen` for a titled window and the window's own frame for a `Plain` one; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../agents/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |
-| Clipboard | `macos/clipboard.rs` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection | both |
-| Drag and drop | No code in `platform/macos` | `wl_data_device`; only `text/uri-list` is accepted | Linux only |
+| Clipboard | `macos/clipboard.rs` (text) and `macos/pasteboard.rs` (typed: text, HTML, PNG and TIFF, file URLs, private boards) on `NSPasteboard` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection; `platform/pasteboard.rs` holds text only, so images, files and named boards report false | both; typed on macOS only |
+| Drag and drop | Out: an `NSDraggingSession` from the content view with `NSPasteboardItem`s (`macos/view.rs`, `macos/pasteboard.rs`); in: no code | `wl_data_device`; out offers text, `text/html`, `image/png` and `text/uri-list`; in accepts only `text/uri-list` | Linux both ways; macOS out only (not run with a real drag) |
 | Text input | Key events with `insertText`; marked text is not verified | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
-| Accessibility | None: no `NSAccessibility` and no `accesskit` in `platform/macos` | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | Linux only |
+| Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
 | Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, and the app menu event of `infinity_window_manager_v1` | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
-| File dialogs | `NSOpenPanel` and `NSSavePanel` (`panels.rs`) | The `FileChooser` portal: no parent window, no filters (`portal.rs`) | both, Linux partial |
+| File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal: no parent window, no filters, no start folder (`platform/panels.rs`, `portal.rs`) | both, Linux partial |
+| Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | None: nothing is vetoed, the alert and the open events are not served (`platform/panels.rs`) | macOS only |
 | Notifications | `UserNotifications` | `org.freedesktop.Notifications` and the portal | both |
 | Secrets | Keychain (`security-framework`) | Secret Service | both |
 | Single instance | `macos/instance.rs` | `org.freedesktop.Application` | both |
@@ -382,12 +401,12 @@ left out of the current round, by who would answer it:
 
 | Gap | Kit | macOS | Linux (Malaysia) |
 |---|---|---|---|
-| 2 Rich text, 3 `ZStack` and `Layout`, 6 `Transition`, 15 right-to-left | Yes: Freya and Torin, the same on both | none | none |
-| 4 Accessibility by SwiftUI name | The modifiers | `NSAccessibility` (none yet) | AT-SPI (exists) |
-| 7 Typed drag and drop | A `Transferable` type | `NSPasteboard` types | `wl_data_device` MIME types |
+| 3 `ZStack` and `Layout`, 6 `Transition`, 15 right-to-left | Yes: Freya and Torin, the same on both | none | none |
+| 4 Accessibility by SwiftUI name | The modifiers (done) | `accesskit_macos` (done) | AT-SPI (exists; `accessibility_element` not applied) |
+| 7 Typed drag and drop | `Transferable` and `Pasteboard` (done) | `NSPasteboard` types (done); a drop target (none) | `wl_data_device` MIME types (offers done; a typed drop target none) |
 | 11 `glassEffect` on any view | The modifier | A layer per view | `set_backdrop` on a sub-surface per view |
-| 12 Document apps | [ADR 0085](../decisions.md) leaves them out until an app asks | `NSDocument` | The portal and the app |
-| 13 Dialogs attached to their window | The call | `beginSheetModal` | `xdg-foreign`, not bound |
+| 12 Document apps | `Document`, `use_document`, `on_open_url` (done, [ADR 0112](../decisions.md)) | `NSWindow` dirty state, `windowShouldClose:`, `NSAlert`, the app delegate (done) | none |
+| 13 Dialogs attached to their window | `FileDialog`, `file_importer`, `file_exporter` (done) | `beginSheetModalForWindow` (done) | `xdg-foreign`, not bound |
 
 How to keep it true:
 

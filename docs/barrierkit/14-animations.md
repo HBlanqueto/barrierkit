@@ -129,8 +129,36 @@ Button::new("Show").on_press(move |_| {
   to the writes in its closure, so an inner `withAnimation` animates its own
   writes; the kit ignores the inner call, because a Freya `State` has one write
   path the kit cannot tag.
-- `Transition` (how a view enters and leaves) is decided in the ADR and not built
-  yet; its first user is navigation and presentation.
+
+## Transitions
+
+A view that comes and goes animates when an app wraps it in `Presence` and
+changes the state inside `with_animation` ([ADR 0113](../decisions.md)):
+
+```rust
+Presence::new((*shown.read()).then(|| Text::new("Hello")))
+    .transition(Transition::move_edge(Edge::Leading).combined(Transition::OPACITY))
+```
+
+| Item | What it does |
+|---|---|
+| `Presence::new(Option<view>)` | `Some` shows the view, `None` removes it; the removed view stays mounted until its animation ends. Without `with_animation` it comes and goes at once. `.key(..)` as every view |
+| `.transition(t)` | Default `Transition::OPACITY` |
+| `Transition::OPACITY`, `SCALE`, `IDENTITY` | The look of a view that is gone: transparent, scaled to 0, or unchanged |
+| `Transition::scale(s)`, `offset(x, y)`, `move_edge(edge)` | Scaled to `s`, shifted by `x, y`, or one of its own widths or heights beyond `edge` (left to right) |
+| `.combined(other)` | Both at once: opacity and scale multiply, offsets add |
+| `Transition::asymmetric(insertion, removal)` | One on the way in, the other on the way out |
+| `.content_transition(ContentTransition::Opacity)` | Any view: when it changes, the old one fades out over the new one, which fades in |
+
+- Progress is `use_animated`'s, so a spring may overshoot a scale and a toggle
+  in midway goes on from the value and velocity shown.
+- A leaving view takes no pointer events.
+- An absent `Presence` takes no room in a stack, spacing included.
+- Not built: `matchedGeometryEffect` (it needs a frame registry shared by two
+  places of the tree and a first frame at the old place, before any layout),
+  `ContentTransition::numericText` and `interpolate` (per-glyph), `slide`,
+  `push`, `blurReplace`, and a transition that runs on a view the app removes
+  without `Presence`.
 
 ## Reduced motion
 

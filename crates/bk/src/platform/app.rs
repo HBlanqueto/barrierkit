@@ -106,6 +106,7 @@ pub(crate) struct AppInstance {
     size: Size2D,
     needs_layout: bool,
     waker: Waker,
+    settling: u8,
     pub(crate) menu_actions: crate::app::MenuActions,
     pub(crate) resolved: State<Resolved>,
     pub(crate) glass_luma: State<Option<f32>>,
@@ -113,6 +114,10 @@ pub(crate) struct AppInstance {
     accessibility_initialized: bool,
     #[cfg(all(feature = "a11y", target_os = "linux"))]
     atspi: Option<super::atspi::Atspi>,
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    bridge: Option<super::macos::accessibility::Bridge>,
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    marked: bool,
     pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
     pub(crate) pending_shortcuts: Vec<Key>,
     inputs: crate::spelling::InputParagraphs,
@@ -289,6 +294,7 @@ impl AppInstance {
             size: Size2D::new(size.0 as f32, size.1 as f32),
             needs_layout: true,
             waker,
+            settling: 0,
             menu_actions,
             resolved,
             glass_luma,
@@ -296,6 +302,10 @@ impl AppInstance {
             accessibility_initialized: false,
             #[cfg(all(feature = "a11y", target_os = "linux"))]
             atspi,
+            #[cfg(all(feature = "a11y", target_os = "macos"))]
+            bridge: None,
+            #[cfg(all(feature = "a11y", target_os = "macos"))]
+            marked: false,
             requested_focus,
             pending_shortcuts: Vec::new(),
             inputs,
@@ -334,7 +344,11 @@ impl AppInstance {
     pub(crate) fn text_field_focused(&self) -> bool {
         matches!(
             self.focused_role(),
-            Role::TextInput | Role::MultilineTextInput | Role::SearchInput | Role::PasswordInput
+            Role::TextInput
+                | Role::MultilineTextInput
+                | Role::SearchInput
+                | Role::PasswordInput
+                | Role::Label
         )
     }
 
@@ -343,6 +357,10 @@ impl AppInstance {
         #[cfg(all(feature = "a11y", target_os = "linux"))]
         if let Some(atspi) = &mut self.atspi {
             atspi.adapter.update_window_focus_state(focused);
+        }
+        #[cfg(all(feature = "a11y", target_os = "macos"))]
+        if let Some(bridge) = &mut self.bridge {
+            bridge.set_focused(focused);
         }
         self.waker.wake_by_ref();
     }
@@ -409,13 +427,19 @@ impl AppInstance {
         {
             return true;
         }
+        #[cfg(all(feature = "a11y", target_os = "macos"))]
+        if self.bridge.as_ref().is_some_and(|bridge| bridge.pending()) {
+            return true;
+        }
         self.requested_focus.is_some()
     }
 
     pub(crate) fn update(&mut self) -> bool {
         #[cfg(all(feature = "a11y", target_os = "linux"))]
         let pressed = self.take_atspi_actions();
-        #[cfg(not(all(feature = "a11y", target_os = "linux")))]
+        #[cfg(all(feature = "a11y", target_os = "macos"))]
+        let pressed = self.take_bridge_actions();
+        #[cfg(not(all(feature = "a11y", any(target_os = "linux", target_os = "macos"))))]
         let pressed = false;
         let requested_focus = self.requested_focus.take();
         let mutations = self.runner.sync_and_update();
@@ -438,7 +462,14 @@ impl AppInstance {
                 .as_ref()
                 .is_some_and(|atspi| atspi.tree_requested()))
         .then(|| self.accessibility.init(&mut self.tree, ""));
-        #[cfg(not(all(feature = "a11y", target_os = "linux")))]
+        #[cfg(all(feature = "a11y", target_os = "macos"))]
+        let full_tree = (!self.accessibility_initialized
+            || self
+                .bridge
+                .as_ref()
+                .is_some_and(|bridge| bridge.tree_requested()))
+        .then(|| self.accessibility.init(&mut self.tree, ""));
+        #[cfg(not(all(feature = "a11y", any(target_os = "linux", target_os = "macos"))))]
         if !self.accessibility_initialized {
             self.accessibility.init(&mut self.tree, "");
         }
@@ -456,7 +487,7 @@ impl AppInstance {
         let accessibility_update =
             self.accessibility
                 .process_updates(&mut self.tree, &self.events_sender, "");
-        #[cfg(all(feature = "a11y", target_os = "linux"))]
+        #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
         let focus_moved =
             *self.platform.focused_accessibility_id.peek() != accessibility_update.focus;
         self.platform
@@ -472,6 +503,8 @@ impl AppInstance {
                 None => {}
             }
         }
+        #[cfg(all(feature = "a11y", target_os = "macos"))]
+        self.publish_accessibility(full_tree, accessibility_update, focus_moved);
         if let Some(node_id) = self.accessibility.focused_node_id()
             && let Some(layout_node) = self.tree.layout.get(&node_id)
         {
@@ -480,7 +513,12 @@ impl AppInstance {
             );
         }
         if pressed {
+            self.settling = 3;
             self.press(Key::Named(NamedKey::Enter), Code::Enter, Modifiers::empty());
+        }
+        if self.settling > 0 {
+            self.settling -= 1;
+            self.waker.wake_by_ref();
         }
         for key in std::mem::take(&mut self.pending_shortcuts) {
             self.press(key, Code::Unidentified, Modifiers::CONTROL);
@@ -494,8 +532,23 @@ impl AppInstance {
         let Some(atspi) = &self.atspi else {
             return false;
         };
+        let requests = atspi.take_actions();
+        self.apply_assistive_actions(requests)
+    }
+
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    fn take_bridge_actions(&mut self) -> bool {
+        let Some(bridge) = &self.bridge else {
+            return false;
+        };
+        let requests = bridge.take_actions();
+        self.apply_assistive_actions(requests)
+    }
+
+    #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
+    fn apply_assistive_actions(&mut self, requests: Vec<accesskit::ActionRequest>) -> bool {
         let mut pressed = false;
-        for request in atspi.take_actions() {
+        for request in requests {
             match request.action {
                 accesskit::Action::Focus => {}
                 accesskit::Action::Click => pressed = true,
@@ -504,6 +557,57 @@ impl AppInstance {
             self.requested_focus = Some(AccessibilityFocusStrategy::Node(request.target_node));
         }
         pressed
+    }
+
+    // shortcut: a tree with marks (child behaviors, text fields) is sent whole on every change; send diffs when a screen reader lags on big trees.
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    fn publish_accessibility(
+        &mut self,
+        full_tree: Option<accesskit::TreeUpdate>,
+        update: accesskit::TreeUpdate,
+        focus_moved: bool,
+    ) {
+        if !self.bridge.as_ref().is_some_and(|bridge| bridge.engaged()) {
+            return;
+        }
+        let changed = focus_moved || !update.nodes.is_empty();
+        let marked = self.marked || crate::accessibility::has_marks(&update);
+        let tree = match full_tree {
+            Some(tree) => Some(tree),
+            None if changed && marked => Some(self.accessibility.init(&mut self.tree, "")),
+            None if changed => None,
+            None => return,
+        };
+        let update = match tree {
+            Some(mut tree) => {
+                self.marked = crate::accessibility::resolve_marks(&mut tree);
+                tree
+            }
+            None => update,
+        };
+        if let Some(bridge) = &mut self.bridge {
+            bridge.update(update);
+        }
+    }
+
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    pub(crate) fn attach_accessibility(&mut self, view: &objc2_app_kit::NSView, window: u64) {
+        self.bridge = Some(super::macos::accessibility::Bridge::new(
+            view,
+            self.waker.clone(),
+            window,
+        ));
+    }
+
+    // The first query of a screen reader or of the AX API gets the whole tree at once.
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    pub(crate) fn initial_accessibility_tree(&mut self) -> Option<accesskit::TreeUpdate> {
+        if !self.accessibility_initialized {
+            return None;
+        }
+        let mut tree = self.accessibility.init(&mut self.tree, "");
+        self.marked = crate::accessibility::resolve_marks(&mut tree);
+        Some(tree)
     }
 
     // A size read through on_sized must reach this frame, or a live resize paints the previous layout.

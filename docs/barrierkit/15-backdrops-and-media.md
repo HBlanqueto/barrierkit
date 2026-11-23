@@ -259,6 +259,35 @@ The morph plan is public, for tests and for other containers:
 shown frame, and an id that leaves melts into the nearest new one. Apple does
 not publish its morph curve; only the duration and the bounce would change.
 
+## Glass on any view
+
+`view.glass_effect(Glass::REGULAR, Shape::Capsule)` puts glass behind one
+view, as SwiftUI's `glassEffect(_:in:)` does ([ADR 0113](../decisions.md)).
+It is a `GlassContainer` of one item, so it takes the native glass on macOS 26
+and later and the kit's blur or opaque solid elsewhere, as the container does.
+
+```rust
+Text::new("Capsule").padding(14.0).glass_effect(Glass::REGULAR, Shape::Capsule)
+```
+
+| Item | What it is |
+|---|---|
+| `Glass::REGULAR`, `Glass::CLEAR` | The variant; the Skia fallback ignores `CLEAR` |
+| `.glass_effect(glass, shape)` | `Capsule` rounds to half the height, `Circle` is centered and square; `RoundedRectangle` takes its radius; an uneven shape takes its largest corner |
+
+- The view draws in the chrome above the glass, so a subtree (a stack with
+  buttons) works. Hit testing is the view's.
+- On macOS each glass is its own native view with its own radius and variant,
+  so a glass inside another glass composes as in SwiftUI. The compositor
+  request of Malaysia holds one radius and one variant per chrome. Sibling
+  glasses are separate chromes, up to 8 per window on macOS; later ones get no
+  glass.
+- `Shape::Circle` is the largest circle centered in the view. An uneven shape
+  takes its largest corner. Under Reduce Transparency a regular glass is the
+  toolbar's plain fill ([comparison with SwiftUI](../research/glass-effect-comparison.md)).
+- `tint`, `interactive`, `glassEffectUnion` and `glassEffectID` are not built;
+  `GlassContainer` is the merge.
+
 ## Compositing groups
 
 `CompositingGroup` draws its children into one layer and runs an effect over the

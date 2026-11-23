@@ -38,6 +38,8 @@ know the kit's shape.
 | `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `.frame(width:height:alignment:)`, `.frame(maxWidth: .infinity)` | `.frame()`, then `.width(..)`, `.height(..)`, `.alignment(..)`; `.width(Size::fill())` for `maxWidth: .infinity` in a column | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `Grid { GridRow { .. } }`, `.gridCellColumns(_:)`, `.gridColumnAlignment(_:)` | `Grid::new().row(GridRow::new().child(..))`, `.grid_cell_columns(n)`, `.grid_column_alignment(..)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
+| `ZStack(alignment:)`, `.overlay(alignment:content:)`, `.background(alignment:content:)` | `ZStack::new().alignment(..).child(..)`, `.overlay(alignment, content)`, `.background_view(alignment, content)` | [`layout_layers.rs`](../../agents/recipes/layout_layers.rs) |
+| `Layout`, `ViewThatFits(in:)` | `Layout::place_subviews` with `LayoutContainer::with_layout(..)`; `ViewThatFits::new(axis).candidate(extent, view)` | [`layout_layers.rs`](../../agents/recipes/layout_layers.rs) |
 | `.sheet(isPresented:)`, `.alert(_:isPresented:)`, `.popover(isPresented:)` | `.sheet(state, ..)`, `.alert(state, ..)`, `.popover(state, size, ..)` with a `State<bool>` | [`presentations.rs`](../../agents/recipes/presentations.rs) |
 | `.onHover`, `.onTapGesture(count:)` | `.on_hover(\|inside\| ..)`, `.on_tap_gesture(count, \|_\| ..)`; both use the pointer events a gesture uses, so put one on a view without another | [`gestures.rs`](../../agents/recipes/gestures.rs) |
 | `.onAppear`, `.onDisappear`, `.onChange`, `.task` | [`use_hook`, `use_drop`, `use_side_effect_with_deps`, `use_future`](#effects) | none |
@@ -82,6 +84,7 @@ The built-in keys have their own readers:
 |---|---|
 | `\.colorScheme`, contrast, accent | `Palette::current()`, `theme::resolved()`; `use_appearance(..)` overrides them for a subtree ([4](04-appearance-and-tokens.md)) |
 | `\.controlSize` | `.control_size(ControlSize)` on a view |
+| `\.layoutDirection` | `.layout_direction(LayoutDirection)` on a view; `use_environment::<LayoutDirection>()` reads it ([11](11-views.md#right-to-left)) |
 | `\.accessibilityReduceMotion` | `use_reduced_motion()` |
 | `\.isEnabled` | `use_is_enabled()`; `.disabled(bool)` on a view ([disabled](#disabled)) |
 | `\.font`, `\.foregroundStyle` | set on each element; a `Text` keeps its own color ([`styles.md`](../../agents/styles.md)) |
@@ -181,15 +184,15 @@ The hooks are in `freya-core` 0.5.3, `src/lifecycle/` and `src/hooks/`.
 
 ## What the kit does not do
 
-[ADR 0085](../decisions.md) fixes these as non-goals until an app asks for one.
+[ADR 0085](../decisions.md) fixes these as non-goals until an app asks for one; [ADR 0112](../decisions.md) builds the close veto, the quit and the open-URL event for documents.
 
 | SwiftUI or AppKit | In the kit |
 |---|---|
 | a `Binding` type, `$model.field` | none; use the `State` or the value and callback above |
 | a command sent to the focused view (the responder chain) | none; every handler of the window gets the id |
-| `windowShouldClose` | none; a close request closes the window at once, except a sheet's |
-| `applicationShouldTerminate`, `NSApp.terminate` | none; the last window closing ends the process. The Quit command (`QUIT`) closes every window ([13](13-app.md#quit)) |
-| `.onOpenURL`, `application(_:open:)` | none |
+| `windowShouldClose` | `use_document` vetoes the close of an edited window and asks "Save changes?" ([8](08-windows.md#documents-and-file-dialogs)); any other close request closes the window at once, except a sheet's |
+| `applicationShouldTerminate`, `NSApp.terminate` | none to call; the last window closing ends the process. The Quit command (`QUIT`) closes every window ([13](13-app.md#quit)); Cmd-Q on macOS asks for the first edited document first |
+| `.onOpenURL`, `application(_:open:)` | `.on_open_url(\|OpenedUrl\| ..)` on macOS; none on Linux |
 
 The full audit of Swift syntax against the kit, with probes, is in
 [Swift syntax in Rust](../research/swift-syntax-in-rust.md).

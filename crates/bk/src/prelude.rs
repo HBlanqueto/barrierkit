@@ -4,8 +4,11 @@ pub use ctdesign::{
     WINDOW_MIN_SIZE,
 };
 pub use freya_core::prelude::*;
-pub use torin::prelude::{Alignment, Direction, Size};
+pub use torin::prelude::{Alignment, Direction, Size, Size2D};
 
+pub use crate::accessibility::{
+    AccessibilityChildBehavior, AccessibilityModifiers, AccessibilityTraits,
+};
 pub use crate::adornments::Divider;
 pub use crate::app::{
     Application, CommandGroup, CommandGroupPlacement, Commands, DismissWindowAction,
@@ -13,12 +16,16 @@ pub use crate::app::{
     use_open_window,
 };
 pub use crate::controls::*;
+pub use crate::document::{Document, OpenedUrl, use_document};
 pub use crate::elements::{HStack, Label, Text, VStack};
 pub use crate::environment::{use_environment, use_is_enabled};
+pub use crate::file_dialog::{ContentType, FileDialog};
 pub use crate::focus::{FocusState, use_focus_state};
+pub use crate::glass_container::Glass;
 pub use crate::layout::{
-    ContentAlignment, Frame, Grid, GridCell, GridModifiers, GridRow, HorizontalAlignment, Spacer,
-    VerticalAlignment,
+    ContentAlignment, Frame, Grid, GridCell, GridModifiers, GridRow, HorizontalAlignment, Layout,
+    LayoutContainer, OverlayModifiers, Placement, Spacer, VerticalAlignment, ViewThatFits, ZStack,
+    ZStackLayout,
 };
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
 pub use crate::platform::{RunError, WindowOptions, WindowStyle, run_window};
@@ -32,4 +39,5 @@ pub use crate::symbol::{
 };
 pub use crate::theme::color;
 pub use crate::titlebar::{Titlebar, WindowToolbarStyle};
+pub use crate::transition::{ContentTransition, Presence, Transition};
 pub use crate::views::toolbar::{ToolbarItem, ToolbarItemPlacement, ToolbarSpacer};

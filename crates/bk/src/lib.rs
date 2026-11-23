@@ -49,6 +49,7 @@ pub mod adornments;
 
 pub mod popup_button;
 pub mod rich_text;
+mod styled_text;
 
 pub mod buttons;
 
@@ -61,6 +62,7 @@ pub mod popover;
 pub mod drag;
 pub mod image_well;
 pub mod indicator;
+pub mod pasteboard;
 
 pub mod token_field;
 
@@ -71,6 +73,10 @@ pub mod date;
 pub mod date_picker;
 
 pub mod portal;
+
+pub mod file_dialog;
+
+pub mod document;
 
 pub mod color_picker;
 
@@ -83,6 +89,8 @@ pub mod status_item;
 pub mod rule_editor;
 
 pub mod glass_container;
+
+pub mod transition;
 
 mod context_menu;
 
@@ -115,6 +123,8 @@ pub mod layout;
 pub mod gesture;
 
 pub mod modifiers;
+
+pub mod accessibility;
 
 pub mod environment;
 

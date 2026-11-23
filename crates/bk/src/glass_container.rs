@@ -20,6 +20,17 @@ use crate::styles::{
 
 pub const MAX_SHAPES: usize = 8;
 
+/// SwiftUI's `Glass`: the variant of the native glass; the kit's fallback ignores `CLEAR`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Glass {
+    pub(crate) clear: bool,
+}
+
+impl Glass {
+    pub const REGULAR: Self = Self { clear: false };
+    pub const CLEAR: Self = Self { clear: true };
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Frame {
     pub x: f32,
@@ -267,7 +278,7 @@ type Measured = Vec<(&'static str, Frame)>;
 pub struct GlassContainer {
     spacing: f32,
     gap: f32,
-    items: Vec<(&'static str, f32, Element)>,
+    items: Vec<(&'static str, f32, bool, Element)>,
     style: Theme,
     overrides: Overrides,
 }
@@ -296,8 +307,20 @@ impl GlassContainer {
         self
     }
 
-    pub fn item(mut self, id: &'static str, radius: f32, content: impl IntoElement) -> Self {
-        self.items.push((id, radius, content.into_element()));
+    pub fn item(self, id: &'static str, radius: f32, content: impl IntoElement) -> Self {
+        self.shaped_item(id, radius, false, content)
+    }
+
+    // A circle is the largest one centered in the view, as in SwiftUI.
+    pub(crate) fn shaped_item(
+        mut self,
+        id: &'static str,
+        radius: f32,
+        circle: bool,
+        content: impl IntoElement,
+    ) -> Self {
+        self.items
+            .push((id, radius, circle, content.into_element()));
         self
     }
 }
@@ -361,10 +384,11 @@ impl Component for GlassContainer {
             }
         });
 
-        let items = self.items.iter().map(|(id, radius, content)| {
+        let items = self.items.iter().map(|(id, radius, circle, content)| {
             GlassItem {
                 id,
                 radius: *radius,
+                circle: *circle,
                 measured,
                 content: content.clone(),
             }
@@ -428,10 +452,27 @@ impl Component for GlassContainer {
     }
 }
 
+fn glass_frame(area: Area, radius: f32, circle: bool) -> Frame {
+    let side = area.width().min(area.height());
+    let (width, height, radius) = if circle {
+        (side, side, side / 2.0)
+    } else {
+        (area.width(), area.height(), radius.min(area.height() / 2.0))
+    };
+    Frame {
+        x: area.origin.x + (area.width() - width) / 2.0,
+        y: area.origin.y + (area.height() - height) / 2.0,
+        width,
+        height,
+        radius,
+    }
+}
+
 #[derive(PartialEq)]
 struct GlassItem {
     id: &'static str,
     radius: f32,
+    circle: bool,
     measured: State<Measured>,
     content: Element,
 }
@@ -439,18 +480,12 @@ struct GlassItem {
 impl Component for GlassItem {
     fn render(&self) -> impl IntoElement {
         let id = self.id;
-        let radius = self.radius;
+        let (radius, circle) = (self.radius, self.circle);
         let mut measured = self.measured;
         use_drop(move || measured.write().retain(|(shown, _)| *shown != id));
         rect()
             .on_sized(move |event: Event<SizedEventData>| {
-                let frame = Frame {
-                    x: event.area.origin.x,
-                    y: event.area.origin.y,
-                    width: event.area.width(),
-                    height: event.area.height(),
-                    radius: radius.min(event.area.height() / 2.0),
-                };
+                let frame = glass_frame(event.area, radius, circle);
                 let mut list = measured.peek().clone();
                 match list.iter_mut().find(|(shown, _)| *shown == id) {
                     Some((_, current)) if *current == frame => return,
@@ -468,6 +503,27 @@ mod tests {
     use ctdesign::MEDIA;
 
     use super::*;
+
+    #[test]
+    fn a_circle_is_the_largest_one_centered_in_its_view_and_a_capsule_keeps_the_view() {
+        let area = Area::new((10.0, 20.0).into(), (50.0, 40.0).into());
+        let circle = glass_frame(area, 16_384.0, true);
+        assert_eq!(
+            (
+                circle.x,
+                circle.y,
+                circle.width,
+                circle.height,
+                circle.radius
+            ),
+            (15.0, 20.0, 40.0, 40.0, 20.0)
+        );
+        let capsule = glass_frame(area, 16_384.0, false);
+        assert_eq!(
+            (capsule.x, capsule.width, capsule.height, capsule.radius),
+            (10.0, 50.0, 40.0, 20.0)
+        );
+    }
 
     fn frame(x: f32) -> Frame {
         Frame {

@@ -9,7 +9,7 @@ repository.workspace = true
 
 [features]
 default = ["a11y"]
-a11y = ["dep:accesskit_unix"]
+a11y = ["dep:accesskit_unix", "dep:accesskit_macos"]
 shell = []
 tracy = ["dep:tracing-tracy"]
 
@@ -54,6 +54,7 @@ xkbcommon.workspace = true
 ash.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
+accesskit_macos = { version = "0.27", optional = true }
 block2 = "0.6"
 security-framework = "3"
 objc2-user-notifications = "0.3"
@@ -160,8 +161,16 @@ name = "layout_grid"
 path = "../../agents/recipes/layout_grid.rs"
 
 [[example]]
+name = "layout_layers"
+path = "../../agents/recipes/layout_layers.rs"
+
+[[example]]
 name = "list_rows"
 path = "../../agents/recipes/list_rows.rs"
+
+[[example]]
+name = "right_to_left"
+path = "../../agents/recipes/right_to_left.rs"
 
 [[example]]
 name = "settings_window"
@@ -274,3 +283,31 @@ path = "../../agents/recipes/scroll_position.rs"
 [[example]]
 name = "shapes"
 path = "../../agents/recipes/shapes.rs"
+
+[[example]]
+name = "transitions"
+path = "../../agents/recipes/transitions.rs"
+
+[[example]]
+name = "glass_effect"
+path = "../../agents/recipes/glass_effect.rs"
+
+[[example]]
+name = "accessibility"
+path = "../../agents/recipes/accessibility.rs"
+
+[[example]]
+name = "text_runs"
+path = "../../agents/recipes/text_runs.rs"
+
+[[example]]
+name = "pasteboard"
+path = "../../agents/recipes/pasteboard.rs"
+
+[[example]]
+name = "file_dialogs"
+path = "../../agents/recipes/file_dialogs.rs"
+
+[[example]]
+name = "documents"
+path = "../../agents/recipes/documents.rs"

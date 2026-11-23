@@ -15,6 +15,15 @@ use torin::prelude::{
 };
 
 use crate::elements::forward_container;
+use crate::styles::LayoutDirection;
+
+mod direction;
+mod fits;
+mod layers;
+
+pub(crate) use direction::{LayoutDirectionScope, ambient, resolve_mirrored};
+pub use fits::ViewThatFits;
+pub use layers::{Layout, LayoutContainer, OverlayModifiers, ZStack, ZStackLayout};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum HorizontalAlignment {
@@ -130,7 +139,7 @@ impl Frame {
     }
 }
 
-forward_container!(Frame);
+forward_container!(Frame, crate::layout::resolve_mirrored);
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct Spacer {
@@ -376,6 +385,7 @@ impl Grid {
                 alignment: ContentAlignment::CENTER,
                 vertical_spacing: SPACE_2,
                 rows: Vec::new(),
+                direction: LayoutDirection::LeftToRight,
             },
             key: DiffKey::None,
             cells: Vec::new(),
@@ -447,10 +457,11 @@ impl Default for Grid {
 impl From<Grid> for Element {
     fn from(grid: Grid) -> Self {
         let Grid {
-            element,
+            mut element,
             key,
             cells,
         } = grid;
+        element.direction = direction::ambient();
         let mut stacks = vec![Vec::new(); element.column_count()];
         let mut floating = Vec::new();
         for (slot, cell) in element.slots().iter().zip(cells) {
@@ -592,21 +603,29 @@ fn cells_of(layout: &Torin<NodeId>, column: &NodeId) -> Vec<NodeId> {
         .unwrap_or_default()
 }
 
-#[derive(PartialEq)]
+#[derive(Clone, PartialEq)]
 struct GridElement {
     layout: LayoutData,
     accessibility: AccessibilityData,
     alignment: ContentAlignment,
     vertical_spacing: f32,
     rows: Vec<RowSpec>,
+    direction: LayoutDirection,
 }
 
-struct Placement {
-    origins: Vec<(f32, f32)>,
-    size: Size2D,
+pub struct Placement {
+    pub origins: Vec<(f32, f32)>,
+    pub size: Size2D,
 }
 
 impl GridElement {
+    fn flipped(&self) -> Self {
+        Self {
+            direction: direction::flipped(self.direction),
+            ..self.clone()
+        }
+    }
+
     fn horizontal_spacing(&self) -> f32 {
         self.layout.spacing.get()
     }
@@ -761,7 +780,13 @@ impl ElementExt for GridElement {
             .iter()
             .map(|area| area.map_or_else(Size2D::zero, |area| area.size))
             .collect::<Vec<_>>();
-        let placement = self.place(&slots, &sizes);
+        let mut placement = self.place(&slots, &sizes);
+        if self.direction == LayoutDirection::RightToLeft {
+            let width = placement.size.width;
+            for ((x, _), size) in placement.origins.iter_mut().zip(&sizes) {
+                *x = direction::mirrored_x(*x, size.width, width);
+            }
+        }
         let origin = context.node_layout.inner_area.origin;
         let offsets = nodes
             .iter()

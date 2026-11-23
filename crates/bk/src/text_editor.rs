@@ -12,7 +12,7 @@ use crate::focus::use_focus_target;
 use crate::font_panel::show_font_panel;
 use crate::i18n::text;
 use crate::rich_text::{
-    Emphasis, FontChoice, StyleRun, apply_font, char_styles, font_at, link_at, restyle_after_edit,
+    Emphasis, FontChoice, StyleRun, apply_font, font_at, link_at, restyle_after_edit, styled_spans,
     toggle,
 };
 use crate::style::text;
@@ -70,7 +70,11 @@ impl TextEditor {
     }
 }
 
-fn char_under(holder: &ParagraphHolder, text: &str, location: CursorPoint) -> Option<usize> {
+pub(crate) fn char_under(
+    holder: &ParagraphHolder,
+    text: &str,
+    location: CursorPoint,
+) -> Option<usize> {
     let holder = holder.0.borrow();
     let inner = holder.as_ref()?;
     let scale = inner.scale_factor;
@@ -394,6 +398,9 @@ impl Component for TextEditor {
                     ink(&style.link),
                 )
                 .into_iter()
+                .map(|(span, _)| span)
+                .collect::<Vec<_>>()
+                .into_iter()
             });
         let loaded = use_reactive(&dictionary().is_some());
         let ranges = use_memo(move || {
@@ -443,10 +450,10 @@ impl Component for TextEditor {
         .a11y_id(a11y_id)
         .a11y_focusable(true)
         .a11y_role(AccessibilityRole::MultilineTextInput)
-        .a11y_alt(if empty {
-            self.placeholder.to_string()
-        } else {
-            value.read().clone()
+        .a11y_alt(self.placeholder.to_string())
+        .a11y_builder(|node| {
+            node.set_value(value.read().clone());
+            node.set_placeholder(self.placeholder.to_string());
         })
         .width(Size::fill())
         .height(self.height.clone())
@@ -549,44 +556,6 @@ impl Component for TextEditor {
             .content(Content::flex());
         self.overrides.apply(root)
     }
-}
-
-fn styled_spans(text: &str, runs: &[StyleRun], link: ctdesign::Rgba) -> Vec<Span<'static>> {
-    if runs.is_empty() {
-        return vec![Span::new(text.to_owned())];
-    }
-    let chars: Vec<char> = text.chars().collect();
-    let styles = char_styles(runs, chars.len());
-    let mut spans = Vec::new();
-    let mut start = 0;
-    while start < chars.len() {
-        let style = &styles[start];
-        let end = (start..chars.len())
-            .find(|&index| styles[index] != *style)
-            .unwrap_or(chars.len());
-        let mut span = Span::new(chars[start..end].iter().collect::<String>());
-        if style.bold {
-            span = span.font_weight(FontWeight::BOLD);
-        }
-        if style.italic {
-            span = span.font_slant(FontSlant::Italic);
-        }
-        if let Some(family) = &style.family {
-            span = span.font_family(family.clone());
-        }
-        if let Some(size) = style.size {
-            span = span.font_size(size);
-        }
-        if style.link.is_some() {
-            span = span.color(color(link));
-        }
-        if style.link.is_some() || style.underline {
-            span = span.text_decoration(TextDecoration::Underline);
-        }
-        spans.push(span);
-        start = end;
-    }
-    spans
 }
 
 pub fn find_matches(text: &str, query: &str) -> Vec<(usize, usize)> {

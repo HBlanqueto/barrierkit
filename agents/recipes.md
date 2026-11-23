@@ -500,3 +500,121 @@ The program is [`recipes/full_screen.rs`](recipes/full_screen.rs). It takes `tit
    one, or `toggle_fullscreen()`. Read it to change the layout; do not keep a copy.
 2. `scripts/macos-fullscreen.sh` runs the three styles beside the same SwiftUI windows and fails when the kit
    does not enter, return or tell the app. A SwiftUI `.plain` window does not enter full screen; the kit's does.
+
+## 40. A view that animates in and out
+
+SwiftUI: `if shown { Text("Hello").transition(.move(edge: .leading).combined(with: .opacity)) }` with `withAnimation { shown.toggle() }`, and `Text("\(count)").contentTransition(.opacity)`.
+
+The program is [`recipes/transitions.rs`](recipes/transitions.rs).
+
+1. Put the view that comes and goes in `Presence::new(condition.then(|| view))` and give it `.transition(..)`:
+   `Transition::OPACITY`, `SCALE`, `scale(s)`, `offset(x, y)` and `move_edge(Edge)`, joined with `.combined(..)` or
+   `Transition::asymmetric(insertion, removal)`.
+2. Change the state inside `with_animation(..)`. Without it the view comes and goes at once. The removed view
+   stays mounted until its animation ends.
+3. `.content_transition(ContentTransition::Opacity)` on any view fades the old one out and the new one in when it
+   changes, also inside `with_animation(..)`. `matchedGeometryEffect` and `numericText` are not built.
+
+## 41. Glass behind any view
+
+SwiftUI: `Text("Capsule").padding().glassEffect(.regular, in: .capsule)`.
+
+The program is [`recipes/glass_effect.rs`](recipes/glass_effect.rs).
+
+1. `.glass_effect(Glass::REGULAR, Shape::Capsule)` puts glass behind the view; `Glass::CLEAR` is the clear
+   variant, and `Shape::RoundedRectangle { .. }` and `Shape::Circle` work too.
+2. On macOS 26 and later the glass is the system's. Elsewhere it is the kit's blur, opaque under Reduce Transparency.
+3. A window draws at most 8 such glasses on macOS (3 on Linux). Use `GlassContainer` for glasses that merge.
+
+## 42. Text with runs, Markdown and selection
+
+SwiftUI: `Text("Total: ") + Text("42 items").bold()`, `Text("**Bold**, _italic_ and a [link](https://example.org)")` and `Text("Copy me").textSelection(.enabled)`.
+
+The program is [`recipes/text_runs.rs`](recipes/text_runs.rs).
+
+1. `Text + Text` is one paragraph; each operand keeps its own `bold()`, `italic()`, `underline()`, `strikethrough()`,
+   `font(..)` and `foreground_style(..)`. A modifier on the sum reaches what the operands did not set.
+2. `Text::markdown(..)` reads inline Markdown; `Text::new(..)` shows its string verbatim (SwiftUI reads a literal as Markdown,
+   a `String` variable as plain: the kit asks for it by name). A link opens in the browser.
+3. `.text_selection(true)` lets the reader select and copy. A link of a selectable text does not open.
+
+## 43. Copy, paste and drag typed data
+
+SwiftUI: `NSPasteboard.general.setString(_, forType: .string)`, `.draggable(transferable)` and a `Transferable` type with `DataRepresentation(contentType: .png)`.
+
+The program is [`recipes/pasteboard.rs`](recipes/pasteboard.rs).
+
+1. `DragPayload` is the typed value: `Text`, `Html { text, html }`, `Image(png bytes)` and `Files(paths)`.
+2. `Pasteboard::general().copy(&value)` replaces the clipboard with any `Transferable` (`String`, `Vec<PathBuf>`, `DragPayload`, or a
+   type of the app) and returns false when the platform cannot hold it (images and files on Linux).
+   `paste::<T>()` reads the richest item as a `T`.
+3. `use_drag_source().attach(element, || value.payload())` drags the same payload to another app. On macOS try it
+   against TextEdit (rich text), Preview or Finder (an image, files).
+
+## 44. Layers, a flow layout and a view that fits
+
+SwiftUI: `ZStack(alignment: .bottomLeading) { card; Text("Caption") }`, `Image(systemName: "bell").overlay(alignment: .topTrailing) { badge }`, a custom `Layout`, and `ViewThatFits(in: .horizontal) { full; compact }`.
+
+The program is [`recipes/layout_layers.rs`](recipes/layout_layers.rs).
+
+1. `ZStack::new().alignment(..).child(..)` draws its children on top of one another;
+   `.overlay(alignment, content)` and `.background_view(alignment, content)` do the same
+   around one view, which alone sets the size ([chapter 11](../docs/barrierkit/11-views.md#zstack-overlay-and-background_view)).
+2. A `Layout` returns a `Placement` (the size and one origin per subview) from the space offered and
+   the size of each subview; `LayoutContainer::with_layout(layout)` is its view.
+3. `ViewThatFits::new(Axis::Horizontal).candidate(extent, view)` shows the first view whose
+   `extent` fits the width offered, the last when none does. The extent is yours: nothing is measured.
+4. Put the largest child first: the parent sizes the container by its first child.
+
+## 45. A right-to-left interface
+
+SwiftUI: `ContentView().environment(\.layoutDirection, .rightToLeft)`.
+
+The program is [`recipes/right_to_left.rs`](recipes/right_to_left.rs).
+
+1. `.layout_direction(LayoutDirection::RightToLeft)` mirrors the stacks, frames, grids, `ZStack`s, texts and
+   `Form` rows below it, and sets the layout direction of the six control styles
+   ([chapter 11](../docs/barrierkit/11-views.md#right-to-left)).
+2. A view built inside a component under it reads the direction as it is built; one built before it is
+   mirrored once by the modifier.
+3. Padding is physical: swap `left` and `right` yourself. `List`, `Table` and the window chrome do not mirror yet.
+
+## 46. Accessibility labels, hints and groups
+
+SwiftUI: `Button("+") { }.accessibilityLabel("Add a task").accessibilityHint("Adds one to the list")`.
+
+The program is [`recipes/accessibility.rs`](recipes/accessibility.rs).
+
+1. `AccessibilityModifiers` (in the prelude) gives every view and control `.accessibility_label`, `.accessibility_hint`,
+   `.accessibility_value`, `.accessibility_hidden`, `.accessibility_identifier`,
+   `.accessibility_element(AccessibilityChildBehavior::Combine)` and `.accessibility_add_traits(AccessibilityTraits::IS_HEADER)`
+   ([chapter 5](../docs/barrierkit/05-controls.md#accessibility-modifiers)).
+2. On macOS the window publishes the tree to VoiceOver and the AX API; read it with `axdump <pid>`. The label is AXTitle.
+3. A `TextField` is named by its label, else its placeholder; its typed text is the value.
+
+## 47. Choose files in a sheet of the window
+
+SwiftUI: `.fileImporter(isPresented: $importing, allowedContentTypes: [.png], allowsMultipleSelection: true) { .. }`.
+
+The program is [`recipes/file_dialogs.rs`](recipes/file_dialogs.rs).
+
+1. `.file_importer(State<bool>, vec![ContentType::extension("png")], multiple, |paths| ..)` and
+   `.file_exporter(State<bool>, "Name.png", types, |path| ..)` open `NSOpenPanel` and `NSSavePanel` as a sheet of the window.
+   The closure runs only when the user chose; the app writes the file.
+2. `.file_dialog_default_directory(path)` wraps a view that holds a component using the modifiers: the environment
+   is read by the components below it ([chapter 8](../docs/barrierkit/08-windows.md#documents-and-file-dialogs)).
+3. On Linux the portal ignores the parent, the filters and the start folder.
+
+## 48. A document window that asks before it closes
+
+SwiftUI: `DocumentGroup(newDocument: Notes()) { .. }` and `.onOpenURL { url in .. }`.
+
+The program is [`recipes/documents.rs`](recipes/documents.rs).
+
+1. `use_document(|path| write(path))` makes the window a document; call `document.set_edited(..)` when the content differs
+   from the file. An edited window shows the dot and, on the native close, asks "Save changes?"
+   with Save, Cancel and Don’t Save. Cmd-Q is meant to ask for the first edited window (not run).
+2. `document.save().await` is the Save command: it asks for a file when `document.url()` is `None`, then calls your closure.
+3. `.on_open_url(|url: OpenedUrl| ..)` receives the files that Finder and `open -a` hand to the app. Declare
+   `CFBundleDocumentTypes` in the app's `Info.plist`.
+4. macOS only: on Linux nothing is vetoed and no open event arrives ([ADR 0112](../docs/decisions.md)).

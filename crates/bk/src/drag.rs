@@ -7,12 +7,21 @@ use torin::prelude::CursorPoint;
 use crate::portal::file_uri;
 
 pub const URI_LIST: &str = "text/uri-list";
+pub(crate) const HTML: &str = "text/html";
+pub(crate) const PNG: &str = "image/png";
 pub(crate) const TEXT_MIMES: [&str; 3] = ["text/plain;charset=utf-8", "text/plain", "UTF8_STRING"];
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum DragPayload {
     Files(Vec<PathBuf>),
     Text(String),
+    /// Rich text: the markup and the plain text a reader that does not take it gets.
+    Html {
+        text: String,
+        html: String,
+    },
+    /// A PNG file's bytes.
+    Image(Vec<u8>),
 }
 
 impl DragPayload {
@@ -20,6 +29,8 @@ impl DragPayload {
         match self {
             DragPayload::Files(_) => std::iter::once(URI_LIST).chain(TEXT_MIMES).collect(),
             DragPayload::Text(_) => TEXT_MIMES.to_vec(),
+            DragPayload::Html { .. } => TEXT_MIMES.into_iter().chain([HTML]).collect(),
+            DragPayload::Image(_) => vec![PNG],
         }
     }
 
@@ -36,7 +47,9 @@ impl DragPayload {
                 .collect::<Vec<_>>()
                 .join("\n")
                 .into_bytes(),
-            DragPayload::Text(text) => text.clone().into_bytes(),
+            DragPayload::Html { html, .. } if mime == HTML => html.clone().into_bytes(),
+            DragPayload::Text(text) | DragPayload::Html { text, .. } => text.clone().into_bytes(),
+            DragPayload::Image(bytes) => bytes.clone(),
         }
     }
 }
@@ -95,5 +108,19 @@ mod tests {
             b"file:///tmp/a%20b.txt\r\nfile:///tmp/c\r\n"
         );
         assert_eq!(payload.bytes("text/plain"), b"/tmp/a b.txt\n/tmp/c");
+    }
+
+    #[test]
+    fn rich_text_offers_its_markup_after_its_text_and_an_image_only_png() {
+        let rich = DragPayload::Html {
+            text: "hi".into(),
+            html: "<b>hi</b>".into(),
+        };
+        assert_eq!(rich.mimes().last(), Some(&HTML));
+        assert_eq!(rich.bytes(HTML), b"<b>hi</b>");
+        assert_eq!(rich.bytes("text/plain"), b"hi");
+        let image = DragPayload::Image(vec![1, 2, 3]);
+        assert_eq!(image.mimes(), [PNG]);
+        assert_eq!(image.bytes(PNG), [1, 2, 3]);
     }
 }

@@ -72,7 +72,8 @@ version.
    field takes the `State<String>` it edits instead
    ([chapter 5](../docs/barrierkit/05-controls.md#text-fields)).
 5. **Use the kit's control** before building one from `rect()`, and `Spacer`,
-   `.frame()` and `Grid` before `Size::flex` and widths you measured.
+   `.frame()`, `Grid`, `ZStack` and `.overlay(..)` before `Size::flex`, absolute
+   `rect()` children and widths you measured.
 6. **Names come from the glossary.** Freya owns `App`, `label` and `rect`; the
    kit's app type is `Application`.
 7. **Views are types, modifiers are methods**, as in SwiftUI: write
@@ -111,11 +112,11 @@ version.
 | Check your work before you answer | [`checklist.md`](checklist.md) |
 | Understand the first app line by line | [`02-first-app.md`](../docs/barrierkit/02-first-app.md) |
 | Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../docs/barrierkit/04-appearance-and-tokens.md) |
-| Use a control, scroll to a position or draw a shape | [`05-controls.md`](../docs/barrierkit/05-controls.md) |
+| Use a control, give a view an accessibility label, scroll to a position or draw a shape | [`05-controls.md`](../docs/barrierkit/05-controls.md) |
 | Change how a control looks (color, shape, size, motion) or build a theme | [`styles.md`](styles.md) |
 | Edit, style or spell-check text | [`06-text-and-editing.md`](../docs/barrierkit/06-text-and-editing.md) |
 | Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../docs/barrierkit/07-menus-and-popovers.md) |
-| Window size, limits, more than one window, popups, timers | [`08-windows.md`](../docs/barrierkit/08-windows.md) |
+| Window size, limits, more than one window, popups, timers, file dialogs, a document that asks before it closes | [`08-windows.md`](../docs/barrierkit/08-windows.md) |
 | Title bars, toolbar items by placement and traffic lights | [`09-titlebars.md`](../docs/barrierkit/09-titlebars.md) |
 | A sidebar app, with or without a content column | [`10-sidebar.md`](../docs/barrierkit/10-sidebar.md) |
 | Forms, tables, tabs, alerts, search | [`11-views.md`](../docs/barrierkit/11-views.md) |
