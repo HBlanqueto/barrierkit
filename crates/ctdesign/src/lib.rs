@@ -312,6 +312,7 @@ pub struct SettingsMetrics {
     pub empty_gap: u32,
     pub wallpaper: SettingsWallpaper,
     pub toolbar_gap: u32,
+    pub toolbar_lights_gap: u32,
     pub toolbar_height: u32,
     pub toolbar_padding_x: u32,
     pub swatch_column: u32,

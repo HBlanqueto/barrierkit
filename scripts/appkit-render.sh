@@ -41,10 +41,10 @@ case "$scene" in
         APPKIT_LAYOUT=$out/layout-accents.tsv
         APPKIT_CONTENT=$(sed -n '1s/^# //p' "$APPKIT_LAYOUT")
         ;;
-    menu | toolbar | sidebar | picker | icons | lights)
+    menu | toolbar | sidebar | picker | icons | lights | twin)
         ;;
     *)
-        printf 'usage: %s controls|contrast|accents|accents-contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|scrollers|scrollers-contrast|tables|tables-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar|icons|lights\n' "$0" >&2
+        printf 'usage: %s controls|contrast|accents|twin|accents-contrast|views|views-contrast|texts|texts-contrast|lists|lists-contrast|containers|containers-contrast|scrollers|scrollers-contrast|tables|tables-contrast|buttons|buttons-contrast|swiftui|swiftui-contrast|menu|toolbar|sidebar|icons|lights\n' "$0" >&2
         exit 2
         ;;
 esac
@@ -62,6 +62,9 @@ mkdir -p "$out"
 export APPKIT_OUT="$out"
 if [ "$scene" = menu ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_menu -- --ignored --nocapture
+fi
+if [ "$scene" = twin ]; then
+    exec cargo test -p bk --test kit --features bk/shell swiftui_twin -- --nocapture
 fi
 if [ "$scene" = toolbar ]; then
     exec cargo test -p bk --test kit --features bk/shell appkit_toolbar -- --ignored

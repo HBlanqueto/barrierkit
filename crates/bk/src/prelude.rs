@@ -28,4 +28,4 @@ pub use crate::symbol::{
     IconStyle, Image, ImageScale, Symbol, SymbolRenderingMode, SymbolWeight, TemplateRenderingMode,
 };
 pub use crate::theme::color;
-pub use crate::titlebar::Titlebar;
+pub use crate::titlebar::{Titlebar, WindowToolbarStyle};

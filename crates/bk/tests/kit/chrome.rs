@@ -2,7 +2,7 @@ use bk::chrome::{RailStyle, TitlebarLayout, WindowChrome};
 use bk::compact::IconButton;
 use bk::styles::WindowChromeStyle;
 use bk::symbol::Symbol;
-use bk::titlebar::Titlebar;
+use bk::titlebar::{Titlebar, WindowToolbarStyle};
 use bk::views::navigation::{History, NavigationButtons};
 use ctdesign::TITLEBAR;
 use freya_core::integration::AppComponent;
@@ -68,6 +68,7 @@ impl App for Uneven {
     fn render(&self) -> impl IntoElement {
         rect().expanded().child(
             Titlebar::new()
+                .toolbar_style(WindowToolbarStyle::UnifiedCompact)
                 .title("Escuchando")
                 .right(IconButton::new(Symbol::ListBullet, "Cola")),
         )
@@ -109,6 +110,11 @@ impl App for Items {
         rect().expanded().child(
             Titlebar::new()
                 .with_sidebar(self.0)
+                .toolbar_style(if self.0 {
+                    WindowToolbarStyle::Unified
+                } else {
+                    WindowToolbarStyle::UnifiedCompact
+                })
                 .left(NavigationButtons::new(history))
                 .right(IconButton::new(Symbol::Plus, "Añadir")),
         )

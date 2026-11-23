@@ -1195,6 +1195,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
+| `titlebar::WindowToolbarStyle` | enum | `WindowToolbarStyle` | `≈ NSWindow.ToolbarStyle` | — | The bar of a `Titlebar`: `Unified` (52 high, title at the start) or `UnifiedCompact` (centered title) | [9](09-titlebars.md#titlebar) |
+| `titlebar::Titlebar::toolbar_style` | method | `windowToolbarStyle(_:)` | `NSWindow.toolbarStyle` | — | Chooses the `WindowToolbarStyle`; by default `Unified` with a sidebar or items | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | ≈ `UIToolbar` | Client-side title bar: traffic lights, left and right items, title | [9](09-titlebars.md#titlebar) |
 | `traffic::TrafficLights` | struct | — | `≈ NSWindow.standardWindowButton(_:)` | — | Close, minimize and zoom buttons | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::fullscreen` | method | — | `≈ NSWindow.styleMask.fullScreen` | — | Minimize disabled and the exit glyph on zoom, for a full-screen window | [9](09-titlebars.md#traffic-lights) |

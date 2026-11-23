@@ -22,11 +22,18 @@ use crate::styles::{
 };
 use crate::theme;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WindowToolbarStyle {
+    Unified,
+    UnifiedCompact,
+}
+
 #[derive(PartialEq)]
 pub struct Titlebar {
     preview: Option<Preview>,
     title: Option<Cow<'static, str>>,
     sidebar: bool,
+    toolbar_style: Option<WindowToolbarStyle>,
     left: Option<Element>,
     right: Option<Element>,
     probe: Option<&'static str>,
@@ -53,6 +60,7 @@ impl Titlebar {
             preview: None,
             title: None,
             sidebar: false,
+            toolbar_style: None,
             left: None,
             right: None,
             probe: None,
@@ -100,6 +108,11 @@ impl Titlebar {
         })
     }
 
+    pub fn toolbar_style(mut self, style: WindowToolbarStyle) -> Self {
+        self.toolbar_style = Some(style);
+        self
+    }
+
     pub fn close_only(mut self, close_only: bool) -> Self {
         self.close_only = close_only;
         self
@@ -134,11 +147,15 @@ impl Component for Titlebar {
                 .as_ref()
                 .is_some_and(|controls| controls.hud || controls.panel);
         let panel = controls.as_ref().is_some_and(|controls| controls.panel);
+        let unified = self.toolbar_style.map_or(
+            self.sidebar || self.left.is_some() || self.right.is_some(),
+            |style| style == WindowToolbarStyle::Unified,
+        );
         let bar = if panel {
             Bar::Utility
         } else if close_only {
             Bar::Titlebar
-        } else if self.sidebar {
+        } else if unified {
             Bar::Unified
         } else {
             Bar::UnifiedCompact
@@ -216,7 +233,7 @@ impl Component for Titlebar {
             )
         };
 
-        let title_font = if self.sidebar {
+        let title_font = if unified {
             style.sidebar_title_font
         } else {
             style.title_font
@@ -234,7 +251,7 @@ impl Component for Titlebar {
             });
 
         let shield = crate::views::feedback::OpenSheets::any().then(|| drag.clone());
-        let (bar, height) = if self.sidebar {
+        let (bar, height) = if unified {
             self.sidebar_bar(&style, &paints, traffic, title_label, drag, background)
         } else {
             self.centered_bar(
@@ -288,6 +305,7 @@ impl Titlebar {
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let (traffic_x, traffic_y) = sidebar.lights_position;
         let lights_end = traffic_x + lights.length();
+        let lights_beside_title = traffic.is_some() && self.left.is_none();
         let padding_left = if traffic.is_some() {
             padding_x.max(lights_end + padding_x - occupied)
         } else {
@@ -334,7 +352,11 @@ impl Titlebar {
             .direction(Direction::Horizontal)
             .content(Content::flex())
             .cross_align(Alignment::Center)
-            .spacing(style.sidebar_spacing)
+            .spacing(if lights_beside_title {
+                style.lights_spacing
+            } else {
+                style.sidebar_spacing
+            })
             .padding(Gaps::new(0.0, padding_x, 0.0, padding_left))
             .child(left_slot)
             .child(title)

@@ -20,6 +20,7 @@ mod list_rows;
 mod menu;
 mod modifiers;
 mod swiftui_defaults;
+mod swiftui_twin;
 mod template;
 mod titlebar;
 mod traffic;

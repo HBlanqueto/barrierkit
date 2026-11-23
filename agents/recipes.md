@@ -345,3 +345,15 @@ The program is [`recipes/notes_sidebar.rs`](recipes/notes_sidebar.rs).
    [`custom_window`](recipes/custom_window.rs) and
    [`titlebar_over_gradient`](recipes/titlebar_over_gradient.rs) use the same
    option.
+
+## 29. A toolbar window without a sidebar
+
+SwiftUI: `NavigationStack { List { Label(..) } .navigationTitle("Tasks").toolbar { ToolbarItemGroup { Button(..) } } }`.
+
+The program is [`recipes/tasks_list.rs`](recipes/tasks_list.rs).
+
+1. A `Titlebar` with items is the unified toolbar: 52 high, the lights at their
+   place and the title at the start. `.toolbar_style(WindowToolbarStyle::UnifiedCompact)`
+   gives the compact bar with a centered title.
+2. A `ToolGroup` of two items is a 76 wide capsule and one item is a 38 circle;
+   no divider, as in SwiftUI.

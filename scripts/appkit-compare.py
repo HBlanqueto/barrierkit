@@ -699,6 +699,20 @@ def lights_tint(args):
             print(f"{suffix:18} {light:5} {hexa(fill):>8} {hexa(glyph):>8} {contrast_ratio(glyph, fill):10.2f} {contrast_ratio(fill, background):9.2f}")
 
 
+def twin(args):
+    reference_dir = os.path.join(ROOT, "crates", "bk", "tests", "reference")
+    for name in args.names.split(","):
+        for mode in ("light", "dark"):
+            reference = np.array(Image.open(os.path.join(reference_dir, f"swiftui-{name}-{mode}.png")).convert("RGBA")).astype(int)
+            kit = np.array(Image.open(os.path.join(KIT, f"twin-{name}-{mode}.png")).convert("RGBA")).astype(int)
+            inside = reference[..., 3] == 255
+            worst = np.abs(reference[..., :3] - kit[..., :3]).max(axis=2)
+            different = (worst > 8) & inside
+            print(f"{name:6} {mode:5} {100 * different.sum() / inside.sum():5.1f}% of the pixels differ by more than 8 levels")
+            picture = np.concatenate([reference[..., :3], kit[..., :3], np.repeat(np.where(different, 255, 0)[..., None], 3, axis=2)], axis=1)
+            Image.fromarray(picture.astype("uint8")).save(os.path.join(KIT, f"twin-{name}-{mode}-diff.png"))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare a kit scene with AppKit captures.")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -754,6 +768,9 @@ def main():
     eight.add_argument("--names", default="", help="comma separated item names")
     eight.add_argument("--sheet", action="store_true", help="write a side-by-side image per item")
     eight.set_defaults(run=lists)
+    nine_twin = commands.add_parser("twin", help="print the whole-window difference of the SwiftUI twins and write reference | kit | difference")
+    nine_twin.add_argument("--names", default="notes,tasks", help="comma separated twin names")
+    nine_twin.set_defaults(run=twin)
     args = parser.parse_args()
     args.run(args)
 

@@ -943,6 +943,7 @@
       },
       "toolbar": {
         "gap": 13,
+        "lights-gap": 22,
         "height": 52,
         "padding-x": 7
       },

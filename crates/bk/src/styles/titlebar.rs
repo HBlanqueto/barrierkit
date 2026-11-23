@@ -38,6 +38,9 @@ pub struct TitlebarStyle {
     pub sidebar_padding_x: f32,
     /// Tengen: `0.0`, between the bar's items.
     pub spacing: f32,
+    /// Tengen: `SETTINGS.toolbar_lights_gap`, between the traffic lights and the title when the
+    /// bar has no sidebar and no left zone.
+    pub lights_spacing: f32,
     /// Tengen: `SETTINGS.toolbar_gap`, between the left zone and the title of the bar beside a
     /// sidebar: the title sits 20 from the sidebar's edge.
     pub sidebar_spacing: f32,
@@ -105,6 +108,7 @@ impl ControlStyle for TitlebarStyle {
             padding_x: TITLEBAR_PADDING_X,
             sidebar_padding_x: SETTINGS.toolbar_padding_x as f32,
             spacing: 0.0,
+            lights_spacing: SETTINGS.toolbar_lights_gap as f32,
             sidebar_spacing: SETTINGS.toolbar_gap as f32,
             background: StateValue::new(surface(resolved.surfaces.titlebar_inactive))
                 .focused(active.clone()),
