@@ -499,6 +499,18 @@ Rejected: a handle that carries an id table the app fills (the context needs not
 Pending: a visual check of a continuous clip against the system's; `scrollTargetBehavior(.paging)`; arbitrary clips (T7).
 Code: `crates/bk/src/scroll/position.rs`, `crates/bk/src/scroll.rs`, `crates/bk/src/shapes.rs`, `crates/bk/tests/kit/scroll.rs`, `crates/bk/tests/kit/shapes.rs`, `agents/recipes/scroll_position.rs`, `agents/recipes/shapes.rs`, [Scrolling](barrierkit/05-controls.md#scroll-position), [Shapes](barrierkit/05-controls.md#shapes)
 
+## 0114 — The kit follows the system's light or dark
+Date: 2026-11-23
+Decision:
+- **Rule.** The desktop decides light or dark; an app built with the kit follows it, live. `ctappearance::set_system_scheme(Option<ColorScheme>)` records the system's choice, and `load_appearance()` applies it over `color_scheme`, so the runners, `resolved()` and `use_appearance` all read the same answer. `None` (no preference, no portal) leaves the domain's scheme.
+- **Dark Tint.** A `dark_tint` domain stays `dark_tint` when the system asks for dark. The system's scheme turns `automatic_scheme` off.
+- **macOS.** `platform/macos/system.rs` reads `NSApp.effectiveAppearance` (best match of Aqua and Dark Aqua) and observes it by key-value observing, as Apple documents for Dark Mode. A change re-resolves the appearance and gives every `NSWindow` the new `NSAppearance`.
+- **Linux.** `platform/linux/system.rs` reads `org.freedesktop.appearance` `color-scheme` with the Settings portal's `ReadOne` before the first frame, as GTK does, and a thread follows `SettingChanged` and pings the event loop. The `shell` feature skips the portal: Malaysia's shell is the desktop, and its portal backend serves the domain's `color_scheme`, so other apps under Malaysia see the same scheme.
+Why: macOS apps follow the system unless they opt out, and the freedesktop portal is the cross-desktop equivalent (GNOME, KDE and Malaysia serve it). A kit app on a dark Mac drew light because it read only `appearance.domain`.
+Rejected: a per-app opt-in (the owner asked for a default every app gets); `AppleInterfaceThemeChangedNotification` (undocumented); reading `gsettings` or KDE files (desktop-specific; the portal covers them).
+Pending: Reduce Transparency, Increase Contrast and Reduce Motion from the portal (`contrast`, `reduced-motion`) on Linux; the accent colour (`accent-color`); popups already open when the scheme changes keep the old `NSAppearance` until they close.
+Code: `crates/ctappearance/src/config.rs`, `crates/bk/src/platform/macos/system.rs`, `crates/bk/src/platform/macos/mod.rs`, `crates/bk/src/platform/linux/system.rs`, `crates/bk/src/platform/linux/runtime.rs`, [The system's light or dark](barrierkit/04-appearance-and-tokens.md#the-systems-light-or-dark)
+
 ## 0113 — A transition runs on a `Presence` that keeps the leaving view; `glassEffect` is a one-item `GlassContainer`
 Date: 2026-11-23
 Decision:

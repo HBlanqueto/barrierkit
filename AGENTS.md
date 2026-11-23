@@ -220,6 +220,8 @@ pub fn focused(mut self, focused: bool) -> Self { … }
   propia barra de título (ADR 0061).
 - Los colores, radios, duraciones y métricas nuevos van a `ctdesign`, nunca
   a `bk`.
+- El claro u oscuro lo decide el sistema (ADR 0114): una app no fija su
+  esquema; solo una parte de una ventana puede forzarlo con `use_appearance`.
 - Un control nuevo compone primitivas del kit; no reimplementa la barra
   lateral, los menús ni los semáforos (ADR 0047).
 - El texto visible va en `i18n/{en,es}/<crate>.ftl` y se lee con `tr!`;

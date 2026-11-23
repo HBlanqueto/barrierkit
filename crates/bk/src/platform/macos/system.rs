@@ -1,10 +1,20 @@
-use std::ptr::NonNull;
+use std::ffi::c_void;
+use std::ptr::{NonNull, null_mut};
 
 use block2::RcBlock;
-use ctappearance::{AppearanceConfig, load_appearance};
+use ctappearance::{AppearanceConfig, ColorScheme, load_appearance, set_system_scheme};
 use dispatch2::DispatchQueue;
-use objc2_app_kit::{NSWorkspace, NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification};
-use objc2_foundation::NSNotification;
+use objc2::rc::Retained;
+use objc2::runtime::AnyObject;
+use objc2::{AllocAnyThread, define_class, msg_send};
+use objc2_app_kit::{
+    NSAppearanceNameAqua, NSAppearanceNameDarkAqua, NSApplication, NSWorkspace,
+    NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification,
+};
+use objc2_foundation::{
+    NSArray, NSDictionary, NSKeyValueChangeKey, NSKeyValueObservingOptions, NSNotification,
+    NSObject, NSObjectNSKeyValueObserverRegistration, NSString, ns_string,
+};
 
 use super::with_runtime;
 
@@ -34,17 +44,69 @@ fn flags() -> Flags {
     }
 }
 
+fn scheme() -> Option<ColorScheme> {
+    let mtm = objc2::MainThreadMarker::new()?;
+    let appearance = NSApplication::sharedApplication(mtm).effectiveAppearance();
+    // SAFETY: both names are AppKit's own constants.
+    let (light, dark) = unsafe { (NSAppearanceNameAqua, NSAppearanceNameDarkAqua) };
+    let best =
+        appearance.bestMatchFromAppearancesWithNames(&NSArray::from_slice(&[light, dark]))?;
+    Some(if &*best == dark {
+        ColorScheme::Dark
+    } else {
+        ColorScheme::Light
+    })
+}
+
 pub(super) fn appearance() -> AppearanceConfig {
+    set_system_scheme(scheme());
     merged(load_appearance(), flags())
 }
 
-// The settings change while the app runs: the runner resolves the appearance again.
-pub(super) fn observe() {
-    let block = RcBlock::new(|_: NonNull<NSNotification>| {
-        DispatchQueue::main().exec_async(|| {
-            with_runtime(|runtime| runtime.refresh_appearance());
-        });
+fn refresh() {
+    DispatchQueue::main().exec_async(|| {
+        with_runtime(|runtime| runtime.refresh_appearance());
     });
+}
+
+define_class!(
+    // Light and Dark reach the app as a change of `NSApp.effectiveAppearance`, observed by key-value observing.
+    #[unsafe(super(NSObject))]
+    #[name = "BKAppearanceObserver"]
+    struct AppearanceObserver;
+
+    impl AppearanceObserver {
+        #[unsafe(method(observeValueForKeyPath:ofObject:change:context:))]
+        fn observe_value(
+            &self,
+            _: Option<&NSString>,
+            _: Option<&AnyObject>,
+            _: Option<&NSDictionary<NSKeyValueChangeKey, AnyObject>>,
+            _: *mut c_void,
+        ) {
+            refresh();
+        }
+    }
+);
+
+// The settings change while the app runs: the runner resolves the appearance again.
+pub(super) fn observe(application: &NSApplication) {
+    let observer: Retained<AppearanceObserver> = {
+        let this = AppearanceObserver::alloc().set_ivars(());
+        // SAFETY: init is NSObject's initializer, called once on the allocated object.
+        unsafe { msg_send![super(this), init] }
+    };
+    // SAFETY: the key path names a KVO-compliant property of NSApplication; the observer lives as long as the process.
+    unsafe {
+        application.addObserver_forKeyPath_options_context(
+            &observer,
+            ns_string!("effectiveAppearance"),
+            NSKeyValueObservingOptions::empty(),
+            null_mut(),
+        );
+    }
+    std::mem::forget(observer);
+    let block = RcBlock::new(|_: NonNull<NSNotification>| refresh());
     // SAFETY: the name is AppKit's own constant, and the block lives as long as the process.
     let observer = unsafe {
         NSWorkspace::sharedWorkspace()

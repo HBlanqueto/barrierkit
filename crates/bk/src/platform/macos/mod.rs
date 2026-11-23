@@ -348,6 +348,9 @@ impl Runtime {
             window.needs_redraw |= *state.peek() != resolved;
             state.set_if_modified(resolved);
         }
+        for window in &self.windows {
+            self.follow_scheme(&window.window);
+        }
     }
 
     fn host(&self) -> Host {
@@ -581,7 +584,6 @@ impl Runtime {
         self.resized(id);
     }
 
-    // The system chrome and the effect views follow the kit's scheme, not the system's, until M4 reads it.
     fn follow_scheme(&self, window: &NSWindow) {
         // SAFETY: both names are AppKit's own constants.
         let name = unsafe {
@@ -1273,7 +1275,7 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
     };
     let runtime = Runtime::new(mtm, ping.clone(), wake)?;
     RUNTIME.with(|cell| *cell.borrow_mut() = Some(runtime));
-    system::observe();
+    system::observe(&NSApplication::sharedApplication(mtm));
     serve_loop(event_loop)?;
 
     with_runtime(|runtime| runtime.create_window(app, options, None));

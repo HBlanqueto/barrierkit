@@ -276,12 +276,12 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 | `launch` as a lock and a socket in `$TMPDIR`; a second run activates the first (`platform/macos/instance.rs`) | `ActivateAction`, files to open |
 | `WindowOptions::status_item` as an `NSStatusItem` with the items as its menu (`platform/macos/status.rs`) | A status item that changes after the window opens |
 | `notifications::post` and `portal::notify` as `UNUserNotificationCenter` banners, for a bundled app; the click callbacks of the last 32 posts wait, the older ones are dropped (`platform/macos/notifications.rs`) | A banner shown on screen (not run: the system refused the permission of a test bundle), action buttons |
-| `Timers`, `WakeHandle`, the clipboard (typed: text, HTML, images, files), dragging typed data out | `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
+| `Timers`, `WakeHandle`, the clipboard (typed: text, HTML, images, files), dragging typed data out | `ShapeStyle::Material` (Skia and the opaque solid) |
 | The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |
 | `glass_effect(Glass, Shape)` on any view as an `NSGlassEffectView` behind it on macOS 26 and later, with the view drawn in a Metal chrome above; below 26 or under Reduce Transparency the kit's own blur or opaque solid. Up to 8 chromes per window here, 3 on Linux; one radius and one variant per chrome ([15](15-backdrops-and-media.md#glass-on-any-view), ADR 0113) | `tint`, `interactive`, `glassEffectUnion`, a shape per corner |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
 
-The window and its popups take the kit's scheme (`appearance.domain`), not the system's. Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
+The window and its popups take the system's light or dark, live ([The system's light or dark](04-appearance-and-tokens.md#the-systems-light-or-dark)). Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
 
 ### Build and check on macOS
 

@@ -377,6 +377,25 @@ watches it. The compositor, the shell, the portal and the kit share it, so all
 of them agree. The kit's runner watches the files: when the appearance or the
 wallpaper changes, every window repaints without a restart.
 
+### The system's light or dark
+
+The desktop's light or dark wins over `color_scheme` (ADR 0114).
+`load_appearance()` applies the scheme the runner recorded with
+`set_system_scheme`, so every reader of the appearance, `use_appearance`
+included, sees it. An app does not choose its own scheme; a part of a window
+may still force one with `use_appearance`.
+
+| System | Source | Live |
+|---|---|---|
+| macOS | `NSApp.effectiveAppearance`: Aqua or Dark Aqua | Key-value observing of `effectiveAppearance` |
+| Linux | `org.freedesktop.appearance` `color-scheme` of the Settings portal: `1` dark, `2` light, `0` no preference | The portal's `SettingChanged` signal |
+
+- A `dark_tint` file stays `dark_tint` when the system asks for dark.
+- The system's scheme turns `automatic_scheme` off: the system already decides by the hour.
+- With no preference, or no portal, `color_scheme` holds.
+- The `shell` feature skips the portal: Malaysia's shell is the desktop, and its
+  portal backend serves `color_scheme` from this file.
+
 ### The appearance file
 
 `appearance_path()` is `config_dir()/appearance.domain`. `config_dir()` is
@@ -394,7 +413,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 
 | Key | Type (`AppearanceConfig` field) | Values | Default |
 |---|---|---|---|
-| `color_scheme` | `ColorScheme` | `light`, `dark`, `dark_tint` | `light` |
+| `color_scheme` | `ColorScheme` | `light`, `dark`, `dark_tint`; [the system's](#the-systems-light-or-dark) light or dark wins | `light` |
 | `automatic_scheme` | `bool` | Light by day and dark from `automatic_dark_from` until `automatic_dark_until`, local time; a `dark_tint` scheme stays dark-tint at night. Reading the domain puts the scheme of the hour in `color_scheme` | `false` |
 | `automatic_dark_from`, `automatic_dark_until` | `u8` | Hours from 0 to 23 | `19`, `7` |
 | `accent` | `Option<String>` | A name of `ACCENTS`: `blue`, `purple`, `pink`, `red`, `orange`, `yellow`, `green` or `graphite`; an unknown name is ignored. Absent means Multicolor: the controls are blue and apps keep their own accent | absent |

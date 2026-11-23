@@ -2,6 +2,7 @@ use super::{
     clipboard::{Clipboard, ClipboardDevice, PendingDrop},
     extension::Extension,
     surface::SurfaceWindow,
+    system,
     vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
 };
 use crate::platform::{
@@ -428,26 +429,38 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                         shell.ping.ping();
                     }
                     if events.iter().any(|event| event.restyles()) {
-                        let resolved = resolve(&load_appearance(), load_dominant());
-                        if *shell.resolved.peek() != resolved {
-                            shell.resolved.set(resolved);
-                            for context in shell
-                                .surfaces
-                                .iter_mut()
-                                .filter_map(|surface| surface.context.as_mut())
-                            {
-                                context.restyle(resolved);
-                            }
-                            shell.request_redraw_all = true;
-                            shell.ping.ping();
-                        }
+                        restyle(shell);
                     }
                 }
                 Ok(PostAction::Continue)
             },
         )
         .map_err(|_| RunError::EventLoop("inserting the appearance watch source"))?;
+
+    let (scheme_ping, scheme_source) = calloop::ping::make_ping()
+        .map_err(|_| RunError::EventLoop("calloop color scheme ping failed"))?;
+    event_loop
+        .handle()
+        .insert_source(scheme_source, |_, _, shell: &mut Runtime| restyle(shell))
+        .map_err(|_| RunError::EventLoop("inserting the color scheme source"))?;
+    system::observe_scheme(scheme_ping);
     Ok(())
+}
+
+fn restyle(shell: &mut Runtime) {
+    let resolved = resolve(&load_appearance(), load_dominant());
+    if *shell.resolved.peek() != resolved {
+        shell.resolved.set(resolved);
+        for context in shell
+            .surfaces
+            .iter_mut()
+            .filter_map(|surface| surface.context.as_mut())
+        {
+            context.restyle(resolved);
+        }
+        shell.request_redraw_all = true;
+        shell.ping.ping();
+    }
 }
 
 impl Runtime {
@@ -465,6 +478,7 @@ impl Runtime {
             calloop::ping::make_ping().map_err(|_| RunError::EventLoop("calloop ping failed"))?;
         let (wake_ping, wake_source) = calloop::ping::make_ping()
             .map_err(|_| RunError::EventLoop("calloop wake ping failed"))?;
+        system::read_scheme();
         let resolved = State::create_global(resolve(&load_appearance(), load_dominant()));
         let appmenu_manager = globals
             .bind::<OrgKdeKwinAppmenuManager, _, _>(&qh, 1..=1, ())

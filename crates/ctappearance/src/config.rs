@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::Read;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::{Mutex, PoisonError};
 use std::time::{Duration, SystemTime};
 
@@ -36,6 +37,30 @@ impl ColorScheme {
             Self::Dark => dark,
             Self::DarkTint => dark_tint,
         }
+    }
+
+    fn following(self, dark: bool) -> Self {
+        match (dark, self) {
+            (false, _) => Self::Light,
+            (true, Self::DarkTint) => Self::DarkTint,
+            (true, _) => Self::Dark,
+        }
+    }
+}
+
+static SYSTEM_SCHEME: AtomicU8 = AtomicU8::new(0);
+
+/// Records the light or dark choice of the desktop (macOS, the freedesktop portal); `None` when it states none.
+pub fn set_system_scheme(scheme: Option<ColorScheme>) {
+    let code = scheme.map_or(0, |scheme| if scheme.is_dark() { 2 } else { 1 });
+    SYSTEM_SCHEME.store(code, Ordering::Relaxed);
+}
+
+fn system_scheme() -> Option<ColorScheme> {
+    match SYSTEM_SCHEME.load(Ordering::Relaxed) {
+        1 => Some(ColorScheme::Light),
+        2 => Some(ColorScheme::Dark),
+        _ => None,
     }
 }
 
@@ -392,10 +417,18 @@ impl AppearanceConfig {
         } else {
             hour >= from || hour < until
         };
-        match (night, self.color_scheme) {
-            (false, _) => ColorScheme::Light,
-            (true, ColorScheme::DarkTint) => ColorScheme::DarkTint,
-            (true, _) => ColorScheme::Dark,
+        self.color_scheme.following(night)
+    }
+
+    // The system's light or dark wins over the domain's; Dark Tint stays the dark it asks for (ADR 0114).
+    fn following_system(self, system: Option<ColorScheme>) -> Self {
+        match system {
+            Some(system) => Self {
+                color_scheme: self.color_scheme.following(system.is_dark()),
+                automatic_scheme: false,
+                ..self
+            },
+            None => self,
         }
     }
 
@@ -697,13 +730,14 @@ fn warn_legacy_traffic_light_name(text: &str) {
 }
 
 pub fn load_appearance() -> AppearanceConfig {
-    match read_appearance() {
+    let config = match read_appearance() {
         Ok(config) => config.unwrap_or_default(),
         Err(error) => {
             tracing::warn!(%error, "invalid appearance domain; using defaults");
             AppearanceConfig::default()
         }
-    }
+    };
+    config.following_system(system_scheme())
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -900,6 +934,35 @@ traffic_lights = "standard"
         let read = read_appearance_from(&path).unwrap().unwrap();
         assert_eq!(config, read);
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn the_system_scheme_wins_and_dark_keeps_the_tint() {
+        let file = |color_scheme| AppearanceConfig {
+            color_scheme,
+            automatic_scheme: true,
+            ..AppearanceConfig::default()
+        };
+        let dark = Some(ColorScheme::Dark);
+        assert_eq!(
+            file(ColorScheme::Light).following_system(dark).color_scheme,
+            ColorScheme::Dark
+        );
+        assert_eq!(
+            file(ColorScheme::DarkTint)
+                .following_system(dark)
+                .color_scheme,
+            ColorScheme::DarkTint
+        );
+        let light = file(ColorScheme::DarkTint).following_system(Some(ColorScheme::Light));
+        assert_eq!(
+            (light.color_scheme, light.automatic_scheme),
+            (ColorScheme::Light, false)
+        );
+        assert_eq!(
+            file(ColorScheme::Dark).following_system(None),
+            file(ColorScheme::Dark)
+        );
     }
 
     #[test]
