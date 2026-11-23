@@ -37,27 +37,6 @@ pub fn over(glass: &ShellGlass, blurred: Rgba) -> Rgba {
     }
 }
 
-// Abramowitz and Stegun 7.1.26, absolute error below 1.5e-7.
-fn erf(x: f32) -> f32 {
-    let t = 1.0 / (1.0 + 0.327_591_1 * x.abs());
-    let poly = ((((1.061_405_4 * t - 1.453_152_1) * t + 1.421_413_7) * t - 0.284_496_72) * t
-        + 0.254_829_6)
-        * t;
-    (1.0 - poly * (-x * x).exp()).copysign(x)
-}
-
-fn gaussian_step(sigma: f32, distance: f32) -> f32 {
-    0.5 * (1.0 + erf(distance / (sigma * std::f32::consts::SQRT_2)))
-}
-
-pub fn blurred_step(glass: &ShellGlass, distance: f32) -> f32 {
-    let core = gaussian_step(glass.sigma, distance);
-    if glass.halo_weight == 0.0 {
-        return core;
-    }
-    (1.0 - glass.halo_weight) * core + glass.halo_weight * gaussian_step(glass.halo_sigma, distance)
-}
-
 fn tap(texture: &[f32], at: f32) -> f32 {
     let index = at - 0.5;
     let last = texture.len() - 1;
@@ -122,25 +101,6 @@ pub fn kawase_sigma(passes: u32, offset: f32) -> f32 {
         .map(|(index, weight)| (at(index) - mean).powi(2) * weight / total)
         .sum::<f32>()
         .sqrt()
-}
-
-pub fn kawase_reaching(sigma: f32, widest_offset: f32) -> (u32, f32) {
-    for passes in 1.. {
-        if kawase_sigma(passes, widest_offset) < sigma {
-            continue;
-        }
-        let (mut low, mut high) = (0.0, widest_offset);
-        for _ in 0..24 {
-            let offset = 0.5 * (low + high);
-            if kawase_sigma(passes, offset) < sigma {
-                low = offset;
-            } else {
-                high = offset;
-            }
-        }
-        return (passes, 0.5 * (low + high));
-    }
-    unreachable!()
 }
 
 #[cfg(test)]
@@ -234,28 +194,5 @@ mod tests {
     fn the_dual_kawase_of_the_wallpaper_blur_spreads_like_a_gaussian_of_17_pixels() {
         assert!((kawase_sigma(3, 3.0) - 17.16).abs() < 0.1);
         assert!((kawase_sigma(5, 1.0) - 25.0).abs() < 0.2);
-    }
-
-    #[test]
-    fn the_passes_and_offset_that_reach_a_sigma_give_that_sigma() {
-        for sigma in [4.0, 8.5, 17.16, 30.0] {
-            let (passes, offset) = kawase_reaching(sigma, 3.0);
-            assert!(
-                (kawase_sigma(passes, offset) - sigma).abs() < 0.05,
-                "sigma {sigma}"
-            );
-            assert!(offset <= 3.0);
-        }
-        assert_eq!(kawase_reaching(17.16, 3.0).0, 3);
-    }
-
-    #[test]
-    fn the_step_of_a_gaussian_is_half_way_at_the_edge_and_84_percent_one_sigma_after() {
-        let glass = ShellGlass {
-            halo_weight: 0.0,
-            ..glass("menu")
-        };
-        assert!((blurred_step(&glass, 0.0) - 0.5).abs() < 1e-6);
-        assert!((blurred_step(&glass, glass.sigma) - 0.8413).abs() < 1e-3);
     }
 }

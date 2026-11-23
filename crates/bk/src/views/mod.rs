@@ -1,6 +1,5 @@
 pub mod collection;
 pub mod feedback;
-pub mod floating_pane;
 pub mod form;
 pub mod group;
 pub mod list;
@@ -14,4 +13,3 @@ pub mod tabs;
 pub mod text_view;
 pub mod toolbar;
 pub mod tree;
-pub mod window_tabs;

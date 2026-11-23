@@ -12,10 +12,8 @@ use crate::theme::{SurfaceKind, surface_background};
 ///
 /// `SidebarToggle` is an `IconButton` and takes `IconButtonStyle`.
 ///
-/// States: `FloatingPane` is focused while `active`; `SplitPanes` only `normal`.
-/// `SplitPanes::divider(rgba)` is an instance override of `divider`. The fields
-/// `accent`, `title_bar` and `title_ink` of `FloatingPane` are instance overrides
-/// of `outline` (focused), `title_bar` and `title`, applied before `.style`.
+/// States: `SplitPanes` only `normal`. `SplitPanes::divider(rgba)` is an instance
+/// override of `divider`.
 #[derive(Clone, Debug)]
 pub struct SplitViewStyle {
     /// Tengen: `SPLIT_VIEW.inspector`.

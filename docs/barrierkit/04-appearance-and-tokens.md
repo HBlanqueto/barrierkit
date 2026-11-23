@@ -718,8 +718,8 @@ tables of [macos-blur.md](../research/macos-blur.md#3-the-measured-matrix-dark-m
 Transparency and Increase Contrast have no token: they were not measured.
 
 1. The backdrop is blurred by `sigma` px, plus `halo_weight` of a wide `halo_sigma` px blur when the weight is not 0
-   (`blurred_step(glass, d)` is that blur's response to a step `d` px from its edge; the compositor can get the same sigma from
-   a Gaussian on a downsampled backdrop, or from `kawase_reaching(sigma, offset)` passes of Malaysia's Dual Kawase).
+   (the compositor can get the same sigma from a Gaussian on a downsampled backdrop, or from a Dual Kawase of
+   `kawase_sigma(passes, offset)`).
 2. `over(glass, blurred)` takes the blurred pixel in the display's device values, the bytes the compositor writes on the measured
    panel, and returns `tone(Y) + chroma(Y) (c - Y)` per channel: `Y` is its Rec. 709 luma, `tone` the 12-point gray response
    (`SHELL_GLASS_LEVELS`), `chroma` the gain of the colour difference at five luma knots (`SHELL_GLASS_CHROMA_KNOTS`). It does not clamp.
@@ -880,7 +880,6 @@ let (x, y, d) = ctappearance::traffic::button_rect(i);
 | `edge(radius, smoothing, y) -> f32` | Where the top-left corner starts at depth `y`: the arc and the two Bezier tails of Freya's smoothed corner. |
 | `coverage(radius, smoothing, x, y, edge_x, edge_y) -> f32` | Share of the pixel at (`x`, `y`) inside the shape, 16 sub-rows. |
 | `tile(radius, smoothing, size, edge_x, edge_y) -> Vec<f32>` | The coverage of a `size` x `size` corner, row by row: the mask to compare with a capture. |
-| `superellipse_coverage(extent, exponent, x, y) -> f32` | What the compositor's shape shader draws at a pixel centre, with `WINDOW_CORNER.expansion` and `.exponent` as extent factor and exponent. |
 | `concentric(container, inset_x, inset_y, minimum) -> f32` | The radius of a nested corner (`NSViewCornerRadius.containerConcentric`, SwiftUI `ConcentricRectangle`): the container's radius minus the smaller inset, `minimum` outside the container's corner region (`CORNER_CONCENTRIC_REGION`). |
 
 Draw a window with `CORNER_WINDOW.fitted` (16.8), not its `radius` (16, the API's): the capture of a window is a continuous corner of the larger radius. The other elements have a `CornerShape` each (section [Windows and titlebars](#windows-and-titlebars)). The parity check, with its tolerance, is in [macOS corners](../research/macos-corners.md#9-parity).
@@ -1146,12 +1145,6 @@ At 0 the look is the unchanged one. The tests reproduce the 27 inputs of the sli
 31 positions, the tone within 2.5 levels and the width of a step within 2.5 px of sigma
 ([research](../research/macos-liquid-glass.md#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)).
 
-`LIQUID_GLASS_INTERACTION_LIGHT` and `_DARK` are a `GlassInteraction`: `hover`
-and `pressed` are the `[gain, offset]` of the device value an interactive glass
-shows under the pointer. `interacted(&interaction(scheme), pointer, rgb)`
-applies them, within 1.5 levels of the captures
-([research](../research/macos-liquid-glass.md#7-interaction-merging-and-morphing)).
-
 ### Colors
 
 | Constants | Type | What they are |
@@ -1232,8 +1225,8 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `BUTTON` | `ButtonMetrics` | `controls`, `compact`, `views::window_tabs`, `font_panel` |
-| `ICON_BUTTON` | `IconButtonMetrics` | `compact`, `views::window_tabs` |
+| `BUTTON` | `ButtonMetrics` | `controls`, `compact`, `font_panel` |
+| `ICON_BUTTON` | `IconButtonMetrics` | `compact` |
 | `SWITCH` | `SwitchMetrics` | `controls`, `choices`, `level` |
 | `CHECKBOX` | `CheckboxMetrics` | `controls` |
 | `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP` | `SliderMetrics`, `SliderFatMetrics`, `f32` | `styles`, `level` |
@@ -1272,7 +1265,6 @@ background, for `reduce_transparency`.
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |
 | `SPLIT_PANES` | `SplitPanesMetrics` | `views::split_panes`, `styles` (`SplitPanesStyle`) |
-| `FLOATING_PANE` | `FloatingPaneMetrics` | `views::floating_pane`, `styles` (`FloatingPaneStyle`) |
 | `TABLE` | `TableMetrics` | `views::table`, `styles` (`TableStyle`); `plain_row_height`, `row_size_font`, `row_size_icon`, `source_list_row_height`, `icon_box` and `icon_gap` are the classic `NSTableView` styles |
 | `COLLECTION` | `CollectionMetrics` | `views::collection` |
 | `LIST_GROUP` | `ListGroupMetrics` | `views::form` |

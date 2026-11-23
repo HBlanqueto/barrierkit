@@ -76,16 +76,6 @@ pub fn tile(radius: f32, smoothing: f32, size: usize, edge_x: f32, edge_y: f32) 
         .collect()
 }
 
-// Mirrors window_sdf and window_coverage of malaysia (grade-graphics/src/window_shape.glsl); change both together.
-pub fn superellipse_coverage(extent: f32, exponent: f32, x: f32, y: f32) -> f32 {
-    let dx = (extent - (x + 0.5)).max(0.0);
-    let dy = (extent - (y + 0.5)).max(0.0);
-    if dx <= 0.0 && dy <= 0.0 {
-        return 1.0;
-    }
-    (0.5 - ((dx.powf(exponent) + dy.powf(exponent)).powf(1.0 / exponent) - extent)).clamp(0.0, 1.0)
-}
-
 pub fn concentric(container: f32, inset_x: f32, inset_y: f32, minimum: f32) -> f32 {
     let limit = container * CORNER_CONCENTRIC_REGION;
     if inset_x > limit || inset_y > limit {
@@ -100,6 +90,17 @@ mod tests {
     use ctdesign::{CORNER_POPOVER, CORNER_SMOOTHING, CORNER_WINDOW, WINDOW_CORNER};
 
     const SAMPLES: &str = include_str!("../tests/data/corner-samples.csv");
+
+    // Mirrors window_sdf and window_coverage of malaysia (grade-graphics/src/window_shape.glsl); change both together.
+    fn superellipse_coverage(extent: f32, exponent: f32, x: f32, y: f32) -> f32 {
+        let dx = (extent - (x + 0.5)).max(0.0);
+        let dy = (extent - (y + 0.5)).max(0.0);
+        if dx <= 0.0 && dy <= 0.0 {
+            return 1.0;
+        }
+        (0.5 - ((dx.powf(exponent) + dy.powf(exponent)).powf(1.0 / exponent) - extent))
+            .clamp(0.0, 1.0)
+    }
 
     struct Sample {
         edge_x: f32,

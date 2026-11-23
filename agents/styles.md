@@ -476,7 +476,6 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `SplitView` | `SplitViewStyle` | 2026-11-07 |
 | `SidebarToggle` | `IconButtonStyle` | 2026-11-07 |
 | `SplitPanes` | `SplitPanesStyle` | 2026-11-07 |
-| `FloatingPane` | `FloatingPaneStyle` | 2026-11-07 |
 | `Form` | `FormStyle`, for its sections and rows; the lines between rows take `DividerStyle` | 2026-11-07 |
 | `GroupBox` | `GroupBoxStyle` | 2026-11-07 |
 | `DisclosureGroup` | `DisclosureGroupStyle` | 2026-11-07 |
@@ -485,7 +484,6 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `CollectionView` | `CollectionViewStyle`, for its tiles | 2026-11-07 |
 | `OutlineView`, `Browser` | `OutlineViewStyle`; `classic()` and `full_width()` are `NSOutlineView` | 2026-11-20 |
 | `TabView` | `TabViewStyle`, for its tabs; `tab_type` is `Top` (default), `Bottom`, `Left`, `NoTabs*` or `Toolbar` (`TabViewStyle::toolbar()`, the settings-window tabs) | 2026-11-20 |
-| `WindowTabs` | `WindowTabsStyle`, for its tabs | 2026-11-07 |
 | `TextView` | `TextViewStyle` | 2026-11-07 |
 | `Sheet` | `SheetStyle` | 2026-11-07 |
 | `Alert` | `AlertStyle`; its sheet takes `SheetStyle`, its buttons `ButtonStyle` and its checkbox `CheckboxStyle` | 2026-11-07 |

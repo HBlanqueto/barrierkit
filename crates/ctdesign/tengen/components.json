@@ -655,14 +655,6 @@
       "grab": 5,
       "pane-min": 60
     },
-    "floating-pane": {
-      "title-height": 22,
-      "outline": 1,
-      "resize-band": 6,
-      "shadow": "#00000066",
-      "shadow-blur": 8,
-      "shadow-y": 3
-    },
     "split-view": {
       "sidebar-min": 180,
       "sidebar-max": 320,
@@ -1969,16 +1961,6 @@
             "tone-shift-t75": [0, 0, 0, 0, 0, 0, 0, 0, 0],
             "tone-shift-t100": [0, 0, 0, 0, 0, 0, 0, 0, 0]
           }
-        }
-      },
-      "interaction": {
-        "dark": {
-          "hover": [0.9276, 0.0962],
-          "pressed": [0.9676, 0.0466]
-        },
-        "light": {
-          "hover": [0.9328, -0.0262],
-          "pressed": [0.9678, -0.0124]
         }
       },
       "regular": {

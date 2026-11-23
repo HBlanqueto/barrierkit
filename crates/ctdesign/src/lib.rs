@@ -1259,12 +1259,6 @@ pub struct GlassTint {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct GlassInteraction {
-    pub hover: [f32; 2],
-    pub pressed: [f32; 2],
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,
@@ -1354,16 +1348,6 @@ pub struct SplitPanesMetrics {
     pub divider: f32,
     pub grab: f32,
     pub pane_min: f32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct FloatingPaneMetrics {
-    pub title_height: f32,
-    pub outline: f32,
-    pub resize_band: f32,
-    pub shadow: Rgba,
-    pub shadow_blur: f32,
-    pub shadow_y: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -180,8 +180,6 @@ LIQUID_GLASS_TINT_REGULAR_LIGHT GlassTint components.liquid-glass.tint.regular.l
 LIQUID_GLASS_TINT_REGULAR_DARK GlassTint components.liquid-glass.tint.regular.dark
 LIQUID_GLASS_TINT_CLEAR_LIGHT GlassTint components.liquid-glass.tint.clear.light
 LIQUID_GLASS_TINT_CLEAR_DARK GlassTint components.liquid-glass.tint.clear.dark
-LIQUID_GLASS_INTERACTION_LIGHT GlassInteraction components.liquid-glass.interaction.light
-LIQUID_GLASS_INTERACTION_DARK GlassInteraction components.liquid-glass.interaction.dark
 MATERIAL_ULTRA_THIN_LIGHT MaterialSet components.material.swiftui.ultra-thin.light
 MATERIAL_ULTRA_THIN_DARK MaterialSet components.material.swiftui.ultra-thin.dark
 MATERIAL_THIN_LIGHT MaterialSet components.material.swiftui.thin.light
@@ -206,7 +204,6 @@ SPACE_3 f32 space.3
 SPACE_4 f32 space.4
 SPLIT_VIEW SplitViewMetrics components.split-view
 SPLIT_PANES SplitPanesMetrics components.split-panes
-FLOATING_PANE FloatingPaneMetrics components.floating-pane
 TABLE TableMetrics components.table
 COLLECTION CollectionMetrics components.collection
 TAB_VIEW TabViewMetrics components.tab-view

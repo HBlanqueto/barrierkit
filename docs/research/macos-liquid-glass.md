@@ -439,8 +439,7 @@ displacement was measured outside the edge (`OuterRefraction*`), over clear
   fits with rms 0.17 to 0.24 and at most 1.0 level; the regular glass over gray
   128 lands within 1 level (122 to 137 hovered and 130 pressed in dark; 188 to
   169 and 178 in light). Only gray was measured: the colour matrix is assumed
-  to act per channel. `ctappearance::liquid_glass::interacted` applies the map
-  `[C]`. A real pointer did not trigger the state: `mouse` events (move onto the
+  to act per channel `[C]`. A real pointer did not trigger the state: `mouse` events (move onto the
   glass, press, release; `NSEvent.mouseLocation` confirmed the position) over a
   key, interactive glass changed no pixel in six captures, regular and clear
   over gray and a grid. The scale, the shimmer and the durations are not

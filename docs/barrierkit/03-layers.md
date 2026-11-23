@@ -49,7 +49,7 @@ modules (not `pub`) are in the last column; an app cannot import them.
 |---|---|---|
 | 0 · Platform | `platform`, `i18n`, `portal`, `drag`, `notifications`, `secrets` | `session_bus`, `fonts`, `logging` |
 | 1 · Primitives | `elements`, `layout`, `style`, `theme`, `symbol`, `interaction`, `animation`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `canvas`, `glass_container`, `backdrop`, `media`, `modifiers`, `titlebar`, `traffic`, `chrome`, `sidebar`, `main_menu`, `status_item` | `scroll`, `glass`, `controlled`, `context_menu`, `tooltip` |
-| 2 · Views | `views` (`collection`, `feedback`, `floating_pane`, `form`, `group`, `navigation`, `search`, `split`, `split_panes`, `table`, `tabs`, `text_view`, `tree`, `window_tabs`) and `font_panel` | — |
+| 2 · Views | `views` (`collection`, `feedback`, `form`, `group`, `navigation`, `search`, `split`, `split_panes`, `table`, `tabs`, `text_view`, `tree`) and `font_panel` | — |
 | 3 · Patterns | `patterns` (`about`, `language`, `settings`) | `patterns::search_popover` |
 | App | `app` and `prelude` | — |
 | Shell | `shell`, only with the `shell` feature | — |

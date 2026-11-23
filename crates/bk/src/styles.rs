@@ -42,7 +42,6 @@ mod corners;
 mod date_picker;
 mod disclosure_group;
 mod divider;
-mod floating_pane;
 mod form;
 mod fullscreen_bar;
 mod gauge;
@@ -101,7 +100,6 @@ mod toolbar_search;
 mod top_glass;
 mod traffic_lights;
 mod window_chrome;
-mod window_tabs;
 
 pub use avatar::AvatarStyle;
 pub use backdrop::BackdropStyle;
@@ -119,7 +117,6 @@ pub use control_group::ControlGroupStyle;
 pub use date_picker::DatePickerStyle;
 pub use disclosure_group::DisclosureGroupStyle;
 pub use divider::DividerStyle;
-pub use floating_pane::FloatingPaneStyle;
 pub use form::FormStyle;
 pub use fullscreen_bar::FullscreenBarStyle;
 pub use gauge::GaugeStyle;
@@ -183,7 +180,6 @@ pub use toolbar_search::ToolbarSearchStyle;
 pub use top_glass::TopGlassStyle;
 pub use traffic_lights::TrafficLightsStyle;
 pub use window_chrome::WindowChromeStyle;
-pub use window_tabs::WindowTabsStyle;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ShapeStyle {

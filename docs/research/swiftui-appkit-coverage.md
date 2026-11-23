@@ -479,7 +479,7 @@ The size of each control is a row in its own family.
 | full screen | `toggleFullScreen` | `FullscreenBar` | `implemented` | none | P2 |
 | `WindowGroup`, `Window`, `Settings`, `openWindow`, `dismissWindow` | `NSWindow`, `NSWindowController` | `WindowGroup`, `Window`, `Settings`, `use_open_window`, `use_dismiss_window`, `SettingsWindow` | `partial`: ids, one window per value, fronting a window that is open, and a Window menu from the kit's own list; no `openSettings` or `SettingsLink`, no launch behavior, no restore of the open windows, no position (xdg-shell) | [`macos-standard-menus.md`](macos-standard-menus.md) | P1 |
 | `UtilityWindow` | `NSPanel` | `UtilityWindow`, `PanelBehavior` | `implemented` | none | P3 |
-| — | window tabs | `WindowTabs` | `partial`: one toplevel, no tab group, tabs do not drag | none | P3 |
+| — | window tabs | — | `absent`: no tab bar, no tab group | none | P3 |
 | `DocumentGroup`, `AlertScene` | `NSDocument` | — | `missing` | none | P3 |
 | `windowShouldClose`, `applicationShouldTerminate`, `application(_:open:)` | `NSWindowDelegate`, `NSApplicationDelegate` | — | `missing`: a non-goal until an app asks ([ADR 0085](../decisions.md)); a close request closes the window at once, except a sheet's, and the last window ends the process | [Swift syntax in Rust](swift-syntax-in-rust.md) | — |
 | a command to the focused view | `NSResponder` chain, `validateMenuItem` | `Action`, `use_menu_action` | `missing`: every handler of the window gets every id, and a shortcut works only through an enabled menu item; a non-goal until an app asks ([ADR 0085](../decisions.md)) | [Swift syntax in Rust](swift-syntax-in-rust.md) | — |

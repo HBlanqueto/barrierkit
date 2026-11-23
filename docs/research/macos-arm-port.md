@@ -96,7 +96,7 @@ creates.
 Hybrid is how Mac apps with a unified toolbar are made. The kit already
 measures the insets it needs (`macos-windows.md`, `macos-control-metrics.md`).
 Full screen, Mission Control, Stage Manager and window tabs come free in SSD
-and hybrid. They are open work in CSD: `FullscreenBar` and `WindowTabs` exist,
+and hybrid. They are open work in CSD: `FullscreenBar` exists,
 and `NSWindow.toggleFullScreen` needs `titled`.
 
 Whether macOS should also draw the toolbar and the sidebar from a declaration is measured in [native chrome](macos-native-chrome.md).

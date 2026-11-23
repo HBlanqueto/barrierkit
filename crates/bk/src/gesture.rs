@@ -753,80 +753,6 @@ pub enum Priority {
     Simultaneous,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Contender {
-    // The nesting of the view: a descendant is deeper.
-    pub depth: usize,
-    pub priority: Priority,
-    pub state: State,
-    // It is `Possible` and can still begin at a later time (a double tap between its taps).
-    pub pending: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Verdict {
-    Continue,
-    Deliver,
-    Hold,
-    Fail,
-}
-
-fn recognized(state: State) -> bool {
-    matches!(state, State::Began | State::Changed | State::Ended)
-}
-
-// SwiftUI's rule: the deepest gesture wins, a high-priority one beats its descendants, a simultaneous one
-// neither wins nor loses. The winner waits while a gesture that outranks it can still begin.
-pub fn verdicts(contenders: &[Contender]) -> Vec<Verdict> {
-    let outranks = |a: &(usize, &Contender), b: &(usize, &Contender)| {
-        let class = |c: &Contender| u8::from(c.priority == Priority::High);
-        (class(a.1), a.1.depth, std::cmp::Reverse(a.0))
-            > (class(b.1), b.1.depth, std::cmp::Reverse(b.0))
-    };
-    let competing: Vec<_> = contenders
-        .iter()
-        .enumerate()
-        .filter(|(_, c)| c.priority != Priority::Simultaneous)
-        .collect();
-    let winner = competing
-        .iter()
-        .filter(|(_, c)| recognized(c.state))
-        .copied()
-        .reduce(|best, next| if outranks(&next, &best) { next } else { best });
-    contenders
-        .iter()
-        .enumerate()
-        .map(|(index, contender)| {
-            if contender.priority == Priority::Simultaneous {
-                return if recognized(contender.state) {
-                    Verdict::Deliver
-                } else {
-                    Verdict::Continue
-                };
-            }
-            let Some(winner) = winner else {
-                return Verdict::Continue;
-            };
-            if winner.0 != index {
-                let waiting = contender.pending && outranks(&(index, contender), &winner);
-                return if waiting {
-                    Verdict::Continue
-                } else {
-                    Verdict::Fail
-                };
-            }
-            let held = competing
-                .iter()
-                .any(|other| other.1.pending && outranks(other, &winner));
-            if held {
-                Verdict::Hold
-            } else {
-                Verdict::Deliver
-            }
-        })
-        .collect()
-}
-
 // What a gesture reports. `updating` is `@GestureState`: it changes while the gesture does and goes back
 // when it ends, fails or is cancelled.
 pub struct Callbacks<V> {
@@ -1716,15 +1642,6 @@ mod tests {
         }
     }
 
-    fn contender(depth: usize, priority: Priority, state: State, pending: bool) -> Contender {
-        Contender {
-            depth,
-            priority,
-            state,
-            pending,
-        }
-    }
-
     #[test]
     fn a_tap_ends_when_the_pointer_goes_up_near_where_it_went_down() {
         let mut tap = TapRecognizer::new(1);
@@ -1936,77 +1853,6 @@ mod tests {
     fn a_rotation_takes_the_short_way_across_the_half_turn() {
         assert!((turned(3.0, -3.0) - (std::f32::consts::TAU - 6.0)).abs() < 1e-4);
         assert!((turned(-3.0, 3.0) + (std::f32::consts::TAU - 6.0)).abs() < 1e-4);
-    }
-
-    #[test]
-    fn nothing_is_decided_until_a_gesture_is_recognized() {
-        let possible = contender(0, Priority::Normal, State::Possible, false);
-        assert_eq!(verdicts(&[possible, possible]), vec![Verdict::Continue; 2]);
-    }
-
-    #[test]
-    fn the_deepest_gesture_wins_over_its_ancestors() {
-        let parent = contender(0, Priority::Normal, State::Began, false);
-        let child = contender(1, Priority::Normal, State::Began, false);
-        assert_eq!(
-            verdicts(&[parent, child]),
-            vec![Verdict::Fail, Verdict::Deliver]
-        );
-    }
-
-    #[test]
-    fn a_high_priority_ancestor_beats_its_descendants() {
-        let parent = contender(0, Priority::High, State::Began, false);
-        let child = contender(1, Priority::Normal, State::Began, false);
-        assert_eq!(
-            verdicts(&[parent, child]),
-            vec![Verdict::Deliver, Verdict::Fail]
-        );
-    }
-
-    #[test]
-    fn a_simultaneous_gesture_neither_wins_nor_loses() {
-        let drag = contender(1, Priority::Normal, State::Began, false);
-        let along = contender(0, Priority::Simultaneous, State::Began, false);
-        let waiting = contender(0, Priority::Simultaneous, State::Possible, false);
-        assert_eq!(
-            verdicts(&[drag, along, waiting]),
-            vec![Verdict::Deliver, Verdict::Deliver, Verdict::Continue]
-        );
-    }
-
-    #[test]
-    fn a_gesture_that_began_fails_a_tap_that_is_still_possible() {
-        let tap = contender(1, Priority::Normal, State::Possible, false);
-        let drag = contender(0, Priority::Normal, State::Began, false);
-        assert_eq!(
-            verdicts(&[tap, drag]),
-            vec![Verdict::Fail, Verdict::Deliver]
-        );
-    }
-
-    #[test]
-    fn a_winner_waits_while_a_gesture_that_outranks_it_can_still_begin() {
-        let double_tap = contender(1, Priority::Normal, State::Possible, true);
-        let tap = contender(0, Priority::Normal, State::Ended, false);
-        assert_eq!(
-            verdicts(&[double_tap, tap]),
-            vec![Verdict::Continue, Verdict::Hold]
-        );
-        let failed = contender(1, Priority::Normal, State::Failed, false);
-        assert_eq!(
-            verdicts(&[failed, tap]),
-            vec![Verdict::Fail, Verdict::Deliver]
-        );
-    }
-
-    #[test]
-    fn the_earlier_of_two_equal_gestures_wins() {
-        let first = contender(0, Priority::Normal, State::Ended, false);
-        assert_eq!(
-            verdicts(&[first, first]),
-            vec![Verdict::Deliver, Verdict::Fail]
-        );
     }
 
     #[test]

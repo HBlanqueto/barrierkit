@@ -639,32 +639,6 @@ box and strip. The fields are in
 TabView::new("Settings").style(|_| TabViewStyle::toolbar())
 ```
 
-### `WindowTabs`
-
-The tab bar of a tabbed window, like `NSWindowTabGroup`: capsules that share
-the width, the selected one raised.
-
-```rust
-WindowTabs::new(titles, selected)
-    .on_select(move |index: usize| current.set(index))
-    .on_close(move |index: usize| close(index))
-    .on_new(move |_| open())
-```
-
-| Method | Effect |
-|---|---|
-| `WindowTabs::new(titles, selected)` | One tab per `String`; `selected` is raised |
-| `.on_select(callback)` | Receives the pressed tab |
-| `.on_close(callback)` | Receives the tab whose × was pressed. The × shows on the selected tab and on hover, only with two or more tabs |
-| `.on_new(callback)` | Adds a + button at the end |
-
-The app keeps each tab's content. Tabs cannot be dragged.
-
-### Style
-
-`WindowTabs::style` takes a `WindowTabsStyle`. The fields are in
-[Styles and themes](../../crates/bk/src/styles/tab_view.rs).
-
 ## Split panes
 
 ### `SplitPanes`
@@ -695,47 +669,6 @@ divider, and neither goes below `SPLIT_PANES.pane_min` (60 px). Dividers are
 `SPLIT_PANES.divider` (1 px) thick, the thin divider of `NSSplitView` and the
 one of `HSplitView` and `VSplitView`; the pointer grabs them over
 `SPLIT_PANES.grab` (5 px).
-
-## Floating panes
-
-### `FloatingPane`
-
-A pane over the window content with a title bar that moves it, edges that
-resize it and a shadow. It has no constructor: fill its public fields.
-
-```rust
-FloatingPane {
-    frame: *frame.read(),
-    title: "Inspector".into(),
-    active: true,
-    accent: Palette::current().accent,
-    title_bar: Palette::current().control_background,
-    title_ink: Palette::current().label,
-    content: inspector.into(),
-    on_raise: Callback::new(|_| {}),
-    on_frame: Callback::new(move |next| frame.set(next)),
-    style: Theme::tengen(),
-}
-```
-
-| Field | Meaning |
-|---|---|
-| `frame: PaneFrame` | Position and size, relative to the parent |
-| `title`, `title_bar`, `title_ink` | Title text, bar color and text color |
-| `active`, `accent` | An active pane has an `accent` outline; an inactive one, the separator color |
-| `content: Element` | The pane's body |
-| `on_raise` | Called on any press in the pane, so the app can put it on top |
-| `on_frame` | Receives the new `PaneFrame` on every pointer move of a drag |
-| `style: Theme` | `Theme::tengen()`; `.style(f)` adds a `FloatingPaneStyle` override ([Styles and themes](../../crates/bk/src/styles/floating_pane.rs)). `accent`, `title_bar` and `title_ink` override its `outline`, `title_bar` and `title` before it |
-
-The title bar is `FLOATING_PANE.title_height` (22) high. A
-`FLOATING_PANE.resize_band` (6) band around the pane resizes it from each edge
-and corner. Like `SplitPanes`, the frame is controlled: store it and pass it
-back.
-
-### `PaneFrame`
-
-`PaneFrame { x, y, width, height }`, all `f32`.
 
 ## Text view
 

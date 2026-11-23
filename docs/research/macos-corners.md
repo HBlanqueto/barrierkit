@@ -194,7 +194,7 @@ inner = minimum                                           otherwise
 
 1. Capture the element over the same backdrop on macOS (`screencapture -x -o -l <id>` of a window, never converted; `cornerwin`, `cornerpop`, or a pair for a surface) and over a clear borderless parent for a child window.
 2. Cut the top-left tile of 32 to 48 pixels at the corner (`corners()` of `cornerlib.py`, `tile_of` of `fitpop.py`), flip the other corners to look like it, and read the edge offsets from the alpha of the straight edges.
-3. Draw the same tile with `corner::tile(radius, smoothing, size, edge_x, edge_y)` with the token's `fitted` radius and `CORNER_SMOOTHING`, or with `corner::superellipse_coverage` for the compositor's shape, or take the compositor's output over the same backdrop.
+3. Draw the same tile with `corner::tile(radius, smoothing, size, edge_x, edge_y)` with the token's `fitted` radius and `CORNER_SMOOTHING`, or with the `superellipse_coverage` of `corner.rs`'s tests for the compositor's shape, or take the compositor's output over the same backdrop.
 4. Pass when the rms is at most 0.02 of coverage and the maximum at most 0.2 of coverage (51 levels). The tolerance is the worst fit of a measured tile (0.0155 and 0.185) plus the quantisation of 8 bits; the fits of section 3 and 4 are 0.0083 to 0.0155.
 5. Fail when the nominal radius fits worse than the fitted one by a factor of two (the window: 0.037 against 0.0143): the unit tests `the_superellipse_with_the_api_radius_is_too_square_for_a_window` and `a_window_silhouette_is_the_continuous_corner_of_the_silhouette_radius` say so.
 
