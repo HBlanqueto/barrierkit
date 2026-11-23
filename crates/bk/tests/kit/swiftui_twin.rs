@@ -1,8 +1,14 @@
 use std::{fs, path::PathBuf};
 
 use bk::compact::IconButton;
-use bk::controls::{TextField, ToolGroup};
+use bk::compact::Stepper;
+use bk::controls::{Checkbox, SegmentedControl, Slider, TextField, ToolGroup};
+use bk::date::{CivilDate, CivilDateTime};
+use bk::date_picker::DatePicker;
 use bk::elements::Label;
+use bk::indicator::Gauge;
+use bk::popup_button::PopUpButton;
+use bk::progress::ProgressView;
 use bk::sidebar::{Sidebar, SidebarItem};
 use bk::symbol::Symbol;
 use bk::theme::{self, SurfaceKind};
@@ -74,6 +80,81 @@ const FORM_ELEMENTS: [Element; 7] = [
     element("row values", (560, 116, 732, 150), true, 8.0),
     element("text field row", (28, 152, 732, 186), true, 4.0),
 ];
+
+const CONTROLS_ELEMENTS: [Element; 8] = [
+    element("pop-up button", (560, 82, 725, 112), true, 44.0),
+    element("segmented control", (485, 121, 725, 150), true, 78.0),
+    element("stepper", (695, 163, 725, 191), false, 52.0),
+    element("slider", (340, 205, 725, 230), false, 36.0),
+    element("date field", (640, 240, 725, 270), true, 50.0),
+    element("progress", (28, 278, 732, 332), true, 14.0),
+    element("gauge", (28, 334, 732, 394), true, 30.0),
+    element("checkbox", (28, 396, 200, 430), true, 12.0),
+];
+
+struct ControlsTwin {
+    dark: bool,
+}
+
+impl App for ControlsTwin {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(self.dark));
+        rect()
+            .expanded()
+            .background(theme::color(theme::surface_background(
+                &theme::resolved(),
+                SurfaceKind::Toplevel,
+            )))
+            .direction(Direction::Vertical)
+            .child(rect().height(Size::px(32.0)))
+            .child(
+                Form::new().section(
+                    Section::titled("Controls")
+                        .row(
+                            Row::new("Size").control(
+                                PopUpButton::new("Size")
+                                    .item("Small")
+                                    .item("Medium")
+                                    .item("Large")
+                                    .selected(1),
+                            ),
+                        )
+                        .row(
+                            Row::new("View").control(
+                                SegmentedControl::new("View")
+                                    .segment("List")
+                                    .segment("Icons")
+                                    .segment("Columns")
+                                    .selected(0),
+                            ),
+                        )
+                        .row(Row::new("Count").control(Stepper::new("Count", 0, 10).value(3)))
+                        .row(Row::new("Volume").control(Slider::new("Volume").value(0.4)))
+                        .row(Row::new("Date").control(DatePicker::new(
+                            "Date",
+                            CivilDateTime::new(
+                                CivilDate {
+                                    year: 2023,
+                                    month: 11,
+                                    day: 14,
+                                },
+                                0,
+                                0,
+                            ),
+                        )))
+                        .row(
+                            Row::new("Progress")
+                                .control(ProgressView::determinate("Progress", 0.6)),
+                        )
+                        .row(
+                            Row::new("Level")
+                                .control(Gauge::new("Level", 0.5, "50%").capacity(true)),
+                        )
+                        .row(Row::new("").control(Checkbox::new("Check").checked(true))),
+                ),
+            )
+    }
+}
 
 struct FormTwin {
     dark: bool,
@@ -317,6 +398,15 @@ fn the_form_window_matches_the_swiftui_twin_per_element() {
         "form",
         |dark| AppComponent::new(FormTwin { dark }),
         &FORM_ELEMENTS,
+    );
+}
+
+#[test]
+fn the_controls_window_matches_the_swiftui_twin_per_element() {
+    compare(
+        "controls",
+        |dark| AppComponent::new(ControlsTwin { dark }),
+        &CONTROLS_ELEMENTS,
     );
 }
 
