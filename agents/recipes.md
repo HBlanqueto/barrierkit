@@ -620,3 +620,14 @@ The program is [`recipes/documents.rs`](recipes/documents.rs).
 3. `.on_open_url(|url: OpenedUrl| ..)` receives the files that Finder and `open -a` hand to the app. Declare
    `CFBundleDocumentTypes` in the app's `Info.plist`.
 4. macOS only: on Linux nothing is vetoed and no open event arrives ([ADR 0112](../docs/decisions.md)).
+
+## 49. An inspector and a background extension
+
+SwiftUI: `NavigationSplitView { .. } detail: { photo.backgroundExtensionEffect().inspector(isPresented: $shown) { .. } }`.
+
+The program is [`recipes/inspector.rs`](recipes/inspector.rs).
+
+1. `SplitView::inspector(view, presented)` adds the right pane; toggle `presented` to slide it in and out.
+2. `SplitView::background_extension(view)` takes the view that lies behind the detail's leading edge, laid
+   out as wide as the detail: it continues under the sidebar and, on macOS, under the inspector, through
+   their glass ([10](../docs/barrierkit/10-sidebar.md#background-extension)).

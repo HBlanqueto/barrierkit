@@ -52,6 +52,8 @@ pub(crate) enum Effect {
         clear: bool,
         spacing: u32,
     },
+    // Drawn under the panes' native glass, so that the glass shows it.
+    BackgroundExtension,
 }
 
 // How a glass looks: SwiftUI's `Glass.clear`, and how near two glasses of one container merge.
@@ -135,6 +137,13 @@ impl Declared {
                 Size::px(height),
                 Position::new_absolute().top(top).left(left),
             ),
+        })
+    }
+
+    pub(crate) fn background_extension() -> Element {
+        crate::glass::leaf(Self {
+            effect: Effect::BackgroundExtension,
+            layout: crate::glass::layout(Size::fill(), Size::fill(), Position::new_absolute()),
         })
     }
 
@@ -343,7 +352,7 @@ impl Requests {
                         requests.glass_spacing = requests.glass_spacing.max(spacing);
                     }
                 }
-                Effect::ScrollEdge { .. } => {}
+                Effect::ScrollEdge { .. } | Effect::BackgroundExtension => {}
             }
         }
         requests

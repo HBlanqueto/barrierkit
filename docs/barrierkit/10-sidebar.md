@@ -345,11 +345,23 @@ wide, the width of
 after a 1 px separator. Changing `presented` opens or closes it over
 `DURATION_BASE`, like SwiftUI's `.inspector(isPresented:content:)`.
 
+Where the sidebar is AppKit's glass (macOS 26), the inspector is too: the
+kit publishes the pane's rect, AppKit draws that split item's glass under it
+(the same `NSGlassEffectView` as SwiftUI's inspector) and the kit draws no
+separator, as SwiftUI. Elsewhere the pane is the window's background.
+
 ### Background extension
 
 `.background_extension(view)` paints `view` under the docked sidebar, as macOS
 26 `.backgroundExtensionEffect()` does. The view is laid out as wide as the
 detail and its first pixel column is stretched to the window edge; Apple
 mirrors the view instead. It is not drawn while the sidebar floats.
+
+Where the panes are AppKit's glass, the kit draws the extension in its own
+layer under them, so the glass shows it as SwiftUI's does. That layer also
+holds the view under the detail, because the glass reads past its edge, and
+stretches its last column under an open inspector. Without the extension
+SwiftUI's glass still tints its inner edge with the detail beside it; the
+kit's does not, since the detail is drawn above the glass.
 
 Next: [11. Views](11-views.md).

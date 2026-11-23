@@ -190,6 +190,8 @@ WindowServer is the compositor, so the same declarations become native views
 | Declaration | Native view |
 |---|---|
 | The sidebar's panel (`WindowGlass`, `Sidebar`) | An `NSSplitViewController` with an empty `NSSplitViewItem(sidebarWithViewController:)` below the content view, sized to the panel: AppKit draws the sidebar of the running macOS, the sidebar glass on 26 (the same `NSGlassEffectView` as SwiftUI's `NavigationSplitView`) and the behind-window material before. Under Reduce Transparency the kit paints the flat sidebar |
+| The inspector's pane (`SplitView::inspector`, with the sidebar's glass on 26) | A second `NSSplitViewController` with a collapsed content item and an empty `NSSplitViewItem(inspectorWithViewController:)`, below the content view and sized to the pane: the same `NSGlassEffectView` as SwiftUI's `.inspector` |
+| `SplitView::background_extension` (with the panes' glass) | A `CAMetalLayer` view at the bottom of the window's views, under the panes, holding the extension: the glass shows it as SwiftUI's shows `.backgroundExtensionEffect()` |
 | The window's background (`ShapeStyle::WindowBackground`) | Nothing: a titled window keeps AppKit's own background material, an `NSVisualEffectView` that takes its tint from the wallpaper, and the kit's layer leaves it uncovered. A theme that tints the window paints its color |
 | `Material` | An `NSVisualEffectView`, `withinWindow`, of `MaterialStyle::material`, with the corner radius, over the content |
 | `TopGlass`, `ProgressiveGlass`, `FullscreenBar::Glass` | An `NSVisualEffectView` of the window background material along the edge; the soft ones have a gradient mask, the hard one none |

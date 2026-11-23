@@ -188,22 +188,33 @@ fn empty_controller(mtm: MainThreadMarker) -> Retained<NSViewController> {
     controller
 }
 
-// A sidebar split item is how AppKit draws the sidebar of the running macOS: glass on 26, the behind-window material before.
-pub(super) fn sidebar(mtm: MainThreadMarker) -> Retained<NSSplitViewController> {
+// A sidebar or inspector split item is how AppKit draws that pane on the running macOS: glass on 26, the behind-window material before.
+pub(super) fn pane(mtm: MainThreadMarker, inspector: bool) -> Retained<NSSplitViewController> {
     let split = NSSplitViewController::new(mtm);
-    split.addSplitViewItem(&NSSplitViewItem::sidebarWithViewController(
-        &empty_controller(mtm),
-    ));
     let content = NSSplitViewItem::splitViewItemWithViewController(&empty_controller(mtm));
     content.setCollapsed(true);
-    split.addSplitViewItem(&content);
+    if inspector {
+        split.addSplitViewItem(&content);
+        split.addSplitViewItem(&NSSplitViewItem::inspectorWithViewController(
+            &empty_controller(mtm),
+        ));
+    } else {
+        split.addSplitViewItem(&NSSplitViewItem::sidebarWithViewController(
+            &empty_controller(mtm),
+        ));
+        split.addSplitViewItem(&content);
+    }
     split
 }
 
-pub(super) fn place_sidebar(split: &NSSplitViewController, frame: NSRect) {
-    if let Some(sidebar) = split.splitViewItems().firstObject() {
-        sidebar.setMinimumThickness(frame.size.width);
-        sidebar.setMaximumThickness(frame.size.width);
+pub(super) fn place_pane(split: &NSSplitViewController, frame: NSRect) {
+    if let Some(pane) = split
+        .splitViewItems()
+        .iter()
+        .find(|item| !item.isCollapsed())
+    {
+        pane.setMinimumThickness(frame.size.width);
+        pane.setMaximumThickness(frame.size.width);
     }
     split.view().setFrame(frame);
 }

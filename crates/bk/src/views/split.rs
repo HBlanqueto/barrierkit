@@ -3,7 +3,7 @@ use freya_animation::prelude::use_animation_transition;
 use ctdesign::{SIDEBAR, SPLIT_VIEW, TOOLGROUP};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
-use torin::prelude::{Content, Direction, Gaps, Position, Size};
+use torin::prelude::{Area, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::animation::Clock;
@@ -12,6 +12,7 @@ use crate::compact::IconButton;
 use crate::controls::ToolGroup;
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
+use crate::platform::backdrop::Declared;
 use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::styles::Painted;
 use crate::styles::{
@@ -185,6 +186,13 @@ impl Component for SplitView {
         }
         let inspector_shown =
             crate::animation::use_animated(f32::from(u8::from(*presented.read())), style.animation);
+        let native_panes = crate::glass_panel::native_pane_glass();
+        let mut inspector_area = use_state(Area::default);
+        let mut detail_area = use_state(Area::default);
+        crate::glass_panel::use_publish_inspector(
+            (native_panes && self.inspector.is_some() && inspector_shown > 0.0)
+                .then(|| *inspector_area.read()),
+        );
         let (min_width, max_width) = self.sidebar_range;
         let initial_width = self
             .sidebar_width
@@ -318,30 +326,61 @@ impl Component for SplitView {
                 }
             });
 
-        if let Some(extension) = self.extension.as_ref().filter(|_| !overlay && shown > 0.0) {
-            let band = container * shown;
-            let detail_width = (*window_width.read() - band).max(1.0);
+        let lead = if overlay { 0.0 } else { container * shown };
+        let trail = if native_panes && self.inspector.is_some() {
+            style.inspector_width * inspector_shown
+        } else {
+            0.0
+        };
+        if let Some(extension) = self
+            .extension
+            .as_ref()
+            .filter(|_| lead > 0.0 || trail > 0.0)
+        {
+            let detail = *detail_area.read();
+            let detail_width = detail.width().max(1.0);
+            let laid_out = |left: f32| {
+                rect()
+                    .position(Position::new_absolute().left(left).top(0.0))
+                    .width(Size::px(detail_width))
+                    .height(Size::fill())
+                    .child(extension.clone())
+            };
+            let stretched = |left: f32, width: f32, column: f32, origin: TransformOrigin| {
+                rect()
+                    .position(Position::new_absolute().left(left).top(0.0))
+                    .width(Size::px(1.0))
+                    .height(Size::fill())
+                    .overflow(Overflow::Clip)
+                    .scale((width, 1.0))
+                    .transform_origin(origin)
+                    .child(laid_out(-column))
+            };
+            // The native glass reads past its edge, so the view also lies under the detail.
             root = root.child(
                 rect()
                     .position(Position::new_absolute().left(0.0).top(0.0))
-                    .width(Size::px(band))
+                    .width(if native_panes {
+                        Size::fill()
+                    } else {
+                        Size::px(lead)
+                    })
                     .height(Size::percent(100.0))
                     .overflow(Overflow::Clip)
-                    .child(
-                        rect()
-                            .position(Position::new_absolute().left(band - 1.0).top(0.0))
-                            .width(Size::px(1.0))
-                            .height(Size::fill())
-                            .overflow(Overflow::Clip)
-                            .scale((band, 1.0))
-                            .transform_origin(TransformOrigin::right())
-                            .child(
-                                rect()
-                                    .width(Size::px(detail_width))
-                                    .height(Size::fill())
-                                    .child(extension.clone()),
-                            ),
-                    ),
+                    .maybe_child(native_panes.then(Declared::background_extension))
+                    .maybe_child(
+                        (lead > 0.0)
+                            .then(|| stretched(lead - 1.0, lead, 0.0, TransformOrigin::right())),
+                    )
+                    .maybe_child(native_panes.then(|| laid_out(detail.min_x())))
+                    .maybe_child((trail > 0.0).then(|| {
+                        stretched(
+                            detail.max_x(),
+                            trail,
+                            detail_width - 1.0,
+                            TransformOrigin::left(),
+                        )
+                    })),
             );
         }
         if !overlay && shown > 0.0 {
@@ -392,14 +431,24 @@ impl Component for SplitView {
             rect()
                 .width(Size::flex(1.0))
                 .height(Size::fill())
+                .on_sized(move |event: Event<SizedEventData>| {
+                    detail_area.set_if_modified(event.area)
+                })
                 .child(self.detail.clone()),
         );
         if let Some((inspector, _)) = self.inspector.as_ref().filter(|_| inspector_shown > 0.0) {
-            root = root.child(line()).child(
+            root = root.maybe_child((!native_panes).then(line)).child(
                 rect()
                     .width(Size::px(style.inspector_width * inspector_shown))
                     .height(Size::fill())
                     .overflow(Overflow::Clip)
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        inspector_area.set_if_modified(event.area)
+                    })
+                    .maybe_child(native_panes.then(|| {
+                        let size = inspector_area.read().size;
+                        crate::glass_panel::hole((0.0, 0.0), (size.width, size.height), 0.0)
+                    }))
                     .child(
                         rect()
                             .width(Size::px(style.inspector_width))

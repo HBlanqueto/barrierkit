@@ -89,6 +89,7 @@ mod tests {
             base: 1,
             solid: 2,
             chroma: 3,
+            inspector: None,
         }
     }
 

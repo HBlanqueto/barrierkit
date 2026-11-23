@@ -131,6 +131,7 @@ struct ChromeLayer {
 enum Backing {
     Visual(Material),
     Glass,
+    Under,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -152,6 +153,42 @@ struct Bar {
     pocket: Option<Retained<Effect>>,
 }
 
+// A pane is AppKit's own split item below the content view, removed when the kit stops publishing it.
+fn place_pane(
+    mtm: MainThreadMarker,
+    container: &NSView,
+    content: &NSView,
+    slot: &mut Option<Retained<NSSplitViewController>>,
+    rect: Option<(i32, i32, i32, i32)>,
+    inspector: bool,
+) {
+    let Some(rect) = rect else {
+        if let Some(old) = slot.take() {
+            old.view().removeFromSuperview();
+        }
+        return;
+    };
+    let height = container.bounds().size.height;
+    let split = slot.get_or_insert_with(|| {
+        let split = blur::pane(mtm, inspector);
+        container.addSubview_positioned_relativeTo(
+            &split.view(),
+            NSWindowOrderingMode::Below,
+            Some(content),
+        );
+        split
+    });
+    blur::place_pane(split, blur::frame(rect, height));
+    let trailing = if inspector {
+        NSAutoresizingMaskOptions::ViewMinXMargin
+    } else {
+        NSAutoresizingMaskOptions::empty()
+    };
+    split
+        .view()
+        .setAutoresizingMask(blur::autoresizing(rect, height) | trailing);
+}
+
 struct Window {
     id: u64,
     window: Retained<NSWindow>,
@@ -160,6 +197,7 @@ struct Window {
     container: Option<Retained<NSView>>,
     bar: Option<Bar>,
     sidebar: Option<Retained<NSSplitViewController>>,
+    inspector: Option<Retained<NSSplitViewController>>,
     chromes: Vec<ChromeLayer>,
     layer: Retained<CAMetalLayer>,
     // Runs while draws are due, at most one per refresh of the window's display.
@@ -687,6 +725,7 @@ impl Runtime {
             view,
             container: Some(container),
             sidebar: None,
+            inspector: None,
             chromes: Vec::new(),
             bar: None,
             layer,
@@ -1115,6 +1154,7 @@ impl Runtime {
                 native: chrome.effects.iter().find_map(|(effect, _)| match effect {
                     Declared::Material { material, .. } => Some(Backing::Visual(*material)),
                     Declared::Glass { .. } => Some(Backing::Glass),
+                    Declared::BackgroundExtension => Some(Backing::Under),
                     Declared::ScrollEdge { .. } => None,
                 }),
             })
@@ -1203,7 +1243,7 @@ impl Runtime {
                         }
                     }
                 }
-                None => {}
+                Some(Backing::Under) | None => {}
             }
             // A chrome is rebuilt only when its placement changes, so a taller window must keep its distance from the top.
             let anchor = NSAutoresizingMaskOptions::ViewMinYMargin;
@@ -1214,7 +1254,15 @@ impl Runtime {
             let view =
                 ChromeView::new(mtm, blur::frame((x, y, width as i32, strip as i32), height));
             view.setAutoresizingMask(anchor);
-            container.addSubview(&view);
+            if wanted.native == Some(Backing::Under) {
+                container.addSubview_positioned_relativeTo(
+                    &view,
+                    NSWindowOrderingMode::Below,
+                    None,
+                );
+            } else {
+                container.addSubview(&view);
+            }
             let layer = configure_metal_layer(&device, &view);
             layer.setOpaque(false);
             layer.setContentsScale(scale);
@@ -1290,26 +1338,13 @@ impl Runtime {
                 continue;
             };
             window.needs_redraw = true;
-            let Some(&rect) = panels.rects.first() else {
-                if let Some(old) = window.sidebar.take() {
-                    old.view().removeFromSuperview();
-                }
-                continue;
-            };
-            let height = container.bounds().size.height;
-            let split = window.sidebar.get_or_insert_with(|| {
-                let split = blur::sidebar(mtm);
-                container.addSubview_positioned_relativeTo(
-                    &split.view(),
-                    NSWindowOrderingMode::Below,
-                    Some(&window.view),
-                );
-                split
-            });
-            blur::place_sidebar(split, blur::frame(rect, height));
-            split
-                .view()
-                .setAutoresizingMask(blur::autoresizing(rect, height));
+            let panes = [
+                (&mut window.sidebar, panels.rects.first().copied(), false),
+                (&mut window.inspector, panels.inspector, true),
+            ];
+            for (slot, rect, inspector) in panes {
+                place_pane(mtm, &container, &window.view, slot, rect, inspector);
+            }
             window.layer.setOpaque(false);
         }
     }

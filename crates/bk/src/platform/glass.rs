@@ -26,22 +26,40 @@ pub(crate) struct GlassPanels {
     pub(crate) base: u32,
     pub(crate) solid: u32,
     pub(crate) chroma: u32,
+    pub(crate) inspector: Option<(i32, i32, i32, i32)>,
 }
 
+// The last panels and whether the platform has yet to take them.
 #[derive(Clone, Default)]
-pub(crate) struct GlassOutbox(Rc<RefCell<Option<GlassPanels>>>);
+pub(crate) struct GlassOutbox(Rc<RefCell<(GlassPanels, bool)>>);
 
 impl GlassOutbox {
     pub(crate) fn get() -> Self {
         freya_core::prelude::try_consume_root_context().unwrap_or_default()
     }
 
+    // The sidebar and the inspector publish apart, so each keeps the other's last panel.
     pub(crate) fn put(&self, panels: GlassPanels) {
-        *self.0.borrow_mut() = Some(panels);
+        let mut outbox = self.0.borrow_mut();
+        let inspector = outbox.0.inspector;
+        *outbox = (
+            GlassPanels {
+                inspector,
+                ..panels
+            },
+            true,
+        );
+    }
+
+    pub(crate) fn put_inspector(&self, inspector: Option<(i32, i32, i32, i32)>) {
+        let mut outbox = self.0.borrow_mut();
+        outbox.0.inspector = inspector;
+        outbox.1 = true;
     }
 
     pub(crate) fn take(&self) -> Option<GlassPanels> {
-        self.0.borrow_mut().take()
+        let mut outbox = self.0.borrow_mut();
+        std::mem::take(&mut outbox.1).then(|| outbox.0.clone())
     }
 }
 

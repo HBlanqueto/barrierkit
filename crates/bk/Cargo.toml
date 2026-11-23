@@ -153,6 +153,10 @@ name = "if_else"
 path = "../../agents/recipes/if_else.rs"
 
 [[example]]
+name = "inspector"
+path = "../../agents/recipes/inspector.rs"
+
+[[example]]
 name = "keyboard_shortcut"
 path = "../../agents/recipes/keyboard_shortcut.rs"
 

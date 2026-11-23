@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use ctappearance::SidebarGlass;
@@ -31,21 +31,48 @@ fn argb(color: Rgba) -> u32 {
     u32::from_be_bytes([u8::MAX, red, green, blue])
 }
 
+// The sidebar and the inspector are the platform's own split items, whose glass shows what lies under them.
+pub(crate) fn native_pane_glass() -> bool {
+    sidebar_glass().is_some() && crate::glass::native_glass()
+}
+
+fn rounded(area: Area) -> (i32, i32, i32, i32) {
+    (
+        area.min_x().round() as i32,
+        area.min_y().round() as i32,
+        area.width().round() as i32,
+        area.height().round() as i32,
+    )
+}
+
+pub(crate) fn use_publish_inspector(area: Option<Area>) {
+    let sent = use_hook(|| Rc::new(Cell::new(None)));
+    let rect = area
+        .filter(|area| area.width() > 0.0 && area.height() > 0.0)
+        .map(rounded);
+    let outbox = use_hook(GlassOutbox::get);
+    if sent.get() != rect {
+        sent.set(rect);
+        outbox.put_inspector(rect);
+    }
+    use_drop(move || {
+        if sent.get().is_some() {
+            outbox.put_inspector(None);
+        }
+    });
+}
+
 pub(crate) fn use_publish(glass: Option<SidebarGlass>, radius: f32, area: Area) {
     let sent = use_hook(|| Rc::new(RefCell::new(GlassPanels::default())));
     let panels = glass
         .filter(|_| area.width() > 0.0 && area.height() > 0.0)
         .map_or_else(GlassPanels::default, |glass| GlassPanels {
             radius: radius.round() as u32,
-            rects: vec![(
-                area.min_x().round() as i32,
-                area.min_y().round() as i32,
-                area.width().round() as i32,
-                area.height().round() as i32,
-            )],
+            rects: vec![rounded(area)],
             base: argb(glass.base),
             solid: argb(glass.solid),
             chroma: (glass.chroma * infinity_protocol::THOUSANDTHS).round() as u32,
+            inspector: None,
         });
     let outbox = use_hook(GlassOutbox::get);
     if *sent.borrow() != panels {
