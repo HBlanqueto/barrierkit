@@ -21,6 +21,14 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
         crate::context_menu::context_menu(self, items, on_activate)
     }
 
+    fn sheet(self, is_presented: State<bool>, content: impl Fn() -> Element) -> Self
+    where
+        Self: ChildrenExt,
+    {
+        let presented = *is_presented.read();
+        self.maybe_child(presented.then(|| crate::views::feedback::Sheet::new(content())))
+    }
+
     fn help(self, text: impl Into<Cow<'static, str>>) -> Self {
         crate::tooltip::use_tooltip(text).attach(self)
     }

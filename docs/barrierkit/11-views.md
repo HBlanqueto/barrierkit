@@ -734,6 +734,13 @@ as in AppKit: its content takes no clicks, minimize and zoom still work, and the
 close light is disabled. The sheet ignores a close request from the compositor:
 only removing it closes it.
 
+`.sheet(is_presented, content)` on a container is SwiftUI's `sheet(isPresented:content:)`: the
+sheet shows while the `State<bool>` is `true`, and the app closes it by writing `false`
+(from a button of the sheet, as there is no other way to close one). It has no `onDismiss`
+and no `item:` form: nothing closes a sheet but the app. A sheet and its window do not
+animate in the kit; the compositor or AppKit draws them. `Alert` and `Popover` keep their
+current forms: an alert is built from fields and a popover needs the area it points at.
+
 ### `Alert`
 
 A [`Sheet`](#sheet) with a title, a message and two buttons, like `NSAlert`. With three or more buttons they stack, like `NSAlert` and SwiftUI's `.confirmationDialog`, which has no layout of its own.
