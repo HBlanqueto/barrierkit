@@ -5,6 +5,11 @@ use bk::views::feedback::ContentUnavailableView;
 use bk::views::split::SplitView;
 
 fn main() -> Result<(), RunError> {
+    let style = match std::env::args().nth(1).as_deref() {
+        Some("title-bar") => WindowStyle::TitleBar,
+        Some("hidden-title-bar") => WindowStyle::HiddenTitleBar,
+        _ => WindowStyle::Plain,
+    };
     run_window(
         || {
             let mut page = use_state(|| 0);
@@ -40,6 +45,6 @@ fn main() -> Result<(), RunError> {
         },
         WindowOptions::new("Notes", "notes")
             .size((760, 480))
-            .window_style(WindowStyle::Plain),
+            .window_style(style),
     )
 }

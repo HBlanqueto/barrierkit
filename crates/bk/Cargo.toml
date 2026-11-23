@@ -234,3 +234,11 @@ path = "../../agents/recipes/compositing_group.rs"
 [[example]]
 name = "navigation_stack"
 path = "../../agents/recipes/navigation_stack.rs"
+
+[[example]]
+name = "popups"
+path = "../../agents/recipes/popups.rs"
+
+[[example]]
+name = "glass_container"
+path = "../../agents/recipes/glass_container.rs"

@@ -318,11 +318,11 @@ impl App for NotesTwin {
     }
 }
 
-fn render(app: AppComponent, dark: bool) -> Vec<u8> {
-    render_at(app, dark, 1.0)
+fn render(app: AppComponent, dark: bool, reduced_transparency: bool) -> Vec<u8> {
+    render_at(app, dark, reduced_transparency, 1.0)
 }
 
-fn render_at(app: AppComponent, dark: bool, scale: f64) -> Vec<u8> {
+fn render_at(app: AppComponent, dark: bool, reduced_transparency: bool, scale: f64) -> Vec<u8> {
     let resolved = resolve(
         &AppearanceConfig {
             color_scheme: if dark {
@@ -331,6 +331,7 @@ fn render_at(app: AppComponent, dark: bool, scale: f64) -> Vec<u8> {
                 ColorScheme::Light
             },
             reduced_motion: true,
+            reduce_transparency: reduced_transparency,
             traffic_lights: TrafficLightStyle::Standard,
             ..Default::default()
         },
@@ -350,14 +351,25 @@ fn render_at(app: AppComponent, dark: bool, scale: f64) -> Vec<u8> {
     test.render().as_bytes().to_vec()
 }
 
-fn reference(name: &str, dark: bool) -> (usize, usize, Vec<u8>) {
+// `light`, `dark`, and with the system's Reduce Transparency on, `light-rt` and `dark-rt`.
+fn cell(dark: bool, reduced_transparency: bool) -> String {
+    format!(
+        "{}{}",
+        if dark { "dark" } else { "light" },
+        if reduced_transparency { "-rt" } else { "" }
+    )
+}
+
+fn reference(name: &str, cell: &str) -> Option<(usize, usize, Vec<u8>)> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/reference")
-        .join(format!(
-            "swiftui-{name}-{}.png",
-            if dark { "dark" } else { "light" }
-        ));
-    crate::image::decode(&fs::read(&path).unwrap_or_else(|e| panic!("read {path:?}: {e}")))
+        .join(format!("swiftui-{name}-{cell}.png"));
+    let bytes = match fs::read(&path) {
+        Ok(bytes) => bytes,
+        Err(_) if cell.ends_with("-rt") => return None,
+        Err(error) => panic!("read {path:?}: {error}"),
+    };
+    Some(crate::image::decode(&bytes))
 }
 
 fn percent_different(
@@ -386,22 +398,19 @@ fn percent_different(
 
 fn compare(name: &str, scene: fn(bool) -> AppComponent, elements: &[Element]) {
     let mut worse = Vec::new();
-    for dark in [false, true] {
-        let actual_png = render(scene(dark), dark);
+    for (dark, reduced) in [(false, false), (true, false), (false, true), (true, true)] {
+        let cell = cell(dark, reduced);
+        let Some((rw, rh, reference)) = reference(name, &cell) else {
+            println!("{name:6} {cell:9} no reference yet");
+            continue;
+        };
+        let actual_png = render(scene(dark), dark, reduced);
         if let Some(out) = std::env::var_os("APPKIT_OUT") {
             let out = PathBuf::from(out);
             fs::create_dir_all(&out).unwrap();
-            fs::write(
-                out.join(format!(
-                    "twin-{name}-{}.png",
-                    if dark { "dark" } else { "light" }
-                )),
-                &actual_png,
-            )
-            .unwrap();
+            fs::write(out.join(format!("twin-{name}-{cell}.png")), &actual_png).unwrap();
         }
         let (width, height, actual) = crate::image::decode(&actual_png);
-        let (rw, rh, reference) = reference(name, dark);
         assert_eq!(
             (width, height),
             (rw, rh),
@@ -410,17 +419,14 @@ fn compare(name: &str, scene: fn(bool) -> AppComponent, elements: &[Element]) {
         for element in elements {
             let percent = percent_different(&reference, &actual, width, element.rect);
             println!(
-                "{name:6} {:5} {:22} {percent:5.1}% {}",
-                if dark { "dark" } else { "light" },
+                "{name:6} {cell:9} {:22} {percent:5.1}% {}",
                 element.name,
                 if element.text { "(text)" } else { "" }
             );
             if percent > element.ceiling {
                 worse.push(format!(
-                    "{name} {} {}: {percent:.1}% over {}%",
-                    if dark { "dark" } else { "light" },
-                    element.name,
-                    element.ceiling
+                    "{name} {cell} {}: {percent:.1}% over {}%",
+                    element.name, element.ceiling
                 ));
             }
         }
@@ -494,9 +500,13 @@ fn halved(image: &[u8], width: usize, height: usize) -> Vec<u8> {
 #[test]
 fn the_notes_window_at_scale_two_is_the_window_at_scale_one_drawn_twice_as_fine() {
     for dark in [false, true] {
-        let (width, height, once) =
-            crate::image::decode(&render_at(AppComponent::new(NotesTwin { dark }), dark, 1.0));
-        let twice_png = render_at(AppComponent::new(NotesTwin { dark }), dark, 2.0);
+        let (width, height, once) = crate::image::decode(&render_at(
+            AppComponent::new(NotesTwin { dark }),
+            dark,
+            false,
+            1.0,
+        ));
+        let twice_png = render_at(AppComponent::new(NotesTwin { dark }), dark, false, 2.0);
         if let Some(out) = std::env::var_os("APPKIT_OUT") {
             let out = PathBuf::from(out);
             fs::create_dir_all(&out).unwrap();

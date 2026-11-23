@@ -231,13 +231,20 @@ impl Component for SheetWindow {
             }
             shared.set(rect().into_element());
         });
-        rect()
+        let veil = rect()
             .position(Position::new_absolute().left(0.0).top(0.0))
             .width(Size::fill())
             .height(Size::percent(100.0))
-            .layer(Layer::Overlay)
-            .painted(&paints, &style.scrim)
-            .on_mouse_down(|event: Event<MouseEventData>| event.stop_propagation())
+            .layer(Layer::Overlay);
+        let veiled_by_platform =
+            try_consume_root_context::<crate::platform::backdrop::NativeSheets>()
+                .is_some_and(|sheets| sheets.0);
+        let veil = if veiled_by_platform {
+            veil
+        } else {
+            veil.painted(&paints, &style.scrim)
+        };
+        veil.on_mouse_down(|event: Event<MouseEventData>| event.stop_propagation())
             .child(SheetPresence)
     }
 }

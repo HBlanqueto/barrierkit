@@ -727,7 +727,8 @@ toplevel marked modal with `xdg-dialog-v1`, sized to its content (it starts at
 `DIALOG_SHEET_WIDTH` × `DIALOG_SHEET_HEIGHT`). The compositor keeps it centered
 on the window that opened it and moves it with that window. It is not a
 panel: it takes the keyboard, so the window behind deactivates and dims under
-the veil. Without a window
+the veil. On macOS the veil is the system's, so the kit draws none
+(`Host::native_sheets`). Without a window
 (tests, shell layers) it draws inside the surface over the veil.
 
 While a sheet or an [`Alert`](#alert) shows, the window that opened it is modal

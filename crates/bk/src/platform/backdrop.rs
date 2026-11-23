@@ -24,6 +24,10 @@ pub(crate) struct BackdropSupport(pub(crate) bool);
 #[derive(Clone, Copy)]
 pub(crate) struct NativeGlass(pub(crate) bool);
 
+// The platform veils the window under a sheet itself (AppKit's `beginSheet`).
+#[derive(Clone, Copy)]
+pub(crate) struct NativeSheets(pub(crate) bool);
+
 // Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own.
 const MOST_CHROMES: usize = 3;
 

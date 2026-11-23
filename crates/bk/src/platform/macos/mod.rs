@@ -340,6 +340,7 @@ impl Runtime {
             glass: false,
             backdrop: true,
             native_glass: blur::glass_available(),
+            native_sheets: true,
             knobs: false,
         }
     }

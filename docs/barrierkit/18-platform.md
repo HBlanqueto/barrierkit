@@ -304,6 +304,17 @@ The window and its popups take the kit's scheme (`appearance.domain`), not the s
 3. It waits up to ten seconds for a window of that process on the screen (the CoreGraphics window list, no permission needed), then waits `SMOKE_SECONDS`.
 4. It fails the recipe when no window appeared, when the process exited, or when the window went away; otherwise it ends the process.
 
+### Appearance matrix on macOS
+
+**Goal:** know how far each surface is from SwiftUI or AppKit in light and dark, with blur and with Reduce Transparency on.
+**Reader:** whoever changes a material, a glass or a popup.
+**Input:** the probes in `~/src/probes` and `cargo build -p bk --examples`.
+**Output:** per-element differences and their ceilings.
+
+1. Run `scripts/appearance-matrix.py --transparency blur`.
+2. With the system's Reduce Transparency on, run it with `--transparency rt`; the script never changes the setting.
+3. The five twins are the bench `swiftui_twin.rs`. The cells, numbers and causes are in [the matrix](../research/appearance-matrix.md).
+
 ## Accessibility
 
 With the `a11y` feature ([1](01-what-is-barrierkit.md#the-crates)), each
