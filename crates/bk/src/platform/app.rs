@@ -546,6 +546,12 @@ impl AppInstance {
         }
     }
 
+    #[cfg(target_os = "macos")]
+    pub(crate) fn trackpad(&mut self, event: crate::gesture::Trackpad) {
+        self.runner.run_in(|| crate::gesture::trackpad(event));
+        self.waker.wake_by_ref();
+    }
+
     pub(crate) fn push(&mut self, event: PlatformEvent) {
         if matches!(
             event,

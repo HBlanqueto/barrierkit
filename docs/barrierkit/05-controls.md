@@ -154,8 +154,10 @@ cancelled. The defaults of `TapGesture`, `LongPressGesture` and `DragGesture` ar
 - Across views the deepest wins a pointer; a `.high_priority_gesture` beats the gestures of the
   views below it, and a `.simultaneous_gesture` neither wins nor loses. A gesture that begins
   fails the others on its pointer, so a tap that moved is no tap and a drag cancels a long press.
-- A mouse and a finger are both pointers; `MagnifyGesture` and `RotateGesture` need two fingers
-  until a runner maps the trackpad pinch (not done). Hover is not a gesture: `.on_hover`.
+- A mouse and a finger are both pointers; `MagnifyGesture` and `RotateGesture` take two fingers,
+  and on macOS a trackpad pinch or rotation (`magnifyWithEvent:`, `rotateWithEvent:`) reaches the
+  ones under the pointer as two fingers `gesture::trackpad` stands for (the Wayland runner has no
+  source yet: it needs `pointer-gestures-unstable-v1`). Hover is not a gesture: `.on_hover`.
 - A touch pan on a scroll view is a gesture of the lowest priority (U6 step 3, not built):
   today only the wheel scrolls it ([ADR 0104](../decisions.md)).
 

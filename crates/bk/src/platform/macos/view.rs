@@ -167,6 +167,20 @@ define_class!(
             self.send(wheel);
         }
 
+        #[unsafe(method(magnifyWithEvent:))]
+        fn magnify_with_event(&self, event: &NSEvent) {
+            let id = self.ivars().id;
+            let event = input::trackpad(event, crate::gesture::TrackpadKind::Magnify);
+            with_runtime(|runtime| runtime.trackpad(id, event));
+        }
+
+        #[unsafe(method(rotateWithEvent:))]
+        fn rotate_with_event(&self, event: &NSEvent) {
+            let id = self.ivars().id;
+            let event = input::trackpad(event, crate::gesture::TrackpadKind::Rotate);
+            with_runtime(|runtime| runtime.trackpad(id, event));
+        }
+
         #[unsafe(method(keyDown:))]
         fn key_down(&self, event: &NSEvent) {
             if self.for_input_method(event)

@@ -3,7 +3,8 @@ use std::rc::Rc;
 use std::time::Duration;
 
 use bk::gesture::{
-    Attachable, DragGesture, DragValue, LongPressGesture, MagnifyGesture, MagnifyValue, TapGesture,
+    Attachable, DragGesture, DragValue, LongPressGesture, MagnifyGesture, MagnifyValue,
+    RotateGesture, RotateValue, TapGesture, Trackpad, TrackpadKind, TrackpadPhase,
     use_gesture_state,
 };
 use bk::modifiers::ViewModifiers;
@@ -21,6 +22,7 @@ struct Log {
     pressed: Cell<u32>,
     magnified: RefCell<Vec<f32>>,
     held: Cell<i32>,
+    turned: RefCell<Vec<f32>>,
 }
 
 struct Case {
@@ -281,4 +283,56 @@ fn two_fingers_moving_apart_magnify_the_view() {
     );
     let seen = log.magnified.borrow().last().copied().unwrap();
     assert!((seen - 2.0).abs() < 0.01, "magnified by {seen}");
+}
+
+fn pinch_and_turn(log: &Rc<Log>) -> Element {
+    let (magnified, turned) = (log.clone(), log.clone());
+    square()
+        .gesture(
+            MagnifyGesture::new()
+                .on_changed(move |value: MagnifyValue| {
+                    magnified.magnified.borrow_mut().push(value.magnification)
+                })
+                .simultaneously(RotateGesture::new().on_changed(move |value: RotateValue| {
+                    turned.turned.borrow_mut().push(value.rotation)
+                })),
+        )
+        .into_element()
+}
+
+fn trackpad(test: &mut TestingRunner, phase: TrackpadPhase, kind: TrackpadKind) {
+    test.run_in(|| bk::gesture::trackpad(Trackpad { phase, kind }));
+    test.sync_and_update();
+}
+
+#[test]
+fn a_trackpad_pinch_and_rotation_reach_the_gestures_under_the_pointer() {
+    let log = Rc::new(Log::default());
+    let mut test = runner(&log, pinch_and_turn);
+    trackpad(&mut test, TrackpadPhase::Began, TrackpadKind::Magnify(0.0));
+    assert!(
+        log.magnified.borrow().is_empty(),
+        "the pointer is not over the view"
+    );
+    test.move_cursor((100.0, 100.0));
+    trackpad(&mut test, TrackpadPhase::Began, TrackpadKind::Magnify(0.0));
+    trackpad(
+        &mut test,
+        TrackpadPhase::Changed,
+        TrackpadKind::Magnify(0.5),
+    );
+    let seen = log.magnified.borrow().last().copied().unwrap();
+    assert!((seen - 1.5).abs() < 0.01, "magnified by {seen}");
+    trackpad(&mut test, TrackpadPhase::Ended, TrackpadKind::Magnify(0.0));
+    trackpad(&mut test, TrackpadPhase::Began, TrackpadKind::Rotate(0.0));
+    trackpad(
+        &mut test,
+        TrackpadPhase::Changed,
+        TrackpadKind::Rotate(-90.0),
+    );
+    let turned = log.turned.borrow().last().copied().unwrap();
+    assert!(
+        (turned - std::f32::consts::FRAC_PI_2).abs() < 0.01,
+        "turned by {turned}"
+    );
 }

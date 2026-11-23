@@ -51,6 +51,9 @@ pub enum Step<V> {
 pub trait Recognizer {
     type Value;
 
+    // The gesture comes from a trackpad pinch or rotation as well as from two fingers.
+    const TRACKPAD: bool = false;
+
     fn feed(&mut self, input: Input) -> Step<Self::Value>;
 
     // The time at which `elapse` has something to say, if any.
@@ -502,6 +505,7 @@ impl MagnifyRecognizer {
 
 impl Recognizer for MagnifyRecognizer {
     type Value = MagnifyValue;
+    const TRACKPAD: bool = true;
 
     fn feed(&mut self, input: Input) -> Step<MagnifyValue> {
         let result = self.pair.feed(
@@ -554,6 +558,7 @@ fn turned(first: f32, now: f32) -> f32 {
 
 impl Recognizer for RotateRecognizer {
     type Value = RotateValue;
+    const TRACKPAD: bool = true;
 
     fn feed(&mut self, input: Input) -> Step<RotateValue> {
         let result = self.pair.feed(input, angle, turned, self.minimum_delta);
@@ -987,6 +992,11 @@ struct Engine<R: Recognizer> {
     // Window coordinates minus these are the view's.
     origin: Point,
     armed: bool,
+    callbacks: Callbacks<R::Value>,
+    hovered: bool,
+    // The pointer in the view's coordinates and the scale and angle of the trackpad gesture so far.
+    cursor: Point,
+    pinch: Option<(f32, f32)>,
 }
 
 fn pointer_input(event: &Event<PointerEventData>, phase: Phase, origin: Point) -> (Input, u64) {
@@ -1179,12 +1189,116 @@ where
     }
 }
 
+/// A pinch or a rotation on a trackpad, as the runner reads it: `Magnify` carries the change in magnification
+/// (`NSEvent.magnification`) and `Rotate` the change in degrees, counter-clockwise (`NSEvent.rotation`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum TrackpadKind {
+    Magnify(f32),
+    Rotate(f32),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TrackpadPhase {
+    Began,
+    Changed,
+    Ended,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Trackpad {
+    pub phase: TrackpadPhase,
+    pub kind: TrackpadKind,
+}
+
+type Target = Box<dyn Fn(Trackpad) -> bool>;
+
+thread_local! {
+    static TRACKPAD_TARGETS: RefCell<Vec<Target>> = RefCell::new(Vec::new());
+}
+
+// Two fingers that a trackpad gesture stands for: far from the pointer's own id, `TRACKPAD_SPAN` apart.
+const TRACKPAD_FINGER: u64 = 1 << 48;
+const TRACKPAD_SPAN: f32 = 100.0;
+
+/// Gives a trackpad pinch or rotation to the `MagnifyGesture` and `RotateGesture` of the views under the
+/// pointer, as the two fingers it stands for. The macOS runner calls it; the Wayland one has no source yet.
+pub fn trackpad(event: Trackpad) {
+    TRACKPAD_TARGETS.with(|targets| {
+        let list: Vec<_> = std::mem::take(&mut *targets.borrow_mut());
+        let mut alive = Vec::new();
+        for target in list.into_iter().rev() {
+            if target(event) {
+                alive.push(target);
+            }
+        }
+        alive.reverse();
+        let mut targets = targets.borrow_mut();
+        alive.append(&mut targets);
+        *targets = alive;
+    });
+}
+
+impl<R: Recognizer + 'static> Engine<R>
+where
+    R::Value: Clone + 'static,
+{
+    fn trackpad(engine: &Rc<RefCell<Self>>, event: Trackpad) {
+        if !engine.borrow().hovered {
+            return;
+        }
+        let (center, callbacks) = {
+            let engine = engine.borrow();
+            (engine.cursor, engine.callbacks.clone())
+        };
+        let fingers = |scale: f32, turned: f32| {
+            let half = TRACKPAD_SPAN * scale / 2.0;
+            let (sin, cos) = turned.sin_cos();
+            [
+                (center.0 - half * cos, center.1 - half * sin),
+                (center.0 + half * cos, center.1 + half * sin),
+            ]
+        };
+        let send = |phase: Phase, at: [Point; 2]| {
+            for (index, at) in at.into_iter().enumerate() {
+                let id = TRACKPAD_FINGER + index as u64;
+                let input = Input {
+                    id,
+                    phase,
+                    at,
+                    time: now_ms(),
+                };
+                Self::handle(engine, &callbacks, input, id);
+            }
+        };
+        let began = engine.borrow().pinch.is_none();
+        if began && event.phase != TrackpadPhase::Ended {
+            engine.borrow_mut().pinch = Some((1.0, 0.0));
+            send(Phase::Down, fingers(1.0, 0.0));
+        }
+        let Some((scale, turned)) = engine.borrow().pinch else {
+            return;
+        };
+        let (scale, turned) = match event.kind {
+            TrackpadKind::Magnify(delta) => ((scale + delta).max(0.05), turned),
+            TrackpadKind::Rotate(degrees) => (scale, turned - degrees.to_radians()),
+        };
+        engine.borrow_mut().pinch = Some((scale, turned));
+        if event.phase == TrackpadPhase::Ended {
+            send(Phase::Up, fingers(scale, turned));
+            engine.borrow_mut().pinch = None;
+        } else {
+            send(Phase::Move, fingers(scale, turned));
+        }
+    }
+}
+
 // The handlers of one gesture on one view, made during a render.
 #[doc(hidden)]
 pub trait Handlers {
     fn down(&self, event: &Event<PointerEventData>);
     fn moved(&self, event: &Event<PointerEventData>);
     fn up(&self, event: &Event<PointerEventData>);
+    fn hover(&self, event: &Event<PointerEventData>, inside: bool);
 }
 
 struct Wired<G: Gesture> {
@@ -1216,7 +1330,23 @@ where
     }
 
     fn moved(&self, event: &Event<PointerEventData>) {
+        {
+            let mut engine = self.engine.borrow_mut();
+            let (global, _) = pointer_input(event, Phase::Move, engine.origin);
+            engine.cursor = global.at;
+        }
         self.feed(event, Phase::Move);
+    }
+
+    fn hover(&self, event: &Event<PointerEventData>, inside: bool) {
+        let mut engine = self.engine.borrow_mut();
+        engine.hovered = inside;
+        if inside {
+            let local = event.element_location();
+            let (global, _) = pointer_input(event, Phase::Move, (0.0, 0.0));
+            engine.origin = (global.at.0 - local.x as f32, global.at.1 - local.y as f32);
+            engine.cursor = (local.x as f32, local.y as f32);
+        }
     }
 
     fn up(&self, event: &Event<PointerEventData>) {
@@ -1276,14 +1406,32 @@ where
     fn handlers(self, priority: Priority) -> Vec<Box<dyn Handlers>> {
         let engine = use_hook(|| {
             let id = NEXT_ENGINE.with(|next| next.replace(next.get() + 1));
-            Rc::new(RefCell::new(Engine {
+            let engine = Rc::new(RefCell::new(Engine {
                 id,
                 priority,
                 recognizer: self.recognizer(),
                 origin: (0.0, 0.0),
                 armed: false,
-            }))
+                callbacks: self.callbacks(),
+                hovered: false,
+                cursor: (0.0, 0.0),
+                pinch: None,
+            }));
+            if <G::Recognizer as Recognizer>::TRACKPAD {
+                let weak = Rc::downgrade(&engine);
+                TRACKPAD_TARGETS.with(|targets| {
+                    targets.borrow_mut().push(Box::new(move |event| {
+                        let Some(engine) = weak.upgrade() else {
+                            return false;
+                        };
+                        Engine::trackpad(&engine, event);
+                        true
+                    }));
+                });
+            }
+            engine
         });
+        engine.borrow_mut().callbacks = self.callbacks();
         vec![Box::new(Wired::<G> {
             engine,
             callbacks: self.callbacks(),
@@ -1298,8 +1446,17 @@ pub(crate) fn attach<E: EventHandlersExt>(
     priority: Priority,
 ) -> E {
     let handlers: Rc<Vec<Box<dyn Handlers>>> = Rc::new(gesture.handlers(priority));
-    let (down, moved, up) = (handlers.clone(), handlers.clone(), handlers);
+    let (down, moved, up) = (handlers.clone(), handlers.clone(), handlers.clone());
+    let (enter, leave) = (handlers.clone(), handlers);
     element
+        .on_pointer_enter(move |event: Event<PointerEventData>| {
+            enter.iter().for_each(|handler| handler.hover(&event, true));
+        })
+        .on_pointer_leave(move |event: Event<PointerEventData>| {
+            leave
+                .iter()
+                .for_each(|handler| handler.hover(&event, false));
+        })
         .on_pointer_down(move |event: Event<PointerEventData>| {
             down.iter().for_each(|handler| handler.down(&event));
         })

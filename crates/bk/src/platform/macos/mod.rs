@@ -599,6 +599,12 @@ impl Runtime {
         }
     }
 
+    pub(super) fn trackpad(&mut self, id: u64, event: crate::gesture::Trackpad) {
+        if let Some(window) = self.window(id) {
+            window.app.trackpad(event);
+        }
+    }
+
     pub(super) fn text_field_focused(&mut self, id: u64) -> bool {
         self.window(id)
             .is_some_and(|window| window.app.text_field_focused())

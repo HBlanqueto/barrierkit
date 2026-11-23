@@ -227,6 +227,30 @@ pub(super) fn cursor(icon: CursorIcon) -> Retained<NSCursor> {
     }
 }
 
+// A trackpad pinch or rotation: its phase and what changed since the last event.
+pub(super) fn trackpad(
+    event: &NSEvent,
+    kind: fn(f32) -> crate::gesture::TrackpadKind,
+) -> crate::gesture::Trackpad {
+    use crate::gesture::{Trackpad, TrackpadPhase};
+    use objc2_app_kit::NSEventPhase;
+    let phase = event.phase();
+    let phase = if phase.contains(NSEventPhase::Began) {
+        TrackpadPhase::Began
+    } else if phase.contains(NSEventPhase::Ended) || phase.contains(NSEventPhase::Cancelled) {
+        TrackpadPhase::Ended
+    } else {
+        TrackpadPhase::Changed
+    };
+    Trackpad {
+        phase,
+        kind: kind(match event.r#type() {
+            objc2_app_kit::NSEventType::Rotate => event.rotation(),
+            _ => event.magnification() as f32,
+        }),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
