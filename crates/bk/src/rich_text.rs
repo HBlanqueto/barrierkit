@@ -3,6 +3,7 @@ use std::ops::Range;
 use ctdesign::MONO;
 use freya_core::prelude::*;
 
+use crate::styles::{Paints, ShapeStyle};
 use crate::theme::color;
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -14,6 +15,7 @@ pub struct RunStyle {
     pub link: Option<String>,
     pub family: Option<String>,
     pub size: Option<f32>,
+    pub foreground_style: Option<ShapeStyle>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -271,6 +273,7 @@ fn closing(inner: &str, delimiter: &str) -> Option<usize> {
 pub(crate) fn styled_spans(
     text: &str,
     runs: &[StyleRun],
+    paints: &Paints,
     link: ctdesign::Rgba,
 ) -> Vec<(Span<'static>, Option<String>)> {
     if runs.is_empty() {
@@ -297,6 +300,9 @@ pub(crate) fn styled_spans(
         }
         if let Some(size) = style.size {
             span = span.font_size(size);
+        }
+        if let Some(foreground) = &style.foreground_style {
+            span = span.color(color(paints.color(foreground)));
         }
         if style.link.is_some() {
             span = span.color(color(link));

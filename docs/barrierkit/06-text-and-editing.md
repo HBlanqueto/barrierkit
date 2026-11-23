@@ -99,7 +99,7 @@ in character indices.
 
 | Type | Fields |
 |---|---|
-| `RunStyle` | `bold`, `italic`, `underline`, `strikethrough`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`; `Default` is plain |
+| `RunStyle` | `bold`, `italic`, `underline`, `strikethrough`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`, `foreground_style: Option<ShapeStyle>`; `Default` is plain |
 | `StyleRun` | `range: Range<usize>`, `style: RunStyle` |
 | `FontChoice` | `family`, `size`, `bold`, `italic` |
 | `Emphasis` | `Bold`, `Italic`, `Underline` |
@@ -115,10 +115,11 @@ How the editor draws and edits runs:
 
 | Behavior | Rule |
 |---|---|
-| Typing | Runs move with the text. Typed text inherits the bold, italic, underline and font of the previous character, not its link |
+| Typing | Runs move with the text. Typed text inherits the style of the previous character, not its link |
 | Ctrl+B, Ctrl+I, Ctrl+U | If the whole selection has the emphasis, it is removed; otherwise it is added |
 | Links | Drawn in the accent and underlined. The pointer becomes a hand; a click opens the link through the `OpenURI` portal instead of moving the caret |
 | Fonts | `family` and `size` replace `BODY` for their run |
+| Colour | `foreground_style` paints its run, like `AttributedString.foregroundColor`. A `ShapeStyle::Role` follows light and dark; a link keeps the accent |
 
 The functions behind it are pure and work on any runs:
 

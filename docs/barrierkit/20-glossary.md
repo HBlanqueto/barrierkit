@@ -1141,7 +1141,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `text_editor::TextEditor` | struct | `TextEditor` | `NSTextView` | `UITextView` | Multi-line editor with find bar, rich text and spelling | [6](06-text-and-editing.md#text-editor) |
 | `text_editor::find_matches` | fn | — | `≈ NSTextFinder` | `UIFindInteraction` | Case-insensitive, non-overlapping matches in character indices | [6](06-text-and-editing.md#find-bar) |
-| `rich_text::RunStyle` | struct | — | — | — | Bold, italic, underline, strikethrough, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::RunStyle` | struct | — | — | — | Bold, italic, underline, strikethrough, link, family, size and foreground style (`AttributedString.foregroundColor`) of a run | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::StyleRun` | struct | — | — | — | A `RunStyle` over a character range | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::FontChoice` | struct | `≈ Font` | `≈ NSFontDescriptor` | `UIFontDescriptor` | Family, size, bold and italic | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::Emphasis` | enum | — | `≈ NSFontDescriptor.SymbolicTraits` | — | `Bold`, `Italic` or `Underline` | [6](06-text-and-editing.md#rich-text) |

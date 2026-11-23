@@ -15,7 +15,7 @@ use crate::style::Palette;
 use crate::style::with_font;
 use crate::styled_text::{Inline, Piece, explicit, layered};
 use crate::styles::{
-    ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve,
+    ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve, system_effect,
 };
 use crate::symbol::{Image, Symbol};
 use crate::views::list::ListRow;
@@ -240,7 +240,12 @@ impl Text {
         let (content, runs) = crate::rich_text::markdown(source);
         let mut text = Self::new(content.clone());
         if !runs.is_empty() {
-            text.3.pieces = styled_spans(&content, &runs, Palette::current().accent);
+            text.3.pieces = styled_spans(
+                &content,
+                &runs,
+                &Paints::current(ControlState::default(), system_effect),
+                Palette::current().accent,
+            );
             for (span, _) in text.3.pieces.iter_mut().filter(|(_, link)| link.is_some()) {
                 span.text_style_data.text_decoration = None;
             }

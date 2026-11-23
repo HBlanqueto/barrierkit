@@ -396,6 +396,7 @@ impl Component for TextEditor {
                         .styles
                         .map(|styles| styles.read().clone())
                         .unwrap_or_default(),
+                    &paints,
                     ink(&style.link),
                 )
                 .into_iter()
