@@ -488,7 +488,7 @@ impl Component for TextEditor {
                     .maybe_child(squiggles),
             ),
         );
-        let field = if focused {
+        let field = if focused && style.border.is_some() {
             ring(field, radius.top_left(), resolved().accent)
         } else {
             field

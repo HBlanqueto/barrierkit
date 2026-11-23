@@ -72,7 +72,7 @@ system face.
 | Ctrl+B, Ctrl+I, Ctrl+U | Toggle bold, italic or underline on the selection (with `styles`) |
 | Ctrl+T | Opens the font panel for the selection (with `styles`) |
 
-A focused editor has an accent ring. When the app replaces `value`, the editor takes the new
+A focused editor with a border has an accent ring; one with `border: None` draws none, as an `NSTextView` outside a bordered scroll view. When the app replaces `value`, the editor takes the new
 text, clears the selection and starts a new undo history.
 
 ### Find bar
