@@ -99,6 +99,8 @@ Full screen, Mission Control, Stage Manager and window tabs come free in SSD
 and hybrid. They are open work in CSD: `FullscreenBar` and `WindowTabs` exist,
 and `NSWindow.toggleFullScreen` needs `titled`.
 
+Whether macOS should also draw the toolbar and the sidebar from a declaration is measured in [native chrome](macos-native-chrome.md).
+
 ## Design of the macOS runner
 
 The runner has the shape of ADR 0047: a seam under `run_window`, with the
