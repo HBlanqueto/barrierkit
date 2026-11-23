@@ -274,6 +274,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `modifiers::EnvironmentModifiers::environment` | method | `.environment(_:_:)` | — | `UITraitCollection` | Gives the view's subtree a value of type `T`; a view that reads it with `use_environment::<T>()` renders again when it changes | [16](16-swiftui-to-the-kit.md#environment) |
 | `modifiers::EnvironmentModifiers::focused` | method | `.focused(_:equals:)` | — | `UIResponder.becomeFirstResponder()` | Registers the controls inside the view under a value of a `FocusState` | [16](16-swiftui-to-the-kit.md#focus) |
 | `modifiers::EnvironmentModifiers::default_focus` | method | `.defaultFocus(_:_:)` | ≈ `NSWindow.initialFirstResponder` | ≈ `UIResponder.becomeFirstResponder()` | Focuses the control registered under the value once the view has appeared | [16](16-swiftui-to-the-kit.md#focus) |
+| `modifiers::EnvironmentModifiers::keyboard_shortcut` | method | `.keyboardShortcut(_:)` | `NSButton.keyEquivalent` | `UIKeyCommand` | Gives every `Button` inside the view a `Shortcut` that it has not set itself; the view's `.disabled` applies | [16](16-swiftui-to-the-kit.md#actions) |
 | `environment::use_environment` | fn | `@Environment` | — | `UITraitCollection` | Hook: the value of type `T` of the nearest `.environment(..)`, or `T::default()`; the view renders again when it changes | [16](16-swiftui-to-the-kit.md#environment) |
 | `environment::use_is_enabled` | fn | `\.isEnabled` | `NSControl.isEnabled` | `UIControl.isEnabled` | `false` inside a view that `.disabled(true)` disabled | [16](16-swiftui-to-the-kit.md#disabled) |
 | `focus::FocusState` | struct | `FocusState` | ≈ `NSWindow.firstResponder` | `UIResponder.isFirstResponder` | Names the focus targets of a window: `get()` is the focused value, `set(Some(v))` moves the focus there, `set(None)` takes it off | [16](16-swiftui-to-the-kit.md#focus) |
@@ -990,6 +991,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `styles::TextFieldStyle::plain` | method | `TextFieldStyle.plain` | `NSTextField.isBezeled` `false` | `UITextField.BorderStyle` | Preset: no bezel or fill, 16 high | [Styles](../../crates/bk/src/styles/text_field.rs) |
 | `controls::Button::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | — | Height, padding, font and corners of one button | [5](05-controls.md#control-size) |
 | `controls::Button::keyboard_shortcut` | method | `.keyboardShortcut(_:modifiers:)` | `NSButton.keyEquivalent` | `UIKeyCommand` | Calls `on_press` on a `Shortcut` while the button is enabled; a menu item with the same key wins | [5](05-controls.md#buttons) |
+| `controls::ButtonRole` | enum | `ButtonRole` | ≈ `NSButton.hasDestructiveAction` | ≈ `UIAction.Attributes.destructive` | `Destructive`, `Cancel`, `Confirm`, `Close`; only `Destructive` changes the look | [5](05-controls.md#buttons) |
+| `controls::Button::role` | method | `Button(_:role:action:)` | `NSButton.hasDestructiveAction` | `UIAction.Attributes` | `Destructive` draws `ButtonStyle::destructive` | [5](05-controls.md#buttons) |
 | `popup_button::PopUpButton::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | — | Size of one pop-up or pull-down button | [5](05-controls.md#control-size) |
 | `controls::SegmentedControl::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | — | Size of one segmented control | [5](05-controls.md#control-size) |
 | `controls::Checkbox::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | — | Size of one checkbox | [5](05-controls.md#control-size) |
@@ -1095,12 +1098,42 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `controls::ScrollView` | struct | `ScrollView` | `NSScrollView` | `UIScrollView` | Scrolling viewport with overlay bar and edge effect | [5](05-controls.md#scrolling) |
 | `controls::ScrollController` | struct | `≈ ScrollViewProxy` | `≈ NSClipView` | `UIScrollView.scrollRectToVisible(_:animated:)` | Scrolls a `ScrollView` from code | [5](05-controls.md#scrolling) |
 | `controls::use_scroll_controller` | fn | `≈ ScrollViewReader` | — | `UIScrollView.scrollRectToVisible(_:animated:)` | Creates a `ScrollController` | [5](05-controls.md#scrolling) |
+| `controls::ScrollController::scroll_to` | method | `ScrollViewProxy.scrollTo(_:anchor:)` | `≈ NSClipView.scroll(to:)` | `UIScrollView.setContentOffset(_:animated:)` | Scrolls to a `ScrollPosition`, jumping or with an `Animation` | [5](05-controls.md#scroll-position) |
+| `controls::ScrollController::content_offset` | method | `ScrollGeometry.contentOffset` | `≈ NSClipView.bounds.origin` | `UIScrollView.contentOffset` | The offset of the content, positive when scrolled | [5](05-controls.md#scroll-position) |
+| `controls::ScrollController::geometry` | method | `ScrollGeometry` | — | — | The offset and the sizes of content and viewport now | [5](05-controls.md#scroll-position) |
+| `controls::ScrollController::phase` | method | `ScrollPhase` | — | `UIScrollView.isTracking`, `isDragging`, `isDecelerating` | The phase of the scroll now | [5](05-controls.md#scroll-position) |
+| `controls::ScrollPosition` | struct | `ScrollPosition` | — | — | Where a `ScrollView` is or should go: a point, an edge or a view by id | [5](05-controls.md#scroll-position) |
+| `controls::ScrollPosition::at` | fn | `ScrollPosition(x:y:)` | — | — | A point of the content | [5](05-controls.md#scroll-position) |
+| `controls::ScrollPosition::edge` | fn | `ScrollPosition(edge:)` | — | — | An edge of the content | [5](05-controls.md#scroll-position) |
+| `controls::ScrollPosition::id` | fn | `ScrollPosition(id:anchor:)` | — | — | The view with an `id`, aligned by `Start`, `Center` or `End`, or the least scroll that shows it | [5](05-controls.md#scroll-position) |
+| `controls::ScrollPosition::point` | method | `ScrollPosition.point` | — | — | The point of a position set by a point or by the user | [5](05-controls.md#scroll-position) |
+| `controls::ScrollPosition::is_positioned_by_user` | method | `ScrollPosition.isPositionedByUser` | — | — | Whether the user scrolled to this position | [5](05-controls.md#scroll-position) |
+| `controls::ScrollPhase` | enum | `ScrollPhase` | — | — | `Idle`, `Tracking`, `Interacting`, `Decelerating`, `Animating` | [5](05-controls.md#scroll-position) |
+| `controls::ScrollGeometry` | struct | `ScrollGeometry` | — | — | `content_offset`, `content_size` and `container_size` | [5](05-controls.md#scroll-position) |
+| `controls::ScrollView::scroll_position` | method | `.scrollPosition(_:anchor:)` | — | — | Binds a `State<ScrollPosition>`: the view scrolls to what the app sets and writes the user's scroll back | [5](05-controls.md#scroll-position) |
+| `controls::ScrollView::on_scroll_geometry_change` | method | `.onScrollGeometryChange(for:of:action:)` | — | `UIScrollViewDelegate.scrollViewDidScroll(_:)` | Calls the action with the `ScrollGeometry` when it changes | [5](05-controls.md#scroll-position) |
+| `controls::ScrollView::on_scroll_phase_change` | method | `.onScrollPhaseChange(_:)` | — | `UIScrollViewDelegate.scrollViewWillBeginDragging(_:)` | Calls the action with the old and the new `ScrollPhase` | [5](05-controls.md#scroll-position) |
+| `controls::IdentityModifiers::id` | method | `.id(_:)` | — | — | Names a view so that `ScrollPosition::id` finds it inside a `ScrollView` | [5](05-controls.md#scroll-position) |
 | `drag::DragSource` | struct | `≈ .draggable(_:)` | `NSDraggingSource` | ≈ `UIDragInteractionDelegate` | Starts a drag to another app past a threshold | [5](05-controls.md#drag-source) |
 | `drag::use_drag_source` | fn | `≈ .draggable(_:)` | — | `UIDragInteraction` | Creates a `DragSource` | [5](05-controls.md#drag-source) |
 | `drag::DragPayload` | enum | — | `≈ NSDraggingItem` | `UIDragItem` | `Files(Vec<PathBuf>)` or `Text(String)` to drag | [5](05-controls.md#drag-source) |
 | `drag::URI_LIST` | constant | — | `≈ NSPasteboard.PasteboardType.fileURL` | — | MIME type `text/uri-list` | [5](05-controls.md#drag-source) |
 | `canvas::Canvas` | struct | `Canvas` | `≈ NSView` | `UIView` | Element that paints with Skia, repainting on a new revision | [5](05-controls.md#canvas) |
 | `canvas::CanvasContext` | struct | `GraphicsContext` | `NSGraphicsContext` | ≈ `UIGraphicsImageRenderer` | Skia canvas, logical size, scale and fonts for a painter | [5](05-controls.md#canvas) |
+| `shapes::Rectangle` | struct | `Rectangle` | `≈ NSBezierPath(rect:)` | `≈ UIBezierPath(rect:)` | A rectangle that fills its frame | [5](05-controls.md#shapes) |
+| `shapes::RoundedRectangle` | struct | `RoundedRectangle` | `≈ NSBezierPath(roundedRect:xRadius:yRadius:)` | `≈ UIBezierPath(roundedRect:cornerRadius:)` | A rectangle with a continuous corner of `corner_radius` | [5](05-controls.md#shapes) |
+| `shapes::Capsule` | struct | `Capsule` | — | `≈ UIBezierPath(roundedRect:cornerRadius:)` | A rectangle with half circles at the ends | [5](05-controls.md#shapes) |
+| `shapes::Circle` | struct | `Circle` | `≈ NSBezierPath(ovalIn:)` | `≈ UIBezierPath(ovalIn:)` | A circle as wide as the frame is tall, centered | [5](05-controls.md#shapes) |
+| `shapes::Ellipse` | struct | `Ellipse` | `≈ NSBezierPath(ovalIn:)` | `≈ UIBezierPath(ovalIn:)` | An ellipse in the frame | [5](05-controls.md#shapes) |
+| `shapes::Path` | struct | `Path` | `≈ NSBezierPath` | `≈ UIBezierPath` | A path of lines and curves, in the coordinates of the frame | [5](05-controls.md#shapes) |
+| `shapes::Path::move_to` | method | `Path.move(to:)` | `NSBezierPath.move(to:)` | `UIBezierPath.move(to:)` | Starts a subpath | [5](05-controls.md#shapes) |
+| `shapes::Path::add_line` | method | `Path.addLine(to:)` | `NSBezierPath.line(to:)` | `UIBezierPath.addLine(to:)` | A line to a point | [5](05-controls.md#shapes) |
+| `shapes::Path::add_curve` | method | `Path.addCurve(to:control1:control2:)` | `NSBezierPath.curve(to:controlPoint1:controlPoint2:)` | `UIBezierPath.addCurve(to:controlPoint1:controlPoint2:)` | A cubic curve to a point | [5](05-controls.md#shapes) |
+| `shapes::Path::close_subpath` | method | `Path.closeSubpath()` | `NSBezierPath.close()` | `UIBezierPath.close()` | Closes the subpath with a line | [5](05-controls.md#shapes) |
+| `shapes::Rectangle::fill`, `RoundedRectangle::fill`, `Capsule::fill`, `Circle::fill`, `Ellipse::fill`, `Path::fill` | method | `Shape.fill(_:)` | `≈ NSBezierPath.fill()` | `≈ UIBezierPath.fill()` | Fills the shape with a `ShapeStyle`: a color, a role, the accent or a gradient | [5](05-controls.md#shapes) |
+| `shapes::Rectangle::stroke_border`, `RoundedRectangle::stroke_border`, `Capsule::stroke_border`, `Circle::stroke_border`, `Ellipse::stroke_border` | method | `InsettableShape.strokeBorder(_:lineWidth:)` | `≈ NSBezierPath.stroke()` | `≈ UIBezierPath.stroke()` | Draws the outline inside the frame, so no part of the line is cut | [5](05-controls.md#shapes) |
+| `shapes::Path::stroke` | method | `Shape.stroke(_:lineWidth:)` | `≈ NSBezierPath.stroke()` | `≈ UIBezierPath.stroke()` | Draws the line centered on the path; what leaves the frame is cut | [5](05-controls.md#shapes) |
+| `shapes::ShapeModifiers::clip_shape` | method | `.clipShape(_:)` | `≈ CALayer.mask` | `≈ CALayer.mask` | Clips a view and its children to a `Shape`: a rectangle, a rounded rectangle, a capsule or a circle | [5](05-controls.md#shapes) |
 | `interaction::Interaction` | struct | — | `≈ NSTrackingArea` | ≈ `UIHoverGestureRecognizer` | Hover, press and focus state of a custom control | [5](05-controls.md#building-a-new-control) |
 | `interaction::use_interaction` | fn | `≈ .onHover(perform:)` | — | `UIHoverGestureRecognizer` | Creates an `Interaction` | [5](05-controls.md#building-a-new-control) |
 | `modifiers::ViewModifiers::focus_ring` | method | — | `≈ NSView.drawFocusRingMask()` | — | Ring of a given color around an element with children | [7](07-menus-and-popovers.md#focus_ring) |
@@ -1251,6 +1284,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `titlebar::WindowToolbarStyle` | enum | `WindowToolbarStyle` | `≈ NSWindow.ToolbarStyle` | — | The bar of a `Titlebar`: `Unified` (52 high, title at the start) or `UnifiedCompact` (centered title) | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar::toolbar_style` | method | `windowToolbarStyle(_:)` | `NSWindow.toolbarStyle` | — | Chooses the `WindowToolbarStyle`; by default `Unified` with a sidebar or items | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | ≈ `UIToolbar` | Client-side title bar: traffic lights, left and right items, title | [9](09-titlebars.md#titlebar) |
+| `titlebar::Titlebar::toolbar` | method | `.toolbar(content:)` | `NSToolbar.insertItem(withItemIdentifier:at:)` | — | Adds one `ToolbarItem` or `ToolbarSpacer`, laid by placement | [9](09-titlebars.md#toolbar-items) |
+| `views::toolbar::ToolbarItem` | struct | `ToolbarItem` | `≈ NSToolbarItem` | `≈ UIBarButtonItem` | A view with a `ToolbarItemPlacement` | [9](09-titlebars.md#toolbar-items) |
+| `views::toolbar::ToolbarItemPlacement` | enum | `ToolbarItemPlacement` | — | — | Where an item goes: `Automatic`, `Principal`, `Navigation`, `PrimaryAction`, `Status` | [9](09-titlebars.md#toolbar-items) |
+| `views::toolbar::ToolbarSpacer` | struct | `ToolbarSpacer` (`SpacerSizing` as `fixed()` and `flexible()`) | `NSToolbarItem.Identifier.space`, `.flexibleSpace` | `UIBarButtonItem.SystemItem.fixedSpace`, `.flexibleSpace` | A gap of one padding or the split between the navigation side and the trailing side | [9](09-titlebars.md#toolbar-items) |
+| `views::toolbar::ToolbarContent` | enum | `ToolbarContent` | — | — | What `Titlebar::toolbar` accepts: an item or a spacer | [9](09-titlebars.md#toolbar-items) |
 | `traffic::TrafficLights` | struct | — | `≈ NSWindow.standardWindowButton(_:)` | — | Close, minimize and zoom buttons | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::fullscreen` | method | — | `≈ NSWindow.styleMask.fullScreen` | — | Minimize disabled and the exit glyph on zoom, for a full-screen window | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | — | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
@@ -1275,8 +1313,10 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `sidebar::SidebarAccount` | struct | — | — | — | The account row: avatar with initials, name and a detail line | [10](10-sidebar.md#sidebaraccount) |
 | `sidebar::SidebarControl` | struct | ≈ `NavigationSplitViewVisibility` | ≈ `NSSplitViewController.toggleSidebar(_:)` | ≈ `UISplitViewController.DisplayMode` | Handle to toggle, dismiss and read the enclosing `SplitView`'s sidebar | [10](10-sidebar.md#sidebarcontrol) |
 | `sidebar::sidebar_control` | fn | — | — | — | The enclosing `SplitView`'s `SidebarControl`, or `None` outside one | [10](10-sidebar.md#sidebarcontrol) |
+| `sidebar::SidebarControl::content` | method | — | — | — | Width of the content column that sits left of the detail | [10](10-sidebar.md#content-column) |
 | `sidebar::SymbolTile` | struct | — | — | — | The colored square tile with a white symbol; `.rim(color)` adds a border | [10](10-sidebar.md#symboltile) |
-| `views::split::SplitView` | struct | `NavigationSplitView` | `NSSplitViewController` | `UISplitViewController` | Sidebar, detail and optional inspector; resizes, hides and collapses the sidebar | [10](10-sidebar.md#splitview) |
+| `views::split::SplitView` | struct | `NavigationSplitView` | `NSSplitViewController` | `UISplitViewController` | Sidebar, optional content column, detail and optional inspector; resizes, hides and collapses the sidebar | [10](10-sidebar.md#splitview) |
+| `views::split::SplitView::content` | method | `NavigationSplitView(sidebar:content:detail:)` | `≈ NSSplitViewController.addSplitViewItem(_:)` | `≈ UISplitViewController.setViewController(_:for:)` | The column between the sidebar and the detail | [10](10-sidebar.md#content-column) |
 | `views::split::SidebarLayout` | struct | — | — | — | Sidebar width and visibility reported by `on_layout`, serializable | [10](10-sidebar.md#sidebarlayout) |
 | `views::split::NarrowSidebar` | enum | — | — | — | Where the sidebar opens in narrow windows: `Overlay` or `Push` | [10](10-sidebar.md#narrow-windows) |
 | `views::split::SidebarToggle` | struct | — | `NSToolbarItem.Identifier.toggleSidebar` | — | The button that shows or hides the sidebar: inside the sidebar while it is docked, in the titlebar when it is hidden | [10](10-sidebar.md#hiding-sidebartoggle-and-toggle_sidebar) |
@@ -1325,6 +1365,12 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::table::Table` | struct | `Table` | `NSTableView` | ≈ `UITableView` | Rows of text or views in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
 | `views::table::Table::cell` | method | `TableColumn(_:content:)` | `NSTableView.viewFor(tableColumn:row:)` | ≈ `UITableView.cellForRow(at:)` | Draws the cell of a column as a view built from the row index | [11](11-views.md#views-in-rows-and-cells) |
 | `views::table::Table::icons` | method | `Label` in a `TableColumn` | `NSTableCellView.imageView` | `UITableViewCell.imageView` | One symbol per row before the title of the first column | [11](11-views.md#table) |
+| `views::table::ListRowModifiers` | trait | `View` modifiers | — | — | The `list_row_*` methods of `List` and `Table`; each takes a closure of the row index | [11](11-views.md#list-row-modifiers) |
+| `views::table::ListRows` | struct | — | — | — | The row closures a `List` or `Table` holds for `ListRowModifiers`; an app never builds one | [11](11-views.md#list-row-modifiers) |
+| `views::table::ListRowModifiers::list_row_insets` | method | `.listRowInsets(_:)` | ≈ `NSTableView.intercellSpacing` | `UIView.layoutMargins` | Horizontal padding of the cells of one row; the height stays `row_height` | [11](11-views.md#list-row-modifiers) |
+| `views::table::ListRowModifiers::list_row_separator` | method | `.listRowSeparator(_:edges:)` | ≈ `NSTableView.gridStyleMask` | `UITableView.separatorStyle` | Shows or hides the line under one row | [11](11-views.md#list-row-modifiers) |
+| `views::table::ListRowModifiers::list_row_background` | method | `.listRowBackground(_:)` | ≈ `NSTableRowView.backgroundColor` | `UITableViewCell.backgroundView` | Fills one row that is not selected | [11](11-views.md#list-row-modifiers) |
+| `views::table::Visibility` | enum | `Visibility` | ≈ `NSView.isHidden` | ≈ `UIView.isHidden` | `Automatic`, `Visible`, `Hidden` | [11](11-views.md#list-row-modifiers) |
 | `views::table::Table::scroll_bar`, `views::list::List::scroll_bar`, `views::tree::OutlineView::scroll_bar` | method | `scrollIndicators(_:)` | `NSScrollView.hasVerticalScroller` | `UIScrollView.showsVerticalScrollIndicator` | Shows or hides the scroll bar | [11](11-views.md#table) |
 | `views::table::SortOrder` | struct | — | ≈ `NSTableView.sortDescriptors` | — | The sorted column index and direction; one column, not a list | [11](11-views.md#sortorder) |
 | `views::table::next_sort` | fn | — | — | — | The order a header click asks for: flip or start ascending | [11](11-views.md#table-helpers) |
@@ -1426,6 +1472,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `app::Action` | struct | — | ≈ `NSMenuItem` | ≈ `UIAction` | A command: id, translated title and shortcut, shared by menus and keys | [13](13-app.md#actions-and-shortcuts) |
 | `app::Shortcut` | struct | `KeyboardShortcut` | ≈ `NSMenuItem.keyEquivalent` | `UIKeyCommand` | Modifiers plus one key; gives the menu text and matches presses | [13](13-app.md#actions-and-shortcuts) |
+| `app::Shortcut::DEFAULT_ACTION` | const | `KeyboardShortcut.defaultAction` | `NSButton.keyEquivalent` = Return | `UIKeyCommand` | Enter with no modifier | [13](13-app.md#actions-and-shortcuts) |
+| `app::Shortcut::CANCEL_ACTION` | const | `KeyboardShortcut.cancelAction` | `NSButton.keyEquivalent` = Escape | `UIKeyCommand` | Escape with no modifier | [13](13-app.md#actions-and-shortcuts) |
 | `app::ShortcutKey` | enum | `KeyEquivalent` | — | `UIKeyCommand.input` | The key of a shortcut: `Char`, `Left`, `Right`, `Named` | [13](13-app.md#actions-and-shortcuts) |
 | `app::use_menu_action` | fn | — | ≈ `NSApplication.sendAction(_:to:from:)` | — | Hook that receives every action id from menus, shortcuts and activation | [13](13-app.md#actions-and-shortcuts) |
 | `app::UNDO` | constant | `CommandGroupPlacement.undoRedo` | — | `UIMenu.Identifier.undoRedo` | The kit's Undo action, Ctrl+Z | [13](13-app.md#undo) |

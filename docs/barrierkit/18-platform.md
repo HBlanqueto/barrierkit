@@ -348,6 +348,54 @@ call 25 s, as libdbus and GDBus do.
 | Status icon | `org.kde.StatusNotifierItem-<pid>-<n>` | `StatusItem` ([13](13-app.md#status-item)) |
 | Status host | `org.kde.StatusNotifierWatcher` | [`use_status_items`](#status-items) |
 
+## Who provides what on each platform
+
+One API in the kit, one provider per system. The names are SwiftUI's and
+AppKit's on both; the body is not shared. Read a row left to right: what the
+app calls, who answers on macOS, who answers on Linux.
+
+- **Kit:** code in `bk`, the same on both systems.
+- **macOS:** AppKit, Core Animation, Metal and the Security and UserNotifications frameworks, in `crates/bk/src/platform/macos/`.
+- **Linux (Malaysia):** Wayland protocols and D-Bus services; what the compositor does, it does through `infinity-protocol` ([ADR 0091](../decisions.md)). Malaysia served `infinity_window_style_v1` version 10 and `infinity_window_manager_v1` version 8 on 2026-11-22 and pinned the kit at `ccf65557`.
+
+| Capability | macOS | Linux (Malaysia) | State |
+|---|---|---|---|
+| Window, popup, popover | `NSWindow` and child panels (`frame.rs`, `popups.rs`) | `xdg_toplevel` and `xdg_popup` on sctk; `set_popover` and `set_popover_shape` style the popup | both |
+| Blur, glass, scroll edge | Core Animation layers (`blur.rs`) | The compositor: `set_backdrop`, `set_glass`, `set_scroll_edge` (version 10) | both; the client keeps its Skia path where Malaysia does not serve a case |
+| Traffic lights, title bar | The kit draws them ([ADR 0082](../decisions.md)); the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
+| Frame pacing | One `CADisplayLink` per window | The frame callback of the surface ([The frame](#the-frame)) | both |
+| Full screen (the green light) | `toggleFullScreen` for a titled window and the window's own frame for a `Plain` one; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../agents/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |
+| Clipboard | `macos/clipboard.rs` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection | both |
+| Drag and drop | No code in `platform/macos` | `wl_data_device`; only `text/uri-list` is accepted | Linux only |
+| Text input | Key events with `insertText`; marked text is not verified | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
+| Accessibility | None: no `NSAccessibility` and no `accesskit` in `platform/macos` | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | Linux only |
+| Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, and the app menu event of `infinity_window_manager_v1` | both |
+| Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
+| File dialogs | `NSOpenPanel` and `NSSavePanel` (`panels.rs`) | The `FileChooser` portal: no parent window, no filters (`portal.rs`) | both, Linux partial |
+| Notifications | `UserNotifications` | `org.freedesktop.Notifications` and the portal | both |
+| Secrets | Keychain (`security-framework`) | Secret Service | both |
+| Single instance | `macos/instance.rs` | `org.freedesktop.Application` | both |
+| Appearance | `NSWorkspace` accessibility notifications (`system.rs`) | `.domain` files watched with inotify, and `org.freedesktop.appearance` | both |
+
+What the [gap document](../research/swiftui-api-gap.md#what-an-app-author-still-needs)
+left out of the current round, by who would answer it:
+
+| Gap | Kit | macOS | Linux (Malaysia) |
+|---|---|---|---|
+| 2 Rich text, 3 `ZStack` and `Layout`, 6 `Transition`, 15 right-to-left | Yes: Freya and Torin, the same on both | none | none |
+| 4 Accessibility by SwiftUI name | The modifiers | `NSAccessibility` (none yet) | AT-SPI (exists) |
+| 7 Typed drag and drop | A `Transferable` type | `NSPasteboard` types | `wl_data_device` MIME types |
+| 11 `glassEffect` on any view | The modifier | A layer per view | `set_backdrop` on a sub-surface per view |
+| 12 Document apps | [ADR 0085](../decisions.md) leaves them out until an app asks | `NSDocument` | The portal and the app |
+| 13 Dialogs attached to their window | The call | `beginSheetModal` | `xdg-foreign`, not bound |
+
+How to keep it true:
+
+1. A new capability gets its row in the commit that adds it.
+2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 9 cannot send `set_backdrop` ([ADR 0091](../decisions.md)).
+3. A function that needs a new request goes into `infinity-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
+4. `cfg(target_os)` stays in `platform/` ([AGENTS.md](../../AGENTS.md)); the matrix names the file.
+
 ## Errors
 
 Each `RunError` variant and the runner step that raises it are in

@@ -81,6 +81,7 @@ pub struct SidebarControl {
     pub(crate) visible: State<bool>,
     pub(crate) auto_hidden: State<bool>,
     pub(crate) occupied: State<f32>,
+    pub(crate) content: State<f32>,
     pub(crate) settled: State<bool>,
     pub(crate) overlaid: State<bool>,
 }
@@ -88,6 +89,10 @@ pub struct SidebarControl {
 impl SidebarControl {
     pub fn occupied(&self) -> f32 {
         *self.occupied.read()
+    }
+
+    pub fn content(&self) -> f32 {
+        *self.content.read()
     }
 
     pub fn settled(&self) -> bool {

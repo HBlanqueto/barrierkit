@@ -45,7 +45,7 @@ pub fn with_animation<R>(animation: Animation, body: impl FnOnce() -> R) -> R {
     result
 }
 
-fn transaction_at(now: Instant) -> Option<Animation> {
+pub(crate) fn transaction_at(now: Instant) -> Option<Animation> {
     TRANSACTION
         .get()
         .filter(|(at, _)| now.saturating_duration_since(*at) <= TRANSACTION_WINDOW)

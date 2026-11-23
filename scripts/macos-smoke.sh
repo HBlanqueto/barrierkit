@@ -1,7 +1,8 @@
 #!/bin/sh
 # Builds every recipe of agents/recipes, opens each as an app bundle for a few seconds
 # and checks that a window appears and the process stays alive.
-# Usage: scripts/macos-smoke.sh [recipe...]   (SMOKE_SECONDS: how long each stays open, default 3)
+# Usage: scripts/macos-smoke.sh [recipe...]   (SMOKE_SECONDS: how long each stays open, default 3;
+# CAPTURE_DIR: a folder that receives a PNG of each recipe's window)
 set -eu
 
 [ "$(uname -s)" = Darwin ] || { echo "macos-smoke: macOS only" >&2; exit 2; }
@@ -26,6 +27,16 @@ for name in $names; do builds="$builds --example $name"; done
 # shellcheck disable=SC2086
 cargo build -p bk $builds
 examples=${CARGO_TARGET_DIR:-$root/target}/debug/examples
+
+window_id() {
+    osascript -l JavaScript -e "
+        ObjC.import('CoreGraphics');
+        var all = ObjC.deepUnwrap(ObjC.castRefToObject(
+            \$.CGWindowListCopyWindowInfo(\$.kCGWindowListOptionOnScreenOnly, 0)));
+        all.filter(function (w) {
+            return w.kCGWindowOwnerPID == $1 && w.kCGWindowLayer == 0;
+        })[0].kCGWindowNumber" 2>/dev/null
+}
 
 window_count() {
     osascript -l JavaScript -e "
@@ -83,6 +94,7 @@ smoke() {
         echo "lost its window"
         return
     fi
+    [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR" && screencapture -l "$(window_id "$pid")" -o "$CAPTURE_DIR/$1.png"; }
     kill "$pid"
     while kill -0 "$pid" 2>/dev/null; do sleep 0.1; done
 }

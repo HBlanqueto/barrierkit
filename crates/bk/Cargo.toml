@@ -172,6 +172,10 @@ name = "tasks_list"
 path = "../../agents/recipes/tasks_list.rs"
 
 [[example]]
+name = "full_screen"
+path = "../../agents/recipes/full_screen.rs"
+
+[[example]]
 name = "notes_sidebar"
 path = "../../agents/recipes/notes_sidebar.rs"
 
@@ -224,6 +228,14 @@ name = "swift_styles"
 path = "../../agents/recipes/swift_styles.rs"
 
 [[example]]
+name = "three_columns"
+path = "../../agents/recipes/three_columns.rs"
+
+[[example]]
+name = "toolbar_items"
+path = "../../agents/recipes/toolbar_items.rs"
+
+[[example]]
 name = "titlebar_over_gradient"
 path = "../../agents/recipes/titlebar_over_gradient.rs"
 
@@ -254,3 +266,11 @@ path = "../../agents/recipes/presentations.rs"
 [[example]]
 name = "glass_container"
 path = "../../agents/recipes/glass_container.rs"
+
+[[example]]
+name = "scroll_position"
+path = "../../agents/recipes/scroll_position.rs"
+
+[[example]]
+name = "shapes"
+path = "../../agents/recipes/shapes.rs"

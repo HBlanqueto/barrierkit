@@ -2,6 +2,7 @@ use ctdesign::{ControlSize, Rgba};
 use freya_core::prelude::*;
 use std::borrow::Cow;
 
+use crate::app::Shortcut;
 use crate::environment::{DisabledScope, EnvironmentScope};
 use crate::focus::{DefaultFocus, FocusState, Focused};
 use crate::layout::Frame;
@@ -142,6 +143,10 @@ pub trait EnvironmentModifiers: IntoElement + Sized {
 
     fn environment<T: Clone + PartialEq + 'static>(self, value: T) -> impl IntoElement {
         EnvironmentScope::new(value, self)
+    }
+
+    fn keyboard_shortcut(self, shortcut: Shortcut) -> impl IntoElement {
+        EnvironmentScope::new(Some(shortcut), self)
     }
 
     fn focused<T: Clone + PartialEq + 'static>(

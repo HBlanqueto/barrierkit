@@ -22,6 +22,9 @@ pub use crate::layout::{
 };
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
 pub use crate::platform::{RunError, WindowOptions, WindowStyle, run_window};
+pub use crate::shapes::{
+    Capsule, Circle, Ellipse, Path, Rectangle, RoundedRectangle, ShapeModifiers,
+};
 pub use crate::style::{Palette, text};
 pub use crate::styles::*;
 pub use crate::symbol::{
@@ -29,3 +32,4 @@ pub use crate::symbol::{
 };
 pub use crate::theme::color;
 pub use crate::titlebar::{Titlebar, WindowToolbarStyle};
+pub use crate::views::toolbar::{ToolbarItem, ToolbarItemPlacement, ToolbarSpacer};

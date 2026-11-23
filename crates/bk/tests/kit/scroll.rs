@@ -1,9 +1,9 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
 
 use bk::ProbeExt;
-use bk::controls::ScrollView;
+use bk::controls::{ScrollController, ScrollGeometry, ScrollPhase, ScrollPosition, ScrollView};
 use bk::prelude::*;
 use bk::views::table::Table;
 use freya_core::integration::{AppComponent, PlatformEvent, WheelEventName, WheelSource};
@@ -13,6 +13,7 @@ use torin::prelude::{Area, Size2D};
 const VIEWPORT: f32 = 300.0;
 const LIMIT_ANY: f32 = CONTENT - VIEWPORT;
 const CONTENT: f32 = 1600.0;
+const CONTENT_OF_ROWS: f32 = 1600.0;
 #[cfg(not(target_os = "macos"))]
 const LIMIT: f32 = CONTENT - VIEWPORT;
 
@@ -44,6 +45,59 @@ impl App for RefreshCase {
             .child(rect().probe("first").height(Size::px(40.0)))
             .child(rect().height(Size::px(CONTENT - 40.0)))
     }
+}
+
+#[derive(Clone, Default)]
+struct Handles {
+    controller: Rc<Cell<Option<ScrollController>>>,
+    position: Rc<Cell<Option<State<ScrollPosition>>>>,
+    geometry: Rc<Cell<Option<ScrollGeometry>>>,
+    phases: Rc<RefCell<Vec<(ScrollPhase, ScrollPhase)>>>,
+}
+
+struct PositionCase(Handles);
+
+impl App for PositionCase {
+    fn render(&self) -> impl IntoElement {
+        let controller = use_scroll_controller();
+        let position = use_state(ScrollPosition::default);
+        let handles = self.0.clone();
+        handles.controller.set(Some(controller));
+        handles.position.set(Some(position));
+        ScrollView::new()
+            .controller(controller)
+            .scroll_position(position)
+            .on_scroll_geometry_change(move |geometry| handles.geometry.set(Some(geometry)))
+            .on_scroll_phase_change({
+                let phases = self.0.phases.clone();
+                move |change| phases.borrow_mut().push(change)
+            })
+            .children((0..40).map(|row| {
+                let view = rect().height(Size::px(40.0));
+                if row == 20 {
+                    view.probe("target")
+                } else {
+                    view
+                }
+                .id(format!("row-{row}"))
+                .into_element()
+            }))
+    }
+}
+
+fn positioned() -> (TestingRunner, Handles) {
+    let handles = Handles::default();
+    let test = runner_of(AppComponent::new(PositionCase(handles.clone())));
+    (test, handles)
+}
+
+fn target_top(test: &TestingRunner) -> f32 {
+    test.find(|node, element| {
+        (element.accessibility().builder.author_id() == Some("target"))
+            .then(|| -> Area { node.layout().area })
+    })
+    .expect("target")
+    .min_y()
 }
 
 struct TableCase;
@@ -237,4 +291,101 @@ fn a_finger_pulled_past_the_start_stretches_the_content_and_it_returns() {
     test.release_touch((200.0, 200.0));
     let path = settle(&mut test, 1000);
     assert!(path.last().unwrap().abs() < 0.5);
+}
+
+#[test]
+fn scrolling_to_an_id_with_a_start_anchor_puts_its_view_on_the_top_edge() {
+    let (mut test, handles) = positioned();
+    test.run_in(|| {
+        handles.controller.get().unwrap().scroll_to(
+            ScrollPosition::id("row-20", Some(Alignment::Start)),
+            Animation::None,
+        )
+    });
+    test.sync_and_update();
+    assert_eq!(target_top(&test), 0.0);
+    assert_eq!(
+        handles.controller.get().unwrap().content_offset(),
+        (0.0, 800.0)
+    );
+}
+
+#[test]
+fn a_position_the_app_sets_in_its_state_scrolls_the_view_and_stays_unchanged() {
+    let (mut test, handles) = positioned();
+    let request = ScrollPosition::id("row-20", Some(Alignment::Start));
+    test.run_in(|| handles.position.get().unwrap().set(request.clone()));
+    test.poll(Duration::from_millis(8), Duration::from_millis(100));
+    assert_eq!(target_top(&test), 0.0);
+    assert_eq!(*handles.position.get().unwrap().peek(), request);
+    test.run_in(|| {
+        handles
+            .position
+            .get()
+            .unwrap()
+            .set(ScrollPosition::edge(Edge::Bottom))
+    });
+    test.poll(Duration::from_millis(8), Duration::from_millis(100));
+    assert_eq!(
+        handles.controller.get().unwrap().content_offset().1,
+        LIMIT_ANY
+    );
+}
+
+#[test]
+fn a_scroll_by_the_user_is_written_back_to_the_state_as_a_point() {
+    let (mut test, handles) = positioned();
+    wheel(&mut test, WheelSource::Line, TouchPhase::Moved, -100.0);
+    test.poll(Duration::from_millis(8), Duration::from_millis(100));
+    let position = handles.position.get().unwrap().peek().clone();
+    assert!(position.is_positioned_by_user());
+    assert_eq!(
+        position.point(),
+        Some(handles.controller.get().unwrap().content_offset())
+    );
+    assert!(position.point().unwrap().1 > 0.0);
+}
+
+#[test]
+fn the_geometry_callback_reports_the_offset_and_the_sizes() {
+    let (mut test, handles) = positioned();
+    test.run_in(|| {
+        handles
+            .controller
+            .get()
+            .unwrap()
+            .scroll_to(ScrollPosition::at(0.0, 120.0), Animation::None)
+    });
+    test.poll(Duration::from_millis(8), Duration::from_millis(100));
+    let geometry = handles.geometry.get().unwrap();
+    assert_eq!(geometry.content_offset, (0.0, 120.0));
+    assert_eq!(geometry.content_size.1, CONTENT_OF_ROWS);
+    assert_eq!(geometry.container_size.1, VIEWPORT);
+}
+
+#[test]
+fn an_animated_scroll_is_animating_until_it_lands_and_the_phase_callback_says_so() {
+    let (mut test, handles) = positioned();
+    let animation = Animation::Ease { duration_ms: 200 };
+    test.run_in(|| {
+        handles
+            .controller
+            .get()
+            .unwrap()
+            .scroll_to(ScrollPosition::at(0.0, 400.0), animation)
+    });
+    test.poll(Duration::from_millis(8), Duration::from_millis(60));
+    assert_eq!(
+        handles.controller.get().unwrap().phase(),
+        ScrollPhase::Animating
+    );
+    test.poll(Duration::from_millis(8), Duration::from_millis(400));
+    assert_eq!(handles.controller.get().unwrap().content_offset().1, 400.0);
+    assert_eq!(
+        *handles.phases.borrow(),
+        [
+            (ScrollPhase::Idle, ScrollPhase::Animating),
+            (ScrollPhase::Animating, ScrollPhase::Idle)
+        ]
+    );
 }

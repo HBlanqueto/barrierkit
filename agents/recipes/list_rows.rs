@@ -1,7 +1,7 @@
 use bk::adornments::{Avatar, Badge};
 use bk::prelude::*;
 use bk::views::list::List;
-use bk::views::table::Table;
+use bk::views::table::{ListRowModifiers, Table, Visibility};
 use ctdesign::SETTINGS;
 
 const MAIL: [(&str, &str, &str); 3] = [
@@ -37,6 +37,15 @@ fn main() -> Result<(), RunError> {
                             )
                             .child(Badge::new(unread))
                     })
+                    .list_row_background(|row| match MAIL[row].2 {
+                        "7" => ShapeStyle::Role(Role::SystemFill),
+                        _ => ShapeStyle::Clear,
+                    })
+                    .list_row_separator(|row| match row {
+                        0 => Visibility::Hidden,
+                        _ => Visibility::Automatic,
+                    })
+                    .list_row_insets(|_| SPACE_4)
                     .selected(selected.read().clone())
                     .on_select(move |rows: Vec<usize>| selected.set(rows))
                     .style(move |style| TableStyle {

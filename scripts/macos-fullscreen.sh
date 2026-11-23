@@ -1,0 +1,128 @@
+#!/bin/sh
+# Puts the kit's windows and the same windows of a SwiftUI app into full screen and out of it,
+# and fails when the kit does not do what SwiftUI does.
+# Usage: scripts/macos-fullscreen.sh   (CAPTURE_DIR: a folder that receives a PNG of each window in full screen)
+# Needs an unlocked session, the screen lock and the Accessibility permission for System Events and the pointer.
+set -eu
+
+[ "$(uname -s)" = Darwin ] || { echo "macos-fullscreen: macOS only" >&2; exit 2; }
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+# shellcheck source=screen-lock.sh
+. "$root/scripts/screen-lock.sh"
+work=$(mktemp -d)
+cleanup() { pkill -f "$work/" 2>/dev/null || true; release_screen_lock; rm -rf "$work"; }
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+take_screen_lock
+
+cd "$root"
+cargo build -p bk --example full_screen
+kit=${CARGO_TARGET_DIR:-$root/target}/debug/examples/full_screen
+swiftc -parse-as-library -O scripts/fullscreen-reference.swift -o "$work/swift-title-bar"
+swiftc -parse-as-library -O -DHIDDEN scripts/fullscreen-reference.swift -o "$work/swift-hidden-title-bar"
+swiftc -parse-as-library -O -DPLAIN scripts/fullscreen-reference.swift -o "$work/swift-plain"
+swiftc -O scripts/click.swift -o "$work/click"
+
+screen=$(osascript -e 'tell application "Finder" to get bounds of window of desktop' | awk -F', ' '{print $3 "x" $4}')
+
+# Opens <binary> <arg> as <name>.app and prints its pid once its window shows.
+launch() {
+    app=$work/$1.app
+    mkdir -p "$app/Contents/MacOS"
+    cp "$2" "$app/Contents/MacOS/$1"
+    cat > "$app/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>$1</string>
+<key>CFBundleIdentifier</key><string>local.barrierkit.fullscreen.$1</string>
+<key>CFBundleName</key><string>$1</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>NSHighResolutionCapable</key><true/>
+</dict></plist>
+PLIST
+    codesign --force --sign - "$app" >/dev/null 2>&1
+    if [ -n "${3:-}" ]; then
+        open -n --stderr "$work/$1.log" "$app" --args "$3"
+    else
+        open -n --stderr "$work/$1.log" "$app"
+    fi
+    pid=
+    for _ in $(seq 40); do
+        pid=$(pgrep -n -f "$app/Contents/MacOS/$1" || true)
+        [ -n "$pid" ] && [ -n "$(ax "$pid" 'size of window 1')" ] && break
+        sleep 0.25
+    done
+    echo "$pid"
+}
+
+# Runs an AppleScript expression against the first window of a process; prints "WxH" for a size.
+ax() {
+    osascript -e "tell application \"System Events\" to tell (first process whose unix id is $1) to $2" 2>/dev/null |
+        awk -F', ' 'NF == 2 { print $1 "x" $2; next } { print }' || true
+}
+
+full_screen() {
+    osascript -e "tell application \"System Events\" to tell (first process whose unix id is $1) to set value of attribute \"AXFullScreen\" of window 1 to $2" >/dev/null 2>&1 || true
+}
+
+# The kit's own green light: 72 and 26 from the window's corner, as the Titlebar draws it.
+press_kit_green() {
+    set -- $(ax "$1" 'position of window 1' | tr 'x' ' ')
+    "$work/click" "$(($1 + 72))" "$(($2 + 26))"
+}
+
+# Prints "<size in window> <size in full screen> <size back> told|silent" for one window; told: the app learned it was in full screen.
+exercise() {
+    name=$1 binary=$2 style=$3 kind=$4
+    pid=$(launch "$name" "$binary" "$5")
+    [ -n "$pid" ] || { echo "no-window - - -"; return; }
+    osascript -e "tell application \"System Events\" to set frontmost of (first process whose unix id is $pid) to true" >/dev/null 2>&1
+    sleep 0.5
+    before=$(ax "$pid" 'size of window 1')
+    if [ "$kind" = kit-plain ]; then press_kit_green "$pid"; else full_screen "$pid" true; fi
+    sleep 3
+    during=$(ax "$pid" 'size of window 1')
+    [ -z "${CAPTURE_DIR:-}" ] || { mkdir -p "$CAPTURE_DIR" && screencapture -x "$CAPTURE_DIR/$name.png"; }
+    if [ "$kind" = kit-plain ]; then
+        # The "Toggle Full Screen" button, centred under the 52 high bar.
+        h=${during#*x}
+        w=${during%x*}
+        "$work/click" "$((w / 2))" "$(((h + 52) / 2 + 14))"
+    else
+        full_screen "$pid" false
+    fi
+    sleep 3
+    after=$(ax "$pid" 'size of window 1')
+    last=$(grep -q 'full-screen: true' "$work/$name.log" 2>/dev/null && echo told || echo silent)
+    kill "$pid" 2>/dev/null || true
+    echo "${before:--} ${during:--} ${after:--} ${last:--}"
+}
+
+failed=0
+for style in title-bar hidden-title-bar plain; do
+    case $style in plain) kind=kit-plain ;; *) kind=kit ;; esac
+    kit_result=$(exercise "kit-$style" "$kit" "$style" "$kind" "$style")
+    swift_result=$(exercise "swift-$style" "$work/swift-$style" "$style" swift "")
+    echo "$style"
+    echo "  kit    (window, full screen, back, told): $kit_result"
+    echo "  swiftui (window, full screen, back, told): $swift_result"
+    set -- $kit_result
+    kit_enters=$([ "$2" = "$screen" ] && echo yes || echo no)
+    kit_back=$([ "$3" = "$1" ] && echo yes || echo no)
+    kit_told=$([ "$4" = told ] && echo yes || echo no)
+    set -- $swift_result
+    swift_enters=$([ "$2" = "$screen" ] && echo yes || echo no)
+    swift_back=$([ "$3" = "$1" ] && echo yes || echo no)
+    # Where SwiftUI cannot enter full screen (a plain window), the kit may still do it.
+    if { [ "$kit_enters" = "$swift_enters" ] || [ "$kit_enters" = yes ]; } && [ "$kit_back" = yes ] && { [ "$kit_enters" = no ] || [ "$kit_told" = yes ]; }; then
+        echo "  PASS (SwiftUI enters: $swift_enters, kit enters: $kit_enters)"
+    else
+        echo "  FAIL: SwiftUI enters $swift_enters and returns $swift_back; kit enters $kit_enters, returns $kit_back, tells the app $kit_told"
+        failed=$((failed + 1))
+    fi
+done
+
+echo "$failed failed"
+[ "$failed" -eq 0 ]

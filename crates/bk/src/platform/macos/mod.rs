@@ -678,6 +678,25 @@ impl Runtime {
         }
     }
 
+    // The green light of a titled window calls `toggleFullScreen` inside AppKit, so the kit learns of it here.
+    pub(super) fn fullscreen_changed(&mut self, id: u64) {
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        let Some(controls) = &window.controls else {
+            return;
+        };
+        let fullscreen = window
+            .window
+            .styleMask()
+            .contains(NSWindowStyleMask::FullScreen);
+        if controls.status.peek().fullscreen != fullscreen {
+            let mut status = controls.status;
+            status.write().fullscreen = fullscreen;
+            window.needs_redraw = true;
+        }
+    }
+
     pub(super) fn key_changed(&mut self, id: u64, key: bool) {
         if key {
             menu::show(id);

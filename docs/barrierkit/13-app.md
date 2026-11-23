@@ -103,6 +103,7 @@ and the status item menu.
 |---|---|
 | `Shortcut::new(modifiers, key)` | Any `Modifiers` (`CONTROL`, `ALT`, `SHIFT`, `META`) and a key |
 | `Shortcut::ctrl(key)` | `Shortcut::new(Modifiers::CONTROL, key)` |
+| `Shortcut::DEFAULT_ACTION`, `CANCEL_ACTION` | Enter and Escape with no modifier, SwiftUI's `.defaultAction` and `.cancelAction` |
 | `.text()` | The menu text, modifiers in the order Ctrl, Alt, Shift, Super: `Ctrl+Shift+Z` |
 | `.matches(modifiers, key)` | Whether a key press is this shortcut; letters match in both cases |
 | `ShortcutKey::Char(c)` | A character key: `'r'`, `','` |

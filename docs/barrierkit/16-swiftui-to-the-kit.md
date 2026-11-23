@@ -33,7 +33,7 @@ know the kit's shape.
 | `if` and `else` in a view builder | a Rust `if`, `.maybe_child(opt)`, `.into_element()` | [`if_else.rs`](../../agents/recipes/if_else.rs) |
 | `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../agents/recipes/callback.rs) |
 | `.commands`, `.keyboardShortcut` on a menu item | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
-| `.keyboardShortcut` on a `Button` | `Button::keyboard_shortcut(Shortcut)` | [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs) |
+| `.keyboardShortcut` on a button or any view, `Button(role:)` | `Button::keyboard_shortcut(Shortcut)`, `.keyboard_shortcut(Shortcut)` of `EnvironmentModifiers`, `Button::role(ButtonRole)` | [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs) |
 | `WindowGroup`, `Window`, `Settings`, `@Environment(\.openWindow)`, `\.dismissWindow` | `Application::scene(..)`, `use_open_window()`, `use_dismiss_window()` | [`scenes.rs`](../../agents/recipes/scenes.rs) |
 | `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `.frame(width:height:alignment:)`, `.frame(maxWidth: .infinity)` | `.frame()`, then `.width(..)`, `.height(..)`, `.alignment(..)`; `.width(Size::fill())` for `maxWidth: .infinity` in a column | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
@@ -161,7 +161,7 @@ receives every id: compare it with the action's `.id`.
 
 ✓ [`actions.rs`](../../agents/recipes/actions.rs).
 
-A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)` calls `on_press` when the key is pressed in the window, while the button is enabled. A key that a menu item of the window carries goes to the menu and never reaches the button, and a shortcut without a modifier also fires while a text field has the focus.
+A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)` calls `on_press` when the key is pressed in the window, while the button is enabled. `.keyboard_shortcut(Shortcut)` on any view gives that shortcut to every `Button` inside it that has none of its own, as SwiftUI's environment does; `Shortcut::DEFAULT_ACTION` and `CANCEL_ACTION` are Enter and Escape. `Button::role(ButtonRole::Destructive)` draws the destructive look. A key that a menu item of the window carries goes to the menu and never reaches the button, and a shortcut without a modifier also fires while a text field has the focus.
 
 ✓ [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs).
 

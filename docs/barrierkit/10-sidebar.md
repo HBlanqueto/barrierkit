@@ -70,6 +70,13 @@ page follows the selected item.
        .on_layout(move |layout: SidebarLayout| saved.set(Some(layout)))
    ```
 
+7. Optional: put a list between the sidebar and the detail
+   ([Content column](#content-column)):
+
+   ```rust
+   SplitView::new(sidebar, detail).content(notes_list)
+   ```
+
 The names come from `bk::sidebar`, `bk::views::split`,
 `bk::symbol::Symbol` and `ctdesign::ACCENT_SWATCHES`.
 
@@ -224,13 +231,15 @@ if let Some(control) = sidebar_control() {
 
 ### `SplitView`
 
-The container: the sidebar on the left, the detail in the rest and an optional
-inspector on the right. It paints the window background, so the app does not.
-It is `NavigationSplitView` with a sidebar and a detail column.
+The container: the sidebar on the left, an optional content column, the detail
+in the rest and an optional inspector on the right. It paints the window
+background, so the app does not. It is `NavigationSplitView` with a sidebar, an
+optional content column and a detail column.
 
 | Method | Default | Effect |
 |---|---|---|
 | `SplitView::new(sidebar, detail)` | — | Both panes |
+| `.content(view)` | none | A column between the sidebar and the detail: see [Content column](#content-column) |
 | `.sidebar_width(f32)` | `SIDEBAR.width` (220) | Width on the first render, clamped to the range |
 | `.sidebar_visible(bool)` | `true` | Visibility on the first render |
 | `.sidebar_range(min, max)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180, 320) | Width limits. A new range clamps the current width |
@@ -304,6 +313,25 @@ than `SPLIT_VIEW.collapse_below` (760 px):
 `Serialize` and `Deserialize`, so it can be saved as is. `SplitView` reports it
 when the width or the visibility changes, never during a drag. A sidebar that
 hid by itself in a narrow window counts as visible.
+
+### Content column
+
+`.content(view)` is the middle column of
+`NavigationSplitView(sidebar:content:detail:)`. The recipe is
+[`three_columns.rs`](../../agents/recipes/three_columns.rs).
+
+- It starts `SIDEBAR.width` wide and has the sidebar's grip, keys and limits
+  (`.sidebar_range`, `.resizable`): there is no token for this column, so it
+  reuses the sidebar's. A 1 px separator, the inspector's, divides it from the
+  detail.
+- It does not hide: the sidebar toggle and a narrow window hide the sidebar
+  only, as SwiftUI's `doubleColumn` does. Its width is not reported by
+  `on_layout`.
+- The `Titlebar` belongs to the detail. `SidebarControl::occupied` stays the
+  sidebar's width and `SidebarControl::content` is this column's, so the bar
+  keeps the toggle at the sidebar's edge and the traffic lights over the
+  columns when the sidebar hides. The content column has no bar of its own:
+  leave `sidebar_bar_height()` free at its top.
 
 ### Inspector
 

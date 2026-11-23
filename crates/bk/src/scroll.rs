@@ -23,6 +23,11 @@ use crate::styles::{
 };
 use crate::theme::color;
 
+mod position;
+
+pub use position::{IdentityModifiers, ScrollGeometry, ScrollPhase, ScrollPosition};
+use position::{Targets, use_scroll_events, use_scroll_position};
+
 // Freya paints by tree depth; the thumb must sit above the scrolled content, like Freya's own bar.
 pub(crate) const THUMB_LAYER: i16 = 999;
 
@@ -39,6 +44,9 @@ pub struct ScrollView {
     edge_effect: bool,
     refresh: Option<Refresh>,
     controller: Option<ScrollController>,
+    position: Option<State<ScrollPosition>>,
+    on_geometry_change: Option<Callback<ScrollGeometry, ()>>,
+    on_phase_change: Option<Callback<(ScrollPhase, ScrollPhase), ()>>,
     style: Theme,
     key: DiffKey,
     overrides: Overrides,
@@ -49,6 +57,11 @@ pub struct ScrollController {
     inner: Inner,
     viewport: State<(f32, f32)>,
     content: State<(f32, f32)>,
+    phase: State<ScrollPhase>,
+    over: State<f32>,
+    motion: State<Option<TaskHandle>>,
+    animation: State<Option<TaskHandle>>,
+    targets: State<Targets>,
 }
 
 pub fn use_scroll_controller() -> ScrollController {
@@ -59,6 +72,11 @@ pub fn use_scroll_controller() -> ScrollController {
         inner,
         viewport,
         content,
+        phase: use_state(ScrollPhase::default),
+        over: use_state(|| 0.0),
+        motion: use_state(|| None),
+        animation: use_state(|| None),
+        targets: use_state(Targets::default),
     }
 }
 
@@ -142,8 +160,8 @@ type Refresh = (bool, Callback<(), ()>);
 
 pub(crate) fn use_elastic(controller: ScrollController, refresh: Option<Refresh>) -> Elastic {
     let elastic = Elastic {
-        over: use_state(|| 0.0),
-        glide: use_state(|| None),
+        over: controller.over,
+        glide: controller.motion,
         reduced_motion: crate::animation::use_reduced_motion(),
         pose: use_hook(|| Rc::new(Cell::new((0.0, 0.0)))),
         tracker: use_hook(|| Rc::new(RefCell::new(VelocityTracker::default()))),
@@ -255,6 +273,7 @@ impl Elastic {
                 let delta = -(travel - last.get());
                 last.set(travel);
                 if *changed.reduced_motion.peek() {
+                    changed_controller.set_phase(ScrollPhase::Interacting);
                     let (rest, _) = changed.pose.get();
                     let rest = (rest + delta).clamp(0.0, limit);
                     changed.pose.set((rest, 0.0));
@@ -272,6 +291,7 @@ impl Elastic {
                 });
                 ended.touching.set(false);
                 if *ended.reduced_motion.peek() {
+                    controller.set_phase(ScrollPhase::Idle);
                     return;
                 }
                 ended.release_at(controller, horizontal, limit, speed);
@@ -316,6 +336,8 @@ impl Elastic {
 
     fn grab(&self, controller: ScrollController, horizontal: bool, viewport: f32) {
         self.stop();
+        controller.stop_animation();
+        controller.set_phase(ScrollPhase::Tracking);
         self.tracker.borrow_mut().clear();
         self.dragging.set(true);
         self.fired.set(false);
@@ -339,6 +361,7 @@ impl Elastic {
         (viewport, limit): (f32, f32),
         delta: f32,
     ) {
+        controller.set_phase(ScrollPhase::Interacting);
         self.tracker.borrow_mut().push(self.now(), delta);
         let (rest, raw) = self.pose.get();
         let position = rest + raw + delta;
@@ -412,8 +435,10 @@ impl Elastic {
         };
         if glide.at(0.0).done {
             finish(glide.at(0.0).rest + low, 0.0);
+            controller.set_phase(ScrollPhase::Idle);
             return;
         }
+        controller.set_phase(ScrollPhase::Decelerating);
         let (ticker, platform, clock) = (
             RenderingTicker::get(),
             Platform::get().current_window(),
@@ -437,6 +462,7 @@ impl Elastic {
                 }
                 platform.send(UserEvent::RequestRedraw);
             }
+            controller.set_phase(ScrollPhase::Idle);
             task.write().take();
         });
         task.write().replace(handle);
@@ -471,6 +497,9 @@ impl ScrollView {
             edge_effect: false,
             refresh: None,
             controller: None,
+            position: None,
+            on_geometry_change: None,
+            on_phase_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
             overrides: Overrides::default(),
@@ -510,6 +539,27 @@ impl ScrollView {
 
     pub fn controller(mut self, controller: ScrollController) -> Self {
         self.controller = Some(controller);
+        self
+    }
+
+    pub fn scroll_position(mut self, position: State<ScrollPosition>) -> Self {
+        self.position = Some(position);
+        self
+    }
+
+    pub fn on_scroll_geometry_change(
+        mut self,
+        action: impl Into<Callback<ScrollGeometry, ()>>,
+    ) -> Self {
+        self.on_geometry_change = Some(action.into());
+        self
+    }
+
+    pub fn on_scroll_phase_change(
+        mut self,
+        action: impl Into<Callback<(ScrollPhase, ScrollPhase), ()>>,
+    ) -> Self {
+        self.on_phase_change = Some(action.into());
         self
     }
 
@@ -751,6 +801,7 @@ impl Component for ScrollView {
         let style: ScrollViewStyle = resolve(&self.style);
         let own = use_scroll_controller();
         let controller = self.controller.unwrap_or(own);
+        provide_context(controller);
         let horizontal = self.direction == Direction::Horizontal;
         let (mut viewport, mut content) = (controller.viewport, controller.content);
         let (scrolled_x, scrolled_y): (i32, i32) = controller.into();
@@ -759,6 +810,12 @@ impl Component for ScrollView {
         let size = |area: Area| (area.width(), area.height());
         let bars = use_scroll_bar(controller, horizontal, self.scroll_bar, &style);
         let elastic = use_elastic(controller, self.refresh.clone());
+        use_scroll_position(controller, self.position);
+        use_scroll_events(
+            controller,
+            self.on_geometry_change.clone(),
+            self.on_phase_change.clone(),
+        );
         let reserved = bars.reserved;
         let root = rect()
             .width(self.width.clone())
@@ -789,7 +846,8 @@ impl Component for ScrollView {
                                     .on_wheel(elastic.wheel(controller, horizontal))
                                     .gesture(elastic.pan(controller, horizontal))
                                     .on_sized(move |event: Event<SizedEventData>| {
-                                        content.set_if_modified(size(event.area))
+                                        content.set_if_modified(size(event.area));
+                                        controller.set_origin(event.area);
                                     })
                                     .children(self.children.clone()),
                             ),

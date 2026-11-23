@@ -3,11 +3,11 @@ use std::rc::Rc;
 
 use bk::controls::Switch;
 use bk::elements::Text;
-use bk::styles::TableStyle;
+use bk::styles::{ShapeStyle, TableStyle};
 use bk::symbol::Symbol;
 use bk::theme;
 use bk::views::list::List;
-use bk::views::table::Table;
+use bk::views::table::{ListRowModifiers, Table, Visibility};
 use ctappearance::{AppearanceConfig, ColorScheme, resolve};
 use ctdesign::SANS_FAMILIES;
 use freya_components::theming::hooks::use_init_theme;
@@ -248,4 +248,59 @@ fn a_view_row_shows_the_value_its_parent_holds() {
     test.click_cursor((20.0, 10.0));
     settle(&mut test);
     assert!(shows(&test, "parent 1") && shows(&test, "row 1"));
+}
+
+#[test]
+fn a_hidden_row_separator_draws_like_a_style_without_one() {
+    let drawn = || {
+        List::new("Files", names())
+            .style(|style| TableStyle {
+                row_separator: None,
+                ..style
+            })
+            .into_element()
+    };
+    let view = || {
+        List::new("Files", names())
+            .list_row_separator(|_| Visibility::Hidden)
+            .into_element()
+    };
+    same_pixels(drawn, view);
+}
+
+#[test]
+fn a_visible_row_separator_draws_a_line_a_table_does_not() {
+    let plain = || Table::new("Files", ["Name"]).rows(rows()).into_element();
+    let visible = || {
+        Table::new("Files", ["Name"])
+            .rows(rows())
+            .list_row_separator(|_| Visibility::Visible)
+            .into_element()
+    };
+    assert_ne!(
+        differing(&pixels(false, false, plain), &pixels(false, false, visible)),
+        0
+    );
+}
+
+#[test]
+fn the_background_of_a_row_in_a_sectioned_list_is_asked_with_the_index_across_the_sections() {
+    let asked = Rc::new(RefCell::new(Vec::new()));
+    let seen = asked.clone();
+    let list = move || {
+        let seen = seen.clone();
+        List::new("Files", Vec::new())
+            .section("Favorites", names()[..2].to_vec())
+            .section("Locations", names()[2..].to_vec())
+            .list_row_background(move |row| {
+                seen.borrow_mut().push(row);
+                ShapeStyle::Clear
+            })
+            .into_element()
+    };
+    pixels(false, false, list);
+    let mut asked = asked.borrow().clone();
+    asked.sort();
+    asked.dedup();
+    assert_eq!(asked, vec![0, 1, 2, 3]);
 }

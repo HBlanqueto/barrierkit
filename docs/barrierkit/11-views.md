@@ -371,6 +371,16 @@ there are no `listRow*` modifiers because no value backs them.
 `SortOrder { column: usize, ascending: bool }`: the column index and the
 direction.
 
+### List row modifiers
+
+`List` and `Table` take `ListRowModifiers`, like SwiftUI's `listRow*`. Each method takes a closure of the row index, which in a sectioned `List` counts across the sections. The program is [`list_rows.rs`](../../agents/recipes/list_rows.rs).
+
+| Method | Effect |
+|---|---|
+| `.list_row_insets(\|row\| f32)` | Horizontal padding of the cells of that row instead of `TableStyle::padding_x` |
+| `.list_row_separator(\|row\| Visibility)` | `Visible` or `Hidden` forces the line under the row; `Automatic` keeps the style's |
+| `.list_row_background(\|row\| ShapeStyle)` | Fills the row; a selected row keeps its selection color |
+
 ### Table helpers
 
 | Function | Returns |

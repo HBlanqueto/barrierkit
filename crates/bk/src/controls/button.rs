@@ -3,6 +3,14 @@ use std::borrow::Cow;
 
 pub use ctdesign::ControlSize;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonRole {
+    Destructive,
+    Cancel,
+    Confirm,
+    Close,
+}
+
 #[derive(PartialEq)]
 pub struct Button {
     label: Cow<'static, str>,
@@ -13,6 +21,7 @@ pub struct Button {
     width: Size,
     on_press: Option<Callback<(), ()>>,
     shortcut: Option<Shortcut>,
+    role: Option<ButtonRole>,
     pub(crate) style: Theme,
     key: DiffKey,
     overrides: Overrides,
@@ -29,6 +38,7 @@ impl Button {
             width: Size::auto(),
             on_press: None,
             shortcut: None,
+            role: None,
             style: Theme::tengen(),
             key: DiffKey::None,
             overrides: Overrides::default(),
@@ -81,6 +91,11 @@ impl Button {
         self
     }
 
+    pub fn role(mut self, role: ButtonRole) -> Self {
+        self.role = Some(role);
+        self
+    }
+
     pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
         self.key = key.into();
         self
@@ -101,6 +116,10 @@ impl Component for Button {
         let disabled = use_disabled(self.disabled);
         let enabled = !disabled;
         let style: ButtonStyle = resolve(&self.style);
+        let style = match self.role {
+            Some(ButtonRole::Destructive) => style.destructive(),
+            _ => style,
+        };
         let style = if self.on == Some(true) {
             style.toggled()
         } else {
@@ -113,6 +132,9 @@ impl Component for Button {
             if pressed { style.pressed_scale } else { 1.0 },
             style.animation,
         );
+        let shortcut = self
+            .shortcut
+            .or(crate::environment::use_environment::<Option<Shortcut>>());
         let on_press = self.on_press.clone();
         let shortcut_press = on_press.clone();
         let radius =
@@ -160,7 +182,7 @@ impl Component for Button {
                     }
                 })
             })
-            .map(self.shortcut.filter(|_| enabled), |el, shortcut| {
+            .map(shortcut.filter(|_| enabled), |el, shortcut| {
                 el.on_global_key_down(move |event: Event<KeyboardEventData>| {
                     if shortcut.matches(event.modifiers, &event.key)
                         && let Some(on_press) = &shortcut_press

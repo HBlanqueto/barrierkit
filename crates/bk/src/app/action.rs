@@ -24,6 +24,11 @@ impl Shortcut {
         Self { modifiers, key }
     }
 
+    pub const DEFAULT_ACTION: Self =
+        Self::new(Modifiers::empty(), ShortcutKey::Named(NamedKey::Enter));
+    pub const CANCEL_ACTION: Self =
+        Self::new(Modifiers::empty(), ShortcutKey::Named(NamedKey::Escape));
+
     pub const fn ctrl(key: ShortcutKey) -> Self {
         Self::new(Modifiers::CONTROL, key)
     }

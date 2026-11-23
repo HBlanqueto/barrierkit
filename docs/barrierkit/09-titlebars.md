@@ -54,6 +54,7 @@ bar: traffic lights, a left zone, the title and a right zone.
 | `Titlebar::new()` | — | A bar that reads the title and state from `WindowControls` |
 | `.title(text)` | the window title | Replaces the title shown |
 | `.left(view)`, `.right(view)` | empty; with a `SplitView` above, `left` is the `SidebarToggle` | Items at each side |
+| `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
 | `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high, the title at the start) or the compact one (centered title), as SwiftUI's `windowToolbarStyle` |
@@ -80,6 +81,47 @@ Behavior:
 - With server-side decoration (`DecorationResponse::Server`) the bar takes no
   space: the compositor draws one. On macOS, `WindowStyle::Plain` asks for the
   bar ([8](08-windows.md#window-style)).
+
+### Toolbar items
+
+`.toolbar(content)` is SwiftUI's `.toolbar { }`: it takes a
+`ToolbarItem::new(placement, view)` or a `ToolbarSpacer` (`bk::views::toolbar`,
+in the prelude) and lays it into the zones above. Call it again for more items;
+they keep the order of the calls.
+
+```rust
+Titlebar::new()
+    .toolbar(ToolbarItem::new(ToolbarItemPlacement::Navigation, back_and_forward))
+    .toolbar(ToolbarItem::new(ToolbarItemPlacement::Principal, Text::new(page)))
+    .toolbar(ToolbarSpacer::flexible())
+    .toolbar(ToolbarItem::new(ToolbarItemPlacement::PrimaryAction, new_button))
+```
+
+The recipe is [`toolbar_items.rs`](../../agents/recipes/toolbar_items.rs).
+
+| `ToolbarItemPlacement` | Where it goes |
+|---|---|
+| `Navigation` | The left zone, after the sidebar toggle |
+| `Principal`, `Status` | The title's place: the item replaces the title text and is centered |
+| `PrimaryAction` | The right zone |
+| `Automatic` | The right zone; with a flexible spacer later in the list, the left zone |
+
+- `ToolbarSpacer::flexible()` ends the left side: the `Automatic` items before
+  it go next to the `Navigation` items and the ones after it go to the right
+  zone. `ToolbarSpacer::fixed()` adds one gap (`TitlebarStyle::sidebar_padding_x`)
+  to the zone where it falls.
+- Items in a zone are `sidebar_padding_x` apart. A `.left` or `.right` view
+  comes first in its zone; a `.left` view still replaces the sidebar toggle.
+- A bar with toolbar items is the unified one.
+- There is no overflow: the bar does not measure its items, so items that do
+  not fit are clipped, not moved to a menu.
+- macOS 27.2 (probe `toolbarplace`, 2026-11-22): `.navigation` items follow the
+  sidebar toggle before the inline title, `.principal` and `.status` items sit
+  in the center, and `.primaryAction` and `.automatic` items trail in the order
+  declared. Apple's page for `primaryAction` says "leading edge" for macOS; the
+  probe disagrees and the kit follows the probe. The same probe showed no effect
+  of `ToolbarSpacer` in a plain `.toolbar { }`, so the spacer follows Apple's
+  description of it (a gap, or a push), as [ADR 0108](../decisions.md) says.
 
 ### Style
 

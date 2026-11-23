@@ -181,6 +181,7 @@ give one.
 | `.toggled(bool)` | not a toggle | Makes it a toggle; `true` takes the `bordered_prominent` look and reports `toggled` |
 | `.disabled(bool)` | `false` | Dims it, no `on_press` |
 | `.keyboard_shortcut(Shortcut)` | none | Calls `on_press` on that key while the button is enabled; a menu item with the same key wins |
+| `.role(ButtonRole)` | none | `Destructive` draws `ButtonStyle::destructive`; `Cancel`, `Confirm` and `Close` change nothing yet |
 | `.on_press(\|_\| ..)` | — | Called on click, Space or Enter |
 
 The closure runs inside the button, on every render, so state it reads keeps the label current.
@@ -917,6 +918,9 @@ Badge::new("3").style(|s| BadgeStyle {
 | `.edge_effect(bool)` | `false` | Content fades under an edge over 24 (`SCROLL_BAR.edge_height`), like `scrollEdgeEffectStyle(.soft)`: the top edge while scrolled; sideways, each edge with more content past it |
 | `.controller(ScrollController)` | its own | Scroll from code |
 | `.refreshable(refreshing, action)` | off | A touchpad pull of the content past its start by 80 calls `action` once; while `refreshing` is true the content rests 60 down with a spinner above it, and it returns when it turns false |
+| `.scroll_position(State<ScrollPosition>)` | off | Scrolls to what the app sets and writes the user's scroll back, see [Scroll position](#scroll-position) |
+| `.on_scroll_geometry_change(action)` | off | Calls `action(ScrollGeometry)` when the offset or a size changes |
+| `.on_scroll_phase_change(action)` | off | Calls `action((old, new))` with a `ScrollPhase` when the phase changes |
 
 The bar is a 6 thumb that appears while scrolling and fades 800 ms later. With the
 appearance setting `scroll_bars = "always"` ([4](04-appearance-and-tokens.md)) it stays,
@@ -943,12 +947,35 @@ measures are in [UIKit animations](../research/uikit-animations.md#6-scroll) and
 | `reveal_y(top, bottom)` | Scrolls the least needed to show that band |
 | `scroll_to_x(x)` | Jumps to that horizontal offset |
 | `scroll_by_wheel(&WheelEventData)` | Scrolls by a wheel event caught on a layer above the view |
+| `scroll_to(ScrollPosition, Animation)` | Goes to a position; `Animation::None` jumps |
+| `content_offset()`, `geometry()`, `phase()` | The offset (positive when scrolled), the `ScrollGeometry` and the `ScrollPhase` now |
 
 ```rust
 ScrollView::new().height(Size::px(120.0)).child(list)
 ```
 
 ![ScrollView with three items](../../crates/bk/tests/golden/scroll-view-light.png)
+
+### Scroll position
+
+`ScrollPosition` is SwiftUI's: `at(x, y)`, `edge(Edge)` and `id(id, anchor)` say where; `point()` and
+`is_positioned_by_user()` read it. `.id("row-3")` (from `IdentityModifiers`, in the prelude) names a
+view inside a `ScrollView`; the id is a `String`. The anchor is an `Alignment`: `Start`, `Center` or
+`End` put that point of the view on the same point of the viewport; `None` scrolls the least that shows
+the view. An id the view does not have does nothing.
+
+Pass a `State<ScrollPosition>` to `.scroll_position(..)` and the view scrolls when the app sets it. Set
+it inside `with_animation` to animate the scroll. When the user scrolls, the view writes
+`ScrollPosition::at(..)` back, with `is_positioned_by_user()` true. `scroll_to(position, animation)` of a
+`ScrollController` is the same without the state.
+
+`ScrollPhase` is `Idle`, `Tracking`, `Interacting`, `Decelerating` or `Animating`. A touchpad pull or a
+finger gives `Interacting` and then `Decelerating`; `scroll_to` with an animation gives `Animating`.
+`Tracking` is set when a gesture begins and is replaced in the same event, so a callback sees
+`Interacting`. A mouse wheel gives no phase, and on macOS the system's momentum counts as `Interacting`.
+
+The program is [`recipes/scroll_position.rs`](../../agents/recipes/scroll_position.rs).
+[ADR 0109](../decisions.md) has the limits.
 
 ### Style
 
@@ -989,6 +1016,29 @@ Canvas::new(revision, move |ctx: &mut CanvasContext| { ctx.canvas.draw_rect(..);
 ```
 
 A `Canvas` has no style: the painter draws everything.
+
+## Shapes
+
+`Rectangle`, `RoundedRectangle::new(corner_radius)`, `Capsule`, `Circle`, `Ellipse` and `Path` (in
+`shapes` and the prelude) fill their frame; give them a size with `.width(..)`, `.height(..)` or a
+`Frame`. They draw with a [Canvas](#canvas).
+
+| Method | Effect |
+|---|---|
+| `.fill(ShapeStyle)` | Fills the shape with a color, a role, the accent or a gradient |
+| `.stroke_border(ShapeStyle, line_width)` | The outline inside the frame, as `strokeBorder` (every shape but `Path`) |
+| `Path::new().move_to(p)`, `.add_line(p)`, `.add_curve(to, c1, c2)`, `.close_subpath()` | A path in the points of the frame; `.stroke(ShapeStyle, line_width)` draws it centered |
+
+A `RoundedRectangle` has the continuous corner of the system
+(`CORNER_SMOOTHING`, [ADR 0101](../decisions.md)). A `Circle` is centered in a frame that is not
+square. A `ShapeStyle::Material` fills with its tint and does not blur.
+
+`.clip_shape(Shape)` (`ShapeModifiers`, in the prelude) clips a view and its children to a `Shape` of
+`styles`: `Rectangle`, `RoundedRectangle { .. }`, `UnevenRoundedRectangle { .. }`, `Capsule` or `Circle`.
+Freya clips with a rounded rectangle, so an ellipse or a `Path` cannot clip, and a circle clip of a view
+that is not square is a capsule.
+
+The program is [`recipes/shapes.rs`](../../agents/recipes/shapes.rs).
 
 ## Building a new control
 

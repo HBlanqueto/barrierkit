@@ -1,4 +1,7 @@
-pub use crate::scroll::{ScrollController, ScrollView, use_scroll_controller};
+pub use crate::scroll::{
+    IdentityModifiers, ScrollController, ScrollGeometry, ScrollPhase, ScrollPosition, ScrollView,
+    use_scroll_controller,
+};
 
 use freya_components::input::{
     Input, InputColorsThemePartial, InputLayoutThemePartial, InputValidator,
@@ -45,7 +48,7 @@ mod text_field;
 mod toggle;
 mod tool_group;
 
-pub use button::{Button, ControlSize};
+pub use button::{Button, ButtonRole, ControlSize};
 pub use circular_slider::CircularSlider;
 pub use segmented_control::SegmentedControl;
 pub use slider::Slider;

@@ -12,7 +12,7 @@ use crate::menu::{CheckState, MenuItem};
 use crate::scroll::{use_elastic, use_scroll_bar, use_scroll_controller};
 use crate::style::{continuous_corner, text};
 use crate::styles::{
-    ControlState, Painted, Paints, ScrollViewStyle, ShapeStyle, StateValue, TableStyle,
+    ControlState, Painted, Paints, Role, ScrollViewStyle, ShapeStyle, StateValue, TableStyle,
     TextStyleScope, Theme, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
@@ -24,12 +24,63 @@ pub struct SortOrder {
     pub ascending: bool,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Visibility {
+    Automatic,
+    Visible,
+    Hidden,
+}
+
+#[derive(Clone, Default, PartialEq)]
+pub struct ListRows {
+    insets: Option<Callback<usize, f32>>,
+    separator: Option<Callback<usize, Visibility>>,
+    background: Option<Callback<usize, ShapeStyle>>,
+}
+
+impl ListRows {
+    pub(crate) fn shifted(&self, offset: usize) -> Self {
+        fn shift<T: 'static>(
+            call: &Option<Callback<usize, T>>,
+            offset: usize,
+        ) -> Option<Callback<usize, T>> {
+            call.clone()
+                .map(|call| Callback::new(move |row| call.call(row + offset)))
+        }
+        Self {
+            insets: shift(&self.insets, offset),
+            separator: shift(&self.separator, offset),
+            background: shift(&self.background, offset),
+        }
+    }
+}
+
+pub trait ListRowModifiers: Sized {
+    fn list_rows(&mut self) -> &mut ListRows;
+
+    fn list_row_insets(mut self, insets: impl Fn(usize) -> f32 + 'static) -> Self {
+        self.list_rows().insets = Some(Callback::new(insets));
+        self
+    }
+
+    fn list_row_separator(mut self, visibility: impl Fn(usize) -> Visibility + 'static) -> Self {
+        self.list_rows().separator = Some(Callback::new(visibility));
+        self
+    }
+
+    fn list_row_background(mut self, background: impl Fn(usize) -> ShapeStyle + 'static) -> Self {
+        self.list_rows().background = Some(Callback::new(background));
+        self
+    }
+}
+
 #[derive(PartialEq)]
 pub struct Table {
     label: Cow<'static, str>,
     columns: Vec<Cow<'static, str>>,
     rows: Vec<Vec<String>>,
     cells: Vec<(usize, Callback<usize, Element>)>,
+    pub(crate) list_rows: ListRows,
     sort: Option<SortOrder>,
     selected: Vec<usize>,
     icons: Vec<Symbol>,
@@ -50,6 +101,7 @@ impl Table {
             columns: columns.into_iter().map(Into::into).collect(),
             rows: Vec::new(),
             cells: Vec::new(),
+            list_rows: ListRows::default(),
             sort: None,
             selected: Vec::new(),
             icons: Vec::new(),
@@ -114,6 +166,12 @@ impl Table {
     pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
         self.on_select = Some(callback.into());
         self
+    }
+}
+
+impl ListRowModifiers for Table {
+    fn list_rows(&mut self) -> &mut ListRows {
+        &mut self.list_rows
     }
 }
 
@@ -358,12 +416,26 @@ impl Component for Table {
             ),
         ];
         let stripe = looks[1].background.clone();
-        let separator = style.row_separator.as_ref().map(|paint| {
-            (
-                paints.fill(&StateValue::new(paint.clone())),
-                style.separator_margin,
-            )
+        let separator = (
+            paints.fill(&StateValue::new(
+                style
+                    .row_separator
+                    .clone()
+                    .unwrap_or(ShapeStyle::Role(Role::Separator)),
+            )),
+            style.separator_margin,
+        );
+        let separated = style.row_separator.is_some();
+        let background = self.list_rows.background.clone().map(|background| {
+            let paints = Paints::current(focused, style.effect);
+            Callback::new(move |row| paints.fill(&StateValue::new(background.call(row))))
         });
+        let list_rows = (
+            self.list_rows.insets.clone(),
+            self.list_rows.separator.clone(),
+            background,
+            separated,
+        );
         let metrics = (
             style.font,
             style.row_height,
@@ -393,6 +465,7 @@ impl Component for Table {
             held,
             separator,
             icons,
+            list_rows,
         );
         let striped = !matches!(
             style.alternate_row_background.resolve(focused),
@@ -440,6 +513,7 @@ impl Component for Table {
                 held,
                 separator,
                 icons,
+                (row_insets, row_separator, row_background, separated),
             )| {
                 let index = item.index;
                 let (font, row_height, padding_x, inset, row_radius, column_shift): &(
@@ -450,6 +524,9 @@ impl Component for Table {
                     f32,
                     f32,
                 ) = metrics;
+                let padding_x = row_insets
+                    .as_ref()
+                    .map_or(*padding_x, |insets| insets.call(index));
                 let selected_row = selected.contains(&index);
                 let look = if selected_row {
                     &looks[2]
@@ -500,8 +577,22 @@ impl Component for Table {
                         .child(content);
                     (*width, value.into_element())
                 });
-                let divided =
-                    !selected_row && index + 1 < rows.len() && !selected.contains(&(index + 1));
+                let shown = match row_separator
+                    .as_ref()
+                    .map(|visibility| visibility.call(index))
+                {
+                    Some(Visibility::Visible) => true,
+                    Some(Visibility::Hidden) => false,
+                    _ => *separated,
+                };
+                let divided = shown
+                    && !selected_row
+                    && index + 1 < rows.len()
+                    && !selected.contains(&(index + 1));
+                let row_fill = row_background
+                    .as_ref()
+                    .filter(|_| !selected_row)
+                    .map(|fill| fill.call(index));
                 rect()
                     .width(Size::fill())
                     .height(Size::px(*row_height))
@@ -510,20 +601,16 @@ impl Component for Table {
                     .a11y_role(AccessibilityRole::Row)
                     .a11y_builder(move |node| node.set_selected(selected_row))
                     .child(
-                        cells(*padding_x, *column_shift, values)
+                        cells(padding_x, *column_shift, values)
                             .height(Size::fill())
                             .corner_radius(continuous_corner(*row_radius))
-                            .background(look.background.clone())
+                            .background(row_fill.unwrap_or_else(|| look.background.clone()))
                             .map(look.blur, Rect::backdrop_blur),
                     )
-                    .maybe_child(
-                        separator
-                            .as_ref()
-                            .filter(|_| divided)
-                            .map(|(fill, (before, after))| {
-                                row_divider(fill.clone(), *before, *after)
-                            }),
-                    )
+                    .maybe_child(divided.then(|| {
+                        let (fill, (before, after)) = separator;
+                        row_divider(fill.clone(), *before, *after)
+                    }))
                     .on_press(move |_| {
                         if let Some(cb) = &on_select {
                             cb.call(select(&selected, index, *held.peek()));

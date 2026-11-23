@@ -92,6 +92,8 @@ pub mod backdrop;
 
 pub mod canvas;
 
+pub mod shapes;
+
 pub mod notifications;
 
 pub mod secrets;

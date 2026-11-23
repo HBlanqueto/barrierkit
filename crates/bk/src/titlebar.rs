@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
 use crate::views::split::SidebarToggle;
+use crate::views::toolbar::{ToolbarContent, lay_out, row};
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
 };
@@ -36,6 +37,7 @@ pub struct Titlebar {
     toolbar_style: Option<WindowToolbarStyle>,
     left: Option<Element>,
     right: Option<Element>,
+    toolbar: Vec<ToolbarContent>,
     probe: Option<&'static str>,
     close_only: bool,
     style: Theme,
@@ -63,6 +65,7 @@ impl Titlebar {
             toolbar_style: None,
             left: None,
             right: None,
+            toolbar: Vec::new(),
             probe: None,
             close_only: false,
             style: Theme::tengen(),
@@ -97,6 +100,11 @@ impl Titlebar {
 
     pub fn right(mut self, child: impl IntoElement) -> Self {
         self.right = Some(child.into_element());
+        self
+    }
+
+    pub fn toolbar(mut self, content: impl Into<ToolbarContent>) -> Self {
+        self.toolbar.push(content.into());
         self
     }
 
@@ -148,7 +156,7 @@ impl Component for Titlebar {
                 .is_some_and(|controls| controls.hud || controls.panel);
         let panel = controls.as_ref().is_some_and(|controls| controls.panel);
         let unified = self.toolbar_style.map_or(
-            self.sidebar || self.left.is_some() || self.right.is_some(),
+            self.sidebar || self.left.is_some() || self.right.is_some() || !self.toolbar.is_empty(),
             |style| style == WindowToolbarStyle::Unified,
         );
         let bar = if panel {
@@ -238,6 +246,7 @@ impl Component for Titlebar {
                 )
             };
 
+        let slots = self.toolbar_slots(&style);
         let title_font = if unified {
             style.sidebar_title_font
         } else {
@@ -264,11 +273,20 @@ impl Component for Titlebar {
                 }
                 None => Lights::Absent,
             };
-            self.sidebar_bar(&style, &paints, lights, title_label, drag, background)
+            self.sidebar_bar(
+                &style,
+                &paints,
+                lights,
+                slots,
+                title_label,
+                drag,
+                background,
+            )
         } else {
             self.centered_bar(
                 &style,
                 traffic,
+                slots,
                 title_label,
                 drag,
                 background,
@@ -300,6 +318,12 @@ impl Component for Titlebar {
     }
 }
 
+struct ToolbarSlots {
+    navigation: Option<Element>,
+    principal: Option<Element>,
+    trailing: Option<Element>,
+}
+
 enum Lights {
     Drawn(Element),
     Native,
@@ -307,16 +331,36 @@ enum Lights {
 }
 
 impl Titlebar {
+    fn toolbar_slots(&self, style: &TitlebarStyle) -> ToolbarSlots {
+        let gap = style.sidebar_padding_x;
+        let sections = lay_out(&self.toolbar, gap);
+        ToolbarSlots {
+            navigation: row(sections.navigation, gap),
+            principal: row(sections.center, gap),
+            trailing: row(
+                self.right
+                    .iter()
+                    .cloned()
+                    .chain(sections.trailing)
+                    .collect(),
+                gap,
+            ),
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
     fn sidebar_bar(
         &self,
         style: &TitlebarStyle,
         paints: &Paints,
         traffic: Lights,
+        slots: ToolbarSlots,
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + 'static,
         background: Fill,
     ) -> (Element, f32) {
-        let occupied = crate::sidebar::sidebar_control().map_or(0.0, |control| control.occupied());
+        let occupied = crate::sidebar::sidebar_control()
+            .map_or(0.0, |control| control.occupied() + control.content());
         let height = style.sidebar_height;
         let padding_x = style.sidebar_padding_x;
         let sidebar: SidebarStyle = resolve(&Theme::tengen());
@@ -355,17 +399,26 @@ impl Titlebar {
             .probe("titlebar-left-slot")
             .maybe_child(self.left.clone().or_else(|| {
                 crate::sidebar::sidebar_control().map(|_| SidebarToggle.into_element())
-            }));
+            }))
+            .maybe_child(slots.navigation);
 
         let title = rect()
             .width(Size::flex(1.0))
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .main_align(style.sidebar_title_alignment.clone())
+            .main_align(if slots.principal.is_some() {
+                Alignment::Center
+            } else {
+                style.sidebar_title_alignment.clone()
+            })
             .probe("titlebar-title")
             .on_mouse_down(drag)
-            .child(title_label);
+            .child(
+                slots
+                    .principal
+                    .unwrap_or_else(|| title_label.into_element()),
+            );
 
         let root = rect()
             .width(Size::fill())
@@ -382,7 +435,7 @@ impl Titlebar {
             .padding(Gaps::new(0.0, padding_x, 0.0, padding_left))
             .child(left_slot)
             .child(title)
-            .maybe_child(self.right.clone().map(|right| {
+            .maybe_child(slots.trailing.map(|right| {
                 rect()
                     .width(Size::auto())
                     .height(Size::fill())
@@ -411,6 +464,7 @@ impl Titlebar {
         &self,
         style: &TitlebarStyle,
         traffic: Option<Element>,
+        slots: ToolbarSlots,
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
         background: Fill,
@@ -447,7 +501,8 @@ impl Titlebar {
                         content_widths.set_if_modified((width, right));
                     })
                     .maybe_child(traffic)
-                    .maybe_child(self.left.clone()),
+                    .maybe_child(self.left.clone())
+                    .maybe_child(slots.navigation),
             );
 
         let right_slot = rect()
@@ -464,7 +519,7 @@ impl Titlebar {
                         let left = content_widths.peek().0;
                         content_widths.set_if_modified((left, width));
                     })
-                    .maybe_child(self.right.clone()),
+                    .maybe_child(slots.trailing),
             )
             .on_mouse_down(drag.clone());
 
@@ -475,7 +530,11 @@ impl Titlebar {
             .main_align(Alignment::Center)
             .probe("titlebar-title")
             .on_mouse_down(drag)
-            .child(title_label);
+            .child(
+                slots
+                    .principal
+                    .unwrap_or_else(|| title_label.into_element()),
+            );
 
         let root = rect()
             .width(Size::fill())
@@ -559,7 +618,7 @@ pub fn sidebar_bar_height() -> f32 {
 }
 
 // The toggle sits at the sidebar's right end while it is docked and after the traffic lights once it is not. Returns how far it moves from where the bar's left zone puts it, and the width it keeps there.
-pub(crate) fn sidebar_toggle_placement(occupied: f32) -> (f32, f32) {
+pub(crate) fn sidebar_toggle_placement(occupied: f32, content: f32) -> (f32, f32) {
     let style: TitlebarStyle = resolve(&Theme::tengen());
     let sidebar: SidebarStyle = resolve(&Theme::tengen());
     let lights: TrafficLightsStyle = resolve(&Theme::tengen());
@@ -567,7 +626,7 @@ pub(crate) fn sidebar_toggle_placement(occupied: f32) -> (f32, f32) {
     let padding_x = style.sidebar_padding_x;
     let hidden_x = sidebar.lights_position.0 + lights.length() + padding_x;
     let docked_x = occupied - platter - SIDEBAR.toggle_inset;
-    let zone_x = (occupied + padding_x).max(hidden_x);
+    let zone_x = (occupied + content + padding_x).max(hidden_x);
     (
         docked_x.max(hidden_x) - zone_x,
         (hidden_x + platter - docked_x).clamp(0.0, platter),

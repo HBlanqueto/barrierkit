@@ -11,7 +11,7 @@ use crate::style::text;
 use crate::styles::{
     ControlState, Paints, Role, ShapeStyle, StateValue, TableStyle, Theme, resolve,
 };
-use crate::views::table::{Table, row_divider};
+use crate::views::table::{ListRowModifiers, ListRows, Table, row_divider};
 
 // Rows below a `List` draw a `Label` as SwiftUI does: the symbol tinted with the accent.
 #[derive(Clone, Copy)]
@@ -24,6 +24,7 @@ pub struct List {
     sections: Vec<(Cow<'static, str>, Vec<String>)>,
     selected: Vec<usize>,
     row: Option<Callback<usize, Element>>,
+    list_rows: ListRows,
     label_rows: bool,
     scroll_bar: bool,
     on_select: Option<Callback<Vec<usize>, ()>>,
@@ -39,6 +40,7 @@ impl List {
             sections: Vec::new(),
             selected: Vec::new(),
             row: None,
+            list_rows: ListRows::default(),
             label_rows: false,
             scroll_bar: true,
             on_select: None,
@@ -82,16 +84,23 @@ impl List {
 
 forward_overrides!(List);
 
+impl ListRowModifiers for List {
+    fn list_rows(&mut self) -> &mut ListRows {
+        &mut self.list_rows
+    }
+}
+
 impl Component for List {
     fn render(&self) -> impl IntoElement {
         use_hook(|| provide_context(ListRow));
         if !self.sections.is_empty() {
             return self.overrides.delegate(self.sectioned()).into_element();
         }
-        let table = Table::new(self.label.clone(), vec![""])
+        let mut table = Table::new(self.label.clone(), vec![""])
             .rows(self.rows.iter().map(|row| vec![row.clone()]).collect())
             .selected(self.selected.clone())
             .scroll_bar(self.scroll_bar);
+        table.list_rows = self.list_rows.clone();
         let table = match &self.row {
             Some(row) => {
                 let row = row.clone();
@@ -149,10 +158,11 @@ impl List {
                     .filter(|row| (offset..first).contains(row))
                     .map(|row| row - offset)
                     .collect();
-                let table = Table::new(self.label.clone(), vec![""])
+                let mut table = Table::new(self.label.clone(), vec![""])
                     .rows(rows.iter().map(|row| vec![row.clone()]).collect())
                     .selected(selected)
                     .scroll_bar(false);
+                table.list_rows = self.list_rows.shifted(offset);
                 let table = match &self.row {
                     Some(row) => {
                         let row = row.clone();

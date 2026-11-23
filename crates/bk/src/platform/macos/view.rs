@@ -404,6 +404,16 @@ define_class!(
             with_runtime(|runtime| runtime.main_changed(self.ivars().id));
         }
 
+        #[unsafe(method(windowDidEnterFullScreen:))]
+        fn window_did_enter_full_screen(&self, _: &NSNotification) {
+            with_runtime(|runtime| runtime.fullscreen_changed(self.ivars().id));
+        }
+
+        #[unsafe(method(windowDidExitFullScreen:))]
+        fn window_did_exit_full_screen(&self, _: &NSNotification) {
+            with_runtime(|runtime| runtime.fullscreen_changed(self.ivars().id));
+        }
+
         #[unsafe(method(windowWillClose:))]
         fn window_will_close(&self, _: &NSNotification) {
             with_runtime(|runtime| runtime.closed(self.ivars().id));

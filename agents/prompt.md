@@ -83,7 +83,7 @@ version.
    of wrapping it, so the padding stays inside the background and outer space
    is `.margin` ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
    `StyleScope`, `Sheet`, `Alert`, `SidebarToggle` and `Titlebar` take none:
-   put them in a `rect()`. Call `.help` unconditionally: it uses a hook. `.sheet(state, ..)`, `.alert(state, ..)` and `.popover(state, size, ..)` show while a `State<bool>` is true. `.disabled(bool)`, `.environment(value)`, `.focused(..)` and `.default_focus(..)`
+   put them in a `rect()`. Call `.help` unconditionally: it uses a hook. `.sheet(state, ..)`, `.alert(state, ..)` and `.popover(state, size, ..)` show while a `State<bool>` is true. `.disabled(bool)`, `.environment(value)`, `.keyboard_shortcut(Shortcut)`, `.focused(..)` and `.default_focus(..)`
    wrap a view in a scope, as `.control_style` does: call them last.
 8. **No comments** except `// SAFETY:` on `unsafe` and one line explaining a
    non-obvious invariant. Names explain the code.
@@ -111,13 +111,13 @@ version.
 | Check your work before you answer | [`checklist.md`](checklist.md) |
 | Understand the first app line by line | [`02-first-app.md`](../docs/barrierkit/02-first-app.md) |
 | Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../docs/barrierkit/04-appearance-and-tokens.md) |
-| Use a control | [`05-controls.md`](../docs/barrierkit/05-controls.md) |
+| Use a control, scroll to a position or draw a shape | [`05-controls.md`](../docs/barrierkit/05-controls.md) |
 | Change how a control looks (color, shape, size, motion) or build a theme | [`styles.md`](styles.md) |
 | Edit, style or spell-check text | [`06-text-and-editing.md`](../docs/barrierkit/06-text-and-editing.md) |
 | Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../docs/barrierkit/07-menus-and-popovers.md) |
 | Window size, limits, more than one window, popups, timers | [`08-windows.md`](../docs/barrierkit/08-windows.md) |
-| Title bars and traffic lights | [`09-titlebars.md`](../docs/barrierkit/09-titlebars.md) |
-| A sidebar app | [`10-sidebar.md`](../docs/barrierkit/10-sidebar.md) |
+| Title bars, toolbar items by placement and traffic lights | [`09-titlebars.md`](../docs/barrierkit/09-titlebars.md) |
+| A sidebar app, with or without a content column | [`10-sidebar.md`](../docs/barrierkit/10-sidebar.md) |
 | Forms, tables, tabs, alerts, search | [`11-views.md`](../docs/barrierkit/11-views.md) |
 | Preferences or About window | [`12-patterns.md`](../docs/barrierkit/12-patterns.md) |
 | Menu bar menu, shortcuts, single instance, saved settings, undo | [`13-app.md`](../docs/barrierkit/13-app.md) |

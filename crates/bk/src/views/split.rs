@@ -44,8 +44,10 @@ pub struct SidebarToggle;
 impl Component for SidebarToggle {
     fn render(&self) -> impl IntoElement {
         let control = sidebar_control();
-        let (offset, width) =
-            sidebar_toggle_placement(control.map_or(0.0, |control| control.occupied()));
+        let (offset, width) = sidebar_toggle_placement(
+            control.map_or(0.0, |control| control.occupied()),
+            control.map_or(0.0, |control| control.content()),
+        );
         rect()
             .width(Size::px(width))
             .height(Size::px(TOOLGROUP.height as f32))
@@ -71,6 +73,7 @@ impl Component for SidebarToggle {
 #[derive(PartialEq)]
 pub struct SplitView {
     sidebar: Element,
+    content: Option<Element>,
     detail: Element,
     inspector: Option<(Element, bool)>,
     extension: Option<Element>,
@@ -89,6 +92,7 @@ impl SplitView {
     pub fn new(sidebar: impl IntoElement, detail: impl IntoElement) -> Self {
         Self {
             sidebar: sidebar.into_element(),
+            content: None,
             detail: detail.into_element(),
             inspector: None,
             extension: None,
@@ -102,6 +106,12 @@ impl SplitView {
             key: DiffKey::None,
             overrides: Overrides::default(),
         }
+    }
+
+    /// A column between the sidebar and the detail; it resizes within `sidebar_range` and stays when the sidebar hides.
+    pub fn content(mut self, content: impl IntoElement) -> Self {
+        self.content = Some(content.into_element());
+        self
     }
 
     pub fn inspector(mut self, inspector: impl IntoElement, presented: bool) -> Self {
@@ -182,18 +192,19 @@ impl Component for SplitView {
             .clamp(min_width, max_width);
         let mut sidebar_width = use_state(|| initial_width);
         let mut dragging = use_state(|| false);
-        let mut grip_hovered = use_state(|| false);
-        let grip_id = use_a11y();
-        let grip_focus = use_focus(grip_id);
+        let mut content_width = use_state(|| initial_width);
+        let mut content_dragging = use_state(|| false);
         let mut visible = use_state(|| self.sidebar_visible);
         let mut auto_hidden = use_state(|| false);
         let mut occupied = use_state(|| 0.0f32);
+        let mut content_shown = use_state(|| 0.0f32);
         let mut settled = use_state(|| false);
         let mut overlaid = use_state(|| false);
         let control = SidebarControl {
             visible,
             auto_hidden,
             occupied,
+            content: content_shown,
             settled,
             overlaid,
         };
@@ -254,6 +265,12 @@ impl Component for SplitView {
             }
         }
 
+        let content_column = content_width.read().clamp(min_width, max_width);
+        content_shown.set_if_modified(if self.content.is_some() {
+            content_column
+        } else {
+            0.0
+        });
         occupied.set_if_modified(if overlay { 0.0 } else { container * shown });
         overlaid.set_if_modified(overlay && *visible.read());
         settled.set_if_modified(*visible.read() && shown >= 1.0);
@@ -267,17 +284,24 @@ impl Component for SplitView {
         let mut root = rect()
             .expanded()
             .direction(Direction::Horizontal)
-            .cursor(dragging.read().then_some(CursorIcon::ColResize))
+            .cursor((*dragging.read() || *content_dragging.read()).then_some(CursorIcon::ColResize))
             .painted(&paints, &style.background)
             .on_sized(move |event: Event<SizedEventData>| {
                 window_width.set_if_modified(event.area.size.width);
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
+                let edge = event.global_location().x as f32 + style.grip_width / 2.0;
                 if *dragging.read() {
-                    resize_to(event.global_location().x as f32 + style.grip_width / 2.0);
+                    resize_to(edge);
+                }
+                if *content_dragging.read() {
+                    content_width.set((edge - *occupied.peek()).clamp(min_width, max_width));
                 }
             })
-            .on_global_pointer_up(move |_| dragging.set_if_modified(false))
+            .on_global_pointer_up(move |_| {
+                dragging.set_if_modified(false);
+                content_dragging.set_if_modified(false);
+            })
             .on_global_key_down(move |event: Event<KeyboardEventData>| {
                 if TOGGLE_SIDEBAR
                     .shortcut
@@ -316,70 +340,48 @@ impl Component for SplitView {
             );
         }
         if !overlay && shown > 0.0 {
-            root = root.child(
-                rect()
-                    .width(Size::px(container * shown))
-                    .height(Size::fill())
-                    .maybe(shown < 1.0, |el| el.overflow(Overflow::Clip))
-                    .offset_x(container * (shown - 1.0))
-                    .child(
-                        sidebar().maybe_child((self.resizable && shown >= 1.0).then(|| {
-                            let grip = ControlState {
-                                hovered: *grip_hovered.read(),
-                                pressed: *dragging.read(),
-                                focused: matches!(*grip_focus.read(), Focus::Keyboard),
-                                disabled: false,
-                            };
-                            let grip_paints = Paints::current(grip, style.effect);
-                            let grip_line = grip_paints.color(style.grip.resolve(grip));
-                            let width = *sidebar_width.read();
-                            rect()
-                                .a11y_id(grip_id)
-                                .a11y_focusable(true)
-                                .a11y_role(AccessibilityRole::Splitter)
-                                .layer(crate::scroll::THUMB_LAYER + 1)
-                                .position(
-                                    Position::new_absolute()
-                                        .left(container - style.grip_width)
-                                        .top(0.0),
-                                )
-                                .width(Size::px(style.grip_width))
-                                .height(Size::percent(100.0))
-                                .padding(Gaps::new(
-                                    style.grip_line_inset,
-                                    0.0,
-                                    style.grip_line_inset,
-                                    (style.grip_width - style.grip_line_width) / 2.0,
-                                ))
-                                .cursor(CursorIcon::ColResize)
-                                .on_pointer_enter(move |_| grip_hovered.set(true))
-                                .on_pointer_leave(move |_| grip_hovered.set(false))
-                                .on_mouse_down(move |_| dragging.set(true))
-                                .on_key_down(move |event: Event<KeyboardEventData>| {
-                                    match event.key {
-                                        Key::Named(NamedKey::ArrowLeft) => {
-                                            resize_to(width - SPLIT_VIEW.key_step)
-                                        }
-                                        Key::Named(NamedKey::ArrowRight) => {
-                                            resize_to(width + SPLIT_VIEW.key_step)
-                                        }
-                                        _ => {}
-                                    }
-                                })
-                                .maybe_child((grip_line.a > 0.0).then(|| {
-                                    rect()
-                                        .width(Size::px(style.grip_line_width))
-                                        .height(Size::fill())
-                                        .corner_radius(style.grip_shape.corner_radius(
-                                            style.grip_line_width,
-                                            style.grip_line_width,
-                                            LayoutDirection::LeftToRight,
-                                        ))
-                                        .background(grip_paints.fill(&style.grip))
-                                }))
+            root =
+                root.child(
+                    rect()
+                        .width(Size::px(container * shown))
+                        .height(Size::fill())
+                        .maybe(shown < 1.0, |el| el.overflow(Overflow::Clip))
+                        .offset_x(container * (shown - 1.0))
+                        .child(sidebar().maybe_child((self.resizable && shown >= 1.0).then(
+                            || ColumnGrip {
+                                edge: container,
+                                width: *sidebar_width.read(),
+                                dragging,
+                                resize: Callback::new(resize_to),
+                                style: self.style.clone(),
+                            },
+                        ))),
+                );
+        }
+        let line = || {
+            rect()
+                .width(Size::px(style.inspector_line.1))
+                .height(Size::fill())
+                .background(paints.fill(&StateValue::new(style.inspector_line.0.clone())))
+        };
+        if let Some(content) = &self.content {
+            root = root
+                .child(
+                    rect()
+                        .width(Size::px(content_column))
+                        .height(Size::fill())
+                        .child(content.clone())
+                        .maybe_child(self.resizable.then(|| ColumnGrip {
+                            edge: content_column,
+                            width: content_column,
+                            dragging: content_dragging,
+                            resize: Callback::new(move |width: f32| {
+                                content_width.set(width.clamp(min_width, max_width))
+                            }),
+                            style: self.style.clone(),
                         })),
-                    ),
-            );
+                )
+                .child(line());
         }
         root = root.child(
             rect()
@@ -388,25 +390,18 @@ impl Component for SplitView {
                 .child(self.detail.clone()),
         );
         if let Some((inspector, _)) = self.inspector.as_ref().filter(|_| inspector_shown > 0.0) {
-            root = root
-                .child(
-                    rect()
-                        .width(Size::px(style.inspector_line.1))
-                        .height(Size::fill())
-                        .background(paints.fill(&StateValue::new(style.inspector_line.0.clone()))),
-                )
-                .child(
-                    rect()
-                        .width(Size::px(style.inspector_width * inspector_shown))
-                        .height(Size::fill())
-                        .overflow(Overflow::Clip)
-                        .child(
-                            rect()
-                                .width(Size::px(style.inspector_width))
-                                .height(Size::fill())
-                                .child(inspector.clone()),
-                        ),
-                );
+            root = root.child(line()).child(
+                rect()
+                    .width(Size::px(style.inspector_width * inspector_shown))
+                    .height(Size::fill())
+                    .overflow(Overflow::Clip)
+                    .child(
+                        rect()
+                            .width(Size::px(style.inspector_width))
+                            .height(Size::fill())
+                            .child(inspector.clone()),
+                    ),
+            );
         }
         if overlay && shown > 0.0 {
             root = root
@@ -431,5 +426,71 @@ impl Component for SplitView {
                 );
         }
         self.overrides.apply(root.content(Content::flex()))
+    }
+}
+
+#[derive(PartialEq)]
+struct ColumnGrip {
+    edge: f32,
+    width: f32,
+    dragging: State<bool>,
+    resize: Callback<f32, ()>,
+    style: Theme,
+}
+
+impl Component for ColumnGrip {
+    fn render(&self) -> impl IntoElement {
+        let style: SplitViewStyle = resolve(&self.style);
+        let mut dragging = self.dragging;
+        let mut hovered = use_state(|| false);
+        let id = use_a11y();
+        let focus = use_focus(id);
+        let state = ControlState {
+            hovered: *hovered.read(),
+            pressed: *dragging.read(),
+            focused: matches!(*focus.read(), Focus::Keyboard),
+            disabled: false,
+        };
+        let paints = Paints::current(state, style.effect);
+        let line = paints.color(style.grip.resolve(state));
+        let (resize, width) = (self.resize.clone(), self.width);
+        rect()
+            .a11y_id(id)
+            .a11y_focusable(true)
+            .a11y_role(AccessibilityRole::Splitter)
+            .layer(crate::scroll::THUMB_LAYER + 1)
+            .position(
+                Position::new_absolute()
+                    .left(self.edge - style.grip_width)
+                    .top(0.0),
+            )
+            .width(Size::px(style.grip_width))
+            .height(Size::percent(100.0))
+            .padding(Gaps::new(
+                style.grip_line_inset,
+                0.0,
+                style.grip_line_inset,
+                (style.grip_width - style.grip_line_width) / 2.0,
+            ))
+            .cursor(CursorIcon::ColResize)
+            .on_pointer_enter(move |_| hovered.set(true))
+            .on_pointer_leave(move |_| hovered.set(false))
+            .on_mouse_down(move |_| dragging.set(true))
+            .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
+                Key::Named(NamedKey::ArrowLeft) => resize.call(width - SPLIT_VIEW.key_step),
+                Key::Named(NamedKey::ArrowRight) => resize.call(width + SPLIT_VIEW.key_step),
+                _ => {}
+            })
+            .maybe_child((line.a > 0.0).then(|| {
+                rect()
+                    .width(Size::px(style.grip_line_width))
+                    .height(Size::fill())
+                    .corner_radius(style.grip_shape.corner_radius(
+                        style.grip_line_width,
+                        style.grip_line_width,
+                        LayoutDirection::LeftToRight,
+                    ))
+                    .background(paints.fill(&style.grip))
+            }))
     }
 }

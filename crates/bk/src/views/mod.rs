@@ -12,5 +12,6 @@ pub mod split_panes;
 pub mod table;
 pub mod tabs;
 pub mod text_view;
+pub mod toolbar;
 pub mod tree;
 pub mod window_tabs;

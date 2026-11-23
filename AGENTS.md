@@ -110,6 +110,32 @@ métodos, hooks, tokens).
    esa lógica y aplica sus efectos, como `gesture::trackpad`.
 4. **Toca un archivo con `cfg` suelto:** muévelo a su backend en ese commit.
 
+## Rust (código nuevo o que toques)
+
+No reescribas lo existente solo para cumplirlas (regla 7 de «Código mínimo»).
+
+1. **Sin `unwrap()` en la biblioteca ni en las recetas:** maneja el error. Un
+   invariante que no puede romperse usa `expect("por qué no falla")`. En los
+   tests vale `unwrap()`.
+2. **Importa con `crate::`, no con `super::`.** Excepción: `use super::*` en un
+   `mod tests`.
+3. **Un componente es un tipo de datos con `#[derive(PartialEq)]` que
+   implementa `Component`.** Una vista o un control público que una app puede
+   poner en una lista implementa también `KeyExt` (`.key(..)`), para que
+   Freya reconcilie por clave.
+4. **Los componentes importan con `use freya_core::prelude::*;`.**
+5. **Doc comments:** una línea de `///` en una API pública nueva cuyo nombre no
+   dice su contrato (qué devuelve, qué supone, cuándo falla). Sigue vigente la
+   regla 6: ninguno que repita el nombre, ni más comentarios dentro del código.
+6. **Un elemento que cambia no se guarda en una variable para mutarlo:** se
+   declara como último valor del componente y se modifica con `maybe(..)`,
+   `maybe_child(..)` o `map(..)`.
+7. **Un `&str` o un `String` ya es un `label` de Freya** donde se espera un
+   hijo: no escribas `label().text("Hola")` solo para eso. Las apps usan `Text`
+   (regla 3).
+8. **Comprueba con `./dev.sh check`**, no con `cargo check` suelto: ese
+   comando corre clippy con las features y los scripts de `scripts/check-*.sh`.
+
 ## Código mínimo (reglas duras, estilo ponytail)
 
 Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más corta.

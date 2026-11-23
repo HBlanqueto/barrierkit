@@ -237,6 +237,9 @@ The program is [`recipes/actions.rs`](recipes/actions.rs).
 3. A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)`, with no menu
    item ([`recipes/keyboard_shortcut.rs`](recipes/keyboard_shortcut.rs)). A menu
    item with the same key wins.
+4. `.keyboard_shortcut(Shortcut)` on a view gives the shortcut to every button
+   inside it that has none; `Shortcut::DEFAULT_ACTION` and `CANCEL_ACTION` are
+   Enter and Escape. `.role(ButtonRole::Destructive)` makes a button red.
 
 ## 22. A view that takes a handler
 
@@ -268,6 +271,8 @@ The program is [`recipes/list_rows.rs`](recipes/list_rows.rs).
    with `.on_press(|event: Event<PressEventData>| event.stop_propagation())`.
 4. Rows have a fixed height: set `TableStyle::row_height` for a taller row. The
    closure never compares equal, so the list redraws with its parent.
+5. `.list_row_background`, `.list_row_separator` and `.list_row_insets` take a
+   closure of the row index ([chapter 11](../docs/barrierkit/11-views.md#list-row-modifiers)).
 
 ## 24. Disabling a group of controls
 
@@ -434,3 +439,64 @@ The program is [`recipes/presentations.rs`](recipes/presentations.rs).
    but only the app closes a sheet.
 2. `.popover(state, size, || content)` opens a popover that points at the view it sits on, so put it on a
    `rect()` around the button, not on the container. A click outside writes `false`. It uses a hook: call it on every render.
+
+## 35. A toolbar by placement
+
+SwiftUI: `.toolbar { ToolbarItem(placement: .navigation) { .. }; ToolbarItem(placement: .principal) { Text(page) }; ToolbarSpacer(.flexible); ToolbarItem(placement: .primaryAction) { Button("New") { .. } } }`.
+
+The program is [`recipes/toolbar_items.rs`](recipes/toolbar_items.rs).
+
+1. `Titlebar::toolbar(content)` takes one `ToolbarItem::new(placement, view)` or one `ToolbarSpacer`
+   per call and lays it by placement: `Navigation` after the sidebar toggle, `Principal` and `Status` in the
+   title's place, `PrimaryAction` and `Automatic` on the right.
+2. A `ToolbarSpacer::flexible()` sends the `Automatic` items before it to the navigation side;
+   `ToolbarSpacer::fixed()` adds one gap. The bar does not measure its items: there is no overflow menu.
+
+## 36. Three columns
+
+SwiftUI: `NavigationSplitView { sidebar } content: { notes } detail: { note }`.
+
+The program is [`recipes/three_columns.rs`](recipes/three_columns.rs).
+
+1. `SplitView::content(view)` adds the middle column. It has the sidebar's grip and limits, and only the
+   sidebar hides.
+2. The `Titlebar` goes in the detail. The content column has no bar: leave `sidebar_bar_height()` free at
+   its top.
+
+## 37. Scroll to a position, to an id and to an edge
+
+SwiftUI: `ScrollView { ForEach(rows) { Text($0.name).id($0.id) } }.scrollPosition($position)` with `position = .init(edge: .top)`, `position.scrollTo(id: "row-40", anchor: .center)` and `.onScrollGeometryChange(for: CGFloat.self, of: \.contentOffset.y) { offset = $1 }`.
+
+The program is [`recipes/scroll_position.rs`](recipes/scroll_position.rs).
+
+1. `.id("row-40")` names a view inside the `ScrollView`; the id is a `String`.
+2. `ScrollView::scroll_position(state)` takes a `State<ScrollPosition>`. Set it to `ScrollPosition::edge(..)`,
+   `::at(x, y)` or `::id(id, anchor)` and the view scrolls; wrap the set in `with_animation(..)` to animate.
+   When the user scrolls, the state becomes `ScrollPosition::at(..)` and `is_positioned_by_user()` is true.
+3. `ScrollController::scroll_to(position, animation)` does the same from a button, with the `Animation` as
+   an argument. `.on_scroll_geometry_change(..)` and `.on_scroll_phase_change(..)` report the offset and the phase.
+
+## 38. Shapes, fills, borders and clips
+
+SwiftUI: `Circle().fill(.tint)`, `RoundedRectangle(cornerRadius: 18).strokeBorder(.tint, lineWidth: 4)` and `LinearGradient(..).clipShape(.capsule)`.
+
+The program is [`recipes/shapes.rs`](recipes/shapes.rs).
+
+1. `Rectangle`, `RoundedRectangle::new(radius)`, `Capsule`, `Circle`, `Ellipse` and `Path` fill their
+   frame: size them with a parent `rect()` or `.width(..)` and `.height(..)`. `.fill(ShapeStyle)` and
+   `.stroke_border(ShapeStyle, width)` draw; a `Path` has `.stroke(..)` instead, and `move_to`, `add_line`,
+   `add_curve` and `close_subpath` build it.
+2. `.clip_shape(Shape::Circle)` (also `Capsule` and `RoundedRectangle { .. }`) clips a view and its
+   children. An ellipse or a path cannot clip.
+
+## 39. Full screen, with each window style
+
+SwiftUI: the green light, `View > Enter Full Screen`, and `NSWindow.didEnterFullScreenNotification`.
+
+The program is [`recipes/full_screen.rs`](recipes/full_screen.rs). It takes `title-bar`, `hidden-title-bar` or `plain`.
+
+1. `WindowControls::get().status.read().fullscreen` is true while the window is in full screen, whichever way it
+   got there: the native green light of a `TitleBar` or `HiddenTitleBar` window, the kit's own light of a `Plain`
+   one, or `toggle_fullscreen()`. Read it to change the layout; do not keep a copy.
+2. `scripts/macos-fullscreen.sh` runs the three styles beside the same SwiftUI windows and fails when the kit
+   does not enter, return or tell the app. A SwiftUI `.plain` window does not enter full screen; the kit's does.

@@ -25,7 +25,9 @@ reason it cannot be.
    takes the `State<String>` it edits)?
 5. Is every name the glossary name? Nothing named `App` of your own, nothing
    that copies a kit control (a knob drawn by hand included: `Switch`, `Slider`
-   and `LevelSlider` hand their held knob to the compositor on their own).
+   and `LevelSlider` hand their held knob to the compositor on their own, and a
+   toolbar item goes through `Titlebar::toolbar` with a placement, not a row of
+   your own).
 6. Are hooks (every `use_*`, and `.help(..)` and `.popover(..)`, which hide one) called on every
    render, never inside a condition, a loop or an iterator closure?
 7. Are there no comments besides `// SAFETY:` and one-line invariants?
@@ -44,6 +46,9 @@ reason it cannot be.
 11. Do the modifiers sit on the view or control they change, with outer space
     as `.margin` and not a second `.padding`? A modifier sets one node; it does
     not wrap it ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
+    A key for a button goes through `.keyboard_shortcut(..)`, not a key handler.
+    A round or rounded clip goes through `.clip_shape(..)` and a drawn shape through
+    `Circle`, `Capsule`, `RoundedRectangle` or `Path`, not a `rect()` with a radius you computed.
 
 ## Build
 
