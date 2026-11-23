@@ -524,6 +524,7 @@ knob's rectangle in surface-local logical pixels, its `Knob` kind and its tint b
 commit, draws its track with no knob, and the lens refracts the pixels the app
 committed there. The compositor adds the knob's border and its shadow (`KNOB_HELD_SHADOW`, `KNOB_HELD_SHADOW_DARK` in the dark scheme).
 Without version 9 the knob stays the opaque `knob` paint: the kit draws no glass of its own.
+On macOS the lens is a native glass view ([chapter 15](15-backdrops-and-media.md#on-macos)).
 
 ### `run_lock` and `SessionUnlock`
 

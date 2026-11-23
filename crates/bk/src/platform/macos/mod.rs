@@ -100,7 +100,7 @@ mod view;
 pub(crate) use system::appearance;
 
 use popups::PopupState;
-use view::{BarView, ChromeView, ContentView, Effect, Toplevel, WindowDelegate};
+use view::{BarView, ChromeView, ContentView, Effect, Glass, Toplevel, WindowDelegate};
 
 thread_local! {
     static RUNTIME: RefCell<Option<Runtime>> = const { RefCell::new(None) };
@@ -230,6 +230,33 @@ impl Window {
                 }
             }
         }
+    }
+
+    // A held knob is a clear glass lens over the content, as SwiftUI's; the kit leaves the knob unpainted beneath it.
+    fn place_knob(&mut self, mtm: MainThreadMarker) {
+        let Some(knobs) = self.app.knobs.take() else {
+            return;
+        };
+        let lens = self
+            .view
+            .subviews()
+            .into_iter()
+            .find_map(|view| view.downcast::<Glass>().ok());
+        let Some(&(x, y, width, height)) = knobs.rects.first() else {
+            if let Some(lens) = lens {
+                lens.removeFromSuperview();
+            }
+            return;
+        };
+        let lens = lens.unwrap_or_else(|| {
+            let lens = blur::glass(mtm, 0.0, true);
+            self.view.addSubview(&lens);
+            lens
+        });
+        let scale = self.window.backingScaleFactor();
+        let [x, y, width, height] = [x, y, width, height].map(|value| f64::from(value) / scale);
+        lens.setFrame(NSRect::new(NSPoint::new(x, y), NSSize::new(width, height)));
+        lens.setCornerRadius(width.min(height) / 2.0);
     }
 
     fn place_pocket(&mut self) {
@@ -501,7 +528,7 @@ impl Runtime {
             native_glass: blur::glass_available(),
             native_sheets: true,
             window_background: false,
-            knobs: false,
+            knobs: blur::glass_available(),
         }
     }
 
@@ -980,6 +1007,7 @@ impl Runtime {
         }
         self.sync_chromes(index);
         self.windows[index].place_pocket();
+        self.windows[index].place_knob(self.mtm);
         let gpu = &mut self.gpu;
         let window = &mut self.windows[index];
         let scale = window.window.backingScaleFactor();
