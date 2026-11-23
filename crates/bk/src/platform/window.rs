@@ -59,6 +59,22 @@ pub enum WindowStyle {
     Plain,
 }
 
+impl WindowStyle {
+    pub(crate) fn inner_bar_height(self, system_title_bar: bool) -> u32 {
+        match self {
+            Self::TitleBar if system_title_bar => 0,
+            Self::TitleBar => ctdesign::TITLEBAR_CLIENT_HEIGHT,
+            Self::HiddenTitleBar => ctdesign::SETTINGS.toolbar_height,
+            Self::Plain => 0,
+        }
+    }
+}
+
+// The limits count the content below the bar drawn inside the window, as SwiftUI's `frame(minHeight:)` sits under the toolbar (ADR 0117).
+pub(crate) fn below_bar(limit: Option<(u32, u32)>, bar: u32) -> Option<(u32, u32)> {
+    limit.map(|(width, height)| (width, if height == 0 { 0 } else { height + bar }))
+}
+
 #[derive(Clone, Debug)]
 pub struct WindowOptions {
     pub title: Cow<'static, str>,
@@ -566,6 +582,9 @@ impl Runtime {
         {
             style.set_panel(window.wl_surface(), options.panel.flags());
         }
+        let bar = options.window_style.inner_bar_height(false);
+        options.min_size = below_bar(options.min_size, bar);
+        options.max_size = below_bar(options.max_size, bar);
         let state = window_state(&app_id, options.scene);
         let saved: SavedSize = if utility {
             SavedSize::default()
@@ -1007,7 +1026,14 @@ impl Runtime {
 
 #[cfg(test)]
 mod tests {
-    use super::within;
+    use super::{below_bar, within};
+
+    #[test]
+    fn the_limits_add_the_bar_and_keep_an_unbounded_maximum() {
+        assert_eq!(below_bar(Some((600, 360)), 52), Some((600, 412)));
+        assert_eq!(below_bar(Some((600, 0)), 52), Some((600, 0)));
+        assert_eq!(below_bar(None, 52), None);
+    }
 
     #[test]
     fn a_restored_size_stays_within_the_window_limits() {

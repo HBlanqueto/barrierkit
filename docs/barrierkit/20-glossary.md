@@ -1269,6 +1269,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `platform::WindowStatus` | struct | — | — | — | Configure state: activated, maximized, fullscreen, decoration, fixed | [8](08-windows.md#window-state) |
 | `platform::DecorationResponse` | enum | — | — | — | Who draws the title bar: `Client`, `Server` or `Hybrid` (system lights, kit bar) | [8](08-windows.md#window-state) |
 | `platform::WindowStyle` | enum | `WindowStyle` | `≈ NSWindow.StyleMask` | — | Who frames a main window on macOS: `TitleBar`, `HiddenTitleBar` or `Plain` | [8](08-windows.md#window-style) |
+| `platform::WindowOptions::min_size`, `max_size` | method | `frame(minWidth:minHeight:)` on the window's root | `NSWindow.contentMinSize` | — | Limits of the content below the window's bar; the window adds the bar (ADR 0117) | [8](08-windows.md#window-options) |
 | `platform::WindowOptions::window_style` | method | `windowStyle(_:)` | — | — | Chooses the `WindowStyle` of a window | [8](08-windows.md#window-style) |
 | `platform::WindowOptions::opaque` | method | — | `NSWindow.isOpaque` | — | Whether the window is opaque; `false` lets the sidebar glass be the system's material on macOS | [8](08-windows.md#window-options) |
 | `platform::WindowEdge` | enum | — | — | — | Edge or corner for a compositor resize | [8](08-windows.md#resizing-from-the-edges) |

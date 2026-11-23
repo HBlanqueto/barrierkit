@@ -48,7 +48,7 @@ use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
 use super::window::{
-    OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle,
+    OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle, below_bar,
 };
 use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
 use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
@@ -459,10 +459,11 @@ impl Runtime {
                 window.setCollectionBehavior(NSWindowCollectionBehavior::FullScreenPrimary);
             }
         }
-        if let Some((w, h)) = options.min_size {
+        let bar = window_style.inner_bar_height(true);
+        if let Some((w, h)) = below_bar(options.min_size, bar) {
             window.setContentMinSize(NSSize::new(f64::from(w), f64::from(h)));
         }
-        if let Some((w, h)) = options.max_size.filter(|(w, h)| *w > 0 && *h > 0) {
+        if let Some((w, h)) = below_bar(options.max_size, bar).filter(|(w, h)| *w > 0 && *h > 0) {
             window.setContentMaxSize(NSSize::new(f64::from(w), f64::from(h)));
         }
         let delegate = WindowDelegate::object(self.mtm, id);

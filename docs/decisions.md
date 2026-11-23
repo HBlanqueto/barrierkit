@@ -499,6 +499,16 @@ Rejected: a handle that carries an id table the app fills (the context needs not
 Pending: a visual check of a continuous clip against the system's; `scrollTargetBehavior(.paging)`; arbitrary clips (T7).
 Code: `crates/bk/src/scroll/position.rs`, `crates/bk/src/scroll.rs`, `crates/bk/src/shapes.rs`, `crates/bk/tests/kit/scroll.rs`, `crates/bk/tests/kit/shapes.rs`, `agents/recipes/scroll_position.rs`, `agents/recipes/shapes.rs`, [Scrolling](barrierkit/05-controls.md#scroll-position), [Shapes](barrierkit/05-controls.md#shapes)
 
+## 0117 — `min_size` and `max_size` count the content below the window's bar
+Date: 2026-11-23
+Decision:
+- The limits of `WindowOptions` mean what SwiftUI's `.frame(minWidth:minHeight:)` on a window's root means: the content below the bar. The window adds the bar drawn inside it: `SETTINGS.toolbar_height` (52) for `HiddenTitleBar`, the unified toolbar of the SwiftUI twin; `TITLEBAR_CLIENT_HEIGHT` (40) for `TitleBar` on Linux, where the kit's `Titlebar` sits in the surface; 0 for `Plain`. On macOS a `TitleBar` window's native bar is already outside `contentMinSize`. A 0 height in the maximum stays unbounded. `size` stays the whole window, as SwiftUI's `defaultSize`.
+- No default: an app that sets no limit gets none from the kit.
+Why: Resonance's twins declare 600 × 360 and the kit window stopped at 600 × 360 while the SwiftUI one stopped at 600 × 412. Measured on macOS 27.2 (`~/src/probes/minwin`): with the frame, a `WindowGroup` stops at 600 × 412 with a toolbar (a `NavigationSplitView` always has one) and 600 × 392 with the bare 32 pt title bar; its `contentLayoutRect` is then 600 × 360. Without a frame a `NavigationSplitView` stops at 144 × 104 and a plain view at 0 × the bar: SwiftUI's minimum comes from the content's own minimum, which the kit does not measure.
+Rejected: a kit default of SwiftUI's content minimum (it needs the root's measured minimum, `WindowControls::fit` is sheets only); the bar height the `Titlebar` reports at run time (a state the runner would watch for a value fixed by the style).
+Pending: a `HiddenTitleBar` window whose `Titlebar` is `UnifiedCompact` or `Expanded` still adds 52.
+Code: `crates/bk/src/platform/window.rs`, `crates/bk/src/platform/macos/mod.rs`, [Window options](barrierkit/08-windows.md#window-options)
+
 ## 0116 — In full screen the title bar row of a HiddenTitleBar window rides with AppKit's bar
 Date: 2026-11-23
 Decision:

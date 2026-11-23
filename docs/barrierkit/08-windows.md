@@ -87,7 +87,7 @@ method changes one field (the fields are also public).
 | `new(title, app_name)` | — | Visible title and short, stable name |
 | `.app_id(id)` | `io.github.hblanqueto.malaysia.<app_name>` | The Wayland `app_id`. [`titlebar::app_id(name)`](09-titlebars.md#helpers) builds the default |
 | `.size((width, height))` | `WINDOW_DEFAULT_SIZE` (640 × 420) | Initial size. A size saved on close wins, clamped to the limits |
-| `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits. Equal limits make the window fixed-size (`WindowStatus::fixed`); a 0 in the maximum leaves that dimension unbounded |
+| `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits of the content below the window's bar, as SwiftUI's `.frame(minWidth:minHeight:)`: the window adds 52 for `HiddenTitleBar`, the native bar for `TitleBar` (40 on Linux) and 0 for `Plain` (ADR 0117). Equal limits make the window fixed-size (`WindowStatus::fixed`); a 0 in the maximum leaves that dimension unbounded |
 | `.menu(MainMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
 | `.status_item(StatusItem)` | none | A status icon in the menu bar ([13. App](13-app.md)) |
 | `.fullscreen_bar(FullscreenBar)` | `Solid` | How the title bar is drawn over the content in full screen ([9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar)) |
