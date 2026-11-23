@@ -7,13 +7,12 @@ use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
 use freya_core::tree::DiffModifies;
-use freya_engine::prelude::{
-    BlendMode, Data, Paint, Rect as SkRect, RuntimeEffect, SaveLayerRec, TileMode, blur,
-};
+use freya_engine::prelude::{BlendMode, Paint, Rect as SkRect, SaveLayerRec, TileMode, blur};
 use torin::prelude::{Area, Direction, Position, Size};
 
 use crate::elements::{Overrides, forward_overrides};
 use crate::glass::{layout, leaf, material, transparency_reduced};
+use crate::shader::Program;
 use crate::styles::{
     ControlState, GlassContainerStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
 };
@@ -132,12 +131,6 @@ half4 main(float2 p) {
 }
 ";
 
-thread_local! {
-    static EFFECT: Option<RuntimeEffect> = RuntimeEffect::make_for_shader(SKSL, None)
-        .inspect_err(|error| tracing::warn!(%error, "BarrierKit: the glass shader did not compile"))
-        .ok();
-}
-
 #[derive(PartialEq)]
 struct Blob {
     frames: Vec<Frame>,
@@ -149,42 +142,31 @@ struct Blob {
     layout: LayoutData,
 }
 
-fn uniforms(blob: &Blob, scale: f32, mode: f32) -> Vec<f32> {
-    let mut values = Vec::with_capacity(48);
-    let frames = &blob.frames[..blob.frames.len().min(MAX_SHAPES)];
-    for index in 0..MAX_SHAPES {
-        values.extend(match frames.get(index) {
-            Some(f) => [
-                (blob.origin.0 + f.x) * scale,
-                (blob.origin.1 + f.y) * scale,
+impl Blob {
+    fn paint(&self, program: &Program, scale: f32, mode: f32) -> Option<Paint> {
+        let frames = &self.frames[..self.frames.len().min(MAX_SHAPES)];
+        let mut boxes = [0.0f32; 4 * MAX_SHAPES];
+        let mut radii = [0.0f32; MAX_SHAPES];
+        for (index, f) in frames.iter().enumerate() {
+            boxes[index * 4..index * 4 + 4].copy_from_slice(&[
+                (self.origin.0 + f.x) * scale,
+                (self.origin.1 + f.y) * scale,
                 f.width * scale,
                 f.height * scale,
-            ],
-            None => [0.0; 4],
-        });
-    }
-    for index in 0..MAX_SHAPES {
-        values.push(frames.get(index).map_or(0.0, |f| f.radius * scale));
-    }
-    let color = |c: Rgba| [c.r * c.a, c.g * c.a, c.b * c.a, c.a];
-    values.extend([
-        frames.len() as f32,
-        (blob.spacing * scale).max(0.001),
-        scale,
-        mode,
-    ]);
-    values.extend(color(blob.tint));
-    values.extend(color(blob.rim));
-    values
-}
-
-impl Blob {
-    fn paint(&self, effect: &RuntimeEffect, scale: f32, mode: f32) -> Option<Paint> {
-        let bytes: Vec<u8> = uniforms(self, scale, mode)
-            .iter()
-            .flat_map(|value| value.to_ne_bytes())
-            .collect();
-        let shader = effect.make_shader(Data::new_copy(&bytes), &[], None)?;
+            ]);
+            radii[index] = f.radius * scale;
+        }
+        let color = |c: Rgba| [c.r * c.a, c.g * c.a, c.b * c.a, c.a];
+        let shader = program.shader(&[
+            ("frames", &boxes),
+            ("radii", &radii),
+            ("count", &[frames.len() as f32]),
+            ("k", &[(self.spacing * scale).max(0.001)]),
+            ("pixel", &[scale]),
+            ("mode", &[mode]),
+            ("tint", &color(self.tint)),
+            ("rim", &color(self.rim)),
+        ])?;
         let mut paint = Paint::default();
         paint.set_shader(shader);
         paint.set_anti_alias(true);
@@ -233,34 +215,32 @@ impl ElementExt for Blob {
         let scale = context.scale_factor as f32;
         let bounds = self.bounds(scale);
         let canvas = context.canvas;
-        EFFECT.with(|effect| {
-            let Some(effect) = effect else {
-                return;
-            };
-            let (Some(mut mask), Some(overlay)) = (
-                self.paint(effect, scale, 0.0),
-                self.paint(effect, scale, 1.0),
-            ) else {
-                return;
-            };
-            let filter = self.blur.and_then(|radius| {
-                let sigma = radius * scale;
-                blur((sigma, sigma), TileMode::Clamp, None, None)
-            });
-            let layer = SaveLayerRec::default().bounds(&bounds);
-            // SaveLayerRec bounds are only a hint; without the clip the blurred layer covers the whole canvas.
-            canvas.save();
-            canvas.clip_rect(bounds, None, Some(true));
-            canvas.save_layer(&match &filter {
-                Some(filter) => layer.backdrop(filter),
-                None => layer,
-            });
-            mask.set_blend_mode(BlendMode::DstIn);
-            canvas.draw_rect(bounds, &mask);
-            canvas.draw_rect(bounds, &overlay);
-            canvas.restore();
-            canvas.restore();
+        let Some(program) = Program::get(SKSL) else {
+            return;
+        };
+        let (Some(mut mask), Some(overlay)) = (
+            self.paint(&program, scale, 0.0),
+            self.paint(&program, scale, 1.0),
+        ) else {
+            return;
+        };
+        let filter = self.blur.and_then(|radius| {
+            let sigma = radius * scale;
+            blur((sigma, sigma), TileMode::Clamp, None, None)
         });
+        let layer = SaveLayerRec::default().bounds(&bounds);
+        // SaveLayerRec bounds are only a hint; without the clip the blurred layer covers the whole canvas.
+        canvas.save();
+        canvas.clip_rect(bounds, None, Some(true));
+        canvas.save_layer(&match &filter {
+            Some(filter) => layer.backdrop(filter),
+            None => layer,
+        });
+        mask.set_blend_mode(BlendMode::DstIn);
+        canvas.draw_rect(bounds, &mask);
+        canvas.draw_rect(bounds, &overlay);
+        canvas.restore();
+        canvas.restore();
     }
 }
 
@@ -470,7 +450,7 @@ mod tests {
 
     #[test]
     fn the_shader_compiles_and_takes_every_uniform() {
-        let effect = RuntimeEffect::make_for_shader(SKSL, None).unwrap();
+        let program = Program::get(SKSL).unwrap();
         let blob = Blob {
             frames: vec![frame(0.0)],
             spacing: 12.0,
@@ -480,6 +460,7 @@ mod tests {
             rim: MEDIA.round_rim,
             layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
         };
-        assert_eq!(effect.uniform_size(), uniforms(&blob, 1.0, 0.0).len() * 4);
+        assert!(blob.paint(&program, 1.0, 0.0).is_some());
+        assert!(blob.paint(&program, 2.0, 1.0).is_some());
     }
 }

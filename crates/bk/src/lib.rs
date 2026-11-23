@@ -2,6 +2,7 @@ mod app_icon;
 mod fonts;
 mod logging;
 mod session_bus;
+mod shader;
 
 pub use fonts::register_font;
 pub use logging::init_tracing;

@@ -113,7 +113,7 @@ The kit already asks for the blur: `shell/blur_region.rs` sends
 | ID | What | Why | Cost |
 |---|---|---|---|
 | P1 | A subtree layer hook ([plan](#p1-plan)). The kit calls `RenderPipeline` itself (`platform/surface.rs:256`) and `Tree` fields are public, so the kit can copy the ~170-line loop of `freya-core-0.5.3/src/render_pipeline.rs` and draw a group's descendants into one layer that carries an image filter, a blend mode or a mask. | The loop paints breadth-first, one z-layer per tree depth, and applies each ancestor's opacity per node with `save_layer_alpha_f`. No SwiftUI effect on a container can be built on that. | L |
-| P2 | A shader registry: compile each SkSL source once, keep the `RuntimeEffect`, read uniform names, types and order with `RuntimeEffect::uniforms()`, check arguments at bind time. | Today each shader packs uniform bytes by hand in a fixed order. Reflection works: the probe printed `uniforms` and `children` counts for every effect (E1). | M |
+| P2 | A shader registry: compile each SkSL source once, keep the `RuntimeEffect`, read uniform names, types and order with `RuntimeEffect::uniforms()`, check arguments at bind time. **Done for uniforms (2026-11-22):** `crates/bk/src/shader.rs` (`Program::get`, `pack`, `BindError`); `glass_container.rs` binds its eight uniforms by name through it. Children (`image` arguments) and `app_icon.rs` are not moved. | Each shader packed uniform bytes by hand in a fixed order. Reflection works: the probe printed `uniforms` and `children` counts for every effect (E1), and the test of `shader.rs` reads `box`, `ramp`, `tint` at byte offsets 0, 16 and 24: Skia packs the uniforms with no padding to 16 bytes, as the hand-kept array did. | M |
 
 A whole-window variant is cheap (render the tree into an offscreen surface, then
 draw it through a filter), but no SwiftUI API needs only that.
@@ -369,6 +369,7 @@ E1 to E13 ran on Skia's **CPU raster**; no GPU ran. E14 ran on macOS 27.2.1 in a
   behavior is read from the protocol XML only.
 - glslang, SPIRV-Cross and shaderc as bridges.
 - P1: that the group pass keeps clip, scale and rotation right (M3 goldens test it).
+- The first effects driven by a time uniform (the edge of a scroll, a glass morph on the GPU): not built. The morph of `GlassContainer` interpolates its frames on the CPU and retargets from them (`plan`, `Frame::lerp`), so a `from`, `to` and `t` in the shader would duplicate that state; an effect that needs elapsed time, such as a scroll-edge glow, needs P1 for its container and a clock the shader reads. The registry already binds a `time` float by name.
 
 ## Rows for the coverage matrix
 
@@ -395,7 +396,7 @@ E1 to E13 ran on Skia's **CPU raster**; no GPU ran. E14 ran on macOS 27.2.1 in a
 
 1. **Fund P1** (a kit-owned render loop, L; [plan](#p1-plan)). It unlocks rows 2 to 4, 7 to 12, 17,
    18 and 25 and removes two existing workarounds. Without it the kit ships leaf
-   effects only (images, symbols, shapes, `Canvas`). Planned on 2026-11-21; nothing is implemented.
+   effects only (images, symbols, shapes, `Canvas`). Planned on 2026-11-21; nothing of P1 is implemented (P2's uniforms are, see the table).
 2. **Where shared shader functions live.** In the kit, with `grade-graphics`
    including them (one source, reversed dependency), or kept apart with a
    raster test that compares each pair.
