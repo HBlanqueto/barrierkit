@@ -1058,6 +1058,8 @@
   --bk-list-group-section-header-padding-1: 10;
   --bk-list-group-section-header-padding-2: 10;
   --bk-list-group-section-header-padding-3: 10;
+  --bk-navigation-parallax: 0.3;
+  --bk-navigation-dim: 0.13;
   --bk-scroll-pocket-blur: 3.4;
   --bk-scroll-pocket-scale-light: 0.5;
   --bk-scroll-pocket-offset-light: 0.5349;

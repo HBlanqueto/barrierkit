@@ -172,6 +172,7 @@ A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)` calls `on
 | `.onChange(of:)` | `use_side_effect_with_deps(&value, ..)`; the old value from `use_previous_and_current` | when the value changes, and once at creation |
 | `.task`, `.task(id:)` | `use_future(..)`; a `State` read outside the async block restarts it | cancelled when the view leaves the tree |
 | `TimelineView` | `use_timeline(active, every)` | every `every` while `active` ([`stopwatch.rs`](../../agents/recipes/stopwatch.rs)) |
+| `NavigationStack(path:)`, `NavigationLink(value:)` | `NavigationStack::new(path, root, destination)` and `use_navigation_path::<R>()` | pages that push and pop ([`navigation_stack.rs`](../../agents/recipes/navigation_stack.rs)) |
 | `withAnimation(.spring(duration:bounce:)) { … }` | `with_animation(Animation::Spring { duration_ms, bounce }, || …)` and `use_animated` | the changes that follow use the animation ([`with_animation.rs`](../../agents/recipes/with_animation.rs)) |
 
 The hooks are in `freya-core` 0.5.3, `src/lifecycle/` and `src/hooks/`.

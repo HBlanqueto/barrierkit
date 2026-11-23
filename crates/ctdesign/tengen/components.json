@@ -709,6 +709,10 @@
         ]
       }
     },
+    "navigation": {
+      "parallax": 0.3,
+      "dim": 0.13
+    },
     "scroll-pocket": {
       "blur": 3.4,
       "scale-light": 0.5,

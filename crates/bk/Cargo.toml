@@ -230,3 +230,7 @@ path = "../../agents/recipes/with_animation.rs"
 [[example]]
 name = "compositing_group"
 path = "../../agents/recipes/compositing_group.rs"
+
+[[example]]
+name = "navigation_stack"
+path = "../../agents/recipes/navigation_stack.rs"

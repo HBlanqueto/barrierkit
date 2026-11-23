@@ -389,3 +389,19 @@ The program is [`recipes/compositing_group.rs`](recipes/compositing_group.rs).
 3. `GroupEffect::Shader` runs an SkSL image filter. `uniform shader content;`
    receives the layer. A uniform named `time` is the seconds since the group
    appeared, and the group redraws every frame while the shader has it.
+
+## 32. Pages that push and pop
+
+SwiftUI: `NavigationStack(path: $path) { Home() .navigationDestination(for: Route.self) { Detail($0) } }` with `NavigationLink(value:)`.
+
+The program is [`recipes/navigation_stack.rs`](recipes/navigation_stack.rs).
+
+1. The app owns the route type and a `State<NavigationPath<Route>>`.
+   `NavigationStack::new(path, root, |route| page)` draws the root and one page per route.
+2. `use_navigation_path::<Route>()` gives any page below the stack the path, so a
+   button pushes (`path.write().push(..)`) or pops without a callback chain.
+3. A push moves the new page in from the right edge and the old one 30 % of the
+   width to the left, dimmed, on the spring measured on Mac Catalyst
+   ([UIKit animations](../docs/research/uikit-animations.md#2-motion-table)). Reduced motion
+   shows the page at once. Wrap the change in `with_animation` to use another
+   animation ([14](../docs/barrierkit/14-animations.md#implicit-animation)).

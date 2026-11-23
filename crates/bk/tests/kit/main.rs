@@ -20,6 +20,7 @@ mod list_rows;
 mod menu;
 mod modifiers;
 mod motion;
+mod navigation_stack;
 mod scroll;
 mod swiftui_defaults;
 mod swiftui_twin;

@@ -838,6 +838,26 @@ Two [`Action`](13-app.md)s: `go-back` ("Back", Alt+←) and `go-forward`
 `ToolGroupStyle` and its arrows `IconButtonStyle`
 ([Styles and themes](../../agents/styles.md#which-controls-take-a-style)).
 
+### `NavigationStack`
+
+`NavigationStack::new(path, root, destination)` is SwiftUI's `NavigationStack`: the
+root page, and one page per route of a `NavigationPath<R>` the app keeps in a
+`State` ([ADR 0085](../decisions.md) keeps the kit without `Binding`; the path is
+a `State`, like `History`).
+
+| Item | What it does |
+|---|---|
+| `NavigationPath::new()`, `push`, `pop`, `pop_to_root`, `truncate(len)`, `len`, `is_empty` | The routes pushed over the root, last on top |
+| `NavigationStack::new(path, root, \|route\| page)` | Draws the root and the page of each route |
+| `use_navigation_path::<R>()` | The path of the stack above, for a page that pushes or pops |
+
+A push moves the new page in from the right edge and the page below 30 % of
+the width to the left (`NAVIGATION_PARALLAX`), dimmed by a black of 0.13
+(`NAVIGATION_DIM`), on a critically damped spring of `SPRING_PUSH_MS`; a pop is
+the same reversed. The pages below the one shown are not mounted: while the
+stack settles only the top page is drawn, so a page rebuilds its state when
+the path pops back to it. The edge shadow of UIKit is not drawn.
+
 ## Search
 
 ### `SearchIndex`

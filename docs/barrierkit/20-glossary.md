@@ -1321,6 +1321,10 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `views::navigation::History` | struct | — | — | — | A back-and-forward list of pages | [11](11-views.md#history) |
 | `views::navigation::NavigationButtons` | struct | — | — | — | Back and forward buttons in a tool group, with Alt+arrow shortcuts | [11](11-views.md#navigationbuttons) |
+| `views::navigation_stack::NavigationPath` | struct | `NavigationPath` | — | ≈ `UINavigationController.viewControllers` | The routes pushed over the root of a stack: `push`, `pop`, `pop_to_root`, `truncate`, `len` | [11](11-views.md#navigationstack) |
+| `views::navigation_stack::NavigationStack` | struct | `NavigationStack` | — | ≈ `UINavigationController` | The root and one page per route, with the measured push and pop | [11](11-views.md#navigationstack) |
+| `views::navigation_stack::use_navigation_path` | fn | ≈ `NavigationLink(value:)` | — | ≈ `UIViewController.navigationController` | The path of the stack above a page | [11](11-views.md#navigationstack) |
+| `ctdesign::NAVIGATION_PARALLAX`, `NAVIGATION_DIM` | constant | — | — | ≈ `UINavigationController` push | How far the page below leaves (0.3 of the width) and how dark it gets (0.13) | [4](04-appearance-and-tokens.md#motion) |
 | `views::navigation::GO_BACK`, `views::navigation::GO_FORWARD` | constant | — | — | — | The Back (Alt+←) and Forward (Alt+→) actions | [11](11-views.md#go_back-and-go_forward) |
 | `views::search::SearchIndex` | struct | — | — | — | Entries searched by title and keywords, ignoring case and accents | [11](11-views.md#searchindex) |
 | `views::search::Entry` | struct | — | — | — | One search entry: key, title and keywords | [11](11-views.md#entry) |

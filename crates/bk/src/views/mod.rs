@@ -5,6 +5,7 @@ pub mod form;
 pub mod group;
 pub mod list;
 pub mod navigation;
+pub mod navigation_stack;
 pub mod search;
 pub mod split;
 pub mod split_panes;
