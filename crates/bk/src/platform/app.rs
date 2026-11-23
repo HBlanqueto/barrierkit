@@ -8,6 +8,7 @@ use crate::platform::macos::accessibility::Bridge;
 use crate::styles::Theme;
 use ctappearance::Resolved;
 use freya_components::{cache::AssetCacher, integration::integration};
+use freya_core::events::modifiers::ModifiersExt;
 use freya_core::prelude::{Code, CursorIcon, Key, Modifiers, NamedKey};
 use freya_core::{
     accessibility::tree::{ACCESSIBILITY_ROOT_ID, AccessibilityTree},
@@ -343,6 +344,14 @@ impl AppInstance {
         self.platform.focused_accessibility_node.peek().role()
     }
 
+    pub(crate) fn edit_focused_field(&mut self, id: &str) -> bool {
+        let key = crate::main_menu::field_edit_key(id).filter(|_| self.text_field_focused());
+        if let Some(key) = key {
+            self.pending_shortcuts.push(Key::Character(key.into()));
+        }
+        key.is_some()
+    }
+
     pub(crate) fn text_field_focused(&self) -> bool {
         matches!(
             self.focused_role(),
@@ -492,7 +501,7 @@ impl AppInstance {
             self.waker.wake_by_ref();
         }
         for key in std::mem::take(&mut self.pending_shortcuts) {
-            self.press(key, Code::Unidentified, Modifiers::CONTROL);
+            self.press(key, Code::Unidentified, Modifiers::ctrl_or_meta());
         }
         result.needs_render
     }

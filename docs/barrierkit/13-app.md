@@ -146,13 +146,14 @@ The kit declares these actions:
 `Commands` gives the windows of an `Application` the menus that SwiftUI gives
 an app. Titles, order and shortcuts come from a SwiftUI app measured on
 macOS 27.2.1 in English and Spanish
-([the measurement](../research/macos-standard-menus.md)). It is opt in: an app
-without `.commands(..)` keeps the menu of its `WindowOptions::menu`, or has
-none, and a scene whose options carry a `MainMenu` keeps that one.
+([the measurement](../research/macos-standard-menus.md)). Every `Application`
+has them (ADR 0115); a scene whose options carry a `MainMenu` keeps that one.
+An app that draws its own title bar sets `HiddenTitleBar` or `Plain` in
+`.options(..)`: its window gets no kit `Titlebar`, and keeps the menus.
 
-1. Add `.commands(Commands::new())` to the `Application`.
+1. To change them, pass `.commands(Commands::new()..)` to the `Application`.
 2. Add your own menus with `.menu(Menu::new(title, items))` (SwiftUI's
-   `CommandMenu`). They sit between Edit and Window.
+   `CommandMenu`). They sit between View and Window.
 3. Add to a standard group, or replace it, with
    `.group(CommandGroup::after(CommandGroupPlacement::NewItem, items))`
    (`before`, `after` and `replacing`).
@@ -169,6 +170,7 @@ The menus, in order, and the groups you can place items in:
 | the app name | `AppSettings`, `AppTermination` | Settings…, Quit *App* |
 | File | `NewItem`, `SaveItem` | New Window, Close |
 | Edit | `UndoRedo`, `Pasteboard`, `TextEditing` | Undo, Redo; Cut, Copy, Paste, Delete, Select All; Find ▸ (only with `.text_editing()`) |
+| View | | Enter Full Screen |
 | your `.menu(..)` menus | | |
 | Window | `WindowSize`, `SingleWindowList`, `WindowArrangement`, `WindowList` | Minimize, Zoom; one item per `Window` scene; Bring All to Front; one item per open window |
 | Help | `Help` | *App* Help |
@@ -189,16 +191,24 @@ keyboard layout.
 | `MINIMIZE` | Ctrl+M | the kit | always |
 | `ZOOM` | none | the kit: maximizes or restores | not for a fixed-size window |
 | `BRING_ALL_TO_FRONT` | none | the kit | always |
+| `TOGGLE_FULL_SCREEN` | F11 (⌃⌘F on macOS) | the kit: enters or leaves full screen | not for a fixed-size window |
 | `UNDO`, `REDO` | Ctrl+Z, Ctrl+Shift+Z | [`use_undo`](#undo) | while a stack has a value |
-| `CUT`, `COPY`, `PASTE`, `SELECT_ALL` | Ctrl+X, C, V, A | the app | after `use_menu_enabled` |
+| `CUT`, `COPY`, `PASTE`, `SELECT_ALL` | Ctrl+X, C, V, A | a focused text field, else the app | while a text field is focused (macOS), or after `use_menu_enabled` |
 | `DELETE` | none | the app | after `use_menu_enabled` |
 | `FIND`, `FIND_AND_REPLACE`, `FIND_NEXT`, `FIND_PREVIOUS`, `USE_SELECTION_FOR_FIND`, `JUMP_TO_SELECTION` | Ctrl+F, Ctrl+Alt+F, Ctrl+G, Ctrl+Shift+G, Ctrl+E, Ctrl+J | the app | after `use_menu_enabled` |
 | `HELP` | F1 | the app | after `use_menu_enabled` |
 
-The kit does not route a command to the focused view
-([ADR 0085](../decisions.md)), so the items the app handles start disabled. A
-text field copies, cuts, pastes and selects with its own shortcuts and never
-touches the menu.
+Undo, Redo, Cut, Copy, Paste and Select All go to a focused text field first,
+as AppKit sends them to the first responder: the field gets its own shortcut.
+Otherwise they reach the app's `use_menu_action`. The kit routes no other
+command to the focused view ([ADR 0085](../decisions.md)), so Delete, Find and
+Help start disabled until the app serves them.
+
+On macOS the menus are AppKit's: the app menu carries the bundle name,
+Settings… and Services; Enter Full Screen, Minimize, Zoom, Bring All to Front
+and a Help the app does not serve are AppKit's own items, so AppKit adds Fill,
+Center, Move & Resize and Full Screen Tile to Window and a search field to Help
+(ADR 0115).
 
 ```swift
 // ✗ Button("Copy") { }.keyboardShortcut("c") in a CommandGroup, enabled by the responder chain

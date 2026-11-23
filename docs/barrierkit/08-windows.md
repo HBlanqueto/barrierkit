@@ -173,6 +173,10 @@ windows and sheets are always `TitleBar`.
 | `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, an empty unified `NSToolbar` that puts the native lights where the kit draws its own | `Hybrid` | The kit draws its `Titlebar` and sidebar beside the native lights and draws none of its own |
 | `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | The kit draws the `Titlebar` and `TrafficLights`, as on Linux |
 
+In an `Application`, a `HiddenTitleBar` or `Plain` window gets no kit
+`Titlebar`: the app draws its own and keeps the scenes and the standard menus
+([13](13-app.md#standard-menus)).
+
 A `Plain` window moves with `WindowControls::move_window` (a press on the
 `Titlebar`): the view moves it while the button is down, because
 `performWindowDragWithEvent` does not begin on macOS 27.2. It resizes from the

@@ -468,6 +468,8 @@ impl Runtime {
         container.addSubview(&view);
         window.setContentView(Some(&container));
         self.follow_scheme(&window);
+        // The kit's Window menu lists its windows itself; AppKit would list each one twice.
+        window.setExcludedFromWindowsMenu(true);
         window.center();
 
         let status = State::create_global(WindowStatus {

@@ -219,7 +219,22 @@ use freya_core::prelude::{
     Key, Modifiers, WritableUtils, try_consume_root_context, use_hook, use_state,
 };
 
+use crate::app::{COPY, CUT, PASTE, REDO, SELECT_ALL, UNDO};
 use crate::menu::shortcut_matches;
+
+// A focused text field serves these Edit items before the app, as AppKit's responder chain does (ADR 0088).
+pub(crate) fn field_edit_key(id: &str) -> Option<&'static str> {
+    [
+        (UNDO, "z"),
+        (REDO, "y"),
+        (CUT, "x"),
+        (COPY, "c"),
+        (PASTE, "v"),
+        (SELECT_ALL, "a"),
+    ]
+    .into_iter()
+    .find_map(|(action, key)| (action.id == id).then_some(key))
+}
 
 pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
     let Key::Character(text) = key else {

@@ -49,7 +49,9 @@ impl Runtime {
                 .flat_map(|handle| handle.drain_actions())
                 .collect();
             for id in action_ids {
-                surface.app.menu_actions.dispatch(&id);
+                if !surface.app.edit_focused_field(&id) {
+                    surface.app.menu_actions.dispatch(&id);
+                }
             }
         }
     }

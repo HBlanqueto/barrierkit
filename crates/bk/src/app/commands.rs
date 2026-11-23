@@ -49,6 +49,11 @@ pub const MINIMIZE: Action = Action::new("minimize", || text!("window-minimize")
 pub const ZOOM: Action = Action::new("zoom", || text!("window-zoom"));
 pub const BRING_ALL_TO_FRONT: Action =
     Action::new("bring-all-to-front", || text!("bring-all-to-front"));
+pub const TOGGLE_FULL_SCREEN: Action =
+    Action::new("toggle-full-screen", || text!("enter-full-screen")).shortcut(Shortcut::new(
+        Modifiers::empty(),
+        ShortcutKey::Named(NamedKey::F11),
+    ));
 pub const HELP: Action = Action::new("help", || text!("help")).shortcut(Shortcut::new(
     Modifiers::empty(),
     ShortcutKey::Named(NamedKey::F1),
@@ -155,6 +160,10 @@ impl Commands {
             Menu::new(
                 text!("menu-edit"),
                 group(&[UndoRedo, Pasteboard, TextEditing]),
+            ),
+            Menu::new(
+                text!("menu-view"),
+                vec![TOGGLE_FULL_SCREEN.item(layout.zoom)],
             ),
         ];
         menus.extend(self.menus.iter().cloned());
@@ -339,6 +348,7 @@ mod tests {
                 "Notes",
                 text!("menu-file"),
                 text!("menu-edit"),
+                text!("menu-view"),
                 text!("menu-window"),
                 text!("help"),
             ]
@@ -483,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    fn a_command_menu_sits_between_edit_and_window() {
+    fn a_command_menu_sits_between_view_and_window() {
         let bar = Commands::new()
             .menu(Menu::new(
                 "Notes tools",
@@ -492,8 +502,8 @@ mod tests {
             .menu_bar(&layout());
         let titles: Vec<&str> = bar.menus.iter().map(|menu| &*menu.title).collect();
         assert_eq!(
-            titles[2..5],
-            [text!("menu-edit"), "Notes tools", text!("menu-window")]
+            titles[3..6],
+            [text!("menu-view"), "Notes tools", text!("menu-window")]
         );
     }
 

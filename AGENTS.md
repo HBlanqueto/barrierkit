@@ -216,8 +216,9 @@ pub fn focused(mut self, focused: bool) -> Self { … }
 ```
 
 - Una app empieza por `use bk::prelude::*;` y
-  `Application::new(..).window(..).run()`; `run_window` solo cuando dibuja su
-  propia barra de título (ADR 0061).
+  `Application::new(..).window(..).run()`; si dibuja su propia barra de
+  título, con `.options(|w| w.window_style(WindowStyle::HiddenTitleBar))`
+  (ADR 0115).
 - Los colores, radios, duraciones y métricas nuevos van a `ctdesign`, nunca
   a `bk`.
 - El claro u oscuro lo decide el sistema (ADR 0114): una app no fija su

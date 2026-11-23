@@ -8,13 +8,13 @@ use freya_core::prelude::*;
 
 use super::commands::{
     BRING_ALL_TO_FRONT, CLOSE_WINDOW, Commands, Layout, MINIMIZE, NEW_WINDOW, QUIT, SETTINGS,
-    WINDOW_ACTIVATE, WINDOW_OPEN, ZOOM,
+    TOGGLE_FULL_SCREEN, WINDOW_ACTIVATE, WINDOW_OPEN, ZOOM,
 };
 use super::use_menu_action;
 use crate::document::first_edited;
 use crate::i18n::text;
 use crate::main_menu::MenuHandle;
-use crate::platform::{WindowControls, WindowOptions};
+use crate::platform::{WindowControls, WindowOptions, WindowStyle};
 use crate::titlebar::Titlebar;
 
 pub const MAIN_WINDOW: &str = "main";
@@ -340,6 +340,8 @@ impl Scenes {
             own.minimize();
         } else if action == ZOOM.id {
             own.toggle_maximize();
+        } else if action == TOGGLE_FULL_SCREEN.id {
+            own.toggle_fullscreen();
         } else if action == BRING_ALL_TO_FRONT.id {
             for window in self.0.open.peek().iter() {
                 window.controls.make_key_and_order_front();
@@ -376,17 +378,21 @@ fn scene_root(scenes: &Scenes, index: usize, value: Option<Rc<dyn Any>>) -> Elem
     let content = (scene.build)(value.as_deref());
     match scene.kind {
         Kind::Settings => content.into_element(),
-        Kind::Group | Kind::Window => window_root(scene.options.title.clone(), content),
+        Kind::Group | Kind::Window => window_root(&scene.options, content),
     }
 }
 
-fn window_root(title: Cow<'static, str>, content: AppComponent) -> Element {
+// A window with a hidden title bar or a plain frame draws its own bar, as SwiftUI's `.hiddenTitleBar`.
+fn window_root(options: &WindowOptions, content: AppComponent) -> Element {
     rect()
         .expanded()
         .background(crate::theme::color(
             crate::style::Palette::current().window_background,
         ))
-        .child(Titlebar::new().title(title))
+        .maybe_child(
+            (options.window_style == WindowStyle::TitleBar)
+                .then(|| Titlebar::new().title(options.title.clone())),
+        )
         .child(rect().expanded().center().child(content))
         .into_element()
 }

@@ -20,7 +20,7 @@ impl Application {
             name: name.into(),
             theme: Theme::tengen(),
             scenes: Vec::new(),
-            commands: None,
+            commands: Some(Commands::new()),
         }
     }
 

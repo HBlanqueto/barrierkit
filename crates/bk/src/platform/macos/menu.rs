@@ -8,10 +8,11 @@ use objc2_app_kit::{
     NSApplication, NSControlStateValueMixed, NSControlStateValueOff, NSControlStateValueOn,
     NSEventModifierFlags, NSMenu, NSMenuItem,
 };
-use objc2_foundation::{NSObject, NSObjectProtocol, NSString};
+use objc2_foundation::{NSBundle, NSObject, NSObjectProtocol, NSString, ns_string};
 
 use super::with_runtime;
-use crate::main_menu::MenuHandle;
+use crate::app::{BRING_ALL_TO_FRONT, HELP, MINIMIZE, QUIT, SETTINGS, TOGGLE_FULL_SCREEN, ZOOM};
+use crate::main_menu::{Menu, MenuHandle, field_edit_key};
 use crate::menu::{CheckState, MenuItem, shortcut_keys};
 use crate::status_item::STATUS_ITEM_ACTIVATE;
 
@@ -182,6 +183,16 @@ define_class!(
         fn activate(&self, _: &AnyObject) {
             fire(STATUS_ITEM_ACTIVATE, *self.ivars());
         }
+
+        // The tag holds the kit's enabled state; a focused text field enables the Edit items it serves.
+        #[unsafe(method(validateMenuItem:))]
+        fn validate_menu_item(&self, item: &NSMenuItem) -> bool {
+            item.tag() != 0
+                || item
+                    .representedObject()
+                    .and_then(|object| object.downcast::<NSString>().ok())
+                    .is_some_and(|id| field_serves(&id.to_string(), *self.ivars()))
+        }
     }
 );
 
@@ -234,7 +245,13 @@ fn app_item(
     item
 }
 
-fn app_menu(mtm: MainThreadMarker, name: &str) -> Retained<NSMenu> {
+// Items 2 and 3 are Settings… and its separator, shown while the window's menu has `SETTINGS`.
+fn app_menu(
+    mtm: MainThreadMarker,
+    app: &NSApplication,
+    target: &Target,
+    name: &str,
+) -> Retained<NSMenu> {
     let command = NSEventModifierFlags::Command;
     let menu = NSMenu::new(mtm);
     let add = |item: Retained<NSMenuItem>| menu.addItem(&item);
@@ -245,6 +262,22 @@ fn app_menu(mtm: MainThreadMarker, name: &str) -> Retained<NSMenu> {
         "",
         command,
     ));
+    add(NSMenuItem::separatorItem(mtm));
+    let settings = app_item(mtm, SETTINGS.title(), sel!(fire:), ",", command);
+    settings.setTag(1);
+    // SAFETY: `fire:` is `Target`'s action and the target lives in `Installed` as long as the menu.
+    unsafe {
+        settings.setRepresentedObject(Some(&text(SETTINGS.id)));
+        settings.setTarget(Some(target));
+    }
+    add(settings);
+    add(NSMenuItem::separatorItem(mtm));
+    let services = NSMenu::initWithTitle(NSMenu::alloc(mtm), &text(crate::i18n::text!("services")));
+    let item = NSMenuItem::new(mtm);
+    item.setTitle(&text(crate::i18n::text!("services")));
+    item.setSubmenu(Some(&services));
+    app.setServicesMenu(Some(&services));
+    add(item);
     add(NSMenuItem::separatorItem(mtm));
     add(app_item(
         mtm,
@@ -278,18 +311,28 @@ fn app_menu(mtm: MainThreadMarker, name: &str) -> Retained<NSMenu> {
     menu
 }
 
+// The menu bar names the app after its bundle, as AppKit does, and falls back to the app id.
+fn bundle_name() -> Option<String> {
+    NSBundle::mainBundle()
+        .objectForInfoDictionaryKey(ns_string!("CFBundleName"))
+        .and_then(|name| name.downcast::<NSString>().ok())
+        .map(|name| name.to_string())
+}
+
 pub(super) fn install(mtm: MainThreadMarker, app: &NSApplication, name: &str) {
+    let name = bundle_name().unwrap_or_else(|| name.to_owned());
     let main = NSMenu::new(mtm);
     main.setAutoenablesItems(false);
+    let target = Target::new(mtm, None);
     let item = NSMenuItem::new(mtm);
-    item.setSubmenu(Some(&app_menu(mtm, name)));
+    item.setSubmenu(Some(&app_menu(mtm, app, &target, &name)));
     main.addItem(&item);
     app.setMainMenu(Some(&main));
     MENU.with(|slot| {
         *slot.borrow_mut() = Some(Installed {
             mtm,
             main,
-            target: Target::new(mtm, None),
+            target,
             handles: HashMap::new(),
             shown: None,
         });
@@ -320,6 +363,7 @@ fn configure(installed: &Installed, item: &NSMenuItem, entry: &Entry) {
     };
     item.setTitle(&text(title));
     item.setEnabled(enabled);
+    item.setTag(enabled.into());
     item.setState(match state {
         State::Off => NSControlStateValueOff,
         State::On => NSControlStateValueOn,
@@ -338,15 +382,49 @@ fn configure(installed: &Installed, item: &NSMenuItem, entry: &Entry) {
         item.setAction(action);
         item.setTarget(target);
     }
+    if let Some((action, key, mask)) = id.and_then(|id| native(id, enabled)) {
+        // SAFETY: NSWindow and NSApplication answer these selectors through the responder chain.
+        unsafe {
+            item.setAction(Some(action));
+            item.setTarget(None);
+        }
+        item.setKeyEquivalent(&text(key));
+        item.setKeyEquivalentModifierMask(mask);
+        if id.is_some_and(|id| id == HELP.id)
+            && let Some(name) = bundle_name()
+        {
+            item.setTitle(&text(&crate::i18n::text!("help-app", app = name)));
+        }
+    }
     if let Entry::Submenu { title, items, .. } = entry {
         let submenu = item.submenu().unwrap_or_else(|| {
             let submenu = NSMenu::initWithTitle(NSMenu::alloc(installed.mtm), &text(title));
-            submenu.setAutoenablesItems(false);
+            submenu.setAutoenablesItems(true);
             item.setSubmenu(Some(&submenu));
             submenu
         });
         submenu.setTitle(&text(title));
         apply(installed, &submenu, 0, items);
+    }
+}
+
+// AppKit serves these as a Swift app's: it validates them, adds its alternates and tiling items next to them, and retitles full screen.
+fn native(
+    id: &str,
+    enabled: bool,
+) -> Option<(objc2::runtime::Sel, &'static str, NSEventModifierFlags)> {
+    let (command, none) = (NSEventModifierFlags::Command, NSEventModifierFlags::empty());
+    match id {
+        _ if id == TOGGLE_FULL_SCREEN.id => Some((
+            sel!(toggleFullScreen:),
+            "f",
+            command | NSEventModifierFlags::Control,
+        )),
+        _ if id == MINIMIZE.id => Some((sel!(performMiniaturize:), "m", command)),
+        _ if id == ZOOM.id => Some((sel!(performZoom:), "", none)),
+        _ if id == BRING_ALL_TO_FRONT.id => Some((sel!(arrangeInFront:), "", none)),
+        _ if id == HELP.id && !enabled => Some((sel!(showHelp:), "?", command)),
+        _ => None,
     }
 }
 
@@ -393,8 +471,15 @@ fn show_in(installed: &mut Installed, owner: u64) {
         return;
     };
     let (menu, revision) = handle.snapshot();
-    let entries: Vec<Entry> = menu
+    let settings = menu.menus.iter().flat_map(|menu| &menu.items).any(
+        |item| matches!(item, MenuItem::Action { id, enabled: true, .. } if id == SETTINGS.id),
+    );
+    let menus: Vec<&Menu> = menu
         .menus
+        .iter()
+        .filter(|menu| !holds(menu, QUIT.id))
+        .collect();
+    let entries: Vec<Entry> = menus
         .iter()
         .map(|menu| Entry::Submenu {
             title: menu.title.to_string(),
@@ -403,6 +488,28 @@ fn show_in(installed: &mut Installed, owner: u64) {
         })
         .collect();
     apply(installed, &installed.main, 1, &entries);
+    let submenu = |index: usize| {
+        installed
+            .main
+            .itemAtIndex(index as isize)
+            .and_then(|item| item.submenu())
+    };
+    if let Some(app_menu) = submenu(0) {
+        for index in [2, 3] {
+            if let Some(item) = app_menu.itemAtIndex(index) {
+                item.setHidden(!settings);
+            }
+        }
+    }
+    // AppKit adds its tiling items to the menu it knows as Window, and the search field to Help.
+    let app = NSApplication::sharedApplication(installed.mtm);
+    for (index, menu) in menus.iter().enumerate() {
+        if holds(menu, MINIMIZE.id) {
+            app.setWindowsMenu(submenu(index + 1).as_deref());
+        } else if holds(menu, HELP.id) {
+            app.setHelpMenu(submenu(index + 1).as_deref());
+        }
+    }
     installed.shown = Some(Shown { owner, revision });
 }
 
@@ -481,8 +588,14 @@ pub(super) fn sync() {
     });
 }
 
-fn fire(id: &str, owner: Option<u64>) {
-    let Some(owner) = owner.or_else(|| {
+fn holds(menu: &Menu, id: &str) -> bool {
+    menu.items
+        .iter()
+        .any(|item| matches!(item, MenuItem::Action { id: own, .. } if own == id))
+}
+
+fn shown_owner(owner: Option<u64>) -> Option<u64> {
+    owner.or_else(|| {
         MENU.with(|slot| {
             slot.borrow()
                 .as_ref()?
@@ -490,18 +603,33 @@ fn fire(id: &str, owner: Option<u64>) {
                 .as_ref()
                 .map(|shown| shown.owner)
         })
-    }) else {
-        return;
-    };
-    let Some(actions) = with_runtime(|runtime| {
-        runtime
-            .window(owner)
-            .map(|window| window.app.menu_actions.clone())
     })
-    .flatten() else {
+}
+
+fn field_serves(id: &str, owner: Option<u64>) -> bool {
+    field_edit_key(id).is_some()
+        && shown_owner(owner).is_some_and(|owner| {
+            with_runtime(|runtime| {
+                runtime
+                    .window(owner)
+                    .is_some_and(|window| window.app.text_field_focused())
+            })
+            .unwrap_or(false)
+        })
+}
+
+fn fire(id: &str, owner: Option<u64>) {
+    let Some(owner) = shown_owner(owner) else {
         return;
     };
-    actions.dispatch(id);
+    let actions = with_runtime(|runtime| {
+        let window = runtime.window(owner)?;
+        (!window.app.edit_focused_field(id)).then(|| window.app.menu_actions.clone())
+    })
+    .flatten();
+    if let Some(actions) = actions {
+        actions.dispatch(id);
+    }
     with_runtime(|runtime| {
         runtime.poll_all();
         runtime.install_timers();
