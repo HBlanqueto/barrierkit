@@ -25,9 +25,9 @@ use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
     NSApplication, NSApplicationActivationPolicy, NSApplicationPresentationOptions,
     NSAutoresizingMaskOptions, NSColor, NSEvent, NSEventModifierFlags, NSEventType,
-    NSTitlebarSeparatorStyle, NSToolbar, NSView, NSVisualEffectBlendingMode, NSWindow,
-    NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
-    NSWindowToolbarStyle,
+    NSLayoutAttribute, NSTitlebarAccessoryViewController, NSTitlebarSeparatorStyle, NSToolbar,
+    NSView, NSVisualEffectBlendingMode, NSWindow, NSWindowButton, NSWindowDelegate,
+    NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility, NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -74,7 +74,7 @@ mod system;
 mod view;
 
 use popups::PopupState;
-use view::{ChromeView, ContentView, Effect, Toplevel, WindowDelegate};
+use view::{BarView, ChromeView, ContentView, Effect, Toplevel, WindowDelegate};
 
 thread_local! {
     static RUNTIME: RefCell<Option<Runtime>> = const { RefCell::new(None) };
@@ -115,12 +115,20 @@ struct Wanted {
     glasses: Vec<PlacedGlass>,
 }
 
+// The title bar row AppKit carries down with the menu bar in full screen, as a titlebar accessory.
+struct Bar {
+    accessory: Retained<NSTitlebarAccessoryViewController>,
+    view: Retained<BarView>,
+    revealed: bool,
+}
+
 struct Window {
     id: u64,
     window: Retained<NSWindow>,
     view: Retained<ContentView>,
     // The content view's parent: the effect view of a sidebar sits below the view.
     container: Option<Retained<NSView>>,
+    bar: Option<Bar>,
     behind: Option<Retained<Effect>>,
     chromes: Vec<ChromeLayer>,
     layer: Retained<CAMetalLayer>,
@@ -136,6 +144,38 @@ struct Window {
     // A window the process lives for: not a popup, a sheet or a utility window.
     main: bool,
     needs_redraw: bool,
+}
+
+impl ChromeLayer {
+    fn remove(self) {
+        self.view.removeFromSuperview();
+        for effect in self.effects {
+            effect.removeFromSuperview();
+        }
+    }
+}
+
+impl Window {
+    fn place_bar(&self) {
+        let (Some(bar), Some(container)) = (&self.bar, &self.container) else {
+            return;
+        };
+        bar.view.align(container.bounds().size.height);
+        for chrome in &self.chromes {
+            let (_, top) = chrome.wanted.placement.origin;
+            let (_, strip) = chrome.wanted.placement.size;
+            let riding = bar.revealed && crate::titlebar::in_bar_row(top as f32, strip as f32);
+            let parent: &NSView = if riding { &bar.view } else { container };
+            let views = chrome.effects.iter().map(|effect| &**effect);
+            for view in views.chain([&**chrome.view]) {
+                // SAFETY: the view is alive; its parent is only compared, never kept.
+                let current = unsafe { view.superview() };
+                if current.is_none_or(|current| !std::ptr::eq(&*current, parent)) {
+                    parent.addSubview(view);
+                }
+            }
+        }
+    }
 }
 
 impl Drop for Window {
@@ -544,6 +584,7 @@ impl Runtime {
             container: Some(container),
             behind: None,
             chromes: Vec::new(),
+            bar: None,
             layer,
             _delegate: delegate,
             app: instance,
@@ -680,6 +721,65 @@ impl Runtime {
             window.app.set_focused(activated);
             window.needs_redraw = true;
         }
+    }
+
+    pub(super) fn attach_bar(
+        &mut self,
+        id: u64,
+    ) -> Option<(
+        Retained<NSWindow>,
+        Retained<NSTitlebarAccessoryViewController>,
+    )> {
+        let mtm = self.mtm;
+        let window = self.window(id)?;
+        window.window.toolbar()?;
+        let view = BarView::new(mtm, id, window.window.screen()?.frame().size.width);
+        let accessory = NSTitlebarAccessoryViewController::new(mtm);
+        accessory.setView(&view);
+        accessory.setLayoutAttribute(NSLayoutAttribute::Left);
+        window.bar = Some(Bar {
+            accessory: accessory.clone(),
+            view,
+            revealed: false,
+        });
+        Some((window.window.clone(), accessory))
+    }
+
+    pub(super) fn detach_bar(
+        &mut self,
+        id: u64,
+    ) -> Option<Retained<NSTitlebarAccessoryViewController>> {
+        self.reveal_bar(id, false);
+        Some(self.window(id)?.bar.take()?.accessory)
+    }
+
+    pub(super) fn bar_window(&mut self, id: u64) -> Option<Retained<NSWindow>> {
+        let window = self.window(id)?;
+        window.bar.as_ref()?;
+        window
+            .window
+            .standardWindowButton(NSWindowButton::CloseButton)?
+            .window()
+    }
+
+    pub(super) fn reveal_bar(&mut self, id: u64, revealed: bool) {
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        if let Some(bar) = window.bar.as_mut().filter(|bar| bar.revealed != revealed) {
+            bar.revealed = revealed;
+            // AppKit resizes the container with the toolbar, so the chromes are built again for its new height.
+            window.chromes.drain(..).for_each(ChromeLayer::remove);
+            window.needs_redraw = true;
+            // The menu bar is down, as Malaysia's focus bar: the title bar makes room for the lights.
+            if let Some(controls) = &window.controls {
+                let mut down = controls.focus_bar;
+                down.set(revealed);
+            }
+        }
+        window.place_bar();
+        self.poll_all();
+        self.redraw_all();
     }
 
     pub(super) fn toolbar(&mut self, id: u64) -> Option<Retained<NSToolbar>> {
@@ -874,12 +974,7 @@ impl Runtime {
         {
             return;
         }
-        for chrome in window.chromes.drain(..) {
-            chrome.view.removeFromSuperview();
-            for effect in chrome.effects {
-                effect.removeFromSuperview();
-            }
-        }
+        window.chromes.drain(..).for_each(ChromeLayer::remove);
         let height = container.bounds().size.height;
         for wanted in wanted {
             let (x, y) = wanted.placement.origin;
@@ -966,6 +1061,7 @@ impl Runtime {
                 effects,
             });
         }
+        window.place_bar();
         window.needs_redraw = true;
     }
 

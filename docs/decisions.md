@@ -499,6 +499,17 @@ Rejected: a handle that carries an id table the app fills (the context needs not
 Pending: a visual check of a continuous clip against the system's; `scrollTargetBehavior(.paging)`; arbitrary clips (T7).
 Code: `crates/bk/src/scroll/position.rs`, `crates/bk/src/scroll.rs`, `crates/bk/src/shapes.rs`, `crates/bk/tests/kit/scroll.rs`, `crates/bk/tests/kit/shapes.rs`, `agents/recipes/scroll_position.rs`, `agents/recipes/shapes.rs`, [Scrolling](barrierkit/05-controls.md#scroll-position), [Shapes](barrierkit/05-controls.md#shapes)
 
+## 0116 — In full screen the title bar row of a HiddenTitleBar window rides with AppKit's bar
+Date: 2026-11-23
+Decision:
+- At rest in full screen the window hides its empty `NSToolbar` and the kit draws its own title bar row, as when windowed.
+- When the pointer reaches the top edge, AppKit moves its full-screen bar window down with the menu bar; the kit watches `NSWindow.didMoveNotification` on `standardWindowButton(.closeButton).window`. While that bar is down, the window shows its toolbar again and moves the glass chromes of the title bar row (`titlebar::in_bar_row`) into a `.left` `NSTitlebarAccessoryViewController`, so they ride in one row beside the lights, as SwiftUI's toolbar items do.
+- The accessory's view keeps the container's coordinates and sends presses to the content. A popover anchored in the row opens below where the row is. The bar being down sets `WindowControls::focus_bar`, the signal Malaysia's focus bar sets, so a hidden sidebar's toggle makes room for the lights.
+Why: the owner asked for SwiftUI's single row with working buttons. AppKit fills its full-screen bar with an opaque `NSTitlebarBackgroundView` (the same fill in SwiftUI), and no public setting clears it, so the kit's own row cannot show through it. Measured on Resonance: lights at y 56, toggle and toolbar groups at y 38–76 while revealed, the same as the Swift twin; slide in about 140 ms (Swift 150).
+Rejected: sliding the kit's row below AppKit's band (two rows); repeating the whole top strip in the accessory (a second content pass and a sidebar material, about 250 lines); `fullScreenMinHeight` (it applies only to `.bottom` accessories, a second row); a `.left` accessory with the toolbar hidden (a 32 pt row, too short for the 38 pt platters).
+Pending: AppKit's revealed band is 66 pt high with the empty toolbar and covers the sidebar, where SwiftUI's is 52 pt and leaves the sidebar out; the pointer's hover is not sent from the row; a `Plain` window has no native full-screen Space.
+Code: `crates/bk/src/platform/macos/mod.rs`, `crates/bk/src/platform/macos/view.rs`, `crates/bk/src/platform/macos/popups.rs`, `crates/bk/src/titlebar.rs`, [Window style](barrierkit/08-windows.md#window-style)
+
 ## 0115 — Standard menus by default; Edit items reach the focused text field; macOS menus are AppKit's
 Date: 2026-11-23
 Decision:

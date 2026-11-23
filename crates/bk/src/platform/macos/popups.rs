@@ -97,6 +97,8 @@ struct Parent {
     window: Retained<NSWindow>,
     origin: (f64, f64),
     bounds: Rect,
+    // How far AppKit has carried the title bar row down with the menu bar.
+    bar_drop: f64,
 }
 
 impl Runtime {
@@ -105,7 +107,15 @@ impl Runtime {
         let parent = self.window(id)?;
         let (window, view) = (parent.window.clone(), parent.view.clone());
         let in_window = view.convertRect_toView(view.bounds(), None);
-        let origin = top_left(window.convertRectToScreen(in_window), primary);
+        let on_screen = window.convertRectToScreen(in_window);
+        let origin = top_left(on_screen, primary);
+        let bar_drop = parent
+            .bar
+            .as_ref()
+            .filter(|bar| bar.revealed)
+            .map_or(0.0, |bar| {
+                on_screen.origin.y + on_screen.size.height - bar.view.top()
+            });
         let visible = window
             .screen()
             .or_else(|| NSScreen::mainScreen(self.mtm))?
@@ -121,6 +131,7 @@ impl Runtime {
             window,
             origin,
             bounds,
+            bar_drop,
         })
     }
 
@@ -145,7 +156,13 @@ impl Runtime {
 
     fn frame_of(parent: &Parent, spec: &PopupSpec, primary: f64) -> (NSRect, bool, Rect) {
         let placed = place(spec, parent.bounds);
-        let top = parent.origin.1 + f64::from(placed.y);
+        let (_, anchor_top, _, anchor_height) = spec.anchor_rect;
+        let drop = if crate::titlebar::in_bar_row(anchor_top as f32, anchor_height as f32) {
+            parent.bar_drop
+        } else {
+            0.0
+        };
+        let top = parent.origin.1 + drop + f64::from(placed.y);
         let frame = NSRect::new(
             NSPoint::new(
                 parent.origin.0 + f64::from(placed.x),
@@ -254,6 +271,7 @@ impl Runtime {
             container: None,
             behind: None,
             chromes: Vec::new(),
+            bar: None,
             restore: None,
             ime_area: None,
             popup: Some(PopupState {

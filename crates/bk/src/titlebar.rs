@@ -270,7 +270,10 @@ impl Component for Titlebar {
                 Some(traffic) => Lights::Drawn(traffic),
                 None if status.decoration == DecorationResponse::Hybrid
                     && !sidebar
-                    && !status.fullscreen =>
+                    && (!status.fullscreen
+                        || controls
+                            .as_ref()
+                            .is_some_and(|controls| *controls.focus_bar.read())) =>
                 {
                     Lights::Native
                 }
@@ -618,6 +621,11 @@ pub(crate) const TITLEBAR_OVERLAY_LAYER: i16 = i16::MAX / 32;
 pub fn sidebar_bar_height() -> f32 {
     let style: TitlebarStyle = resolve(&Theme::tengen());
     style.sidebar_height
+}
+
+// What the system carries down with the menu bar in full screen: whatever lies in the title bar row.
+pub(crate) fn in_bar_row(top: f32, height: f32) -> bool {
+    top >= 0.0 && top + height <= ctdesign::SETTINGS.toolbar_height as f32
 }
 
 // The toggle sits at the sidebar's right end while it is docked and after the traffic lights once it is not. Returns how far it moves from where the bar's left zone puts it, and the width it keeps there.

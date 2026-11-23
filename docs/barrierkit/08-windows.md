@@ -195,8 +195,15 @@ The program is [`recipes/notes_sidebar.rs`](../../agents/recipes/notes_sidebar.r
 
 In full screen a `HiddenTitleBar` window hides its empty `NSToolbar`, which
 AppKit would draw as an opaque band over the content. The kit's `Titlebar` row
-and the sidebar keep their windowed place, and AppKit brings the lights back
-with the menu bar when the pointer reaches the top edge.
+and the sidebar keep their windowed place. When the pointer reaches the top
+edge, AppKit brings the menu bar down with a bar that holds the lights. While
+the menu bar is shown, the window shows that toolbar again and moves the glass
+controls of the title bar row into it, in an
+[`NSTitlebarAccessoryViewController`](https://developer.apple.com/documentation/appkit/nstitlebaraccessoryviewcontroller).
+They ride in one row beside the lights, as in SwiftUI, and still take clicks;
+a popover opened from them follows the row, and with the sidebar hidden the row
+makes room for the lights. The content does not move
+([ADR 0116](../decisions.md#0116--in-full-screen-the-title-bar-row-of-a-hiddentitlebar-window-rides-with-appkits-bar)).
 
 ### Resizing from the edges
 

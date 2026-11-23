@@ -6,17 +6,18 @@ use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2::runtime::{AnyObject, Bool};
 use objc2::{
-    AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
+    AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send, sel,
 };
 use objc2_app_kit::{
     NSApplication, NSBackingStoreType, NSDragOperation, NSDraggingContext, NSDraggingSession,
     NSDraggingSource, NSEvent, NSEventModifierFlags, NSGlassEffectContainerView, NSGlassEffectView,
     NSPanel, NSTextInputClient, NSTrackingArea, NSTrackingAreaOptions, NSView, NSVisualEffectView,
-    NSWindow, NSWindowDelegate, NSWindowStyleMask,
+    NSWindow, NSWindowDelegate, NSWindowDidMoveNotification, NSWindowStyleMask,
 };
 use objc2_foundation::{
-    NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification, NSObject,
-    NSObjectProtocol, NSPoint, NSRange, NSRect, NSSize, NSString, NSUInteger,
+    NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification,
+    NSNotificationCenter, NSObject, NSObjectProtocol, NSPoint, NSRange, NSRect, NSSize, NSString,
+    NSUInteger,
 };
 use objc2_quartz_core::{CADisplayLink, CALayer, CAMetalLayer};
 use torin::prelude::CursorPoint;
@@ -427,6 +428,23 @@ define_class!(
     #[ivars = DelegateIvars]
     pub(super) struct WindowDelegate;
 
+    impl WindowDelegate {
+        // AppKit moves its full-screen bar down with the menu bar; it shows the toolbar row only while it is down.
+        #[unsafe(method(barMoved:))]
+        fn bar_moved(&self, note: &NSNotification) {
+            let Some(bar) = note.object().and_then(|object| object.downcast::<NSWindow>().ok()) else {
+                return;
+            };
+            let frame = bar.frame();
+            let revealed = bar.screen().is_some_and(|screen| {
+                let top = screen.frame();
+                frame.origin.y + frame.size.height < top.origin.y + top.size.height - 1.0
+            });
+            self.show_toolbar(revealed);
+            with_runtime(|runtime| runtime.reveal_bar(self.ivars().id, revealed));
+        }
+    }
+
     // SAFETY: WindowDelegate is an NSObject subclass.
     unsafe impl NSObjectProtocol for WindowDelegate {}
 
@@ -454,19 +472,48 @@ define_class!(
 
         #[unsafe(method(windowDidEnterFullScreen:))]
         fn window_did_enter_full_screen(&self, _: &NSNotification) {
-            with_runtime(|runtime| runtime.fullscreen_changed(self.ivars().id));
+            let id = self.ivars().id;
+            with_runtime(|runtime| runtime.fullscreen_changed(id));
+            let bar = with_runtime(|runtime| runtime.bar_window(id)).flatten();
+            if let Some(bar) = bar {
+                // SAFETY: the delegate outlives the observation, which `windowDidExitFullScreen:` removes.
+                unsafe {
+                    NSNotificationCenter::defaultCenter().addObserver_selector_name_object(
+                        self,
+                        sel!(barMoved:),
+                        Some(NSWindowDidMoveNotification),
+                        Some(&bar),
+                    )
+                };
+            }
         }
 
         // The empty toolbar of a HiddenTitleBar window is an opaque band over the content in full screen.
         #[unsafe(method(windowWillEnterFullScreen:))]
         fn window_will_enter_full_screen(&self, _: &NSNotification) {
             self.show_toolbar(false);
+            let id = self.ivars().id;
+            if let Some((window, accessory)) = with_runtime(|runtime| runtime.attach_bar(id)).flatten() {
+                window.addTitlebarAccessoryViewController(&accessory);
+            }
         }
 
         #[unsafe(method(windowDidExitFullScreen:))]
         fn window_did_exit_full_screen(&self, _: &NSNotification) {
+            // SAFETY: removes only this delegate's observation of bar moves.
+            unsafe {
+                NSNotificationCenter::defaultCenter().removeObserver_name_object(
+                    self,
+                    Some(NSWindowDidMoveNotification),
+                    None,
+                )
+            };
+            let id = self.ivars().id;
+            if let Some(accessory) = with_runtime(|runtime| runtime.detach_bar(id)).flatten() {
+                accessory.removeFromParentViewController();
+            }
             self.show_toolbar(true);
-            with_runtime(|runtime| runtime.fullscreen_changed(self.ivars().id));
+            with_runtime(|runtime| runtime.fullscreen_changed(id));
         }
 
         #[unsafe(method(windowShouldClose:))]
@@ -484,7 +531,10 @@ define_class!(
 impl WindowDelegate {
     fn show_toolbar(&self, shown: bool) {
         let id = self.ivars().id;
-        if let Some(toolbar) = with_runtime(|runtime| runtime.toolbar(id)).flatten() {
+        if let Some(toolbar) = with_runtime(|runtime| runtime.toolbar(id))
+            .flatten()
+            .filter(|toolbar| toolbar.isVisible() != shown)
+        {
             toolbar.setVisible(shown);
         }
     }
@@ -598,6 +648,75 @@ define_class!(
         }
     }
 );
+
+pub(super) struct BarIvars {
+    id: u64,
+    container_height: Cell<f64>,
+}
+
+define_class!(
+    // The title bar row while the menu bar is revealed in full screen: it holds the row's chromes and sends its pointer events to the content.
+    #[unsafe(super(NSView))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKBarView"]
+    #[ivars = BarIvars]
+    pub(super) struct BarView;
+
+    impl BarView {
+        #[unsafe(method(mouseDown:))]
+        fn mouse_down(&self, event: &NSEvent) {
+            self.send(input::mouse(MouseEventName::MouseDown, event, self.position(event)));
+        }
+
+        #[unsafe(method(mouseUp:))]
+        fn mouse_up(&self, event: &NSEvent) {
+            self.send(input::mouse(MouseEventName::MouseUp, event, self.position(event)));
+        }
+    }
+);
+
+impl BarView {
+    pub(super) fn new(mtm: MainThreadMarker, id: u64, width: f64) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(BarIvars {
+            id,
+            container_height: Cell::new(0.0),
+        });
+        let frame = NSRect::new(NSPoint::new(0.0, 0.0), NSSize::new(width, 52.0));
+        // SAFETY: NSView's designated initializer.
+        unsafe { msg_send![super(this), initWithFrame: frame] }
+    }
+
+    // Its bounds are the window container's coordinates, so the chromes it holds keep their frames.
+    pub(super) fn align(&self, container_height: f64) {
+        self.ivars().container_height.set(container_height);
+        let left = self.convertRect_toView(self.bounds(), None).origin.x;
+        self.setBoundsOrigin(NSPoint::new(
+            left,
+            container_height - self.frame().size.height,
+        ));
+    }
+
+    pub(super) fn top(&self) -> f64 {
+        let frame = self.convertRect_toView(self.bounds(), None);
+        self.window().map_or(0.0, |window| {
+            let frame = window.convertRectToScreen(frame);
+            frame.origin.y + frame.size.height
+        })
+    }
+
+    fn position(&self, event: &NSEvent) -> CursorPoint {
+        let point = self.convertPoint_fromView(event.locationInWindow(), None);
+        let scale = self
+            .window()
+            .map_or(1.0, |window| window.backingScaleFactor());
+        let y = self.ivars().container_height.get() - point.y;
+        CursorPoint::from((point.x * scale, y * scale))
+    }
+
+    fn send(&self, event: PlatformEvent) {
+        with_runtime(|runtime| runtime.push(self.ivars().id, event));
+    }
+}
 
 impl ChromeView {
     pub(super) fn new(mtm: MainThreadMarker, frame: NSRect) -> Retained<Self> {
