@@ -1,7 +1,10 @@
+#[cfg(feature = "a11y")]
 use std::collections::HashMap;
 use std::ops::BitOr;
 
-use accesskit::{Node, NodeId, Role, TreeUpdate};
+use accesskit::{Node, Role};
+#[cfg(feature = "a11y")]
+use accesskit::{NodeId, TreeUpdate};
 use freya_core::prelude::AccessibilityExt;
 
 // Freya rewrites a node's label from its text when the tree is built, so what a view asked for travels in the
@@ -211,6 +214,7 @@ pub(crate) fn mark_field(node: &mut Node, placeholder: &str, filled: bool) {
     });
 }
 
+#[cfg(feature = "a11y")]
 fn is_text_input(node: &Node) -> bool {
     matches!(
         node.role(),
@@ -218,6 +222,7 @@ fn is_text_input(node: &Node) -> bool {
     )
 }
 
+#[cfg(feature = "a11y")]
 pub(crate) fn has_marks(update: &TreeUpdate) -> bool {
     update.nodes.iter().any(|(_, node)| {
         node.class_name()
@@ -225,6 +230,7 @@ pub(crate) fn has_marks(update: &TreeUpdate) -> bool {
     })
 }
 
+#[cfg(feature = "a11y")]
 fn first_text_input(
     update: &TreeUpdate,
     positions: &HashMap<NodeId, usize>,
@@ -246,6 +252,7 @@ fn first_text_input(
 }
 
 // Freya puts the typed text, or the placeholder when empty, in the input's label and draws it with inner nodes.
+#[cfg(feature = "a11y")]
 fn name_the_input(node: &mut Node, name: String, (filled, placeholder): (bool, String)) {
     let typed = node.label().map(str::to_owned).unwrap_or_default();
     node.set_label(name);
@@ -257,6 +264,7 @@ fn name_the_input(node: &mut Node, name: String, (filled, placeholder): (bool, S
 }
 
 // Works on a full tree. Returns whether a view left a mark, so the caller keeps sending full trees.
+#[cfg(feature = "a11y")]
 pub(crate) fn resolve_marks(update: &mut TreeUpdate) -> bool {
     if !has_marks(update) {
         return false;
@@ -317,6 +325,7 @@ pub(crate) fn resolve_marks(update: &mut TreeUpdate) -> bool {
     true
 }
 
+#[cfg(feature = "a11y")]
 fn fold(
     update: &TreeUpdate,
     positions: &HashMap<NodeId, usize>,
@@ -335,6 +344,7 @@ fn fold(
     texts
 }
 
+#[cfg(feature = "a11y")]
 fn collect_descendants(
     update: &TreeUpdate,
     positions: &HashMap<NodeId, usize>,
