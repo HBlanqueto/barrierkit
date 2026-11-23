@@ -226,3 +226,7 @@ path = "../../agents/recipes/toggle.rs"
 [[example]]
 name = "with_animation"
 path = "../../agents/recipes/with_animation.rs"
+
+[[example]]
+name = "compositing_group"
+path = "../../agents/recipes/compositing_group.rs"

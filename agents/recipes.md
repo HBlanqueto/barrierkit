@@ -374,3 +374,15 @@ The program is [`recipes/with_animation.rs`](recipes/with_animation.rs).
 3. A change made again while the value moves goes on from the value and the
    velocity it shows.
 
+## 31. Children that fade as one, and a shader that moves
+
+SwiftUI: `ZStack { Circle(); Circle() }.compositingGroup().opacity(0.5)` and `.layerEffect(ShaderLibrary.pulse(.float(time)), maxSampleOffset: .zero)` inside a `TimelineView`.
+
+The program is [`recipes/compositing_group.rs`](recipes/compositing_group.rs).
+
+1. `CompositingGroup::new(effect).child(..)` draws its children into one layer and
+   applies `effect` to the layer: the two discs at `GroupEffect::Opacity(0.5)` show
+   no darker seam where they overlap.
+2. `GroupEffect::Shader` runs an SkSL image filter. `uniform shader content;`
+   receives the layer. A uniform named `time` is the seconds since the group
+   appeared, and the group redraws every frame while the shader has it.

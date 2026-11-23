@@ -5,7 +5,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use freya_engine::prelude::{Data, RuntimeEffect, Shader};
+use freya_engine::prelude::{Data, ImageFilter, RuntimeEffect, Shader, image_filters};
+use skia_safe::runtime_effect::RuntimeShaderBuilder;
 
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Slot {
@@ -114,6 +115,10 @@ impl Program {
         })
     }
 
+    pub(crate) fn has_uniform(&self, name: &str) -> bool {
+        self.slots.iter().any(|slot| slot.name == name)
+    }
+
     #[cfg(test)]
     pub(crate) fn slots(&self) -> &[Slot] {
         &self.slots
@@ -124,6 +129,20 @@ impl Program {
             .inspect_err(|error| tracing::warn!(%error, "BarrierKit: a shader was not bound"))
             .ok()?;
         self.effect.make_shader(Data::new_copy(&bytes), &[], None)
+    }
+}
+
+impl Program {
+    // An image filter that runs the source over `child`, the `uniform shader` that receives the content of a layer; the uniforms bind as in `shader`.
+    pub(crate) fn filter(&self, arguments: &[(&str, &[f32])], child: &str) -> Option<ImageFilter> {
+        pack(&self.slots, self.effect.uniform_size(), arguments)
+            .inspect_err(|error| tracing::warn!(%error, "BarrierKit: a shader was not bound"))
+            .ok()?;
+        let mut builder = RuntimeShaderBuilder::new(self.effect.clone());
+        for (name, values) in arguments {
+            builder.set_uniform_float(name, values).ok()?;
+        }
+        image_filters::runtime_shader(&builder, child, None)
     }
 }
 

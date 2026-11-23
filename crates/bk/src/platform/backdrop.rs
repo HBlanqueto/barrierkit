@@ -389,15 +389,14 @@ pub(crate) fn render_pass(
         -(origin.0 as f64 * scale) as f32,
         -(origin.1 as f64 * scale) as f32,
     ));
-    RenderPipeline {
+    crate::group::render(RenderPipeline {
         font_collection,
         font_manager,
         canvas,
         tree,
         scale_factor: scale,
         background,
-    }
-    .render();
+    });
     canvas.restore();
 }
 
@@ -417,6 +416,7 @@ mod tests {
 
     use super::Effect;
     use super::*;
+    use crate::group::{CompositingGroup, GroupEffect, ShaderEffect};
 
     struct Scene {
         tree: Tree,
@@ -935,6 +935,136 @@ mod tests {
         assert_eq!(
             declared(true, false, FullscreenBar::Solid, GlassEdge::Top),
             None
+        );
+    }
+
+    fn draw(scene: &Scene, kit: bool, size: (i32, i32)) -> Vec<u8> {
+        let mut surface = raster_n32_premul(size).unwrap();
+        let mut fonts = scene.fonts.clone();
+        if kit {
+            render_pass(
+                &mut fonts,
+                &scene.manager,
+                &scene.tree,
+                surface.canvas(),
+                scene.scale,
+                (0, 0),
+                Color::WHITE,
+            );
+        } else {
+            RenderPipeline {
+                font_collection: &mut fonts,
+                font_manager: &scene.manager,
+                canvas: surface.canvas(),
+                tree: &scene.tree,
+                scale_factor: scene.scale,
+                background: Color::WHITE,
+            }
+            .render();
+        }
+        read(&mut surface, size)
+    }
+
+    fn overlapping() -> Element {
+        let child = |left: f32, color| {
+            rect()
+                .position(Position::new_absolute().left(left).top(0.0))
+                .width(Size::px(60.0))
+                .height(Size::px(40.0))
+                .background(color)
+        };
+        rect()
+            .width(Size::px(100.0))
+            .height(Size::px(40.0))
+            .child(child(0.0, RED))
+            .child(child(40.0, BLUE))
+            .into()
+    }
+
+    fn grouped(effect: GroupEffect) -> impl Fn() -> Element {
+        move || {
+            CompositingGroup::new(effect.clone())
+                .child(overlapping())
+                .into_element()
+        }
+    }
+
+    fn near(actual: [u8; 4], expected: [u8; 4]) {
+        assert!(
+            actual.iter().zip(expected).all(|(a, e)| a.abs_diff(e) <= 2),
+            "{actual:?} is not {expected:?}"
+        );
+    }
+
+    #[test]
+    fn without_a_group_the_kit_paints_every_scene_as_freya_does() {
+        for app in [window_with_a_bar as fn() -> Element, overlapping] {
+            let scene = scene(app, (200.0, 100.0), 1.0);
+            assert!(draw(&scene, true, (200, 100)) == draw(&scene, false, (200, 100)));
+        }
+    }
+
+    #[test]
+    fn an_opacity_on_a_group_shows_no_seam_where_its_children_overlap() {
+        let scene = scene(grouped(GroupEffect::Opacity(0.5)), (100.0, 40.0), 1.0);
+        let pixels = draw(&scene, true, (100, 40));
+        near(pixel(&pixels, 100, (10, 20)), [255, 128, 128, 255]);
+        near(pixel(&pixels, 100, (50, 20)), [128, 128, 255, 255]);
+    }
+
+    #[test]
+    fn a_blur_on_a_group_softens_its_edge_and_leaves_its_middle() {
+        let scene = scene(grouped(GroupEffect::Blur(4.0)), (100.0, 40.0), 1.0);
+        let pixels = draw(&scene, true, (100, 40));
+        near(pixel(&pixels, 100, (30, 20)), [255, 0, 0, 255]);
+        let edge = pixel(&pixels, 100, (0, 20));
+        assert!(edge[1] > 20 && edge[1] < 235, "{edge:?}");
+    }
+
+    #[test]
+    fn a_color_matrix_on_a_group_recolors_what_the_children_drew() {
+        let mut matrix = [0.0; 20];
+        matrix[5] = 1.0;
+        matrix[18] = 1.0;
+        let scene = scene(
+            grouped(GroupEffect::ColorMatrix(matrix)),
+            (100.0, 40.0),
+            1.0,
+        );
+        let pixels = draw(&scene, true, (100, 40));
+        near(pixel(&pixels, 100, (10, 20)), [0, 255, 0, 255]);
+        near(pixel(&pixels, 100, (80, 20)), [0, 0, 0, 255]);
+    }
+
+    const FADE: &str = "uniform shader content; uniform float time; half4 main(float2 p) { half4 c = content.eval(p); return half4(c.rgb * half(time), c.a); }";
+
+    #[test]
+    fn a_shader_on_a_group_reads_the_time_it_is_given() {
+        let at = |time: f32| {
+            let effect = ShaderEffect::new(FADE, vec![]).at(time);
+            let scene = scene(grouped(GroupEffect::Shader(effect)), (100.0, 40.0), 1.0);
+            pixel(&draw(&scene, true, (100, 40)), 100, (10, 20))
+        };
+        near(at(0.0), [0, 0, 0, 255]);
+        near(at(1.0), [255, 0, 0, 255]);
+        let half = at(0.5);
+        assert!(half[0] > 100 && half[0] < 160, "{half:?}");
+    }
+
+    #[test]
+    fn groups_nest_and_an_inner_group_paints_inside_the_outer_one() {
+        let scene = scene(
+            || {
+                CompositingGroup::new(GroupEffect::Opacity(0.5))
+                    .child(CompositingGroup::new(GroupEffect::Opacity(0.5)).child(overlapping()))
+                    .into_element()
+            },
+            (100.0, 40.0),
+            1.0,
+        );
+        near(
+            pixel(&draw(&scene, true, (100, 40)), 100, (50, 20)),
+            [191, 191, 255, 255],
         );
     }
 }

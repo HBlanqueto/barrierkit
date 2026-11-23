@@ -1463,6 +1463,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `backdrop::BackdropSource` | enum | — | — | — | Where the backdrop's colors come from: `None`, `Colors`, `Image` | [15](15-backdrops-and-media.md#backdrop) |
 | `backdrop::Accent` | enum | `.tint(_:)` | ≈ `NSColor.controlAccentColor` | `UIView.tintColor` | Accent inside a backdrop: `System`, `Own`, `FromBackdrop` | [15](15-backdrops-and-media.md#backdrop) |
 | `backdrop::Tint` | enum | `.tint(_:)` | — | `UIView.tintColor` | A control's fill: `Accent`, `Color`, `Backdrop` gradient | [15](15-backdrops-and-media.md#tint) |
+| `group::CompositingGroup` | struct | `compositingGroup()` | ≈ `NSView.canDrawSubviewsIntoLayer` | ≈ `CALayer.shouldRasterize` | Draws its children into one layer and applies a `GroupEffect` to it | [15](15-backdrops-and-media.md#compositing-groups) |
+| `group::GroupEffect` | enum | ≈ `.opacity(_:)`, `.blur(radius:)`, `.colorEffect(_:)` | ≈ `CALayer.filters` | ≈ `CALayer.filters` | What a group does to its layer: `Opacity`, `Blur`, `ColorMatrix`, `Shader` | [15](15-backdrops-and-media.md#compositing-groups) |
+| `group::ShaderEffect` | struct | `Shader`, `.layerEffect(_:maxSampleOffset:)` | ≈ `CIKernel` | ≈ `CIKernel` | An SkSL image filter and its uniforms; a uniform named `time` follows the clock | [15](15-backdrops-and-media.md#compositing-groups) |
 | `media::MediaButton` | struct | — | — | — | Large light pill button with an optional symbol, for media views | [15](15-backdrops-and-media.md#media) |
 | `media::RoundButton` | struct | — | — | — | Round glass button with a symbol; filled light when selected | [15](15-backdrops-and-media.md#media) |
 | `media::ScrimEdge` | enum | — | — | — | The solid edge of a scrim: `Leading` or `Bottom` | [15](15-backdrops-and-media.md#media) |

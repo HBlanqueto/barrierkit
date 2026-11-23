@@ -1,5 +1,6 @@
 mod app_icon;
 mod fonts;
+pub mod group;
 mod logging;
 mod session_bus;
 mod shader;

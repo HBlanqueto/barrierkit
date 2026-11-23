@@ -255,4 +255,31 @@ The morph plan is public, for tests and for other containers:
 shown frame, and an id that leaves melts into the nearest new one. Apple does
 not publish its morph curve; only the duration and the bounce would change.
 
+## Compositing groups
+
+`CompositingGroup` draws its children into one layer and runs an effect over the
+layer ([ADR 0103](../decisions.md)). Freya paints one node at a time, so the kit
+paints the tree itself: `bk::group::render` replaces Freya's
+`RenderPipeline::render` and paints every scene as before until a group
+appears.
+
+| Item | What it does |
+|---|---|
+| `CompositingGroup::new(effect).child(view)` | The group; its root is a plain container |
+| `GroupEffect::Opacity(a)` | The layer at opacity `a`: children that overlap show no seam |
+| `GroupEffect::Blur(radius)` | A Gaussian blur in points; the layer grows by three radii |
+| `GroupEffect::ColorMatrix(m)` | A 4x5 row-major color matrix, as Skia reads it |
+| `GroupEffect::Shader(ShaderEffect::new(sksl, uniforms))` | An SkSL image filter: `uniform shader content;` is the layer; uniforms bind by name ([P2](../research/shader-needs.md#prerequisites)); `time` is the seconds since the group appeared |
+
+- A group paints at the place of its root; an overlay under it paints in the
+  main pass, outside the layer.
+- Groups nest: an inner group paints inside the outer one.
+- A node with a shadow takes an unbounded layer: Freya keeps the reach of a
+  shadow private.
+- Reduced motion does not stop a `time` uniform: the app decides what to do with
+  it.
+
+✗ `Opacity` on each child: the overlap shows both colors.
+✓ `CompositingGroup::new(GroupEffect::Opacity(0.5))` around both.
+
 Next: [17. Languages](17-languages.md).
