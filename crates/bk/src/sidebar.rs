@@ -360,6 +360,16 @@ impl Component for Sidebar {
         use_provide_context(move || focus);
         let mut panel_area = use_state(Area::default);
         crate::glass_panel::use_publish(glass, 0.0, *panel_area.read());
+        let span = controls.as_ref().map(|controls| controls.sidebar_span);
+        if let Some(mut span) = span {
+            let area = *panel_area.read();
+            span.set_if_modified((area.min_x(), area.width()));
+        }
+        use_drop(move || {
+            if let Some(mut span) = span {
+                span.set((0.0, 0.0));
+            }
+        });
         let sidebar_body = rect()
             .expanded()
             .direction(Direction::Vertical)

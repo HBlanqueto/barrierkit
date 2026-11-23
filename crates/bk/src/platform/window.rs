@@ -231,6 +231,8 @@ pub struct WindowControls {
     pub fullscreen_bar: State<FullscreenBar>,
     pub fullscreen_push: State<bool>,
     pub(crate) overlay_titlebar_height: State<f32>,
+    // Where the sidebar spans the window, left and width: on macOS the full-screen bar leaves a soft edge over it.
+    pub(crate) sidebar_span: State<(f32, f32)>,
     pub hud: bool,
     pub panel: bool,
     pub ime_preedit: State<String>,

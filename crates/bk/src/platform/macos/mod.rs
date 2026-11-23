@@ -20,13 +20,13 @@ use freya_engine::prelude::{
 };
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
-use objc2::{MainThreadMarker, sel};
+use objc2::{MainThreadMarker, MainThreadOnly, sel};
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
     NSApplication, NSApplicationActivationPolicy, NSAutoresizingMaskOptions, NSColor, NSEvent,
     NSEventModifierFlags, NSEventType, NSLayoutAttribute, NSTitlebarAccessoryViewController,
-    NSTitlebarSeparatorStyle, NSToolbar, NSView, NSVisualEffectBlendingMode, NSWindow,
-    NSWindowButton, NSWindowCollectionBehavior, NSWindowDelegate, NSWindowOrderingMode,
+    NSTitlebarSeparatorStyle, NSToolbar, NSToolbarDisplayMode, NSView, NSVisualEffectBlendingMode,
+    NSWindow, NSWindowButton, NSWindowCollectionBehavior, NSWindowDelegate, NSWindowOrderingMode,
     NSWindowStyleMask, NSWindowTitleVisibility, NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
@@ -48,7 +48,7 @@ use super::timer::{Wake, WakeQueue};
 use super::window::{
     OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle, below_bar,
 };
-use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
+use super::window_style::{Bar as TitlebarBar, Edge, ScrollEdgeEffectStyle};
 use super::{EditShortcut, RunError, Sent, calloop::ping::Ping};
 use crate::platform::macos::blur::PlacedGlass;
 
@@ -146,6 +146,9 @@ struct Bar {
     view: Retained<BarView>,
     revealed: bool,
     row: (f32, f32),
+    // How far down the bar reaches, and the soft edge it leaves over the sidebar there, as SwiftUI's scroll pocket.
+    depth: f64,
+    pocket: Option<Retained<Effect>>,
 }
 
 struct Window {
@@ -225,6 +228,44 @@ impl Window {
                     parent.addSubview(view);
                 }
             }
+        }
+    }
+
+    fn place_pocket(&mut self) {
+        let (Some(bar), Some(container), Some(controls)) =
+            (self.bar.as_mut(), &self.container, &self.controls)
+        else {
+            return;
+        };
+        let (left, width) = *controls.sidebar_span.peek();
+        if width <= 0.0 || bar.depth <= 0.0 {
+            if let Some(pocket) = bar.pocket.take() {
+                pocket.removeFromSuperview();
+            }
+            return;
+        }
+        let pocket = bar.pocket.get_or_insert_with(|| {
+            let pocket = blur::effect(
+                container.mtm(),
+                Material::Sidebar,
+                NSVisualEffectBlendingMode::WithinWindow,
+                0.0,
+            );
+            pocket.setAutoresizingMask(NSAutoresizingMaskOptions::ViewMinYMargin);
+            container.addSubview_positioned_relativeTo(
+                &pocket,
+                NSWindowOrderingMode::Above,
+                Some(&self.view),
+            );
+            pocket
+        });
+        let frame = NSRect::new(
+            NSPoint::new(f64::from(left), container.bounds().size.height - bar.depth),
+            NSSize::new(f64::from(width), bar.depth),
+        );
+        if pocket.frame() != frame {
+            pocket.setFrame(frame);
+            blur::fade(pocket, Edge::Top, blur::POCKET_STRENGTH);
         }
     }
 }
@@ -500,7 +541,10 @@ impl Runtime {
             WindowStyle::HiddenTitleBar => {
                 window.setTitlebarAppearsTransparent(true);
                 window.setTitleVisibility(NSWindowTitleVisibility::Hidden);
-                window.setToolbar(Some(&NSToolbar::new(self.mtm)));
+                let toolbar = NSToolbar::new(self.mtm);
+                // SwiftUI's toolbar shows icons only; the default leaves room for labels and makes the full-screen bar 66 high, not 52.
+                toolbar.setDisplayMode(NSToolbarDisplayMode::IconOnly);
+                window.setToolbar(Some(&toolbar));
                 window.setToolbarStyle(NSWindowToolbarStyle::Unified);
                 window.setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
             }
@@ -561,6 +605,7 @@ impl Runtime {
             fullscreen_bar: State::create_global(options.fullscreen_bar),
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
+            sidebar_span: State::create_global((0.0, 0.0)),
             hud: options.hud,
             panel: utility,
             ime_preedit: State::create_global(String::new()),
@@ -773,6 +818,8 @@ impl Runtime {
             view,
             revealed: false,
             row,
+            depth: 0.0,
+            pocket: None,
         });
         Some((window.window.clone(), accessory))
     }
@@ -781,8 +828,12 @@ impl Runtime {
         &mut self,
         id: u64,
     ) -> Option<Retained<NSTitlebarAccessoryViewController>> {
-        self.reveal_bar(id, false);
-        Some(self.window(id)?.bar.take()?.accessory)
+        self.reveal_bar(id, false, 0.0);
+        let bar = self.window(id)?.bar.take()?;
+        if let Some(pocket) = bar.pocket {
+            pocket.removeFromSuperview();
+        }
+        Some(bar.accessory)
     }
 
     pub(super) fn rides_beside_lights(&mut self, id: u64) -> bool {
@@ -800,14 +851,16 @@ impl Runtime {
             .window()
     }
 
-    pub(super) fn reveal_bar(&mut self, id: u64, revealed: bool) {
+    pub(super) fn reveal_bar(&mut self, id: u64, revealed: bool, depth: f64) {
         let Some(window) = self.window(id) else {
             return;
         };
+        if let Some(bar) = window.bar.as_mut() {
+            bar.depth = depth;
+        }
+        window.place_pocket();
         if let Some(bar) = window.bar.as_mut().filter(|bar| bar.revealed != revealed) {
             bar.revealed = revealed;
-            // AppKit resizes the container with the toolbar, so the chromes are built again for its new height.
-            window.chromes.drain(..).for_each(ChromeLayer::remove);
             window.needs_redraw = true;
             // The menu bar is down, as Malaysia's focus bar: the title bar makes room for the lights.
             if let Some(controls) = &window.controls {
@@ -910,6 +963,7 @@ impl Runtime {
             window.app.pump();
         }
         self.sync_chromes(index);
+        self.windows[index].place_pocket();
         let gpu = &mut self.gpu;
         let window = &mut self.windows[index];
         let scale = window.window.backingScaleFactor();
@@ -1053,7 +1107,7 @@ impl Runtime {
                 );
                 effect.setFrame(blur::frame(rect, height));
                 if edge.style == ScrollEdgeEffectStyle::Soft {
-                    blur::fade(&effect, edge.edge);
+                    blur::fade(&effect, edge.edge, blur::FADE_STRENGTH);
                 }
                 effects.push(Retained::into_super(Retained::into_super(effect)));
             }

@@ -12,7 +12,7 @@ use objc2_app_kit::{
     NSApplication, NSApplicationPresentationOptions, NSBackingStoreType, NSDragOperation,
     NSDraggingContext, NSDraggingSession, NSDraggingSource, NSEvent, NSEventModifierFlags,
     NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSTextInputClient, NSTrackingArea,
-    NSTrackingAreaOptions, NSView, NSVisualEffectView, NSWindow, NSWindowDelegate,
+    NSTrackingAreaOptions, NSView, NSVisualEffectView, NSWindow, NSWindowButton, NSWindowDelegate,
     NSWindowDidMoveNotification, NSWindowStyleMask,
 };
 use objc2_foundation::{
@@ -430,21 +430,12 @@ define_class!(
     pub(super) struct WindowDelegate;
 
     impl WindowDelegate {
-        // AppKit moves its full-screen bar down with the menu bar; it shows the toolbar row only while it is down.
+        // AppKit moves its full-screen bar down with the menu bar; the title bar row rides in it while it is down.
         #[unsafe(method(barMoved:))]
         fn bar_moved(&self, note: &NSNotification) {
-            let Some(bar) = note.object().and_then(|object| object.downcast::<NSWindow>().ok()) else {
-                return;
-            };
-            let frame = bar.frame();
-            let revealed = bar.screen().is_some_and(|screen| {
-                let top = screen.frame();
-                frame.origin.y + frame.size.height < top.origin.y + top.size.height - 1.0
-            });
-            // An expanded bar rides below AppKit's title strip, which an empty `.expanded` toolbar would make 12 taller.
-            let beside_lights = with_runtime(|runtime| runtime.rides_beside_lights(self.ivars().id));
-            self.show_toolbar(revealed && beside_lights != Some(false));
-            with_runtime(|runtime| runtime.reveal_bar(self.ivars().id, revealed));
+            if let Some(bar) = window_of(note) {
+                self.follow_bar(&bar);
+            }
         }
     }
 
@@ -474,11 +465,12 @@ define_class!(
         }
 
         #[unsafe(method(windowDidEnterFullScreen:))]
-        fn window_did_enter_full_screen(&self, _: &NSNotification) {
+        fn window_did_enter_full_screen(&self, note: &NSNotification) {
             let id = self.ivars().id;
             with_runtime(|runtime| runtime.fullscreen_changed(id));
             let bar = with_runtime(|runtime| runtime.bar_window(id)).flatten();
             if let Some(bar) = bar {
+                self.follow_bar(&bar);
                 // SAFETY: the delegate outlives the observation, which `windowDidExitFullScreen:` removes.
                 unsafe {
                     NSNotificationCenter::defaultCenter().addObserver_selector_name_object(
@@ -491,14 +483,29 @@ define_class!(
             }
         }
 
-        // The empty toolbar of a HiddenTitleBar window is an opaque band over the content in full screen.
         #[unsafe(method(windowWillEnterFullScreen:))]
-        fn window_will_enter_full_screen(&self, _: &NSNotification) {
-            self.show_toolbar(false);
+        fn window_will_enter_full_screen(&self, note: &NSNotification) {
             let id = self.ivars().id;
+            // AppKit shows and hides the fill itself, so the kit only makes it clear.
+            if let Some(fill) = window_of(note).as_deref().and_then(titlebar_fill) {
+                fill.setAlphaValue(0.0);
+            }
             if let Some((window, accessory)) = with_runtime(|runtime| runtime.attach_bar(id)).flatten() {
                 window.addTitlebarAccessoryViewController(&accessory);
             }
+            // An expanded bar rides below AppKit's title strip, which an empty `.expanded` toolbar would make 12 taller.
+            if with_runtime(|runtime| runtime.rides_beside_lights(id)) == Some(false) {
+                self.show_toolbar(false);
+            }
+        }
+
+        // The toolbar and the title bar's fill are back before AppKit animates the window out, so nothing in the bar moves after it lands.
+        #[unsafe(method(windowWillExitFullScreen:))]
+        fn window_will_exit_full_screen(&self, note: &NSNotification) {
+            if let Some(fill) = window_of(note).as_deref().and_then(titlebar_fill) {
+                fill.setAlphaValue(1.0);
+            }
+            self.show_toolbar(true);
         }
 
         #[unsafe(method(windowDidExitFullScreen:))]
@@ -515,7 +522,6 @@ define_class!(
             if let Some(accessory) = with_runtime(|runtime| runtime.detach_bar(id)).flatten() {
                 accessory.removeFromParentViewController();
             }
-            self.show_toolbar(true);
             with_runtime(|runtime| runtime.fullscreen_changed(id));
         }
 
@@ -546,7 +552,35 @@ define_class!(
     }
 );
 
+fn window_of(note: &NSNotification) -> Option<Retained<NSWindow>> {
+    note.object()?.downcast::<NSWindow>().ok()
+}
+
+// AppKit fills a full-screen bar with an opaque view whose blur sees only the bar's own window; SwiftUI's bar is clear over the content.
+fn titlebar_fill(window: &NSWindow) -> Option<Retained<NSView>> {
+    let button = window.standardWindowButton(NSWindowButton::CloseButton)?;
+    // SAFETY: both views are alive; neither is kept.
+    let container = unsafe { button.superview()?.superview()? };
+    container
+        .subviews()
+        .iter()
+        .find(|view| view.class().name() == c"NSTitlebarBackgroundView")
+}
+
 impl WindowDelegate {
+    // How far the bar reaches into the screen sets the soft edge it leaves; it is revealed once it leaves the top.
+    fn follow_bar(&self, bar: &NSWindow) {
+        let Some(screen) = bar.screen().map(|screen| screen.frame()) else {
+            return;
+        };
+        let (frame, top) = (bar.frame(), screen.origin.y + screen.size.height);
+        let revealed = frame.origin.y + frame.size.height < top - 1.0;
+        // At rest the clear bar lies over the kit's own row, which takes the pointer itself.
+        bar.setIgnoresMouseEvents(!revealed);
+        let depth = top - frame.origin.y;
+        with_runtime(|runtime| runtime.reveal_bar(self.ivars().id, revealed, depth));
+    }
+
     fn show_toolbar(&self, shown: bool) {
         let id = self.ivars().id;
         if let Some(toolbar) = with_runtime(|runtime| runtime.toolbar(id))

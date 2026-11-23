@@ -102,19 +102,22 @@ pub(super) fn edge_rect(
     }
 }
 
-// The material stays whole over the first part of the depth and fades to clear at the end.
+// The material stays whole over the first part of the depth and fades to the end's strength at the depth.
 const FADE_STOPS: [f64; 3] = [0.0, 0.75, 1.0];
 
-// How much of the material a soft edge shows where it is whole: the SwiftUI window over a red row shows it at half.
-const FADE_STRENGTH: f64 = 0.6;
+// How much of the material a soft edge shows where it is whole and at its end: the SwiftUI window over a red row shows it at half.
+pub(super) const FADE_STRENGTH: (f64, f64) = (0.6, 0.0);
 
-// The effect shows through a mask that is opaque at the edge and clear at the depth.
-pub(super) fn fade(effect: &Effect, edge: Edge) {
+// The full-screen bar of the SwiftUI twin blurs a sidebar row under it whole at the top and still at 0.6 where the bar ends.
+pub(super) const POCKET_STRENGTH: (f64, f64) = (1.0, 0.6);
+
+// The effect shows through a mask that is whole at the edge and keeps the tail's strength at the depth.
+pub(super) fn fade(effect: &Effect, edge: Edge, (whole, tail): (f64, f64)) {
     let gray = |alpha| CGColor::new_generic_gray(0.0, alpha);
     let (start, end) = edge_points(edge);
     let layer = CAGradientLayer::new();
     layer.setFrame(effect.bounds());
-    let (opaque, clear) = (gray(FADE_STRENGTH), gray(0.0));
+    let (opaque, clear) = (gray(whole), gray(tail));
     // SAFETY: a CGColor is a Core Foundation object, and CAGradientLayer takes them as its colors.
     let colors = unsafe {
         NSArray::from_slice(&[

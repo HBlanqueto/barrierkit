@@ -263,6 +263,7 @@ impl Runtime {
             fullscreen_bar: State::create_global(options.fullscreen_bar),
             fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
+            sidebar_span: State::create_global((0.0, 0.0)),
             hud: options.hud,
             panel: utility,
             ime_preedit: State::create_global(String::new()),

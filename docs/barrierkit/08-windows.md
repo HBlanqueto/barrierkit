@@ -203,18 +203,20 @@ WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain)
 
 The program is [`recipes/notes_sidebar.rs`](../../agents/recipes/notes_sidebar.rs).
 
-In full screen a `HiddenTitleBar` window hides its empty `NSToolbar`, which
-AppKit would draw as an opaque band over the content. The kit's `Titlebar` row
-and the sidebar keep their windowed place. When the pointer reaches the top
-edge, AppKit brings the menu bar down with a bar that holds the lights. While
-the menu bar is shown, the window shows that toolbar again and moves the glass
-controls of the title bar row into it, in an
+In full screen a `HiddenTitleBar` window keeps its empty `NSToolbar`, icons
+only as in SwiftUI, and makes AppKit's full-screen bar clear. The kit's
+`Titlebar` row and the sidebar keep their windowed place. When the pointer
+reaches the top edge, AppKit brings the menu bar down with a 52 pt bar that
+holds the lights. While the menu bar is shown, the window moves the glass
+controls of the title bar row into that bar, in an
 [`NSTitlebarAccessoryViewController`](https://developer.apple.com/documentation/appkit/nstitlebaraccessoryviewcontroller).
 They ride in one row beside the lights, as in SwiftUI, and still take clicks;
 a popover opened from them follows the row, and with the sidebar hidden the row
 makes room for the lights. Under `WindowToolbarStyle::Expanded` the toolbar row
 rides instead, in a row of its own under the lights, as SwiftUI's `.expanded`
-does. The content does not move
+does. Under the bar, a `Sidebar` gets a soft blurred edge as deep as the bar
+reaches, as SwiftUI's sidebar does; the content beside it is left as it is.
+The content does not move
 ([ADR 0116](../decisions.md#0116--in-full-screen-the-title-bar-row-of-a-hiddentitlebar-window-rides-with-appkits-bar)).
 
 ### Resizing from the edges
