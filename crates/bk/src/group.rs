@@ -18,9 +18,15 @@ use freya_core::node_id::NodeId;
 use freya_core::prelude::*;
 use freya_core::tree::{DiffModifies, Tree};
 use freya_engine::prelude::{
-    ClipOp, Paint, Rect as SkRect, SaveLayerRec, SkMatrix, SkPoint, TileMode, blur, color_filters,
+    ClipOp, ImageFilter, Paint, Rect as SkRect, SaveLayerRec, SkMatrix, SkPoint, TileMode, blur,
+    color_filters, image_filters,
 };
 use torin::prelude::{Area, Position, Size};
+
+use ctdesign::{
+    SCROLL_POCKET_BLUR, SCROLL_POCKET_OFFSET_DARK, SCROLL_POCKET_OFFSET_LIGHT,
+    SCROLL_POCKET_SCALE_DARK, SCROLL_POCKET_SCALE_LIGHT,
+};
 
 use crate::shader::Program;
 
@@ -36,6 +42,13 @@ pub enum GroupEffect {
     /// An SkSL image filter: `uniform shader content;` receives the layer; a uniform named `time` is bound to the seconds since the
     /// group appeared, added to its starting time; the group redraws every frame.
     Shader(ShaderEffect),
+    /// The pocket under a toolbar where content scrolls: a blur and a tone over the first `depth` points, as macOS draws it, shown
+    /// by `progress` (0 to 1). The edge is a hard step. Measured values: [UIKit animations](../../../docs/research/shader-needs.md).
+    ScrollEdge {
+        depth: f32,
+        progress: f32,
+        dark: bool,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -72,8 +85,8 @@ impl GroupEffect {
         }
     }
 
-    // The paint of the layer: the group's own effect and the opacity it inherits.
-    fn paint(&self, inherited: f32, scale: f32) -> Paint {
+    // The paint of the layer: the group's own effect and the opacity it inherits; `area` is the root's, in pixels.
+    fn paint(&self, inherited: f32, scale: f32, area: &Area) -> Paint {
         let mut paint = Paint::default();
         let mut alpha = inherited;
         match self {
@@ -87,6 +100,13 @@ impl GroupEffect {
                     matrix,
                     color_filters::Clamp::Yes,
                 ));
+            }
+            Self::ScrollEdge {
+                depth,
+                progress,
+                dark,
+            } => {
+                paint.set_image_filter(pocket(area, *depth * scale, scale, *progress, *dark));
             }
             Self::Shader(effect) => {
                 if let Some(program) = Program::get(effect.source) {
@@ -111,9 +131,51 @@ impl GroupEffect {
     fn outset(&self) -> f32 {
         match self {
             Self::Blur(radius) => radius * 3.0,
+            Self::ScrollEdge { .. } => SCROLL_POCKET_BLUR * 3.0,
             _ => 0.0,
         }
     }
+}
+
+// The tone of the pocket: the content, blurred, goes to `scale * content + offset` (0 to 1 units), whatever the appearance.
+fn pocket_tone(dark: bool) -> (f32, f32) {
+    if dark {
+        (SCROLL_POCKET_SCALE_DARK, SCROLL_POCKET_OFFSET_DARK)
+    } else {
+        (SCROLL_POCKET_SCALE_LIGHT, SCROLL_POCKET_OFFSET_LIGHT)
+    }
+}
+
+fn pocket_matrix(dark: bool, progress: f32) -> [f32; 20] {
+    let (scale, offset) = pocket_tone(dark);
+    #[rustfmt::skip]
+    let matrix = [
+        scale, 0.0, 0.0, 0.0, offset,
+        0.0, scale, 0.0, 0.0, offset,
+        0.0, 0.0, scale, 0.0, offset,
+        0.0, 0.0, 0.0, progress.clamp(0.0, 1.0), 0.0,
+    ];
+    matrix
+}
+
+// The source under a blurred, toned copy of its first `depth` pixels.
+fn pocket(area: &Area, depth: f32, scale: f32, progress: f32, dark: bool) -> Option<ImageFilter> {
+    let sigma = SCROLL_POCKET_BLUR * scale;
+    let toned = image_filters::color_filter(
+        color_filters::matrix_row_major(&pocket_matrix(dark, progress), color_filters::Clamp::Yes),
+        blur((sigma, sigma), TileMode::Clamp, None, None),
+        None,
+    );
+    let strip = SkRect::new(
+        area.min_x(),
+        area.min_y(),
+        area.max_x(),
+        area.min_y() + depth,
+    );
+    image_filters::merge(
+        [None, image_filters::crop(strip, TileMode::Decal, toned)],
+        None,
+    )
 }
 
 // The element that marks its parent as a group root. It draws nothing and takes no room.
@@ -452,7 +514,8 @@ impl Painter<'_, '_> {
                 .iter()
                 .fold(1., |acc, opacity| acc * opacity)
         });
-        let paint = effect.paint(inherited, scale_factor);
+        let root_area = self.pipeline.tree.layout.get(&root).unwrap().visible_area();
+        let paint = effect.paint(inherited, scale_factor, &root_area);
         let reach = effect.outset() * scale_factor;
         let bounds = (inside.rotations == applied.rotations && inside.scales == applied.scales)
             .then(|| self.union(&members, reach))
@@ -578,14 +641,33 @@ mod tests {
 
     #[test]
     fn the_layer_carries_the_inherited_opacity_and_the_opacity_of_its_effect() {
-        let paint = GroupEffect::Opacity(0.5).paint(0.5, 1.0);
+        let paint = GroupEffect::Opacity(0.5).paint(0.5, 1.0, &Area::default());
         assert!((paint.alpha_f() - 0.25).abs() < 1e-6);
-        assert!((GroupEffect::Blur(4.0).paint(1.0, 2.0).alpha_f() - 1.0).abs() < 1e-6);
+        assert!(
+            (GroupEffect::Blur(4.0)
+                .paint(1.0, 2.0, &Area::default())
+                .alpha_f()
+                - 1.0)
+                .abs()
+                < 1e-6
+        );
         assert!(
             GroupEffect::Blur(4.0)
-                .paint(1.0, 2.0)
+                .paint(1.0, 2.0, &Area::default())
                 .image_filter()
                 .is_some()
         );
+    }
+
+    #[test]
+    fn the_pocket_tone_is_the_line_through_the_measured_means_and_fades_in_by_progress() {
+        let apply = |dark, level: f32, progress| {
+            let m = pocket_matrix(dark, progress);
+            m[0] * level + m[4]
+        };
+        assert!((apply(false, 128.0 / 255.0, 1.0) * 255.0 - 200.0).abs() < 0.5);
+        assert!((apply(true, 128.0 / 255.0, 1.0) * 255.0 - 76.1).abs() < 0.5);
+        assert_eq!(pocket_matrix(false, 0.25)[18], 0.25);
+        assert_eq!(pocket_matrix(false, 7.0)[18], 1.0);
     }
 }

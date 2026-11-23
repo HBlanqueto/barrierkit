@@ -703,6 +703,13 @@
         ]
       }
     },
+    "scroll-pocket": {
+      "blur": 3.4,
+      "scale-light": 0.5,
+      "offset-light": 0.5349,
+      "scale-dark": 0.4,
+      "offset-dark": 0.0976
+    },
     "corner": {
       "smoothing": 0.745,
       "concentric-region": 1.0,

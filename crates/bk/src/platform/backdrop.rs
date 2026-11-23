@@ -1067,4 +1067,253 @@ mod tests {
             [191, 191, 255, 255],
         );
     }
+
+    fn flat(level: u8) -> impl Fn() -> Element {
+        move || {
+            CompositingGroup::new(GroupEffect::ScrollEdge {
+                depth: 20.0,
+                progress: 1.0,
+                dark: false,
+            })
+            .child(
+                rect()
+                    .width(Size::px(100.0))
+                    .height(Size::px(60.0))
+                    .background(Color::from_rgb(level, level, level)),
+            )
+            .into_element()
+        }
+    }
+
+    // The values of macOS: a checker of two grays under the pocket of a scroll view, light appearance (probe `scrolledge`).
+    #[test]
+    fn a_scroll_edge_tones_flat_content_as_macos_does_and_leaves_what_is_below_its_depth() {
+        for (level, expected) in [(64u8, 168.4), (128, 200.0), (191, 232.2)] {
+            let scene = scene(flat(level), (100.0, 60.0), 1.0);
+            let pixels = draw(&scene, true, (100, 60));
+            let inside = pixel(&pixels, 100, (50, 8))[0] as f32;
+            assert!((inside - expected).abs() <= 2.0, "{level}: {inside}");
+            near(pixel(&pixels, 100, (50, 40)), [level, level, level, 255]);
+        }
+    }
+
+    #[test]
+    fn a_scroll_edge_with_no_progress_shows_the_content_and_with_all_of_it_the_pocket() {
+        let at = |progress| {
+            let scene = scene(
+                move || {
+                    CompositingGroup::new(GroupEffect::ScrollEdge {
+                        depth: 20.0,
+                        progress,
+                        dark: false,
+                    })
+                    .child(
+                        rect()
+                            .width(Size::px(100.0))
+                            .height(Size::px(60.0))
+                            .background(Color::from_rgb(128, 128, 128)),
+                    )
+                    .into_element()
+                },
+                (100.0, 60.0),
+                1.0,
+            );
+            pixel(&draw(&scene, true, (100, 60)), 100, (50, 8))[0] as f32
+        };
+        assert!((at(0.0) - 128.0).abs() <= 1.5);
+        assert!((at(0.5) - 164.0).abs() <= 2.5);
+        assert!((at(1.0) - 200.0).abs() <= 1.5);
+    }
+
+    // macOS blurs the 8 px checker of the probe to a deviation of 7.9 levels (rows 56 to 88 of the pocket, light).
+    #[test]
+    fn a_scroll_edge_blurs_a_checker_to_the_deviation_macos_leaves() {
+        let scene = scene(
+            || {
+                let mut cells = rect().width(Size::px(104.0)).height(Size::px(56.0));
+                for row in 0..7 {
+                    for col in 0..13 {
+                        let level = if (row + col) % 2 == 0 { 255 } else { 0 };
+                        cells = cells.child(
+                            rect()
+                                .position(
+                                    Position::new_absolute()
+                                        .left(col as f32 * 8.0)
+                                        .top(row as f32 * 8.0),
+                                )
+                                .width(Size::px(8.0))
+                                .height(Size::px(8.0))
+                                .background(Color::from_rgb(level, level, level)),
+                        );
+                    }
+                }
+                CompositingGroup::new(GroupEffect::ScrollEdge {
+                    depth: 56.0,
+                    progress: 1.0,
+                    dark: false,
+                })
+                .child(cells)
+                .into_element()
+            },
+            (104.0, 56.0),
+            1.0,
+        );
+        let pixels = draw(&scene, true, (104, 56));
+        let mut deviations = Vec::new();
+        for y in 16..40 {
+            let row: Vec<f32> = (16..88)
+                .map(|x| pixel(&pixels, 104, (x, y))[0] as f32)
+                .collect();
+            let mean = row.iter().sum::<f32>() / row.len() as f32;
+            deviations.push(
+                (row.iter().map(|v| (v - mean).powi(2)).sum::<f32>() / row.len() as f32).sqrt(),
+            );
+        }
+        let deviation = deviations.iter().sum::<f32>() / deviations.len() as f32;
+        assert!((deviation - 7.9).abs() <= 2.0, "{deviation}");
+    }
+
+    // A headless Vulkan device (Mesa's lavapipe in the container) draws the groups with the GPU backend the Linux runner uses, and the
+    // pixels match the CPU raster within 10 levels (the GPU and CPU Gaussians differ in kernel). Run with `--ignored`; it needs a Vulkan loader and an ICD (`VK_ICD_FILENAMES`).
+    #[cfg(target_os = "linux")]
+    mod vulkan {
+        use ash::{
+            Entry,
+            vk::{self as ash_vk, Handle},
+        };
+        use freya_engine::prelude::{DirectContext, SurfaceOrigin, direct_contexts, vk};
+        use skia_safe::gpu::{Budgeted, surfaces};
+
+        use super::*;
+
+        fn context() -> DirectContext {
+            // SAFETY: libvulkan is the system loader; its initialisers have no preconditions.
+            let entry = Box::leak(Box::new(unsafe { Entry::load() }.expect("libvulkan")));
+            let app = ash_vk::ApplicationInfo::default().api_version(ash_vk::API_VERSION_1_1);
+            // SAFETY: the create info only borrows locals that outlive the call.
+            let instance = Box::leak(Box::new(
+                unsafe {
+                    entry.create_instance(
+                        &ash_vk::InstanceCreateInfo::default().application_info(&app),
+                        None,
+                    )
+                }
+                .expect("vkCreateInstance"),
+            ));
+            // SAFETY: `instance` is alive.
+            let (device, family) = unsafe { instance.enumerate_physical_devices() }
+                .unwrap()
+                .into_iter()
+                .find_map(|device| {
+                    // SAFETY: `device` was enumerated from `instance`.
+                    let families =
+                        unsafe { instance.get_physical_device_queue_family_properties(device) };
+                    let family = families
+                        .iter()
+                        .position(|f| f.queue_flags.contains(ash_vk::QueueFlags::GRAPHICS))?;
+                    Some((device, family as u32))
+                })
+                .expect("a Vulkan device");
+            let priorities = [1.0];
+            let queue_info = ash_vk::DeviceQueueCreateInfo::default()
+                .queue_family_index(family)
+                .queue_priorities(&priorities);
+            // SAFETY: `device` comes from `instance`.
+            let logical = Box::leak(Box::new(
+                unsafe {
+                    instance.create_device(
+                        device,
+                        &ash_vk::DeviceCreateInfo::default()
+                            .queue_create_infos(std::slice::from_ref(&queue_info)),
+                        None,
+                    )
+                }
+                .expect("vkCreateDevice"),
+            ));
+            // SAFETY: the device was created with one queue in `family`.
+            let queue = unsafe { logical.get_device_queue(family, 0) };
+            let get_proc = |of: vk::GetProcOf| {
+                // SAFETY: Skia asks only for handles it received from this instance and device.
+                unsafe {
+                    match of {
+                        vk::GetProcOf::Instance(handle, name) => entry
+                            .get_instance_proc_addr(ash_vk::Instance::from_raw(handle as _), name),
+                        vk::GetProcOf::Device(handle, name) => {
+                            (instance.fp_v1_0().get_device_proc_addr)(
+                                ash_vk::Device::from_raw(handle as _),
+                                name,
+                            )
+                        }
+                    }
+                }
+                .map_or(std::ptr::null(), |f| f as _)
+            };
+            let builder = vk::BackendContext::new_builder(
+                instance.handle().as_raw() as _,
+                device.as_raw() as _,
+                logical.handle().as_raw() as _,
+                (queue.as_raw() as _, family as usize),
+                &get_proc,
+                Some(vk::Version::new(1, 1, 0)),
+            );
+            // SAFETY: instance, device and queue are leaked, so they outlive the Skia context.
+            let backend = unsafe { builder.build() };
+            direct_contexts::make_vulkan(&backend, None).expect("a Skia Vulkan context")
+        }
+
+        fn gpu_pixels(scene: &Scene, size: (i32, i32)) -> Vec<u8> {
+            let mut context = context();
+            let info = freya_engine::prelude::ImageInfo::new_n32_premul(size, None);
+            let mut surface = surfaces::render_target(
+                &mut context,
+                Budgeted::No,
+                &info,
+                None,
+                SurfaceOrigin::TopLeft,
+                None,
+                false,
+                false,
+            )
+            .expect("a GPU surface");
+            let mut fonts = scene.fonts.clone();
+            render_pass(
+                &mut fonts,
+                &scene.manager,
+                &scene.tree,
+                surface.canvas(),
+                scene.scale,
+                (0, 0),
+                Color::WHITE,
+            );
+            context.flush_and_submit();
+            read(&mut surface, size)
+        }
+
+        #[test]
+        #[ignore = "needs a Vulkan device"]
+        fn groups_draw_on_vulkan_as_on_the_raster() {
+            let effects = [
+                GroupEffect::Opacity(0.5),
+                GroupEffect::Shader(ShaderEffect::new(FADE, vec![]).at(1.0)),
+                GroupEffect::Blur(4.0),
+                GroupEffect::ScrollEdge {
+                    depth: 30.0,
+                    progress: 1.0,
+                    dark: false,
+                },
+            ];
+            for effect in effects {
+                let scene = scene(grouped(effect.clone()), (100.0, 40.0), 1.0);
+                let cpu = draw(&scene, true, (100, 40));
+                let gpu = gpu_pixels(&scene, (100, 40));
+                let worst = cpu
+                    .iter()
+                    .zip(&gpu)
+                    .map(|(a, b)| a.abs_diff(*b))
+                    .max()
+                    .unwrap();
+                assert!(worst <= 10, "{effect:?}: {worst}");
+            }
+        }
+    }
 }

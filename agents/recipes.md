@@ -383,6 +383,9 @@ The program is [`recipes/compositing_group.rs`](recipes/compositing_group.rs).
 1. `CompositingGroup::new(effect).child(..)` draws its children into one layer and
    applies `effect` to the layer: the two discs at `GroupEffect::Opacity(0.5)` show
    no darker seam where they overlap.
-2. `GroupEffect::Shader` runs an SkSL image filter. `uniform shader content;`
+2. `GroupEffect::ScrollEdge { depth, progress, dark }` is the pocket under a
+   toolbar where content scrolls: a blur and a tone over the first `depth`
+   points, shown by `progress`. The button moves `progress` with a spring.
+3. `GroupEffect::Shader` runs an SkSL image filter. `uniform shader content;`
    receives the layer. A uniform named `time` is the seconds since the group
    appeared, and the group redraws every frame while the shader has it.

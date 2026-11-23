@@ -16,6 +16,11 @@ PANEL_GLOW_DEPTH f32 size.panel-glow-depth
 TITLEBAR_DOUBLE_CLICK DoubleClick components.window.titlebar.double-click
 WINDOW_CORNER WindowCorner components.window.corner
 CORNER_SMOOTHING f32 components.corner.smoothing
+SCROLL_POCKET_BLUR f32 components.scroll-pocket.blur
+SCROLL_POCKET_SCALE_LIGHT f32 components.scroll-pocket.scale-light
+SCROLL_POCKET_OFFSET_LIGHT f32 components.scroll-pocket.offset-light
+SCROLL_POCKET_SCALE_DARK f32 components.scroll-pocket.scale-dark
+SCROLL_POCKET_OFFSET_DARK f32 components.scroll-pocket.offset-dark
 CORNER_CONCENTRIC_REGION f32 components.corner.concentric-region
 CORNER_WINDOW CornerShape components.corner.window
 CORNER_SHEET CornerShape components.corner.sheet

@@ -1043,6 +1043,7 @@ the kit measures text without laying it out.
 |---|---|
 | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 250, 420 ms |
 | `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
+| `SCROLL_POCKET_BLUR`, `SCROLL_POCKET_SCALE_*`, `SCROLL_POCKET_OFFSET_*` | 3.4 pt, and the tone `scale * content + offset` (0 to 1 units) of a scroll pocket: 0.5 and 0.5349 in light, 0.4 and 0.0976 in dark; fitted to the pixels of macOS 27.2.1 ([Shader needs](../research/shader-needs.md)) |
 | `SPRING_DAMPING` | 5; no reader in the kit since ADR 0102 ([14](14-animations.md)) |
 | `DURATION_LIST_ROW_MS`, `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | 300, 200, 210, 120 ms: rows inserted or removed, a menu closing, a popover in and out (Mac Catalyst; [UIKit animations](../research/uikit-animations.md#2-motion-table)) |
 | `SPRING_SHEET_MS`, `SPRING_ALERT_MS`, `SPRING_PUSH_MS` | 344, 274, 251 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents, an alert, a push and pop; the last is a fit |

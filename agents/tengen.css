@@ -1054,6 +1054,11 @@
   --bk-list-group-section-header-padding-1: 10;
   --bk-list-group-section-header-padding-2: 10;
   --bk-list-group-section-header-padding-3: 10;
+  --bk-scroll-pocket-blur: 3.4;
+  --bk-scroll-pocket-scale-light: 0.5;
+  --bk-scroll-pocket-offset-light: 0.5349;
+  --bk-scroll-pocket-scale-dark: 0.4;
+  --bk-scroll-pocket-offset-dark: 0.0976;
   --bk-corner-smoothing: 0.745;
   --bk-corner-concentric-region: 1.0;
   --bk-corner-window-radius: var(--bk-window-corner-titlebar);

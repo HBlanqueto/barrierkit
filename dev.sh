@@ -57,6 +57,7 @@ check() {
     "$script_dir/scripts/check-client-only-deps.sh"
     "$script_dir/scripts/check-links.sh"
     "$script_dir/scripts/check-recipes.sh"
+    "$script_dir/scripts/check-render-loop.sh"
     "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/agents/tengen.css" -
     cargo test --workspace --lib --tests --features "$features"
 }

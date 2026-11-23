@@ -1,6 +1,7 @@
+use bk::animation::{use_animated, with_animation};
 use bk::group::{CompositingGroup, GroupEffect, ShaderEffect};
 use bk::prelude::*;
-use ctdesign::ACCENT_SWATCHES;
+use ctdesign::{ACCENT_SWATCHES, SPRING_SHEET_MS};
 use torin::prelude::Position;
 
 const PULSE: &str = "uniform shader content; uniform float time; half4 main(float2 p) { return content.eval(p) * half(0.75 + 0.25 * sin(time * 3.0)); }";
@@ -24,12 +25,31 @@ fn overlapping() -> impl IntoElement {
 fn main() -> Result<(), RunError> {
     Application::new("compositing_group")
         .window("Compositing group", || {
+            let mut scrolled = use_state(|| false);
+            let progress = use_animated(f32::from(u8::from(*scrolled.read())), Animation::None);
             HStack::new()
                 .child(CompositingGroup::new(GroupEffect::Opacity(0.5)).child(overlapping()))
                 .child(
                     CompositingGroup::new(GroupEffect::Shader(ShaderEffect::new(PULSE, vec![])))
                         .child(overlapping()),
                 )
+                .child(
+                    CompositingGroup::new(GroupEffect::ScrollEdge {
+                        depth: 40.0,
+                        progress,
+                        dark: false,
+                    })
+                    .child(overlapping()),
+                )
+                .child(Button::new("Scroll edge").on_press(move |_| {
+                    with_animation(
+                        Animation::Spring {
+                            duration_ms: SPRING_SHEET_MS,
+                            bounce: 0.0,
+                        },
+                        || scrolled.toggle(),
+                    )
+                }))
         })
         .run()
 }

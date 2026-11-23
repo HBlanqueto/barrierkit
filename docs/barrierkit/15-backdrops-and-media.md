@@ -269,6 +269,7 @@ appears.
 | `GroupEffect::Opacity(a)` | The layer at opacity `a`: children that overlap show no seam |
 | `GroupEffect::Blur(radius)` | A Gaussian blur in points; the layer grows by three radii |
 | `GroupEffect::ColorMatrix(m)` | A 4x5 row-major color matrix, as Skia reads it |
+| `GroupEffect::ScrollEdge { depth, progress, dark }` | The pocket of a scroll view under a toolbar: the first `depth` points blurred (`SCROLL_POCKET_BLUR`) and toned to `scale * content + offset` (`SCROLL_POCKET_*`, measured per appearance), over the unblurred content, shown by `progress`. The edge is a hard step, as in macOS |
 | `GroupEffect::Shader(ShaderEffect::new(sksl, uniforms))` | An SkSL image filter: `uniform shader content;` is the layer; uniforms bind by name ([P2](../research/shader-needs.md#prerequisites)); `time` is the seconds since the group appeared |
 
 - A group paints at the place of its root; an overlay under it paints in the
@@ -276,6 +277,7 @@ appears.
 - Groups nest: an inner group paints inside the outer one.
 - A node with a shadow takes an unbounded layer: Freya keeps the reach of a
   shadow private.
+- `progress` of a scroll edge is the app's: move it with `with_animation` and `use_animated` ([14](14-animations.md#implicit-animation)).
 - Reduced motion does not stop a `time` uniform: the app decides what to do with
   it.
 

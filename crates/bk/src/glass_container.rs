@@ -92,8 +92,11 @@ pub fn plan(shown: &[(&'static str, Frame)], target: &[(&'static str, Frame)]) -
 
 // Smooth union of rounded-box distances (Inigo Quilez, https://iquilezles.org/articles/smin/).
 const SKSL: &str = r"
+uniform float4 starts[8];
 uniform float4 frames[8];
+uniform float4 radii_from[2];
 uniform float4 radii[2];
+uniform float t;
 uniform float count;
 uniform float k;
 uniform float pixel;
@@ -101,7 +104,7 @@ uniform float mode;
 uniform half4 tint;
 uniform half4 rim;
 
-float radius_at(int i) {
+float radius_at(int i, float4 radii[2]) {
     float4 r = i < 4 ? radii[0] : radii[1];
     int j = i < 4 ? i : i - 4;
     return j == 0 ? r.x : j == 1 ? r.y : j == 2 ? r.z : r.w;
@@ -122,7 +125,9 @@ half4 main(float2 p) {
     float d = 100000.0;
     for (int i = 0; i < 8; i++) {
         if (float(i) >= count) { break; }
-        d = smooth_min(d, rounded_box(p, frames[i], radius_at(i)));
+        float4 frame = mix(starts[i], frames[i], t);
+        float radius = mix(radius_at(i, radii_from), radius_at(i, radii), t);
+        d = smooth_min(d, rounded_box(p, frame, radius));
     }
     float inside = clamp(0.5 - d / pixel, 0.0, 1.0);
     if (mode < 0.5) { return half4(inside); }
@@ -133,7 +138,9 @@ half4 main(float2 p) {
 
 #[derive(PartialEq)]
 struct Blob {
-    frames: Vec<Frame>,
+    from: Vec<Frame>,
+    to: Vec<Frame>,
+    t: f32,
     spacing: f32,
     origin: (f32, f32),
     tint: Rgba,
@@ -143,11 +150,10 @@ struct Blob {
 }
 
 impl Blob {
-    fn paint(&self, program: &Program, scale: f32, mode: f32) -> Option<Paint> {
-        let frames = &self.frames[..self.frames.len().min(MAX_SHAPES)];
+    fn boxes(&self, frames: &[Frame], scale: f32) -> ([f32; 4 * MAX_SHAPES], [f32; MAX_SHAPES]) {
         let mut boxes = [0.0f32; 4 * MAX_SHAPES];
         let mut radii = [0.0f32; MAX_SHAPES];
-        for (index, f) in frames.iter().enumerate() {
+        for (index, f) in frames.iter().take(MAX_SHAPES).enumerate() {
             boxes[index * 4..index * 4 + 4].copy_from_slice(&[
                 (self.origin.0 + f.x) * scale,
                 (self.origin.1 + f.y) * scale,
@@ -156,11 +162,21 @@ impl Blob {
             ]);
             radii[index] = f.radius * scale;
         }
+        (boxes, radii)
+    }
+
+    fn paint(&self, program: &Program, scale: f32, mode: f32) -> Option<Paint> {
+        let (starts, radii_from) = self.boxes(&self.from, scale);
+        let (boxes, radii) = self.boxes(&self.to, scale);
+        let count = self.to.len().min(MAX_SHAPES);
         let color = |c: Rgba| [c.r * c.a, c.g * c.a, c.b * c.a, c.a];
         let shader = program.shader(&[
+            ("starts", &starts),
             ("frames", &boxes),
+            ("radii_from", &radii_from),
             ("radii", &radii),
-            ("count", &[frames.len() as f32]),
+            ("t", &[self.t]),
+            ("count", &[count as f32]),
             ("k", &[(self.spacing * scale).max(0.001)]),
             ("pixel", &[scale]),
             ("mode", &[mode]),
@@ -175,7 +191,7 @@ impl Blob {
 
     fn bounds(&self, scale: f32) -> SkRect {
         let grow = self.spacing;
-        let (left, top, right, bottom) = self.frames.iter().fold(
+        let (left, top, right, bottom) = self.from.iter().chain(&self.to).fold(
             (f32::MAX, f32::MAX, f32::MIN, f32::MIN),
             |(l, t, r, b), f| {
                 (
@@ -209,7 +225,7 @@ impl ElementExt for Blob {
     }
 
     fn render(&self, context: RenderContext) {
-        if self.frames.is_empty() {
+        if self.to.is_empty() {
             return;
         }
         let scale = context.scale_factor as f32;
@@ -300,11 +316,11 @@ impl Component for GlassContainer {
             AnimNum::new(0.0, 1.0).time(*duration_ms.peek())
         });
         let t = animation.progress(progress.get().value());
-        let shown: Measured = morphs
+        let shown: Vec<Morph> = morphs
             .read()
             .iter()
             .filter(|morph| t < 1.0 || measured.peek().iter().any(|(id, _)| *id == morph.id))
-            .map(|morph| (morph.id, morph.from.lerp(&morph.to, t)))
+            .cloned()
             .collect();
 
         use_side_effect(move || {
@@ -368,7 +384,9 @@ impl Component for GlassContainer {
             .spacing(self.gap)
             .on_sized(move |event: Event<SizedEventData>| origin.set_if_modified(event.area))
             .child(leaf(Blob {
-                frames: shown.into_iter().map(|(_, frame)| frame).collect(),
+                from: shown.iter().map(|morph| morph.from).collect(),
+                to: shown.iter().map(|morph| morph.to).collect(),
+                t,
                 spacing: self.spacing,
                 origin: (shown_origin.origin.x, shown_origin.origin.y),
                 tint,
@@ -452,7 +470,9 @@ mod tests {
     fn the_shader_compiles_and_takes_every_uniform() {
         let program = Program::get(SKSL).unwrap();
         let blob = Blob {
-            frames: vec![frame(0.0)],
+            from: vec![frame(0.0)],
+            to: vec![frame(30.0)],
+            t: 0.5,
             spacing: 12.0,
             origin: (0.0, 0.0),
             tint: MEDIA.round_glass,
@@ -462,5 +482,55 @@ mod tests {
         };
         assert!(blob.paint(&program, 1.0, 0.0).is_some());
         assert!(blob.paint(&program, 2.0, 1.0).is_some());
+    }
+
+    // The shader mixes the frames by `t`, which is the animation's progress: the picture is the one of the frames mixed on the CPU.
+    #[test]
+    fn the_shader_morphs_by_the_time_it_is_given_as_the_cpu_mix_of_the_frames_does() {
+        use freya_engine::prelude::{AlphaType, ColorType, ImageInfo, raster_n32_premul};
+        let program = Program::get(SKSL).unwrap();
+        let (a, b) = (
+            frame(0.0),
+            Frame {
+                x: 40.0,
+                y: 10.0,
+                width: 30.0,
+                height: 50.0,
+                radius: 6.0,
+            },
+        );
+        let blob = |from: Frame, to: Frame, t: f32| Blob {
+            from: vec![from],
+            to: vec![to],
+            t,
+            spacing: 12.0,
+            origin: (0.0, 0.0),
+            tint: MEDIA.round_glass,
+            blur: None,
+            rim: MEDIA.round_rim,
+            layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
+        };
+        let pixels = |blob: Blob| {
+            let mut surface = raster_n32_premul((90, 70)).unwrap();
+            let paint = blob.paint(&program, 1.0, 1.0).unwrap();
+            surface
+                .canvas()
+                .draw_rect(SkRect::new(0.0, 0.0, 90.0, 70.0), &paint);
+            let info = ImageInfo::new((90, 70), ColorType::RGBA8888, AlphaType::Premul, None);
+            let mut out = vec![0u8; 90 * 70 * 4];
+            assert!(surface.read_pixels(&info, &mut out, 90 * 4, (0, 0)));
+            out
+        };
+        for t in [0.0, 0.3, 1.0] {
+            let gpu = pixels(blob(a, b, t));
+            let cpu = pixels(blob(a.lerp(&b, t), a.lerp(&b, t), 0.0));
+            let worst = gpu
+                .iter()
+                .zip(&cpu)
+                .map(|(x, y)| x.abs_diff(*y))
+                .max()
+                .unwrap();
+            assert!(worst <= 1, "t {t}: {worst}");
+        }
     }
 }

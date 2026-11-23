@@ -1002,4 +1002,6 @@ dark, scale 1; the layer tree only, not the pixels.
    and `hard` looked the same is the tree too: the style set on the accessory
    does not change what AppKit builds in this probe.
 4. **Not modelled.** The variable blur is 2 to 2.5 and the layer blur 20 (the
-   edge falls off over the gradient); the pixels of the pocket were not fitted.
+   edge falls off over the gradient). The pixels were fitted on 2026-11-22: a tone
+   line per appearance, a blur of sigma about 3.4 and a hard edge
+   ([Shader needs](shader-needs.md#not-verified)).
