@@ -66,7 +66,7 @@ token with its own duration (`SWITCH.transition_ms`,
 | Element | Duration | Curve |
 |---|---|---|
 | `Switch` knob | `SWITCH.transition_ms` | Ease out, cubic |
-| Collapsing a sidebar section | `DURATION_BASE` | Ease out, cubic |
+| Collapsing a sidebar section | `SPRING_SHEET_MS` | `Spring`, no bounce |
 | Showing or hiding the sidebar and the inspector | `DURATION_BASE` | Ease out, cubic |
 | Sidebar width while dragging | `DURATION_FAST_MS` | `Spring`, no bounce |
 | Moving the sidebar into the rail, revealing hidden titlebars, the focus bar | `DURATION_BASE` | Ease out, cubic |

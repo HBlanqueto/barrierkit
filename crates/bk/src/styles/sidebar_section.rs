@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{BODY, DURATION_BASE, Font, SIDEBAR};
+use ctdesign::{BODY, Font, SIDEBAR, SPRING_SHEET_MS};
 
 use super::{
     Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, reduce_motion, system_effect,
@@ -23,7 +23,7 @@ pub struct SidebarSectionStyle {
     pub effect: ColorEffect,
     /// Tengen: `font`: `BODY` at `SIDEBAR.section_size` with `SIDEBAR.section_weight`.
     pub font: Font,
-    /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the rows fold; `None` makes them jump.
+    /// Tengen: `Spring { duration_ms: SPRING_SHEET_MS, bounce: 0.0 }`, the measured spring of a card changing height: the rows fold; `None` makes them jump.
     pub animation: Animation,
 }
 
@@ -43,8 +43,9 @@ impl ControlStyle for SidebarSectionStyle {
                 weight: SIDEBAR.section_weight,
                 ..BODY
             },
-            animation: Animation::Ease {
-                duration_ms: DURATION_BASE,
+            animation: Animation::Spring {
+                duration_ms: SPRING_SHEET_MS,
+                bounce: 0.0,
             },
         }
     }
