@@ -334,6 +334,16 @@ with its message, Escape answers `None`, and the save panel with Return answers
 `Some("/Users/humbe/Documents/note.txt")`. Choosing an existing file was not
 driven (the key tool has no slash); the path conversion is the same call.
 
+### M4 result: Keychain (2026-11-22)
+
+`secrets::Secrets` on macOS stores generic passwords with `security-framework`
+(`platform/macos/keychain.rs`): service = the attributes, sorted and escaped, behind
+a `barrierkit?` prefix; account = the label. `search` lists the generic passwords and
+keeps those whose attributes hold the query. Checked on this Mac against the login
+Keychain: create, search by one attribute, read, change, delete, and a search that
+finds nothing, with `=`, `&` and `%` in a value. Items with the same attributes and a
+different label are two items here, and one on Linux.
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

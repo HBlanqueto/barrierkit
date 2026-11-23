@@ -1,17 +1,29 @@
 use std::collections::HashMap;
 
+#[cfg(not(target_os = "macos"))]
 use zbus::blocking::Connection;
-use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Value};
-use zeroize::{Zeroize, Zeroizing};
+use zbus::zvariant::OwnedObjectPath;
+#[cfg(not(target_os = "macos"))]
+use zbus::zvariant::{ObjectPath, OwnedValue, Value};
+#[cfg(not(target_os = "macos"))]
+use zeroize::Zeroize;
+use zeroize::Zeroizing;
 
+#[cfg(not(target_os = "macos"))]
 const SERVICE: &str = "org.freedesktop.secrets";
+#[cfg(not(target_os = "macos"))]
 const SERVICE_PATH: &str = "/org/freedesktop/secrets";
+#[cfg(not(target_os = "macos"))]
 const SERVICE_INTERFACE: &str = "org.freedesktop.Secret.Service";
+#[cfg(not(target_os = "macos"))]
 const ITEM_INTERFACE: &str = "org.freedesktop.Secret.Item";
 // Secret Service API 0.2 §“Collections”: the alias for the user's default collection.
+#[cfg(not(target_os = "macos"))]
 const DEFAULT_COLLECTION: &str = "/org/freedesktop/secrets/aliases/default";
+#[cfg(not(target_os = "macos"))]
 const NO_PROMPT: &str = "/";
 
+#[cfg(not(target_os = "macos"))]
 type Secret = (OwnedObjectPath, Vec<u8>, Vec<u8>, String);
 
 #[derive(Debug)]
@@ -19,6 +31,9 @@ pub enum Error {
     // The keyring asked to be unlocked; its own prompt is showing.
     Locked,
     Bus(zbus::Error),
+    // The OSStatus of a failed Keychain call.
+    #[cfg(target_os = "macos")]
+    Keychain(i32),
 }
 
 impl From<zbus::Error> for Error {
@@ -40,11 +55,54 @@ pub struct Item {
     pub attributes: HashMap<String, String>,
 }
 
+#[cfg(target_os = "macos")]
+pub struct Secrets;
+
+// The Keychain has no object paths; the label and the attributes find an item again.
+#[cfg(target_os = "macos")]
+pub(crate) fn keychain_path() -> OwnedObjectPath {
+    OwnedObjectPath::try_from("/keychain").expect("a valid object path")
+}
+
+#[cfg(target_os = "macos")]
+impl Secrets {
+    pub fn open() -> Result<Self, Error> {
+        Ok(Self)
+    }
+
+    pub fn search(&self, attributes: &HashMap<&str, &str>) -> Result<Vec<Item>, Error> {
+        crate::platform::keychain::search(attributes)
+    }
+
+    pub fn secret(&self, item: &Item) -> Result<Zeroizing<Vec<u8>>, Error> {
+        crate::platform::keychain::secret(item)
+    }
+
+    pub fn create(
+        &self,
+        label: &str,
+        attributes: &HashMap<&str, &str>,
+        secret: &[u8],
+    ) -> Result<(), Error> {
+        crate::platform::keychain::store(label, attributes, secret)
+    }
+
+    pub fn set_secret(&self, item: &Item, secret: &[u8]) -> Result<(), Error> {
+        crate::platform::keychain::replace(item, secret)
+    }
+
+    pub fn delete(&self, item: &Item) -> Result<(), Error> {
+        crate::platform::keychain::delete(item)
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
 pub struct Secrets {
     connection: Connection,
     session: OwnedObjectPath,
 }
 
+#[cfg(not(target_os = "macos"))]
 impl Secrets {
     // §“Transfer of Secrets”: the plain algorithm; the bus is local to the user.
     pub fn open() -> Result<Self, Error> {
@@ -183,6 +241,7 @@ impl Secrets {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 impl Drop for Secrets {
     fn drop(&mut self) {
         let path = ObjectPath::from(&self.session);

@@ -55,6 +55,7 @@ ash.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 block2 = "0.6"
+security-framework = "3"
 calloop = "0.14"
 dispatch2 = "0.3"
 freya-engine = { workspace = true, features = ["metal"] }

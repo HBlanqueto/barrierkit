@@ -54,6 +54,7 @@ use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 mod blur;
 mod frame;
 mod input;
+pub(crate) mod keychain;
 mod menu;
 pub(crate) mod panels;
 mod place;

@@ -269,6 +269,7 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 | The menu bar from the key window's `MainMenu`, after the standard app menu: Command key equivalents for the Ctrl shortcuts, checkmarks, disabled items, patched when the menu changes. A key that edits a focused text field goes to the field, not to the menu | Palettes, search fields, icons and badges of a menu item; `Header` is a disabled item; the About panel of a bundled app (not run) |
 | Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | Notifications, accessibility |
 | `portal::open_files`, `save_file` and `open_uri` as `NSOpenPanel`, `NSSavePanel` and `NSWorkspace` (`platform/macos/panels.rs`) | |
+| `secrets::Secrets` as the login Keychain, generic passwords (`platform/macos/keychain.rs`) | |
 | `Timers`, `WakeHandle`, clipboard text | `GlassContainer` and `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
 | The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |

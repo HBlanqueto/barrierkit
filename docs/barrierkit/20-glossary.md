@@ -1433,9 +1433,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `notifications::Notification` | struct | — | ≈ `UNMutableNotificationContent` | ≈ `UNMutableNotificationContent` | A notification's app name, desktop entry, summary, body and action | [13](13-app.md#notifications) |
 | `notifications::post` | fn | — | ≈ `UNUserNotificationCenter` | ≈ `UNUserNotificationCenter` | Posts a notification; the callback gets the activation token on click | [13](13-app.md#notifications) |
 | `notifications::play_event_sound` | fn | — | ≈ `NSSound` | — | Plays a sound from the freedesktop sound theme | [13](13-app.md#notifications) |
-| `secrets::Secrets` | struct | — | ≈ `SecItemCopyMatching(_:_:)` | ≈ `SecItemCopyMatching` | Session with the Secret Service keyring: search, read, create, delete | [13](13-app.md#secrets) |
+| `secrets::Secrets` | struct | — | ≈ `SecItemCopyMatching(_:_:)` | ≈ `SecItemCopyMatching` | Session with the Secret Service keyring (the login Keychain on macOS): search, read, create, delete | [13](13-app.md#secrets) |
 | `secrets::Item` | struct | — | — | — | A keyring item: object path, label and attributes | [13](13-app.md#secrets) |
-| `secrets::Error` | enum | — | — | — | Keyring error: `Locked` (prompt showing) or `Bus` | [13](13-app.md#secrets) |
+| `secrets::Error` | enum | — | — | — | Keyring error: `Locked` (prompt showing), `Bus`, or `Keychain` (macOS `OSStatus`) | [13](13-app.md#secrets) |
 | `portal::open_files` | fn | `.fileImporter(isPresented:allowedContentTypes:allowsMultipleSelection:onCompletion:)` | `NSOpenPanel` | `UIDocumentPickerViewController` | Async file or folder chooser through the portal | [13](13-app.md#portals) |
 | `portal::save_file` | fn | `.fileExporter(isPresented:document:contentType:defaultFilename:onCompletion:)` | `NSSavePanel` | `UIDocumentPickerViewController` | Async save chooser through the portal | [13](13-app.md#portals) |
 | `portal::open_uri` | fn | `OpenURLAction` | `NSWorkspace.open(_:)` | `UIApplication.open(_:options:completionHandler:)` | Opens a URI in its default app through the portal | [13](13-app.md#portals) |

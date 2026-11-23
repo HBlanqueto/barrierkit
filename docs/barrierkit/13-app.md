@@ -426,7 +426,9 @@ Without a notification server, `post` logs a warning and does nothing.
 ## Secrets
 
 `Secrets` is the Linux keyring, through the Secret Service API
-(`org.freedesktop.secrets`).
+(`org.freedesktop.secrets`). On macOS it is the login Keychain: each item is a generic
+password whose account is the label and whose service holds the attributes, so `search`
+reads the kit's items and filters them by attributes; `Item::path` is the same for all.
 
 | Item | What it does |
 |---|---|
@@ -439,7 +441,8 @@ Without a notification server, `post` logs a warning and does nothing.
 
 An `Item` has a `path`, a `label` and its `attributes`. `Error::Locked` means
 the keyring asked to be unlocked and is showing its own prompt: try again
-later. `Error::Bus` wraps any other D-Bus error. Secrets travel in plain over
+later. `Error::Bus` wraps any other D-Bus error; on macOS `Error::Keychain` holds the
+Keychain's `OSStatus`, and `Locked` does not occur (the system asks for the password itself). Secrets travel in plain over
 the session bus, which is local to the user; the copies the kit makes are
 zeroed.
 
