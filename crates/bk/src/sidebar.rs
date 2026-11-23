@@ -8,6 +8,7 @@ use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
 use crate::ProbeExt;
 use crate::adornments::Avatar;
 use crate::chrome::TitlebarLayout;
+use crate::focus::{FocusState, Focused, use_focus_state};
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::WindowControls;
 use crate::scroll::ScrollView;
@@ -22,7 +23,7 @@ use crate::symbol::{Symbol, stroked_symbol, symbol, tile_symbol};
 use crate::theme;
 use crate::titlebar::window_drag_handler;
 use crate::traffic::TrafficLights;
-use freya_core::prelude::try_consume_root_context;
+use freya_core::{accessibility::tree::ACCESSIBILITY_ROOT_ID, prelude::try_consume_root_context};
 
 pub(crate) fn sidebar_palette() -> SidebarPalette {
     let palette = crate::theme::resolved().sidebar.palette;
@@ -52,6 +53,17 @@ pub(crate) fn over_backdrop(surface: SidebarSurface) -> SidebarSurface {
         bg: Rgba::TRANSPARENT,
         palette: sidebar_palette(),
         glass: None,
+    }
+}
+
+#[derive(Clone, PartialEq)]
+struct InSidebar;
+
+fn unemphasized(s: SidebarItemStyle) -> SidebarItemStyle {
+    SidebarItemStyle {
+        selected_background: StateValue::new(ShapeStyle::Color(item_palette(false).selected_bg)),
+        selected_label: s.label.clone(),
+        ..s
     }
 }
 
@@ -343,6 +355,8 @@ impl Component for Sidebar {
             0.0
         };
 
+        let focus = use_focus_state::<InSidebar>();
+        use_provide_context(move || focus);
         let mut panel_area = use_state(Area::default);
         crate::glass_panel::use_publish(glass, 0.0, *panel_area.read());
         let sidebar_body = rect()
@@ -364,7 +378,11 @@ impl Component for Sidebar {
                     .probe("sidebar-drag-strip")
                     .on_mouse_down(drag),
             )
-            .child(ScrollView::new().children(self.children.iter().cloned()));
+            .child(Focused::new(
+                focus,
+                InSidebar,
+                ScrollView::new().children(self.children.iter().cloned()),
+            ));
 
         let mut root = rect().expanded().child(sidebar_body);
 
@@ -482,13 +500,7 @@ impl SidebarItem {
         if emphasized {
             self
         } else {
-            self.style(|s| SidebarItemStyle {
-                selected_background: StateValue::new(ShapeStyle::Color(
-                    item_palette(false).selected_bg,
-                )),
-                selected_label: s.label.clone(),
-                ..s
-            })
+            self.style(unemphasized)
         }
     }
 
@@ -521,6 +533,13 @@ impl Component for SidebarItem {
 
     fn render(&self) -> impl IntoElement {
         let style: SidebarItemStyle = resolve(&self.style);
+        let focus_elsewhere = try_consume_context::<FocusState<InSidebar>>()
+            .is_some_and(|inside| inside.get().is_none() && !ACCESSIBILITY_ROOT_ID.is_focused());
+        let style = if focus_elsewhere {
+            unemphasized(style)
+        } else {
+            style
+        };
         let interaction = use_interaction();
         let state = control_state(interaction, false);
         let paints = Paints::current(state, style.effect);
@@ -545,7 +564,16 @@ impl Component for SidebarItem {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .spacing(style.spacing)
-            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+            .padding(Gaps::new(
+                0.0,
+                style.padding_x,
+                0.0,
+                if self.symbol.is_some() {
+                    style.padding_x
+                } else {
+                    style.text_padding_x
+                },
+            ))
             .corner_radius(corner_radius)
             .painted(&paints, background)
             .a11y_role(AccessibilityRole::ListItem)

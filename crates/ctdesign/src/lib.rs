@@ -1510,6 +1510,7 @@ pub struct SidebarMetrics {
     pub item_height: u32,
     pub item_radius: u32,
     pub item_padding_x: u32,
+    pub item_text_padding_x: u32,
     pub item_gap: u32,
     pub item_text_size: u32,
     pub item_weight: u16,

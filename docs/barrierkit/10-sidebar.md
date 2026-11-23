@@ -108,6 +108,7 @@ y = 52, under the bar.
 |---|---|
 | Width | `SIDEBAR.width` (220, SwiftUI's) |
 | Row | `SIDEBAR.item_height` (32); the selection is the width of the sidebar less `SIDEBAR.padding_x` (10) on each side |
+| Label inset | From the selection's edge: `SIDEBAR.item_padding_x` (8) before a symbol, `SIDEBAR.item_text_padding_x` (6) before a label without one, so its text starts at x 16 as in SwiftUI |
 | Section header | `SIDEBAR.section_height` (19), `SIDEBAR.section_margin_bottom` (13) between sections |
 | Selection | `#0270f5` in light, `#007aff` in dark, with white text |
 
@@ -156,7 +157,7 @@ A row with an optional symbol and a one-line label.
 | `.symbol(Symbol)` | none | A bare glyph before the label: the accent, the selected ink on the selected row, as a SwiftUI `Label` in a sidebar `List` |
 | `.symbol_tile(Symbol, tint)` | none | A [`SymbolTile`](#symboltile) of color `tint` before the label, as System Settings draws it |
 | `.selected(bool)` | `false` | Draws the row as selected. The app decides which row is selected |
-| `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent, as when the focus is elsewhere |
+| `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent. Inside a `Sidebar` it turns gray on its own while the keyboard focus is outside the sidebar, as in AppKit |
 | `.style(f)` | Tengen | A `SidebarItemStyle` ([Style](#style)) |
 | `.on_select(callback)` | none | Called when the row is pressed |
 | `.key(key)` | none | Diff key |

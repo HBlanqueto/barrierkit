@@ -10,6 +10,8 @@ pub struct SidebarItemStyle {
     pub height: f32,
     /// Tengen: `item_padding_x`.
     pub padding_x: f32,
+    /// Tengen: `item_text_padding_x`, the leading padding of a row without a symbol.
+    pub text_padding_x: f32,
     /// Tengen: `item_gap`.
     pub spacing: f32,
     /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_radius, style: Continuous }`.
@@ -65,6 +67,7 @@ impl ControlStyle for SidebarItemStyle {
         Self {
             height: SIDEBAR.item_height as f32,
             padding_x: SIDEBAR.item_padding_x as f32,
+            text_padding_x: SIDEBAR.item_text_padding_x as f32,
             spacing: SIDEBAR.item_gap as f32,
             shape: continuous_rounded(SIDEBAR.item_radius as f32),
             background: StateValue::new(ShapeStyle::Clear),

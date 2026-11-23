@@ -1300,6 +1300,7 @@
   --bk-window-sidebar-item-height: 32;
   --bk-window-sidebar-item-radius: var(--bk-radius-sm);
   --bk-window-sidebar-item-padding-x: 8;
+  --bk-window-sidebar-item-text-padding-x: 6;
   --bk-window-sidebar-item-gap: 8;
   --bk-window-sidebar-item-icon: 16;
   --bk-window-sidebar-item-glyph: 21;
