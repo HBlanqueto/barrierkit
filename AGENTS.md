@@ -99,11 +99,12 @@ métodos, hooks, tokens).
 ## macOS y Linux
 
 1. **`cfg(target_os)` solo en `crates/bk/src/platform/`, `crates/ctappearance/`
-   y `Cargo.toml`.** `scripts/check-platform-cfg.sh` lo comprueba; su lista de
-   excepciones solo se acorta.
+   y `Cargo.toml`.** `scripts/check-platform-cfg.sh` lo comprueba, sin
+   excepciones.
 2. **Un nombre, una firma, dos cuerpos.** Lo que un sistema da (portapapeles,
    llavero, notificaciones, menús) es una función con la misma firma en
-   `platform/macos/` y en el backend de Linux. Sin traits mientras haya un
+   `platform/macos/` y en `platform/linux/`, reexportada una vez desde
+   `platform/mod.rs` (`use linux|macos as sys`). Sin traits mientras haya un
    cuerpo por sistema (regla 3 de «Código mínimo»).
 3. **La decisión va en código puro, sin `cfg`:** reconocedores, máquinas de
    estado, números de `ctdesign`. El backend solo traduce eventos del sistema a

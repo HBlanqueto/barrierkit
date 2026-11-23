@@ -78,15 +78,19 @@ fn bundled() -> bool {
     NSBundle::mainBundle().bundleIdentifier().is_some()
 }
 
-pub(crate) fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 'static) {
+pub fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 'static) {
     let id = NEXT.fetch_add(1, Ordering::Relaxed);
     if bundled() {
         push_bounded(&mut lock(&WAITING), (id, Box::new(clicked)));
     }
-    notify(id.to_string(), notice.summary, notice.body);
+    deliver(id.to_string(), notice.summary, notice.body);
 }
 
-pub(crate) fn notify(identifier: String, title: String, body: String) {
+pub async fn notify(id: &str, title: &str, body: &str) {
+    deliver(id.to_owned(), title.to_owned(), body.to_owned());
+}
+
+fn deliver(identifier: String, title: String, body: String) {
     if !bundled() {
         tracing::warn!("notifications need an app bundle, and this process has none");
         return;

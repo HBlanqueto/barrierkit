@@ -383,7 +383,7 @@ impl Elastic {
     }
 
     fn release(&self, controller: ScrollController, horizontal: bool, limit: f32, flung: bool) {
-        let speed = if flung && !cfg!(target_os = "macos") {
+        let speed = if flung && !crate::platform::SYSTEM_MOMENTUM {
             self.tracker.borrow().velocity(self.now())
         } else {
             0.0

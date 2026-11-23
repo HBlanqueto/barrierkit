@@ -16,7 +16,6 @@ static WATCHES_EVERY_DOMAIN: AtomicBool = AtomicBool::new(false);
 
 impl DefaultsRevision {
     // window.domain is read by the title bar, not by a hook.
-    #[cfg(target_os = "linux")]
     pub(crate) fn concerns(domain: &std::ffi::OsStr) -> bool {
         domain == "window.domain"
             || WATCHES_EVERY_DOMAIN.load(Ordering::Relaxed)

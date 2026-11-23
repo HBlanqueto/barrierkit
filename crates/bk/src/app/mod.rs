@@ -11,6 +11,7 @@ mod windows;
 pub(crate) use action::MenuActions;
 pub use action::{Action, Shortcut, ShortcutKey, use_menu_action};
 pub use application::{Instance, Launch, launch};
+pub(crate) use application::{Requests, present};
 pub use commands::{
     BRING_ALL_TO_FRONT, CLOSE_WINDOW, COPY, CUT, CommandGroup, CommandGroupPlacement, Commands,
     DELETE, FIND, FIND_AND_REPLACE, FIND_NEXT, FIND_PREVIOUS, HELP, JUMP_TO_SELECTION, MINIMIZE,

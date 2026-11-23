@@ -4,6 +4,7 @@ use security_framework::item::{ItemClass, ItemSearchOptions, Limit};
 use security_framework::passwords::{
     delete_generic_password, get_generic_password, set_generic_password,
 };
+use zbus::zvariant::OwnedObjectPath;
 use zeroize::Zeroizing;
 
 use crate::secrets::{Error, Item};
@@ -53,32 +54,6 @@ fn failed(error: security_framework::base::Error) -> Error {
     Error::Keychain(error.code())
 }
 
-pub(crate) fn search(query: &HashMap<&str, &str>) -> Result<Vec<Item>, Error> {
-    let found = match ItemSearchOptions::new()
-        .class(ItemClass::generic_password())
-        .load_attributes(true)
-        .limit(Limit::All)
-        .search()
-    {
-        Ok(found) => found,
-        // errSecItemNotFound: nothing is stored yet.
-        Err(error) if error.code() == -25300 => return Ok(Vec::new()),
-        Err(error) => return Err(failed(error)),
-    };
-    Ok(found
-        .iter()
-        .filter_map(|result| {
-            let fields = result.simplify_dict()?;
-            let attributes = attributes_of(fields.get("svce")?)?;
-            holds(query, &attributes).then(|| Item {
-                path: crate::secrets::keychain_path(),
-                label: fields.get("acct").cloned().unwrap_or_default(),
-                attributes,
-            })
-        })
-        .collect())
-}
-
 fn service_of(item: &Item) -> String {
     let attributes: HashMap<&str, &str> = item
         .attributes
@@ -88,26 +63,66 @@ fn service_of(item: &Item) -> String {
     service(&attributes)
 }
 
-pub(crate) fn secret(item: &Item) -> Result<Zeroizing<Vec<u8>>, Error> {
-    get_generic_password(&service_of(item), &item.label)
-        .map(Zeroizing::new)
-        .map_err(failed)
+// The Keychain has no object paths; the label and the attributes find an item again.
+fn keychain_path() -> OwnedObjectPath {
+    OwnedObjectPath::try_from("/keychain").expect("a valid object path")
 }
 
-pub(crate) fn store(
-    label: &str,
-    attributes: &HashMap<&str, &str>,
-    secret: &[u8],
-) -> Result<(), Error> {
-    set_generic_password(&service(attributes), label, secret).map_err(failed)
-}
+pub struct Secrets;
 
-pub(crate) fn replace(item: &Item, secret: &[u8]) -> Result<(), Error> {
-    set_generic_password(&service_of(item), &item.label, secret).map_err(failed)
-}
+impl Secrets {
+    pub fn open() -> Result<Self, Error> {
+        Ok(Self)
+    }
 
-pub(crate) fn delete(item: &Item) -> Result<(), Error> {
-    delete_generic_password(&service_of(item), &item.label).map_err(failed)
+    pub fn search(&self, query: &HashMap<&str, &str>) -> Result<Vec<Item>, Error> {
+        let found = match ItemSearchOptions::new()
+            .class(ItemClass::generic_password())
+            .load_attributes(true)
+            .limit(Limit::All)
+            .search()
+        {
+            Ok(found) => found,
+            // errSecItemNotFound: nothing is stored yet.
+            Err(error) if error.code() == -25300 => return Ok(Vec::new()),
+            Err(error) => return Err(failed(error)),
+        };
+        Ok(found
+            .iter()
+            .filter_map(|result| {
+                let fields = result.simplify_dict()?;
+                let attributes = attributes_of(fields.get("svce")?)?;
+                holds(query, &attributes).then(|| Item {
+                    path: keychain_path(),
+                    label: fields.get("acct").cloned().unwrap_or_default(),
+                    attributes,
+                })
+            })
+            .collect())
+    }
+
+    pub fn secret(&self, item: &Item) -> Result<Zeroizing<Vec<u8>>, Error> {
+        get_generic_password(&service_of(item), &item.label)
+            .map(Zeroizing::new)
+            .map_err(failed)
+    }
+
+    pub fn create(
+        &self,
+        label: &str,
+        attributes: &HashMap<&str, &str>,
+        secret: &[u8],
+    ) -> Result<(), Error> {
+        set_generic_password(&service(attributes), label, secret).map_err(failed)
+    }
+
+    pub fn set_secret(&self, item: &Item, secret: &[u8]) -> Result<(), Error> {
+        set_generic_password(&service_of(item), &item.label, secret).map_err(failed)
+    }
+
+    pub fn delete(&self, item: &Item) -> Result<(), Error> {
+        delete_generic_password(&service_of(item), &item.label).map_err(failed)
+    }
 }
 
 #[cfg(test)]

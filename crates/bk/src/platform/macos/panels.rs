@@ -34,11 +34,7 @@ fn path_of(url: &NSURL) -> Option<PathBuf> {
     url.path().map(|path| PathBuf::from(path.to_string()))
 }
 
-pub(crate) async fn open_files(
-    title: &str,
-    multiple: bool,
-    directory: bool,
-) -> Option<Vec<PathBuf>> {
+pub async fn open_files(title: &str, multiple: bool, directory: bool) -> Option<Vec<PathBuf>> {
     let kinds = if directory {
         vec![ContentType::Folder]
     } else {
@@ -51,7 +47,7 @@ pub(crate) async fn open_files(
     Some(run(dialog, None).await)
 }
 
-pub(crate) async fn save_file(title: &str, current_name: &str) -> Option<PathBuf> {
+pub async fn save_file(title: &str, current_name: &str) -> Option<PathBuf> {
     run(FileDialog::save(current_name).title(title), None)
         .await
         .into_iter()
@@ -201,7 +197,7 @@ pub(crate) fn mark_document(window: &WindowControls, edited: bool, url: Option<&
     });
 }
 
-pub(crate) fn open_uri(uri: &str) {
+pub async fn open_uri(uri: &str, _ask: bool) {
     let uri = uri.to_owned();
     DispatchQueue::main().exec_async(move || {
         let opened = NSURL::URLWithString(&NSString::from_str(&uri))

@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::sync::PoisonError;
 
 use objc2::rc::Retained;
 use objc2::runtime::AnyObject;
@@ -567,6 +568,15 @@ pub(super) fn forget(window: u64) {
             }
         }
     });
+}
+
+impl MenuHandle {
+    fn revision(&self) -> u32 {
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .revision
+    }
 }
 
 pub(super) fn sync() {

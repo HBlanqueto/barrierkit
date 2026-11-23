@@ -4,8 +4,12 @@ mod glass;
 mod input;
 #[cfg(target_os = "linux")]
 mod linux;
+#[cfg(target_os = "linux")]
+use linux as sys;
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "macos")]
+use macos as sys;
 mod main_menu_export;
 mod popup;
 pub(crate) mod timer;
@@ -15,9 +19,11 @@ mod window_style;
 #[cfg(all(feature = "shell", target_os = "linux"))]
 pub(crate) use linux::extension;
 #[cfg(target_os = "linux")]
-pub(crate) use linux::{clipboard, panels, pasteboard, runtime, surface};
-#[cfg(target_os = "macos")]
-pub(crate) use macos::{clipboard, instance, keychain, notifications, panels, pasteboard};
+pub(crate) use linux::{runtime, surface};
+pub use sys::ObjectId;
+pub(crate) use sys::{
+    SYSTEM_MOMENTUM, clipboard, instance, keychain, notifications, panels, pasteboard,
+};
 
 #[cfg(target_os = "macos")]
 pub(crate) use ::calloop;
@@ -72,28 +78,6 @@ pub(crate) use glass::{GlassOutbox, GlassPanels, GlassSupport, KnobOutbox, KnobS
 #[cfg(test)]
 pub(crate) use popup::PopupCommand;
 pub(crate) use popup::anchor_rect;
-#[cfg(target_os = "linux")]
-pub use sctk::reexports::client::backend::ObjectId;
-
-#[cfg(target_os = "macos")]
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ObjectId(u64);
-
-#[cfg(target_os = "macos")]
-impl ObjectId {
-    pub fn null() -> Self {
-        Self(0)
-    }
-
-    fn from_raw(id: u64) -> Self {
-        Self(id)
-    }
-
-    fn raw(&self) -> u64 {
-        self.0
-    }
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum RunError {
     #[error("WAYLAND_DISPLAY is not set to a reachable socket")]

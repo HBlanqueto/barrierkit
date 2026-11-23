@@ -368,6 +368,14 @@ call 25 s, as libdbus and GDBus do.
 
 ## Who provides what on each platform
 
+`platform/mod.rs` imports `linux` or `macos` as `sys` and re-exports the
+same names from either: `clipboard`, `instance`, `keychain`,
+`notifications`, `panels`, `pasteboard`, `ObjectId` and `SYSTEM_MOMENTUM`.
+Each name has one signature and two bodies. Shared code calls
+`crate::platform::<name>` and holds no `cfg(target_os)`:
+`scripts/check-platform-cfg.sh` fails on one outside `crates/bk/src/platform/`,
+`crates/bk/tests/` and `crates/ctappearance/`.
+
 One API in the kit, one provider per system. The names are SwiftUI's and
 AppKit's on both; the body is not shared. Read a row left to right: what the
 app calls, who answers on macOS, who answers on Linux.
@@ -389,11 +397,11 @@ app calls, who answers on macOS, who answers on Linux.
 | Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
 | Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, and the app menu event of `infinity_window_manager_v1` | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
-| File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal: no parent window, no filters, no start folder (`linux/panels.rs`, `portal.rs`) | both, Linux partial |
+| File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal: no parent window, no filters, no start folder (`linux/panels.rs`, `linux/portal.rs`) | both, Linux partial |
 | Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | None: nothing is vetoed, the alert and the open events are not served (`linux/panels.rs`) | macOS only |
-| Notifications | `UserNotifications` | `org.freedesktop.Notifications` and the portal | both |
-| Secrets | Keychain (`security-framework`) | Secret Service | both |
-| Single instance | `macos/instance.rs` | `org.freedesktop.Application` | both |
+| Notifications | `UserNotifications` (`macos/notifications.rs`) | `org.freedesktop.Notifications` and the portal (`linux/notifications.rs`) | both |
+| Secrets | Keychain (`security-framework`, `macos/keychain.rs`) | Secret Service (`linux/keychain.rs`) | both |
+| Single instance | `macos/instance.rs` | `org.freedesktop.Application` (`linux/instance.rs`) | both |
 | Appearance | `NSWorkspace` accessibility notifications (`system.rs`) | `.domain` files watched with inotify, and `org.freedesktop.appearance` | both |
 
 What the [gap document](../research/swiftui-api-gap.md#what-an-app-author-still-needs)

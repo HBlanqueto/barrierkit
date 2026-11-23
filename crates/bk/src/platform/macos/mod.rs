@@ -51,7 +51,27 @@ use super::window::{
     OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle, below_bar,
 };
 use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
-use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
+use super::{EditShortcut, RunError, Sent, calloop::ping::Ping};
+
+// The system delivers the momentum of a trackpad fling as scroll events.
+pub(crate) const SYSTEM_MOMENTUM: bool = true;
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct ObjectId(u64);
+
+impl ObjectId {
+    pub fn null() -> Self {
+        Self(0)
+    }
+
+    fn from_raw(id: u64) -> Self {
+        Self(id)
+    }
+
+    fn raw(&self) -> u64 {
+        self.0
+    }
+}
 
 #[cfg(feature = "a11y")]
 pub(super) mod accessibility;

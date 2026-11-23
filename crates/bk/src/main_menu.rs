@@ -38,7 +38,7 @@ impl Menu {
 
 #[derive(Clone)]
 pub struct MenuHandle {
-    state: Arc<Mutex<MenuState>>,
+    pub(crate) state: Arc<Mutex<MenuState>>,
     wake: Option<WakeHandle>,
     path: Arc<Mutex<Option<String>>>,
     action_queue: Arc<Mutex<Vec<String>>>,
@@ -49,9 +49,9 @@ type AddressCallback = Box<dyn Fn(MainMenuAddress) + Send>;
 type AddressCallbackCell = Arc<Mutex<Option<AddressCallback>>>;
 
 #[derive(Clone, Debug)]
-struct MenuState {
+pub(crate) struct MenuState {
     menu: MainMenu,
-    revision: u32,
+    pub(crate) revision: u32,
 }
 
 impl MenuHandle {
@@ -149,14 +149,6 @@ impl MenuHandle {
         if let Some(wake) = &self.wake {
             wake.wake();
         }
-    }
-
-    #[cfg(target_os = "macos")]
-    pub(crate) fn revision(&self) -> u32 {
-        self.state
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .revision
     }
 
     pub(crate) fn snapshot(&self) -> (MainMenu, u32) {

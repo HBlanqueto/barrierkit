@@ -11,8 +11,12 @@ pub(crate) mod extension;
 pub(super) mod fake_server;
 mod focus;
 mod ime;
+pub(crate) mod instance;
+pub(crate) mod keychain;
+pub(crate) mod notifications;
 pub(crate) mod panels;
 pub(crate) mod pasteboard;
+mod portal;
 mod primary;
 pub(crate) mod runtime;
 #[cfg(test)]
@@ -22,3 +26,7 @@ mod system;
 #[cfg(test)]
 mod tests;
 mod vulkan;
+
+pub use sctk::reexports::client::backend::ObjectId;
+
+pub(crate) const SYSTEM_MOMENTUM: bool = false;

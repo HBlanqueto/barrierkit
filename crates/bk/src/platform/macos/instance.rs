@@ -2,13 +2,18 @@ use std::fs::File;
 use std::io;
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::Path;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use crate::app::{Requests, present};
+
 // Launch Services already keeps a bundled app to one process; this also holds a bare binary and `open -n`. The user's
 // temporary directory is per user, so each user has an instance of their own.
-pub(crate) fn claim(app_id: &str, activated: impl Fn() + Send + 'static) -> io::Result<bool> {
-    claim_in(&std::env::temp_dir(), app_id, activated)
+pub(crate) fn claim(app_id: &str, requests: Arc<Mutex<Requests>>) -> zbus::Result<bool> {
+    Ok(claim_in(&std::env::temp_dir(), app_id, move || {
+        present(&requests, None)
+    })?)
 }
 
 // A connection to the socket is the activation; the lock is released by the system when the process ends.

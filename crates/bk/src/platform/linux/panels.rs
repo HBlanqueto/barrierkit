@@ -9,6 +9,7 @@ use freya_core::prelude::*;
 use crate::document::SaveChoice;
 use crate::file_dialog::FileDialog;
 use crate::i18n::text;
+pub use crate::platform::linux::portal::{open_files, open_uri, save_file};
 use crate::platform::{WindowControls, WindowOptions};
 use crate::styles::Theme;
 use crate::views::feedback::{Alert, sheet_window_root};
