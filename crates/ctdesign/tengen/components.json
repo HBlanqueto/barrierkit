@@ -682,6 +682,7 @@
       "columns-spacing": 5,
       "row-padding-y": 10,
       "max-width": 704,
+      "header-weight": 500,
       "card": ["#f7f7f7", "#252525", "#f7f7f7", "#252525"],
       "separator-line": ["#0000000c", "#ffffff0c", "#00000033", "#ffffff33"],
       "padding": [

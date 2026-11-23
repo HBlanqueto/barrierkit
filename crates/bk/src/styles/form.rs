@@ -64,7 +64,7 @@ pub struct FormStyle {
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
-    /// Tengen: `HEADLINE`.
+    /// Tengen: `HEADLINE` at `LIST_GROUP.header_weight`.
     pub header_font: Font,
     /// Tengen: `CAPTION`.
     pub footer_font: Font,
@@ -133,7 +133,10 @@ impl ControlStyle for FormStyle {
             chevron: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
             border: Some((ShapeStyle::Role(Role::CardBorder), HAIRLINE)),
             effect: system_effect,
-            header_font: HEADLINE,
+            header_font: Font {
+                weight: LIST_GROUP.header_weight,
+                ..HEADLINE
+            },
             footer_font: CAPTION,
             title_font: BODY,
             detail_font: CAPTION,

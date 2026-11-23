@@ -66,7 +66,7 @@ const TASKS_ELEMENTS: [Element; 6] = [
 ];
 
 const FORM_ELEMENTS: [Element; 7] = [
-    element("heading", (28, 50, 140, 72), true, 18.0),
+    element("heading", (28, 50, 140, 72), true, 17.0),
     element("card background", (300, 80, 600, 112), false, 1.0),
     element("row separators", (28, 113, 732, 116), false, 1.0),
     element("switch", (680, 82, 730, 110), false, 26.0),

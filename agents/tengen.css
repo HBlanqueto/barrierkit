@@ -1032,6 +1032,7 @@
   --bk-list-group-columns-spacing: 5;
   --bk-list-group-row-padding-y: 10;
   --bk-list-group-max-width: 704;
+  --bk-list-group-header-weight: 500;
   --bk-list-group-card: #f7f7f7 #252525 #f7f7f7 #252525;
   --bk-list-group-card-0: #f7f7f7;
   --bk-list-group-card-1: #252525;

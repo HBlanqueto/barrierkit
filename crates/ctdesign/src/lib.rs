@@ -1297,6 +1297,7 @@ pub struct ListGroupMetrics {
     pub columns_gap: f32,
     pub columns_spacing: f32,
     pub max_width: f32,
+    pub header_weight: u16,
     pub card: [Rgba; 4],
     pub separator_line: [Rgba; 4],
 }
