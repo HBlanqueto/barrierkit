@@ -27,7 +27,7 @@ plan.
 | Animation | Observation | Reliability |
 |---|---|---|
 | Menu panel open | Appears between two consecutive 60 fps frames | Measured; effectively instant |
-| Menu panel close | Not measured | Unknown |
+| Menu panel close | Fade of about 183 ms in a Catalyst menu ([UIKit animations](uikit-animations.md#2-motion-table)) | Measured, one run |
 | Window open and close | `NSAnimationContext` default 250 ms | Measured default; curve not measured |
 | Dock magnification | About 1.3x at rest under the pointer | Measured size; timing not reliable |
 | Notification enter | Not measured | Unknown |
@@ -89,23 +89,26 @@ overshoot** are not.
 | Menu open | Instant | No menu animation | `menubar/menu.rs` | Matches |
 | Window default | 250 ms | `duration.base` 250 | `tokens.duration` | Matches |
 | Dock magnify scale | about 1.3 | 1.3 | `DOCK_MAGNIFY_MIN` | Matches |
-| Dock magnify duration | Not measured | 120 | `DOCK_MAGNIFY_MS` | Unverified |
+| Dock magnify duration | settle 117 ms in, 133 ms out | 120 | `DOCK_MAGNIFY_MS` | Matches ([UIKit animations](uikit-animations.md#3-malaysia-comparison)) |
 | Dock hide | Not measured | 280 | `DOCK_HIDE_MS` | Unverified |
 | Dock minimise | Not measured | 500 | `DOCK_MINIMIZE_MS` | Unverified |
 | Dock slot | Not measured | 400 | `DOCK_SLOT_MS` | Unverified |
 | Dock bounce | Not measured | 620, 0.55 | `DOCK_BOUNCE_*` | Unverified |
 | Notification in | Not measured | 450, bounce 0.15 | `NOTIFICATION_SLIDE_IN_MS` | Unverified |
 | Notification out | Not measured | 260 | `NOTIFICATION_SLIDE_OUT_MS` | Unverified |
-| Launcher open | Not measured | 180 | `LAUNCHER_OPEN_MS` | Unverified |
-| Launcher close | Not measured | 120 | `LAUNCHER_CLOSE_MS` | Unverified |
+| Launcher open | Spotlight t90 81 ms | 180 | `LAUNCHER_OPEN_MS` | Malaysia about twice as long |
+| Launcher close | Spotlight t90 64 ms, settle 83 ms | 120 | `LAUNCHER_CLOSE_MS` | Malaysia about 1.5 times as long |
 | Space slide | Not measured | 480 cubic bezier | `SPACE_SLIDE_MS` | Unverified |
 | Lock fade | Not measured | 1100 | `LOCK_FADE_MS` | Unverified |
 | Lock rise | Not measured | 900, 120 offset | `LOCK_RISE_*` | Unverified |
 | Lock login | Not measured | 600 | `LOCK_LOGIN_MS` | Unverified |
 
-Only three rows are grounded: menu open is instant, the window default is
-250 ms, and the Dock magnification floor is about 1.3. Everything else in the
-Malaysia column is a project choice that still needs a macOS reference.
+Five rows are grounded: menu open is instant, the window default is 250 ms,
+the Dock magnification floor is about 1.3, its duration is about 120 ms, and
+Spotlight opens and closes in about 100 ms and 80 ms (one run each, in
+[UIKit animations](uikit-animations.md#3-malaysia-comparison), which also
+measures the menu close). Everything else in the Malaysia column is a project
+choice that still needs a macOS reference.
 
 ## 6. What not to copy
 
