@@ -144,9 +144,13 @@ pub(super) fn glass_available() -> bool {
         && objc2::runtime::AnyClass::get(c"NSGlassEffectContainerView").is_some()
 }
 
-pub(super) fn glass(mtm: MainThreadMarker, radius: f32) -> Retained<Glass> {
+pub(super) fn glass(mtm: MainThreadMarker, radius: f32, clear: bool) -> Retained<Glass> {
     let glass = Glass::new(mtm);
-    glass.setStyle(NSGlassEffectViewStyle::Regular);
+    glass.setStyle(if clear {
+        NSGlassEffectViewStyle::Clear
+    } else {
+        NSGlassEffectViewStyle::Regular
+    });
     glass.setCornerRadius(f64::from(radius));
     glass
 }
@@ -156,9 +160,11 @@ pub(super) fn glass_group(
     mtm: MainThreadMarker,
     frame: NSRect,
     members: &[Retained<Glass>],
+    spacing: f64,
 ) -> Retained<GlassGroup> {
     let group = GlassGroup::new(mtm);
     group.setFrame(frame);
+    group.setSpacing(spacing);
     let holder = NSView::initWithFrame(NSView::alloc(mtm), NSRect::new(NSPoint::ZERO, frame.size));
     for member in members {
         holder.addSubview(member);

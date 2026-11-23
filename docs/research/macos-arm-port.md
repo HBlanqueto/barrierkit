@@ -399,6 +399,19 @@ popover below the anchor in the middle of a window, near its left edge and past 
 edge. The other three edges follow the same code (unit-tested for the apex), not seen on
 screen. The window shadow follows the shape (`invalidateShadow`).
 
+### GlassContainer and the clear glass on macOS (2026-11-22)
+
+With native glass, `GlassContainer` declares one `Effect::Glass` per item (`Declared::glass`
+now takes the item's offset and a `GlassLook`: `clear` and the container's spacing), all
+under the container's root, so one chrome holds them and the runner puts them in one
+`NSGlassEffectContainerView` with `spacing` set from `GlassContainer::new(spacing)`
+(`Requests::glass_spacing`). `GlassContainerStyle::clear` asks `glass_clear`
+(`NSGlassEffectViewStyle.clear`) for the chrome. Checked on screen with two round buttons
+over coloured rows: at a gap of 6 with spacing 20 the two glasses merge with a neck and
+the system's lens and rim, at a gap of 40 they stay apart; the clear container is visibly
+less tinted than the regular one. The Skia morph is not applied (the glasses jump to the new
+frames), and a bench cannot hold it: glass exists only in WindowServer.
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.
@@ -508,8 +521,7 @@ pixels and the veil is within 16 levels of SwiftUI's (a soft edge of the
 `titlebar` material at 0.6, whole over 75% of its depth); the rows differ in
 height, so the whole scene is not a percentage. A window that is
 non-opaque shows the sidebar material (`WindowOptions::opaque(false)`); the default
-stays flat, as the SwiftUI twin is. Not done: `GlassContainer`'s lens, `glass_clear`,
-a committed bench (glass exists only in WindowServer, so `freya-testing` renders the
+stays flat, as the SwiftUI twin is. Not done: a committed bench (glass exists only in WindowServer, so `freya-testing` renders the
 solid), and scale 2.
 
 Scale 2 (2026-11-22; the owner's display is 1x and no setting was changed): two

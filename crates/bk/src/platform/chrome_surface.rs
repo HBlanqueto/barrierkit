@@ -232,6 +232,7 @@ mod tests {
                 rects: vec![(1, 2, 30, 40)],
             },
             scroll_edge: None,
+            glass_spacing: 0,
         }
     }
 
@@ -243,6 +244,7 @@ mod tests {
                 style: ScrollEdgeEffectStyle::Soft,
                 depth: 96,
             }),
+            glass_spacing: 0,
         }
     }
 

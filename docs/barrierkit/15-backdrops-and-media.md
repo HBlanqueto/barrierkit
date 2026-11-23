@@ -168,7 +168,7 @@ they stay sharp over the compositor's blur. Four rules follow:
    not blur another's. Put a second material in another element.
 
 The kit draws no tint or rim of its own in that mode, so `tint` and `border` of
-`MaterialStyle` have no effect there. Two things keep drawing their blur with Skia,
+`MaterialStyle` have no effect there. On Wayland two things keep drawing their blur with Skia,
 because the compositor does not serve them yet: `GlassContainer` (the lens and
 the merging) and the per-control `ShapeStyle::Material(Thickness)` (a material per
 control would exceed the requesters). The sidebar is not Skia: from version 10 it is a `behind_window` request for the `sidebar`
@@ -188,14 +188,14 @@ WindowServer is the compositor, so the same declarations become native views
 | `Material` | An `NSVisualEffectView`, `withinWindow`, of `MaterialStyle::material`, with the corner radius, over the content |
 | `TopGlass`, `ProgressiveGlass`, `FullscreenBar::Glass` | An `NSVisualEffectView` of the window background material along the edge; the soft ones have a gradient mask, the hard one none |
 | The glass of a `ToolGroup` (the toolbar capsules, the sidebar toggle) | An `NSGlassEffectView` (`regular`) with the capsule's radius; two or more in one chrome sit in an `NSGlassEffectContainerView` and merge when near. On macOS before 26 the group paints its own fill |
+| `GlassContainer` | One `NSGlassEffectView` per item at the item's frame, all in one `NSGlassEffectContainerView` whose `spacing` is the container's: shapes nearer than it merge with the system's neck and lens. `GlassContainerStyle::clear` makes them `NSGlassEffectViewStyle.clear`. `tint`, `rim` and `blur` do not apply, and the shapes jump to a new frame without the kit's morph |
 | The chrome of a glass | A second `CAMetalLayer` view above the effect, which takes no event |
 
 The effect views read what the content layer drew, with no frame of lag
 ([measurements](../research/macos-arm-port.md#blur-three-proposals)); Reduce
 Transparency and Increase Contrast are AppKit's. The layers of a window with
 chromes present inside one Core Animation transaction, so the content and what
-lies over the glass move together. `GlassContainer` (the Skia lens) is not mapped
-yet; a `ToolGroup` over scrolling content is
+lies over the glass move together. A `ToolGroup` over scrolling content is
 [`recipes/glass_toolbar.rs`](../../agents/recipes/glass_toolbar.rs): its `Titlebar` needs a
 clear background to let the glass show.
 
@@ -230,6 +230,7 @@ GlassContainer::new(20.0)
 | `GlassContainer::new(spacing)` | Shapes closer than `spacing` merge |
 | `.gap(gap)` | The layout gap between items; default `spacing` |
 | `.item(id, radius, content)` | One shape around `content`, laid out in a row; `radius` is capped at half its height |
+| `GlassContainerStyle::clear` | `false`; `true` asks a platform that draws the glass itself (macOS 26) for the clear glass. The Skia lens ignores it |
 | `MAX_SHAPES` | 8; shapes past it are not drawn |
 
 1. Each item measures its frame. The container paints the union of all frames

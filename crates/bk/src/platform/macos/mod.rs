@@ -48,7 +48,7 @@ use super::timer::{Wake, WakeQueue};
 use super::window::{
     OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle,
 };
-use super::window_style::ScrollEdgeEffectStyle;
+use super::window_style::{ScrollEdgeEffectStyle, WireMaterial};
 use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
 mod arrow;
@@ -847,21 +847,27 @@ impl Runtime {
                 }
                 Some(Backing::Glass) => {
                     let rects = &wanted.requests.backdrop.rects;
+                    let clear = wanted.requests.backdrop.material == Some(WireMaterial::GlassClear);
                     let strip_frame = blur::frame((x, y, width as i32, strip as i32), height);
                     if rects.len() > 1 {
                         let members: Vec<_> = rects
                             .iter()
                             .map(|&(left, top, w, h)| {
-                                let glass = blur::glass(mtm, radius);
+                                let glass = blur::glass(mtm, radius, clear);
                                 glass.setFrame(blur::frame((left, top, w, h), f64::from(strip)));
                                 glass
                             })
                             .collect();
-                        let group = blur::glass_group(mtm, strip_frame, &members);
+                        let group = blur::glass_group(
+                            mtm,
+                            strip_frame,
+                            &members,
+                            f64::from(wanted.requests.glass_spacing),
+                        );
                         effects.push(Retained::into_super(Retained::into_super(group)));
                     } else {
                         for &(left, top, w, h) in rects {
-                            let glass = blur::glass(mtm, radius);
+                            let glass = blur::glass(mtm, radius, clear);
                             glass.setFrame(blur::frame((x + left, y + top, w, h), height));
                             effects.push(Retained::into_super(Retained::into_super(glass)));
                         }

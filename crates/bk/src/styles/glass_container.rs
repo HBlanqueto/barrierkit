@@ -20,6 +20,8 @@ pub struct GlassContainerStyle {
     pub effect: ColorEffect,
     /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the shapes morph; `None` makes them jump.
     pub animation: Animation,
+    /// Tengen: `false`. `true` asks the platform that draws the glass itself for `Glass.clear`.
+    pub clear: bool,
 }
 
 impl ControlStyle for GlassContainerStyle {
@@ -33,6 +35,7 @@ impl ControlStyle for GlassContainerStyle {
             animation: Animation::Ease {
                 duration_ms: DURATION_BASE,
             },
+            clear: false,
         }
     }
 

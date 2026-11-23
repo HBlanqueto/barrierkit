@@ -160,6 +160,8 @@ impl Component for ToolGroup {
                         .corner_radius(glass_size.0, glass_size.1, LayoutDirection::LeftToRight)
                         .top_left(),
                     glass_size,
+                    (0.0, 0.0),
+                    crate::platform::backdrop::GlassLook::default(),
                 ))
                 .child(root);
             return self.overrides.apply(dimmed(glass, style.opacity));

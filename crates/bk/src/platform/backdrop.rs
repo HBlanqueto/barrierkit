@@ -39,7 +39,16 @@ pub(crate) enum Effect {
     },
     Glass {
         radius: u32,
+        clear: bool,
+        spacing: u32,
     },
+}
+
+// How a glass looks: SwiftUI's `Glass.clear`, and how near two glasses of one container merge.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub(crate) struct GlassLook {
+    pub(crate) clear: bool,
+    pub(crate) spacing: f32,
 }
 
 #[derive(PartialEq)]
@@ -99,15 +108,22 @@ impl Declared {
         Some(Self::scroll_edge(edge, style, layout))
     }
 
-    pub(crate) fn glass(radius: f32, (width, height): (f32, f32)) -> Element {
+    pub(crate) fn glass(
+        radius: f32,
+        (width, height): (f32, f32),
+        (left, top): (f32, f32),
+        look: GlassLook,
+    ) -> Element {
         crate::glass::leaf(Self {
             effect: Effect::Glass {
                 radius: radius.round() as u32,
+                clear: look.clear,
+                spacing: look.spacing.round() as u32,
             },
             layout: crate::glass::layout(
                 Size::px(width),
                 Size::px(height),
-                Position::new_absolute().top(0.0).left(0.0),
+                Position::new_absolute().top(top).left(left),
             ),
         })
     }
@@ -257,6 +273,8 @@ pub(crate) struct ScrollEdge {
 pub(crate) struct Requests {
     pub(crate) backdrop: Backdrop,
     pub(crate) scroll_edge: Option<ScrollEdge>,
+    // How near the glasses of one chrome merge; only a platform with its own container uses it.
+    pub(crate) glass_spacing: u32,
 }
 
 pub(crate) fn wire(material: Material) -> WireMaterial {
@@ -299,8 +317,19 @@ impl Requests {
                 Effect::Material { material, radius } => {
                     requests.add_backdrop(wire(material), radius, area, (x, y), scale);
                 }
-                Effect::Glass { radius } => {
-                    requests.add_backdrop(WireMaterial::GlassRegular, radius, area, (x, y), scale);
+                Effect::Glass {
+                    radius,
+                    clear,
+                    spacing,
+                } => {
+                    let material = if clear {
+                        WireMaterial::GlassClear
+                    } else {
+                        WireMaterial::GlassRegular
+                    };
+                    if requests.add_backdrop(material, radius, area, (x, y), scale) {
+                        requests.glass_spacing = requests.glass_spacing.max(spacing);
+                    }
                 }
                 Effect::ScrollEdge { .. } => {}
             }
@@ -315,7 +344,7 @@ impl Requests {
         area: &Area,
         (x, y): (i32, i32),
         scale: f32,
-    ) {
+    ) -> bool {
         let backdrop = &mut self.backdrop;
         let same = *backdrop.material.get_or_insert(material) == material
             && (backdrop.rects.is_empty() || backdrop.radius == radius);
@@ -332,6 +361,7 @@ impl Requests {
                 ceil(area.max_y(), scale) - y - top,
             ));
         }
+        same
     }
 }
 
@@ -704,6 +734,14 @@ mod tests {
         Area::new(Point2D::new(x, y), Size2D::new(width, height))
     }
 
+    fn glass(radius: u32, clear: bool, spacing: u32) -> Effect {
+        Effect::Glass {
+            radius,
+            clear,
+            spacing,
+        }
+    }
+
     #[test]
     fn a_strip_covers_the_whole_logical_pixels_its_area_touches() {
         let chrome = chrome(Vec::new(), at(10.0, 15.0, 301.0, 61.0));
@@ -795,8 +833,8 @@ mod tests {
     fn a_glass_is_a_glass_regular_backdrop_of_its_radius_and_one_request_holds_one_kind() {
         let chrome = chrome(
             vec![
-                (Effect::Glass { radius: 19 }, at(20.0, 30.0, 76.0, 38.0)),
-                (Effect::Glass { radius: 19 }, at(120.0, 30.0, 38.0, 38.0)),
+                (glass(19, false, 0), at(20.0, 30.0, 76.0, 38.0)),
+                (glass(19, false, 0), at(120.0, 30.0, 38.0, 38.0)),
                 (
                     Effect::Material {
                         material: Material::Menu,
@@ -815,6 +853,32 @@ mod tests {
                 rects: vec![(10, 10, 76, 38), (110, 10, 38, 38)],
             }
         );
+    }
+
+    #[test]
+    fn a_clear_glass_is_a_glass_clear_backdrop() {
+        let chrome = chrome(
+            vec![(glass(19, true, 0), at(20.0, 30.0, 76.0, 38.0))],
+            at(10.0, 20.0, 200.0, 100.0),
+        );
+        assert_eq!(
+            Requests::of(&chrome, 1.0).backdrop.material,
+            Some(WireMaterial::GlassClear)
+        );
+    }
+
+    #[test]
+    fn the_spacing_of_a_container_reaches_the_request_only_through_the_glasses_it_keeps() {
+        let chrome = chrome(
+            vec![
+                (glass(19, false, 20), at(20.0, 30.0, 76.0, 38.0)),
+                (glass(19, true, 40), at(120.0, 30.0, 38.0, 38.0)),
+            ],
+            at(10.0, 20.0, 200.0, 100.0),
+        );
+        let requests = Requests::of(&chrome, 1.0);
+        assert_eq!(requests.glass_spacing, 20);
+        assert_eq!(requests.backdrop.rects.len(), 1);
     }
 
     #[test]

@@ -12,6 +12,7 @@ use torin::prelude::{Area, Direction, Position, Size};
 
 use crate::elements::{Overrides, forward_overrides};
 use crate::glass::{layout, leaf, material, transparency_reduced};
+use crate::platform::backdrop::{Declared, GlassLook};
 use crate::shader::Program;
 use crate::styles::{
     ControlState, GlassContainerStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
@@ -379,6 +380,34 @@ impl Component for GlassContainer {
             style.blur,
             transparency_reduced(),
         );
+        if crate::glass::native_glass() {
+            let look = GlassLook {
+                clear: style.clear,
+                spacing: self.spacing,
+            };
+            let glasses: Vec<Element> = measured
+                .read()
+                .iter()
+                .map(|(_, frame)| {
+                    Declared::glass(
+                        frame.radius,
+                        (frame.width, frame.height),
+                        (
+                            frame.x - shown_origin.origin.x,
+                            frame.y - shown_origin.origin.y,
+                        ),
+                        look,
+                    )
+                })
+                .collect();
+            let root = rect()
+                .direction(Direction::Horizontal)
+                .spacing(self.gap)
+                .on_sized(move |event: Event<SizedEventData>| origin.set_if_modified(event.area))
+                .children(glasses)
+                .children(items);
+            return self.overrides.apply(root);
+        }
         let root = rect()
             .direction(Direction::Horizontal)
             .spacing(self.gap)
