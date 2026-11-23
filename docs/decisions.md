@@ -511,7 +511,6 @@ Decision:
 Why: the kit gives apps the look and behavior of their desktop, as SwiftUI does on macOS. When one owner, the compositor, draws every blur, every app stays in step with the desktop. The radius, the wallpaper tint, Reduce Transparency, Increase Contrast and the look of each new release come from the system, the same in every app, and the glass never lags the content. macOS offers that owner through public views. Malaysia offers it on Linux through `infinity_window_style_v1` ([ADR 0091](decisions.md)). So one declaration in the kit maps to the same model on both systems, and the macOS port is the test that the model holds. Liquid Glass recreated in Skia would drift with each macOS release and could not match the lens, the wallpaper tint or the system settings.
 Rejected: Freya or Skia shaders for the system's materials (a second implementation that drifts from the system); Swift or SwiftUI code inside the kit (a second language and build step for what AppKit already gives). Swift is to be considered again only for an effect that exists only in SwiftUI, such as `glassEffectID`, `glassEffectUnion` and `glassEffectTransition`.
 Pending: the ceilings measured on 2026-11-23:
-- the press glow of the toolbar glass in dark is 93 where SwiftUI's is 116;
 - a held knob's lens fills with the track;
 - the dark toolbar pieces are 7 levels off;
 - the scroll edge under the bar over kit content;

@@ -84,15 +84,21 @@ impl ControlStyle for IconButtonStyle {
             icon_size,
             stroke,
             shape,
-            // On native glass the glass lights a press itself, as in SwiftUI, and the item only answers the pointer.
+            // On native glass the glass lights a press itself, as in SwiftUI, and the item lays its own circle over that light.
             background: if on_glass {
-                let hover = match crate::theme::resolved().scheme {
-                    ColorScheme::Light => TOOLBAR_ITEM_HIGHLIGHT.hover_light,
-                    ColorScheme::Dark | ColorScheme::DarkTint => TOOLBAR_ITEM_HIGHLIGHT.hover_dark,
+                let (hover, pressed) = match crate::theme::resolved().scheme {
+                    ColorScheme::Light => (
+                        TOOLBAR_ITEM_HIGHLIGHT.hover_light,
+                        TOOLBAR_ITEM_HIGHLIGHT.pressed_light,
+                    ),
+                    ColorScheme::Dark | ColorScheme::DarkTint => (
+                        TOOLBAR_ITEM_HIGHLIGHT.hover_dark,
+                        TOOLBAR_ITEM_HIGHLIGHT.pressed_dark,
+                    ),
                 };
                 StateValue::new(ShapeStyle::Clear)
                     .hovered(ShapeStyle::Color(hover))
-                    .pressed(ShapeStyle::Clear)
+                    .pressed(ShapeStyle::Color(pressed))
                     .disabled(ShapeStyle::Clear)
             } else {
                 StateValue::new(ShapeStyle::Clear)
