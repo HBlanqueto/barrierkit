@@ -703,7 +703,7 @@ fn step_selection(selected: Option<usize>, rows: usize, down: bool) -> Option<us
         (None, true) => 0,
         (None, false) => last,
         (Some(row), true) => (row + 1).min(last),
-        (Some(row), false) => row.saturating_sub(1),
+        (Some(row), false) => row.saturating_sub(1).min(last),
     })
 }
 
@@ -795,6 +795,7 @@ mod tests {
         assert_eq!(step_selection(Some(2), 3, true), Some(2));
         assert_eq!(step_selection(Some(0), 3, false), Some(0));
         assert_eq!(step_selection(None, 0, true), None);
+        assert_eq!(step_selection(Some(50), 3, false), Some(2));
     }
 
     #[test]

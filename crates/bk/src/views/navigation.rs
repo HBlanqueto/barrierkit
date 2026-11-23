@@ -2,7 +2,7 @@ use crate::elements::forward_container;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Size};
 
-use crate::app::{Action, Shortcut, ShortcutKey};
+use crate::app::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::compact::IconButton;
 use crate::i18n::text;
 use crate::styles::{ShapeStyle, StateValue, ToolGroupStyle};
@@ -71,6 +71,25 @@ impl NavigationButtons {
 
 forward_container!(NavigationButtons);
 
+#[derive(PartialEq)]
+struct HistoryMenuActions<T: 'static>(State<History<T>>);
+
+// A menu item with the shortcut takes the key before the buttons' global key handler.
+impl<T: Clone + PartialEq + 'static> Component for HistoryMenuActions<T> {
+    fn render(&self) -> impl IntoElement {
+        let history = self.0;
+        use_menu_action(move |id| {
+            let mut history = history;
+            if id == GO_BACK.id {
+                history.write().back();
+            } else if id == GO_FORWARD.id {
+                history.write().forward();
+            }
+        });
+        rect()
+    }
+}
+
 fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History<T>>) -> Rect {
     let mut back = history;
     let mut forward = history;
@@ -90,6 +109,7 @@ fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History<T>>
                 keys.write().forward();
             }
         })
+        .child(HistoryMenuActions(history))
         .child(
             crate::controls::ToolGroup::new()
                 .style(|style: ToolGroupStyle| ToolGroupStyle {

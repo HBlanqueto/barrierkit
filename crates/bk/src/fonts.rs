@@ -53,6 +53,7 @@ pub fn register_font(bytes: &[u8]) -> bool {
             collection.clone().set_asset_font_manager(Some(manager));
         });
     });
+    OPTICAL.with(|optical| optical.borrow_mut().clear());
     true
 }
 

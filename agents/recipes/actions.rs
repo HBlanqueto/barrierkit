@@ -1,5 +1,5 @@
-use bk::app::{Action, Shortcut, ShortcutKey, use_menu_action};
-use bk::main_menu::{MainMenu, Menu};
+use bk::app::{Action, Commands, Shortcut, ShortcutKey, use_menu_action};
+use bk::main_menu::Menu;
 use bk::prelude::*;
 
 fn add_title() -> &'static str {
@@ -20,11 +20,6 @@ fn main() -> Result<(), RunError> {
             });
             Text::new(format!("Count {}", count.read()))
         })
-        .options(|window| {
-            window.menu(MainMenu::new(vec![Menu::new(
-                "Counter",
-                vec![ADD.item(true)],
-            )]))
-        })
+        .commands(Commands::new().menu(Menu::new("Counter", vec![ADD.item(true)])))
         .run()
 }

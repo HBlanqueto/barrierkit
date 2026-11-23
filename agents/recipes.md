@@ -230,8 +230,8 @@ SwiftUI: `.commands { CommandMenu("Counter") { Button("Add one") { … }.keyboar
 
 The program is [`recipes/actions.rs`](recipes/actions.rs).
 
-1. The `Action` is a constant. Its item goes in the `MainMenu`, and the
-   shortcut works only through an enabled menu item
+1. The `Action` is a constant. Its item goes in a `Commands` menu, after the
+   standard ones, and the shortcut works only through an enabled menu item
    ([chapter 13](../docs/barrierkit/13-app.md#actions-and-shortcuts)).
 2. Every handler of the window receives every id, so the handler compares the
    id with `ADD.id`.
