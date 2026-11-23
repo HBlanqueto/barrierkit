@@ -721,7 +721,9 @@ impl Runtime {
         for (controls, commands) in pending {
             for command in commands {
                 if let WindowCommand::Close = command {
-                    self.close_window(controls.surface_id.clone());
+                    if !crate::document::intercept_close(&controls.surface_id) {
+                        self.close_window(controls.surface_id.clone());
+                    }
                     continue;
                 }
                 if let WindowCommand::ImeCursor(area) = command {
@@ -816,8 +818,9 @@ impl WindowHandler for Runtime {
             .surface_for(window.wl_surface())
             .and_then(|index| self.surfaces[index].context.as_ref())
             .is_some_and(|context| context.modal);
-        if !sheet {
-            self.close_window(window.wl_surface().id());
+        let id = window.wl_surface().id();
+        if !sheet && !crate::document::intercept_close(&id) {
+            self.close_window(id);
         }
     }
 

@@ -11,6 +11,7 @@ use super::commands::{
     WINDOW_ACTIVATE, WINDOW_OPEN, ZOOM,
 };
 use super::use_menu_action;
+use crate::document::first_edited;
 use crate::i18n::text;
 use crate::main_menu::MenuHandle;
 use crate::platform::{WindowControls, WindowOptions};
@@ -329,8 +330,11 @@ impl Scenes {
         } else if action == CLOSE_WINDOW.id {
             own.close();
         } else if action == QUIT.id {
-            for window in self.0.open.peek().iter() {
-                window.controls.close();
+            // A document with unsaved changes asks first; the user quits again after answering, as on macOS.
+            let open = self.0.open.peek();
+            match first_edited().and_then(|id| open.iter().find(|w| w.controls.id() == id)) {
+                Some(edited) => edited.controls.close(),
+                None => open.iter().for_each(|window| window.controls.close()),
             }
         } else if action == MINIMIZE.id {
             own.minimize();

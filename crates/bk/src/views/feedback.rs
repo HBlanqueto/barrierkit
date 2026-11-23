@@ -262,7 +262,7 @@ impl Component for SheetWindow {
     }
 }
 
-fn sheet_window_root(
+pub(crate) fn sheet_window_root(
     content: State<Element>,
     theme: &Theme,
     opened: &Rc<RefCell<Option<WindowControls>>>,

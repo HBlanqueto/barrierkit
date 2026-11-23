@@ -11,7 +11,9 @@ use zbus::zvariant::OwnedValue;
 use freya_core::prelude::try_consume_root_context;
 
 use super::MenuActions;
+use crate::document::{OpenedUrl, deliver_open};
 use crate::platform::{Timers, WakeHandle, WindowControls};
+use crate::portal::file_path;
 
 pub enum Launch {
     Primary(Instance),
@@ -22,6 +24,7 @@ pub enum Launch {
 struct Requests {
     tokens: Vec<Option<String>>,
     actions: Vec<String>,
+    uris: Vec<String>,
     wake: Option<WakeHandle>,
 }
 
@@ -36,15 +39,22 @@ impl Instance {
         let controls = WindowControls::get();
         let menu_actions = try_consume_root_context::<MenuActions>();
         let wake = Timers::get().wakeup(move || {
-            let (tokens, actions) = requests
+            let (tokens, actions, uris) = requests
                 .lock()
                 .map(|mut pending| {
                     (
                         std::mem::take(&mut pending.tokens),
                         std::mem::take(&mut pending.actions),
+                        std::mem::take(&mut pending.uris),
                     )
                 })
                 .unwrap_or_default();
+            for uri in uris {
+                deliver_open(match file_path(&uri) {
+                    Some(path) => OpenedUrl::File(path),
+                    None => OpenedUrl::Other(uri),
+                });
+            }
             for token in tokens {
                 match token {
                     Some(token) => controls.present(token),
@@ -79,7 +89,10 @@ impl Activation {
         present(&self.requests, token);
     }
 
-    fn open(&self, _uris: Vec<String>, platform_data: HashMap<String, OwnedValue>) {
+    fn open(&self, uris: Vec<String>, platform_data: HashMap<String, OwnedValue>) {
+        if let Ok(mut pending) = self.requests.lock() {
+            pending.uris.extend(uris);
+        }
         self.activate(platform_data);
     }
 
