@@ -52,7 +52,7 @@ impl ControlStyle for IconButtonStyle {
         let toolbar = crate::compact::toolbar_style();
         let dimmed = toolbar.is_some() && !crate::platform::window_activated();
         // shortcut: assumes interactive glass (macOS 27+), so a press on macOS 26 shows nothing; pass the platform's answer if 26 matters.
-        let on_glass = toolbar.is_some() && crate::glass::native_glass();
+        let on_glass = crate::compact::toolbar_glass();
         let (size, icon_size, stroke, shape) = match toolbar {
             Some(_) => {
                 let height = TOOLGROUP.height as f32;

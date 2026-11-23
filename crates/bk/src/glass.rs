@@ -10,7 +10,7 @@ use freya_engine::prelude::{Color4f, Paint, PaintStyle, RRect, Rect as SkRect};
 use torin::prelude::{Position, Size};
 
 use crate::platform::FullscreenBar;
-use crate::platform::backdrop::{BackdropSupport, Declared};
+use crate::platform::backdrop::{BackdropSupport, Declared, GlassLook};
 use crate::styles::{
     ControlState, FullscreenBarStyle, MaterialStyle, Paints, Theme, TopGlassStyle, resolve,
 };
@@ -37,9 +37,12 @@ pub(crate) fn transparency_reduced() -> bool {
 
 // A control whose glass the platform draws declares it; the rest of the time it paints its own fill.
 pub(crate) fn native_glass() -> bool {
-    composed_by_compositor()
-        && try_consume_root_context::<crate::platform::backdrop::NativeGlass>()
-            .is_some_and(|support| support.0)
+    freya_core::current_context::CurrentContext::try_with(|_| {
+        composed_by_compositor()
+            && try_consume_root_context::<crate::platform::backdrop::NativeGlass>()
+                .is_some_and(|support| support.0)
+    })
+    .unwrap_or(false)
 }
 
 fn composed_by_compositor() -> bool {
@@ -71,6 +74,31 @@ fn solid(edge: GlassEdge, depth: f32, tint: Rgba) -> Element {
         .height(height)
         .background(crate::theme::color(tint))
         .into_element()
+}
+
+// A native glass the size of its child, for a control whose width comes from its content: it shows once the child is laid out.
+#[derive(PartialEq)]
+pub(crate) struct GlassBehind {
+    pub(crate) radius: f32,
+    pub(crate) look: GlassLook,
+    pub(crate) width: Size,
+    pub(crate) child: Element,
+}
+
+impl Component for GlassBehind {
+    fn render(&self) -> impl IntoElement {
+        let mut size = use_state(|| None::<(f32, f32)>);
+        rect()
+            .width(self.width.clone())
+            .on_sized(move |event: Event<SizedEventData>| {
+                size.set_if_modified(Some((event.area.width(), event.area.height())))
+            })
+            .maybe_child(
+                (*size.read())
+                    .map(|size| Declared::glass(self.radius, size, (0.0, 0.0), self.look)),
+            )
+            .child(self.child.clone())
+    }
 }
 
 pub(crate) fn leaf(element: impl ElementExt) -> Element {

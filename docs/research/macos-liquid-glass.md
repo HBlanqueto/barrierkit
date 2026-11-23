@@ -966,3 +966,36 @@ they request `glass_regular` or `glass_clear` through `set_backdrop`:
 6. **The Settings preview** (the card of 285 x 180 with a scrolling article and a glass toolbar, section 14) needs the glass of a
    window to follow the slider while it is dragged: it works when its toolbar requests `glass_regular`.
 7. **Goldens at the default position** (value 0) do not change, because at 0 every look is the one of ADR 0095.
+
+## 17. Controls on their own glass (measured 2026-11-23)
+
+SwiftUI on macOS 27.2.1 puts a toolbar segmented `Picker`, the `.searchable` field and a `.borderedProminent` toolbar button each on
+its own `NSGlassEffectView` (default style, `_variant` 0, radius 18, 36 high, `effectIsInteractive`); the prominent one has the accent
+as `tintColor`. `.glass` and `.glassProminent` in content are drawn by SwiftUI itself: a rounded rectangle of the bordered radius at
+regular size (60 x 24), a capsule from large. The kit gives each the same native view
+([15](../barrierkit/15-backdrops-and-media.md#on-macos)).
+
+Probes: `~/src/probes/glassbtn` (`glassbtn.swift` and the kit twin `glassbtn_twin`, an uncommitted example; `cap.sh` launches at a
+fixed frame with `RESONANCE_APPEARANCE`, captures rest, hover and press; `ab.py` prints the A/B below; `crops` makes zoomed sheets).
+
+Body of each piece, SwiftUI against the kit, largest channel difference:
+
+| Piece | Rest (light, dark) | Hover | Press |
+|---|---|---|---|
+| `.glass` over the window, large `.glass` | 0, 0 | 0, 1 | 6, 6 |
+| `.glass` over orange | 0, 0 | 6, 20 | 18, 23 |
+| `.glassProminent`, both backgrounds | 0, 0 | 0, 0 | 21, 22 |
+| Toolbar segmented glass and thumb | 0, 7 | 0, 6 | 21, 12 |
+| Toolbar prominent circle | 0, 1 | 0, 13 | 15, 22 |
+| Toolbar search capsule | 0, 7 | 0, 7 | 1, 9 |
+
+What remains different:
+
+1. **The bar behind the toolbar glass in dark.** SwiftUI's toolbar backdrop is 41, the kit's bar 33; the glass carries the 7 or 8
+   levels. The veils over it match: thumb +20 (SwiftUI) and +21 (kit) over the glass.
+2. **Hover over a saturated background.** SwiftUI adds a fixed amount (+20 dark, -10 light on every channel); the kit's veil is an
+   alpha blend (`GLASS_CONTROL.hover_*`), equal over neutral glass and short over orange.
+3. **Press.** SwiftUI draws its own glow on content buttons and a clear lens over a held segment, larger than the capsule; AppKit's
+   interactive glow differs in strength. The kit selects a segment on release, SwiftUI on mouse-down.
+4. **Hover on the prominent toolbar circle in dark.** SwiftUI lightens it by white 4.8 %; the kit draws no veil on tinted glass.
+5. **The search field's focus ring.** SwiftUI's is a soft accent glow outside the capsule; the kit keeps its accent border.

@@ -144,6 +144,18 @@ impl Component for SegmentedControl {
             .bordered(&paints, style.border.as_ref())
             .children(segments);
         let root = choice.arrow_keys(dimmed(group, style.opacity), self.segments.len(), keyed);
+        let root = if crate::compact::toolbar_glass() {
+            rect()
+                .child(crate::platform::backdrop::Declared::glass(
+                    height / 2.0,
+                    (natural_width, height),
+                    (0.0, 0.0),
+                    crate::platform::backdrop::GlassLook::default(),
+                ))
+                .child(root)
+        } else {
+            root
+        };
         self.overrides.apply(root)
     }
 }

@@ -22,14 +22,37 @@ use crate::styles::{
 pub const MAX_SHAPES: usize = 8;
 
 /// SwiftUI's `Glass`: the variant of the native glass; the kit's fallback ignores `CLEAR`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Glass {
     pub(crate) clear: bool,
+    pub(crate) tint: Option<Rgba>,
 }
 
 impl Glass {
-    pub const REGULAR: Self = Self { clear: false };
-    pub const CLEAR: Self = Self { clear: true };
+    pub const REGULAR: Self = Self {
+        clear: false,
+        tint: None,
+    };
+    pub const CLEAR: Self = Self {
+        clear: true,
+        tint: None,
+    };
+
+    // SwiftUI's prominent glass is tinted with the accent.
+    pub(crate) fn prominent(self) -> Self {
+        Self {
+            tint: Some(crate::style::Palette::current().accent),
+            ..self
+        }
+    }
+
+    pub(crate) fn look(self) -> GlassLook {
+        GlassLook {
+            clear: self.clear,
+            spacing: 0.0,
+            tint: self.tint,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -409,6 +432,7 @@ impl Component for GlassContainer {
             let look = GlassLook {
                 clear: style.clear,
                 spacing: self.spacing,
+                tint: None,
             };
             let glasses: Vec<Element> = measured
                 .read()

@@ -3,6 +3,7 @@ use std::borrow::Cow;
 use std::rc::Rc;
 
 use ctappearance::material::Material;
+use ctdesign::Rgba;
 use freya_core::data::LayoutData;
 use freya_core::element::{Element, ElementExt, RenderContext};
 use freya_core::integration::RenderPipeline;
@@ -51,16 +52,18 @@ pub(crate) enum Effect {
         radius: u32,
         clear: bool,
         spacing: u32,
+        tint: Option<Rgba>,
     },
     // Drawn under the panes' native glass, so that the glass shows it.
     BackgroundExtension,
 }
 
-// How a glass looks: SwiftUI's `Glass.clear`, and how near two glasses of one container merge.
+// How a glass looks: SwiftUI's `Glass.clear` and `Glass.tint`, and how near two glasses of one container merge.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub(crate) struct GlassLook {
     pub(crate) clear: bool,
     pub(crate) spacing: f32,
+    pub(crate) tint: Option<Rgba>,
 }
 
 #[derive(PartialEq)]
@@ -131,6 +134,7 @@ impl Declared {
                 radius: radius.round() as u32,
                 clear: look.clear,
                 spacing: look.spacing.round() as u32,
+                tint: look.tint,
             },
             layout: crate::glass::layout(
                 Size::px(width),
@@ -342,6 +346,7 @@ impl Requests {
                     radius,
                     clear,
                     spacing,
+                    ..
                 } => {
                     let material = if clear {
                         WireMaterial::GlassClear
@@ -797,6 +802,7 @@ pub(crate) mod tests {
             radius,
             clear,
             spacing,
+            tint: None,
         }
     }
 

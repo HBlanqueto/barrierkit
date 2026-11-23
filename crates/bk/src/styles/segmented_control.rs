@@ -1,10 +1,10 @@
-use ctdesign::{BODY, ControlSize, Font, SEGMENTED};
+use ctdesign::{BODY, ControlSize, Font, GLASS_CONTROL, SEGMENTED};
 
 use super::button::continuous_rounded;
 use super::button::sized_shape;
 use super::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    disabled_palette, system_effect,
+    disabled_palette, glass_hover, glass_ink, per_scheme, system_effect,
 };
 
 /// States: each segment is hovered, pressed and focused on its own; the group
@@ -80,7 +80,7 @@ impl SegmentedControlStyle {
 
 impl ControlStyle for SegmentedControlStyle {
     fn tengen() -> Self {
-        Self {
+        let style = Self {
             padding: SEGMENTED.padding,
             gap: SEGMENTED.gap,
             segment_height: SEGMENTED.segment_height,
@@ -108,6 +108,39 @@ impl ControlStyle for SegmentedControlStyle {
                 weight: SEGMENTED.font_weight as u16,
                 ..BODY
             },
+        };
+        if crate::compact::toolbar_glass() {
+            style.on_glass()
+        } else {
+            style
+        }
+    }
+}
+
+impl SegmentedControlStyle {
+    // SwiftUI's toolbar segmented control on its own glass capsule: veil thumbs, full-strength labels, no dividers.
+    fn on_glass(self) -> Self {
+        let selected = per_scheme([
+            GLASS_CONTROL.selected_light,
+            GLASS_CONTROL.selected_dark,
+            GLASS_CONTROL.selected_dark,
+        ]);
+        let ink = StateValue::new(ShapeStyle::Color(glass_ink()))
+            .disabled(ShapeStyle::Role(Role::TertiaryLabel));
+        Self {
+            padding: GLASS_CONTROL.inset,
+            gap: GLASS_CONTROL.gap,
+            segment_height: GLASS_CONTROL.height - 2.0 * GLASS_CONTROL.inset,
+            segment_padding_x: GLASS_CONTROL.segment_padding_x,
+            divider: StateValue::new(ShapeStyle::Clear),
+            shape: Shape::Capsule,
+            segment_shape: Shape::Capsule,
+            background: StateValue::new(ShapeStyle::Clear),
+            segment: StateValue::new(ShapeStyle::Clear).hovered(ShapeStyle::Color(glass_hover())),
+            selected: StateValue::new(ShapeStyle::Color(selected)),
+            label: ink.clone(),
+            selected_label: ink,
+            ..self
         }
     }
 }

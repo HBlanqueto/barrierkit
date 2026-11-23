@@ -10,7 +10,7 @@ use ctdesign::{
     BEZEL_CONTRAST_DARK, BEZEL_CONTRAST_DARK_TINT, BEZEL_CONTRAST_LIGHT, BEZEL_DARK,
     BEZEL_DARK_TINT, BEZEL_LIGHT, BezelPalette, DISABLED_CONTRAST_DARK,
     DISABLED_CONTRAST_DARK_TINT, DISABLED_CONTRAST_LIGHT, DISABLED_DARK, DISABLED_DARK_TINT,
-    DISABLED_LIGHT, DisabledPalette, LIST_GROUP, MATERIAL, MaterialThickness,
+    DISABLED_LIGHT, DisabledPalette, GLASS_CONTROL, LIST_GROUP, MATERIAL, MaterialThickness,
     PRESSED_CONTRAST_DARK, PRESSED_CONTRAST_DARK_TINT, PRESSED_CONTRAST_LIGHT, PRESSED_DARK,
     PRESSED_DARK_TINT, PRESSED_LIGHT, PressedPalette,
 };
@@ -551,6 +551,24 @@ fn unit_spring(duration_ms: u64, bounce: f32) -> crate::animation::Spring {
 }
 
 pub type ColorEffect = fn(Rgba, ControlState) -> Rgba;
+
+// SwiftUI draws a label over a control's own glass at full strength.
+pub(crate) fn glass_ink() -> Rgba {
+    per_scheme([
+        GLASS_CONTROL.ink_light,
+        GLASS_CONTROL.ink_dark,
+        GLASS_CONTROL.ink_dark,
+    ])
+}
+
+// SwiftUI veils a control on its own glass under the pointer: a segment, a `.glass` button.
+pub(crate) fn glass_hover() -> Rgba {
+    per_scheme([
+        GLASS_CONTROL.hover_light,
+        GLASS_CONTROL.hover_dark,
+        GLASS_CONTROL.hover_dark,
+    ])
+}
 
 pub(crate) fn per_scheme<T>([light, dark, dark_tint]: [T; 3]) -> T {
     match crate::theme::resolved().scheme {

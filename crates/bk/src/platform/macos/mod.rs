@@ -287,7 +287,7 @@ impl Window {
             return;
         };
         let lens = lens.unwrap_or_else(|| {
-            let lens = blur::glass(mtm, 0.0, true);
+            let lens = blur::glass(mtm, 0.0, true, None);
             self.view.addSubview(&lens);
             lens
         });
@@ -1222,8 +1222,8 @@ impl Runtime {
                         let members: Vec<_> = wanted
                             .glasses
                             .iter()
-                            .map(|&((left, top, w, h), radius, clear)| {
-                                let glass = blur::glass(mtm, radius as f32, clear);
+                            .map(|&((left, top, w, h), radius, clear, tint)| {
+                                let glass = blur::glass(mtm, radius as f32, clear, tint);
                                 glass.setFrame(blur::frame((left, top, w, h), f64::from(strip)));
                                 glass
                             })
@@ -1236,8 +1236,8 @@ impl Runtime {
                         );
                         effects.push(Retained::into_super(Retained::into_super(group)));
                     } else {
-                        for &((left, top, w, h), radius, clear) in &wanted.glasses {
-                            let glass = blur::glass(mtm, radius as f32, clear);
+                        for &((left, top, w, h), radius, clear, tint) in &wanted.glasses {
+                            let glass = blur::glass(mtm, radius as f32, clear, tint);
                             glass.setFrame(blur::frame((x + left, y + top, w, h), height));
                             effects.push(Retained::into_super(Retained::into_super(glass)));
                         }

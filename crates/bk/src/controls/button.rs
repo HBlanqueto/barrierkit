@@ -139,24 +139,38 @@ impl Component for Button {
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
         let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
         let font = style.font.scaled(crate::theme::resolved().text_size);
+        let glass = style.glass.filter(|_| crate::glass::native_glass());
+        // SwiftUI's toolbar shows a button that has an image by its image alone.
+        let icon_only = glass.is_some()
+            && crate::compact::toolbar_glass()
+            && self.image.is_some()
+            && self.content.is_none();
+        let width = if style.shape == Shape::Circle || icon_only {
+            Size::px(style.height)
+        } else {
+            self.width.clone()
+        };
+        let padding_x = if icon_only { 0.0 } else { style.padding_x };
 
         let button = interaction
             .attach(rect(), enabled)
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(self.label.clone())
-            .width(if style.shape == Shape::Circle {
-                Size::px(style.height)
-            } else {
-                self.width.clone()
-            })
+            .width(width.clone())
             .height(Size::px(style.height))
-            .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
+            .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
             .corner_radius(radius)
             .center()
             .direction(Direction::Horizontal)
             .spacing(ctdesign::SPACE_1)
-            .painted(&paints, &style.background)
-            .bordered(&paints, style.border.as_ref())
+            .maybe(glass.is_none(), |el| {
+                el.painted(&paints, &style.background)
+                    .bordered(&paints, style.border.as_ref())
+            })
+            .maybe(
+                glass.is_some_and(|glass| glass.tint.is_none()) && enabled && state.hovered,
+                |el| el.background(crate::theme::color(crate::styles::glass_hover())),
+            )
             .map(self.on, |el, on| {
                 el.a11y_builder(move |node| {
                     node.set_toggled(if on {
@@ -195,16 +209,32 @@ impl Component for Button {
             }))
             .maybe_child(self.image.filter(|_| self.content.is_none()).map(|image| {
                 crate::symbol::Image::system(image)
-                    .size(font.size as f32)
+                    .size(if icon_only {
+                        ctdesign::ICON_BUTTON.toolbar_icon
+                    } else {
+                        font.size as f32
+                    })
                     .color(paints.color(style.label.resolve(state)))
             }))
-            .maybe_child((self.content.is_none() && !self.label.is_empty()).then(|| {
-                with_font(label().text(self.label.clone()), font)
-                    .max_lines(1)
-                    .color(paints.fill(&style.label))
-            }));
-        let button = dimmed(shadowed(button, &style.shadows), opacity);
-        self.overrides
-            .apply(interaction.focus_ring(button, radius.top_left()))
+            .maybe_child(
+                (self.content.is_none() && !self.label.is_empty() && !icon_only).then(|| {
+                    with_font(label().text(self.label.clone()), font)
+                        .max_lines(1)
+                        .color(paints.fill(&style.label))
+                }),
+            );
+        let button = interaction.focus_ring(
+            dimmed(shadowed(button, &style.shadows), opacity),
+            radius.top_left(),
+        );
+        self.overrides.apply(match glass {
+            Some(glass) => rect().child(crate::glass::GlassBehind {
+                radius: radius.top_left(),
+                look: glass.look(),
+                width,
+                child: button.into_element(),
+            }),
+            None => button,
+        })
     }
 }

@@ -1,4 +1,4 @@
-use ctdesign::{ControlSize, TOOLGROUP};
+use ctdesign::{ControlSize, GLASS_CONTROL, TOOLGROUP};
 use freya_core::prelude::*;
 use std::borrow::Cow;
 use std::rc::Rc;
@@ -13,8 +13,8 @@ use crate::interaction::{control_state, use_interaction};
 use crate::style::{text_style, with_font};
 use crate::styles::Painted;
 use crate::styles::{
-    Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, StepperStyle, Theme,
-    ToggleGroupStyle, ToolbarSearchStyle, resolve,
+    Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, SearchFieldStyle, ShapeStyle,
+    StateValue, StepperStyle, Theme, ToggleGroupStyle, ToolbarSearchStyle, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol};
 use crate::titlebar::WindowToolbarStyle;
@@ -42,6 +42,11 @@ pub(crate) fn use_toolbar_items_or(style: WindowToolbarStyle) {
 
 pub(crate) fn toolbar_style() -> Option<WindowToolbarStyle> {
     try_consume_context::<ToolbarItems>().and_then(|items| *items.0.read())
+}
+
+// A toolbar item that sits on its own native glass capsule, as SwiftUI's segmented control, search field and buttons do.
+pub(crate) fn toolbar_glass() -> bool {
+    crate::glass::native_glass() && toolbar_style().is_some()
 }
 
 // The compact and expanded toolbars draw their items on a platter narrower than their slots: slot width, height, inset.
@@ -563,26 +568,47 @@ impl Component for ToolbarSearch {
         let style: ToolbarSearchStyle = resolve(&self.style);
         let mut opened = use_state(|| false);
         let open = !self.collapsed || *opened.read() || !self.value.read().is_empty();
+        let on_glass = toolbar_glass();
         if !open {
-            return self
-                .overrides
-                .apply(
-                    rect().child(
-                        IconButton::new(Symbol::MagnifyingGlass, self.placeholder.clone())
-                            .on_press(move |_| opened.set(true)),
-                    ),
-                )
-                .into_element();
+            let button = IconButton::new(Symbol::MagnifyingGlass, self.placeholder.clone())
+                .on_press(move |_| opened.set(true));
+            let root = if on_glass {
+                rect().child(crate::controls::ToolGroup::new().child(button))
+            } else {
+                rect().child(button)
+            };
+            return self.overrides.apply(root).into_element();
         }
-        let root = rect().width(Size::px(style.width)).child(
-            crate::controls::SearchField::new(self.value, self.placeholder.clone())
-                .auto_focus(self.collapsed)
-                .on_focus_change(move |focused: bool| {
-                    if !focused {
-                        opened.set(false);
-                    }
-                }),
-        );
+        let height = GLASS_CONTROL.height;
+        // SwiftUI's toolbar search field is its own glass capsule: the field draws only its ink over it.
+        let field = crate::controls::SearchField::new(self.value, self.placeholder.clone())
+            .auto_focus(self.collapsed)
+            .on_focus_change(move |focused: bool| {
+                if !focused {
+                    opened.set(false);
+                }
+            })
+            .maybe(on_glass, |field| {
+                field.style(move |style| SearchFieldStyle {
+                    height,
+                    padding_x: GLASS_CONTROL.search_padding_x,
+                    icon_gap: GLASS_CONTROL.search_gap,
+                    background: StateValue::new(ShapeStyle::Clear),
+                    border: StateValue::new(ShapeStyle::Clear).focused(ShapeStyle::Accent),
+                    ..style
+                })
+            });
+        let root = rect()
+            .width(Size::px(style.width))
+            .maybe_child(on_glass.then(|| {
+                crate::platform::backdrop::Declared::glass(
+                    height / 2.0,
+                    (style.width, height),
+                    (0.0, 0.0),
+                    crate::platform::backdrop::GlassLook::default(),
+                )
+            }))
+            .child(field);
         self.overrides.apply(root)
     }
 }

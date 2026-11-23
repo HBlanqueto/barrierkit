@@ -1,9 +1,10 @@
 use ctappearance::material::Material;
+use ctdesign::Rgba;
 use objc2::rc::Retained;
 use objc2::{MainThreadMarker, MainThreadOnly, msg_send, sel};
 use objc2_app_kit::{
-    NSAutoresizingMaskOptions, NSGlassEffectViewStyle, NSSplitViewController, NSSplitViewItem,
-    NSView, NSViewController, NSVisualEffectBlendingMode, NSVisualEffectMaterial,
+    NSAutoresizingMaskOptions, NSColor, NSGlassEffectViewStyle, NSSplitViewController,
+    NSSplitViewItem, NSView, NSViewController, NSVisualEffectBlendingMode, NSVisualEffectMaterial,
     NSVisualEffectState,
 };
 use objc2_core_graphics::CGColor;
@@ -149,13 +150,26 @@ pub(super) fn glass_available() -> bool {
         && objc2::runtime::AnyClass::get(c"NSGlassEffectContainerView").is_some()
 }
 
-pub(super) fn glass(mtm: MainThreadMarker, radius: f32, clear: bool) -> Retained<Glass> {
+pub(super) fn glass(
+    mtm: MainThreadMarker,
+    radius: f32,
+    clear: bool,
+    tint: Option<Rgba>,
+) -> Retained<Glass> {
     let glass = Glass::new(mtm);
     // Setting `regular` turns the view into another glass than the default one AppKit's toolbar uses.
     if clear {
         glass.setStyle(NSGlassEffectViewStyle::Clear);
     }
     glass.setCornerRadius(f64::from(radius));
+    if let Some(tint) = tint {
+        glass.setTintColor(Some(&NSColor::colorWithSRGBRed_green_blue_alpha(
+            f64::from(tint.r),
+            f64::from(tint.g),
+            f64::from(tint.b),
+            f64::from(tint.a),
+        )));
+    }
     // A press lights the glass where it lands, as SwiftUI's toolbar does; AppKit has it from macOS 27.
     if glass.respondsToSelector(sel!(setEffectIsInteractive:)) {
         // SAFETY: the selector exists on this macOS and takes a BOOL.
@@ -225,8 +239,8 @@ pub(super) fn container(mtm: MainThreadMarker, frame: NSRect) -> Retained<NSView
     container
 }
 
-// A glass in its strip: the rectangle, the radius and whether it is clear.
-pub(crate) type PlacedGlass = ((i32, i32, i32, i32), u32, bool);
+// A glass in its strip: the rectangle, the radius, whether it is clear and its tint.
+pub(crate) type PlacedGlass = ((i32, i32, i32, i32), u32, bool, Option<Rgba>);
 
 impl Chrome {
     // The protocol's backdrop holds one radius and one variant; macOS draws a native view per glass, so a nested one keeps its own.
@@ -235,9 +249,12 @@ impl Chrome {
         self.effects
             .iter()
             .filter_map(|(effect, area)| match *effect {
-                Declared::Glass { radius, clear, .. } => {
-                    Some((strip_rect(area, origin, scale), radius, clear))
-                }
+                Declared::Glass {
+                    radius,
+                    clear,
+                    tint,
+                    ..
+                } => Some((strip_rect(area, origin, scale), radius, clear, tint)),
                 _ => None,
             })
             .collect()
@@ -317,7 +334,10 @@ mod tests {
         );
         assert_eq!(
             chrome.glasses(1.0),
-            vec![((0, 0, 100, 60), 28, false), ((10, 10, 40, 20), 10, true)]
+            vec![
+                ((0, 0, 100, 60), 28, false, None),
+                ((10, 10, 40, 20), 10, true, None)
+            ]
         );
         assert_eq!(Requests::of(&chrome, 1.0).backdrop.rects.len(), 1);
     }

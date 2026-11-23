@@ -1925,6 +1925,40 @@ pub const TOOLBAR_ITEM_HIGHLIGHT: ToolbarItemHighlight = ToolbarItemHighlight {
     hover_dark: Rgba::rgba8(255, 255, 255, 0.047),
 };
 
+// A SwiftUI control on its own glass, as measured on macOS 27: its label at full strength, a toolbar item's glass `height`,
+// the toolbar segmented control's thumbs (`inset` from the glass, `gap` apart) and the toolbar search field's padding
+// before its icon box and gap after it.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassControl {
+    pub ink_light: Rgba,
+    pub ink_dark: Rgba,
+    pub height: f32,
+    pub inset: f32,
+    pub gap: f32,
+    pub segment_padding_x: f32,
+    pub selected_light: Rgba,
+    pub selected_dark: Rgba,
+    pub hover_light: Rgba,
+    pub hover_dark: Rgba,
+    pub search_padding_x: f32,
+    pub search_gap: f32,
+}
+
+pub const GLASS_CONTROL: GlassControl = GlassControl {
+    ink_light: Rgba::rgba8(0, 0, 0, 1.0),
+    ink_dark: Rgba::rgba8(255, 255, 255, 1.0),
+    height: 36.0,
+    inset: 4.0,
+    gap: 2.0,
+    segment_padding_x: 11.0,
+    selected_light: Rgba::rgba8(0, 0, 0, 0.081),
+    selected_dark: Rgba::rgba8(255, 255, 255, 0.11),
+    hover_light: Rgba::rgba8(0, 0, 0, 0.04),
+    hover_dark: Rgba::rgba8(255, 255, 255, 0.11),
+    search_padding_x: 9.0,
+    search_gap: 8.0,
+};
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarPalette {
     pub item_ink: Rgba,

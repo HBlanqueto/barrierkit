@@ -208,8 +208,8 @@ Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 |---|---|
 | none (Tengen) | Control background; the pressed fill while held |
 | `bordered_prominent` | Accent fill, `on_accent` text |
-| `glass` | Capsule with a hairline border, raised background |
-| `glass_prominent` | Capsule with a hairline border and the accent fill |
+| `glass` | Capsule with a hairline border, raised background; on macOS 26 and later a native glass in the bordered shape (a capsule from `Large`), the label at full strength and a veil under the pointer |
+| `glass_prominent` | Capsule with a hairline border and the accent fill; on macOS 26 and later a native glass tinted with the accent |
 | `borderless` | No background until pressed |
 | `circular` | A 17 high circle for an icon-only button (AppKit round) |
 | `small_square` | A 21 high rectangle with a light gradient and a 1 wide border (`NSButton.BezelStyle.smallSquare`) |
@@ -399,6 +399,14 @@ MenuButton::new("Sort", items).style(|s| MenuButtonStyle { shape: Shape::Capsule
 | `ToolbarOverflow` | `compact` | `ToolbarOverflow::new(items)`, `.on_activate(\|id: String\| ..)`, `.style(\|s\| ..)` | A `»` `IconButton` that opens the items as a menu |
 
 Where they sit in the title bar is in [9](09-titlebars.md).
+
+On macOS 26 and later a `SegmentedControl`, the `ToolbarSearch` field and a
+`Button` in the toolbar each sit on their own native glass capsule, 36 high, as
+SwiftUI's ([15](15-backdrops-and-media.md#on-macos)). The segmented control
+draws veil thumbs and no dividers, the search field only its ink, and a button
+with an image shows the image alone in a 36 circle; `bordered_prominent` tints
+that glass with the accent. Collapsed, `ToolbarSearch`'s button sits in a
+`ToolGroup`.
 
 ### Style
 

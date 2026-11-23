@@ -1,12 +1,13 @@
 use ctappearance::Resolved;
-use ctdesign::{BODY, BUTTON, BezelRow, DURATION_FAST_MS, Font, HAIRLINE};
+use ctdesign::{BODY, BUTTON, BezelRow, DURATION_FAST_MS, Font, GLASS_CONTROL, HAIRLINE};
 
 use crate::controls::ControlSize;
+use crate::glass_container::Glass;
 
 use super::{
     Animation, ColorEffect, ControlStyle, CornerStyle, Gradient, GradientColorSpace, Rgba, Role,
-    ShadowStyle, Shape, ShapeStyle, StateValue, bezel_palette, pressed_palette, reduce_motion,
-    system_effect,
+    ShadowStyle, Shape, ShapeStyle, StateValue, bezel_palette, glass_ink, pressed_palette,
+    reduce_motion, system_effect,
 };
 
 /// `ButtonStyle::tengen()` is SwiftUI's `.bordered`.
@@ -20,8 +21,8 @@ use super::{
 /// |---|---|---|
 /// | `ButtonStyle::bordered_prominent` | `.borderedProminent` | `background` `Accent` (disabled `Role(ControlBackgroundDisabled)`), `label` `Role(OnAccent)` (disabled `Role(TertiaryLabel)`), `border` `None` |
 /// | `ButtonStyle::destructive` | `Button(role: .destructive)` | `background` `Role(DestructiveFill)` (`destructive` at `BUTTON_DESTRUCTIVE_FILL`), `label` `Role(Destructive)`, `border` `None` |
-/// | `ButtonStyle::glass` | `.glass` | `background` `Role(RaisedBackground)` (pressed `Color(PressedPalette.bezel)`, disabled `Role(ControlBackground)`), `border` `(Role(CardBorder), HAIRLINE)`, `shape` `Capsule` |
-/// | `ButtonStyle::glass_prominent` | `.glassProminent` | `bordered_prominent`, then the border and shape of `glass` |
+/// | `ButtonStyle::glass` | `.glass` | `glass` `Glass::REGULAR`, `label` full black or white on native glass; without native glass `background` `Role(RaisedBackground)` (pressed `Color(PressedPalette.bezel)`, disabled `Role(ControlBackground)`), `border` `(Role(CardBorder), HAIRLINE)`, `shape` `Capsule` |
+/// | `ButtonStyle::glass_prominent` | `.glassProminent` | `glass` tinted with the accent, then `bordered_prominent` and the border and shape of `glass` |
 /// | `ButtonStyle::borderless` | `.borderless` | `background` `Clear` (pressed `Color(PressedPalette.bezel)`), `border` `None` |
 /// | `ButtonStyle::circular` | `.buttonBorderShape(.circle)` | `height` `BUTTON.circular_size`, `padding_x` `0`, `shape` `Circle`, the icon at `BUTTON.circular_icon` |
 /// | `ButtonStyle::plain` | `.plain` | `height` one line of `BODY`, `padding_x` `0`, `background` `Clear` |
@@ -65,6 +66,11 @@ pub struct ButtonStyle {
     /// Tengen: `BODY` with `BUTTON.font_size` and `BUTTON.font_weight`; the label is one line
     /// centered in `height`, so `line_height` has no effect.
     pub font: Font,
+    /// Tengen: `None`; in a toolbar on native glass `Glass::REGULAR`, with `height`
+    /// `GLASS_CONTROL.height` and `shape` `Capsule`. Where the
+    /// platform draws the glass (macOS) it replaces `background` and `border`, and in a toolbar a
+    /// button with an image shows the image alone.
+    pub glass: Option<Glass>,
     /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the pressed scale eases; `None` makes it
     /// jump.
     pub animation: Animation,
@@ -113,6 +119,7 @@ impl ButtonStyle {
             label: StateValue::new(ShapeStyle::Role(Role::OnAccent))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             border: None,
+            glass: self.glass.map(Glass::prominent),
             ..self
         }
     }
@@ -165,6 +172,13 @@ impl ButtonStyle {
             background: StateValue::new(ShapeStyle::Role(Role::RaisedBackground))
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackground)),
+            label: if crate::glass::native_glass() {
+                StateValue::new(ShapeStyle::Color(glass_ink()))
+                    .disabled(ShapeStyle::Role(Role::TertiaryLabel))
+            } else {
+                self.label.clone()
+            },
+            glass: Some(Glass::REGULAR),
             ..self.glass_rim()
         }
     }
@@ -276,13 +290,23 @@ impl ButtonStyle {
     }
 
     pub fn glass_prominent(self) -> Self {
-        self.bordered_prominent().glass_rim()
+        Self {
+            glass: Some(Glass::REGULAR),
+            ..self
+        }
+        .bordered_prominent()
+        .glass_rim()
     }
 
+    // SwiftUI's native glass button keeps the bordered shape, a capsule only at the large sizes.
     fn glass_rim(self) -> Self {
         Self {
             border: Some((ShapeStyle::Role(Role::CardBorder), HAIRLINE)),
-            shape: Shape::Capsule,
+            shape: if crate::glass::native_glass() {
+                self.shape
+            } else {
+                Shape::Capsule
+            },
             ..self
         }
     }
@@ -309,10 +333,19 @@ impl ButtonStyle {
 
 impl ControlStyle for ButtonStyle {
     fn tengen() -> Self {
+        let toolbar_glass = crate::compact::toolbar_glass();
         Self {
-            height: BUTTON.height,
+            height: if toolbar_glass {
+                GLASS_CONTROL.height
+            } else {
+                BUTTON.height
+            },
             padding_x: BUTTON.padding_x,
-            shape: continuous_rounded(BUTTON.radius),
+            shape: if toolbar_glass {
+                Shape::Capsule
+            } else {
+                continuous_rounded(BUTTON.radius)
+            },
             background: StateValue::new(ShapeStyle::Role(Role::ControlBackground))
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Role(Role::ControlBackgroundDisabled)),
@@ -328,6 +361,7 @@ impl ControlStyle for ButtonStyle {
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,
             },
+            glass: toolbar_glass.then_some(Glass::REGULAR),
         }
     }
 
