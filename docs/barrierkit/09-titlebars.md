@@ -57,7 +57,7 @@ bar: traffic lights, a left zone, the title and a right zone.
 | `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
-| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high, the title at the start) or the compact one (centered title), as SwiftUI's `windowToolbarStyle` |
+| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high, the title at the start) or the compact one (centered title), as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
 | `.hairline(bool)` | `false` | The line under the bar of the sidebar layout. macOS draws none under a unified toolbar at rest; `true` draws `TitlebarStyle::line()`, as `NSTitlebarSeparatorStyle.line` does |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |

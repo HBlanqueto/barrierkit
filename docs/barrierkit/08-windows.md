@@ -173,7 +173,7 @@ windows and sheets are always `TitleBar`.
 | Variant | `NSWindow` | `WindowStatus::decoration` | Use |
 |---|---|---|---|
 | `TitleBar` | titled, native lights | `Server` | Apps that look like any Mac app |
-| `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, an empty unified `NSToolbar` that puts the native lights where the kit draws its own | `Hybrid` | The kit draws its `Titlebar` and sidebar beside the native lights and draws none of its own |
+| `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, an empty `NSToolbar` whose style follows the `Titlebar`'s `toolbar_style`, so the native lights sit where the kit draws its own: (18, 18) under `Unified`, (11, 12) under `UnifiedCompact`, as SwiftUI's `.hiddenTitleBar` | `Hybrid` | The kit draws its `Titlebar` and sidebar beside the native lights and draws none of its own |
 | `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | The kit draws the `Titlebar` and `TrafficLights`, as on Linux |
 
 In an `Application`, a `HiddenTitleBar` or `Plain` window gets no kit

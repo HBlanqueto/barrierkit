@@ -265,18 +265,15 @@ impl Component for Titlebar {
             });
 
         let shield = crate::views::feedback::OpenSheets::any().then(|| drag.clone());
+        let native_lights = status.decoration == DecorationResponse::Hybrid
+            && (!status.fullscreen
+                || controls
+                    .as_ref()
+                    .is_some_and(|controls| *controls.focus_bar.read()));
         let (bar, height) = if unified {
             let lights = match traffic {
                 Some(traffic) => Lights::Drawn(traffic),
-                None if status.decoration == DecorationResponse::Hybrid
-                    && !sidebar
-                    && (!status.fullscreen
-                        || controls
-                            .as_ref()
-                            .is_some_and(|controls| *controls.focus_bar.read())) =>
-                {
-                    Lights::Native
-                }
+                None if native_lights && !sidebar => Lights::Native,
                 None => Lights::Absent,
             };
             self.sidebar_bar(
@@ -289,9 +286,13 @@ impl Component for Titlebar {
                 background,
             )
         } else {
+            let native_gap = native_lights.then(|| {
+                let lights: TrafficLightsStyle = resolve(&Theme::tengen());
+                rect().width(Size::px(lights.length())).into_element()
+            });
             self.centered_bar(
                 &style,
-                traffic,
+                traffic.or(native_gap),
                 slots,
                 title_label,
                 drag,

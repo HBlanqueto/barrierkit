@@ -50,7 +50,7 @@ use super::timer::{Wake, WakeQueue};
 use super::window::{
     OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle,
 };
-use super::window_style::ScrollEdgeEffectStyle;
+use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
 use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
 #[cfg(feature = "a11y")]
@@ -219,6 +219,7 @@ enum Native {
     Present,
     Title(String),
     Size(u32, u32),
+    Toolbar(TitlebarBar),
 }
 
 fn native(id: u64, command: Native) {
@@ -252,6 +253,14 @@ fn native(id: u64, command: Native) {
             }
         }
         Native::Title(title) => window.setTitle(&NSString::from_str(&title)),
+        // The empty toolbar of a HiddenTitleBar window centers the native lights in the kit's bar, as SwiftUI's `windowToolbarStyle` does.
+        Native::Toolbar(TitlebarBar::Unified) if window.toolbar().is_some() => {
+            window.setToolbarStyle(NSWindowToolbarStyle::Unified)
+        }
+        Native::Toolbar(TitlebarBar::UnifiedCompact) if window.toolbar().is_some() => {
+            window.setToolbarStyle(NSWindowToolbarStyle::UnifiedCompact)
+        }
+        Native::Toolbar(_) => {}
         Native::Size(width, height) => {
             window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))
         }
@@ -1180,6 +1189,7 @@ impl Runtime {
                     WindowCommand::MakeKey => later(id, Native::Front),
                     WindowCommand::SetTitle(title) => later(id, Native::Title(title.to_string())),
                     WindowCommand::Fit((width, height)) => later(id, Native::Size(width, height)),
+                    WindowCommand::Bar(bar) => later(id, Native::Toolbar(bar)),
                     WindowCommand::ImeCursor(area) => areas.push((id, area)),
                     WindowCommand::Open(window) => open.push((window, None)),
                     WindowCommand::Sheet(window) => open.push((window, Some(id))),
