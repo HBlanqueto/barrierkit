@@ -174,7 +174,10 @@ windows and sheets are always `TitleBar`.
 | `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | The kit draws the `Titlebar` and `TrafficLights`, as on Linux |
 
 A `Plain` window moves with `WindowControls::move_window` (a press on the
-`Titlebar`) and resizes from the edge AppKit gives a resizable window. Full
+`Titlebar`): the view moves it while the button is down, because
+`performWindowDragWithEvent` does not begin on macOS 27.2. It resizes from the
+edge AppKit gives a resizable window. Only the titled styles have the system's
+shadow and the Move & Resize menu on the green light. Full
 screen of a `Plain` window fills the screen and hides the menu bar and the Dock, without a Space of its own.
 
 ```rust

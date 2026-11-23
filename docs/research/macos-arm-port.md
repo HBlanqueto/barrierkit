@@ -293,7 +293,9 @@ style mask and to `DecorationResponse` (four unit tests).
 
 Checked on this Mac with `notes_sidebar`, `custom_window` and
 `titlebar_over_gradient`: a press on the `Titlebar` moves the window
-(`performWindowDragWithEvent` on the press, from `WindowCommand::Move`); the
+(`WindowCommand::Move` arms a grab and `mouseDragged:` moves the frame;
+`performWindowDragWithEvent` logged "Window move completed without beginning"
+on macOS 27.2, 2026-11-23); the
 edge of a borderless window with `Resizable` resizes it natively, so the kit's
 `resize_edge_at` band is not needed; close and minimize from the kit lights
 work. `notes_sidebar` has a Swift twin (`~/src/probes/csdtwin.swift`) of the

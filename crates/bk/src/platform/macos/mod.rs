@@ -179,7 +179,6 @@ enum Native {
     Present,
     Title(String),
     Size(u32, u32),
-    Drag,
 }
 
 fn native(id: u64, command: Native) {
@@ -215,16 +214,6 @@ fn native(id: u64, command: Native) {
         Native::Title(title) => window.setTitle(&NSString::from_str(&title)),
         Native::Size(width, height) => {
             window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))
-        }
-        Native::Drag => {
-            let Some(mtm) = MainThreadMarker::new() else {
-                return;
-            };
-            if let Some(press) = NSApplication::sharedApplication(mtm).currentEvent()
-                && press.r#type() == NSEventType::LeftMouseDown
-            {
-                window.performWindowDragWithEvent(&press);
-            }
         }
     }
 }
@@ -1078,7 +1067,7 @@ impl Runtime {
                 match command {
                     WindowCommand::Close => later(id, Native::Close),
                     WindowCommand::Minimize => later(id, Native::Minimize),
-                    WindowCommand::Move(_) => later(id, Native::Drag),
+                    WindowCommand::Move(_) => window.view.begin_move(),
                     WindowCommand::ToggleMaximize => later(id, Native::Zoom),
                     WindowCommand::ToggleFullscreen => later(id, Native::FullScreen),
                     WindowCommand::Present(_) => later(id, Native::Present),

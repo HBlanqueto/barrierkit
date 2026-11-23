@@ -29,6 +29,7 @@ pub(super) struct ViewIvars {
     // The text an input method is composing, and the keys it took, whose release is not the app's.
     marked: RefCell<String>,
     routed: RefCell<Vec<u16>>,
+    grab: Cell<Option<NSPoint>>,
 }
 
 define_class!(
@@ -120,6 +121,7 @@ define_class!(
 
         #[unsafe(method(mouseUp:))]
         fn mouse_up(&self, event: &NSEvent) {
+            self.ivars().grab.set(None);
             self.mouse(event, MouseEventName::MouseUp);
         }
 
@@ -150,6 +152,13 @@ define_class!(
 
         #[unsafe(method(mouseDragged:))]
         fn mouse_dragged(&self, event: &NSEvent) {
+            if let Some(grab) = self.ivars().grab.get()
+                && let Some(window) = self.window()
+            {
+                let at = NSEvent::mouseLocation();
+                window.setFrameOrigin(NSPoint::new(at.x - grab.x, at.y - grab.y));
+                return;
+            }
             self.motion(event);
         }
 
@@ -350,6 +359,7 @@ impl ContentView {
             wheel_started: Cell::new(false),
             marked: RefCell::new(String::new()),
             routed: RefCell::new(Vec::new()),
+            grab: Cell::new(None),
         });
         // SAFETY: initWithFrame: is NSView's designated initializer, called once on the allocated object.
         let this: Retained<Self> = unsafe { msg_send![super(this), initWithFrame: frame] };
@@ -379,6 +389,18 @@ impl ContentView {
         let point = self.convertPoint_fromView(event.locationInWindow(), None);
         let scale = self.scale();
         CursorPoint::from((point.x * scale, point.y * scale))
+    }
+
+    // `performWindowDragWithEvent` does not begin on macOS 27.2 ("Window move completed without beginning"); AppKit moves a titled one.
+    pub(super) fn begin_move(&self) {
+        let left_down = NSEvent::pressedMouseButtons() & 1 != 0;
+        let titled = |window: &NSWindow| window.styleMask().contains(NSWindowStyleMask::Titled);
+        if let Some(window) = self.window().filter(|window| left_down && !titled(window)) {
+            let (at, origin) = (NSEvent::mouseLocation(), window.frame().origin);
+            self.ivars()
+                .grab
+                .set(Some(NSPoint::new(at.x - origin.x, at.y - origin.y)));
+        }
     }
 
     fn send(&self, event: PlatformEvent) {
