@@ -834,8 +834,18 @@ impl Runtime {
         &mut self,
         id: u64,
     ) -> Option<Retained<NSTitlebarAccessoryViewController>> {
+        let riding = self
+            .window(id)
+            .and_then(|window| window.bar.as_ref())
+            .is_some_and(|bar| bar.revealed);
         self.reveal_bar(id, false, 0.0);
-        let bar = self.window(id)?.bar.take()?;
+        let window = self.window(id)?;
+        // Riding chromes missed the container's resize to the windowed size, so the next draw builds them again where they belong.
+        if riding {
+            window.chromes.drain(..).for_each(ChromeLayer::remove);
+            window.needs_redraw = true;
+        }
+        let bar = window.bar.take()?;
         if let Some(pocket) = bar.pocket {
             pocket.removeFromSuperview();
         }

@@ -12,8 +12,8 @@ use objc2_app_kit::{
     NSApplication, NSApplicationPresentationOptions, NSBackingStoreType, NSDragOperation,
     NSDraggingContext, NSDraggingSession, NSDraggingSource, NSEvent, NSEventModifierFlags,
     NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSTextInputClient, NSTrackingArea,
-    NSTrackingAreaOptions, NSView, NSVisualEffectView, NSWindow, NSWindowButton, NSWindowDelegate,
-    NSWindowDidMoveNotification, NSWindowStyleMask,
+    NSTrackingAreaOptions, NSView, NSViewFrameDidChangeNotification, NSVisualEffectView, NSWindow,
+    NSWindowButton, NSWindowDelegate, NSWindowDidMoveNotification, NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification,
@@ -467,6 +467,9 @@ define_class!(
         #[unsafe(method(windowDidEnterFullScreen:))]
         fn window_did_enter_full_screen(&self, note: &NSNotification) {
             let id = self.ivars().id;
+            if let Some(window) = window_of(note) {
+                set_titlebar_fill_alpha(&window, 0.0);
+            }
             with_runtime(|runtime| runtime.fullscreen_changed(id));
             let bar = with_runtime(|runtime| runtime.bar_window(id)).flatten();
             if let Some(bar) = bar {
@@ -487,8 +490,8 @@ define_class!(
         fn window_will_enter_full_screen(&self, note: &NSNotification) {
             let id = self.ivars().id;
             // AppKit shows and hides the fill itself, so the kit only makes it clear.
-            if let Some(fill) = window_of(note).as_deref().and_then(titlebar_fill) {
-                fill.setAlphaValue(0.0);
+            if let Some(window) = window_of(note) {
+                set_titlebar_fill_alpha(&window, 0.0);
             }
             if let Some((window, accessory)) = with_runtime(|runtime| runtime.attach_bar(id)).flatten() {
                 window.addTitlebarAccessoryViewController(&accessory);
@@ -502,8 +505,8 @@ define_class!(
         // The toolbar and the title bar's fill are back before AppKit animates the window out, so nothing in the bar moves after it lands.
         #[unsafe(method(windowWillExitFullScreen:))]
         fn window_will_exit_full_screen(&self, note: &NSNotification) {
-            if let Some(fill) = window_of(note).as_deref().and_then(titlebar_fill) {
-                fill.setAlphaValue(1.0);
+            if let Some(window) = window_of(note) {
+                set_titlebar_fill_alpha(&window, 1.0);
             }
             self.show_toolbar(true);
         }
@@ -557,14 +560,26 @@ fn window_of(note: &NSNotification) -> Option<Retained<NSWindow>> {
 }
 
 // AppKit fills a full-screen bar with an opaque view whose blur sees only the bar's own window; SwiftUI's bar is clear over the content.
-fn titlebar_fill(window: &NSWindow) -> Option<Retained<NSView>> {
-    let button = window.standardWindowButton(NSWindowButton::CloseButton)?;
+// With a sidebar split view AppKit splits the fill in one view per column, and builds them only once the window is in full screen.
+fn titlebar_fills(window: &NSWindow) -> Vec<Retained<NSView>> {
+    let Some(button) = window.standardWindowButton(NSWindowButton::CloseButton) else {
+        return Vec::new();
+    };
     // SAFETY: both views are alive; neither is kept.
-    let container = unsafe { button.superview()?.superview()? };
+    let Some(container) = (unsafe { button.superview().and_then(|bar| bar.superview()) }) else {
+        return Vec::new();
+    };
     container
         .subviews()
-        .iter()
-        .find(|view| view.class().name() == c"NSTitlebarBackgroundView")
+        .into_iter()
+        .filter(|view| view.class().name() == c"NSTitlebarBackgroundView")
+        .collect()
+}
+
+fn set_titlebar_fill_alpha(window: &NSWindow, alpha: f64) {
+    for fill in titlebar_fills(window) {
+        fill.setAlphaValue(alpha);
+    }
 }
 
 impl WindowDelegate {
@@ -724,6 +739,29 @@ define_class!(
         #[unsafe(method(mouseUp:))]
         fn mouse_up(&self, event: &NSEvent) {
             self.send(input::mouse(MouseEventName::MouseUp, event, self.position(event)));
+        }
+
+        // AppKit slides the accessory container right of the lights in its own steps, apart from the bar window's moves.
+        #[unsafe(method(viewDidMoveToSuperview))]
+        fn view_did_move_to_superview(&self) {
+            let center = NSNotificationCenter::defaultCenter();
+            // SAFETY: only this view's own frame observations are removed and added; AppKit drops them when the view is freed.
+            unsafe {
+                center.removeObserver_name_object(self, Some(NSViewFrameDidChangeNotification), None);
+                if let Some(superview) = self.superview() {
+                    center.addObserver_selector_name_object(
+                        self,
+                        sel!(superviewMoved:),
+                        Some(NSViewFrameDidChangeNotification),
+                        Some(&superview),
+                    );
+                }
+            }
+        }
+
+        #[unsafe(method(superviewMoved:))]
+        fn superview_moved(&self, _: &NSNotification) {
+            self.align(self.ivars().container_height.get());
         }
     }
 );
