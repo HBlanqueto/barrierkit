@@ -645,12 +645,13 @@ pub struct TextFieldMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ProgressMetrics {
     pub height: f32,
+    pub frames: [f32; 5],
     pub ring_size: f32,
     pub ring_stroke: f32,
     pub ring_trim: f32,
     pub indeterminate_segment: f32,
     pub indeterminate_ms: u64,
-    pub spinner_size: f32,
+    pub spinner_sizes: [f32; 5],
     pub spinner_spokes: u32,
     pub spinner_ms: u64,
 }

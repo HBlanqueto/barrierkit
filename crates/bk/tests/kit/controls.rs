@@ -819,7 +819,7 @@ fn segmented_control_click_selects_once_per_new_segment() {
     });
     let (mut test, _) = TestingRunner::new(app, Size2D::new(200.0, 30.0), |_| {}, 1.0);
     test.sync_and_update();
-    for x in [150.0, 150.0, 50.0] {
+    for x in [110.0, 110.0, 30.0] {
         test.click_cursor((x, 15.0));
         test.sync_and_update();
     }

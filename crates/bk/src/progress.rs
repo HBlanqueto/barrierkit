@@ -3,7 +3,7 @@ use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use std::borrow::Cow;
-use torin::prelude::{Direction, Position, Size};
+use torin::prelude::{Alignment, Direction, Position, Size};
 
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, shadowed};
@@ -130,8 +130,13 @@ impl Component for ProgressView {
                     .corner_radius(radius)
                     .painted(&paints, &style.fill),
             );
-        self.overrides
-            .apply(dimmed(shadowed(bar, &style.shadows), style.opacity))
+        self.overrides.apply(
+            rect()
+                .width(Size::fill())
+                .height(Size::px(style.frame_height))
+                .main_align(Alignment::Center)
+                .child(dimmed(shadowed(bar, &style.shadows), style.opacity)),
+        )
     }
 }
 

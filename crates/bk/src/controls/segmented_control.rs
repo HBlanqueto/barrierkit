@@ -101,11 +101,21 @@ impl Component for SegmentedControl {
             ),
         };
         let height = height + 2.0 * style.padding;
+        let natural_width = self
+            .segments
+            .iter()
+            .map(|text| measure_text(text, style.font.size as f32) + 2.0 * style.segment_padding_x)
+            .sum::<f32>()
+            + (count - 1.0).max(0.0) * style.gap
+            + 2.0 * style.padding;
 
         let group = rect()
             .a11y_role(AccessibilityRole::TabList)
             .a11y_alt(&*self.label)
-            .width(Size::fill())
+            .width(match style.axis {
+                Axis::Horizontal => Size::px(natural_width),
+                Axis::Vertical => Size::fill(),
+            })
             .direction(direction)
             .content(Content::flex())
             .padding(Gaps::new_all(style.padding))

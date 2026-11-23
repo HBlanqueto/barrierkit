@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{BAR_TRACK_DARK, BAR_TRACK_DARK_TINT, BAR_TRACK_LIGHT, PROGRESS};
+use ctdesign::{BAR_TRACK_DARK, BAR_TRACK_DARK_TINT, BAR_TRACK_LIGHT, ControlSize, PROGRESS};
 
 use crate::animation::ease_in_out;
 
@@ -18,6 +18,8 @@ use super::{
 pub struct ProgressViewStyle {
     /// Tengen: `PROGRESS.height`; the bar fills its width.
     pub height: f32,
+    /// Tengen: `PROGRESS.frames` of the control size (20 at regular), the box the bar is centered in.
+    pub frame_height: f32,
     /// Tengen: `PROGRESS.indeterminate_segment`, the share of the track the sweeping segment
     /// takes.
     pub indeterminate_length: f32,
@@ -40,10 +42,20 @@ pub struct ProgressViewStyle {
     pub animation: Animation,
 }
 
+impl ProgressViewStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        Self {
+            frame_height: PROGRESS.frames[size as usize],
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for ProgressViewStyle {
     fn tengen() -> Self {
         Self {
             height: PROGRESS.height,
+            frame_height: PROGRESS.frames[ControlSize::Regular as usize],
             indeterminate_length: PROGRESS.indeterminate_segment,
             shape: Shape::Capsule,
             track: StateValue::new(if crate::backdrop::tinted().is_some() {

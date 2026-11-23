@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{PROGRESS, SYMBOL};
+use ctdesign::{ControlSize, PROGRESS, SYMBOL};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, reduce_motion,
@@ -8,7 +8,7 @@ use super::{
 
 #[derive(Clone, Debug)]
 pub struct SpinnerStyle {
-    /// Tengen: `PROGRESS.spinner_size`.
+    /// Tengen: `PROGRESS.spinner_sizes` of the control size (32 at regular).
     pub size: f32,
     /// Tengen: `PROGRESS.spinner_spokes`.
     pub spokes: u32,
@@ -25,10 +25,19 @@ pub struct SpinnerStyle {
     pub animation: Animation,
 }
 
+impl SpinnerStyle {
+    pub(crate) fn sized(self, size: ControlSize) -> Self {
+        Self {
+            size: PROGRESS.spinner_sizes[size as usize],
+            ..self
+        }
+    }
+}
+
 impl ControlStyle for SpinnerStyle {
     fn tengen() -> Self {
         Self {
-            size: PROGRESS.spinner_size,
+            size: PROGRESS.spinner_sizes[ControlSize::Regular as usize],
             spokes: PROGRESS.spinner_spokes,
             stroke: SYMBOL.stroke,
             spoke: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),

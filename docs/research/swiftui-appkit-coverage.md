@@ -205,7 +205,7 @@ Kit: `SegmentedControl`, `PopUpButton`, `RadioGroup`, `ColorWell`, `ComboBox`.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `.segmented` at regular | `NSSegmentedControl` select one | `SegmentedControl` | `measured` | bench `segmented-regular`, `segmented-disabled`; [Combo box and segmented][m-rings] | — |
+| `.segmented` at regular | `NSSegmentedControl` select one | `SegmentedControl` | `measured`; as wide as its segments (82, 90, 98, 106, 122 for «One», «Two»), not the width it is given | bench `segmented-regular`, `segmented-disabled`; [Combo box and segmented][m-rings] | — |
 | `.segmented` at mini, small, large, extra large | `controlSize` | `SegmentedControl::size` | `measured` | bench family `buttons` `segmented-mini` to `segmented-xl`; SwiftUI segments are equal width, AppKit's are fit to their text | — |
 | `.segmented` with symbols | `NSSegmentedControl(images:)` | `SegmentedControl::segment` takes text only | `missing` | none | P2 |
 | — | `segmentStyle` (`.rounded`, `.roundRect`, `.texturedSquare`, `.smallSquare`) | — | `missing` | not probed | P3 |
@@ -227,7 +227,7 @@ The date and color pickers are in [8](#8-date-and-time) and
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
 | `Stepper` at regular | `NSStepper` | `Stepper` | `measured` | bench `stepper-regular`, `stepper-disabled`; [Rings][m-rings] (Internal glyphs, Stepper divider) | — |
-| `Stepper` at mini, small, large, extra large | `controlSize` | `Stepper::size` | `measured`: the bezel differs by 1%, the chevrons by 5% to 10% | bench family `buttons` `stepper-mini` to `stepper-xl`, `-disabled` | — |
+| `Stepper` at mini, small, large, extra large | `controlSize` | `Stepper::size` | `measured`: the bezel differs by 1%, the chevrons by 5% to 10%; the arrows are 16, 20, 24, 28 and 36 high as SwiftUI's | bench family `buttons` `stepper-mini` to `stepper-xl`, `-disabled` | — |
 | `Stepper` with label and value | `NSStepper` next to a text field | `Stepper` with `StepperStyle.value_position` | `implemented` | none | P2 |
 
 ## 5. Sliders
@@ -245,11 +245,11 @@ The date and color pickers are in [8](#8-date-and-time) and
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `ProgressView(value:)` | `NSProgressIndicator` bar | `ProgressView` | `measured` | bench `progress-bar`; [Gauges][m-rings] (bar) | — |
+| `ProgressView(value:)` | `NSProgressIndicator` bar | `ProgressView` | `measured`; its layout box is 12 high at mini and small and 20 from regular, as in SwiftUI | bench `progress-bar`; test `swiftui_defaults`; [Gauges][m-rings] (bar) | — |
 | `ProgressView()` bar, indeterminate | `isIndeterminate` | `ProgressView` | `implemented` | none; the probe fixes `isIndeterminate = false` | P2 |
 | `.progressViewStyle(.circular)` with a value | spinning, determinate | `ProgressRing` | `measured` at regular | bench `ring-regular`; [Rings][m-rings] | — |
 | ring at mini and small | `controlSize` | `ProgressRing` takes no `ControlSize` | `missing` | probe `ring-mini` and `ring-small` 16 × 16; regular, large and extra large 32 × 32 | P3 |
-| `ProgressView()` circular, indeterminate | spinning, indeterminate | `Spinner` | `implemented` | none | P1 |
+| `ProgressView()` circular, indeterminate | spinning, indeterminate | `Spinner` | `partial`: 10, 16 and 32 square by control size as SwiftUI frames it; the drawing is not compared | test `swiftui_defaults` | P1 |
 | `Gauge` (`.linearCapacity`, `.accessoryLinear`, `.accessoryLinearCapacity`, `.accessoryCircular`, `.accessoryCircularCapacity`, `.circular`, `.linear`) | — | `Gauge`, `CapacityIndicator` | `implemented` | none: `gauges.swift` draws AppKit controls only, no SwiftUI `Gauge` | P2 |
 | — | `.continuousCapacity` | `CapacityIndicator` | `measured` | bench `level`, `level-warn`, `level-crit`; [Level indicator][m-rings] | — |
 | — | `.discreteCapacity` | `CapacityIndicator` discrete | `measured` | bench `discrete-5`, `discrete-10` | — |

@@ -8,9 +8,10 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 
 use super::{
-    ButtonStyle, CheckboxStyle, ComboBoxStyle, DatePickerStyle, PopUpButtonStyle, RadioGroupStyle,
-    SearchFieldStyle, SegmentedControlStyle, ShapeStyle, SliderStyle, StateValue, StepperStyle,
-    SwitchStyle, TabViewStyle, TextFieldStyle, TextStyle,
+    ButtonStyle, CheckboxStyle, ComboBoxStyle, DatePickerStyle, PopUpButtonStyle,
+    ProgressViewStyle, RadioGroupStyle, SearchFieldStyle, SegmentedControlStyle, ShapeStyle,
+    SliderStyle, SpinnerStyle, StateValue, StepperStyle, SwitchStyle, TabViewStyle, TextFieldStyle,
+    TextStyle,
 };
 
 pub trait ControlStyle: Clone + 'static {
@@ -70,6 +71,8 @@ impl Theme {
             .style(move |style: SearchFieldStyle| style.sized(size))
             .style(move |style: ComboBoxStyle| style.sized(size))
             .style(move |style: DatePickerStyle| style.sized(size))
+            .style(move |style: ProgressViewStyle| style.sized(size))
+            .style(move |style: SpinnerStyle| style.sized(size))
     }
 
     pub(crate) fn apply<S: ControlStyle>(&self, style: S) -> S {

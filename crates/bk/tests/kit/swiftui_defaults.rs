@@ -1,5 +1,5 @@
 use bk::ProbeExt;
-use bk::controls::Button;
+use bk::controls::{Button, ControlSize};
 use bk::prelude::*;
 use bk::symbol::Symbol;
 use bk::views::feedback::ContentUnavailableView;
@@ -252,4 +252,64 @@ fn label_width(title: &'static str) -> f32 {
 fn a_label_is_a_16_wide_icon_and_6_before_its_title() {
     let title = size_of(|| bk::elements::Text::new("Doc").into_element()).0;
     assert_eq!(label_width("Doc"), 16.0 + 6.0 + title);
+}
+
+// Frames read from AppKit and SwiftUI on macOS 27.2 in a window (~/src/probes/intrinsic.swift, controlsizes.swift), at
+// mini, small, regular, large and extra large.
+const SIZES: [ControlSize; 5] = [
+    ControlSize::Mini,
+    ControlSize::Small,
+    ControlSize::Regular,
+    ControlSize::Large,
+    ControlSize::ExtraLarge,
+];
+
+#[test]
+fn a_segmented_control_is_as_wide_as_its_segments_at_every_size() {
+    use bk::controls::SegmentedControl;
+    for (size, width) in SIZES.into_iter().zip([82.0, 90.0, 98.0, 106.0, 122.0]) {
+        let (found, _) = size_of(move || {
+            SegmentedControl::new("S")
+                .segment("One")
+                .segment("Two")
+                .size(size)
+                .into_element()
+        });
+        assert!(
+            (found - width).abs() < 3.0,
+            "{size:?}: {found} against {width}"
+        );
+    }
+}
+
+#[test]
+fn a_stepper_arrows_are_as_tall_as_appkits_at_every_size() {
+    use bk::compact::Stepper;
+    for (size, height) in SIZES.into_iter().zip([16.0, 20.0, 24.0, 28.0, 36.0]) {
+        let (_, found) = size_of(move || Stepper::new("S", 0, 10).size(size).into_element());
+        assert_eq!(found, height, "{size:?}");
+    }
+}
+
+#[test]
+fn a_progress_bar_is_12_high_when_small_and_20_when_regular_or_larger() {
+    use bk::progress::ProgressView;
+    for (size, height) in SIZES.into_iter().zip([12.0, 12.0, 20.0, 20.0, 20.0]) {
+        let (_, found) = size_of(move || {
+            rect()
+                .width(Size::px(100.0))
+                .child(ProgressView::determinate("P", 0.5).control_size(size))
+                .into_element()
+        });
+        assert_eq!(found, height, "{size:?}");
+    }
+}
+
+#[test]
+fn a_spinner_is_10_16_and_32_square() {
+    use bk::progress::Spinner;
+    for (size, side) in SIZES.into_iter().zip([10.0, 16.0, 32.0, 32.0, 32.0]) {
+        let (width, height) = size_of(move || Spinner::new("S").control_size(size).into_element());
+        assert_eq!((width, height), (side, side), "{size:?}");
+    }
 }
