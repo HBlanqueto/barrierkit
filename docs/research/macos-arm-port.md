@@ -437,6 +437,23 @@ stays flat, as the SwiftUI twin is. Not done: `GlassContainer`'s lens, `glass_cl
 a committed bench (glass exists only in WindowServer, so `freya-testing` renders the
 solid), and scale 2.
 
+Scale 2 (2026-11-22; the owner's display is 1x and no setting was changed): two
+checks that need no 2x display. The kit's own test renderer draws the notes twin at
+scale 2 (`TestingRunner` with `scale_factor` 2 and twice the physical size, the code
+path of the runner's `backingScaleFactor`); halved by 2 x 2 averaging it differs from
+its scale 1 drawing in at most 6.9% of the pixels of every element that has no text
+(lights 2.4%, sidebar toggle 6.9%, toolbar group 4.3%, light; 2.9%, 6.7% and 4.0% in
+dark), and the backgrounds and the bar's edge in 0%
+(`the_notes_window_at_scale_two_is_the_window_at_scale_one_drawn_twice_as_fine`). SwiftUI at
+scale 2 through `ImageRenderer` (`~/src/probes/render2x.swift`, standalone views only:
+a sidebar, a toolbar or a window do not render that way) draws `ContentUnavailableView`
+with an icon of 59 x 76 px, a title 251 px wide and 24 high and 62 px between them;
+the kit at scale 2 draws 59 x 75, 252 x 22 and 55 (3.5 pt less between them: the
+other session's `ContentUnavailableView` spacing, and Inter's line is 2 px shorter than
+SF's). Nothing of the kit's own differed between the scales. Not checked: the Metal
+path itself at 2x (the drawable size and `contentsScale` of a layer) and a real
+2x window, which need the display.
+
 Other things macOS draws that the kit does not, with the proposal:
 
 | Item | State | Proposal |

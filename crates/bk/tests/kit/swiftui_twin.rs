@@ -184,6 +184,10 @@ impl App for NotesTwin {
 }
 
 fn render(app: AppComponent, dark: bool) -> Vec<u8> {
+    render_at(app, dark, 1.0)
+}
+
+fn render_at(app: AppComponent, dark: bool, scale: f64) -> Vec<u8> {
     let resolved = resolve(
         &AppearanceConfig {
             color_scheme: if dark {
@@ -199,11 +203,11 @@ fn render(app: AppComponent, dark: bool) -> Vec<u8> {
     );
     let (mut test, _) = TestingRunner::new(
         app,
-        Size2D::new(SIZE.0, SIZE.1),
+        Size2D::new(SIZE.0 * scale as f32, SIZE.1 * scale as f32),
         move |runner| {
             runner.provide_root_context(move || State::create(resolved));
         },
-        1.0,
+        scale,
     );
     test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
     test.sync_and_update();
@@ -314,4 +318,60 @@ fn the_form_window_matches_the_swiftui_twin_per_element() {
         |dark| AppComponent::new(FormTwin { dark }),
         &FORM_ELEMENTS,
     );
+}
+
+fn halved(image: &[u8], width: usize, height: usize) -> Vec<u8> {
+    let mut out = Vec::with_capacity(width / 2 * (height / 2) * 4);
+    for y in 0..height / 2 {
+        for x in 0..width / 2 {
+            for channel in 0..4 {
+                let sum: u32 = [(0, 0), (1, 0), (0, 1), (1, 1)]
+                    .iter()
+                    .map(|(dx, dy)| {
+                        u32::from(image[((2 * y + dy) * width + 2 * x + dx) * 4 + channel])
+                    })
+                    .sum();
+                out.push((sum / 4) as u8);
+            }
+        }
+    }
+    out
+}
+
+#[test]
+fn the_notes_window_at_scale_two_is_the_window_at_scale_one_drawn_twice_as_fine() {
+    for dark in [false, true] {
+        let (width, height, once) =
+            crate::image::decode(&render_at(AppComponent::new(NotesTwin { dark }), dark, 1.0));
+        let twice_png = render_at(AppComponent::new(NotesTwin { dark }), dark, 2.0);
+        if let Some(out) = std::env::var_os("APPKIT_OUT") {
+            let out = PathBuf::from(out);
+            fs::create_dir_all(&out).unwrap();
+            fs::write(
+                out.join(format!(
+                    "twin-notes-2x-{}.png",
+                    if dark { "dark" } else { "light" }
+                )),
+                &twice_png,
+            )
+            .unwrap();
+        }
+        let (wide, high, twice) = crate::image::decode(&twice_png);
+        assert_eq!((wide, high), (2 * width, 2 * height), "twice the pixels");
+        let twice = halved(&twice, wide, high);
+        for element in NOTES.iter().filter(|element| !element.text) {
+            let percent = percent_different(&once, &twice, width, element.rect);
+            println!(
+                "scale 2 {:5} {:22} {percent:5.1}%",
+                if dark { "dark" } else { "light" },
+                element.name
+            );
+            assert!(
+                percent <= 10.0,
+                "{} {}: {percent:.1}% differs from the scale 1 drawing",
+                if dark { "dark" } else { "light" },
+                element.name
+            );
+        }
+    }
 }
