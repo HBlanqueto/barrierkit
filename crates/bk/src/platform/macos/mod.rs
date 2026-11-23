@@ -41,7 +41,9 @@ use objc2_metal::{
 use objc2_quartz_core::{CADisplayLink, CAMetalDrawable, CAMetalLayer, kCACornerCurveContinuous};
 
 use super::app::{AppInstance, Host, InstanceRole};
-use super::backdrop::{Effect as Declared, Pass, Placement, Requests, render_pass, render_passes};
+use super::backdrop::{
+    Effect as Declared, Pass, PlacedGlass, Placement, Requests, render_pass, render_passes,
+};
 use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
@@ -50,14 +52,9 @@ use super::window::{
 };
 use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
 use super::{EditShortcut, RunError, Sent, calloop::ping::Ping};
-use crate::platform::macos::blur::PlacedGlass;
 
 // The system delivers the momentum of a trackpad fling as scroll events.
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
-pub(crate) const MOST_CHROMES: usize = 8;
-
-#[cfg(feature = "a11y")]
-pub(super) use accessibility::Bridge;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ObjectId(u64);
@@ -174,6 +171,32 @@ impl ChromeLayer {
         for effect in self.effects {
             effect.removeFromSuperview();
         }
+    }
+
+    fn only_moves_to(&self, wanted: &Wanted) -> bool {
+        let placement = Placement {
+            origin: wanted.placement.origin,
+            ..self.wanted.placement
+        };
+        Wanted {
+            placement,
+            ..self.wanted.clone()
+        } == *wanted
+    }
+
+    fn slide(&mut self, (x, y): (i32, i32)) {
+        let (from_x, from_y) = self.wanted.placement.origin;
+        let (dx, dy) = (f64::from(x - from_x), f64::from(from_y - y));
+        for view in self
+            .effects
+            .iter()
+            .map(|effect| &**effect)
+            .chain([&**self.view])
+        {
+            let origin = view.frame().origin;
+            view.setFrameOrigin(NSPoint::new(origin.x + dx, origin.y + dy));
+        }
+        self.wanted.placement.origin = (x, y);
     }
 }
 
@@ -878,7 +901,7 @@ impl Runtime {
             let window = &mut self.windows[index];
             window.needs_redraw = false;
             window.app.layout();
-            window.app.settle_sized_reactions();
+            window.app.pump();
         }
         self.sync_chromes(index);
         let gpu = &mut self.gpu;
@@ -959,7 +982,6 @@ impl Runtime {
                 buffer.commit();
             }
         }
-        app.ticker_sender.notify();
     }
 
     // What the kit declared since the last frame becomes native views: the effects over the content and the chrome above them.
@@ -993,6 +1015,20 @@ impl Runtime {
                 .map(|chrome| chrome.wanted.clone())
                 .collect::<Vec<_>>()
         {
+            return;
+        }
+        // A new glass view costs AppKit a SwiftUI layout pass, which drops refreshes while the toolbar slides with the sidebar.
+        if window.chromes.len() == wanted.len()
+            && window
+                .chromes
+                .iter()
+                .zip(&wanted)
+                .all(|(chrome, wanted)| chrome.only_moves_to(wanted))
+        {
+            for (chrome, wanted) in window.chromes.iter_mut().zip(&wanted) {
+                chrome.slide(wanted.placement.origin);
+            }
+            window.place_bar();
             return;
         }
         window.chromes.drain(..).for_each(ChromeLayer::remove);
@@ -1102,22 +1138,29 @@ impl Runtime {
         }
     }
 
+    // Animations step at the start of each refresh, so each frame shows them at its own time.
     pub(super) fn frame_due(&mut self, id: u64) {
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        window.app.ticker_sender.notify();
+        self.poll_all();
+        let stepping = self.queue.borrow().iter().any(|(owner, event)| {
+            owner.raw() == id && matches!(event, Sent::User(UserEvent::RequestRedraw))
+        });
         let Some(window) = self.window(id) else {
             return;
         };
         if window.needs_redraw {
             self.draw(id);
-        } else {
+        } else if !stepping {
             window.link.setPaused(true);
         }
     }
 
     fn poll_all(&mut self) {
         for window in &mut self.windows {
-            if (window.app.poll() || window.app.accessibility_pending()) && window.app.update() {
-                window.needs_redraw = true;
-            }
+            window.needs_redraw |= window.app.pump();
         }
         self.process_window_commands();
         self.process_popup_commands();

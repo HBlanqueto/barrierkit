@@ -370,13 +370,11 @@ call 25 s, as libdbus and GDBus do.
 
 `platform/mod.rs` imports `linux` or `macos` as `sys` and re-exports the
 same names from either: `clipboard`, `instance`, `keychain`,
-`notifications`, `panels`, `pasteboard`, `run_window`, `Bridge`, `ObjectId`,
-`MOST_CHROMES` and `SYSTEM_MOMENTUM`. Each name has one signature and two
-bodies. Shared code, including the shared files of `platform/`, calls
+`notifications`, `panels`, `pasteboard`, `ObjectId` and `SYSTEM_MOMENTUM`.
+Each name has one signature and two bodies. Shared code calls
 `crate::platform::<name>` and holds no `cfg(target_os)`:
-`scripts/check-platform-cfg.sh` fails on one outside `platform/mod.rs`,
-`platform/linux/`, `platform/macos/`, `crates/bk/tests/` and
-`crates/ctappearance/`.
+`scripts/check-platform-cfg.sh` fails on one outside `crates/bk/src/platform/`,
+`crates/bk/tests/` and `crates/ctappearance/`.
 
 One API in the kit, one provider per system. The names are SwiftUI's and
 AppKit's on both; the body is not shared. Read a row left to right: what the

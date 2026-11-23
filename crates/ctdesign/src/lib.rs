@@ -5,7 +5,7 @@ mod ease;
 mod rgba;
 
 pub use dock_divider::dock_divider;
-pub use ease::{ease_in_out, ease_out, progress, smoothstep};
+pub use ease::{ease_in_ease_out, ease_in_out, ease_out, progress, smoothstep};
 pub use rgba::Rgba;
 
 pub const CIRCLE_EXPONENT: f32 = 2.0;

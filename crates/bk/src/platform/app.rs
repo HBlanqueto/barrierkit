@@ -1,8 +1,10 @@
 use accesskit::Role;
 
 use crate::app::DefaultsRevision;
-#[cfg(feature = "a11y")]
-use crate::platform::sys::Bridge;
+#[cfg(all(feature = "a11y", target_os = "linux"))]
+use crate::platform::linux::atspi::Bridge;
+#[cfg(all(feature = "a11y", target_os = "macos"))]
+use crate::platform::macos::accessibility::Bridge;
 use crate::styles::Theme;
 use ctappearance::Resolved;
 use freya_components::{cache::AssetCacher, integration::integration};
@@ -35,6 +37,8 @@ use std::{
 };
 use torin::prelude::Size2D;
 
+#[cfg(target_os = "linux")]
+use super::runtime::Runtime;
 use super::{
     KitSender, ObjectId, Sent,
     calloop::ping::Ping,
@@ -67,8 +71,32 @@ pub(crate) struct Host {
     pub(crate) knobs: bool,
 }
 
+#[cfg(target_os = "linux")]
+impl Runtime {
+    pub(crate) fn host(&self) -> Host {
+        Host {
+            resolved: self.resolved,
+            ping: self.ping.clone(),
+            queue: self.queue.clone(),
+            popup_commands: self.popup_commands.clone(),
+            popup_next_id: self.popup_next_id.clone(),
+            last_input_serial: self.last_input_serial.clone(),
+            timers: self.timers.clone(),
+            wake: self.wake.clone(),
+            font_collection: self.graphics.font_collection.clone(),
+            font_manager: self.graphics.font_manager.clone(),
+            defaults_revision: self.defaults_revision,
+            glass: self.glass_supported(),
+            backdrop: self.backdrop_supported(),
+            native_glass: false,
+            native_sheets: false,
+            knobs: self.knobs_supported(),
+        }
+    }
+}
+
 pub(crate) struct AppInstance {
-    pub(crate) runner: Runner,
+    runner: Runner,
     pub(crate) tree: Tree,
     nodes_state: NodesState<NodeId>,
     events_sender: futures_channel::mpsc::UnboundedSender<EventsChunk>,
@@ -82,17 +110,17 @@ pub(crate) struct AppInstance {
     scale_factor: f64,
     size: Size2D,
     needs_layout: bool,
-    pub(crate) waker: Waker,
+    waker: Waker,
     settling: u8,
     pub(crate) menu_actions: crate::app::MenuActions,
     pub(crate) resolved: State<Resolved>,
     pub(crate) glass_luma: State<Option<f32>>,
-    pub(crate) accessibility: AccessibilityTree,
-    pub(crate) accessibility_initialized: bool,
-    #[cfg(feature = "a11y")]
-    pub(crate) bridge: Option<Bridge>,
-    #[cfg(feature = "a11y")]
-    pub(crate) marked: bool,
+    accessibility: AccessibilityTree,
+    accessibility_initialized: bool,
+    #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
+    bridge: Option<Bridge>,
+    #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
+    marked: bool,
     pub(crate) requested_focus: Option<AccessibilityFocusStrategy>,
     pub(crate) pending_shortcuts: Vec<Key>,
     inputs: crate::spelling::InputParagraphs,
@@ -230,7 +258,7 @@ impl AppInstance {
             runner.provide_root_context(move || handle);
         }
         extend(&mut runner);
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
         let window_shown = window.is_some();
         if let Some(window) = window {
             runner.provide_root_context(move || window);
@@ -250,8 +278,8 @@ impl AppInstance {
             .auto_focus;
 
         let accessibility = AccessibilityTree::default();
-        #[cfg(feature = "a11y")]
-        let bridge = Bridge::for_instance(window_shown, &waker);
+        #[cfg(all(feature = "a11y", target_os = "linux"))]
+        let bridge = window_shown.then(|| Bridge::new(waker.clone()));
 
         Self {
             runner,
@@ -275,9 +303,11 @@ impl AppInstance {
             glass_luma,
             accessibility,
             accessibility_initialized: false,
-            #[cfg(feature = "a11y")]
+            #[cfg(all(feature = "a11y", target_os = "linux"))]
             bridge,
-            #[cfg(feature = "a11y")]
+            #[cfg(all(feature = "a11y", target_os = "macos"))]
+            bridge: None,
+            #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
             marked: false,
             requested_focus,
             pending_shortcuts: Vec::new(),
@@ -335,7 +365,7 @@ impl AppInstance {
 
     pub(crate) fn set_focused(&mut self, focused: bool) {
         self.platform.is_app_focused.set(focused);
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
         if let Some(bridge) = &mut self.bridge {
             bridge.set_focused(focused);
         }
@@ -396,7 +426,7 @@ impl AppInstance {
     }
 
     pub(crate) fn accessibility_pending(&self) -> bool {
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
         if self.bridge.as_ref().is_some_and(|bridge| bridge.pending()) {
             return true;
         }
@@ -404,9 +434,9 @@ impl AppInstance {
     }
 
     pub(crate) fn update(&mut self) -> bool {
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
         let pressed = self.take_bridge_actions();
-        #[cfg(not(feature = "a11y"))]
+        #[cfg(not(all(feature = "a11y", any(target_os = "linux", target_os = "macos"))))]
         let pressed = false;
         let requested_focus = self.requested_focus.take();
         let mutations = self.runner.sync_and_update();
@@ -422,14 +452,14 @@ impl AppInstance {
         }
         self.layout();
 
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
         let full_tree = (!self.accessibility_initialized
             || self
                 .bridge
                 .as_ref()
                 .is_some_and(|bridge| bridge.tree_requested()))
         .then(|| self.accessibility.init(&mut self.tree, ""));
-        #[cfg(not(feature = "a11y"))]
+        #[cfg(not(all(feature = "a11y", any(target_os = "linux", target_os = "macos"))))]
         if !self.accessibility_initialized {
             self.accessibility.init(&mut self.tree, "");
         }
@@ -447,13 +477,13 @@ impl AppInstance {
         let accessibility_update =
             self.accessibility
                 .process_updates(&mut self.tree, &self.events_sender, "");
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
         let focus_moved =
             *self.platform.focused_accessibility_id.peek() != accessibility_update.focus;
         self.platform
             .focused_accessibility_id
             .set_if_modified(accessibility_update.focus);
-        #[cfg(feature = "a11y")]
+        #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
         self.publish_accessibility(full_tree, accessibility_update, focus_moved);
         if let Some(node_id) = self.accessibility.focused_node_id()
             && let Some(layout_node) = self.tree.layout.get(&node_id)
@@ -477,7 +507,7 @@ impl AppInstance {
     }
 
     // A Click from a screen reader is Freya's press gesture (Enter) on the node it focuses first.
-    #[cfg(feature = "a11y")]
+    #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
     fn take_bridge_actions(&mut self) -> bool {
         let Some(bridge) = &self.bridge else {
             return false;
@@ -486,7 +516,7 @@ impl AppInstance {
         self.apply_assistive_actions(requests)
     }
 
-    #[cfg(feature = "a11y")]
+    #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
     fn apply_assistive_actions(&mut self, requests: Vec<accesskit::ActionRequest>) -> bool {
         let mut pressed = false;
         for request in requests {
@@ -501,7 +531,7 @@ impl AppInstance {
     }
 
     // shortcut: a tree with marks (child behaviors, text fields) is sent whole on every change; send diffs when a screen reader lags on big trees.
-    #[cfg(feature = "a11y")]
+    #[cfg(all(feature = "a11y", any(target_os = "linux", target_os = "macos")))]
     fn publish_accessibility(
         &mut self,
         full_tree: Option<accesskit::TreeUpdate>,
@@ -531,13 +561,37 @@ impl AppInstance {
         }
     }
 
-    // A size read through on_sized must reach this frame, or a live resize paints the previous layout.
-    pub(crate) fn settle_sized_reactions(&mut self) {
-        for _ in 0..MAX_SETTLE_PASSES {
-            if !(self.poll() && self.update()) {
-                return;
-            }
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    pub(crate) fn attach_accessibility(&mut self, view: &objc2_app_kit::NSView, window: u64) {
+        self.bridge = Some(super::macos::accessibility::Bridge::new(
+            view,
+            self.waker.clone(),
+            window,
+        ));
+    }
+
+    // The first query of a screen reader or of the AX API gets the whole tree at once.
+    #[cfg(all(feature = "a11y", target_os = "macos"))]
+    pub(crate) fn initial_accessibility_tree(&mut self) -> Option<accesskit::TreeUpdate> {
+        if !self.accessibility_initialized {
+            return None;
         }
+        let mut tree = self.accessibility.init(&mut self.tree, "");
+        self.marked = crate::accessibility::resolve_marks(&mut tree);
+        Some(tree)
+    }
+
+    // Freya's `handle_events` returns on dirty scopes before it polls the woken tasks or waits on its channel, so it runs again after each update until it waits: stopping earlier leaves those tasks asleep with no waker, and a size read through on_sized misses the frame.
+    pub(crate) fn pump(&mut self) -> bool {
+        let mut needs_render = false;
+        for _ in 0..MAX_SETTLE_PASSES {
+            if !(self.poll() || self.accessibility_pending()) {
+                return needs_render;
+            }
+            needs_render |= self.update();
+        }
+        self.waker.wake_by_ref();
+        needs_render
     }
 
     pub(crate) fn layout(&mut self) {
@@ -569,6 +623,12 @@ impl AppInstance {
                 modifiers,
             });
         }
+    }
+
+    #[cfg(target_os = "macos")]
+    pub(crate) fn trackpad(&mut self, event: crate::gesture::Trackpad) {
+        self.runner.run_in(|| crate::gesture::trackpad(event));
+        self.waker.wake_by_ref();
     }
 
     pub(crate) fn push(&mut self, event: PlatformEvent) {

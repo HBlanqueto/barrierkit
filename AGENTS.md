@@ -98,9 +98,8 @@ métodos, hooks, tokens).
 
 ## macOS y Linux
 
-1. **`cfg(target_os)` solo en `crates/bk/src/platform/mod.rs`,
-   `platform/linux/`, `platform/macos/`, `crates/ctappearance/` y
-   `Cargo.toml`.** `scripts/check-platform-cfg.sh` lo comprueba, sin
+1. **`cfg(target_os)` solo en `crates/bk/src/platform/`, `crates/ctappearance/`
+   y `Cargo.toml`.** `scripts/check-platform-cfg.sh` lo comprueba, sin
    excepciones.
 2. **Un nombre, una firma, dos cuerpos.** Lo que un sistema da (portapapeles,
    llavero, notificaciones, menús) es una función con la misma firma en

@@ -9,7 +9,7 @@ use std::hash::Hash;
 use std::rc::Rc;
 use std::time::Instant;
 
-use freya_animation::prelude::{AnimNum, OnCreation, OnFinish, use_animation};
+use freya_animation::prelude::{OnCreation, OnFinish, use_animation};
 use freya_core::data::LayoutData;
 use freya_core::element::{ClipContext, ElementExt, RenderContext};
 use freya_core::integration::RenderPipeline;
@@ -28,6 +28,7 @@ use ctdesign::{
     SCROLL_POCKET_SCALE_DARK, SCROLL_POCKET_SCALE_LIGHT,
 };
 
+use crate::animation::Clock;
 use crate::shader::Program;
 
 /// What a group does to its layer.
@@ -240,7 +241,7 @@ impl Component for CompositingGroup {
                 OnCreation::Nothing
             });
             config.on_finish(OnFinish::restart());
-            AnimNum::new(0.0, 1.0).time(1000)
+            Clock::new(0.0, 1.0).time(1000)
         });
         let _ = clock.get().value();
         let mut effect = self.effect.clone();

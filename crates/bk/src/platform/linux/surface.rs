@@ -34,7 +34,7 @@ use super::{
     runtime::{Runtime, WindowContext},
     vulkan::{Graphics, GraphicsShared},
 };
-use crate::platform::{app::AppInstance, backdrop::Pass, glass::Rects, linux::popup::PopupInfo};
+use crate::platform::{app::AppInstance, backdrop::Pass, glass::Rects, popup::PopupInfo};
 
 pub(crate) struct SurfaceWindow {
     pub(crate) surface: WlSurface,
@@ -54,7 +54,7 @@ pub(crate) struct SurfaceWindow {
     failing: bool,
     pub(crate) opaque_region: Option<((u32, u32), Rects)>,
     pub(crate) glass_holes: Rects,
-    pub(crate) glass_style: Option<crate::platform::linux::window_style::InfinityWindowStyleV1>,
+    pub(crate) glass_style: Option<crate::platform::window_style::InfinityWindowStyleV1>,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
@@ -133,9 +133,7 @@ impl SurfaceWindow {
     pub(crate) fn flush_pending_motion(&mut self) {
         if let Some(motion) = self.pending_motion.take() {
             self.app.push(motion);
-            if self.app.poll() && self.app.update() {
-                self.needs_redraw = true;
-            }
+            self.needs_redraw |= self.app.pump();
         }
     }
 
@@ -237,7 +235,7 @@ impl SurfaceWindow {
         {
             let _layout = tracing::trace_span!("layout").entered();
             self.app.layout();
-            self.app.settle_sized_reactions();
+            self.app.pump();
         }
         self.flush_glass();
         self.flush_knobs();

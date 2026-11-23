@@ -1,4 +1,4 @@
-use freya_animation::prelude::{AnimNum, use_animation_transition};
+use freya_animation::prelude::use_animation_transition;
 
 use ctdesign::{SIDEBAR, SPLIT_VIEW, TOOLGROUP};
 use freya_core::prelude::*;
@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use torin::prelude::{Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
+use crate::animation::Clock;
 use crate::app::{Action, Shortcut, ShortcutKey};
 use crate::compact::IconButton;
 use crate::controls::ToolGroup;
@@ -231,7 +232,7 @@ impl Component for SplitView {
         let resize_ms = use_reactive(&resize.duration_ms());
         let mut follow_from_to = use_state(|| (initial_width, initial_width));
         let follow = use_animation_transition(follow_from_to, move |_: (f32, f32), _| {
-            AnimNum::new(0.0, 1.0).time(*resize_ms.peek())
+            Clock::new(0.0, 1.0).time(*resize_ms.peek())
         });
         let followed = move || {
             let (from, to) = *follow_from_to.peek();

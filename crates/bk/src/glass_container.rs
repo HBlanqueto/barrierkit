@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::rc::Rc;
 
 use ctdesign::Rgba;
-use freya_animation::prelude::{AnimNum, use_animation_transition};
+use freya_animation::prelude::use_animation_transition;
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -10,6 +10,7 @@ use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{BlendMode, Paint, Rect as SkRect, SaveLayerRec, TileMode, blur};
 use torin::prelude::{Area, Direction, Position, Size};
 
+use crate::animation::Clock;
 use crate::elements::{Overrides, forward_overrides};
 use crate::glass::{layout, leaf, material, transparency_reduced};
 use crate::platform::backdrop::{Declared, GlassLook};
@@ -337,7 +338,7 @@ impl Component for GlassContainer {
         let duration_ms = use_reactive(&animation.duration_ms());
         let mut generation = use_state(|| 0u64);
         let progress = use_animation_transition(generation, move |_: u64, _: u64| {
-            AnimNum::new(0.0, 1.0).time(*duration_ms.peek())
+            Clock::new(0.0, 1.0).time(*duration_ms.peek())
         });
         let t = animation.progress(progress.get().value());
         let shown: Vec<Morph> = morphs

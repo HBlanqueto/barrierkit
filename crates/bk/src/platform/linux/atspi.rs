@@ -12,10 +12,6 @@ pub(crate) struct Bridge {
 }
 
 impl Bridge {
-    pub(crate) fn for_instance(window: bool, waker: &Waker) -> Option<Self> {
-        window.then(|| Self::new(waker.clone()))
-    }
-
     pub(crate) fn new(waker: Waker) -> Self {
         let requested = Arc::new(AtomicBool::new(false));
         let engaged = Arc::new(AtomicBool::new(false));

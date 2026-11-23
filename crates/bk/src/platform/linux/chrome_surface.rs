@@ -21,7 +21,7 @@ use crate::platform::{
     RunError,
     backdrop::{Chrome, Placement, Requests},
     glass::packed,
-    linux::window_style::{BlendingMode, InfinityWindowStyleV1},
+    window_style::{BlendingMode, InfinityWindowStyleV1},
 };
 
 #[derive(Clone)]
@@ -210,7 +210,7 @@ impl Runtime {
             style: self
                 .window_style
                 .clone()
-                .filter(crate::platform::linux::window_style::offers_backdrop)?,
+                .filter(crate::platform::window_style::offers_backdrop)?,
             viewporter: self.viewporter.clone(),
             queue: self.qh.clone(),
         })

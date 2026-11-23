@@ -32,13 +32,7 @@ use sctk::{
 use std::time::Duration;
 use torin::prelude::CursorPoint;
 
-use crate::platform::{
-    WindowEdge,
-    linux::input::{code, map_key, modifiers, mouse_button, set_modifier_flags},
-    runtime::Runtime,
-    surface::physical_point,
-    window::WindowControls,
-};
+use super::super::{WindowEdge, runtime::Runtime, surface::physical_point, window::WindowControls};
 
 pub(crate) struct RepeatState {
     pub(in crate::platform) event: KeyEvent,
@@ -343,13 +337,13 @@ impl PointerHandler for Runtime {
                     PlatformEvent::Mouse {
                         name: MouseEventName::MouseDown,
                         cursor: position,
-                        button: Some(mouse_button(button)),
+                        button: Some(super::mouse_button(button)),
                     }
                 }
                 PointerEventKind::Release { button, .. } => PlatformEvent::Mouse {
                     name: MouseEventName::MouseUp,
                     cursor: position,
-                    button: Some(mouse_button(button)),
+                    button: Some(super::mouse_button(button)),
                 },
                 PointerEventKind::Axis {
                     vertical,
@@ -479,7 +473,7 @@ impl KeyboardHandler for Runtime {
         layout: u32,
     ) {
         self.modifiers = modifiers;
-        set_modifier_flags(modifiers);
+        super::set_modifier_flags(modifiers);
         self.keyboard_layout_index = layout;
         self.publish_keyboard_layout();
     }
@@ -508,9 +502,9 @@ impl KeyboardHandler for Runtime {
 
 impl Runtime {
     pub(super) fn key_event(&mut self, event: KeyEvent, name: KeyboardEventName) {
-        let key = map_key(event.keysym, event.utf8.as_deref());
-        let code = code(event.keysym);
-        let modifiers = modifiers(self.modifiers);
+        let key = super::map_key(event.keysym, event.utf8.as_deref());
+        let code = super::code(event.keysym);
+        let modifiers = super::modifiers(self.modifiers);
 
         let index = self
             .keyboard_focus

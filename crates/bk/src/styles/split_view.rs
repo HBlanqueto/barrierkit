@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SPLIT_VIEW};
+use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SPLIT_VIEW, ease_in_ease_out};
 
 use super::{
     Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
@@ -68,8 +68,9 @@ impl ControlStyle for SplitViewStyle {
             scrim: StateValue::new(ShapeStyle::Role(Role::Scrim)),
             inspector_line: (ShapeStyle::Role(Role::Separator), HAIRLINE),
             effect: system_effect,
-            animation: Animation::Ease {
+            animation: Animation::Custom {
                 duration_ms: DURATION_BASE,
+                curve: ease_in_ease_out,
             },
             resize_animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,

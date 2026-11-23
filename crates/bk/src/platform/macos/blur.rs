@@ -11,7 +11,6 @@ use objc2_foundation::{NSPoint, NSRect, NSSize};
 use objc2_quartz_core::{CAGradientLayer, kCACornerCurveContinuous};
 
 use super::view::{Effect, Glass, GlassGroup};
-use crate::platform::backdrop::{Chrome, Effect as Declared, strip_rect};
 use crate::platform::window_style::Edge;
 
 pub(super) fn material(material: Material) -> NSVisualEffectMaterial {
@@ -180,30 +179,9 @@ pub(super) fn container(mtm: MainThreadMarker, frame: NSRect) -> Retained<NSView
     container
 }
 
-// A glass in its strip: the rectangle, the radius and whether it is clear.
-pub(crate) type PlacedGlass = ((i32, i32, i32, i32), u32, bool);
-
-impl Chrome {
-    // The protocol's backdrop holds one radius and one variant; macOS draws a native view per glass, so a nested one keeps its own.
-    pub(crate) fn glasses(&self, scale: f32) -> Vec<PlacedGlass> {
-        let origin = self.placement(scale).origin;
-        self.effects
-            .iter()
-            .filter_map(|(effect, area)| match *effect {
-                Declared::Glass { radius, clear, .. } => {
-                    Some((strip_rect(area, origin, scale), radius, clear))
-                }
-                _ => None,
-            })
-            .collect()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::platform::backdrop::Requests;
-    use crate::platform::backdrop::tests::{at, chrome, glass};
 
     #[test]
     fn a_rect_measured_from_the_top_is_placed_from_the_bottom() {
@@ -258,22 +236,5 @@ mod tests {
         for (kit, native) in all {
             assert_eq!(material(kit), native);
         }
-    }
-
-    #[test]
-    fn a_nested_glass_keeps_its_own_radius_and_variant_where_the_request_keeps_one() {
-        let outer = at(10.0, 10.0, 100.0, 60.0);
-        let chrome = chrome(
-            vec![
-                (glass(28, false, 0), outer),
-                (glass(10, true, 0), at(20.0, 20.0, 40.0, 20.0)),
-            ],
-            outer,
-        );
-        assert_eq!(
-            chrome.glasses(1.0),
-            vec![((0, 0, 100, 60), 28, false), ((10, 10, 40, 20), 10, true)]
-        );
-        assert_eq!(Requests::of(&chrome, 1.0).backdrop.rects.len(), 1);
     }
 }

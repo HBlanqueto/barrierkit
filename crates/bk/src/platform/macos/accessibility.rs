@@ -6,7 +6,7 @@ use accesskit::{ActionHandler, ActionRequest, ActivationHandler, TreeUpdate};
 use accesskit_macos::SubclassingAdapter;
 use objc2_app_kit::NSView;
 
-use crate::platform::{app::AppInstance, macos::with_runtime};
+use super::with_runtime;
 
 // Lets VoiceOver and the AX API read the kit's accessibility tree through the window's content view.
 pub(crate) struct Bridge {
@@ -17,11 +17,6 @@ pub(crate) struct Bridge {
 }
 
 impl Bridge {
-    // The window's view does not exist yet; `attach_accessibility` creates the bridge for it.
-    pub(crate) fn for_instance(_window: bool, _waker: &Waker) -> Option<Self> {
-        None
-    }
-
     // Must run before the view is shown or observed; accesskit_macos subclasses its class.
     pub(crate) fn new(view: &NSView, waker: Waker, window: u64) -> Self {
         let requested = Rc::new(Cell::new(false));
@@ -115,21 +110,5 @@ impl ActionHandler for Actions {
     fn do_action(&mut self, request: ActionRequest) {
         self.queue.borrow_mut().push(request);
         self.waker.wake_by_ref();
-    }
-}
-
-impl AppInstance {
-    pub(crate) fn attach_accessibility(&mut self, view: &NSView, window: u64) {
-        self.bridge = Some(Bridge::new(view, self.waker.clone(), window));
-    }
-
-    // The first query of a screen reader or of the AX API gets the whole tree at once.
-    pub(crate) fn initial_accessibility_tree(&mut self) -> Option<TreeUpdate> {
-        if !self.accessibility_initialized {
-            return None;
-        }
-        let mut tree = self.accessibility.init(&mut self.tree, "");
-        self.marked = crate::accessibility::resolve_marks(&mut tree);
-        Some(tree)
     }
 }

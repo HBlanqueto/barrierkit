@@ -13,9 +13,9 @@ use freya_core::tree::{DiffModifies, Tree};
 use freya_engine::prelude::{Canvas, FontCollection, FontMgr};
 use torin::prelude::{Area, Point2D, Position, Size, Size2D};
 
+use super::FullscreenBar;
 use super::glass::Rects;
 use super::window_style::{Edge, ScrollEdgeEffectStyle, WireMaterial};
-use super::{FullscreenBar, MOST_CHROMES};
 use crate::glass::GlassEdge;
 
 #[derive(Clone, Copy)]
@@ -28,6 +28,9 @@ pub(crate) struct NativeGlass(pub(crate) bool);
 // The platform veils the window under a sheet itself (AppKit's `beginSheet`).
 #[derive(Clone, Copy)]
 pub(crate) struct NativeSheets(pub(crate) bool);
+
+// Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own; macOS draws a layer per chrome (ADR 0113).
+const MOST_CHROMES: usize = if cfg!(target_os = "macos") { 8 } else { 3 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Effect {
@@ -360,7 +363,7 @@ impl Requests {
     }
 }
 
-pub(super) fn strip_rect(area: &Area, (x, y): (i32, i32), scale: f32) -> (i32, i32, i32, i32) {
+fn strip_rect(area: &Area, (x, y): (i32, i32), scale: f32) -> (i32, i32, i32, i32) {
     let (left, top) = (
         floor(area.min_x(), scale) - x,
         floor(area.min_y(), scale) - y,
@@ -371,6 +374,27 @@ pub(super) fn strip_rect(area: &Area, (x, y): (i32, i32), scale: f32) -> (i32, i
         ceil(area.max_x(), scale) - x - left,
         ceil(area.max_y(), scale) - y - top,
     )
+}
+
+// A glass in its strip: the rectangle, the radius and whether it is clear.
+#[cfg(target_os = "macos")]
+pub(crate) type PlacedGlass = ((i32, i32, i32, i32), u32, bool);
+
+#[cfg(target_os = "macos")]
+impl Chrome {
+    // The protocol's backdrop holds one radius and one variant; macOS draws a native view per glass, so a nested one keeps its own.
+    pub(crate) fn glasses(&self, scale: f32) -> Vec<PlacedGlass> {
+        let origin = self.placement(scale).origin;
+        self.effects
+            .iter()
+            .filter_map(|(effect, area)| match *effect {
+                Effect::Glass { radius, clear, .. } => {
+                    Some((strip_rect(area, origin, scale), radius, clear))
+                }
+                _ => None,
+            })
+            .collect()
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -439,7 +463,7 @@ pub(crate) fn render_pass(
 }
 
 #[cfg(test)]
-pub(crate) mod tests {
+mod tests {
     use crate::glass::fullscreen_backdrop;
     use freya_components::cache::AssetCacher;
     use freya_core::integration::{
@@ -456,19 +480,15 @@ pub(crate) mod tests {
     use super::*;
     use crate::group::{CompositingGroup, GroupEffect, ShaderEffect};
 
-    pub(crate) struct Scene {
-        pub(crate) tree: Tree,
-        pub(crate) fonts: FontCollection,
-        pub(crate) manager: FontMgr,
-        pub(crate) scale: f64,
+    struct Scene {
+        tree: Tree,
+        fonts: FontCollection,
+        manager: FontMgr,
+        scale: f64,
         _runner: Runner,
     }
 
-    pub(crate) fn scene(
-        app: impl Fn() -> Element + 'static,
-        size: (f32, f32),
-        scale: f64,
-    ) -> Scene {
+    fn scene(app: impl Fn() -> Element + 'static, size: (f32, f32), scale: f64) -> Scene {
         let contexts = GlobalContexts::register();
         contexts.insert_context(Platform::new(|_| {}));
         let mut runner = Runner::new(app);
@@ -557,7 +577,7 @@ pub(crate) mod tests {
         [pixels[at], pixels[at + 1], pixels[at + 2], pixels[at + 3]]
     }
 
-    pub(crate) fn read(surface: &mut freya_engine::prelude::Surface, size: (i32, i32)) -> Vec<u8> {
+    fn read(surface: &mut freya_engine::prelude::Surface, size: (i32, i32)) -> Vec<u8> {
         let info = freya_engine::prelude::ImageInfo::new(
             size,
             freya_engine::prelude::ColorType::RGBA8888,
@@ -672,7 +692,7 @@ pub(crate) mod tests {
             1.0,
         );
         let chromes = collect(&scene.tree, Size2D::new(200.0, 100.0));
-        assert_eq!(chromes.len(), MOST_CHROMES);
+        assert_eq!(chromes.len(), if cfg!(target_os = "macos") { 8 } else { 3 });
     }
 
     #[test]
@@ -762,7 +782,7 @@ pub(crate) mod tests {
         );
     }
 
-    pub(crate) fn chrome(effects: Vec<(Effect, Area)>, area: Area) -> Chrome {
+    fn chrome(effects: Vec<(Effect, Area)>, area: Area) -> Chrome {
         Chrome {
             root: NodeId::ROOT,
             nodes: Rc::default(),
@@ -771,11 +791,11 @@ pub(crate) mod tests {
         }
     }
 
-    pub(crate) fn at(x: f32, y: f32, width: f32, height: f32) -> Area {
+    fn at(x: f32, y: f32, width: f32, height: f32) -> Area {
         Area::new(Point2D::new(x, y), Size2D::new(width, height))
     }
 
-    pub(crate) fn glass(radius: u32, clear: bool, spacing: u32) -> Effect {
+    fn glass(radius: u32, clear: bool, spacing: u32) -> Effect {
         Effect::Glass {
             radius,
             clear,
@@ -894,6 +914,24 @@ pub(crate) mod tests {
                 rects: vec![(10, 10, 76, 38), (110, 10, 38, 38)],
             }
         );
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn a_nested_glass_keeps_its_own_radius_and_variant_where_the_request_keeps_one() {
+        let outer = at(10.0, 10.0, 100.0, 60.0);
+        let chrome = chrome(
+            vec![
+                (glass(28, false, 0), outer),
+                (glass(10, true, 0), at(20.0, 20.0, 40.0, 20.0)),
+            ],
+            outer,
+        );
+        assert_eq!(
+            chrome.glasses(1.0),
+            vec![((0, 0, 100, 60), 28, false), ((10, 10, 40, 20), 10, true)]
+        );
+        assert_eq!(Requests::of(&chrome, 1.0).backdrop.rects.len(), 1);
     }
 
     #[test]
@@ -1043,7 +1081,7 @@ pub(crate) mod tests {
         );
     }
 
-    pub(crate) fn draw(scene: &Scene, kit: bool, size: (i32, i32)) -> Vec<u8> {
+    fn draw(scene: &Scene, kit: bool, size: (i32, i32)) -> Vec<u8> {
         let mut surface = raster_n32_premul(size).unwrap();
         let mut fonts = scene.fonts.clone();
         if kit {
@@ -1086,7 +1124,7 @@ pub(crate) mod tests {
             .into()
     }
 
-    pub(crate) fn grouped(effect: GroupEffect) -> impl Fn() -> Element {
+    fn grouped(effect: GroupEffect) -> impl Fn() -> Element {
         move || {
             CompositingGroup::new(effect.clone())
                 .child(overlapping())
@@ -1141,7 +1179,7 @@ pub(crate) mod tests {
         near(pixel(&pixels, 100, (80, 20)), [0, 0, 0, 255]);
     }
 
-    pub(crate) const FADE: &str = "uniform shader content; uniform float time; half4 main(float2 p) { half4 c = content.eval(p); return half4(c.rgb * half(time), c.a); }";
+    const FADE: &str = "uniform shader content; uniform float time; half4 main(float2 p) { half4 c = content.eval(p); return half4(c.rgb * half(time), c.a); }";
 
     #[test]
     fn a_shader_on_a_group_reads_the_time_it_is_given() {
@@ -1276,5 +1314,149 @@ pub(crate) mod tests {
         }
         let deviation = deviations.iter().sum::<f32>() / deviations.len() as f32;
         assert!((deviation - 7.9).abs() <= 2.0, "{deviation}");
+    }
+
+    // A headless Vulkan device (Mesa's lavapipe in the container) draws the groups with the GPU backend the Linux runner uses, and the
+    // pixels match the CPU raster within 10 levels (the GPU and CPU Gaussians differ in kernel). Run with `--ignored`; it needs a Vulkan loader and an ICD (`VK_ICD_FILENAMES`).
+    #[cfg(target_os = "linux")]
+    mod vulkan {
+        use ash::{
+            Entry,
+            vk::{self as ash_vk, Handle},
+        };
+        use freya_engine::prelude::{DirectContext, SurfaceOrigin, direct_contexts, vk};
+        use skia_safe::gpu::{Budgeted, surfaces};
+
+        use super::*;
+
+        fn context() -> DirectContext {
+            // SAFETY: libvulkan is the system loader; its initialisers have no preconditions.
+            let entry = Box::leak(Box::new(unsafe { Entry::load() }.expect("libvulkan")));
+            let app = ash_vk::ApplicationInfo::default().api_version(ash_vk::API_VERSION_1_1);
+            // SAFETY: the create info only borrows locals that outlive the call.
+            let instance = Box::leak(Box::new(
+                unsafe {
+                    entry.create_instance(
+                        &ash_vk::InstanceCreateInfo::default().application_info(&app),
+                        None,
+                    )
+                }
+                .expect("vkCreateInstance"),
+            ));
+            // SAFETY: `instance` is alive.
+            let (device, family) = unsafe { instance.enumerate_physical_devices() }
+                .unwrap()
+                .into_iter()
+                .find_map(|device| {
+                    // SAFETY: `device` was enumerated from `instance`.
+                    let families =
+                        unsafe { instance.get_physical_device_queue_family_properties(device) };
+                    let family = families
+                        .iter()
+                        .position(|f| f.queue_flags.contains(ash_vk::QueueFlags::GRAPHICS))?;
+                    Some((device, family as u32))
+                })
+                .expect("a Vulkan device");
+            let priorities = [1.0];
+            let queue_info = ash_vk::DeviceQueueCreateInfo::default()
+                .queue_family_index(family)
+                .queue_priorities(&priorities);
+            // SAFETY: `device` comes from `instance`.
+            let logical = Box::leak(Box::new(
+                unsafe {
+                    instance.create_device(
+                        device,
+                        &ash_vk::DeviceCreateInfo::default()
+                            .queue_create_infos(std::slice::from_ref(&queue_info)),
+                        None,
+                    )
+                }
+                .expect("vkCreateDevice"),
+            ));
+            // SAFETY: the device was created with one queue in `family`.
+            let queue = unsafe { logical.get_device_queue(family, 0) };
+            let get_proc = |of: vk::GetProcOf| {
+                // SAFETY: Skia asks only for handles it received from this instance and device.
+                unsafe {
+                    match of {
+                        vk::GetProcOf::Instance(handle, name) => entry
+                            .get_instance_proc_addr(ash_vk::Instance::from_raw(handle as _), name),
+                        vk::GetProcOf::Device(handle, name) => {
+                            (instance.fp_v1_0().get_device_proc_addr)(
+                                ash_vk::Device::from_raw(handle as _),
+                                name,
+                            )
+                        }
+                    }
+                }
+                .map_or(std::ptr::null(), |f| f as _)
+            };
+            let builder = vk::BackendContext::new_builder(
+                instance.handle().as_raw() as _,
+                device.as_raw() as _,
+                logical.handle().as_raw() as _,
+                (queue.as_raw() as _, family as usize),
+                &get_proc,
+                Some(vk::Version::new(1, 1, 0)),
+            );
+            // SAFETY: instance, device and queue are leaked, so they outlive the Skia context.
+            let backend = unsafe { builder.build() };
+            direct_contexts::make_vulkan(&backend, None).expect("a Skia Vulkan context")
+        }
+
+        fn gpu_pixels(scene: &Scene, size: (i32, i32)) -> Vec<u8> {
+            let mut context = context();
+            let info = freya_engine::prelude::ImageInfo::new_n32_premul(size, None);
+            let mut surface = surfaces::render_target(
+                &mut context,
+                Budgeted::No,
+                &info,
+                None,
+                SurfaceOrigin::TopLeft,
+                None,
+                false,
+                false,
+            )
+            .expect("a GPU surface");
+            let mut fonts = scene.fonts.clone();
+            render_pass(
+                &mut fonts,
+                &scene.manager,
+                &scene.tree,
+                surface.canvas(),
+                scene.scale,
+                (0, 0),
+                Color::WHITE,
+            );
+            context.flush_and_submit();
+            read(&mut surface, size)
+        }
+
+        #[test]
+        #[ignore = "needs a Vulkan device"]
+        fn groups_draw_on_vulkan_as_on_the_raster() {
+            let effects = [
+                GroupEffect::Opacity(0.5),
+                GroupEffect::Shader(ShaderEffect::new(FADE, vec![]).at(1.0)),
+                GroupEffect::Blur(4.0),
+                GroupEffect::ScrollEdge {
+                    depth: 30.0,
+                    progress: 1.0,
+                    dark: false,
+                },
+            ];
+            for effect in effects {
+                let scene = scene(grouped(effect.clone()), (100.0, 40.0), 1.0);
+                let cpu = draw(&scene, true, (100, 40));
+                let gpu = gpu_pixels(&scene, (100, 40));
+                let worst = cpu
+                    .iter()
+                    .zip(&gpu)
+                    .map(|(a, b)| a.abs_diff(*b))
+                    .max()
+                    .unwrap();
+                assert!(worst <= 10, "{effect:?}: {worst}");
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use ctappearance::backdrop::{self as tint, ImagePalette, ink_on, palette_from_pixels};
 use ctdesign::{BACKDROP, Rgba};
-use freya_animation::prelude::{AnimNum, use_animation_transition};
+use freya_animation::prelude::use_animation_transition;
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -15,6 +15,7 @@ use freya_engine::prelude::{
 };
 use torin::prelude::{Position, Size};
 
+use crate::animation::Clock;
 use crate::elements::{Overrides, forward_overrides};
 use crate::style::Palette;
 use crate::styles::{BackdropStyle, Theme, resolve};
@@ -180,7 +181,7 @@ impl Component for Backdrop {
         let mut to = use_state(|| target);
         let duration_ms = use_reactive(&animation.duration_ms());
         let progress = use_animation_transition(to, move |_: tint::Backdrop, _| {
-            AnimNum::new(0.0, 1.0).time(*duration_ms.peek())
+            Clock::new(0.0, 1.0).time(*duration_ms.peek())
         });
         let shown = from
             .peek()

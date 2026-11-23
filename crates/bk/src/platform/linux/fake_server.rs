@@ -36,7 +36,7 @@ use wayland_server::{
     },
 };
 
-use crate::platform::linux::window_style::InfinityWindowStyleV1;
+use crate::platform::window_style::InfinityWindowStyleV1;
 
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) enum Seen {
@@ -337,7 +337,7 @@ impl Probe {
             registry: RegistryState::new(&globals),
             output: OutputState::new(&globals, &handle),
             subcompositor,
-            style: crate::platform::linux::window_style::bind(&globals, &handle),
+            style: crate::platform::window_style::bind(&globals, &handle),
             compositor,
             queue: handle,
         };
@@ -442,7 +442,7 @@ fn a_compositor_that_offers_version_ten_gets_version_ten() {
     let (probe, _queue, _server) = Probe::connect(Some(10));
     let style = probe.style.as_ref().unwrap();
     assert_eq!(style.version(), 10);
-    assert!(crate::platform::linux::window_style::offers_backdrop(style));
+    assert!(crate::platform::window_style::offers_backdrop(style));
 }
 
 #[test]
@@ -450,9 +450,7 @@ fn a_compositor_that_offers_version_nine_gets_version_nine_and_no_backdrop() {
     let (probe, _queue, _server) = Probe::connect(Some(9));
     let style = probe.style.as_ref().unwrap();
     assert_eq!(style.version(), 9);
-    assert!(!crate::platform::linux::window_style::offers_backdrop(
-        style
-    ));
+    assert!(!crate::platform::window_style::offers_backdrop(style));
 }
 
 #[test]

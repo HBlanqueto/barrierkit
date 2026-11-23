@@ -67,7 +67,7 @@ token with its own duration (`SWITCH.transition_ms`,
 |---|---|---|
 | `Switch` knob | `SWITCH.transition_ms` | Ease out, cubic |
 | Collapsing a sidebar section | `SPRING_SHEET_MS` | `Spring`, no bounce |
-| Showing or hiding the sidebar and the inspector | `DURATION_BASE` | Ease out, cubic |
+| Showing or hiding the sidebar and the inspector | `DURATION_BASE` | `ease_in_ease_out`, Core Animation's `easeInEaseOut` (measured on the sidebar of a SwiftUI `NavigationSplitView`) |
 | Sidebar width while dragging | `DURATION_FAST_MS` | `Spring`, no bounce |
 | Moving the sidebar into the rail, revealing hidden titlebars, the focus bar | `DURATION_BASE` | Ease out, cubic |
 | Scroll bar | `DURATION_FAST_MS` | Ease out, cubic |
@@ -100,8 +100,10 @@ implements Freya's `AnimatedValue`, so it works in `use_animation` and
 - A spring started from the value and velocity of another goes on exactly as
   the first would have. That is how a change interrupted midway keeps moving
   without a jump.
-- `ctdesign::ease_out` and `ctdesign::ease_in_out` are the kit's timed curves:
-  the kit, the shell and the compositor call the same two functions.
+- `ctdesign::ease_out` and `ctdesign::ease_in_out` are the kit's cubic timed
+  curves: the kit, the shell and the compositor call the same two functions.
+  `ctdesign::ease_in_ease_out` is Core Animation's `easeInEaseOut` Bézier
+  (0.42, 0, 0.58, 1), which AppKit's sidebar follows.
 - In reverse it runs from `to` to `from`, from rest.
 
 ## Implicit animation
@@ -125,6 +127,12 @@ Button::new("Show").on_press(move |_| {
 - A target that changes while the value moves starts a new animation from the
   value and the velocity shown. A spring keeps the velocity; `Ease` and
   `Custom` start from rest.
+- `use_animated` reads the time since the change, so a 250 ms animation takes
+  250 ms at any refresh rate. Freya's `AnimNum` and the kit's `Spring` in an
+  app's own `use_animation` add whole milliseconds per frame instead: at
+  180 Hz they run about 10 % long.
+- On macOS every animation steps at the start of a display refresh, before the
+  frame is drawn.
 - The outermost `with_animation` of a turn decides. SwiftUI scopes a transaction
   to the writes in its closure, so an inner `withAnimation` animates its own
   writes; the kit ignores the inner call, because a Freya `State` has one write

@@ -1,4 +1,9 @@
 use super::calloop::ping::Ping;
+#[cfg(target_os = "linux")]
+use super::calloop::{
+    LoopHandle,
+    timer::{TimeoutAction, Timer},
+};
 use futures_util::task::ArcWake;
 use std::{
     cell::RefCell,
@@ -6,6 +11,9 @@ use std::{
     sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+
+#[cfg(target_os = "linux")]
+use super::runtime::Runtime;
 
 pub(crate) type TimerQueue = Rc<RefCell<Vec<(Duration, Rc<dyn Fn()>)>>>;
 pub(crate) type WakeQueue = Rc<RefCell<Vec<Rc<dyn Fn()>>>>;
@@ -118,6 +126,24 @@ pub(crate) struct PingWake(pub(crate) Ping);
 impl ArcWake for PingWake {
     fn wake_by_ref(arc_self: &Arc<Self>) {
         arc_self.0.ping();
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl Runtime {
+    pub(crate) fn install_timers(&mut self, handle: &LoopHandle<Runtime>) {
+        let pending: Vec<(Duration, Rc<dyn Fn()>)> = std::mem::take(&mut *self.timers.borrow_mut());
+        for (delay, callback) in pending {
+            let _ = handle.insert_source(
+                Timer::from_duration(delay),
+                move |_, _, shell: &mut Runtime| {
+                    callback();
+                    shell.poll_all();
+                    shell.redraw_all();
+                    TimeoutAction::Drop
+                },
+            );
+        }
     }
 }
 

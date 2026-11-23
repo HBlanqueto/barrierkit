@@ -2,7 +2,7 @@ use std::cell::Cell;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
-use freya_animation::prelude::{AnimDirection, AnimNum, AnimatedValue, use_animation_transition};
+use freya_animation::prelude::{AnimDirection, AnimatedValue, use_animation_transition};
 use freya_core::prelude::*;
 
 use crate::styles::Animation;
@@ -14,6 +14,82 @@ pub fn use_alive() -> Rc<Cell<bool>> {
         move || alive.set(false)
     });
     alive
+}
+
+// A linear value from `from` to `to` that reads the time since it started: Freya's loop adds each frame's whole milliseconds, which runs a 250 ms curve 10 % long and unevenly at 180 Hz.
+#[derive(Clone, Copy, Default, PartialEq)]
+pub(crate) struct Clock {
+    from: f32,
+    to: f32,
+    duration: Duration,
+    start: Option<Instant>,
+    value: f32,
+}
+
+impl Clock {
+    pub(crate) fn new(from: f32, to: f32) -> Self {
+        Self {
+            from,
+            to,
+            value: from,
+            ..Self::default()
+        }
+    }
+
+    pub(crate) fn time(self, ms: u64) -> Self {
+        Self {
+            duration: Duration::from_millis(ms),
+            ..self
+        }
+    }
+
+    pub(crate) fn value(&self) -> f32 {
+        self.value
+    }
+
+    fn fraction(&self) -> f32 {
+        let elapsed = self.start.map_or(Duration::ZERO, |start| start.elapsed());
+        if elapsed >= self.duration {
+            1.0
+        } else {
+            elapsed.as_secs_f32() / self.duration.as_secs_f32()
+        }
+    }
+
+    fn ends(&self, direction: AnimDirection) -> (f32, f32) {
+        match direction {
+            AnimDirection::Forward => (self.from, self.to),
+            AnimDirection::Reverse => (self.to, self.from),
+        }
+    }
+}
+
+impl AnimatedValue for Clock {
+    fn prepare(&mut self, direction: AnimDirection) {
+        self.start = Some(Instant::now());
+        self.value = self.ends(direction).0;
+    }
+
+    fn is_finished(&self, _: u128, _: AnimDirection) -> bool {
+        self.fraction() >= 1.0
+    }
+
+    fn advance(&mut self, _: u128, direction: AnimDirection) {
+        let (from, to) = self.ends(direction);
+        self.value = from + (to - from) * self.fraction();
+    }
+
+    fn finish(&mut self, direction: AnimDirection) {
+        self.value = self.ends(direction).1;
+    }
+
+    fn into_reversed(self) -> Self {
+        Self {
+            from: self.to,
+            to: self.from,
+            ..self
+        }
+    }
 }
 
 // Animations build their closure once, so the preference is a reactive state read when they run.
@@ -144,7 +220,7 @@ pub fn use_animated(target: f32, animation: Animation) -> f32 {
     let mut serial = use_state(|| 0u32);
     let elapsed = use_animation_transition(serial, {
         let segment = segment.clone();
-        move |_: u32, _| AnimNum::new(0.0, 1.0).time(segment.get().duration_ms())
+        move |_: u32, _| Clock::new(0.0, 1.0).time(segment.get().duration_ms())
     });
     // Freya restarts the clock one render after the serial changes; that render still reads the old one, finished.
     let held = use_hook(|| Rc::new(Cell::new(None::<f32>)));
@@ -192,7 +268,7 @@ pub fn use_switch_progress(on: State<bool>, animation: Animation) -> f32 {
         } else {
             (toward_off, 0.0)
         };
-        AnimNum::new(from, to).time((*duration_ms.peek() as f32 * (to - from).abs()) as u64)
+        Clock::new(from, to).time((*duration_ms.peek() as f32 * (to - from).abs()) as u64)
     });
     let linear = linear.get().value();
     let progress = if *on.read() {

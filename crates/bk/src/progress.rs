@@ -1,10 +1,11 @@
-use freya_animation::prelude::{AnimNum, Function, OnChange, OnCreation, OnFinish, use_animation};
+use freya_animation::prelude::{OnChange, OnCreation, OnFinish, use_animation};
 use freya_components::cache::AssetAge;
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Position, Size};
 
+use crate::animation::Clock;
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_overrides};
@@ -71,9 +72,7 @@ fn use_running(animation: Animation, restart: bool) -> f32 {
                     OnFinish::reverse()
                 });
         }
-        AnimNum::new(0.0, 1.0)
-            .time(duration_ms)
-            .function(Function::Linear)
+        Clock::new(0.0, 1.0).time(duration_ms)
     });
     if animation.duration_ms() == 0 {
         0.0
