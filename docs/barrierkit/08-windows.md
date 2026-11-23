@@ -186,6 +186,11 @@ WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain)
 
 The program is [`recipes/notes_sidebar.rs`](../../agents/recipes/notes_sidebar.rs).
 
+In full screen a `HiddenTitleBar` window hides its empty `NSToolbar`, which
+AppKit would draw as an opaque band over the content. The kit's `Titlebar` row
+and the sidebar keep their windowed place, and AppKit brings the lights back
+with the menu bar when the pointer reaches the top edge.
+
 ### Resizing from the edges
 
 With `Client` decoration, the runner reserves a band inside the window:

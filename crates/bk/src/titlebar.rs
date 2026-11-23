@@ -268,7 +268,10 @@ impl Component for Titlebar {
         let (bar, height) = if unified {
             let lights = match traffic {
                 Some(traffic) => Lights::Drawn(traffic),
-                None if status.decoration == DecorationResponse::Hybrid && !sidebar => {
+                None if status.decoration == DecorationResponse::Hybrid
+                    && !sidebar
+                    && !status.fullscreen =>
+                {
                     Lights::Native
                 }
                 None => Lights::Absent,

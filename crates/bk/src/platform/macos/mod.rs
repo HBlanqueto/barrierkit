@@ -680,6 +680,10 @@ impl Runtime {
         }
     }
 
+    pub(super) fn toolbar(&mut self, id: u64) -> Option<Retained<NSToolbar>> {
+        self.window(id)?.window.toolbar()
+    }
+
     // The green light of a titled window calls `toggleFullScreen` inside AppKit, so the kit learns of it here.
     pub(super) fn fullscreen_changed(&mut self, id: u64) {
         let Some(window) = self.window(id) else {
@@ -936,11 +940,15 @@ impl Runtime {
                 }
                 None => {}
             }
+            // A chrome is rebuilt only when its placement changes, so a taller window must keep its distance from the top.
+            let anchor = NSAutoresizingMaskOptions::ViewMinYMargin;
             for effect in &effects {
+                effect.setAutoresizingMask(anchor);
                 container.addSubview(effect);
             }
             let view =
                 ChromeView::new(mtm, blur::frame((x, y, width as i32, strip as i32), height));
+            view.setAutoresizingMask(anchor);
             container.addSubview(&view);
             let layer = configure_metal_layer(&device, &view);
             layer.setOpaque(false);

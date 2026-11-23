@@ -249,8 +249,15 @@ pub(crate) fn window_activated() -> bool {
 
 impl WindowControls {
     pub fn traffic_lights_shown(&self) -> bool {
-        self.status.read().decoration != DecorationResponse::Server
-            && (!self.status.read().fullscreen || *self.focus_bar_progress.read() > 0.0)
+        let status = *self.status.read();
+        match status.decoration {
+            DecorationResponse::Server => false,
+            // AppKit keeps a hybrid window's toolbar row in full screen and reveals its lights there.
+            DecorationResponse::Hybrid => true,
+            DecorationResponse::Client => {
+                !status.fullscreen || *self.focus_bar_progress.read() > 0.0
+            }
+        }
     }
 
     pub(crate) fn draws_traffic_lights(&self) -> bool {

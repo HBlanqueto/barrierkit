@@ -457,8 +457,15 @@ define_class!(
             with_runtime(|runtime| runtime.fullscreen_changed(self.ivars().id));
         }
 
+        // The empty toolbar of a HiddenTitleBar window is an opaque band over the content in full screen.
+        #[unsafe(method(windowWillEnterFullScreen:))]
+        fn window_will_enter_full_screen(&self, _: &NSNotification) {
+            self.show_toolbar(false);
+        }
+
         #[unsafe(method(windowDidExitFullScreen:))]
         fn window_did_exit_full_screen(&self, _: &NSNotification) {
+            self.show_toolbar(true);
             with_runtime(|runtime| runtime.fullscreen_changed(self.ivars().id));
         }
 
@@ -475,6 +482,13 @@ define_class!(
 );
 
 impl WindowDelegate {
+    fn show_toolbar(&self, shown: bool) {
+        let id = self.ivars().id;
+        if let Some(toolbar) = with_runtime(|runtime| runtime.toolbar(id)).flatten() {
+            toolbar.setVisible(shown);
+        }
+    }
+
     pub(super) fn object(
         mtm: MainThreadMarker,
         id: u64,
