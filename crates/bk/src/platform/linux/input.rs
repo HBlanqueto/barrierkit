@@ -1,0 +1,153 @@
+use freya_core::prelude::{Code, Key, Modifiers, MouseButton, NamedKey};
+use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
+
+use crate::platform::input::store_modifier_flags;
+
+pub(super) fn set_modifier_flags(flags: SctkModifiers) {
+    store_modifier_flags(modifiers(flags));
+}
+
+pub fn modifiers(m: SctkModifiers) -> Modifiers {
+    let mut out = Modifiers::empty();
+    out.set(Modifiers::CONTROL, m.ctrl);
+    out.set(Modifiers::ALT, m.alt);
+    out.set(Modifiers::SHIFT, m.shift);
+    out.set(Modifiers::META, m.logo);
+    out
+}
+
+fn named(keysym: Keysym) -> Option<NamedKey> {
+    Some(match keysym {
+        Keysym::Return | Keysym::KP_Enter => NamedKey::Enter,
+        Keysym::BackSpace => NamedKey::Backspace,
+        Keysym::Tab => NamedKey::Tab,
+        Keysym::Escape => NamedKey::Escape,
+        Keysym::Delete => NamedKey::Delete,
+        Keysym::Insert => NamedKey::Insert,
+        Keysym::Home => NamedKey::Home,
+        Keysym::End => NamedKey::End,
+        Keysym::Page_Up => NamedKey::PageUp,
+        Keysym::Page_Down => NamedKey::PageDown,
+        Keysym::Left => NamedKey::ArrowLeft,
+        Keysym::Right => NamedKey::ArrowRight,
+        Keysym::Up => NamedKey::ArrowUp,
+        Keysym::Down => NamedKey::ArrowDown,
+        Keysym::Shift_L | Keysym::Shift_R => NamedKey::Shift,
+        Keysym::Control_L | Keysym::Control_R => NamedKey::Control,
+        Keysym::Alt_L | Keysym::Alt_R => NamedKey::Alt,
+        Keysym::Super_L | Keysym::Super_R => NamedKey::Meta,
+        Keysym::Caps_Lock => NamedKey::CapsLock,
+        Keysym::Num_Lock => NamedKey::NumLock,
+        Keysym::F1 => NamedKey::F1,
+        Keysym::F2 => NamedKey::F2,
+        Keysym::F3 => NamedKey::F3,
+        Keysym::F4 => NamedKey::F4,
+        Keysym::F5 => NamedKey::F5,
+        Keysym::F6 => NamedKey::F6,
+        Keysym::F7 => NamedKey::F7,
+        Keysym::F8 => NamedKey::F8,
+        Keysym::F9 => NamedKey::F9,
+        Keysym::F10 => NamedKey::F10,
+        Keysym::F11 => NamedKey::F11,
+        Keysym::F12 => NamedKey::F12,
+        _ => return None,
+    })
+}
+
+pub(super) fn code(keysym: Keysym) -> Code {
+    match keysym {
+        Keysym::Return | Keysym::KP_Enter => Code::Enter,
+        Keysym::BackSpace => Code::Backspace,
+        Keysym::Tab => Code::Tab,
+        Keysym::Escape => Code::Escape,
+        Keysym::Delete => Code::Delete,
+        Keysym::Insert => Code::Insert,
+        Keysym::Home => Code::Home,
+        Keysym::End => Code::End,
+        Keysym::Page_Up => Code::PageUp,
+        Keysym::Page_Down => Code::PageDown,
+        Keysym::Left => Code::ArrowLeft,
+        Keysym::Right => Code::ArrowRight,
+        Keysym::Up => Code::ArrowUp,
+        Keysym::Down => Code::ArrowDown,
+        Keysym::Shift_L => Code::ShiftLeft,
+        Keysym::Shift_R => Code::ShiftRight,
+        Keysym::Control_L => Code::ControlLeft,
+        Keysym::Control_R => Code::ControlRight,
+        Keysym::Alt_L => Code::AltLeft,
+        Keysym::Alt_R => Code::AltRight,
+        Keysym::Super_L => Code::MetaLeft,
+        Keysym::Super_R => Code::MetaRight,
+        Keysym::Caps_Lock => Code::CapsLock,
+        Keysym::space => Code::Space,
+        _ => Code::Unidentified,
+    }
+}
+
+pub fn map_key(keysym: Keysym, utf8: Option<&str>) -> Key {
+    if keysym == Keysym::space {
+        return Key::Character(" ".into());
+    }
+    if let Some(name) = named(keysym) {
+        return Key::Named(name);
+    }
+    let raw = keysym.raw();
+
+    let character = utf8
+        .filter(|text| !text.is_empty() && !(text.len() == 1 && text.starts_with(char::is_control)))
+        .map(str::to_string)
+        .or_else(|| keysym.key_char().map(|c| c.to_string()));
+
+    match character {
+        Some(text) => Key::Character(text),
+        None if (0x20..=0x7e).contains(&raw) => Key::Character((raw as u8 as char).to_string()),
+        None => Key::Named(NamedKey::Unidentified),
+    }
+}
+
+pub fn mouse_button(button: u32) -> MouseButton {
+    use sctk::seat::pointer::{BTN_BACK, BTN_FORWARD, BTN_LEFT, BTN_MIDDLE, BTN_RIGHT};
+    match button {
+        BTN_LEFT => MouseButton::Left,
+        BTN_RIGHT => MouseButton::Right,
+        BTN_MIDDLE => MouseButton::Middle,
+        BTN_BACK => MouseButton::Back,
+        BTN_FORWARD => MouseButton::Forward,
+        other => MouseButton::Other(other as u16),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
+
+    use super::{map_key, modifiers};
+
+    use freya_core::prelude::{Key, Modifiers};
+
+    #[test]
+    fn shift_h_is_uppercase() {
+        assert_eq!(map_key(Keysym::H, Some("H")), Key::Character("H".into()));
+    }
+
+    #[test]
+    fn altgr_two_produces_at() {
+        assert_eq!(map_key(Keysym::_2, Some("@")), Key::Character("@".into()));
+    }
+
+    #[test]
+    fn ctrl_q_falls_back_to_keysym_char() {
+        assert_eq!(map_key(Keysym::q, Some("\x11")), Key::Character("q".into()));
+    }
+
+    #[test]
+    fn caps_and_num_lock_are_not_shortcut_modifiers() {
+        let locked_ctrl = SctkModifiers {
+            ctrl: true,
+            caps_lock: true,
+            num_lock: true,
+            ..Default::default()
+        };
+        assert_eq!(modifiers(locked_ctrl), Modifiers::CONTROL);
+    }
+}

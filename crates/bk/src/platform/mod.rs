@@ -22,7 +22,7 @@ pub(crate) use linux::extension;
 pub(crate) use linux::{runtime, surface};
 pub use sys::ObjectId;
 pub(crate) use sys::{
-    SYSTEM_MOMENTUM, clipboard, instance, keychain, notifications, panels, pasteboard,
+    MOST_CHROMES, SYSTEM_MOMENTUM, clipboard, instance, keychain, notifications, panels, pasteboard,
 };
 
 #[cfg(target_os = "macos")]

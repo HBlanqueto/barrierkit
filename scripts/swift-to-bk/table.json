@@ -1396,6 +1396,7 @@
 {"gap": "swiftui-api-gap.md §4.2 types, partial", "origin": "gap", "status": "partial", "swift": "UnifiedCompactWindowToolbarStyle"},
 {"gap": "swiftui-api-gap.md §4.2 types, partial", "origin": "gap", "status": "partial", "swift": "UnifiedWindowToolbarStyle"},
 {"blocker": "measurement (no SwiftUI probe of `.smooth`/`.snappy`/`.bouncy`; `macos-animations.md` §1 measures only desktop animations: menu instant, window 250 ms)", "gap": "swiftui-api-gap.md §8.2 types, partial", "origin": "gap", "size": "M", "status": "partial", "swift": "UnitCurve"},
+{"chapter": "[14](14-animations.md#spring)", "kit": "ctdesign::ease_in_ease_out", "origin": "glossary", "status": "mapped", "swift": "UnitCurve.easeInOut"},
 {"blocker": "none", "gap": "swiftui-api-gap.md §8.2 types, partial", "origin": "gap", "size": "S for `UnitPoint`, M for `Anchor`", "status": "partial", "swift": "UnitPoint"},
 {"chapter": "[8](08-windows.md#utility-windows)", "gap": "swiftui-api-gap.md §5.2 types, implemented", "kit": "app::UtilityWindow", "origin": "glossary", "status": "mapped", "swift": "UtilityWindow"},
 {"chapter": "[11](11-views.md#splitpanes)", "gap": "swiftui-api-gap.md §3.2 types, implemented", "kit": "views::split_panes::SplitPanes", "origin": "glossary", "status": "mapped", "swift": "VSplitView"},

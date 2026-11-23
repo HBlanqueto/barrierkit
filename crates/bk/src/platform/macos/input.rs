@@ -6,6 +6,8 @@ use objc2::rc::Retained;
 use objc2_app_kit::{NSCursor, NSEvent, NSEventModifierFlags};
 use torin::prelude::CursorPoint;
 
+use crate::platform::app::AppInstance;
+
 // The kit's shortcuts are written with Ctrl, so Command is Ctrl here (docs/barrierkit/13-app.md).
 pub(super) fn modifiers(flags: NSEventModifierFlags) -> Modifiers {
     let mut out = Modifiers::empty();
@@ -248,6 +250,13 @@ pub(super) fn trackpad(
             objc2_app_kit::NSEventType::Rotate => event.rotation(),
             _ => event.magnification() as f32,
         }),
+    }
+}
+
+impl AppInstance {
+    pub(crate) fn trackpad(&mut self, event: crate::gesture::Trackpad) {
+        self.runner.run_in(|| crate::gesture::trackpad(event));
+        self.waker.wake_by_ref();
     }
 }
 
