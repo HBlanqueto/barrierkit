@@ -10,9 +10,9 @@
 
 1. Light and dark are per process: the probe sets `NSAppearance`, the kit reads `appearance.domain` from a temporary `MALAYSIA_CONFIG_DIR`. No system setting changes.
 2. Blur is the system's default. Reduce Transparency is the system's switch: the script reads it, refuses to run when it differs from `--transparency`, and never changes it. The user turns it on and off in System Settings > Accessibility > Display.
-3. Run `scripts/appearance-matrix.py --transparency blur`. It takes `/tmp/barrierkit-screen.lock`, opens each probe and each example as an app bundle, captures their windows (`screencapture -l`, through the sRGB profile) and prints the share of pixels that differ by more than 8 levels, per element. A window that is not key (its red light is gray) is captured again.
+3. Run `scripts/appearance-matrix.py --transparency blur`. It opens each probe and each example as an app bundle, captures their windows (`screencapture -l`, through the sRGB profile) and prints the share of pixels that differ by more than 8 levels, per element. A window that is not key (its red light is gray) is captured again.
 4. The five twins (notes, tasks, form, controls, standalone) are the bench `crates/bk/tests/kit/swiftui_twin.rs`: references in `crates/bk/tests/reference/swiftui-<twin>-<cell>.png`, cells `light`, `dark`, `light-rt`, `dark-rt` (a cell without a reference is skipped). `scripts/twin-reference.sh <twin> <light|dark> <out.png>` captures a reference.
-5. With Reduce Transparency on: start `--live-capture DIR` before the flip (it waits for the user and releases the screen lock meanwhile, then captures the same running examples again), then run `scripts/appearance-matrix.py --transparency rt --references --live-compare DIR` as one batch. Ask the user to turn the switch back off.
+5. With Reduce Transparency on: start `--live-capture DIR` before the flip (it waits for the user, then captures the same running examples again), then run `scripts/appearance-matrix.py --transparency rt --references --live-compare DIR` as one batch. Ask the user to turn the switch back off.
 
 ## Cells
 

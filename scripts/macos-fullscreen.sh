@@ -2,19 +2,16 @@
 # Puts the kit's windows and the same windows of a SwiftUI app into full screen and out of it,
 # and fails when the kit does not do what SwiftUI does.
 # Usage: scripts/macos-fullscreen.sh   (CAPTURE_DIR: a folder that receives a PNG of each window in full screen)
-# Needs an unlocked session, the screen lock and the Accessibility permission for System Events and the pointer.
+# Needs an unlocked session and the Accessibility permission for System Events and the pointer.
 set -eu
 
 [ "$(uname -s)" = Darwin ] || { echo "macos-fullscreen: macOS only" >&2; exit 2; }
 
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-# shellcheck source=screen-lock.sh
-. "$root/scripts/screen-lock.sh"
 work=$(mktemp -d)
-cleanup() { pkill -f "$work/" 2>/dev/null || true; release_screen_lock; rm -rf "$work"; }
+cleanup() { pkill -f "$work/" 2>/dev/null || true; rm -rf "$work"; }
 trap cleanup EXIT
 trap 'exit 130' INT TERM
-take_screen_lock
 
 cd "$root"
 cargo build -p bk --example full_screen

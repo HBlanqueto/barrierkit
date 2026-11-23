@@ -1,7 +1,7 @@
 #!/bin/sh
 # Captures the SwiftUI side of a twin: its window at 1x, through the screenshot's colour profile.
 # Usage: scripts/twin-reference.sh <notes|tasks|form|controls|standalone> <light|dark> <out.png>
-# Needs ~/src/probes/<probe>.swift (swiftc builds it), an unlocked session and the screen lock.
+# Needs ~/src/probes/<probe>.swift (swiftc builds it), and an unlocked session.
 set -eu
 
 [ "$#" -eq 3 ] || { sed -n '2,4p' "$0" >&2; exit 2; }
@@ -18,13 +18,10 @@ case "$scheme" in light) args= ;; dark) args=dark ;; *) echo "twin-reference: li
 
 probes=${BARRIERKIT_PROBES:-$HOME/src/probes}
 [ -d "$probes" ] || { echo "twin-reference: $probes not found; set BARRIERKIT_PROBES to the directory of the SwiftUI probes" >&2; exit 2; }
-# shellcheck source=screen-lock.sh
-. "$(dirname -- "$0")/screen-lock.sh"
 work=$(mktemp -d)
-cleanup() { pkill -f "$work/$probe.app/" 2>/dev/null || true; release_screen_lock; rm -rf "$work"; }
+cleanup() { pkill -f "$work/$probe.app/" 2>/dev/null || true; rm -rf "$work"; }
 trap cleanup EXIT
 trap 'exit 130' INT TERM
-take_screen_lock
 
 [ -x "$probes/$probe" ] || swiftc -O "$probes/$probe.swift" -o "$probes/$probe"
 app=$work/$probe.app

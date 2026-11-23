@@ -624,7 +624,7 @@ The cells that need a system setting run in `global-states.sh all`, which the us
 runs: each of `dark`, `light`, `rt-on`, `ic-on`, `rt-ic-on`, `light-rt-on`,
 `light-ic-on`, `light-rt-ic-on`, `hidpi-720` and `light-hidpi-720` has
 `~/src/probes/states.d/<state>/70-liquidglass.sh`, which runs
-`~/src/probes/liquidglass/lgstate.sh` under the screen lock. It writes
+`~/src/probes/liquidglass/lgstate.sh`. It writes
 `~/src/captures/liquidglass/states/<state>/`: `live5.json` and `live3.json` (layer
 tree and the 77 inputs of four looks and of 44 sizes), and raw window captures of
 the regular (`reg-*`) and clear (`clr-*`) glass over `gray128`, `tone`, `grid16`,
@@ -919,8 +919,7 @@ or accent. Nothing in a cache is dropped by hand: each blur cache compares its l
 application menu, the Dock and the menu bar were already measured by moving the slider by hand ([section 13.6](#136-the-menu-bar-the-application-menu-and-the-dock-under-the-real-slider-measured-2026-11-22)); these states add
 the other surfaces, the kernels at 1 and the application glass and materials at the system value.
 **Reader:** the user.
-**Input:** the Mac unlocked, in Dark, Reduce Transparency and Increase Contrast off, scale 1; no other session holding
-`/tmp/barrierkit-screen.lock`.
+**Input:** the Mac unlocked, in Dark, Reduce Transparency and Increase Contrast off, scale 1; no other session using the screen.
 **Output:** captures in `~/src/captures/shellblur/lg-clear` and `lg-tinted`, `~/src/captures/liquidglass/states/lg-*` and
 `~/src/captures/materials/states/lg-*`, and the analysis to run on them.
 

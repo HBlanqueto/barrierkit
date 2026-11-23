@@ -271,8 +271,7 @@ The sources are outside the repo, in `~/src/probes` (each has a line in its
 
 1. `uikitbuild.sh uikitmotion` builds the probe for `arm64-apple-ios27.0-macabi`.
 2. `uikitrun.sh <push|sheet|popover|alert|insert|calibrate> <dir> [seconds]`
-   runs one scenario as an app bundle with the Mac idiom under
-   `/tmp/barrierkit-screen.lock` and, with seconds, records it at 60 fps.
+   runs one scenario as an app bundle with the Mac idiom and, with seconds, records it at 60 fps.
 3. `uikitmouse.sh <press|hover|menu> <dir> <seconds> <steps>` drives the pointer
    and keys for the three scenarios that need them.
 4. `python3 -I motionfit.py table <dir>/<scenario>-anim.json series` prints t10,

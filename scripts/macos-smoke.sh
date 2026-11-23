@@ -9,12 +9,9 @@ set -eu
 
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 seconds=${SMOKE_SECONDS:-3}
-# shellcheck source=screen-lock.sh
-. "$root/scripts/screen-lock.sh"
 work=$(mktemp -d)
-trap 'release_screen_lock; rm -rf "$work"' EXIT
+trap 'rm -rf "$work"' EXIT
 trap 'exit 130' INT TERM
-take_screen_lock
 
 cd "$root"
 if [ "$#" -gt 0 ]; then

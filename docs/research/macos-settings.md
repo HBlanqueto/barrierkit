@@ -58,8 +58,7 @@ Method, all read-only:
   process (General, parts of Wallpaper, and every Apple Account and Family
   page) ignore the argument and keep the system language, so the English text
   of General is **not measured** here. No persistent language was changed.
-- **Screen:** every walk took `/tmp/barrierkit-screen.lock` with `mkdir`, held
-  it only while pressing and capturing, and released it with `trap`.
+- **Screen:** every walk pressed and captured only while no other session drove the screen.
 - **Settings keys:** `defaults read` (never `write`). A key that does not exist
   means the setting is at its default; a key that exists was written by the
   user or by the system, so its value is **this Mac's value, not the default**.

@@ -11,7 +11,7 @@ Inputs: macOS 27.2, SDK 27.2, a 1x display, `docs/research/macos-arm-port.md` (h
 ## Steps
 
 1. Build `nchrome`: an `NSWindow` (`titled`, `fullSizeContentView`, unified toolbar) with an `NSSplitViewController` (a sidebar item and a content item) and an `NSToolbar` (sidebar toggle, tracking separator, a button, a two-segment group, flexible space, a button, a search item). Both columns hold a `CAMetalLayer` view that stands for the Freya surface: the content draws 12 pt gray rows and a red band that moves at 480 pt/s, the sidebar is transparent and draws rows.
-2. Run it as an app bundle under `/tmp/barrierkit-screen.lock`, in light and dark, and read the view tree, the event log and the screenshots.
+2. Run it as an app bundle, in light and dark, and read the view tree, the event log and the screenshots.
 3. Link the same binary against SDK 14 and 15 with `vtool` and compare.
 4. Read the measures into the table below and write the plan.
 

@@ -198,7 +198,7 @@ cover what each capture batch measures.
 **Reader:** the user who runs the pass and the sessions that add batches.
 **Input:** a Mac unlocked, in the settings of section 1 (Dark, Reduce
 Transparency off, Increase Contrast off, 2560x1440 at scale 1), and no other
-session holding `/tmp/barrierkit-screen.lock`.
+session using the screen.
 **Output:** the captures of every batch, one folder per state, and the
 settings back as they were.
 
@@ -217,7 +217,7 @@ settings back as they were.
 
 ### What the runner does
 
-1. It waits for the screen lock, holds it for the whole run and writes `global-states` as its owner.
+1. It runs alone on the screen for the whole run and writes `global-states`.
 2. It saves the original settings in `~/src/probes/.backup-global-states.json`. It refuses
    to overwrite a backup that a previous run left.
 3. For each state, it changes only the settings that differ from the live ones, waits for them to

@@ -303,7 +303,7 @@ The window and its popups take the kit's scheme (`appearance.domain`), not the s
 **Input:** a Mac in a logged-in, unlocked session; `scripts/macos-smoke.sh [recipe...]` (`./dev.sh macos-smoke`); `SMOKE_SECONDS` (default 3) sets how long each recipe stays open.
 **Output:** one `PASS name` or `FAIL name: reason` line per recipe and the exit status 1 when any failed. It keeps no screenshots.
 
-1. The script takes `/tmp/barrierkit-screen.lock`, so it waits while another session uses the screen. The lock directory holds its owner's PID: the script prints `waiting for … held by PID n` once and removes a lock whose owner is gone.
+1. The script opens real windows and captures the screen. Nothing serializes it: run one screen-driving script at a time.
 2. It builds the examples of the recipes it will open, wraps each one in an ad-hoc signed app bundle in a temporary directory and opens it with `open -n`.
 3. It waits up to ten seconds for a window of that process on the screen (the CoreGraphics window list, no permission needed), then waits `SMOKE_SECONDS`.
 4. It fails the recipe when no window appeared, when the process exited, or when the window went away; otherwise it ends the process.

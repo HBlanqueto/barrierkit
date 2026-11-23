@@ -482,7 +482,7 @@ procedure.
    Spotlight, a notification for the banner, `open -a Apps`, `open -a "Mission
    Control"`), checks that it is open (a probe pixel differs from the backdrop,
    three tries), captures the screen after each swap and closes it with Escape. It
-   holds `/tmp/barrierkit-screen.lock`, leaves 10 s after releasing it and changes
+   leaves 10 s after it ends and changes
    nothing.
 4. **Reading.** Every value is a raw byte of the PNG (PIL; `sample` only since the
    fix of 2026-11-22, [section 9.1](#91-2026-11-21-mid-tones-read-with-sample-were-too-light)).

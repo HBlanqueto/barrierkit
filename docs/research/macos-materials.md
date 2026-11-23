@@ -254,8 +254,7 @@ error against the captures, the states and a parity check.
    against the pixels: the tree gives the stack and its values, the pixels give
    the blur sigma, the order of operations, the space, the region edge and the
    fit error.
-5. **Hygiene.** The screen lock `/tmp/barrierkit-screen.lock` is held per group
-   of captures. A capture is refused if another window of layer 4 or more lies
+5. **Hygiene.** Each group of captures runs alone on the screen. A capture is refused if another window of layer 4 or more lies
    over the screen (a system dialog), and retried.
 6. **Reproduce.** `~/src/probes/matbatch.sh core chroma a11y swiftui follows`
    captures; `matreport.py`, `matsigma.py`, `matdocs.py` and `mattokens.py`
