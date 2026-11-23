@@ -45,8 +45,8 @@ pub struct TitlebarStyle {
     /// Tengen: `SETTINGS.toolbar_gap`, between the left zone and the title of the bar beside a
     /// sidebar: the title sits 20 from the sidebar's edge.
     pub sidebar_spacing: f32,
-    /// Tengen: `Color` of `titlebar_inactive`, focused `Color` of the window surface; `Clear`
-    /// over a `Backdrop`.
+    /// Tengen: `Color` of the window surface, focused or not, like a unified AppKit toolbar;
+    /// `Clear` over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Color` of the toolbar surface while the sidebar shows; `Clear` over a
     /// `Backdrop`.
@@ -122,8 +122,7 @@ impl ControlStyle for TitlebarStyle {
             spacing: 0.0,
             lights_spacing: SETTINGS.toolbar_lights_gap as f32,
             sidebar_spacing: SETTINGS.toolbar_gap as f32,
-            background: StateValue::new(surface(resolved.surfaces.titlebar_inactive))
-                .focused(active.clone()),
+            background: StateValue::new(active),
             sidebar_background: StateValue::new(surface(resolved.surfaces.toolbar)),
             close_only_background: StateValue::new(ShapeStyle::Clear),
             title,

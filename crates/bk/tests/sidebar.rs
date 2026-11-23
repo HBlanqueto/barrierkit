@@ -157,8 +157,8 @@ fn titlebar_background_follows_the_resolved_window_tint() {
     let (width, _height, unfocused) = render_titlebar_pixels(false, resolved);
     assert_eq!(
         pixel(&unfocused, width, 260, 20),
-        resolved.surfaces.titlebar_inactive.to_rgba8(),
-        "an unfocused kit titlebar must use the tinted inactive titlebar surface"
+        resolved.surfaces.window.to_rgba8(),
+        "an unfocused kit titlebar keeps the tinted window surface, like AppKit"
     );
 }
 
@@ -928,7 +928,7 @@ impl App for NarrowCase {
     }
 }
 
-fn narrow_runner(mode: NarrowSidebar) -> TestingRunner {
+fn narrow_runner(mode: NarrowSidebar, toggle: bool) -> TestingRunner {
     let resolved = motion(true);
     let (mut test, _) = TestingRunner::new(
         AppComponent::new(NarrowCase(mode)),
@@ -937,9 +937,11 @@ fn narrow_runner(mode: NarrowSidebar) -> TestingRunner {
         1.0,
     );
     test.poll(Duration::from_millis(16), Duration::from_millis(100));
-    let area = probed(&test, "sidebar-toggle").expect("toggle");
-    test.click_cursor((f64::from(area.center().x), f64::from(area.center().y)));
-    test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    if toggle {
+        let area = probed(&test, "sidebar-toggle").expect("toggle");
+        test.click_cursor((f64::from(area.center().x), f64::from(area.center().y)));
+        test.poll(Duration::from_millis(16), Duration::from_millis(100));
+    }
     test
 }
 
@@ -961,7 +963,7 @@ fn detail_x(test: &TestingRunner) -> f32 {
 
 #[test]
 fn an_overlaid_sidebar_covers_the_detail_and_closes_on_escape_or_on_select() {
-    let mut test = narrow_runner(NarrowSidebar::Overlay);
+    let mut test = narrow_runner(NarrowSidebar::Overlay, true);
     assert!(
         labelled(&test, "Uno").is_some(),
         "the toggle opens the sidebar"
@@ -971,7 +973,7 @@ fn an_overlaid_sidebar_covers_the_detail_and_closes_on_escape_or_on_select() {
     test.poll(Duration::from_millis(16), Duration::from_millis(100));
     assert!(labelled(&test, "Uno").is_none(), "Escape closes it");
 
-    let mut test = narrow_runner(NarrowSidebar::Overlay);
+    let mut test = narrow_runner(NarrowSidebar::Overlay, true);
     let item = labelled(&test, "Uno").expect("item");
     test.click_cursor((f64::from(item.center().x), f64::from(item.center().y)));
     test.poll(Duration::from_millis(16), Duration::from_millis(100));
@@ -982,11 +984,11 @@ fn an_overlaid_sidebar_covers_the_detail_and_closes_on_escape_or_on_select() {
 }
 
 #[test]
-fn a_pushed_sidebar_docks_and_narrows_the_detail() {
-    let test = narrow_runner(NarrowSidebar::Push);
+fn a_pushed_sidebar_stays_docked_in_a_narrow_window_and_narrows_the_detail() {
+    let test = narrow_runner(NarrowSidebar::Push, false);
     assert!(
         labelled(&test, "Uno").is_some(),
-        "the toggle opens the sidebar"
+        "the sidebar does not hide by itself"
     );
     let docked = SIDEBAR.width as f32;
     assert!(

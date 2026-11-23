@@ -245,7 +245,7 @@ optional content column and a detail column.
 | `.sidebar_visible(bool)` | `true` | Visibility on the first render |
 | `.sidebar_range(min, max)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180, 320) | Width limits. A new range clamps the current width |
 | `.resizable(bool)` | `true` | With `false` there is no grip: the width is fixed |
-| `.narrow_sidebar(NarrowSidebar)` | `Overlay` | Where the sidebar opens in a narrow window: see [Narrow windows](#narrow-windows) |
+| `.narrow_sidebar(NarrowSidebar)` | `Push` | Where the sidebar opens in a narrow window: see [Narrow windows](#narrow-windows) |
 | `.inspector(view, presented)` | none | See [Inspector](#inspector) |
 | `.background_extension(view)` | none | See [Background extension](#background-extension) |
 | `.on_layout(callback)` | none | Reports [`SidebarLayout`](#sidebarlayout) |
@@ -260,13 +260,14 @@ render the user owns the layout; read it back with `on_layout`.
 The grip is a `SPLIT_VIEW.grip` (8 px) strip on the sidebar's right edge. It
 exists only with `.resizable(true)` and while the sidebar is fully open.
 
-1. On hover, the cursor becomes `col-resize` and an accent line of
-   `SPLIT_VIEW.grip_line` (2 px) appears, `grip_line_inset` (18 px) from the
-   top and the bottom.
+1. On hover and while dragging only the cursor changes, to `col-resize`, as
+   over an AppKit split view divider.
 2. While dragging, the width follows the pointer and stays in the range.
 3. Tab focuses the grip; ← and → change the width by `SPLIT_VIEW.key_step`
    (10 px) with a `DURATION_FAST_MS` (120 ms) spring. With reduced motion the
-   change is immediate.
+   change is immediate. A focused grip shows an accent line of
+   `SPLIT_VIEW.grip_line` (2 px), `grip_line_inset` (18 px) from the top and
+   the bottom.
 4. On release, `on_layout` receives the new width.
 
 ### Hiding: `SidebarToggle` and `TOGGLE_SIDEBAR`
@@ -292,17 +293,16 @@ Hiding and showing animate over `DURATION_BASE` (250 ms).
 
 ### Narrow windows
 
-`NarrowSidebar` decides where the sidebar opens when the window is narrower
+`NarrowSidebar` decides what the sidebar does when the window is narrower
 than `SPLIT_VIEW.collapse_below` (760 px):
 
-| Variant | The sidebar opens |
+| Variant | The sidebar |
 |---|---|
-| `Overlay` (default) | Floating over the detail, above the `Palette::scrim` veil, without moving the detail. A click on the veil, Escape or an item's `on_select` closes it |
-| `Push` | Docked: it narrows the detail |
+| `Push` (default) | Stays docked and narrows the detail, as `NavigationSplitView` does on macOS. The window's `min_size` bounds the detail |
+| `Overlay` | Follows the steps below. It opens floating over the detail, above the `Palette::scrim` veil, without moving the detail. A click on the veil, Escape or an item's `on_select` closes it |
 
 1. When the window becomes narrow, the sidebar hides by itself.
-2. The user opens it with `SidebarToggle` or Ctrl+Alt+S; it appears as
-   `NarrowSidebar` says.
+2. The user opens it with `SidebarToggle` or Ctrl+Alt+S; it floats.
 3. When the window grows past 760 px again, the sidebar comes back docked and
    visible, even if the user had closed it. This is the rule of
    [`AdwOverlaySplitView`](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.OverlaySplitView.html)

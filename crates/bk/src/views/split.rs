@@ -33,8 +33,8 @@ pub struct SidebarLayout {
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NarrowSidebar {
-    #[default]
     Overlay,
+    #[default]
     Push,
 }
 
@@ -100,7 +100,7 @@ impl SplitView {
             sidebar_width: None,
             sidebar_range: (SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max),
             resizable: true,
-            narrow_sidebar: NarrowSidebar::Overlay,
+            narrow_sidebar: NarrowSidebar::Push,
             on_layout: None,
             style: Theme::tengen(),
             key: DiffKey::None,
@@ -209,15 +209,15 @@ impl Component for SplitView {
         };
         use_hook(|| provide_context(control));
 
-        let narrow = *window_width.read() < SPLIT_VIEW.collapse_below;
-        let overlay = narrow && self.narrow_sidebar == NarrowSidebar::Overlay;
+        let overlay = self.narrow_sidebar == NarrowSidebar::Overlay
+            && *window_width.read() < SPLIT_VIEW.collapse_below;
         let mut was_narrow = use_state(|| false);
-        if *was_narrow.peek() != narrow {
-            was_narrow.set(narrow);
-            if narrow && *visible.peek() {
+        if *was_narrow.peek() != overlay {
+            was_narrow.set(overlay);
+            if overlay && *visible.peek() {
                 visible.set(false);
                 auto_hidden.set(true);
-            } else if !narrow {
+            } else if !overlay {
                 visible.set(true);
                 auto_hidden.set(false);
             }

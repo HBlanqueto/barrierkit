@@ -455,9 +455,11 @@ Notes on the values:
 - A `sidebar_style` key from an older file is ignored: the sidebar has one look ([ADR 0079](../decisions.md)).
 - `TintStrength::factor()` multiplies the accent tint and the wallpaper tint by
   `TINT_STRENGTH`: 0.5, 1, 1.5 or 2.
-- `scroll_bars = "automatic"` keeps the bar on screen after a mouse wheel and
-  hides it after a touchpad scroll, like macOS «Automatically based on mouse or
-  trackpad».
+- `scroll_bars = "automatic"` is macOS «Automatically based on mouse or
+  trackpad». On macOS it takes `NSScroller.preferredScrollerStyle`: legacy
+  scrollers read as `always`, overlay ones as `when_scrolling`, and a change
+  of mouse applies at once. On Linux the bar stays after a mouse wheel and
+  hides after a touchpad scroll.
 - `wallpaper` derives the lights from the wallpaper's dominant color, or from
   the accent while there is none. The old value `"macos"` still reads as
   `standard`, with a warning.

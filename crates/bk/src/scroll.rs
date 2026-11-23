@@ -40,6 +40,7 @@ pub struct ScrollView {
     height: Size,
     direction: Direction,
     scroll_bar: bool,
+    autohides: bool,
     top_line: bool,
     edge_effect: bool,
     refresh: Option<Refresh>,
@@ -493,6 +494,7 @@ impl ScrollView {
             height: Size::fill(),
             direction: Direction::Vertical,
             scroll_bar: true,
+            autohides: true,
             top_line: false,
             edge_effect: false,
             refresh: None,
@@ -529,6 +531,12 @@ impl ScrollView {
 
     pub fn scroll_bar(mut self, scroll_bar: bool) -> Self {
         self.scroll_bar = scroll_bar;
+        self
+    }
+
+    // NSTextView's scroll view keeps its legacy track while the text fits; SwiftUI's ScrollView hides it.
+    pub(crate) fn autohides(mut self, autohides: bool) -> Self {
+        self.autohides = autohides;
         self
     }
 
@@ -705,6 +713,7 @@ pub(crate) fn use_scroll_bar(
     controller: ScrollController,
     horizontal: bool,
     enabled: bool,
+    autohides: bool,
     style: &ScrollViewStyle,
 ) -> ScrollBarParts {
     let paints = Paints::current(ControlState::default(), style.effect);
@@ -752,12 +761,13 @@ pub(crate) fn use_scroll_bar(
         style.min_thumb_length,
     )
     .filter(|_| enabled && visibility > 0.0);
-    let reserved = if always && bar.is_some() {
+    let tracked = always && enabled && (bar.is_some() || !autohides);
+    let reserved = if tracked {
         style.track_width + 2.0 * style.inset
     } else {
         0.0
     };
-    let track = bar.filter(|_| always).map(|thumb| {
+    let track = tracked.then(|| {
         let click = resolved.scroll_bar_click;
         let (shown, whole) = (along(*viewport.peek()), along(*content.peek()));
         let mut inner = controller.inner;
@@ -768,6 +778,9 @@ pub(crate) fn use_scroll_bar(
             }))
             .on_mouse_down(move |event: Event<MouseEventData>| {
                 event.stop_propagation();
+                let Some(thumb) = bar else {
+                    return;
+                };
                 let at = if horizontal {
                     event.element_location.x
                 } else {
@@ -808,7 +821,13 @@ impl Component for ScrollView {
         let scrolled = if horizontal { scrolled_x } else { scrolled_y };
         let along = move |(width, height): (f32, f32)| if horizontal { width } else { height };
         let size = |area: Area| (area.width(), area.height());
-        let bars = use_scroll_bar(controller, horizontal, self.scroll_bar, &style);
+        let bars = use_scroll_bar(
+            controller,
+            horizontal,
+            self.scroll_bar,
+            self.autohides,
+            &style,
+        );
         let elastic = use_elastic(controller, self.refresh.clone());
         use_scroll_position(controller, self.position);
         use_scroll_events(

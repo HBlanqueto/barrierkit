@@ -926,7 +926,9 @@ Badge::new("3").style(|s| BadgeStyle {
 The bar is a 6 thumb that appears while scrolling and fades 800 ms later. With the
 appearance setting `scroll_bars = "always"` ([4](04-appearance-and-tokens.md)) it stays,
 17 wide on a faint track that takes its strip out of the content, like a legacy
-scroller; `"automatic"` does so after a mouse wheel. The thumb and the track
+scroller; `"automatic"` follows the system's scroller style ([4](04-appearance-and-tokens.md)).
+The track of a `TextEditor` stays while its text fits, as an `NSTextView`'s
+does; other scroll views hide it. The thumb and the track
 change with Increase Contrast ([measured](../research/macos-control-metrics.md#scrollers)).
 `Table`, `List` and `OutlineView` draw the same bar. A click on
 the track pages toward the click, or with `scroll_bar_click = "clicked_spot"`

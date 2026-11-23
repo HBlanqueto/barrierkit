@@ -2,18 +2,19 @@ use std::ffi::c_void;
 use std::ptr::{NonNull, null_mut};
 
 use block2::RcBlock;
-use ctappearance::{AppearanceConfig, ColorScheme, load_appearance, set_system_scheme};
+use ctappearance::{AppearanceConfig, ColorScheme, ScrollBars, load_appearance, set_system_scheme};
 use dispatch2::DispatchQueue;
 use objc2::rc::Retained;
 use objc2::runtime::AnyObject;
 use objc2::{AllocAnyThread, define_class, msg_send};
 use objc2_app_kit::{
-    NSAppearanceNameAqua, NSAppearanceNameDarkAqua, NSApplication, NSWorkspace,
+    NSAppearanceNameAqua, NSAppearanceNameDarkAqua, NSApplication,
+    NSPreferredScrollerStyleDidChangeNotification, NSScroller, NSScrollerStyle, NSWorkspace,
     NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification,
 };
 use objc2_foundation::{
     NSArray, NSDictionary, NSKeyValueChangeKey, NSKeyValueObservingOptions, NSNotification,
-    NSObject, NSObjectNSKeyValueObserverRegistration, NSString, ns_string,
+    NSNotificationCenter, NSObject, NSObjectNSKeyValueObserverRegistration, NSString, ns_string,
 };
 
 use super::with_runtime;
@@ -23,6 +24,7 @@ pub(super) struct Flags {
     pub(super) reduce_transparency: bool,
     pub(super) increase_contrast: bool,
     pub(super) reduce_motion: bool,
+    pub(super) legacy_scrollers: bool,
 }
 
 // The system's accessibility settings add to the file's: either asks for the plainer look.
@@ -31,6 +33,11 @@ pub(super) fn merged(config: AppearanceConfig, flags: Flags) -> AppearanceConfig
         reduce_transparency: config.reduce_transparency || flags.reduce_transparency,
         contrast: config.contrast || flags.increase_contrast,
         reduced_motion: config.reduced_motion || flags.reduce_motion,
+        scroll_bars: match config.scroll_bars {
+            ScrollBars::Automatic if flags.legacy_scrollers => ScrollBars::Always,
+            ScrollBars::Automatic => ScrollBars::WhenScrolling,
+            chosen => chosen,
+        },
         ..config
     }
 }
@@ -41,6 +48,8 @@ fn flags() -> Flags {
         reduce_transparency: workspace.accessibilityDisplayShouldReduceTransparency(),
         increase_contrast: workspace.accessibilityDisplayShouldIncreaseContrast(),
         reduce_motion: workspace.accessibilityDisplayShouldReduceMotion(),
+        legacy_scrollers: objc2::MainThreadMarker::new()
+            .is_some_and(|mtm| NSScroller::preferredScrollerStyle(mtm) == NSScrollerStyle::Legacy),
     }
 }
 
@@ -118,7 +127,16 @@ pub(super) fn observe(application: &NSApplication) {
                 &block,
             )
     };
-    std::mem::forget((observer, block));
+    // SAFETY: the name is AppKit's own constant, and the block lives as long as the process.
+    let scrollers = unsafe {
+        NSNotificationCenter::defaultCenter().addObserverForName_object_queue_usingBlock(
+            Some(NSPreferredScrollerStyleDidChangeNotification),
+            None,
+            None,
+            &block,
+        )
+    };
+    std::mem::forget((observer, scrollers, block));
 }
 
 #[cfg(test)]
@@ -140,6 +158,15 @@ mod tests {
         );
         assert!(merged_config.contrast && merged_config.reduce_transparency);
         assert!(!merged_config.reduced_motion);
+        assert_eq!(merged_config.scroll_bars, ScrollBars::WhenScrolling);
+        let with_a_mouse = merged(
+            AppearanceConfig::default(),
+            Flags {
+                legacy_scrollers: true,
+                ..Flags::default()
+            },
+        );
+        assert_eq!(with_a_mouse.scroll_bars, ScrollBars::Always);
         let plain = merged(AppearanceConfig::default(), Flags::default());
         assert!(!plain.contrast && !plain.reduce_transparency && !plain.reduced_motion);
     }

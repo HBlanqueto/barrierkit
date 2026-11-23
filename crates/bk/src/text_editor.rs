@@ -481,12 +481,16 @@ impl Component for TextEditor {
         .on_global_pointer_move(on_drag)
         .on_global_pointer_up(on_release)
         .child(
-            ScrollView::new().controller(scroll).expanded().child(
-                rect()
-                    .width(Size::fill())
-                    .child(paragraph)
-                    .maybe_child(squiggles),
-            ),
+            ScrollView::new()
+                .controller(scroll)
+                .autohides(false)
+                .expanded()
+                .child(
+                    rect()
+                        .width(Size::fill())
+                        .child(paragraph)
+                        .maybe_child(squiggles),
+                ),
         );
         let field = if focused && style.border.is_some() {
             ring(field, radius.top_left(), resolved().accent)

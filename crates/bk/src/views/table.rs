@@ -334,7 +334,7 @@ impl Component for Table {
             (width_of(index), content.into_element())
         });
         let inset = style.row_inset;
-        let bars = use_scroll_bar(controller, false, self.scroll_bar, &scroll_style);
+        let bars = use_scroll_bar(controller, false, self.scroll_bar, true, &scroll_style);
         controller.set_content((
             0.0,
             self.rows.len() as f32 * style.row_height + style.body_inset,
