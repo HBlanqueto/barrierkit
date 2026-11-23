@@ -289,7 +289,20 @@ The window and its popups take the kit's scheme (`appearance.domain`), not the s
 1. Install the Rust components once: `rustup component add rustfmt clippy`.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
 3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (the Wayland code is unused on macOS), the scripts of `scripts/` and `cargo test` with the `tracy` feature but not `shell`.
-4. Four tests are ignored on macOS: they compare text with goldens drawn in the Linux fonts (`controls_match_their_golden_images`, `keyboard_focus_ring_matches_its_golden_image`, `menu_matches_its_golden_images`, `menu_renders_accents_and_long_shortcuts_without_wrapping`). Linux still runs them.
+4. Optional: `./dev.sh macos-smoke` opens every recipe of `agents/recipes` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
+5. Four tests are ignored on macOS: they compare text with goldens drawn in the Linux fonts (`controls_match_their_golden_images`, `keyboard_focus_ring_matches_its_golden_image`, `menu_matches_its_golden_images`, `menu_renders_accents_and_long_shortcuts_without_wrapping`). Linux still runs them.
+
+### Smoke test on macOS
+
+**Goal:** know that every recipe still opens a window on macOS.
+**Reader:** whoever changes `platform/macos/` or a recipe.
+**Input:** a Mac in a logged-in, unlocked session; `scripts/macos-smoke.sh [recipe...]` (`./dev.sh macos-smoke`); `SMOKE_SECONDS` (default 3) sets how long each recipe stays open.
+**Output:** one `PASS name` or `FAIL name: reason` line per recipe and the exit status 1 when any failed. It keeps no screenshots.
+
+1. The script takes `/tmp/barrierkit-screen.lock`, so it waits while another session uses the screen.
+2. It builds the examples, wraps each one in an ad-hoc signed app bundle in a temporary directory and opens it with `open -n`.
+3. It waits up to ten seconds for a window of that process on the screen (the CoreGraphics window list, no permission needed), then waits `SMOKE_SECONDS`.
+4. It fails the recipe when no window appeared, when the process exited, or when the window went away; otherwise it ends the process.
 
 ## Accessibility
 

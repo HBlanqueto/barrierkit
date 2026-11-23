@@ -25,6 +25,7 @@ Usage: ./dev.sh <command>
 
 Commands:
   check                   run fmt, clippy, tests and kit-specific checks
+  macos-smoke [recipe...] open each recipe as a macOS app and check its window (macOS only)
   help                    show this message
 
 All commands require 'nix develop', except on macOS: there they use the
@@ -63,6 +64,10 @@ check() {
 case "${1:-}" in
     check)
         check
+        ;;
+    macos-smoke)
+        shift
+        "$script_dir/scripts/macos-smoke.sh" "$@"
         ;;
     help|--help|-h|'')
         help
