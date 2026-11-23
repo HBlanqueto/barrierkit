@@ -892,7 +892,7 @@
           "selected-bg": "sidebar-selection",
           "selected-ink": "on-accent",
           "selected-icon-rim": "#00000033",
-          "inactive-selected-bg": "bg-hover",
+          "inactive-selected-bg": "sidebar-selection-inactive",
           "inactive-ink": "ink-inactive",
           "count-ink": "ink-muted"
         },
