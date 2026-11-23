@@ -1224,6 +1224,7 @@ background, for `reduce_transparency`.
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic` |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`), `chrome` ([9](09-titlebars.md)) |
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
+| `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP` | `f32` | The title row of the expanded `Titlebar` (28 high, the title 15 after the lights; SwiftUI `.expanded`, [9](09-titlebars.md)) |
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
 | `TITLEBAR_RAIL` | `TitlebarRailMetrics` | `chrome`, `styles` (`WindowChromeStyle`); `title_angle` (−90) turns the rail title |
 | `FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform`, `styles` (`FullscreenBarStyle`, `TopGlassStyle`) |

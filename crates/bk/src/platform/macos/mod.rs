@@ -260,6 +260,9 @@ fn native(id: u64, command: Native) {
         Native::Toolbar(TitlebarBar::UnifiedCompact) if window.toolbar().is_some() => {
             window.setToolbarStyle(NSWindowToolbarStyle::UnifiedCompact)
         }
+        Native::Toolbar(TitlebarBar::Titlebar) if window.toolbar().is_some() => {
+            window.setToolbarStyle(NSWindowToolbarStyle::Expanded)
+        }
         Native::Toolbar(_) => {}
         Native::Size(width, height) => {
             window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))

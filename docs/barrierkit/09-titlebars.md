@@ -57,7 +57,7 @@ bar: traffic lights, a left zone, the title and a right zone.
 | `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
-| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high, the title at the start) or the compact one (centered title), as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
+| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high, the title at the start), the compact one (centered title) or the expanded one (a title row over the toolbar row), as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
 | `.hairline(bool)` | `false` | The line under the bar of the sidebar layout. macOS draws none under a unified toolbar at rest; `true` draws `TitlebarStyle::line()`, as `NSTitlebarSeparatorStyle.line` does |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
@@ -70,6 +70,14 @@ Behavior:
 - With items the bar is the unified one, as in SwiftUI: 52 high, the traffic
   lights at (19, 19) and the title `SETTINGS.toolbar_lights_gap` (22) after them, in
   `TITLE_2`.
+- With `.toolbar_style(Expanded)` the bar is two rows, as SwiftUI's
+  `.expanded` on macOS 27.2: a `TITLEBAR_EXPANDED_TITLE_HEIGHT` (28) row with
+  the traffic lights at (9, 9) and the title `TITLEBAR_EXPANDED_TITLE_GAP` (15) after them,
+  in `TITLEBAR.font` (hidden in full screen, as SwiftUI does until the top
+  edge), and a `TITLEBAR_CLIENT_HEIGHT` (40) toolbar row whose
+  `Navigation` and `PrimaryAction` items sit together at the start, as SwiftUI
+  puts them. It reports `Bar::Titlebar`; a `HiddenTitleBar` window then gives its empty
+  `NSToolbar` the `.expanded` style, which puts the native lights at (9, 9). Its items take the compact size (24); SwiftUI draws them 28 high.
 - With `.with_sidebar(true)` the title goes at the start, next to `left`, in
   `TITLE_2`, as on macOS. While the sidebar shows, the traffic lights live in
   the sidebar; they keep their place while it folds.

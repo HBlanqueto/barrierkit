@@ -794,6 +794,7 @@
       "titlebar": {
         "padding-x": 10,
         "title-gap": 12,
+        "expanded-title": {"height": 28, "gap": 15},
         "double-click": {
           "interval-ms": 400,
           "slop": 4

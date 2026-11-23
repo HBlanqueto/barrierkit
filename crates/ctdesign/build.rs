@@ -515,6 +515,8 @@ TILE_MARGIN i32 components.tile.margin
 TILE_GAP i32 components.tile.gap
 TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
 TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
+TITLEBAR_EXPANDED_TITLE_HEIGHT f32 components.window.titlebar.expanded-title.height
+TITLEBAR_EXPANDED_TITLE_GAP f32 components.window.titlebar.expanded-title.gap
 MENU_MARK_TEXT_GAP f32 components.shell.menu.mark.text-gap
 MENU_ICON_TEXT_GAP f32 components.shell.menu.icon.text-gap
 MENU_SUBMENU_INTENT_MS u64 components.shell.menu.submenu.intent-ms

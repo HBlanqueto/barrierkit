@@ -9,7 +9,9 @@ use crate::views::toolbar::{ToolbarContent, lay_out, row};
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
 };
-use ctdesign::{ButtonKind, TITLEBAR_DOUBLE_CLICK};
+use ctdesign::{
+    ButtonKind, TITLEBAR_DOUBLE_CLICK, TITLEBAR_EXPANDED_TITLE_GAP, TITLEBAR_EXPANDED_TITLE_HEIGHT,
+};
 use ctdesign::{NATIVE_APP_ID_PREFIX, SIDEBAR, TOOLGROUP};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
@@ -27,6 +29,7 @@ use crate::theme;
 pub enum WindowToolbarStyle {
     Unified,
     UnifiedCompact,
+    Expanded,
 }
 
 #[derive(PartialEq)]
@@ -155,22 +158,33 @@ impl Component for Titlebar {
                 .as_ref()
                 .is_some_and(|controls| controls.hud || controls.panel);
         let panel = controls.as_ref().is_some_and(|controls| controls.panel);
-        let unified = self.toolbar_style.map_or(
-            self.sidebar || self.left.is_some() || self.right.is_some() || !self.toolbar.is_empty(),
-            |style| style == WindowToolbarStyle::Unified,
+        let toolbar_style = self.toolbar_style.unwrap_or(
+            if self.sidebar
+                || self.left.is_some()
+                || self.right.is_some()
+                || !self.toolbar.is_empty()
+            {
+                WindowToolbarStyle::Unified
+            } else {
+                WindowToolbarStyle::UnifiedCompact
+            },
         );
+        let unified = toolbar_style == WindowToolbarStyle::Unified;
+        let expanded = toolbar_style == WindowToolbarStyle::Expanded;
         let bar = if panel {
             Bar::Utility
-        } else if close_only {
+        } else if close_only || expanded {
             Bar::Titlebar
         } else if unified {
             Bar::Unified
         } else {
             Bar::UnifiedCompact
         };
-        crate::compact::use_toolbar_items(
-            matches!(bar, Bar::Unified | Bar::UnifiedCompact).then_some(bar),
-        );
+        crate::compact::use_toolbar_items(if expanded {
+            Some(Bar::UnifiedCompact)
+        } else {
+            matches!(bar, Bar::Unified | Bar::UnifiedCompact).then_some(bar)
+        });
         let bar_controls = controls.clone();
         use_side_effect_with_deps(&bar, move |bar| {
             if let Some(controls) = &bar_controls {
@@ -270,7 +284,17 @@ impl Component for Titlebar {
                 || controls
                     .as_ref()
                     .is_some_and(|controls| *controls.focus_bar.read()));
-        let (bar, height) = if unified {
+        let (bar, height) = if expanded && !close_only {
+            self.expanded_bar(
+                &style,
+                traffic,
+                native_lights,
+                slots,
+                (!status.fullscreen).then_some(title_label),
+                drag,
+                background,
+            )
+        } else if unified {
             let lights = match traffic {
                 Some(traffic) => Lights::Drawn(traffic),
                 None if native_lights && !sidebar => Lights::Native,
@@ -463,6 +487,78 @@ impl Titlebar {
                     .height(Size::px(*thickness))
                     .background(paints.fill(&StateValue::new(paint.clone())))
             }));
+        (bar.into_element(), height)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn expanded_bar(
+        &self,
+        style: &TitlebarStyle,
+        traffic: Option<Element>,
+        native_lights: bool,
+        slots: ToolbarSlots,
+        title_label: Option<Label>,
+        drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
+        background: Fill,
+    ) -> (Element, f32) {
+        let lights: TrafficLightsStyle = resolve(&Theme::tengen());
+        let (lights_x, lights_y, diameter) = ctappearance::traffic::button_rect(0);
+        let title_height = TITLEBAR_EXPANDED_TITLE_HEIGHT;
+        let lights_center = (lights_y + diameter / 2.0) as f32;
+        let title_row = rect()
+            .width(Size::fill())
+            .height(Size::px(title_height))
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .padding(Gaps::new(
+                2.0 * lights_center - title_height,
+                style.padding_x,
+                0.0,
+                lights_x as f32,
+            ))
+            .spacing(TITLEBAR_EXPANDED_TITLE_GAP)
+            .probe("titlebar-title")
+            .on_mouse_down(drag.clone())
+            .maybe_child(traffic)
+            .maybe_child(native_lights.then(|| {
+                rect()
+                    .width(Size::px(lights.length()))
+                    .height(Size::px(diameter as f32))
+            }))
+            .maybe_child(title_label);
+        let toolbar_row = rect()
+            .width(Size::fill())
+            .height(Size::px(style.height))
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .padding(Gaps::new(
+                0.0,
+                style.sidebar_padding_x,
+                0.0,
+                style.sidebar_padding_x,
+            ))
+            .spacing(style.sidebar_padding_x)
+            .probe("titlebar-left-slot")
+            .maybe_child(self.left.clone())
+            .maybe_child(slots.navigation)
+            .maybe_child(slots.trailing)
+            .child(
+                rect()
+                    .width(Size::flex(1.0))
+                    .height(Size::fill())
+                    .main_align(Alignment::Center)
+                    .cross_align(Alignment::Center)
+                    .on_mouse_down(drag)
+                    .maybe_child(slots.principal),
+            );
+        let height = title_height + style.height;
+        let bar = rect()
+            .width(Size::fill())
+            .height(Size::px(height))
+            .background(background)
+            .content(Content::flex())
+            .child(title_row)
+            .child(toolbar_row);
         (bar.into_element(), height)
     }
 

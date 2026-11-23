@@ -1,3 +1,4 @@
+use bk::compact::IconButton;
 use bk::platform::WindowControls;
 use bk::prelude::*;
 
@@ -7,8 +8,13 @@ fn main() -> Result<(), RunError> {
         Some("plain") => WindowStyle::Plain,
         _ => WindowStyle::TitleBar,
     };
+    let toolbar_style = match std::env::args().nth(2).as_deref() {
+        Some("compact") => WindowToolbarStyle::UnifiedCompact,
+        Some("expanded") => WindowToolbarStyle::Expanded,
+        _ => WindowToolbarStyle::Unified,
+    };
     run_window(
-        || {
+        move || {
             let controls = WindowControls::get();
             let status = *controls.status.read();
             // One line per change, for `scripts/macos-fullscreen.sh`.
@@ -21,7 +27,17 @@ fn main() -> Result<(), RunError> {
                 .child(
                     Titlebar::new()
                         .title("Full screen")
-                        .toolbar_style(WindowToolbarStyle::Unified),
+                        .toolbar_style(toolbar_style)
+                        .toolbar(ToolbarItem::new(
+                            ToolbarItemPlacement::Navigation,
+                            ToolGroup::new().child(IconButton::new(Symbol::ChevronLeft, "Back")),
+                        ))
+                        .toolbar(ToolbarItem::new(
+                            ToolbarItemPlacement::PrimaryAction,
+                            ToolGroup::new()
+                                .child(IconButton::new(Symbol::Plus, "New"))
+                                .child(IconButton::new(Symbol::SquareAndArrowUp, "Share")),
+                        )),
                 )
                 .child(
                     rect()

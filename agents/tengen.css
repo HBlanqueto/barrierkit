@@ -1221,6 +1221,8 @@
   --bk-window-traffic-lights-glyphs-zoom-exit-triangles-1: 7 7 12 7 7 12;
   --bk-window-titlebar-padding-x: 10;
   --bk-window-titlebar-title-gap: 12;
+  --bk-window-titlebar-expanded-title-height: 28;
+  --bk-window-titlebar-expanded-title-gap: 15;
   --bk-window-titlebar-double-click-interval-ms: 400;
   --bk-window-titlebar-double-click-slop: 4;
   --bk-window-titlebar-rail-width: 30;

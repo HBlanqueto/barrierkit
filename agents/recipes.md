@@ -359,7 +359,7 @@ The program is [`recipes/tasks_list.rs`](recipes/tasks_list.rs).
 
 1. A `Titlebar` with items is the unified toolbar: 52 high, the lights at their
    place and the title at the start. `.toolbar_style(WindowToolbarStyle::UnifiedCompact)`
-   gives the compact bar with a centered title.
+   gives the compact bar with a centered title, and `Expanded` a title row over the toolbar row.
 2. A `ToolGroup` of two items is a 76 wide capsule and one item is a 38 circle;
    no divider, as in SwiftUI.
 
@@ -493,7 +493,8 @@ The program is [`recipes/shapes.rs`](recipes/shapes.rs).
 
 SwiftUI: the green light, `View > Enter Full Screen`, and `NSWindow.didEnterFullScreenNotification`.
 
-The program is [`recipes/full_screen.rs`](recipes/full_screen.rs). It takes `title-bar`, `hidden-title-bar` or `plain`.
+The program is [`recipes/full_screen.rs`](recipes/full_screen.rs). It takes `title-bar`, `hidden-title-bar` or `plain`,
+then `unified`, `compact` or `expanded` for its `WindowToolbarStyle`: SwiftUI's `.toolbar { }` with `.windowToolbarStyle(..)`.
 
 1. `WindowControls::get().status.read().fullscreen` is true while the window is in full screen, whichever way it
    got there: the native green light of a `TitleBar` or `HiddenTitleBar` window, the kit's own light of a `Plain`
