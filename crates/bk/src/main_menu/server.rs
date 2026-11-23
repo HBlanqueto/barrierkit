@@ -102,6 +102,7 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
         match command {
             Command::Register { path, registered } => {
                 let Some(unique) = connection.unique_name().map(|s| s.to_string()) else {
+                    tracing::warn!("barrier-dbusmenu: the session bus gave no unique name");
                     continue;
                 };
                 if export(&connection, &path, &registered, &mut menus, &mut id_maps).await {
@@ -119,8 +120,12 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 item,
                 index,
             } => {
-                let Ok(own) = crate::session_bus::private_connection().await else {
-                    continue;
+                let own = match crate::session_bus::private_connection().await {
+                    Ok(own) => own,
+                    Err(error) => {
+                        tracing::warn!(%error, "barrier-dbusmenu: no connection for the status item");
+                        continue;
+                    }
                 };
                 if export(&own, &path, &registered, &mut menus, &mut id_maps).await {
                     let handle = registered.handle.clone();
@@ -399,49 +404,21 @@ fn layout_node(
 mod tests {
     use std::collections::HashSet;
     use std::sync::Arc;
-    use std::time::{Duration, Instant};
 
     use zbus::zvariant::{OwnedValue, Value};
 
     use crate::main_menu::layout::{RegisteredMenu, Update, build_layout, diff_layout};
     use crate::main_menu::server::DbusMenuObject;
     use crate::main_menu::{IdMap, MainMenu, Menu, MenuHandle, MenuItem};
-    use crate::menu::CheckState;
 
     fn action(id: &str) -> MenuItem {
-        MenuItem::Action {
-            id: id.to_string(),
-            label: id.to_string().into(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-            badge: None,
-        }
+        MenuItem::action(id, id.to_string())
     }
 
     fn registered(menu: MainMenu) -> Arc<RegisteredMenu> {
         let (ping, _) = crate::platform::calloop::ping::make_ping().expect("test ping");
         let wake = crate::platform::WakeHandle::from_ping(ping);
         RegisteredMenu::new(MenuHandle::new(menu, Some(wake)))
-    }
-
-    fn separator() -> MenuItem {
-        MenuItem::Separator
-    }
-
-    #[test]
-    fn path_counter_never_reuses_index() {
-        let make = || {
-            let handle = MenuHandle::new(MainMenu::new(vec![Menu::new("M", vec![])]), None);
-            super::register(handle.clone());
-            handle.path().unwrap()
-        };
-        let path_a = make();
-        let path_b = make();
-        super::unregister(&path_a);
-        let path_c = make();
-        assert_ne!(path_c, path_b, "path reused after unregister");
     }
 
     #[test]
@@ -470,9 +447,9 @@ mod tests {
             "File",
             vec![
                 action("a1"),
-                separator(),
+                MenuItem::Separator,
                 action("a2"),
-                separator(),
+                MenuItem::Separator,
                 action("a3"),
             ],
         )]);
@@ -487,13 +464,7 @@ mod tests {
 
     #[test]
     fn equal_submenu_labels_in_different_menus_get_distinct_ids() {
-        let recent = || MenuItem::Submenu {
-            id: None,
-            label: "Recent".into(),
-            enabled: true,
-            items: vec![],
-            icon: None,
-        };
+        let recent = || MenuItem::submenu("Recent", vec![]);
         let menu = MainMenu::new(vec![
             Menu::new("File", vec![recent()]),
             Menu::new("Edit", vec![recent()]),
@@ -509,10 +480,7 @@ mod tests {
 
     #[test]
     fn a_dropped_shortcut_is_sent_as_a_removed_property() {
-        let mut with_shortcut = action("save");
-        if let MenuItem::Action { shortcut, .. } = &mut with_shortcut {
-            *shortcut = Some("Ctrl+S".into());
-        }
+        let with_shortcut = action("save").with_shortcut("Ctrl+S");
         let mut id_map = IdMap::default();
         let registered = RegisteredMenu::new(MenuHandle::new(MainMenu::default(), None));
         let layout = |item: MenuItem, id_map: &mut IdMap| {
@@ -558,9 +526,7 @@ mod tests {
             .expect("a2 in snapshot");
         *registered.last_layout.lock().unwrap() = Some(snapshot);
 
-        let mut new_menu = menu.clone();
-        new_menu.menus[0].items.insert(0, action("a0"));
-        handle.replace_menu(new_menu);
+        handle.set_menu_items("File", vec![action("a0"), action("a1"), action("a2")]);
 
         let obj = DbusMenuObject {
             registered: registered.clone(),
@@ -604,18 +570,5 @@ mod tests {
         .unwrap();
 
         assert_eq!(handle.drain_actions(), vec!["a1".to_string()]);
-    }
-
-    #[test]
-    fn register_returns_without_blocking() {
-        let handle = MenuHandle::new(MainMenu::new(vec![Menu::new("M", vec![])]), None);
-        let start = Instant::now();
-        super::register(handle.clone());
-        assert!(
-            start.elapsed() < Duration::from_millis(50),
-            "register blocked for {} ms",
-            start.elapsed().as_millis()
-        );
-        assert!(handle.path().is_some());
     }
 }

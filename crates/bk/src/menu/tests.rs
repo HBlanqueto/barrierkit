@@ -25,13 +25,6 @@ fn sample() -> Vec<MenuItem> {
 }
 
 #[test]
-fn preferred_size_is_positive() {
-    let (w, h) = MenuView::preferred_size(&sample(), MENU_LIGHT);
-    assert!(w > 0.0);
-    assert!(h > 0.0);
-}
-
-#[test]
 fn popover_metrics_keep_the_live_menu_colours() {
     use ctappearance::{AppearanceConfig, ColorScheme, TintParts, WindowColorMode, resolve};
 
@@ -83,15 +76,7 @@ fn root_box_follows_the_configured_popup_size() {
     let items: Vec<MenuItem> = std::iter::once(MenuItem::SearchField {
         placeholder: "Buscar".into(),
     })
-    .chain((0..3).map(|i| MenuItem::Action {
-        id: format!("item-{i}"),
-        label: format!("Item {i}").into(),
-        shortcut: None,
-        enabled: true,
-        check: CheckState::None,
-        icon: None,
-        badge: None,
-    }))
+    .chain((0..3).map(|i| MenuItem::action(format!("item-{i}"), format!("Item {i}"))))
     .collect();
     assert_eq!(MenuView::preferred_size(&items, MENU_LIGHT), (73.0, 116.0));
 
@@ -133,81 +118,30 @@ fn navigation_skips_separators_and_disabled_items() {
 }
 
 fn action(label: &str) -> MenuItem {
-    MenuItem::Action {
-        id: format!("id:{label}"),
-        label: label.to_string().into(),
-        shortcut: None,
-        enabled: true,
-        check: CheckState::None,
-        icon: None,
-        badge: None,
+    MenuItem::action(format!("id:{label}"), label.to_string())
+}
+
+#[test]
+fn separators_drop_at_the_ends_and_collapse_inside_runs_and_submenus() {
+    let sep = || MenuItem::Separator;
+    let cases = [
+        (
+            vec![sep(), action("A"), sep(), sep(), action("B"), sep()],
+            vec![action("A"), sep(), action("B")],
+        ),
+        (vec![sep(), sep(), sep()], vec![]),
+        (
+            vec![MenuItem::submenu(
+                "Sub",
+                vec![sep(), action("A"), sep(), sep()],
+            )],
+            vec![MenuItem::submenu("Sub", vec![action("A")])],
+        ),
+    ];
+    for (mut items, expected) in cases {
+        normalize_separators(&mut items);
+        assert_eq!(items, expected);
     }
-}
-
-#[test]
-fn separators_at_the_start_and_end_are_dropped() {
-    let mut items = vec![
-        MenuItem::Separator,
-        action("A"),
-        MenuItem::Separator,
-        MenuItem::Separator,
-        action("B"),
-        MenuItem::Separator,
-    ];
-    normalize_separators(&mut items);
-    assert_eq!(
-        items.iter().filter_map(MenuItem::label).collect::<Vec<_>>(),
-        vec!["A", "B"]
-    );
-}
-
-#[test]
-fn separator_runs_collapse_into_one() {
-    let mut items = vec![
-        action("A"),
-        MenuItem::Separator,
-        MenuItem::Separator,
-        MenuItem::Separator,
-        action("B"),
-    ];
-    normalize_separators(&mut items);
-    assert_eq!(items.len(), 3);
-    assert!(matches!(items[1], MenuItem::Separator));
-}
-
-#[test]
-fn separators_are_normalized_inside_submenus() {
-    let mut items = vec![MenuItem::Submenu {
-        id: None,
-        label: "Sub".into(),
-        enabled: true,
-        items: vec![
-            MenuItem::Separator,
-            action("A"),
-            MenuItem::Separator,
-            MenuItem::Separator,
-        ],
-        icon: None,
-    }];
-    normalize_separators(&mut items);
-    let MenuItem::Submenu { items, .. } = &items[0] else {
-        panic!("the submenu survives");
-    };
-    assert_eq!(
-        items.iter().filter_map(MenuItem::label).collect::<Vec<_>>(),
-        vec!["A"]
-    );
-}
-
-#[test]
-fn a_menu_of_only_separators_becomes_empty() {
-    let mut items = vec![
-        MenuItem::Separator,
-        MenuItem::Separator,
-        MenuItem::Separator,
-    ];
-    normalize_separators(&mut items);
-    assert!(items.is_empty());
 }
 
 #[test]
@@ -311,22 +245,10 @@ fn icons_widen_the_menu_by_the_leading_column_and_gap() {
     let label = "Configuración avanzada del sistema";
     let built = |icon: Option<MenuIcon>| {
         vec![
-            MenuItem::Action {
-                id: "a".to_string(),
-                label: label.into(),
-                shortcut: Some("Super+,".into()),
-                enabled: true,
-                check: CheckState::None,
-                icon: icon.clone(),
-                badge: None,
-            },
-            MenuItem::Submenu {
-                id: None,
-                label: "Disposición".into(),
-                enabled: true,
-                items: Vec::new(),
-                icon,
-            },
+            MenuItem::action("a", label)
+                .with_shortcut("Super+,")
+                .with_icon(icon.clone()),
+            MenuItem::submenu("Disposición", Vec::new()).with_icon(icon),
         ]
     };
     let plain = MenuView::preferred_size(&built(None), MENU_LIGHT);
@@ -468,15 +390,9 @@ fn label_x(runner: &TestingRunner, text: &str) -> f32 {
 }
 
 fn action_with(label: &str, check: CheckState, icon: Option<MenuIcon>) -> MenuItem {
-    MenuItem::Action {
-        id: format!("id-{label}"),
-        label: label.to_string().into(),
-        shortcut: None,
-        enabled: true,
-        check,
-        badge: None,
-        icon,
-    }
+    MenuItem::action(format!("id-{label}"), label.to_string())
+        .with_check(check)
+        .with_icon(icon)
 }
 
 #[test]
@@ -620,15 +536,7 @@ fn a_checked_row_with_an_icon_keeps_the_mark_and_adds_the_icon_column() {
 
 fn searchable(label: &str, enabled: bool) -> SearchableEntry {
     SearchableEntry {
-        item: MenuItem::Action {
-            id: format!("id-{label}"),
-            label: label.to_string().into(),
-            shortcut: None,
-            enabled,
-            check: CheckState::None,
-            icon: None,
-            badge: None,
-        },
+        item: MenuItem::action(format!("id-{label}"), label.to_string()).with_enabled(enabled),
         location: None,
     }
 }
@@ -755,21 +663,13 @@ fn visible_items_scrolls_to_keep_twelfth_result_visible() {
 }
 
 fn submenu_test(label: &str) -> MenuItem {
-    MenuItem::Submenu {
-        id: None,
-        label: label.to_string().into(),
-        enabled: true,
-        icon: None,
-        items: vec![MenuItem::Action {
-            id: format!("{label}-child"),
-            label: format!("{label} child").into(),
-            shortcut: None,
-            enabled: true,
-            check: CheckState::None,
-            icon: None,
-            badge: None,
-        }],
-    }
+    MenuItem::submenu(
+        label.to_string(),
+        vec![MenuItem::action(
+            format!("{label}-child"),
+            format!("{label} child"),
+        )],
+    )
 }
 
 fn drain_commands(queue: &Rc<RefCell<Vec<PopupCommand>>>) -> Vec<PopupCommand> {

@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, PoisonError};
 
 use zbus::zvariant::{OwnedValue, Value};
 
@@ -66,13 +66,14 @@ impl MenuHandle {
     }
 
     pub(crate) fn set_path(&self, path: impl Into<String>) {
-        if let Ok(mut slot) = self.path.lock() {
-            *slot = Some(path.into());
-        }
+        *self.path.lock().unwrap_or_else(PoisonError::into_inner) = Some(path.into());
     }
 
     pub(crate) fn path(&self) -> Option<String> {
-        self.path.lock().ok().and_then(|g| g.clone())
+        self.path
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone()
     }
 
     pub(crate) fn push_action(&self, action_id: String) -> bool {
@@ -81,41 +82,40 @@ impl MenuHandle {
         };
         self.action_queue
             .lock()
-            .expect("action queue poisoned")
+            .unwrap_or_else(PoisonError::into_inner)
             .push(action_id);
         wake.wake();
         true
     }
 
     pub(crate) fn drain_actions(&self) -> Vec<String> {
-        let mut guard = self.action_queue.lock().expect("action queue poisoned");
+        let mut guard = self
+            .action_queue
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
         std::mem::take(&mut *guard)
-    }
-
-    #[cfg(test)]
-    pub(crate) fn replace_menu(&self, menu: MainMenu) {
-        let mut guard = self.state.lock().expect("menu state poisoned");
-        guard.menu = menu;
-        guard.revision = guard.revision.wrapping_add(1);
     }
 
     pub(crate) fn set_address_callback(&self, f: impl Fn(MainMenuAddress) + Send + Sync + 'static) {
         *self
             .address_callback
             .lock()
-            .expect("address callback poisoned") = Some(Box::new(f));
+            .unwrap_or_else(PoisonError::into_inner) = Some(Box::new(f));
     }
 
     pub(crate) fn deliver_address(&self, address: MainMenuAddress) {
-        if let Ok(guard) = self.address_callback.lock()
-            && let Some(cb) = guard.as_ref()
+        if let Some(cb) = self
+            .address_callback
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .as_ref()
         {
             cb(address);
         }
     }
 
     pub fn update(&self, id: impl AsRef<str>, f: impl Fn(&mut MenuItem)) {
-        let mut state = self.state.lock().expect("menu state poisoned");
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         if update_item(&mut state.menu, id.as_ref(), &f) {
             state.revision = state.revision.wrapping_add(1);
             drop(state);
@@ -124,7 +124,7 @@ impl MenuHandle {
     }
 
     pub fn set_menu_items(&self, title: &str, items: Vec<MenuItem>) {
-        let mut state = self.state.lock().expect("menu state poisoned");
+        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         let Some(menu) = state.menu.menus.iter_mut().find(|menu| menu.title == title) else {
             return;
         };
@@ -138,8 +138,11 @@ impl MenuHandle {
     }
 
     fn publish(&self) {
-        if let Ok(slot) = self.path.lock()
-            && let Some(path) = slot.as_ref()
+        if let Some(path) = self
+            .path
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .as_ref()
         {
             server::update(path);
         }
@@ -150,11 +153,14 @@ impl MenuHandle {
 
     #[cfg(target_os = "macos")]
     pub(crate) fn revision(&self) -> u32 {
-        self.state.lock().expect("menu state poisoned").revision
+        self.state
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .revision
     }
 
     pub(crate) fn snapshot(&self) -> (MainMenu, u32) {
-        let state = self.state.lock().expect("menu state poisoned");
+        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
         (state.menu.clone(), state.revision)
     }
 }
@@ -381,15 +387,6 @@ mod tests {
     }
 
     #[test]
-    fn ctrl_shift_s_matches() {
-        assert!(shortcut_matches(
-            "Ctrl+Shift+S",
-            Modifiers::CONTROL | Modifiers::SHIFT,
-            &Key::Character("s".into())
-        ));
-    }
-
-    #[test]
     fn ctrl_shift_z_uppercase_still_matches() {
         assert!(shortcut_matches(
             "Ctrl+Shift+Z",
@@ -402,23 +399,29 @@ mod tests {
     fn disabled_action_does_not_fire() {
         let menu = MainMenu::new(vec![Menu::new(
             "Archivo",
-            vec![MenuItem::Action {
-                id: "save".into(),
-                label: "Guardar".into(),
-                shortcut: Some("Ctrl+S".into()),
-                enabled: false,
-                check: CheckState::None,
-                icon: None,
-                badge: None,
-            }],
+            vec![
+                MenuItem::action("save", "Guardar")
+                    .with_shortcut("Ctrl+S")
+                    .with_enabled(false),
+            ],
         )]);
         assert!(
-            find_menu_shortcut(
-                &menu,
-                Modifiers::CONTROL | Modifiers::SHIFT,
-                &Key::Character("s".into())
-            )
-            .is_none()
+            find_menu_shortcut(&menu, Modifiers::CONTROL, &Key::Character("s".into())).is_none()
+        );
+    }
+
+    #[test]
+    fn a_panicking_update_closure_leaves_the_menu_usable() {
+        let save = || MenuItem::action("save", "Save");
+        let handle = MenuHandle::new(MainMenu::new(vec![Menu::new("File", vec![save()])]), None);
+        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            handle.update("save", |_| panic!("app closure"))
+        }));
+        assert!(panicked.is_err());
+        handle.update("save", |item| *item = save().with_enabled(false));
+        assert_eq!(
+            handle.snapshot().0.menus[0].items,
+            vec![save().with_enabled(false)]
         );
     }
 

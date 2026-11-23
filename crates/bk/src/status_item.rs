@@ -143,7 +143,11 @@ pub(crate) async fn serve(
     handle: MenuHandle,
     index: u32,
 ) -> Option<Exported> {
-    let menu = OwnedObjectPath::try_from(menu).ok()?;
+    let menu = OwnedObjectPath::try_from(menu)
+        .inspect_err(
+            |error| tracing::warn!(%error, "BarrierKit: the status item menu path is invalid"),
+        )
+        .ok()?;
     let object = ItemObject { item, menu, handle };
     if !crate::session_bus::export(&connection, ITEM_PATH, object).await {
         return None;
@@ -154,10 +158,16 @@ pub(crate) async fn serve(
         return None;
     }
     register_with_watcher(&connection, &name).await;
-    let bus = zbus::fdo::DBusProxy::new(&connection).await.ok()?;
+    let bus = zbus::fdo::DBusProxy::new(&connection)
+        .await
+        .inspect_err(|error| tracing::warn!(%error, "BarrierKit: no bus proxy for the status item"))
+        .ok()?;
     let mut owners = bus
         .receive_name_owner_changed_with_args(&[(0, WATCHER)])
         .await
+        .inspect_err(
+            |error| tracing::warn!(%error, "BarrierKit: cannot watch the status item watcher"),
+        )
         .ok()?;
     let reregister = connection.executor().spawn(
         {
