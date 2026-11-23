@@ -5449,12 +5449,14 @@
   --bk-panel-inner-edge: #ffffff00;
   --bk-panel-glow: #ffffff00;
   --bk-sidebar-bg: #ededed;
+  --bk-sidebar-bg-reduced: #f7f7f7;
   --bk-sidebar-selection: #0270f5;
   --bk-toolbar-bg: #ffffff;
   --bk-toolbar-line: #0000001a;
   --bk-sidebar-glass-base: #e5e7e8;
   --bk-sidebar-glass-solid: #f1f2f3;
   --bk-toolbar-glass-bg: #f8f8f863;
+  --bk-toolbar-glass-bg-reduced: #ffffff;
   --bk-toolgroup-rim: #0000003d;
   --bk-toolgroup-separator: #00000039;
 }
@@ -5707,12 +5709,14 @@
     --bk-panel-inner-edge: #ffffff42;
     --bk-panel-glow: #ffffff0a;
     --bk-sidebar-bg: #262626;
+    --bk-sidebar-bg-reduced: #141414;
     --bk-sidebar-selection: #007aff;
     --bk-toolbar-bg: #262626;
     --bk-toolbar-line: #ffffff13;
     --bk-sidebar-glass-base: #202020;
     --bk-sidebar-glass-solid: #202020;
     --bk-toolbar-glass-bg: #3f3f3f;
+    --bk-toolbar-glass-bg-reduced: #333333;
     --bk-toolgroup-rim: #ffffff1a;
     --bk-toolgroup-separator: #ffffff39;
   }
@@ -5965,12 +5969,14 @@
   --bk-panel-inner-edge: #ffffff42;
   --bk-panel-glow: #ffffff0a;
   --bk-sidebar-bg: #262626;
+  --bk-sidebar-bg-reduced: #141414;
   --bk-sidebar-selection: #007aff;
   --bk-toolbar-bg: #262626;
   --bk-toolbar-line: #ffffff13;
   --bk-sidebar-glass-base: #202020;
   --bk-sidebar-glass-solid: #202020;
   --bk-toolbar-glass-bg: #3f3f3f;
+  --bk-toolbar-glass-bg-reduced: #333333;
   --bk-toolgroup-rim: #ffffff1a;
   --bk-toolgroup-separator: #ffffff39;
 }
@@ -6222,12 +6228,14 @@
   --bk-panel-inner-edge: #ffffff42;
   --bk-panel-glow: #ffffff0a;
   --bk-sidebar-bg: #252628;
+  --bk-sidebar-bg-reduced: #252628;
   --bk-sidebar-selection: #007aff;
   --bk-toolbar-bg: #252628;
   --bk-toolbar-line: #ffffff13;
   --bk-sidebar-glass-base: #191a1c;
   --bk-sidebar-glass-solid: #191a1c;
   --bk-toolbar-glass-bg: #393a3ed6;
+  --bk-toolbar-glass-bg-reduced: #393a3e;
   --bk-toolgroup-rim: #ffffff1a;
   --bk-toolgroup-separator: #ffffff39;
 }

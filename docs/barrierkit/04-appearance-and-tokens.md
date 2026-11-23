@@ -1176,13 +1176,13 @@ applies them, within 1.5 levels of the captures
 | `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |
 | `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `use_shell_theme`. |
 | `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
-| `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Sidebar background, measured on macOS 27: `#ededed` in light and `#262626` in dark. |
+| `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Sidebar background, measured on macOS 27: `#ededed` in light and `#262626` in dark; the `_OPAQUE` ones are the same with Reduce Transparency on: `#f7f7f7` in light and `#141414` in dark. |
 | `TOOLBAR_BG_LIGHT`, `TOOLBAR_BG_DARK`, `TOOLBAR_BG_DARK_TINT` | `Rgba` | Background of the unified title bar beside a sidebar (`Surfaces::toolbar`): `#ffffff` in light and `#262626` in dark. |
 | `TOOLBAR_LINE_LIGHT`, `TOOLBAR_LINE_DARK`, `TOOLBAR_LINE_DARK_TINT` | `Rgba` | The 1 px line under that bar (`Surfaces::toolbar_line`): `#0000001a` in light and `#ffffff13` in dark. |
 | `SIDEBAR_GLASS_BASE_LIGHT`, `SIDEBAR_GLASS_BASE_DARK`, `SIDEBAR_GLASS_BASE_DARK_TINT` | `Rgba` | Tone of the sidebar glass at rest: a gray `#202020` in dark (L 0.245 in OKLab) and `#e5e7e8` in light (L 0.927), a little darker than the `#ebedee` measured on macOS so that the tint shows; dark tint is an estimate. |
 | `SIDEBAR_GLASS_SOLID_LIGHT`, `SIDEBAR_GLASS_SOLID_DARK`, `SIDEBAR_GLASS_SOLID_DARK_TINT` | `Rgba` | Tone of the sidebar glass when its window is not active. Light is `#f1f2f3`, measured; dark is the tone at rest. |
 | `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme: the selection (`#0270f5` in light, `#007aff` in dark) and the rest. |
-| `TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE` | `Rgba` | Toolbar group background. |
+| `TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE` | `Rgba` | Toolbar group background; with Reduce Transparency (`_OPAQUE`): `#ffffff` in light and `#333333` in dark, measured on macOS 27. |
 | `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | `ToolgroupPalette` | Toolbar group lines per theme. |
 
 An `_OPAQUE` constant is its translucent twin painted over the theme's window

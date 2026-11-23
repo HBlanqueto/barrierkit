@@ -12,7 +12,7 @@
 2. Blur is the system's default. Reduce Transparency is the system's switch: the script reads it, refuses to run when it differs from `--transparency`, and never changes it. The user turns it on and off in System Settings > Accessibility > Display.
 3. Run `scripts/appearance-matrix.py --transparency blur`. It takes `/tmp/barrierkit-screen.lock`, opens each probe and each example as an app bundle, captures their windows (`screencapture -l`, through the sRGB profile) and prints the share of pixels that differ by more than 8 levels, per element. A window that is not key (its red light is gray) is captured again.
 4. The five twins (notes, tasks, form, controls, standalone) are the bench `crates/bk/tests/kit/swiftui_twin.rs`: references in `crates/bk/tests/reference/swiftui-<twin>-<cell>.png`, cells `light`, `dark`, `light-rt`, `dark-rt` (a cell without a reference is skipped). `scripts/twin-reference.sh <twin> <light|dark> <out.png>` captures a reference.
-5. With Reduce Transparency on: `scripts/appearance-matrix.py --transparency rt --references --live-compare DIR`, after `--live-capture DIR` was started before the flip (it waits for the user, captures the same running examples again, and the batch compares them with fresh ones).
+5. With Reduce Transparency on: start `--live-capture DIR` before the flip (it waits for the user and releases the screen lock meanwhile, then captures the same running examples again), then run `scripts/appearance-matrix.py --transparency rt --references --live-compare DIR` as one batch. Ask the user to turn the switch back off.
 
 ## Cells
 
@@ -47,6 +47,40 @@
 | Sheet | sheet and veil | 0.0 | 0.0 | 2 | |
 
 The bench for the five twins holds its per-element ceilings in `swiftui_twin.rs`; the blur cells are its `light` and `dark`.
+
+## Reduce Transparency on (2026-11-22)
+
+Measured with the system switch on, turned on by the user for one batch (`--transparency rt --references --live-compare`); the five twin references `swiftui-<twin>-<light|dark>-rt.png` were captured in the same window.
+
+| Surface | Element | Light | Dark | Ceiling | Cause of what is left |
+|---|---|---|---|---|---|
+| Notes | sidebar background | 0.0 | 0.0 | 1 | was 100% before the token change below |
+| | toggle, rows, title, toolbar group, lights | 17, 8, 9, 11, 8 | 22, 9, 9, 17, 11 | as blur (toolbar group 18) | as in blur |
+| Toolbar glass | toolbar group | 25 | 74 | 76 | dark: SwiftUI's capsule is 51, the kit's was 63 (changed to 51; not measured again, the switch was off by then) |
+| | title bar veil | 17 | 17 | 20 | the veil is a solid white band; SwiftUI's is 52 deep, the kit's 96 |
+| | rows | 4 | 4 | 6 | the scroller |
+| `GlassContainer` | pairs | 29 | 29 | 32 | the kit's solid is the media material tint (dark); SwiftUI's is light |
+| Popover | arrow, body | 23, 4 | 60, 86 | as blur | as in blur |
+| Sheet | sheet and veil | 0.0 | 0.0 | 2 | |
+| Tasks twin | title bar edge | 12.5 | 12.5 | 13 | a hairline SwiftUI draws under the toolbar when Reduce Transparency replaces its scroll-edge effect; the kit draws none (blur: 0.0) |
+| Notes twin | sidebar selected row | 14.4 | 14.3 | 15 | blur 11 |
+| Controls, form, standalone twins | all | as blur | as blur | as blur | |
+
+- **Sidebar and toolbar group.** With the switch on, SwiftUI's window sidebar is `#f7f7f7` in light and `#141414` in dark (blur: `#ededed`, `#262626`), and its toolbar capsule `#ffffff` and `#333333` (kit: 252 and 63). `sidebar-bg-reduced` and `toolbar-glass-bg-reduced` in `tokens.json` replace the flattened translucent colors in the `_OPAQUE` constants. The notes twin went from 56 to 100% differing in the sidebar to 0.0%.
+- **Dark title bar.** Under the switch SwiftUI's dark title bar is 30, the window color; the kit's is 38. Not changed.
+
+## Live path
+
+`scripts/appearance-matrix.py --live-capture DIR` opens four kit examples, captures them, waits for the user to flip the switch and captures them again in the same processes (the kit hears `NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification`); `--live-compare DIR` compares those captures with fresh ones.
+
+| Example | Blur to Reduce Transparency | Reduce Transparency to blur |
+|---|---|---|
+| Notes with native lights | the sidebar, the toggle and the toolbar group follow (0.0% against a cold start); the rows and the lights differ by 35% and 20% because the window was not the key window | not captured |
+| Popover | follows (0.0 and 1.9%) | not captured |
+| Toolbar glass | **the veil is missing**: the native veil goes and the kit's solid one does not appear (84% against a cold start) | follows: the veil and the glass come back |
+| `GlassContainer` | **the glasses disappear**: the native ones go and the Skia ones do not appear | not captured |
+
+The cause of the first direction is not found: the same code draws the solid veil in a cold start, and the reverse direction works. It needs the system switch to reproduce (the macOS runner does not watch `appearance.domain`). Open.
 
 ## What the numbers say
 
