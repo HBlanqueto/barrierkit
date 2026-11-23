@@ -183,9 +183,17 @@ In an `Application`, a `HiddenTitleBar` or `Plain` window gets no kit
 A `Plain` window moves with `WindowControls::move_window` (a press on the
 `Titlebar`): the view moves it while the button is down, because
 `performWindowDragWithEvent` does not begin on macOS 27.2. It resizes from the
-edge AppKit gives a resizable window. Only the titled styles have the system's
-shadow and the Move & Resize menu on the green light. Full
-screen of a `Plain` window fills the screen and hides the menu bar and the Dock, without a Space of its own.
+edge AppKit gives a resizable window. A double click on the `Titlebar` does
+what `double_click_titlebar` says. Only the titled styles have the system's
+shadow and the Move & Resize menu on the green light; no public API shows that
+menu, so the kit's green light has none.
+
+A `Plain` window enters AppKit's full screen (`.fullScreenPrimary` and
+`toggleFullScreen`): a Space of its own and the transition of a titled window,
+with square corners. The menu bar and the Dock stay hidden, because with the
+menu bar AppKit lays its own title strip and dimmed lights over the window's
+top edge. The kit hides its lights in full screen, so the app offers a way out
+that calls `toggle_fullscreen()`.
 
 ```rust
 WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain)

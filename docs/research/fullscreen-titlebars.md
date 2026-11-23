@@ -151,7 +151,12 @@ Notes on the table:
   like SwiftUI (3 bounds), kit Plain jumps (2 bounds), SwiftUI `.plain` never
   enters full screen.
 
-## Proposed fixes, ranked (not implemented)
+## Proposed fixes, ranked
+
+Fix 2 is in the kit since 2026-11-23, with `HideMenuBar|HideDock` returned
+from `window:willUseFullScreenPresentationOptions:`, which keeps AppKit's
+title strip off the top edge ([csd-window-designs.md](csd-window-designs.md),
+row D). The tables above describe the kit before it.
 
 1. **Plain enter/exit animation, smallest change.** In
    `toggle_borderless_fullscreen` (`crates/bk/src/platform/macos/mod.rs`) call

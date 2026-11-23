@@ -9,10 +9,11 @@ use objc2::{
     AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send, sel,
 };
 use objc2_app_kit::{
-    NSApplication, NSBackingStoreType, NSDragOperation, NSDraggingContext, NSDraggingSession,
-    NSDraggingSource, NSEvent, NSEventModifierFlags, NSGlassEffectContainerView, NSGlassEffectView,
-    NSPanel, NSTextInputClient, NSTrackingArea, NSTrackingAreaOptions, NSView, NSVisualEffectView,
-    NSWindow, NSWindowDelegate, NSWindowDidMoveNotification, NSWindowStyleMask,
+    NSApplication, NSApplicationPresentationOptions, NSBackingStoreType, NSDragOperation,
+    NSDraggingContext, NSDraggingSession, NSDraggingSource, NSEvent, NSEventModifierFlags,
+    NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSTextInputClient, NSTrackingArea,
+    NSTrackingAreaOptions, NSView, NSVisualEffectView, NSWindow, NSWindowDelegate,
+    NSWindowDidMoveNotification, NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification,
@@ -514,6 +515,21 @@ define_class!(
             }
             self.show_toolbar(true);
             with_runtime(|runtime| runtime.fullscreen_changed(id));
+        }
+
+        // A borderless window gets AppKit's title strip at the top edge unless the menu bar stays hidden.
+        #[unsafe(method(window:willUseFullScreenPresentationOptions:))]
+        fn full_screen_presentation(
+            &self,
+            window: &NSWindow,
+            proposed: NSApplicationPresentationOptions,
+        ) -> NSApplicationPresentationOptions {
+            if window.styleMask().contains(NSWindowStyleMask::Titled) {
+                return proposed;
+            }
+            NSApplicationPresentationOptions::FullScreen
+                | NSApplicationPresentationOptions::HideMenuBar
+                | NSApplicationPresentationOptions::HideDock
         }
 
         #[unsafe(method(windowShouldClose:))]

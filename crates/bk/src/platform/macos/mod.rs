@@ -23,11 +23,11 @@ use objc2::runtime::ProtocolObject;
 use objc2::{MainThreadMarker, sel};
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
-    NSApplication, NSApplicationActivationPolicy, NSApplicationPresentationOptions,
-    NSAutoresizingMaskOptions, NSColor, NSEvent, NSEventModifierFlags, NSEventType,
-    NSLayoutAttribute, NSTitlebarAccessoryViewController, NSTitlebarSeparatorStyle, NSToolbar,
-    NSView, NSVisualEffectBlendingMode, NSWindow, NSWindowButton, NSWindowDelegate,
-    NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility, NSWindowToolbarStyle,
+    NSApplication, NSApplicationActivationPolicy, NSAutoresizingMaskOptions, NSColor, NSEvent,
+    NSEventModifierFlags, NSEventType, NSLayoutAttribute, NSTitlebarAccessoryViewController,
+    NSTitlebarSeparatorStyle, NSToolbar, NSView, NSVisualEffectBlendingMode, NSWindow,
+    NSWindowButton, NSWindowCollectionBehavior, NSWindowDelegate, NSWindowOrderingMode,
+    NSWindowStyleMask, NSWindowTitleVisibility, NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -138,8 +138,6 @@ struct Window {
     app: AppInstance,
     controls: Option<WindowControls>,
     popup: Option<PopupState>,
-    // The frame a borderless window had before it filled the screen.
-    restore: Option<NSRect>,
     ime_area: Option<ImeArea>,
     // A window the process lives for: not a popup, a sheet or a utility window.
     main: bool,
@@ -237,12 +235,7 @@ fn native(id: u64, command: Native) {
         }
         Native::Minimize => window.miniaturize(None),
         Native::Zoom => window.zoom(None),
-        Native::FullScreen if window.styleMask().contains(NSWindowStyleMask::Titled) => {
-            window.toggleFullScreen(None)
-        }
-        Native::FullScreen => {
-            with_runtime(|runtime| runtime.toggle_borderless_fullscreen(id));
-        }
+        Native::FullScreen => window.toggleFullScreen(None),
         Native::Front => window.makeKeyAndOrderFront(None),
         Native::Present => {
             window.makeKeyAndOrderFront(None);
@@ -415,42 +408,6 @@ impl Runtime {
         }
     }
 
-    // `toggleFullScreen` needs a titled window: a borderless one fills the screen and hides the menu bar and the Dock itself.
-    fn toggle_borderless_fullscreen(&mut self, id: u64) {
-        let mtm = self.mtm;
-        let Some(window) = self.window(id) else {
-            return;
-        };
-        let Some(controls) = &window.controls else {
-            return;
-        };
-        let mut status = controls.status;
-        let (frame, radius, options) = match window.restore.take() {
-            Some(frame) => (
-                frame,
-                f64::from(ctdesign::CORNER_WINDOW.fitted),
-                NSApplicationPresentationOptions::Default,
-            ),
-            None => {
-                let Some(screen) = window.window.screen() else {
-                    return;
-                };
-                window.restore = Some(window.window.frame());
-                (
-                    screen.frame(),
-                    0.0,
-                    NSApplicationPresentationOptions::HideMenuBar
-                        | NSApplicationPresentationOptions::HideDock,
-                )
-            }
-        };
-        status.write().fullscreen = window.restore.is_some();
-        window.layer.setCornerRadius(radius);
-        window.window.setFrame_display(frame, true);
-        NSApplication::sharedApplication(mtm).setPresentationOptions(options);
-        self.resized(id);
-    }
-
     fn window(&mut self, id: u64) -> Option<&mut Window> {
         self.windows.iter_mut().find(|window| window.id == id)
     }
@@ -497,6 +454,7 @@ impl Runtime {
                 window.setOpaque(false);
                 window.setBackgroundColor(Some(&NSColor::clearColor()));
                 window.setHasShadow(true);
+                window.setCollectionBehavior(NSWindowCollectionBehavior::FullScreenPrimary);
             }
         }
         if let Some((w, h)) = options.min_size {
@@ -602,7 +560,6 @@ impl Runtime {
             app: instance,
             controls: Some(controls),
             popup: None,
-            restore: None,
             ime_area: None,
             main: !utility,
             needs_redraw: true,
@@ -798,7 +755,7 @@ impl Runtime {
         self.window(id)?.window.toolbar()
     }
 
-    // The green light of a titled window calls `toggleFullScreen` inside AppKit, so the kit learns of it here.
+    // `toggleFullScreen` runs inside AppKit (the green light, the Window menu), so the kit learns of it here.
     pub(super) fn fullscreen_changed(&mut self, id: u64) {
         let Some(window) = self.window(id) else {
             return;
@@ -813,6 +770,18 @@ impl Runtime {
         if controls.status.peek().fullscreen != fullscreen {
             let mut status = controls.status;
             status.write().fullscreen = fullscreen;
+            if !window
+                .window
+                .styleMask()
+                .contains(NSWindowStyleMask::Titled)
+            {
+                let radius = if fullscreen {
+                    0.0
+                } else {
+                    ctdesign::CORNER_WINDOW.fitted
+                };
+                window.layer.setCornerRadius(f64::from(radius));
+            }
             window.needs_redraw = true;
         }
     }

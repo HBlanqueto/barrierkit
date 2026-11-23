@@ -310,7 +310,7 @@ the kit draws a hairline under the title bar and a darker, heavier title; the
 sidebar toggle has no ring; `ContentUnavailableView` is smaller and not bold;
 the sidebar icons are badges, not plain symbols; the kit's default
 `traffic_lights = "wallpaper"` tints the lights (the twin sets `"standard"`).
-Not done: a Space for the full screen of a `Plain` window, the menu bar that slides down over it, and the zoom button on a borderless window.
+Not done: the menu bar that slides down over a `Plain` window in full screen, and the zoom button on a borderless window. Since 2026-11-23 a `Plain` window enters AppKit's full screen with a Space of its own ([csd-window-designs.md](csd-window-designs.md), row D).
 
 ### M3 result: native menu bar (2026-11-22)
 

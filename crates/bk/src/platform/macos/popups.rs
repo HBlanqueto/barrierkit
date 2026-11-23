@@ -272,7 +272,6 @@ impl Runtime {
             behind: None,
             chromes: Vec::new(),
             bar: None,
-            restore: None,
             ime_area: None,
             popup: Some(PopupState {
                 id,
