@@ -410,6 +410,15 @@ empty in `content`.
 `Menu` and `Label` need `infinity_window_style_v1.set_popover_shape`
 (version 7). Without it, the popup keeps a plain frame.
 
+On macOS the runner draws the shape itself (`platform/macos/arrow.rs`): the
+body and the arrow are one outline of circular arcs, which is the
+`maskImage` of the popup's `NSVisualEffectView`, so the material and the
+window shadow follow it, and a mask of the content layer. The edge and the
+tip follow the compositor's rules above. A `Popover` takes the arrow
+fitted to `NSPopover` (`POPOVER_APPKIT_ARROW_*`: 26.17 wide at the body,
+the sharp apex 12.41 above it, tip radius 4.46, fillet 4.83), drawn over the
+13 px band; `Menu` and `Label` keep the tokens above.
+
 ## Helpers
 
 | Function | What it does |

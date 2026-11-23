@@ -51,6 +51,7 @@ use super::window::{
 use super::window_style::ScrollEdgeEffectStyle;
 use super::{EditShortcut, ObjectId, RunError, Sent, calloop::ping::Ping};
 
+mod arrow;
 mod blur;
 mod frame;
 mod input;

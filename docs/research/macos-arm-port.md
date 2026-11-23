@@ -378,6 +378,27 @@ first window came to the front. `NSApplication.activate()` did not bring it forw
 (Finder stayed in front), `activateIgnoringOtherApps(true)` did, on this macOS 27. The
 Linux `launch` and its D-Bus tests are unchanged and compiled out here.
 
+### Popover arrow on macOS (2026-11-22)
+
+A popup of a `PopoverShape` (`Popover`, `Menu`, `Label`) is one outline of the body and the
+arrow (`platform/macos/arrow.rs`): rounded polygon by tangent arcs, the arrow on the edge
+that faces the anchor with its tip at the anchor's centre, kept clear of the corners as in
+the compositor. It is the `maskImage` of the `NSVisualEffectView`; a layer mask of the
+`CAMetalLayer` view clips the kit's own fill. The first try masked the effect view's layer
+with a `CAShapeLayer`: the window shadow followed it but the behind-window material did not
+(white corners); `maskImage` clips both. The metal layer's mask takes the path without the
+y flip.
+
+Measured against a real `NSPopover` (240 x 160, arrow above, clear host, aqua): the row
+widths of the arrow from the kit's path rasterised at 8x agree with the capture within
+0.4 px (kit 0.96, 5.26, 7.55, 9.66, 11.77, 13.88, 15.98, 18.09, 20.20, 22.31, 24.73 against
+0.96, 5.16, 7.91, 9.84, 11.83, 13.75, 15.73, 17.65, 19.62, 21.89, 25.58). The corners are
+circular arcs of 20, so the first body rows differ by up to 1.4 px (213.4 against 212.0);
+continuous corners on a popover with an arrow are not drawn. Checked on screen with a
+popover below the anchor in the middle of a window, near its left edge and past its right
+edge. The other three edges follow the same code (unit-tested for the apex), not seen on
+screen. The window shadow follows the shape (`invalidateShadow`).
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

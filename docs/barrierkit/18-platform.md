@@ -262,7 +262,7 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 | Works | Missing |
 |---|---|
 | An `NSWindow` with the system title bar and traffic lights (`DecorationResponse::Server`), min and max size, title; `WindowStyle::HiddenTitleBar` keeps the native lights and the kit draws the bar beside them (`Hybrid`); `WindowStyle::Plain` is a borderless window with shadow and the kit's `Titlebar` and `TrafficLights` (`Client`), moved and resized by AppKit ([8](08-windows.md#window-style)) | Utility windows as panels, window tabs, a Space for the full screen of a `Plain` window |
-| Popups (menus, pop-up buttons, tooltips, popovers) as child panels with a native menu, popover or tooltip material, placed by `xdg_positioner`'s rules; a grabbing popup takes the keyboard and closes when it loses it | The popover arrow band, glass drawn under other surfaces |
+| Popups (menus, pop-up buttons, tooltips, popovers) as child panels with a native menu, popover or tooltip material, placed by `xdg_positioner`'s rules; a grabbing popup takes the keyboard and closes when it loses it. A `PopoverShape` popup has the arrow of its shape on the edge that faces the anchor (`platform/macos/arrow.rs`, [7](07-menus-and-popovers.md#other-popover-shapes)) | Glass drawn under other surfaces, continuous corners on a popover with an arrow |
 | Sheets with `beginSheet`, utility windows as child windows | Drag and drop |
 | Input methods and dead keys through `NSTextInputClient`: the committed text reaches the field as the key that types it, the composing text goes to `WindowControls::ime_preedit`, `set_ime_cursor_area` places the candidates | A CJK input method and its candidate window (not run) |
 | Mouse, scroll, keyboard (Command acts as Ctrl), cursors | |

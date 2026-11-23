@@ -6,12 +6,14 @@ use freya_core::integration::AppComponent;
 use objc2::MainThreadMarker;
 use objc2::rc::Retained;
 use objc2_app_kit::{
-    NSApplication, NSAutoresizingMaskOptions, NSColor, NSPopUpMenuWindowLevel, NSScreen,
+    NSApplication, NSAutoresizingMaskOptions, NSColor, NSPopUpMenuWindowLevel, NSScreen, NSView,
     NSVisualEffectBlendingMode, NSVisualEffectMaterial, NSVisualEffectState, NSVisualEffectView,
     NSWindow, NSWindowOrderingMode,
 };
 use objc2_foundation::{NSPoint, NSRect, NSSize};
+use objc2_quartz_core::CAShapeLayer;
 
+use super::arrow;
 use super::place::{Rect, place};
 use super::view::{ContentView, Panel, WindowDelegate};
 use super::{Runtime, Window};
@@ -27,6 +29,46 @@ pub(super) struct PopupState {
     on_dismissed: Option<Rc<dyn Fn()>>,
     opens_left: Rc<Cell<bool>>,
     grabbed: bool,
+    arrowed: Option<(Retained<NSVisualEffectView>, PopoverShape)>,
+}
+
+// The material and the content take the shape of the body and the arrow that points at the anchor.
+fn shape_effect(
+    effect: &NSVisualEffectView,
+    content: &NSView,
+    shape: PopoverShape,
+    anchor: (i32, i32, u32, u32),
+    placed: Rect,
+) {
+    let shape_of = arrow::metrics(shape);
+    let anchor = Rect {
+        x: anchor.0,
+        y: anchor.1,
+        width: anchor.2 as i32,
+        height: anchor.3 as i32,
+    };
+    let edge = arrow::facing_edge(anchor, placed);
+    let tip = arrow::tip(anchor, placed, edge, &shape_of);
+    let size = (f64::from(placed.width), f64::from(placed.height));
+    let outline = arrow::outline(size, edge, tip, &shape_of);
+    if let Some(layer) = effect.layer() {
+        layer.setCornerRadius(0.0);
+        layer.setMasksToBounds(false);
+    }
+    effect.setMaskImage(Some(&arrow::mask_image(
+        arrow::path(&outline, Some(size.1)),
+        NSSize::new(size.0, size.1),
+    )));
+    let mask = CAShapeLayer::new();
+    mask.setFrame(content.bounds());
+    mask.setPath(Some(&arrow::path(&outline, None)));
+    if let Some(layer) = content.layer() {
+        // SAFETY: a shape layer is a layer.
+        unsafe { layer.setMask(Some(&mask)) };
+    }
+    if let Some(window) = effect.window() {
+        window.invalidateShadow();
+    }
 }
 
 struct Closing(Retained<NSWindow>);
@@ -101,7 +143,7 @@ impl Runtime {
         }
     }
 
-    fn frame_of(parent: &Parent, spec: &PopupSpec, primary: f64) -> (NSRect, bool) {
+    fn frame_of(parent: &Parent, spec: &PopupSpec, primary: f64) -> (NSRect, bool, Rect) {
         let placed = place(spec, parent.bounds);
         let top = parent.origin.1 + f64::from(placed.y);
         let frame = NSRect::new(
@@ -111,7 +153,7 @@ impl Runtime {
             ),
             NSSize::new(f64::from(placed.width), f64::from(placed.height)),
         );
-        (frame, placed.x < 0)
+        (frame, placed.x < 0, placed)
     }
 
     fn open_popup(
@@ -127,7 +169,7 @@ impl Runtime {
             return;
         };
         let primary = primary_height(self.mtm);
-        let (frame, opens_left) = Self::frame_of(&parent_window, &spec, primary);
+        let (frame, opens_left, placed) = Self::frame_of(&parent_window, &spec, primary);
         let window_id = self.next_window;
         self.next_window += 1;
 
@@ -195,6 +237,10 @@ impl Runtime {
             |_| {},
         );
         let grabbed = spec.grab;
+        let arrowed = popover.map(|shape| {
+            shape_effect(&effect, &view, shape, spec.anchor_rect, placed);
+            (effect.clone(), shape)
+        });
         let native: Retained<NSWindow> = Retained::into_super(Retained::into_super(panel));
         self.windows.push(Window {
             id: window_id,
@@ -216,6 +262,7 @@ impl Runtime {
                 on_dismissed: spec.on_dismissed,
                 opens_left: opens_left_flag,
                 grabbed,
+                arrowed,
             }),
             main: false,
             needs_redraw: true,
@@ -245,12 +292,19 @@ impl Runtime {
             return;
         };
         let primary = primary_height(self.mtm);
-        let (frame, opens_left) = Self::frame_of(&parent, spec, primary);
+        let (frame, opens_left, placed) = Self::frame_of(&parent, spec, primary);
         if let Some(window) = self.window(window_id) {
             if let Some(popup) = &window.popup {
                 popup.opens_left.set(opens_left);
             }
             window.window.setFrame_display(frame, true);
+            if let Some((effect, shape)) = window
+                .popup
+                .as_ref()
+                .and_then(|popup| popup.arrowed.as_ref())
+            {
+                shape_effect(effect, &window.view, *shape, spec.anchor_rect, placed);
+            }
         }
     }
 

@@ -118,6 +118,10 @@ STEPPER StepperMetrics components.stepper
 HELP_LINK HelpLinkMetrics components.help-link
 COMBO_BOX ComboBoxMetrics components.combo-box
 POPOVER PopoverMetrics components.popover
+POPOVER_APPKIT_ARROW_WIDTH f32 components.popover-appkit-arrow.width
+POPOVER_APPKIT_ARROW_APEX_HEIGHT f32 components.popover-appkit-arrow.apex-height
+POPOVER_APPKIT_ARROW_TIP_RADIUS f32 components.popover-appkit-arrow.tip-radius
+POPOVER_APPKIT_ARROW_FILLET f32 components.popover-appkit-arrow.fillet
 GROUP_BOX GroupBoxMetrics components.group-box
 COLOR_PICKER ColorPickerMetrics components.color-picker
 CIRCULAR_SLIDER CircularSliderMetrics components.circular-slider
