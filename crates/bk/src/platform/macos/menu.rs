@@ -164,6 +164,7 @@ define_class!(
     #[ivars = Option<u64>]
     pub(super) struct Target;
 
+    // SAFETY: Target is an NSObject subclass.
     unsafe impl NSObjectProtocol for Target {}
 
     impl Target {

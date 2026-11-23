@@ -23,8 +23,10 @@ define_class!(
     #[name = "BKNotificationDelegate"]
     struct Delegate;
 
+    // SAFETY: Delegate is an NSObject subclass.
     unsafe impl NSObjectProtocol for Delegate {}
 
+    // SAFETY: each method keeps the selector and signature of the protocol.
     unsafe impl UNUserNotificationCenterDelegate for Delegate {
         #[unsafe(method(userNotificationCenter:willPresentNotification:withCompletionHandler:))]
         fn will_present(
@@ -85,6 +87,7 @@ pub(crate) fn notify(identifier: String, title: String, body: String) {
 fn add(identifier: &str, title: &str, body: &str) {
     let center = UNUserNotificationCenter::currentNotificationCenter();
     READY.call_once(|| {
+        // SAFETY: init is NSObject's initializer, called once on the allocated object.
         let delegate: Retained<Delegate> = unsafe { msg_send![Delegate::alloc(), init] };
         center.setDelegate(Some(ProtocolObject::from_ref(&*delegate)));
         // The center keeps its delegate weakly, and it lives as long as the process.

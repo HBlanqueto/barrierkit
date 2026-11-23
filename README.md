@@ -22,6 +22,8 @@ nix develop
 
 `./dev.sh check` runs fmt, clippy, the kit checks and the tests; its list is in [`dev.sh`](dev.sh).
 
+CI runs it on Linux for every push to `main` ([`.github/workflows/check.yml`](.github/workflows/check.yml)).
+
 On a Mac without Nix, `./dev.sh check` runs with the user's Rust toolchain: install `rustfmt` and `clippy` with `rustup component add rustfmt clippy`, then run it from the repository root. It skips the `shell` feature and the Linux-only warnings, and ignores the four golden tests that need the Linux fonts ([18](docs/barrierkit/18-platform.md#build-and-check-on-macos)).
 
 The Skia prebuild for `freya-skia-bindings` 0.104.0 lives in `nix/skia.nix`.

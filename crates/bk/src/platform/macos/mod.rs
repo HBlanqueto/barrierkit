@@ -225,6 +225,7 @@ fn configure_metal_layer(
     // Skia's blend modes need a texture it may read.
     layer.setFramebufferOnly(false);
     layer.setPresentsWithTransaction(false);
+    // SAFETY: reading a CoreGraphics constant that is set when the framework loads.
     let srgb = CGColorSpace::with_name(Some(unsafe { kCGColorSpaceSRGB }));
     layer.setColorspace(srgb.as_deref());
     layer
@@ -1152,6 +1153,7 @@ fn serve_loop(event_loop: EventLoop<'static, ()>) -> Result<(), RunError> {
         .ok_or(RunError::EventLoop("the run loop source was not created"))?;
     CFRunLoop::current()
         .ok_or(RunError::EventLoop("no current run loop"))?
+        // SAFETY: reading a CoreFoundation constant that is set when the framework loads.
         .add_source(Some(&source), unsafe { kCFRunLoopCommonModes });
     std::mem::forget((descriptor, source));
     Ok(())

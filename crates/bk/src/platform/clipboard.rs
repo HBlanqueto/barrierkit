@@ -25,6 +25,7 @@ use super::surface::physical_point;
 use crate::drag::{DragPayload, TEXT_MIMES, URI_LIST};
 
 const HTML_MIME: &str = "text/html";
+const MAX_RECEIVED: u64 = 16 << 20;
 
 pub(crate) struct PendingDrop {
     target: (ObjectId, CursorPoint),
@@ -271,14 +272,20 @@ fn receive_text(offer: &SelectionOffer) -> Option<Arc<OnceLock<String>>> {
     offer.receive(mime.to_string()).ok().map(read_in_background)
 }
 
+// A peer chooses what it sends: the read stops at `MAX_RECEIVED` and keeps what is valid UTF-8.
+fn read_capped(pipe: sctk::data_device_manager::ReadPipe) -> Option<String> {
+    let mut bytes = Vec::new();
+    pipe.take(MAX_RECEIVED).read_to_end(&mut bytes).ok()?;
+    Some(String::from_utf8_lossy(&bytes).into_owned())
+}
+
 pub(crate) fn read_in_background(
-    mut pipe: sctk::data_device_manager::ReadPipe,
+    pipe: sctk::data_device_manager::ReadPipe,
 ) -> Arc<OnceLock<String>> {
     let text = Arc::new(OnceLock::new());
     let slot = text.clone();
     std::thread::spawn(move || {
-        let mut read = String::new();
-        if pipe.read_to_string(&mut read).is_ok() {
+        if let Some(read) = read_capped(pipe) {
             let _ = slot.set(read);
         }
     });
@@ -335,15 +342,13 @@ impl DataDeviceHandler for Runtime {
         let (Some(offer), Some(target)) = (self.drag_offer(), self.drag_target.clone()) else {
             return;
         };
-        let Ok(mut pipe) = offer.receive(URI_LIST.to_owned()) else {
+        let Ok(pipe) = offer.receive(URI_LIST.to_owned()) else {
             return;
         };
         let uris = Arc::new(OnceLock::new());
         let (slot, ping) = (uris.clone(), self.ping.clone());
         std::thread::spawn(move || {
-            let mut list = String::new();
-            let _ = pipe.read_to_string(&mut list);
-            let _ = slot.set(list);
+            let _ = slot.set(read_capped(pipe).unwrap_or_default());
             ping.ping();
         });
         self.pending_drop = Some(PendingDrop {

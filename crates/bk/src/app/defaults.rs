@@ -34,14 +34,24 @@ fn state(app_id: &str) -> PathBuf {
 }
 
 pub fn read_toml<T: DeserializeOwned + Default>(path: &Path) -> T {
-    let Ok(text) = std::fs::read_to_string(path) else {
-        return T::default();
+    try_read_toml(path).unwrap_or_else(|error| {
+        tracing::warn!(path = %path.display(), %error, "unreadable file, using defaults");
+        T::default()
+    })
+}
+
+// A missing file is the defaults; a file that exists but cannot be read is an error, so a save never replaces it.
+fn try_read_toml<T: DeserializeOwned + Default>(path: &Path) -> io::Result<T> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(T::default()),
+        Err(error) => return Err(error),
     };
-    toml::from_str(&text).unwrap_or_else(|error| {
+    Ok(toml::from_str(&text).unwrap_or_else(|error| {
         tracing::warn!(path = %path.display(), %error, "invalid TOML, using defaults");
         back_up(path);
         T::default()
-    })
+    }))
 }
 
 fn back_up(path: &Path) {
@@ -68,9 +78,18 @@ pub fn update_defaults<T: DeserializeOwned + Default + Serialize>(
     app_id: &str,
     change: impl FnOnce(&mut T),
 ) -> io::Result<()> {
-    let mut value = load_defaults(app_id);
+    let path = domain(app_id);
+    // The lock keeps two processes from reading the same file and each saving over the other's change. Without a
+    // directory there is no file to race for.
+    let mut lock = path.as_os_str().to_owned();
+    lock.push(".lock");
+    let lock = std::fs::File::create(lock).ok();
+    if let Some(lock) = &lock {
+        lock.lock()?;
+    }
+    let mut value = try_read_toml(&path)?;
     change(&mut value);
-    save_defaults(app_id, &value)
+    write_toml(&path, &value)
 }
 
 pub fn load_restoration<T: DeserializeOwned + Default>(app_id: &str) -> T {
@@ -96,6 +115,17 @@ mod tests {
             std::env::temp_dir().join(format!("barrierkit-defaults-{}-{name}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         dir
+    }
+
+    #[test]
+    fn a_file_that_cannot_be_read_is_an_error_and_a_missing_one_is_the_defaults() {
+        let dir = scratch("unreadable");
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(try_read_toml::<Prefs>(&dir).is_err());
+        assert_eq!(
+            try_read_toml::<Prefs>(&dir.join("missing.domain")).unwrap(),
+            Prefs::default()
+        );
     }
 
     #[test]

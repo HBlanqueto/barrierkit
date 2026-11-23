@@ -65,18 +65,21 @@ define_class!(
 
         #[unsafe(method(setFrameSize:))]
         fn set_frame_size(&self, size: NSSize) {
+            // SAFETY: calls NSView's own implementation with the size it received.
             let _: () = unsafe { msg_send![super(self), setFrameSize: size] };
             with_runtime(|runtime| runtime.resized(self.ivars().id));
         }
 
         #[unsafe(method(viewDidChangeBackingProperties))]
         fn view_did_change_backing_properties(&self) {
+            // SAFETY: calls NSView's own implementation, which takes no arguments.
             let _: () = unsafe { msg_send![super(self), viewDidChangeBackingProperties] };
             with_runtime(|runtime| runtime.resized(self.ivars().id));
         }
 
         #[unsafe(method(updateTrackingAreas))]
         fn update_tracking_areas(&self) {
+            // SAFETY: calls NSView's own implementation, which takes no arguments.
             let _: () = unsafe { msg_send![super(self), updateTrackingAreas] };
             for area in self.trackingAreas().iter() {
                 self.removeTrackingArea(&area);
@@ -85,6 +88,7 @@ define_class!(
                 | NSTrackingAreaOptions::MouseEnteredAndExited
                 | NSTrackingAreaOptions::ActiveInKeyWindow
                 | NSTrackingAreaOptions::InVisibleRect;
+            // SAFETY: a fresh NSTrackingArea, with valid options and this view as its owner.
             let area = unsafe {
                 NSTrackingArea::initWithRect_options_owner_userInfo(
                     NSTrackingArea::alloc(),
@@ -223,6 +227,7 @@ define_class!(
         }
     }
 
+    // SAFETY: each method keeps the selector and signature of NSTextInputClient.
     unsafe impl NSTextInputClient for ContentView {
         #[unsafe(method(insertText:replacementRange:))]
         fn insert_text(&self, string: &AnyObject, _: NSRange) {
@@ -315,6 +320,7 @@ impl ContentView {
             marked: RefCell::new(String::new()),
             routed: RefCell::new(Vec::new()),
         });
+        // SAFETY: initWithFrame: is NSView's designated initializer, called once on the allocated object.
         let this: Retained<Self> = unsafe { msg_send![super(this), initWithFrame: frame] };
         this.setWantsLayer(true);
         this
@@ -368,8 +374,10 @@ define_class!(
     #[ivars = DelegateIvars]
     pub(super) struct WindowDelegate;
 
+    // SAFETY: WindowDelegate is an NSObject subclass.
     unsafe impl NSObjectProtocol for WindowDelegate {}
 
+    // SAFETY: each method keeps the selector and signature of NSWindowDelegate.
     unsafe impl NSWindowDelegate for WindowDelegate {
         #[unsafe(method(windowDidBecomeKey:))]
         fn window_did_become_key(&self, _: &NSNotification) {
@@ -404,6 +412,7 @@ impl WindowDelegate {
         id: u64,
     ) -> Retained<ProtocolObject<dyn NSWindowDelegate>> {
         let this = Self::alloc(mtm).set_ivars(DelegateIvars { id });
+        // SAFETY: init is NSObject's initializer, called once on the allocated object.
         let this: Retained<Self> = unsafe { msg_send![super(this), init] };
         ProtocolObject::from_retained(this)
     }
@@ -592,6 +601,7 @@ impl Panel {
                 defer: false
             ]
         };
+        // SAFETY: the window is owned by a Retained, so AppKit must not release it when it closes.
         unsafe { this.setReleasedWhenClosed(false) };
         this
     }

@@ -211,13 +211,24 @@ def report(name, cell, reference, actual, elements, worse, label=""):
             worse.append(f"{name} {cell} {label}{element_name}: {percent:.1f}% over {ceiling}%")
 
 
+holding_lock = False
+
+
 def take_lock():
+    global holding_lock
     while True:
         try:
             os.mkdir(LOCK)
+            holding_lock = True
             return
         except FileExistsError:
             time.sleep(2)
+
+
+def release_lock():
+    global holding_lock
+    os.rmdir(LOCK)
+    holding_lock = False
 
 
 def live_capture(work, directory, chosen):
@@ -234,16 +245,14 @@ def live_capture(work, directory, chosen):
         start = system_reduces_transparency()
         print("live: captured, waiting for the system to turn Reduce Transparency " + ("off" if start else "on"), flush=True)
         # Other sessions use the screen while the user is at the settings: the lock is theirs until the flip.
-        os.rmdir(LOCK)
-        try:
-            for _ in range(1800):
-                if system_reduces_transparency() != start:
-                    break
-                time.sleep(1)
-            else:
-                sys.exit("live: Reduce Transparency never flipped")
-        finally:
-            take_lock()
+        release_lock()
+        for _ in range(1800):
+            if system_reduces_transparency() != start:
+                break
+            time.sleep(1)
+        else:
+            sys.exit("live: Reduce Transparency never flipped")
+        take_lock()
         time.sleep(4)
         for surface, _, window in running:
             grab(work, window, os.path.join(directory, f"{surface.name}-after.png"))
@@ -279,11 +288,9 @@ def main():
             for twin in ("notes", "tasks", "form", "controls", "standalone"):
                 for scheme in ("light", "dark"):
                     out = os.path.join(ROOT, "crates", "bk", "tests", "reference", f"swiftui-{twin}-{scheme}-rt.png")
-                    os.rmdir(LOCK)
-                    try:
-                        run(os.path.join(ROOT, "scripts", "twin-reference.sh"), twin, scheme, out)
-                    finally:
-                        take_lock()
+                    release_lock()
+                    run(os.path.join(ROOT, "scripts", "twin-reference.sh"), twin, scheme, out)
+                    take_lock()
                     print(f"reference {twin} {scheme}-rt captured")
         for surface in chosen:
             for scheme in ("light", "dark"):
@@ -306,7 +313,8 @@ def main():
                     for kind in ("swift", "kit"):
                         shutil.copy(f"{base}-{kind}.png", options.keep)
     finally:
-        os.rmdir(LOCK)
+        if holding_lock:
+            release_lock()
         shutil.rmtree(work, ignore_errors=True)
     if worse:
         sys.exit("over the ceiling: " + "; ".join(worse))
