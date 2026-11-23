@@ -111,6 +111,6 @@ The kit has four levels; each one builds on the one below
 | An app with its own navigation (a player, a file browser) | `SplitView`, `Sidebar` and `Titlebar` | 2 · Views |
 | A small window or a dialog | `Application`, `VStack` and the controls | 1 · Primitives |
 | A component that does not exist | Freya's `rect` and `label`, `use_interaction` and the `Palette`. If other apps need it, it goes into the kit. | 1 · Primitives |
-| A window that draws its own titlebar | `run_window` and `WindowOptions` ([8](08-windows.md)) | 0 · Platform |
+| A window that draws its own titlebar | `Application` with `WindowStyle::HiddenTitleBar` ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)) | 1 · Primitives |
 
 Next: [2. Your first app](02-first-app.md).

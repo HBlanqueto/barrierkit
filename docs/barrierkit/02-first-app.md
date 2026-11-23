@@ -10,8 +10,9 @@ not needed.
 
 ## Steps
 
-1. Enter the dev shell: `nix develop`. Outside it, `build.rs` stops the build on
-   purpose.
+1. On Linux, enter the dev shell: `nix develop`. `./dev.sh check` refuses to
+   run outside it. On macOS, `rustup` is enough
+   ([Build and check on macOS](18-platform.md#build-and-check-on-macos)).
 2. Create a binary crate (`cargo new hello`) and add one dependency:
 
    ```toml
@@ -101,9 +102,10 @@ fn main() -> Result<(), RunError> {
 | `Application::commands(commands)` | Gives every window the [standard menus](13-app.md#standard-menus) |
 | `Application::run()` | Draws the window background (`Palette::current().window_background`), a [`Titlebar`](09-titlebars.md) with the title, centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>`; `RunError::NoWindow` when only `Settings` is declared |
 
-Use `run_window` directly when the window draws its own title bar (a sidebar,
-toolbar items): see
-[recipe 7](../../agents/recipes.md#7-drawing-the-whole-window-yourself). An app
+A window that draws its own title bar (a sidebar, toolbar items) sets
+`.options(|window| window.window_style(WindowStyle::HiddenTitleBar))` and gets
+no kit `Titlebar` ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits),
+[recipe 7](../../agents/recipes.md#7-drawing-the-whole-window-yourself)). An app
 with several windows declares scenes
 ([recipe 25](../../agents/recipes.md#25-several-windows)).
 

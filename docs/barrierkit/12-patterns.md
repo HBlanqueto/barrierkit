@@ -47,7 +47,8 @@ search and saved state.
    ```
 
 5. Run it as its own window with `run_window` ([`recipes/settings_window.rs`](../../agents/recipes/settings_window.rs)): it draws its own sidebar and
-   titlebar, so `Application::window` would add a second titlebar.
+   titlebar. An `Application` window with `WindowStyle::HiddenTitleBar` adds no
+   second titlebar either ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
 
    ```rust
    run_window(

@@ -3,8 +3,8 @@ use bk::prelude::*;
 use bk::views::navigation::{History, NavigationButtons};
 
 fn main() -> Result<(), RunError> {
-    run_window(
-        || {
+    Application::new("mail")
+        .window("Mail", || {
             let mut history = use_state(|| History::new("Inbox"));
             let page = *history.read().current();
             VStack::new()
@@ -39,9 +39,7 @@ fn main() -> Result<(), RunError> {
                         .center()
                         .child(Text::new(page).font(TITLE)),
                 )
-        },
-        WindowOptions::new("Mail", "mail")
-            .size((760, 480))
-            .window_style(WindowStyle::Plain),
-    )
+        })
+        .options(|window| window.size((760, 480)).window_style(WindowStyle::Plain))
+        .run()
 }

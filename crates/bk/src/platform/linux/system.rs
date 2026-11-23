@@ -1,4 +1,4 @@
-use ctappearance::{ColorScheme, set_system_scheme};
+use ctappearance::{AppearanceConfig, ColorScheme, load_appearance, set_system_scheme};
 use sctk::reexports::calloop::ping::Ping;
 use zbus::blocking::{Connection, Proxy};
 use zbus::zvariant::OwnedValue;
@@ -71,4 +71,8 @@ pub(crate) fn observe_scheme(changed: Ping) {
     if let Err(error) = spawned {
         tracing::warn!(%error, "BarrierKit: could not watch the color scheme");
     }
+}
+
+pub(crate) fn appearance() -> AppearanceConfig {
+    load_appearance()
 }

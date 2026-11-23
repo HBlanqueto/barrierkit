@@ -8,8 +8,8 @@ use torin::prelude::Gaps;
 const NOTES: [&str; 3] = ["Groceries", "Trip to Lisbon", "Ideas"];
 
 fn main() -> Result<(), RunError> {
-    run_window(
-        || {
+    Application::new("notes")
+        .window("Notes", || {
             let mut note = use_state(|| 0);
             let content = rect()
                 .expanded()
@@ -49,9 +49,7 @@ fn main() -> Result<(), RunError> {
             )
             .content(content)
             .sidebar_width(200.0)
-        },
-        WindowOptions::new("Notes", "notes")
-            .size((860, 480))
-            .window_style(WindowStyle::Plain),
-    )
+        })
+        .options(|window| window.size((860, 480)).window_style(WindowStyle::Plain))
+        .run()
 }

@@ -108,6 +108,14 @@ pub(crate) fn optical(family: &str, size: f32) -> Optical {
 
 // Skia's CoreText port pins the optical size of a face and turns its `trak` table off (SkCTFontCreateExactCopy.cpp).
 fn at_size(family: &str, size: f32) -> Optical {
+    let registered = OWN.with(|own| {
+        own.borrow()
+            .as_ref()
+            .is_some_and(|own| own.match_family(family).count() > 0)
+    });
+    if registered {
+        return (family.to_owned().into(), None);
+    }
     let system = FontMgr::default();
     let resolved = std::iter::once(Cow::Owned(family.to_owned()))
         .chain(default_fonts())

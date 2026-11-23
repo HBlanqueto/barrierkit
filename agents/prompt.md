@@ -88,8 +88,9 @@ version.
    wrap a view in a scope, as `.control_style` does: call them last.
 8. **No comments** except `// SAFETY:` on `unsafe` and one line explaining a
    non-obvious invariant. Names explain the code.
-9. **Build only inside `nix develop`.** Outside it, `build.rs` stops on
-   purpose.
+9. **On Linux, build inside `nix develop`.** `./dev.sh check` refuses to run
+   outside it; on macOS it uses your `rustup` toolchain
+   ([Build and check on macOS](../docs/barrierkit/18-platform.md#build-and-check-on-macos)).
 10. **Symbols are SVG, never PNG.** Use `Image::system(..)`; for another
     one-color icon, `Image::data(svg).rendering_mode(TemplateRenderingMode::Template)`,
     which paints it black in light and white in dark

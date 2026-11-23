@@ -10,8 +10,8 @@ const TASKS: [(&str, Symbol); 4] = [
 ];
 
 fn main() -> Result<(), RunError> {
-    run_window(
-        || {
+    Application::new("tasks")
+        .window("Tasks", || {
             rect()
                 .expanded()
                 .direction(Direction::Vertical)
@@ -26,9 +26,7 @@ fn main() -> Result<(), RunError> {
                     List::new("Tasks", TASKS.map(|(title, _)| title.to_string()).to_vec())
                         .row(|index| Label::new(TASKS[index].0, TASKS[index].1)),
                 )
-        },
-        WindowOptions::new("Tasks", "tasks")
-            .size((760, 480))
-            .window_style(WindowStyle::Plain),
-    )
+        })
+        .options(|window| window.size((760, 480)).window_style(WindowStyle::Plain))
+        .run()
 }

@@ -2,11 +2,12 @@ use std::any::Any;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::{Rc, Weak};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use ctdesign::GESTURE;
 use freya_core::prelude::*;
 
+use crate::platform::Timers;
 use crate::scroll_physics::VelocityTracker;
 
 pub type Point = (f32, f32);
@@ -664,7 +665,7 @@ where
         let Some(first) = self.done.clone() else {
             return Step::Idle;
         };
-        match step {
+        let step = match step {
             Step::Began(value) | Step::Changed(value) => {
                 self.state = State::Changed;
                 Step::Changed(SequenceValue::Second(first, Some(value)))
@@ -686,7 +687,18 @@ where
                 Step::Failed
             }
             Step::Idle => Step::Idle,
+        };
+        if matches!(step, Step::Ended(_) | Step::Cancelled | Step::Failed) {
+            self.reset();
         }
+        step
+    }
+
+    fn reset(&mut self) {
+        self.first.fail();
+        self.second.fail();
+        self.done = None;
+        self.awaiting_press = false;
     }
 }
 
@@ -738,9 +750,7 @@ where
     }
 
     fn fail(&mut self) {
-        self.first.fail();
-        self.second.fail();
-        self.done = None;
+        self.reset();
         self.state = State::Failed;
     }
 }
@@ -1216,8 +1226,21 @@ where
         }
         let (engine, callbacks) = (engine.clone(), callbacks.clone());
         let ticker = RenderingTicker::get();
+        let waker = try_consume_root_context::<Timers>()
+            .map(|timers| (timers, Platform::get().current_window()));
         spawn(async move {
+            let mut woken_for = None;
             loop {
+                let deadline = engine.borrow().recognizer.deadline();
+                // The ticker fires only after a drawn frame, so a still press asks for one at its deadline.
+                if let (Some((timers, window)), Some(deadline)) = (&waker, deadline)
+                    && (woken_for != Some(deadline) || now_ms() >= deadline)
+                {
+                    woken_for = Some(deadline);
+                    let window = window.clone();
+                    let delay = Duration::from_secs_f32((deadline - now_ms()).max(0.0) / 1000.0);
+                    timers.after(delay, move || window.send(UserEvent::RequestRedraw));
+                }
                 ticker.tick().await;
                 let (step, more) = {
                     let mut engine = engine.borrow_mut();
@@ -1879,6 +1902,23 @@ mod tests {
         assert!(matches!(
             sequence.feed(input(1, Phase::Up, 30.0, 5.0, 600.0)),
             Step::Ended(SequenceValue::Second(_, Some(_)))
+        ));
+    }
+
+    #[test]
+    fn a_second_press_hold_drag_also_needs_the_hold() {
+        let mut sequence = SequenceRecognizer::new(
+            LongPressRecognizer::new(500.0, 10.0),
+            DragRecognizer::new(10.0),
+        );
+        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
+        sequence.elapse(500.0);
+        sequence.feed(input(1, Phase::Move, 20.0, 0.0, 520.0));
+        sequence.feed(input(1, Phase::Up, 20.0, 0.0, 600.0));
+        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 1000.0));
+        assert!(matches!(
+            sequence.feed(input(1, Phase::Move, 20.0, 0.0, 1020.0)),
+            Step::Failed
         ));
     }
 

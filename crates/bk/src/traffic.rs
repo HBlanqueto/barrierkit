@@ -252,6 +252,7 @@ impl Component for TrafficLights {
                                 }
                             })
                             .on_mouse_down(move |event: Event<MouseEventData>| {
+                                event.stop_propagation();
                                 if event.button == Some(MouseButton::Left) && admitted {
                                     let mut p = *press.read();
                                     p.on_press(Some(kind), true);

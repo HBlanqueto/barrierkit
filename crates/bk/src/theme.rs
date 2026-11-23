@@ -1,8 +1,6 @@
-use crate::platform::Popups;
+use crate::platform::{Popups, appearance};
 use ctappearance::menu::{MenuInk, ink_over};
-use ctappearance::{
-    AppearanceConfig, ColorScheme, Resolved, load_appearance, load_dominant, resolve,
-};
+use ctappearance::{AppearanceConfig, ColorScheme, Resolved, load_dominant, resolve};
 use ctdesign::{
     BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, MenuPalette, Rgba, SHELL_DARK_OPAQUE,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
@@ -79,7 +77,7 @@ pub fn resolved() -> Resolved {
     {
         *state.read()
     } else {
-        resolve(&load_appearance(), load_dominant())
+        resolve(&appearance(), load_dominant())
     }
 }
 
@@ -89,7 +87,7 @@ pub fn use_appearance(adjust: impl Fn(&mut AppearanceConfig) + 'static) {
         if let Some(root) = root {
             root.read();
         }
-        let mut config = load_appearance();
+        let mut config = appearance();
         adjust(&mut config);
         resolve(&config, load_dominant())
     });

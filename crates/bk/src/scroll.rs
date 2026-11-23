@@ -176,7 +176,11 @@ pub(crate) fn use_elastic(controller: ScrollController, refresh: Option<Refresh>
     let refreshing = refresh.as_ref().is_some_and(|(refreshing, _)| *refreshing);
     *elastic.refresh.borrow_mut() = refresh;
     let held = elastic.clone();
-    use_side_effect_with_deps(&refreshing, move |_| held.retarget(controller));
+    // A task runs outside the effect's reactive context, so the offset it reads does not rerun the effect.
+    use_side_effect_with_deps(&refreshing, move |_| {
+        let held = held.clone();
+        spawn(async move { held.retarget(controller) });
+    });
     elastic
 }
 

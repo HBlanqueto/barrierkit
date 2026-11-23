@@ -96,6 +96,8 @@ mod status;
 mod system;
 mod view;
 
+pub(crate) use system::appearance;
+
 use popups::PopupState;
 use view::{BarView, ChromeView, ContentView, Effect, Toplevel, WindowDelegate};
 
@@ -278,6 +280,7 @@ fn native(id: u64, command: Native) {
         return;
     };
     match command {
+        Native::Close if with_runtime(|runtime| runtime.should_close(id)) == Some(false) => {}
         Native::Close => {
             if let Some(parent) = window.sheetParent() {
                 parent.endSheet(&window);

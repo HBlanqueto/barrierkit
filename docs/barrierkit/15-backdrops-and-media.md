@@ -137,8 +137,9 @@ title bar, the buttons) in that same element. Under a compositor that composes
 the blur ([below](#who-draws-the-blur)) that element is the chrome.
 
 When the user reduces transparency (`reduce_transparency`, off by default),
-the glass is solid and sharp: `Material` and `GlassContainer` fill with the
-opaque `MEDIA.material_tint` and keep their rim; `TopGlass` is an opaque band
+the glass is solid and sharp: `Material` fills with the opaque
+`MEDIA.material_tint`, `GlassContainer` with the window's opaque glass color
+in light or dark, and both keep their rim; `TopGlass` is an opaque band
 in the window color, `FULLSCREEN_GLASS.height` deep.
 
 ### Who draws the blur

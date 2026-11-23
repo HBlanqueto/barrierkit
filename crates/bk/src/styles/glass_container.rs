@@ -9,8 +9,8 @@ use super::{
 pub struct GlassContainerStyle {
     /// Tengen: `Color(MEDIA.round_glass)`.
     pub tint: StateValue<ShapeStyle>,
-    /// Tengen: `Color(MEDIA.material_tint)`, in place of `tint` when the user reduces
-    /// transparency.
+    /// Tengen: `Color` of the window's glass, as `TopGlassStyle`, opaque in place of `tint` when
+    /// the user reduces transparency.
     pub solid: StateValue<ShapeStyle>,
     /// Tengen: `Color(MEDIA.round_rim)`, one pixel along the outline.
     pub rim: StateValue<ShapeStyle>,
@@ -28,7 +28,7 @@ impl ControlStyle for GlassContainerStyle {
     fn tengen() -> Self {
         Self {
             tint: StateValue::new(ShapeStyle::Color(MEDIA.round_glass)),
-            solid: StateValue::new(ShapeStyle::Color(MEDIA.material_tint)),
+            solid: StateValue::new(ShapeStyle::Color(crate::glass::glass_tint())),
             rim: StateValue::new(ShapeStyle::Color(MEDIA.round_rim)),
             blur: MEDIA.material_blur,
             effect: system_effect,

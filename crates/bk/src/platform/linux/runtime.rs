@@ -221,21 +221,22 @@ impl Runtime {
             .map_err(|_| RunError::EventLoop("inserting the Wayland source"))?;
         let signal = event_loop.get_signal();
         on_signal(&mut self, signal.clone());
-        event_loop
-            .run(None, &mut self, |runtime| {
-                if runtime.needs_exit {
-                    signal.stop();
-                } else if runtime.graphics.lost.get() {
-                    while runtime.graphics.lost.get() {
-                        if !runtime.recover_graphics() {
-                            runtime.recover_failed = true;
-                            signal.stop();
-                            break;
-                        }
+        let ran = event_loop.run(None, &mut self, |runtime| {
+            if runtime.needs_exit {
+                signal.stop();
+            } else if runtime.graphics.lost.get() {
+                while runtime.graphics.lost.get() {
+                    if !runtime.recover_graphics() {
+                        runtime.recover_failed = true;
+                        signal.stop();
+                        break;
                     }
                 }
-            })
-            .map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
+            }
+        });
+        // The swapchains hold the wl_display that the event loop's Connection frees when it drops.
+        self.surfaces.clear();
+        ran.map_err(|_| RunError::EventLoop("calloop event loop failed"))?;
         if self.recover_failed || self.graphics.lost.get() {
             return Err(RunError::DeviceLost);
         }

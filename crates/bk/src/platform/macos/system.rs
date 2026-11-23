@@ -67,7 +67,7 @@ fn scheme() -> Option<ColorScheme> {
     })
 }
 
-pub(super) fn appearance() -> AppearanceConfig {
+pub(crate) fn appearance() -> AppearanceConfig {
     set_system_scheme(scheme());
     merged(load_appearance(), flags())
 }

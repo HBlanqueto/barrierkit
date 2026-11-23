@@ -207,7 +207,7 @@ fn construct(
     text: &mut String,
     styles: &mut Vec<RunStyle>,
 ) -> Option<usize> {
-    let body = &rest[1..];
+    let body = &rest[rest.chars().next()?.len_utf8()..];
     match rest.chars().next()? {
         '\\' => {
             let escaped = body.chars().next().filter(char::is_ascii_punctuation)?;
@@ -438,7 +438,14 @@ mod tests {
 
     #[test]
     fn markdown_keeps_marks_without_a_mate_snake_case_and_escapes_literal() {
-        for source in ["2 * 3 * 4", "snake_case_name", "**open", "a ` b", "[x](y"] {
+        for source in [
+            "2 * 3 * 4",
+            "snake_case_name",
+            "**open",
+            "a ` b",
+            "[x](y",
+            "Año ñ * €",
+        ] {
             assert_eq!(markdown(source), (source.to_owned(), vec![]), "{source}");
         }
         assert_eq!(markdown("\\*x\\*"), ("*x*".to_owned(), vec![]));

@@ -7,7 +7,7 @@ use torin::prelude::{Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::animation::Clock;
-use crate::app::{Action, Shortcut, ShortcutKey};
+use crate::app::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::compact::IconButton;
 use crate::controls::ToolGroup;
 use crate::elements::{Overrides, forward_overrides};
@@ -209,6 +209,11 @@ impl Component for SplitView {
             overlaid,
         };
         use_hook(|| provide_context(control));
+        use_menu_action(move |id| {
+            if id == TOGGLE_SIDEBAR.id {
+                control.toggle();
+            }
+        });
 
         let overlay = self.narrow_sidebar == NarrowSidebar::Overlay
             && *window_width.read() < SPLIT_VIEW.collapse_below;

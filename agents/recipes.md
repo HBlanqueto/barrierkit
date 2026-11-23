@@ -64,8 +64,9 @@ field does not compile under `#[derive(PartialEq)]`.
 
 ## 7. Drawing the whole window yourself
 
-Use it when the titlebar needs a sidebar or toolbar items. `run_window` takes
-the same closure but adds nothing: you draw the background and the titlebar.
+Use it when the titlebar needs a sidebar or toolbar items. `WindowStyle::Plain`
+or `HiddenTitleBar` in `.options(..)` leaves out the kit `Titlebar`, so you draw
+your own ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
 
 The program is [`recipes/custom_window.rs`](recipes/custom_window.rs).
 
@@ -95,8 +96,8 @@ The program is [`recipes/titlebar_over_gradient.rs`](recipes/titlebar_over_gradi
    and makes the `Titlebar` transparent. Its colors come from a
    `BACKDROP_SCENES` preset or from an image (`BackdropSource::Image`).
 2. The content is a `Component`, so it reads the backdrop's palette.
-3. `run_window` is used because the window draws its own title bar with
-   buttons ([8](../docs/barrierkit/08-windows.md)). Every kit window is
+3. `WindowStyle::Plain` leaves out the kit `Titlebar`, because the window
+   draws its own with buttons ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)). Every kit window is
    client-side decorated.
 
 ## 11. Style one control

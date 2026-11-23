@@ -44,4 +44,5 @@ pub(crate) const MOST_CHROMES: usize = 3;
 
 #[cfg(feature = "a11y")]
 pub(super) use atspi::Bridge;
+pub(crate) use system::appearance;
 pub(super) use window::run_window;

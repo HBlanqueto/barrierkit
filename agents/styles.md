@@ -400,8 +400,8 @@ The kit applies these after every level; you cannot turn them off:
 1. Reduce motion: every `Animation` becomes `None`.
 2. Reduce transparency: every `Material` becomes its solid color, without
    blur. So do the kit's own glass surfaces: the glass full-screen bars and
-   `TopGlass` become the solid bar, and the media `Material` and
-   `GlassContainer` become the opaque `MEDIA.material_tint`.
+   `TopGlass` become the solid bar, the media `Material` becomes the opaque
+   `MEDIA.material_tint`, and `GlassContainer` the window's opaque glass color.
 3. Keyboard focus: the focus ring is always drawn; no field turns it off.
 
 Contrast is your job when you use `ShapeStyle::Color`: text on a fixed color

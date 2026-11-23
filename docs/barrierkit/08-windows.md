@@ -1,6 +1,6 @@
 # 8. Windows
 
-**Goal:** open a window with `run_window`, set its options, read and change
+**Goal:** open a window, set its options, read and change
 its state, open utility windows and popups, and run code later.
 **Scope:** the window API of `bk::platform`: `run_window`,
 `WindowOptions`, `WindowControls`, `WindowStatus`, scenes (`WindowGroup`,
@@ -15,29 +15,31 @@ Wayland protocols) is in [18. Platform](18-platform.md).
 
 ## Steps
 
-1. Use `run_window` instead of `Application` when the window draws its own
-   title bar (a sidebar, toolbar items).
-   `Application::window(..).run()` is `run_window` with a background, a
-   `Titlebar` and centered content ([2](02-first-app.md#what-application-does-for-you)).
+1. Open the window with `Application`
+   ([2](02-first-app.md#what-application-does-for-you)). A window that draws
+   its own title bar (a sidebar, toolbar items) sets `WindowStyle::HiddenTitleBar`
+   or `Plain` and gets no kit `Titlebar` ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
    An app with more than one window declares [scenes](#scenes) on the
    `Application`.
-2. Describe the window with `WindowOptions` and pass the root view:
+2. Describe the window with `WindowOptions` in `.options(..)`:
 
    ```rust
    use bk::prelude::*;
 
    fn main() -> Result<(), RunError> {
-       run_window(
-           || {
+       Application::new("notes")
+           .window(tr!("notes"), || {
                rect()
                    .expanded()
-                   .background(color(Palette::current().window_background))
                    .child(Titlebar::new().title(tr!("notes")))
-           },
-           WindowOptions::new(tr!("notes"), "notes")
-               .size((760, 520))
-               .min_size(Some(WINDOW_MIN_SIZE)),
-       )
+           })
+           .options(|window| {
+               window
+                   .size((760, 520))
+                   .min_size(Some(WINDOW_MIN_SIZE))
+                   .window_style(WindowStyle::HiddenTitleBar)
+           })
+           .run()
    }
    ```
 

@@ -14,7 +14,9 @@ pub fn use_timeline(active: bool, every: Duration) {
         Timers::get().after(every, move || {
             scheduled.set(false);
             let mut ticks = ticks;
-            *ticks.write() += 1;
+            if let Some(mut ticks) = ticks.try_write() {
+                *ticks += 1;
+            }
         });
     }
 }

@@ -1,14 +1,13 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    run_window(
-        || {
+    Application::new("notes")
+        .window("Notes", || {
             rect()
                 .expanded()
-                .background(color(Palette::current().window_background))
                 .child(Titlebar::new().title("Notes").with_sidebar(true))
                 .child(Text::new("No notes yet").padding(SPACE_4))
-        },
-        WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain),
-    )
+        })
+        .options(|window| window.window_style(WindowStyle::Plain))
+        .run()
 }

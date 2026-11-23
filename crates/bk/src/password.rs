@@ -2,8 +2,6 @@ use freya_core::prelude::{Key, Modifiers, NamedKey};
 use std::borrow::Cow;
 use zeroize::{Zeroize, Zeroizing};
 
-use crate::platform::inserts_text;
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum State {
     Idle,
@@ -59,7 +57,7 @@ impl PasswordField {
                 self.backspace();
                 None
             }
-            Key::Character(text) if inserts_text(modifiers) => {
+            Key::Character(text) if !modifiers.intersects(Modifiers::CONTROL | Modifiers::META) => {
                 text.chars().for_each(|ch| self.insert(ch));
                 None
             }
@@ -123,6 +121,15 @@ mod tests {
         typed(&mut field, "H", Modifiers::SHIFT);
         assert_eq!(enter(&mut field).as_deref().map(String::as_str), Some("H"));
         assert_eq!(*field.state(), State::Verifying);
+    }
+
+    #[test]
+    fn option_symbol_is_inserted_but_a_command_or_control_shortcut_is_not() {
+        let mut field = PasswordField::default();
+        typed(&mut field, "@", Modifiers::ALT);
+        typed(&mut field, "v", Modifiers::META);
+        typed(&mut field, "c", Modifiers::CONTROL);
+        assert_eq!(enter(&mut field).as_deref().map(String::as_str), Some("@"));
     }
 
     #[test]

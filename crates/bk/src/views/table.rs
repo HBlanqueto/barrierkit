@@ -282,6 +282,7 @@ impl Component for Table {
         let mut measured = use_state(|| vec![0.0f32; self.columns.len()]);
         let mut drag = use_state(|| None::<(usize, f64, f32)>);
         let mut body_height = use_state(|| 0.0f32);
+        let clicked = use_state(|| None::<usize>);
         let controller = use_scroll_controller();
         let elastic = use_elastic(controller, None);
         let scroll_style: ScrollViewStyle = resolve(&self.style);
@@ -594,6 +595,7 @@ impl Component for Table {
                     .filter(|_| !selected_row)
                     .map(|fill| fill.call(index));
                 rect()
+                    .key(index)
                     .width(Size::fill())
                     .height(Size::px(*row_height))
                     .padding(Gaps::new(0.0, *inset, 0.0, *inset))
@@ -612,6 +614,8 @@ impl Component for Table {
                         row_divider(fill.clone(), *before, *after)
                     }))
                     .on_press(move |_| {
+                        let mut clicked = clicked;
+                        clicked.set(Some(index));
                         if let Some(cb) = &on_select {
                             cb.call(select(&selected, index, *held.peek()));
                         }
@@ -624,8 +628,11 @@ impl Component for Table {
         .length(self.rows.len())
         .item_size(style.row_height);
 
-        let (rows, on_select) = (self.rows.len(), self.on_select.clone());
-        let selected = self.selected.last().copied();
+        let (rows, on_select, selected) = (
+            self.rows.len(),
+            self.on_select.clone(),
+            self.selected.clone(),
+        );
         let table = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Table)
             .a11y_alt(&*self.label)
@@ -651,8 +658,9 @@ impl Component for Table {
                     Key::Named(NamedKey::ArrowUp) => false,
                     _ => return,
                 };
-                let next = step_selection(selected, rows, down);
-                if next != selected
+                let from = cursor_row(&selected, *clicked.peek());
+                let next = step_selection(from, rows, down);
+                if next != from
                     && let (Some(next), Some(cb)) = (next, &on_select)
                 {
                     cb.call(vec![next]);
@@ -681,6 +689,12 @@ impl Component for Table {
             );
         self.overrides.apply(interaction.inner_focus_ring(table))
     }
+}
+
+fn cursor_row(selected: &[usize], clicked: Option<usize>) -> Option<usize> {
+    clicked
+        .filter(|row| selected.contains(row))
+        .or(selected.last().copied())
 }
 
 fn step_selection(selected: Option<usize>, rows: usize, down: bool) -> Option<usize> {
@@ -781,6 +795,15 @@ mod tests {
         assert_eq!(step_selection(Some(2), 3, true), Some(2));
         assert_eq!(step_selection(Some(0), 3, false), Some(0));
         assert_eq!(step_selection(None, 0, true), None);
+    }
+
+    #[test]
+    fn arrows_step_from_the_clicked_row_not_the_shift_anchor() {
+        let selected = select(&[0], 5, Modifiers::SHIFT);
+        let from = cursor_row(&selected, Some(5));
+        assert_eq!(step_selection(from, 10, true), Some(6));
+        assert_eq!(step_selection(from, 10, false), Some(4));
+        assert_eq!(cursor_row(&[7], Some(5)), Some(7));
     }
 
     #[test]

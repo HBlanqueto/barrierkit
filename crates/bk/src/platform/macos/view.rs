@@ -44,7 +44,7 @@ define_class!(
     impl ContentView {
         #[unsafe(method(makeBackingLayer))]
         fn make_backing_layer(&self) -> *mut CALayer {
-            Retained::into_raw(Retained::into_super(CAMetalLayer::new()))
+            Retained::autorelease_return(Retained::into_super(CAMetalLayer::new()))
         }
 
         #[unsafe(method(wantsUpdateLayer))]
@@ -647,7 +647,7 @@ define_class!(
     impl ChromeView {
         #[unsafe(method(makeBackingLayer))]
         fn make_backing_layer(&self) -> *mut CALayer {
-            Retained::into_raw(Retained::into_super(CAMetalLayer::new()))
+            Retained::autorelease_return(Retained::into_super(CAMetalLayer::new()))
         }
 
         #[unsafe(method(wantsUpdateLayer))]

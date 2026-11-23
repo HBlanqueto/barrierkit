@@ -23,18 +23,16 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
        Action::new("reset", || tr!("reset")).shortcut(Shortcut::ctrl(ShortcutKey::Char('r')));
    ```
 
-2. Put the actions in the window's menu. The kit's `UNDO` and `REDO` go next to
-   yours:
+2. Add the actions to the [standard menus](#standard-menus). The Edit menu
+   already has Undo and Redo; put yours after them:
 
    ```rust
    Application::new("counter")
        .window("Counter", counter)
-       .options(|window| {
-           window.menu(MainMenu::new(vec![Menu::new(
-               tr!("edit"),
-               vec![UNDO.item(true), REDO.item(true), RESET.item(true)],
-           )]))
-       })
+       .commands(Commands::new().group(CommandGroup::after(
+           CommandGroupPlacement::UndoRedo,
+           vec![RESET.item(true)],
+       )))
        .run()
    ```
 
@@ -79,8 +77,6 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
 
 7. Optional: make the app single instance with `launch` before `run()`
    ([Single instance](#single-instance)).
-8. Optional: give every window the standard menus with
-   `.commands(Commands::new())` ([Standard menus](#standard-menus)).
 
 ## Actions and shortcuts
 

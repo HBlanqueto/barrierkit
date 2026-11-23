@@ -551,6 +551,10 @@ impl Graphics {
     }
 
     pub(crate) fn acquire(&mut self) -> Result<(), RunError> {
+        // An image acquired for a draw that never presented is still ours; acquiring again leaks it.
+        if self.skia.is_some() {
+            return Ok(());
+        }
         // `targets` is filled last: a swapchain whose setup failed halfway has none.
         if self.targets.is_empty() {
             return Err(RunError::Vulkan("no swapchain"));

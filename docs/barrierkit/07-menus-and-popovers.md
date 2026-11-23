@@ -48,7 +48,7 @@ menu, a button that opens a popover and a control with a tooltip.
        .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
        .on_press(move |_| {
            Popover::new((264.0, 56.0), || rect().padding(12.0).child(Text::new(tr!("hello"))).into())
-               .show(*area.peek())
+               .show(*area.peek());
        })
        .child(Text::new(tr!("info")))
    ```
