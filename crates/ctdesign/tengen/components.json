@@ -1533,6 +1533,18 @@
       "track-opacity": [0.05, 0.049, 0.149, 0.148],
       "edge-height": 24
     },
+    "scroll-physics": {
+      "fling-distance": 157.5,
+      "fling-exponent": 1.3333,
+      "min-speed": 0.05,
+      "velocity-window": 100,
+      "band": 0.071,
+      "band-speed": 0.3,
+      "return-omega": 12,
+      "refresh-trigger": 80,
+      "refresh-hold": 60,
+      "refresh-band": 0.5
+    },
     "badge": {
       "height": 20,
       "padding-x": 8

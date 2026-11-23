@@ -4,16 +4,17 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
 use ctappearance::{ScrollBarClick, ScrollBars};
-use ctdesign::Rgba;
+use ctdesign::{Rgba, SCROLL_PHYSICS};
 use freya_components::scrollviews::{
     ScrollConfig, ScrollController as Inner, ScrollView as Scroller,
 };
 use freya_core::prelude::*;
-use torin::prelude::{Area, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::adornments::Divider;
 use crate::elements::{Overrides, forward_overrides};
 use crate::platform::Timers;
+use crate::progress::Spinner;
 use crate::scroll_physics::{Glide, VelocityTracker, rubber_band, rubber_band_input};
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ScrollViewStyle, ShapeStyle, StateValue, Theme, resolve,
@@ -34,6 +35,7 @@ pub struct ScrollView {
     scroll_bar: bool,
     top_line: bool,
     edge_effect: bool,
+    refresh: Option<Refresh>,
     controller: Option<ScrollController>,
     style: Theme,
     key: DiffKey,
@@ -117,7 +119,8 @@ impl ScrollController {
 }
 
 // A touchpad scroll past an edge stretches the content and a release glides (ADR 0104). The rest offset stays
-// in Freya's controller; the stretch is a shift of the whole view, so nothing else reads it.
+// in Freya's controller; the stretch is a shift of the whole view, so nothing else reads it. While the view
+// is refreshing the start edge is `refresh_hold` above the content, so the offset may be negative.
 #[derive(Clone)]
 pub(crate) struct Elastic {
     over: State<f32>,
@@ -126,23 +129,51 @@ pub(crate) struct Elastic {
     pose: Rc<Cell<(f32, f32)>>,
     tracker: Rc<RefCell<VelocityTracker>>,
     began: Rc<Instant>,
+    refresh: Rc<RefCell<Option<Refresh>>>,
+    dragging: Rc<Cell<bool>>,
+    fired: Rc<Cell<bool>>,
 }
 
-pub(crate) fn use_elastic() -> Elastic {
-    Elastic {
+type Refresh = (bool, Callback<(), ()>);
+
+pub(crate) fn use_elastic(controller: ScrollController, refresh: Option<Refresh>) -> Elastic {
+    let elastic = Elastic {
         over: use_state(|| 0.0),
         glide: use_state(|| None),
         reduced_motion: crate::animation::use_reduced_motion(),
         pose: use_hook(|| Rc::new(Cell::new((0.0, 0.0)))),
         tracker: use_hook(|| Rc::new(RefCell::new(VelocityTracker::default()))),
         began: use_hook(|| Rc::new(Instant::now())),
-    }
+        refresh: use_hook(|| Rc::new(RefCell::new(None))),
+        dragging: use_hook(|| Rc::new(Cell::new(false))),
+        fired: use_hook(|| Rc::new(Cell::new(false))),
+    };
+    let refreshing = refresh.as_ref().is_some_and(|(refreshing, _)| *refreshing);
+    *elastic.refresh.borrow_mut() = refresh;
+    let held = elastic.clone();
+    use_side_effect_with_deps(&refreshing, move |_| held.retarget(controller));
+    elastic
 }
 
 impl Elastic {
     // The shift of the content along the axis, negative past the far edge.
     pub(crate) fn shift(&self) -> f32 {
         -*self.over.read()
+    }
+
+    // How far the content is pulled down from its start, for the indicator of a refresh.
+    pub(crate) fn pulled(&self) -> Option<f32> {
+        self.refresh
+            .borrow()
+            .as_ref()
+            .map(|_| (-*self.over.read()).max(0.0))
+    }
+
+    pub(crate) fn refreshing(&self) -> bool {
+        self.refresh
+            .borrow()
+            .as_ref()
+            .is_some_and(|(refreshing, _)| *refreshing)
     }
 
     pub(crate) fn wheel(
@@ -166,23 +197,22 @@ impl Elastic {
         let along = |(width, height): (f32, f32)| if horizontal { width } else { height };
         let viewport = along(*controller.viewport.peek());
         let limit = (along(*controller.content.peek()) - viewport).max(0.0);
+        if limit == 0.0 && *self.over.peek() == 0.0 && self.refresh.borrow().is_none() {
+            return;
+        }
+        event.stop_propagation();
         let delta = -(if horizontal {
             event.delta_x
         } else {
             event.delta_y
         }) as f32;
-        let inner: (i32, i32) = controller.into();
-        let rest = -(if horizontal { inner.0 } else { inner.1 }) as f32;
-        if limit == 0.0 && *self.over.peek() == 0.0 {
-            return;
-        }
-        event.stop_propagation();
+        let span = (viewport, limit);
         match event.phase {
             TouchPhase::Started => {
-                self.grab(rest, viewport);
-                self.drag(controller, horizontal, (viewport, limit), delta);
+                self.grab(controller, horizontal, viewport);
+                self.drag(controller, horizontal, span, delta);
             }
-            TouchPhase::Moved => self.drag(controller, horizontal, (viewport, limit), delta),
+            TouchPhase::Moved => self.drag(controller, horizontal, span, delta),
             TouchPhase::Ended => self.release(controller, horizontal, limit, true),
             TouchPhase::Cancelled => self.release(controller, horizontal, limit, false),
         }
@@ -192,6 +222,29 @@ impl Elastic {
         self.began.elapsed().as_secs_f32() * 1000.0
     }
 
+    // The lowest offset: the start edge, or the held position of a refresh.
+    fn low(&self) -> f32 {
+        if self.refreshing() {
+            -SCROLL_PHYSICS.refresh_hold
+        } else {
+            0.0
+        }
+    }
+
+    // The pull down to a refresh is looser than any other stretch.
+    fn band(&self, raw: f32) -> f32 {
+        let pulling = self
+            .refresh
+            .borrow()
+            .as_ref()
+            .is_some_and(|(refreshing, _)| !refreshing);
+        if pulling && raw < 0.0 {
+            SCROLL_PHYSICS.refresh_band
+        } else {
+            SCROLL_PHYSICS.band
+        }
+    }
+
     fn stop(&self) {
         let task = self.glide.clone().write().take();
         if let Some(task) = task {
@@ -199,11 +252,22 @@ impl Elastic {
         }
     }
 
-    fn grab(&self, rest: f32, viewport: f32) {
+    fn grab(&self, controller: ScrollController, horizontal: bool, viewport: f32) {
         self.stop();
         self.tracker.borrow_mut().clear();
-        self.pose
-            .set((rest, rubber_band_input(*self.over.peek(), viewport)));
+        self.dragging.set(true);
+        self.fired.set(false);
+        let inner: (i32, i32) = controller.into();
+        let inner = -(if horizontal { inner.0 } else { inner.1 }) as f32;
+        let (mut rest, _) = self.pose.get();
+        if rest.max(0.0).round() != inner.round() {
+            rest = inner;
+        }
+        let stretch = *self.over.peek() - rest.min(0.0);
+        self.pose.set((
+            rest,
+            rubber_band_input(stretch, viewport, self.band(stretch)),
+        ));
     }
 
     fn drag(
@@ -216,27 +280,74 @@ impl Elastic {
         self.tracker.borrow_mut().push(self.now(), delta);
         let (rest, raw) = self.pose.get();
         let position = rest + raw + delta;
-        let rest = position.clamp(0.0, limit);
-        self.pose.set((rest, position - rest));
-        scroll_to(controller, horizontal, rest);
+        let rest = position.clamp(self.low(), limit);
+        let raw = position - rest;
+        self.pose.set((rest, raw));
+        scroll_to(controller, horizontal, rest.max(0.0));
+        let shown = rest.min(0.0) + rubber_band(raw, viewport, self.band(raw));
         let mut over = self.over;
-        over.set(rubber_band(position - rest, viewport));
+        over.set(shown);
+        let refresh = self.refresh.borrow().clone();
+        if let Some((false, action)) = refresh
+            && shown < -SCROLL_PHYSICS.refresh_trigger
+            && !self.fired.replace(true)
+        {
+            action.call(());
+        }
     }
 
     fn release(&self, controller: ScrollController, horizontal: bool, limit: f32, flung: bool) {
+        self.dragging.set(false);
         let speed = if flung && !cfg!(target_os = "macos") {
             self.tracker.borrow().velocity(self.now())
         } else {
             0.0
         };
         self.tracker.borrow_mut().clear();
-        let glide = Glide::new(self.pose.get().0, speed, limit, *self.over.peek());
-        if glide.at(0.0).done {
-            let mut over = self.over;
-            over.set(0.0);
+        let (rest, _) = self.pose.get();
+        let (low, shown) = (self.low(), *self.over.peek());
+        let glide = Glide::new(rest - low, speed, limit - low, shown - rest.min(0.0));
+        self.run(glide, low, controller, horizontal);
+    }
+
+    // The refreshing state changed: the start edge moved, and the content returns to the edge it now has.
+    fn retarget(&self, controller: ScrollController) {
+        let (viewport, content) = (*controller.viewport.peek(), *controller.content.peek());
+        let (low, shown) = (self.low(), *self.over.peek());
+        if self.dragging.get() {
+            self.pose.set((
+                low,
+                rubber_band_input(shown - low, viewport.1, SCROLL_PHYSICS.band),
+            ));
             return;
         }
+        self.stop();
+        let inner: (i32, i32) = controller.into();
+        if inner.1 < 0 {
+            self.pose.set((-inner.1 as f32, 0.0));
+            return;
+        }
+        let limit = (content.1 - viewport.1).max(0.0);
+        self.run(
+            Glide::new(0.0, 0.0, limit - low, shown - low),
+            low,
+            controller,
+            false,
+        );
+    }
+
+    fn run(&self, glide: Glide, low: f32, controller: ScrollController, horizontal: bool) {
         let (over, pose) = (self.over, self.pose.clone());
+        let finish = move |rest: f32, stretch: f32| {
+            pose.set((rest, 0.0));
+            scroll_to(controller, horizontal, rest.max(0.0));
+            let mut over = over;
+            over.set(rest.min(0.0) + stretch);
+        };
+        if glide.at(0.0).done {
+            finish(glide.at(0.0).rest + low, 0.0);
+            return;
+        }
         let (ticker, platform, clock) = (
             RenderingTicker::get(),
             Platform::get().current_window(),
@@ -253,12 +364,9 @@ impl Elastic {
                     * 1000.0;
                 previous = Instant::now();
                 let position = glide.at(at);
-                pose.set((position.rest, 0.0));
-                scroll_to(controller, horizontal, position.rest);
-                let mut over = over;
-                over.set(position.over);
+                finish(position.rest + low, position.over);
                 if position.done {
-                    over.set(0.0);
+                    finish(position.rest + low, 0.0);
                     break;
                 }
                 platform.send(UserEvent::RequestRedraw);
@@ -295,6 +403,7 @@ impl ScrollView {
             scroll_bar: true,
             top_line: false,
             edge_effect: false,
+            refresh: None,
             controller: None,
             style: Theme::tengen(),
             key: DiffKey::None,
@@ -309,6 +418,12 @@ impl ScrollView {
 
     pub fn edge_effect(mut self, edge_effect: bool) -> Self {
         self.edge_effect = edge_effect;
+        self
+    }
+
+    // Pulling the content down past its start calls `action`; it stays pulled while `refreshing` is true.
+    pub fn refreshable(mut self, refreshing: bool, action: impl Into<Callback<(), ()>>) -> Self {
+        self.refresh = Some((refreshing, action.into()));
         self
     }
 
@@ -577,7 +692,7 @@ impl Component for ScrollView {
         let along = move |(width, height): (f32, f32)| if horizontal { width } else { height };
         let size = |area: Area| (area.width(), area.height());
         let bars = use_scroll_bar(controller, horizontal, self.scroll_bar, &style);
-        let elastic = use_elastic();
+        let elastic = use_elastic(controller, self.refresh.clone());
         let reserved = bars.reserved;
         let root = rect()
             .width(self.width.clone())
@@ -611,6 +726,21 @@ impl Component for ScrollView {
                                     .children(self.children.clone()),
                             ),
                     ),
+            )
+            .maybe_child(
+                elastic
+                    .pulled()
+                    .filter(|pulled| *pulled > 0.0)
+                    .map(|pulled| {
+                        rect()
+                            .position(Position::new_absolute().top(0.0).left(0.0))
+                            .width(Size::fill())
+                            .height(Size::px(pulled))
+                            .overflow(Overflow::Clip)
+                            .main_align(Alignment::Center)
+                            .cross_align(Alignment::Center)
+                            .child(Spinner::new("Refreshing"))
+                    }),
             )
             .maybe_child((self.edge_effect && scrolled < 0).then(|| {
                 if horizontal {

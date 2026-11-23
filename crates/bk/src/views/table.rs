@@ -225,7 +225,7 @@ impl Component for Table {
         let mut drag = use_state(|| None::<(usize, f64, f32)>);
         let mut body_height = use_state(|| 0.0f32);
         let controller = use_scroll_controller();
-        let elastic = use_elastic();
+        let elastic = use_elastic(controller, None);
         let scroll_style: ScrollViewStyle = resolve(&self.style);
         if widths.peek().len() != self.columns.len() {
             widths.write().resize(self.columns.len(), None);

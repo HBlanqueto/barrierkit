@@ -341,6 +341,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `media::TopGlass::style` | method | ≈ `.scrollEdgeEffectStyle(_:for:)` on one view | — | ≈ `UIScrollEdgeEffect.Style` | Changes the style of one top glass | [Styles](../../crates/bk/src/styles/material.rs) |
 | `glass_container::GlassContainer::style` | method | — | — | — | Changes the style of one glass container | [Styles](../../crates/bk/src/styles/material.rs) |
 | `backdrop::Backdrop::style` | method | — | — | — | Changes the style of one backdrop | [Styles](../../crates/bk/src/styles/backdrop.rs) |
+| `controls::ScrollView::refreshable` | method | ≈ `.refreshable(action:)` | ≈ `NSRefreshController` (macOS 27) | ≈ `UIRefreshControl` | Calls the action when the content is pulled down past 80 and holds it 60 down while `refreshing` is true | [5](05-controls.md#scrolling) |
 | `controls::ScrollView::style` | method | ≈ `.scrollIndicators(_:axes:)` on one view | — | ≈ `UIScrollView.showsVerticalScrollIndicator` | Changes the style of one scroll view | [Styles](../../crates/bk/src/styles/scroll_view.rs) |
 | `text_editor::TextEditor::style` | method | `.textEditorStyle(_:)` on one view | — | — | Changes the style of one text editor | [Styles](../../crates/bk/src/styles/text_editor.rs) |
 | `rule_editor::RuleEditor::style` | method | — | — | — | Changes the style of one rule editor | [Styles](../../crates/bk/src/styles/rule_editor.rs) |

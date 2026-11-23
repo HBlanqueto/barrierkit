@@ -233,6 +233,15 @@ overshoots 23 pt at 75 ms and returns by `over(t) = u t e^(-w t)` with `w` 13 an
 `u` 0.83 pt/ms (checked at 0.12, 0.25 and 0.30 s after the hit, within 1 pt): the
 band takes **0.30 to 0.33 of the arrival speed**. Overshoot is `u / (w e)`.
 
+**Pull to refresh** (`UIRefreshControl` on the Catalyst scroll view, 900 pt content,
+rest offset -32): `valueChanged` fires while the finger is still down, when the
+stretch reaches about 81 pt (offsets -104 and -113 straddle it); the adjusted top
+inset grows by 60 (32 to 92) and the content settles on it, 60 pt down, in about
+0.4 s as the return spring (from 96 pt at the release). With the control the pull
+is looser than the band above: an input of 120 and 240 pt gave 63 and 72 pt, 600
+pt gave 96 pt (the first 5 events jump to about 55 pt), and the stretch past the
+held edge is the stiff band again. Three pulls only; the mapping is not fitted.
+
 **Model for the kit** (`crates/bk/src/scroll_physics.rs`, ADR 0104):
 
 | Constant | Value | Source |
@@ -243,8 +252,13 @@ band takes **0.30 to 0.33 of the arrival speed**. Overshoot is `u / (w e)`.
 | Return | critically damped, `w` 12 rad/s | return, edge hit |
 | Velocity into the band | 0.3 of the arrival speed | edge hit |
 | Smallest fling | 0.05 pt/ms (50 pt/s, Freya's) | not measured |
+| Refresh | trigger 80 pt, hold 60 pt | pull to refresh |
+| Band of the pull to a refresh | 0.5 (the iOS touch constant; not fitted) | not measured |
 
-Not measured here: the minimum velocity that starts a deceleration, the
+The values are `scroll-physics` in `components.json` and
+`ctdesign::SCROLL_PHYSICS`.
+
+Not measured here: the loose band of the pull to refresh (three pulls only), the minimum velocity that starts a deceleration, the
 velocity window that UIKit averages for the release, a horizontal axis, two
 view sizes, `UIRefreshControl` on the Mac, and the same flick through a real
 trackpad (the Mac adds its own momentum events, so on the kit's macOS runner a

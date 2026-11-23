@@ -195,6 +195,7 @@ MATERIAL_ULTRA_THICK_DARK MaterialSet components.material.swiftui.ultra-thick.da
 MATERIAL_BAR_LIGHT MaterialSet components.material.swiftui.bar.light
 MATERIAL_BAR_DARK MaterialSet components.material.swiftui.bar.dark
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay
+SCROLL_PHYSICS ScrollPhysicsMetrics components.scroll-physics velocity_window_ms=velocity-window
 LIST_SECTION ListSectionMetrics components.list-section
 LIST_GROUP ListGroupMetrics components.list-group
     separator_inset=separator.inset-left header_padding=section-header.padding

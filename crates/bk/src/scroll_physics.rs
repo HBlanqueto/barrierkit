@@ -1,17 +1,12 @@
 use std::collections::VecDeque;
 
+use ctdesign::SCROLL_PHYSICS;
+
 // Measured on a Mac Catalyst `UIScrollView` fed with touchpad scroll events (UIKit animations, section 6, ADR 0104).
 // Velocities are points per millisecond, times are milliseconds, distances are points.
-const FLING_DISTANCE: f32 = 157.5;
-const FLING_EXPONENT: f32 = 4.0 / 3.0;
 const FLING_POWER: i32 = 4;
-const BAND: f32 = 0.071;
-const RETURN_OMEGA: f32 = 12.0 / 1000.0;
-const BAND_SPEED: f32 = 0.3;
 const SETTLED_OVER: f32 = 0.25;
 const SETTLED_SPEED: f32 = 0.002;
-const VELOCITY_WINDOW_MS: f32 = 100.0;
-pub(crate) const FLING_MIN_SPEED: f32 = 0.05;
 
 // The release velocity of a drag: the movement in the last 100 ms over the time it took.
 #[derive(Default)]
@@ -25,7 +20,7 @@ impl VelocityTracker {
         while self
             .samples
             .front()
-            .is_some_and(|(first, _)| at - first > VELOCITY_WINDOW_MS)
+            .is_some_and(|(first, _)| at - first > SCROLL_PHYSICS.velocity_window_ms)
         {
             self.samples.pop_front();
         }
@@ -36,7 +31,7 @@ impl VelocityTracker {
         else {
             return 0.0;
         };
-        if now - last > VELOCITY_WINDOW_MS || last <= first {
+        if now - last > SCROLL_PHYSICS.velocity_window_ms || last <= first {
             return 0.0;
         }
         self.samples
@@ -53,16 +48,16 @@ impl VelocityTracker {
 }
 
 // The distance of the stretch past an edge for an input of `travel`.
-pub(crate) fn rubber_band(travel: f32, dimension: f32) -> f32 {
+pub(crate) fn rubber_band(travel: f32, dimension: f32, band: f32) -> f32 {
     let dimension = dimension.max(1.0);
-    travel.signum() * dimension * (1.0 - 1.0 / (1.0 + BAND * travel.abs() / dimension))
+    travel.signum() * dimension * (1.0 - 1.0 / (1.0 + band * travel.abs() / dimension))
 }
 
 // The input that stretches the content by `over`.
-pub(crate) fn rubber_band_input(over: f32, dimension: f32) -> f32 {
+pub(crate) fn rubber_band_input(over: f32, dimension: f32, band: f32) -> f32 {
     let dimension = dimension.max(1.0);
     let over = over.abs().min(dimension * 0.999).copysign(over);
-    dimension * over / (BAND * (dimension - over.abs()))
+    dimension * over / (band * (dimension - over.abs()))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -74,7 +69,8 @@ pub(crate) struct Fling {
 
 impl Fling {
     pub(crate) fn new(speed: f32) -> Self {
-        let distance = FLING_DISTANCE * speed.abs().powf(FLING_EXPONENT);
+        let distance =
+            SCROLL_PHYSICS.fling_distance * speed.abs().powf(SCROLL_PHYSICS.fling_exponent);
         Self {
             speed,
             distance: distance.copysign(speed),
@@ -127,12 +123,12 @@ struct Bounce {
 
 impl Bounce {
     fn over_at(self, at: f32) -> f32 {
-        let omega = RETURN_OMEGA;
+        let omega = SCROLL_PHYSICS.return_omega / 1000.0;
         (self.over + (self.speed + omega * self.over) * at) * (-omega * at).exp()
     }
 
     fn speed_at(self, at: f32) -> f32 {
-        let omega = RETURN_OMEGA;
+        let omega = SCROLL_PHYSICS.return_omega / 1000.0;
         let linear = self.speed + omega * self.over;
         (self.speed - omega * linear * at) * (-omega * at).exp()
     }
@@ -169,7 +165,7 @@ pub(crate) struct Glide {
 
 impl Glide {
     pub(crate) fn new(from: f32, speed: f32, limit: f32, over: f32) -> Self {
-        let fling = if over == 0.0 && speed.abs() >= FLING_MIN_SPEED {
+        let fling = if over == 0.0 && speed.abs() >= SCROLL_PHYSICS.min_speed {
             Fling::new(speed)
         } else {
             Fling::new(0.0)
@@ -182,7 +178,7 @@ impl Glide {
                 reach,
                 Bounce {
                     over: 0.0,
-                    speed: BAND_SPEED * arrival,
+                    speed: SCROLL_PHYSICS.band_speed * arrival,
                 },
             )
         });
@@ -224,6 +220,8 @@ impl Glide {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const BAND: f32 = SCROLL_PHYSICS.band;
 
     fn near(actual: f32, expected: f32, tolerance: f32) {
         assert!(
@@ -272,17 +270,17 @@ mod tests {
 
     #[test]
     fn a_pull_past_an_edge_stretches_as_measured() {
-        near(rubber_band(240.0, 500.0), 16.0, 1.0);
-        near(rubber_band(600.0, 500.0), 39.0, 1.0);
-        near(rubber_band(1800.0, 500.0), 103.0, 2.5);
-        near(rubber_band(-600.0, 500.0), -39.0, 1.0);
+        near(rubber_band(240.0, 500.0, BAND), 16.0, 1.0);
+        near(rubber_band(600.0, 500.0, BAND), 39.0, 1.0);
+        near(rubber_band(1800.0, 500.0, BAND), 103.0, 2.5);
+        near(rubber_band(-600.0, 500.0, BAND), -39.0, 1.0);
     }
 
     #[test]
     fn the_input_of_a_stretch_gives_the_stretch_back() {
         for travel in [-900.0, -30.0, 0.0, 5.0, 240.0, 1800.0] {
             near(
-                rubber_band_input(rubber_band(travel, 500.0), 500.0),
+                rubber_band_input(rubber_band(travel, 500.0, BAND), 500.0, BAND),
                 travel,
                 travel.abs() * 1e-3 + 1e-3,
             );
@@ -291,8 +289,8 @@ mod tests {
 
     #[test]
     fn the_stretch_never_reaches_the_size_of_the_view() {
-        assert!(rubber_band(1.0e6, 500.0) < 500.0);
-        assert_eq!(rubber_band(0.0, 500.0), 0.0);
+        assert!(rubber_band(1.0e6, 500.0, BAND) < 500.0);
+        assert_eq!(rubber_band(0.0, 500.0, BAND), 0.0);
     }
 
     #[test]

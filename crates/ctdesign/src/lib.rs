@@ -1277,6 +1277,20 @@ pub struct ScrollBarMetrics {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ScrollPhysicsMetrics {
+    pub fling_distance: f32,
+    pub fling_exponent: f32,
+    pub min_speed: f32,
+    pub velocity_window_ms: f32,
+    pub band: f32,
+    pub band_speed: f32,
+    pub return_omega: f32,
+    pub refresh_trigger: f32,
+    pub refresh_hold: f32,
+    pub refresh_band: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ListSectionMetrics {
     pub header_height: f32,
     pub gap: f32,

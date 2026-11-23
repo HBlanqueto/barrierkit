@@ -3164,6 +3164,16 @@
   --bk-scroll-bar-track-opacity-2: 0.149;
   --bk-scroll-bar-track-opacity-3: 0.148;
   --bk-scroll-bar-edge-height: 24;
+  --bk-scroll-physics-fling-distance: 157.5;
+  --bk-scroll-physics-fling-exponent: 1.3333;
+  --bk-scroll-physics-min-speed: 0.05;
+  --bk-scroll-physics-velocity-window: 100;
+  --bk-scroll-physics-band: 0.071;
+  --bk-scroll-physics-band-speed: 0.3;
+  --bk-scroll-physics-return-omega: 12;
+  --bk-scroll-physics-refresh-trigger: 80;
+  --bk-scroll-physics-refresh-hold: 60;
+  --bk-scroll-physics-refresh-band: 0.5;
   --bk-badge-height: 20;
   --bk-badge-padding-x: 8;
   --bk-focus-ring-width: 3;

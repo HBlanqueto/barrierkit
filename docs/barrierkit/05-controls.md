@@ -878,6 +878,7 @@ Badge::new("3").style(|s| BadgeStyle {
 | `.top_line(bool)` | `false` | A divider over the top edge; content slides under it |
 | `.edge_effect(bool)` | `false` | Content fades under an edge over 24 (`SCROLL_BAR.edge_height`), like `scrollEdgeEffectStyle(.soft)`: the top edge while scrolled; sideways, each edge with more content past it |
 | `.controller(ScrollController)` | its own | Scroll from code |
+| `.refreshable(refreshing, action)` | off | A touchpad pull of the content past its start by 80 calls `action` once; while `refreshing` is true the content rests 60 down with a spinner above it, and it returns when it turns false |
 
 The bar is a 6 thumb that appears while scrolling and fades 800 ms later. With the
 appearance setting `scroll_bars = "always"` ([4](04-appearance-and-tokens.md)) it stays,

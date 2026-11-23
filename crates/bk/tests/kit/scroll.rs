@@ -1,3 +1,5 @@
+use std::cell::Cell;
+use std::rc::Rc;
 use std::time::Duration;
 
 use bk::ProbeExt;
@@ -18,6 +20,26 @@ struct Case;
 impl App for Case {
     fn render(&self) -> impl IntoElement {
         ScrollView::new()
+            .child(rect().probe("first").height(Size::px(40.0)))
+            .child(rect().height(Size::px(CONTENT - 40.0)))
+    }
+}
+
+struct RefreshCase {
+    refreshing: Rc<Cell<Option<State<bool>>>>,
+    calls: Rc<Cell<u32>>,
+}
+
+impl App for RefreshCase {
+    fn render(&self) -> impl IntoElement {
+        let mut refreshing = use_state(|| false);
+        self.refreshing.set(Some(refreshing));
+        let calls = self.calls.clone();
+        ScrollView::new()
+            .refreshable(*refreshing.read(), move |()| {
+                calls.set(calls.get() + 1);
+                refreshing.set(true);
+            })
             .child(rect().probe("first").height(Size::px(40.0)))
             .child(rect().height(Size::px(CONTENT - 40.0)))
     }
@@ -151,4 +173,24 @@ fn a_table_stretches_past_its_start_under_a_touchpad_pull() {
     wheel(&mut test, WheelSource::Pixel, TouchPhase::Ended, 0.0);
     test.poll(Duration::from_millis(8), Duration::from_millis(900));
     assert!((first_row(&test) - rest).abs() < 0.01);
+}
+
+#[test]
+fn a_pull_past_the_threshold_refreshes_holds_and_returns_when_it_is_done() {
+    let (refreshing, calls) = (Rc::new(Cell::new(None)), Rc::new(Cell::new(0)));
+    let mut test = runner_of(AppComponent::new(RefreshCase {
+        refreshing: refreshing.clone(),
+        calls: calls.clone(),
+    }));
+    drag(&mut test, 1, 40.0);
+    assert_eq!(calls.get(), 0, "a short pull does not refresh");
+    drag(&mut test, 6, 60.0);
+    assert_eq!(calls.get(), 1, "one refresh for one pull");
+    wheel(&mut test, WheelSource::Pixel, TouchPhase::Ended, 0.0);
+    let held = *settle(&mut test, 1000).last().unwrap();
+    assert!((held - 60.0).abs() < 1.0, "held at {held}");
+    test.run_in(|| refreshing.get().unwrap().set(false));
+    let path = settle(&mut test, 1000);
+    assert!(path.last().unwrap().abs() < 0.5, "returned to {path:?}");
+    assert_eq!(calls.get(), 1);
 }
