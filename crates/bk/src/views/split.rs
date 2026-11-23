@@ -158,11 +158,6 @@ impl SplitView {
         self.style = self.style.style(restyle);
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for SplitView {
@@ -174,6 +169,10 @@ impl KeyExt for SplitView {
 forward_overrides!(SplitView);
 
 impl Component for SplitView {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: SplitViewStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);

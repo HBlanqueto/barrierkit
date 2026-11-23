@@ -104,11 +104,6 @@ impl Slider {
         self.on_change = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for Slider {
@@ -127,6 +122,10 @@ impl ProbeExt for Slider {
 forward_overrides!(Slider);
 
 impl Component for Slider {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SliderStyle = resolve(&self.style);

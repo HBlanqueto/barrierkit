@@ -995,7 +995,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `styles::TextFieldStyle::plain` | method | `TextFieldStyle.plain` | `NSTextField.isBezeled` `false` | `UITextField.BorderStyle` | Preset: no bezel or fill, 16 high | [Styles](../../crates/bk/src/styles/text_field.rs) |
 | `controls::Button::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | — | Height, padding, font and corners of one button | [5](05-controls.md#control-size) |
 | `controls::Button::keyboard_shortcut` | method | `.keyboardShortcut(_:modifiers:)` | `NSButton.keyEquivalent` | `UIKeyCommand` | Calls `on_press` on a `Shortcut` while the button is enabled; a menu item with the same key wins | [5](05-controls.md#buttons) |
-| `controls::ButtonRole` | enum | `ButtonRole` | ≈ `NSButton.hasDestructiveAction` | ≈ `UIAction.Attributes.destructive` | `Destructive`, `Cancel`, `Confirm`, `Close`; only `Destructive` changes the look | [5](05-controls.md#buttons) |
+| `controls::ButtonRole` | enum | `ButtonRole` | ≈ `NSButton.hasDestructiveAction` | ≈ `UIAction.Attributes.destructive` | `Destructive` only; SwiftUI's `cancel`, `confirm` and `close` are not built | [5](05-controls.md#buttons) |
 | `controls::Button::role` | method | `Button(_:role:action:)` | `NSButton.hasDestructiveAction` | `UIAction.Attributes` | `Destructive` draws `ButtonStyle::destructive` | [5](05-controls.md#buttons) |
 | `popup_button::PopUpButton::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | — | Size of one pop-up or pull-down button | [5](05-controls.md#control-size) |
 | `controls::SegmentedControl::size` | method | ≈ `.controlSize(_:)` | `NSControl.controlSize` | — | Size of one segmented control | [5](05-controls.md#control-size) |

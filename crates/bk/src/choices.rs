@@ -161,11 +161,6 @@ impl RadioGroup {
         self.on_change = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for RadioGroup {
@@ -177,6 +172,10 @@ impl KeyExt for RadioGroup {
 forward_overrides!(RadioGroup);
 
 impl Component for RadioGroup {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: RadioGroupStyle = resolve(&self.style);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
@@ -372,11 +371,6 @@ impl ColorWell {
         self
     }
 
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
-
     fn fill_of(&self, name: &str, fill: Rgba) -> Rgba {
         let resolved = crate::theme::resolved();
         ACCENTS
@@ -399,6 +393,10 @@ impl KeyExt for ColorWell {
 forward_overrides!(ColorWell);
 
 impl Component for ColorWell {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: ColorWellStyle = resolve(&self.style);
         let choice = use_choice(self.selected, self.on_change.clone());
@@ -579,11 +577,6 @@ impl ChoiceCards {
         self.on_change = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for ChoiceCards {
@@ -595,6 +588,10 @@ impl KeyExt for ChoiceCards {
 forward_overrides!(ChoiceCards);
 
 impl Component for ChoiceCards {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: ChoiceCardsStyle = resolve(&self.style);
         let choice = use_choice(Some(self.selected), self.on_change.clone());

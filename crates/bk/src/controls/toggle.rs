@@ -92,11 +92,6 @@ impl Switch {
         self.on_toggle = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for Switch {
@@ -115,6 +110,10 @@ impl ProbeExt for Switch {
 forward_overrides!(Switch);
 
 impl Component for Switch {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let on = crate::controlled::use_controlled_unless(&self.on, interaction.held());
@@ -351,11 +350,6 @@ impl Checkbox {
         self.width = width;
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for Checkbox {
@@ -374,6 +368,10 @@ impl ProbeExt for Checkbox {
 forward_overrides!(Checkbox);
 
 impl Component for Checkbox {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let checked = crate::controlled::use_controlled(&self.checked);
         let on_toggle = self.on_toggle.clone();
@@ -482,6 +480,13 @@ mod tests {
             was_on,
             moved,
         }
+    }
+
+    #[test]
+    fn keyed_rows_keep_their_own_identity() {
+        let row = |id: &str| Checkbox::new("row").key(id).render_key();
+        assert_ne!(row("a"), row("b"));
+        assert_eq!(row("a"), row("a"));
     }
 
     #[test]

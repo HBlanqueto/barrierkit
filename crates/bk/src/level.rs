@@ -73,11 +73,6 @@ impl LevelSlider {
         self.on_change = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for LevelSlider {
@@ -89,6 +84,10 @@ impl KeyExt for LevelSlider {
 forward_overrides!(LevelSlider);
 
 impl Component for LevelSlider {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: LevelSliderStyle = resolve(&self.style);

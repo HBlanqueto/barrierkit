@@ -52,11 +52,6 @@ impl CircularSlider {
         self.on_change = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for CircularSlider {
@@ -76,6 +71,10 @@ fn turn_value(from_center_x: f32, from_center_y: f32) -> f32 {
 forward_overrides!(CircularSlider);
 
 impl Component for CircularSlider {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: CircularSliderStyle = resolve(&self.style);

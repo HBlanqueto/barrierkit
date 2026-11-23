@@ -254,11 +254,6 @@ impl Sidebar {
         self.style = self.style.style(restyle);
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for Sidebar {
@@ -270,6 +265,10 @@ impl KeyExt for Sidebar {
 forward_overrides!(Sidebar);
 
 impl Component for Sidebar {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: SidebarStyle = resolve(&self.style);
         let glass = crate::glass_panel::sidebar_glass();
@@ -505,11 +504,6 @@ impl SidebarItem {
         self.on_select = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for SidebarItem {
@@ -521,6 +515,10 @@ impl KeyExt for SidebarItem {
 forward_overrides!(SidebarItem);
 
 impl Component for SidebarItem {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: SidebarItemStyle = resolve(&self.style);
         let interaction = use_interaction();
@@ -652,11 +650,6 @@ impl SidebarSection {
             .extend(children.into_iter().map(IntoElement::into_element));
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for SidebarSection {
@@ -668,6 +661,10 @@ impl KeyExt for SidebarSection {
 forward_overrides!(SidebarSection);
 
 impl Component for SidebarSection {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let expanded = use_state(|| true);
         let style: SidebarSectionStyle = resolve(&self.style);

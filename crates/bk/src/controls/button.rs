@@ -6,9 +6,6 @@ pub use ctdesign::ControlSize;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ButtonRole {
     Destructive,
-    Cancel,
-    Confirm,
-    Close,
 }
 
 #[derive(PartialEq)]
@@ -95,11 +92,6 @@ impl Button {
         self.role = Some(role);
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 forward_overrides!(Button);
@@ -111,6 +103,10 @@ impl KeyExt for Button {
 }
 
 impl Component for Button {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let disabled = use_disabled(self.disabled);

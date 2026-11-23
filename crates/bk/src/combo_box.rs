@@ -81,7 +81,7 @@ forward_overrides!(ComboBox);
 impl Component for ComboBox {
     fn render(&self) -> impl IntoElement {
         let style: ComboBoxStyle = resolve(&self.style);
-        let field_style: TextFieldStyle = resolve(&Theme::tengen());
+        let field_style: TextFieldStyle = resolve(&self.style);
         let value = self.value;
         let mut area = use_state(Area::default);
         let items = self.items.clone();

@@ -34,6 +34,10 @@ impl KeyExt for ViewThatFits {
 
 // Torin cannot measure a view before it picks it, so each candidate states its extent and the container's measured size chooses (ADR 0110).
 impl Component for ViewThatFits {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let mut offered = use_state(|| 0.0f32);
         let space = *offered.read();

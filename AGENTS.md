@@ -135,6 +135,15 @@ No reescribas lo existente solo para cumplirlas (regla 7 de «Código mínimo»)
    (regla 3).
 8. **Comprueba con `./dev.sh check`**, no con `cargo check` suelto: ese
    comando corre clippy con las features y los scripts de `scripts/check-*.sh`.
+9. **Flujo de control corto:** `?` en vez de un `match` que solo propaga el
+   error; `if let` en vez de un `match` de un solo brazo; `while let` en vez de
+   `loop` con `match`.
+10. **Iteradores antes que bucles con `push`:** `filter`, `map`, `filter_map`,
+    `flatten`, `fold`, sin colecciones intermedias.
+11. **Errores:** `?` cuando `From` convierte solo; `map_err` solo si añade un
+    contexto que `From` no puede dar.
+12. **Imports agrupados por crate:** `use crate::{a, b::c};`. Importa los
+    nombres; no uses rutas calificadas en las firmas.
 
 ## Código mínimo (reglas duras, estilo ponytail)
 

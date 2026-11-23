@@ -63,11 +63,6 @@ impl SecureField {
         self.on_submit = Some(callback.into());
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for SecureField {
@@ -79,6 +74,10 @@ impl KeyExt for SecureField {
 forward_overrides!(SecureField);
 
 impl Component for SecureField {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SecureFieldStyle = resolve(&self.style);
@@ -229,6 +228,10 @@ impl KeyExt for TextField {
 forward_overrides!(TextField);
 
 impl Component for TextField {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: TextFieldStyle = resolve(&self.style);
         let field = use_hook(AccessibilityId::new_unique);
@@ -451,6 +454,10 @@ impl KeyExt for SearchField {
 forward_overrides!(SearchField);
 
 impl Component for SearchField {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: SearchFieldStyle = resolve(&self.style);
         let token_style: TokenFieldStyle = resolve(&Theme::tengen());

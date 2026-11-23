@@ -42,11 +42,6 @@ impl ToolGroup {
             .extend(children.into_iter().map(IntoElement::into_element));
         self
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for ToolGroup {
@@ -65,6 +60,10 @@ impl ProbeExt for ToolGroup {
 forward_overrides!(ToolGroup);
 
 impl Component for ToolGroup {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         crate::compact::use_toolbar_items_or(Bar::Unified);
         let style: ToolGroupStyle = resolve(&self.style);

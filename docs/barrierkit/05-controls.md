@@ -181,7 +181,7 @@ give one.
 | `.toggled(bool)` | not a toggle | Makes it a toggle; `true` takes the `bordered_prominent` look and reports `toggled` |
 | `.disabled(bool)` | `false` | Dims it, no `on_press` |
 | `.keyboard_shortcut(Shortcut)` | none | Calls `on_press` on that key while the button is enabled; a menu item with the same key wins |
-| `.role(ButtonRole)` | none | `Destructive` draws `ButtonStyle::destructive`; `Cancel`, `Confirm` and `Close` change nothing yet |
+| `.role(ButtonRole)` | none | `Destructive` draws `ButtonStyle::destructive` |
 | `.on_press(\|_\| ..)` | — | Called on click, Space or Enter |
 
 The closure runs inside the button, on every render, so state it reads keeps the label current.

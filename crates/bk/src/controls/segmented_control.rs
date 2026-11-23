@@ -59,11 +59,6 @@ impl SegmentedControl {
     pub fn size(self, size: ControlSize) -> Self {
         self.style(move |style: SegmentedControlStyle| style.sized(size))
     }
-
-    pub fn key(mut self, key: impl Into<DiffKey>) -> Self {
-        self.key = key.into();
-        self
-    }
 }
 
 impl KeyExt for SegmentedControl {
@@ -75,6 +70,10 @@ impl KeyExt for SegmentedControl {
 forward_overrides!(SegmentedControl);
 
 impl Component for SegmentedControl {
+    fn render_key(&self) -> DiffKey {
+        self.key.clone().or(self.default_key())
+    }
+
     fn render(&self) -> impl IntoElement {
         let style: SegmentedControlStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
