@@ -466,6 +466,10 @@ LAUNCHER_CLOSE_MS u64 components.shell.launcher.close-duration
 SETTINGS SettingsMetrics components.settings account_name_font=account.name
     account_detail_font=account.detail card_caption_font=card.caption
 HAIRLINE f32 components.hairline
+LABEL_ICON_WIDTH f32 components.label.icon-width
+LABEL_ICON_HEIGHT f32 components.label.icon-height
+LABEL_ICON_FRAME f32 components.label.icon-frame
+LABEL_GAP f32 components.label.gap
 CONTENT_UNAVAILABLE_ICON f32 components.content-unavailable.icon
 CONTENT_UNAVAILABLE_ICON_LINE f32 components.content-unavailable.icon-line
 CONTENT_UNAVAILABLE_ICON_GAP f32 components.content-unavailable.icon-gap

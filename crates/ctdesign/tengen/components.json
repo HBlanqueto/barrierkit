@@ -634,7 +634,8 @@
       "source-list-row-height": [24, 32, 40],
       "source-list-inset": 10,
       "icon-box": 17,
-      "icon-gap": 2
+      "icon-gap": 2,
+      "label-row-height": 24.5
     },
     "collection": {
       "tile": 92,
@@ -2254,6 +2255,12 @@
       },
       "description-gap": 6,
       "actions-gap": 19
+    },
+    "label": {
+      "icon-width": 16,
+      "icon-height": 16.5,
+      "icon-frame": 1.25,
+      "gap": 6
     },
     "hairline": 1,
     "glass-mask": "#ffffff",

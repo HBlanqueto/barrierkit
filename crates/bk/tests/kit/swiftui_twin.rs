@@ -59,7 +59,7 @@ const TASKS_ELEMENTS: [Element; 6] = [
     element("lights", (10, 10, 100, 42), false, 14.0),
     element("title", (100, 10, 220, 42), true, 12.0),
     element("toolbar group", (670, 2, 758, 50), false, 16.0),
-    element("list rows", (0, 56, 760, 160), true, 12.0),
+    element("list rows", (0, 56, 760, 160), true, 8.0),
     element("title bar edge", (0, 48, 760, 56), false, 1.0),
     element("window background", (0, 170, 760, 480), false, 1.0),
 ];

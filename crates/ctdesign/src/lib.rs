@@ -1355,6 +1355,7 @@ pub struct TableMetrics {
     pub source_list_inset: f32,
     pub icon_box: f32,
     pub icon_gap: f32,
+    pub label_row_height: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -1,13 +1,19 @@
 use std::borrow::Cow;
 
-use ctdesign::{Font, SPACE_1, SPACE_2};
+use ctdesign::{
+    Font, LABEL_GAP, LABEL_ICON_FRAME, LABEL_ICON_HEIGHT, LABEL_ICON_WIDTH, SPACE_1, SPACE_2,
+};
 use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction};
+use torin::prelude::{Alignment, Direction, Size};
 
+use crate::style::Palette;
 use crate::style::with_font;
-use crate::styles::{ControlState, Paints, TextStyle, Theme, resolve};
+use crate::styles::{
+    ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve,
+};
 use crate::symbol::{Image, Symbol};
+use crate::views::list::ListRow;
 
 macro_rules! forward_element {
     ($outer:ident) => {
@@ -233,12 +239,30 @@ impl Label {
     pub fn new(title: impl Into<Cow<'static, str>>, image: Symbol) -> Self {
         let style: TextStyle = resolve(&Theme::tengen());
         let paints = Paints::current(ControlState::default(), style.effect);
+        let in_list = try_consume_context::<ListRow>().is_some();
+        let compact = !in_list && try_consume_context::<InTextStyleScope>().is_some();
+        let tint = ShapeStyle::Color(Palette::current().accent);
+        let foreground = if in_list {
+            &tint
+        } else {
+            style.foreground.resolve(ControlState::default())
+        };
         let icon = Image::system(image)
-            .size(style.font.size as f32)
-            .color(paints.color(style.foreground.resolve(ControlState::default())));
+            .size(style.font.size as f32 * if compact { 1.0 } else { LABEL_ICON_FRAME })
+            .color(paints.color(foreground));
+        let icon = if compact {
+            icon.into_element()
+        } else {
+            rect()
+                .width(Size::px(LABEL_ICON_WIDTH))
+                .height(Size::px(LABEL_ICON_HEIGHT))
+                .center()
+                .child(icon)
+                .into_element()
+        };
         Self(
             stack(Direction::Horizontal)
-                .spacing(SPACE_1)
+                .spacing(if compact { SPACE_1 } else { LABEL_GAP })
                 .child(icon)
                 .child(Text::new(title)),
         )

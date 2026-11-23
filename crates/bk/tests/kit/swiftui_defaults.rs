@@ -242,3 +242,14 @@ fn a_slider_is_as_tall_as_its_knob_until_it_has_labels() {
     });
     assert!(labeled > 16.0);
 }
+
+fn label_width(title: &'static str) -> f32 {
+    size_of(move || bk::elements::Label::new(title, Symbol::DocText).into_element()).0
+}
+
+// SwiftUI's Label("Doc", systemImage:) is 48 wide for a 26 wide title: a 16 wide icon and 6 before the title.
+#[test]
+fn a_label_is_a_16_wide_icon_and_6_before_its_title() {
+    let title = size_of(|| bk::elements::Text::new("Doc").into_element()).0;
+    assert_eq!(label_width("Doc"), 16.0 + 6.0 + title);
+}

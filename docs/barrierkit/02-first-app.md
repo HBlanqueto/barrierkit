@@ -112,7 +112,7 @@ with several windows declares scenes
 | Item | Defaults | Own methods |
 |---|---|---|
 | `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.style(\|s\| ..)`, `.font(Font)`, `.line_limit(n)` |
-| `Label::new(title, Symbol)` | The symbol before the title, `SPACE_1` apart; the font and color of `Text`, the symbol as tall as the font | — |
+| `Label::new(title, Symbol)` | The symbol in a 16 wide, 16.5 high box, then the title 6 apart (SwiftUI's 48 wide `Label("Doc", ...)`); in a button label the compact `SPACE_1` layout; in a `List` row the symbol takes the accent | — |
 | `VStack::new()` | Children in a column, centered, `SPACE_2` apart | — |
 | `HStack::new()` | Children in a row, centered, `SPACE_2` apart | — |
 

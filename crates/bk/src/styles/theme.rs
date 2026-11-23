@@ -157,6 +157,10 @@ impl Component for StyleScope {
     }
 }
 
+// A `Label` in a scope keeps the compact layout of a button label (measured against AppKit); outside one it is SwiftUI's.
+#[derive(Clone, Copy)]
+pub(crate) struct InTextStyleScope;
+
 #[derive(PartialEq)]
 pub(crate) struct TextStyleScope {
     font: Font,
@@ -178,6 +182,7 @@ impl TextStyleScope {
 // theme on every render and does not notify the readers it just served.
 impl Component for TextStyleScope {
     fn render(&self) -> impl IntoElement {
+        use_hook(|| provide_context(InTextStyleScope));
         let mut text = use_state(|| (self.font, self.foreground.clone()));
         text.set_if_modified((self.font, self.foreground.clone()));
         let scope = use_hook(move || {

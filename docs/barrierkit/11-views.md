@@ -307,7 +307,7 @@ different `TableStyle`.
 | Method | Effect |
 |---|---|
 | `List::new(label, rows)` | `rows` are the strings of the rows; the default is the inset style |
-| `.row(\|index\| view)` | Draws every row as a view: [views in rows and cells](#views-in-rows-and-cells) |
+| `.row(\|index\| view)` | Draws every row as a view: [views in rows and cells](#views-in-rows-and-cells). When the view is a `Label`, rows are 24.5 high and the separator starts at the title, and the symbol is the accent, as in SwiftUI |
 | `.selected(Vec<usize>)` | Selected rows |
 | `.on_select(callback)` | Receives the new selection, `Vec<usize>` |
 | `.style(\|_\| TableStyle::plain_list())` | `inset_list` (rows inset 10, rounded selection), `plain_list` (full width) or `bordered_list` (a hairline border) |
