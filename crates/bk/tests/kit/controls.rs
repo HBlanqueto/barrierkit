@@ -565,6 +565,7 @@ pub(crate) fn check_golden(name: &str, dark: bool, actual: &[u8]) {
 }
 
 #[test]
+#[cfg_attr(target_os = "macos", ignore = "the goldens use the Linux fonts")]
 fn controls_match_their_golden_images() {
     let controls = cases().into_iter().map(|(name, build)| (name, build, SIZE));
     let windows = window_cases()
@@ -915,6 +916,7 @@ fn tab_reaches_each_control_and_space_activates_it() {
 }
 
 #[test]
+#[cfg_attr(target_os = "macos", ignore = "the goldens use the Linux fonts")]
 fn keyboard_focus_ring_matches_its_golden_image() {
     let (mut test, ..) = focus_case(true);
     press(&mut test, Key::Named(NamedKey::Tab));

@@ -433,7 +433,7 @@ impl Runtime {
         if let Some((w, h)) = options.max_size.filter(|(w, h)| *w > 0 && *h > 0) {
             window.setContentMaxSize(NSSize::new(f64::from(w), f64::from(h)));
         }
-        let delegate = WindowDelegate::new(self.mtm, id);
+        let delegate = WindowDelegate::object(self.mtm, id);
         window.setDelegate(Some(&delegate));
         let view = ContentView::new(self.mtm, id, frame);
         let layer = self.configure_layer(&view);
@@ -1123,7 +1123,7 @@ fn serve_loop(event_loop: EventLoop<'static, ()>) -> Result<(), RunError> {
         // SAFETY: CoreFoundation passes the descriptor that fired, alive for the call.
         unsafe { (*descriptor).enable_call_backs(1) };
     }
-    let mut context = CFFileDescriptorContext {
+    let context = CFFileDescriptorContext {
         version: 0,
         info: std::ptr::null_mut(),
         retain: None,
@@ -1131,9 +1131,8 @@ fn serve_loop(event_loop: EventLoop<'static, ()>) -> Result<(), RunError> {
         copyDescription: None,
     };
     // SAFETY: the descriptor belongs to the loop kept in `LOOP` for the whole run, and `close_on_invalidate` is false.
-    let descriptor =
-        unsafe { CFFileDescriptor::new(None, fd, false, Some(dispatch), &mut context) }
-            .ok_or(RunError::EventLoop("CFFileDescriptor::new failed"))?;
+    let descriptor = unsafe { CFFileDescriptor::new(None, fd, false, Some(dispatch), &context) }
+        .ok_or(RunError::EventLoop("CFFileDescriptor::new failed"))?;
     descriptor.enable_call_backs(1);
     let source = CFFileDescriptor::new_run_loop_source(None, Some(&descriptor), 0)
         .ok_or(RunError::EventLoop("the run loop source was not created"))?;

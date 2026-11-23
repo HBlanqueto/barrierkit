@@ -173,7 +173,7 @@ impl Runtime {
         effect.addSubview(&view);
         panel.setContentView(Some(&effect));
         self.follow_scheme(&panel);
-        let delegate = WindowDelegate::new(self.mtm, window_id);
+        let delegate = WindowDelegate::object(self.mtm, window_id);
         panel.setDelegate(Some(&delegate));
 
         let scale = parent_window.window.backingScaleFactor();

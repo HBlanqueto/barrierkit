@@ -4,7 +4,7 @@ set -eu
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 
 require_devshell() {
-    [ "${BARRIERKIT_DEV_SHELL:-}" = "1" ] ||
+    [ "$(uname -s)" = Darwin ] || [ "${BARRIERKIT_DEV_SHELL:-}" = "1" ] ||
         fail 2 "not inside the dev shell; run 'nix develop' first"
 }
 
@@ -27,7 +27,8 @@ Commands:
   check                   run fmt, clippy, tests and kit-specific checks
   help                    show this message
 
-All commands require 'nix develop'.
+All commands require 'nix develop', except on macOS: there they use the
+user's Rust toolchain with rustfmt and clippy (docs/barrierkit/18-platform.md).
 EOF
 }
 
@@ -36,16 +37,27 @@ check() {
     require cargo
     require cargo-fmt
     require cargo-clippy
+    if [ "$(uname -s)" = Darwin ]; then
+        # The Wayland code is unused on macOS and the shell feature does not build there.
+        features=bk/tracy
+        allow='-A dead_code'
+    else
+        features=bk/shell,bk/tracy
+        allow=
+    fi
     cargo fmt --all -- --check
-    cargo clippy -p bk --lib -- -D warnings
-    cargo clippy -p bk --lib --no-default-features -- -D warnings
-    cargo clippy --workspace --all-targets --features bk/shell,bk/tracy -- -D warnings
+    # shellcheck disable=SC2086
+    {
+        cargo clippy -p bk --lib -- -D warnings $allow
+        cargo clippy -p bk --lib --no-default-features -- -D warnings $allow
+        cargo clippy --workspace --all-targets --features "$features" -- -D warnings $allow
+    }
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
     "$script_dir/scripts/check-links.sh"
     "$script_dir/scripts/check-recipes.sh"
     "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/agents/tengen.css" -
-    cargo test --workspace --lib --tests --features bk/shell,bk/tracy
+    cargo test --workspace --lib --tests --features "$features"
 }
 
 case "${1:-}" in

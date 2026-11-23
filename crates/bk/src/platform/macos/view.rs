@@ -385,7 +385,7 @@ define_class!(
 );
 
 impl WindowDelegate {
-    pub(super) fn new(
+    pub(super) fn object(
         mtm: MainThreadMarker,
         id: u64,
     ) -> Retained<ProtocolObject<dyn NSWindowDelegate>> {

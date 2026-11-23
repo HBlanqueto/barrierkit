@@ -26,7 +26,7 @@ broken=$(git ls-files '*.md' | while read -r file; do
         }' "$file"
 done | while IFS="$(printf '\t')" read -r file target; do
     case $target in
-        *://* | mailto:*) continue ;;
+        (*://* | mailto:*) continue ;;
     esac
     path=${target%%#*}
     if [ -n "$path" ]; then
@@ -36,11 +36,11 @@ done | while IFS="$(printf '\t')" read -r file target; do
         path=$file
     fi
     case $target in
-        *#*) ;;
-        *) continue ;;
+        (*#*) ;;
+        (*) continue ;;
     esac
     case $path in
-        *.md) anchors "$path" | grep -qx -- "${target#*#}" || printf '%s: %s\n' "$file" "$target" ;;
+        (*.md) anchors "$path" | grep -qx -- "${target#*#}" || printf '%s: %s\n' "$file" "$target" ;;
     esac
 done)
 

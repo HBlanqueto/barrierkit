@@ -38,7 +38,6 @@ pub async fn open_uri(uri: &str, ask: bool) {
     {
         let _ = ask;
         crate::platform::panels::open_uri(uri);
-        return;
     }
     #[cfg(not(target_os = "macos"))]
     {

@@ -279,6 +279,18 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 
 The window and its popups take the kit's scheme (`appearance.domain`), not the system's. Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
 
+### Build and check on macOS
+
+**Goal:** build the kit and run `./dev.sh check` on a Mac.
+**Reader:** whoever works on `platform/macos/`.
+**Input:** the repository, Xcode's command line tools and `rustup`; Nix is not needed (the flake lists Linux systems only).
+**Output:** the same checks as on Linux, minus what Linux alone can run.
+
+1. Install the Rust components once: `rustup component add rustfmt clippy`.
+2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (the Wayland code is unused on macOS), the scripts of `scripts/` and `cargo test` with the `tracy` feature but not `shell`.
+4. Four tests are ignored on macOS: they compare text with goldens drawn in the Linux fonts (`controls_match_their_golden_images`, `keyboard_focus_ring_matches_its_golden_image`, `menu_matches_its_golden_images`, `menu_renders_accents_and_long_shortcuts_without_wrapping`). Linux still runs them.
+
 ## Accessibility
 
 With the `a11y` feature ([1](01-what-is-barrierkit.md#the-crates)), each

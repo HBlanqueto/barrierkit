@@ -87,6 +87,7 @@ fn assert_right_padding_is_background(png: &[u8], palette: MenuPalette, label: &
 }
 
 #[test]
+#[cfg_attr(target_os = "macos", ignore = "the goldens use the Linux fonts")]
 fn menu_matches_its_golden_images() {
     for dark in [false, true] {
         check_golden("menu-view", dark, &render(dark));
@@ -94,6 +95,7 @@ fn menu_matches_its_golden_images() {
 }
 
 #[test]
+#[cfg_attr(target_os = "macos", ignore = "the goldens use the Linux fonts")]
 fn menu_renders_accents_and_long_shortcuts_without_wrapping() {
     for dark in [false, true] {
         check_golden("menu-view-accents", dark, &render_accents(dark));
