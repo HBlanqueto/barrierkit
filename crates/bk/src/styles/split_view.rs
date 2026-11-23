@@ -32,8 +32,8 @@ pub struct SplitViewStyle {
     pub grip_shape: Shape,
     /// Tengen: `Color` of the window surface; `Clear` over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Clear`, hovered, pressed (dragging) and focused (keyboard) `Color` of the
-    /// accent.
+    /// Tengen: `Clear`; focused (keyboard) `Color` of the accent. Hover and drag show only the
+    /// cursor, like an AppKit split view divider.
     pub grip: StateValue<ShapeStyle>,
     /// Tengen: `Role(Scrim)`, behind the sidebar over the content of a narrow window.
     pub scrim: StateValue<ShapeStyle>,
@@ -64,10 +64,7 @@ impl ControlStyle for SplitViewStyle {
             } else {
                 ShapeStyle::Color(surface_background(&resolved, SurfaceKind::Toplevel))
             }),
-            grip: StateValue::new(ShapeStyle::Clear)
-                .hovered(accent.clone())
-                .pressed(accent.clone())
-                .focused(accent),
+            grip: StateValue::new(ShapeStyle::Clear).focused(accent),
             scrim: StateValue::new(ShapeStyle::Role(Role::Scrim)),
             inspector_line: (ShapeStyle::Role(Role::Separator), HAIRLINE),
             effect: system_effect,
