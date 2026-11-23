@@ -2,11 +2,12 @@ use std::any::Any;
 use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::collections::HashSet;
-use std::io::Write;
+use std::io::{ErrorKind, Write};
 use std::ops::Range;
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::{Once, OnceLock};
+use std::sync::{LazyLock, Mutex, MutexGuard, Once, OnceLock, PoisonError};
+use std::time::SystemTime;
 
 use ctdesign::{Rgba, SPELLING};
 use freya_core::data::LayoutData;
@@ -21,13 +22,83 @@ use spellbook::Dictionary;
 use torin::prelude::Gaps;
 
 static DICTIONARY: OnceLock<Option<Dictionary>> = OnceLock::new();
-static PERSONAL: OnceLock<(PathBuf, HashSet<String>)> = OnceLock::new();
+static PERSONAL: LazyLock<Mutex<Personal>> = LazyLock::new(Mutex::default);
+
+#[derive(Default)]
+struct Personal {
+    path: Option<PathBuf>,
+    words: HashSet<String>,
+    pending: Vec<String>,
+    stamp: Option<SystemTime>,
+    unreadable: bool,
+}
+
+impl Personal {
+    fn open(&mut self, path: PathBuf) {
+        self.path = Some(path);
+        self.refresh();
+        self.save();
+    }
+
+    fn refresh(&mut self) {
+        let Some(path) = &self.path else { return };
+        let stamp = std::fs::metadata(path)
+            .and_then(|meta| meta.modified())
+            .ok();
+        if stamp == self.stamp {
+            return;
+        }
+        self.stamp = stamp;
+        let text = match std::fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(error) if error.kind() == ErrorKind::NotFound => String::new(),
+            Err(error) => {
+                // The file is left untouched: appending to it could bury what is unreadable.
+                tracing::warn!(%error, path = %path.display(), "BarrierKit: could not read the personal dictionary");
+                self.unreadable = true;
+                return;
+            }
+        };
+        self.words = personal_words(&text);
+        self.unreadable = false;
+    }
+
+    fn save(&mut self) {
+        let Some(path) = &self.path else { return };
+        if self.unreadable || self.pending.is_empty() {
+            return;
+        }
+        let saved = path
+            .parent()
+            .map_or(Ok(()), std::fs::create_dir_all)
+            .and_then(|_| {
+                std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(path)
+            })
+            .and_then(|mut file| {
+                self.pending
+                    .iter()
+                    .try_for_each(|word| writeln!(file, "{word}"))
+            });
+        match saved {
+            Ok(()) => self.pending.clear(),
+            Err(error) => tracing::warn!(%error, "BarrierKit: could not save the learned word"),
+        }
+    }
+}
+
+fn personal() -> MutexGuard<'static, Personal> {
+    PERSONAL.lock().unwrap_or_else(PoisonError::into_inner)
+}
 
 thread_local! {
     static ACCEPTED: State<HashSet<String>> = State::create_global(HashSet::new());
 }
 
 pub(crate) fn dictionary() -> Option<&'static Dictionary> {
+    personal().refresh();
     static LOAD: Once = Once::new();
     LOAD.call_once(|| {
         std::thread::spawn(|| {
@@ -54,9 +125,8 @@ fn load() -> Option<Dictionary> {
         .iter()
         .find_map(|tag| dictionary_name(&listed, tag))?;
     let (base, _) = names.iter().find(|(_, name)| *name == chosen)?;
-    if let Some(personal) = personal_list(&chosen) {
-        let words = std::fs::read_to_string(&personal).unwrap_or_default();
-        let _ = PERSONAL.set((personal, personal_words(&words)));
+    if let Some(path) = personal_list(&chosen) {
+        personal().open(path);
     }
     let aff = std::fs::read_to_string(base.with_extension("aff")).ok()?;
     let dic = std::fs::read_to_string(base.with_extension("dic")).ok()?;
@@ -106,9 +176,7 @@ pub fn personal_words(list: &str) -> HashSet<String> {
 
 pub(crate) fn known(dictionary: &Dictionary, word: &str) -> bool {
     dictionary.check(word)
-        || PERSONAL
-            .get()
-            .is_some_and(|(_, words)| words.contains(word))
+        || personal().words.contains(word)
         || ACCEPTED.with(|accepted| accepted.read().contains(word))
 }
 
@@ -120,20 +188,10 @@ pub(crate) fn ignore(word: String) {
 }
 
 pub(crate) fn learn(word: String) {
-    if let Some((path, _)) = PERSONAL.get() {
-        let saved = path
-            .parent()
-            .map_or(Ok(()), std::fs::create_dir_all)
-            .and_then(|_| {
-                std::fs::OpenOptions::new()
-                    .create(true)
-                    .append(true)
-                    .open(path)
-            })
-            .and_then(|mut file| writeln!(file, "{word}"));
-        if let Err(error) = saved {
-            tracing::warn!(%error, "BarrierKit: could not save the learned word");
-        }
+    {
+        let mut personal = personal();
+        personal.pending.push(word.clone());
+        personal.save();
     }
     ignore(word);
 }
@@ -455,6 +513,53 @@ mod tests {
         let dictionary = Dictionary::new("SET UTF-8\n", "2\nhola\nmundo\n").unwrap();
         let known = |word: &str| dictionary.check(word);
         assert_eq!(misspelled("hola mundu, mundo", known), vec![(5..10)]);
+    }
+
+    fn temp_list(name: &str) -> PathBuf {
+        std::env::temp_dir().join(format!("bk-spelling-{}-{name}.dic", std::process::id()))
+    }
+
+    #[test]
+    fn a_word_learned_before_the_list_is_opened_is_saved_when_it_opens() {
+        let path = temp_list("early");
+        let _ = std::fs::remove_file(&path);
+        let mut list = Personal::default();
+        list.pending.push("malaysia".into());
+        list.save();
+        assert!(!path.exists());
+        list.open(path.clone());
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "malaysia\n");
+        assert!(list.pending.is_empty());
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn an_unreadable_list_is_never_appended_to() {
+        let path = temp_list("corrupt");
+        std::fs::write(&path, [0xFF, 0xFE, b'\n']).unwrap();
+        let mut list = Personal::default();
+        list.pending.push("vow".into());
+        list.open(path.clone());
+        assert_eq!(std::fs::read(&path).unwrap(), [0xFF, 0xFE, b'\n']);
+        assert_eq!(list.pending, ["vow"]);
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn a_changed_list_is_read_again_and_an_unchanged_one_is_not() {
+        let path = temp_list("changed");
+        std::fs::write(&path, "uno\n").unwrap();
+        let mut list = Personal::default();
+        list.open(path.clone());
+        assert!(list.words.contains("uno"));
+        list.words.insert("marker".into());
+        list.refresh();
+        assert!(list.words.contains("marker"));
+        std::fs::write(&path, "dos\n").unwrap();
+        list.stamp = None;
+        list.refresh();
+        assert_eq!(list.words, HashSet::from(["dos".into()]));
+        std::fs::remove_file(path).unwrap();
     }
 
     #[test]

@@ -89,13 +89,17 @@ pub struct Predicate {
 
 impl Rule {
     pub fn new(id: u64, fields: &[RuleField], field: usize) -> Self {
-        let kind = &fields[field].kind;
+        let kind = fields
+            .get(field)
+            .map_or(&RuleKind::Text, |field| &field.kind);
         Self {
             id,
             field,
             operator: operators(kind)[0],
             value: match kind {
-                RuleKind::Choice(choices) => choices[0].to_string(),
+                RuleKind::Choice(choices) => choices
+                    .first()
+                    .map_or_else(String::new, ToString::to_string),
                 _ => String::new(),
             },
         }
@@ -631,6 +635,17 @@ mod tests {
             ],
         };
         assert!(predicate.evaluate(&FIELDS, &value));
+    }
+
+    #[test]
+    fn a_new_rule_needs_no_fields_and_no_choices() {
+        assert_eq!(Rule::new(1, &[], 0).operator, Operator::Contains);
+        let empty = [RuleField {
+            label: Cow::Borrowed("Kind"),
+            kind: RuleKind::Choice(vec![]),
+        }];
+        assert_eq!(Rule::new(1, &empty, 0).value, "");
+        assert_eq!(Rule::new(1, &FIELDS, 7).field, 7);
     }
 
     #[test]

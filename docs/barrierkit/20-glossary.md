@@ -1110,14 +1110,14 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `text_editor::TextEditor` | struct | `TextEditor` | `NSTextView` | `UITextView` | Multi-line editor with find bar, rich text and spelling | [6](06-text-and-editing.md#text-editor) |
 | `text_editor::find_matches` | fn | — | `≈ NSTextFinder` | `UIFindInteraction` | Case-insensitive, non-overlapping matches in character indices | [6](06-text-and-editing.md#find-bar) |
-| `rich_text::RunStyle` | struct | — | — | — | Bold, italic, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::RunStyle` | struct | — | — | — | Bold, italic, underline, link, family and size of a run | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::StyleRun` | struct | — | — | — | A `RunStyle` over a character range | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::FontChoice` | struct | `≈ Font` | `≈ NSFontDescriptor` | `UIFontDescriptor` | Family, size, bold and italic | [6](06-text-and-editing.md#rich-text) |
-| `rich_text::Emphasis` | enum | — | `≈ NSFontDescriptor.SymbolicTraits` | — | `Bold` or `Italic` | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::Emphasis` | enum | — | `≈ NSFontDescriptor.SymbolicTraits` | — | `Bold`, `Italic` or `Underline` | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::char_styles` | fn | — | — | — | One style per character from runs | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::runs_from` | fn | — | — | — | Runs from per-character styles, merging neighbors | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::restyle_after_edit` | fn | — | — | — | Moves runs after an edit; typed text inherits, links do not | [6](06-text-and-editing.md#rich-text) |
-| `rich_text::toggle` | fn | — | — | — | Toggles bold or italic on a range | [6](06-text-and-editing.md#rich-text) |
+| `rich_text::toggle` | fn | — | — | — | Toggles bold, italic or underline on a range | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::font_at` | fn | — | — | — | Font at a character, `BODY` when unset | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::apply_font` | fn | — | `≈ NSFontManager.convert(_:)` | — | Applies a font choice to a range | [6](06-text-and-editing.md#rich-text) |
 | `rich_text::link_at` | fn | — | — | — | Link at a character, if any | [6](06-text-and-editing.md#rich-text) |
@@ -1191,6 +1191,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `modifiers::ViewModifiers::context_menu` | method | `.contextMenu(menuItems:)` | `NSMenu.popUpContextMenu(_:with:for:)` | `UIContextMenuInteraction` | Opens a menu at the pointer on secondary click | [7](07-menus-and-popovers.md#context_menu) |
 | `popup_button::pop_up_menu` | fn | — | `NSMenu.popUp(positioning:at:in:)` | — | Opens a menu beside a rectangle, as the Dock: arrow in its starting corner, pointing at the rectangle | [7](07-menus-and-popovers.md#pop_up_menu) |
 | `popover::Popover` | struct | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | `UIPopoverPresentationController` | Content in a popover with an arrow; `.show(anchor)` opens it below an area | [7](07-menus-and-popovers.md#popover) |
+| `popover::Popover::on_dismissed` | method | — | ≈ `NSPopoverDelegate.popoverDidClose(_:)` | ≈ `UIPopoverPresentationControllerDelegate.presentationControllerDidDismiss(_:)` | Calls the closure when the popup closes; `.show` returns its `PopupId` | [7](07-menus-and-popovers.md#popover) |
 | `modifiers::ViewModifiers::help` | method | `.help(_:)` | `NSView.toolTip` | `UIToolTipInteraction` | Tooltip with a fixed text after a 1 s hover | [7](07-menus-and-popovers.md#help-tooltips) |
 
 ## Windows
@@ -1370,6 +1371,10 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::navigation::History` | struct | — | — | — | A back-and-forward list of pages | [11](11-views.md#history) |
 | `views::navigation::NavigationButtons` | struct | — | — | — | Back and forward buttons in a tool group, with Alt+arrow shortcuts | [11](11-views.md#navigationbuttons) |
 | `modifiers::ViewModifiers::sheet` | method | `sheet(isPresented:content:)` | ≈ `NSViewController.presentAsSheet(_:)` | ≈ `UIViewController.present(_:animated:)` | Shows a `Sheet` while a `State<bool>` is true | [11](11-views.md#sheet) |
+| `modifiers::ViewModifiers::alert` | method | `alert(_:isPresented:actions:message:)` | ≈ `NSAlert.beginSheetModal(for:)` | ≈ `UIViewController.present(_:animated:)` | Shows an `Alert` while a `State<bool>` is true; any button, Enter or Escape writes `false` | [11](11-views.md#sheet) |
+| `modifiers::ViewModifiers::popover` | method | `popover(isPresented:attachmentAnchor:arrowEdge:content:)` | ≈ `NSPopover.show(relativeTo:of:preferredEdge:)` | ≈ `UIViewController.present(_:animated:)` | Opens a `Popover` of the given size at the view while a `State<bool>` is true; a click outside writes `false` | [11](11-views.md#sheet) |
+| `modifiers::ViewModifiers::on_hover` | method | `onHover(perform:)` | ≈ `NSTrackingArea` with `mouseEntered(with:)` and `mouseExited(with:)` | `UIHoverGestureRecognizer` | Calls the closure with `true` when the pointer enters the view and `false` when it leaves; it shares the pointer enter and leave events with a gesture | [16](16-swiftui-to-the-kit.md#constructs) |
+| `modifiers::ViewModifiers::on_tap_gesture` | method | `onTapGesture(count:perform:)` | — | ≈ `UITapGestureRecognizer.numberOfTapsRequired` | Runs the closure after `count` taps: `.gesture(TapGesture::new().count(count).on_ended(..))` | [16](16-swiftui-to-the-kit.md#constructs) |
 | `views::navigation_stack::NavigationPath` | struct | `NavigationPath` | — | ≈ `UINavigationController.viewControllers` | The routes pushed over the root of a stack: `push`, `pop`, `pop_to_root`, `truncate`, `len` | [11](11-views.md#navigationstack) |
 | `views::navigation_stack::NavigationStack` | struct | `NavigationStack` | — | ≈ `UINavigationController` | The root and one page per route, with the measured push and pop | [11](11-views.md#navigationstack) |
 | `views::navigation_stack::NavigationLink` | struct | `NavigationLink(value:)` | — | ≈ `UINavigationController.pushViewController(_:animated:)` | A button that pushes a route onto the path of the stack above | [11](11-views.md#navigationstack) |

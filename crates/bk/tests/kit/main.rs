@@ -22,6 +22,7 @@ mod menu;
 mod modifiers;
 mod motion;
 mod navigation_stack;
+mod pointer_modifiers;
 mod scroll;
 mod sheet_presented;
 mod swiftui_defaults;

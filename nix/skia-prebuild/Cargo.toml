@@ -7,7 +7,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-freya-engine = { version = "=0.5.0", features = ["vulkan"] }
+freya-engine = { version = "=0.5.3", features = ["vulkan"] }
 freya-skia-safe = "=0.104.0"
 
 [lib]

@@ -96,6 +96,20 @@ métodos, hooks, tokens).
    `scripts/check-recipes.sh` lo comprueba. Una receta nueva es un archivo
    nuevo con su `[[example]]`, nunca un bloque de código en `recipes.md`.
 
+## macOS y Linux
+
+1. **`cfg(target_os)` solo en `crates/bk/src/platform/`, `crates/ctappearance/`
+   y `Cargo.toml`.** `scripts/check-platform-cfg.sh` lo comprueba; su lista de
+   excepciones solo se acorta.
+2. **Un nombre, una firma, dos cuerpos.** Lo que un sistema da (portapapeles,
+   llavero, notificaciones, menús) es una función con la misma firma en
+   `platform/macos/` y en el backend de Linux. Sin traits mientras haya un
+   cuerpo por sistema (regla 3 de «Código mínimo»).
+3. **La decisión va en código puro, sin `cfg`:** reconocedores, máquinas de
+   estado, números de `ctdesign`. El backend solo traduce eventos del sistema a
+   esa lógica y aplica sus efectos, como `gesture::trackpad`.
+4. **Toca un archivo con `cfg` suelto:** muévelo a su backend en ese commit.
+
 ## Código mínimo (reglas duras, estilo ponytail)
 
 Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más corta.

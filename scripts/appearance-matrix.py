@@ -297,6 +297,8 @@ def main():
     parser.add_argument("--live-capture", metavar="DIR", help="the live half, before and after the user flips Reduce Transparency (see live_capture)")
     parser.add_argument("--live-compare", metavar="DIR", help="with rt: compares a fresh kit capture with the live one of DIR")
     options = parser.parse_args()
+    if not os.path.isdir(PROBES):
+        sys.exit(f"appearance-matrix: {PROBES} not found; set BARRIERKIT_PROBES to the directory of the SwiftUI probes")
 
     if system_reduces_transparency() != (options.transparency == "rt"):
         sys.exit(f"the system's Reduce Transparency is {'on' if system_reduces_transparency() else 'off'}, "

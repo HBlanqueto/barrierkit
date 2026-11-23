@@ -38,6 +38,8 @@ know the kit's shape.
 | `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `.frame(width:height:alignment:)`, `.frame(maxWidth: .infinity)` | `.frame()`, then `.width(..)`, `.height(..)`, `.alignment(..)`; `.width(Size::fill())` for `maxWidth: .infinity` in a column | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `Grid { GridRow { .. } }`, `.gridCellColumns(_:)`, `.gridColumnAlignment(_:)` | `Grid::new().row(GridRow::new().child(..))`, `.grid_cell_columns(n)`, `.grid_column_alignment(..)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
+| `.sheet(isPresented:)`, `.alert(_:isPresented:)`, `.popover(isPresented:)` | `.sheet(state, ..)`, `.alert(state, ..)`, `.popover(state, size, ..)` with a `State<bool>` | [`presentations.rs`](../../agents/recipes/presentations.rs) |
+| `.onHover`, `.onTapGesture(count:)` | `.on_hover(\|inside\| ..)`, `.on_tap_gesture(count, \|_\| ..)`; both use the pointer events a gesture uses, so put one on a view without another | [`gestures.rs`](../../agents/recipes/gestures.rs) |
 | `.onAppear`, `.onDisappear`, `.onChange`, `.task` | [`use_hook`, `use_drop`, `use_side_effect_with_deps`, `use_future`](#effects) | none |
 
 ## State and bindings

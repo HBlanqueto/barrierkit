@@ -4,6 +4,7 @@ use std::ops::Range;
 pub struct RunStyle {
     pub bold: bool,
     pub italic: bool,
+    pub underline: bool,
     pub link: Option<String>,
     pub family: Option<String>,
     pub size: Option<f32>,
@@ -27,6 +28,7 @@ pub struct StyleRun {
 pub enum Emphasis {
     Bold,
     Italic,
+    Underline,
 }
 
 pub fn char_styles(runs: &[StyleRun], length: usize) -> Vec<RunStyle> {
@@ -97,12 +99,14 @@ pub fn toggle(
     let has = |style: &RunStyle| match emphasis {
         Emphasis::Bold => style.bold,
         Emphasis::Italic => style.italic,
+        Emphasis::Underline => style.underline,
     };
     let on = !styles[range.clone()].iter().all(has);
     for style in &mut styles[range] {
         match emphasis {
             Emphasis::Bold => style.bold = on,
             Emphasis::Italic => style.italic = on,
+            Emphasis::Underline => style.underline = on,
         }
     }
     runs_from(&styles)
@@ -216,6 +220,25 @@ mod tests {
         assert_eq!(font_at(&runs, 6, 0).size, ctdesign::BODY.size as f32);
         assert_eq!(runs.len(), 1);
         assert_eq!(runs[0].range, 2..4);
+    }
+
+    #[test]
+    fn typing_after_underlined_text_continues_the_underline() {
+        let underlined = StyleRun {
+            range: 0..2,
+            style: RunStyle {
+                underline: true,
+                ..RunStyle::default()
+            },
+        };
+        assert_eq!(
+            toggle(&[], 2, 0..2, Emphasis::Underline),
+            std::slice::from_ref(&underlined)
+        );
+        assert_eq!(
+            restyle_after_edit(&[underlined], "ab", "abc")[0].range,
+            0..3
+        );
     }
 
     #[test]

@@ -13,7 +13,7 @@ report() {
 }
 
 production() {
-    for file in $(find "$@" -name '*.rs' ! -path 'crates/ctdesign/*' | sort); do
+    for file in $(find "$@" -name '*.rs' ! -path 'crates/ctdesign/*' ! -name tests.rs | sort); do
         awk '/#\[cfg\(test\)\]/ { pending = 1; next }
             pending && /^mod [a-z_]+ \{/ { skip = 1 }
             { pending = 0 }
@@ -23,13 +23,25 @@ production() {
 }
 
 if matches=$(production crates/*/src |
-    grep -E '0x[0-9a-fA-F]{6,8}|Rgba::(rgb8|rgba8)\([[:space:]]*(0x)?[0-9]'); then
+    grep -E '0x[0-9a-fA-F]{6,8}|"#[0-9a-fA-F]{6,8}"|Rgba::(rgb8|rgba8)\([[:space:]]*(0x)?[0-9]|[[:space:]][rgb]: [0-9]*\.[0-9_]*[1-9][0-9_]*,$|Color::from_(a_?rgb|rgb)\(([^)]*[,[:space:]])?[0-9]{2,3}[,)]'); then
     report "colour literals must live in ctdesign" "$matches"
 fi
 
 if matches=$(production crates/*/src |
     grep -E '\[u8; ?4\]'); then
     report "convert colours with Rgba::to_rgba8, not a local [u8; 4]" "$matches"
+fi
+
+if matches=$(production crates/*/src |
+    grep -E 'corner_radius\([[:space:]]*[0-9.]*[1-9][0-9.]*\)|CornerRadius::new(_all)?\([[:space:]]*[0-9.]*[1-9]'); then
+    report "radii must live in ctdesign" "$matches"
+fi
+
+# Timeouts of the platform layer, the animation engine and the shader clock are not UI durations.
+if matches=$(production crates/bk/src |
+    grep -vE '^crates/bk/src/(platform/|shell/|session_bus\.rs|animation\.rs|group\.rs)' |
+    grep -E 'Duration::from_(millis|secs|micros)\([[:space:]]*[0-9]|\.time\([[:space:]]*[0-9]'); then
+    report "durations must live in ctdesign" "$matches"
 fi
 
 if matches=$(production \

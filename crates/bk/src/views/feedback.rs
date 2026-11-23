@@ -321,6 +321,7 @@ pub struct Alert {
     on_help: Option<Callback<(), ()>>,
     accessory: Option<Element>,
     critical: bool,
+    presented: Option<State<bool>>,
 }
 
 impl Alert {
@@ -340,7 +341,13 @@ impl Alert {
             on_help: None,
             accessory: None,
             critical: false,
+            presented: None,
         }
+    }
+
+    pub(crate) fn dismissing(mut self, presented: State<bool>) -> Self {
+        self.presented = Some(presented);
+        self
     }
 
     pub fn style(mut self, restyle: impl Fn(AlertStyle) -> AlertStyle + 'static) -> Self {
@@ -509,12 +516,19 @@ impl Component for Alert {
         let destructive = self.destructive;
         let state = ControlState::default();
         let paints = Paints::current(state, style.effect);
+        let presented = self.presented;
+        let dismiss = move || {
+            if let Some(mut presented) = presented {
+                presented.set(false);
+            }
+        };
         let call = |callback: &Option<Callback<(), ()>>| {
             let callback = callback.clone();
             move || {
                 if let Some(cb) = &callback {
                     cb.call(());
                 }
+                dismiss();
             }
         };
         let (confirm, cancel) = (call(&self.on_confirm), call(&self.on_cancel));
@@ -557,7 +571,10 @@ impl Component for Alert {
                     Button::new(label.clone())
                         .size(ControlSize::Large)
                         .width(button_width.clone())
-                        .on_press(move |_| callback.call(()))
+                        .on_press(move |_| {
+                            callback.call(());
+                            dismiss();
+                        })
                         .into_element()
                 }))
                 .child(cancel_button)

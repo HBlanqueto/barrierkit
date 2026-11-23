@@ -1,4 +1,9 @@
+use std::fs::File;
+use std::io::Read;
+use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, PoisonError};
+use std::time::{Duration, SystemTime};
 
 use ctdesign::{
     COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, POINTER_SIZES, Rgba, TEXT_SIZES, TINT_STRENGTH,
@@ -447,18 +452,68 @@ pub fn read_appearance() -> Result<Option<AppearanceConfig>, toml::de::Error> {
 }
 
 pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
-    match std::fs::read_to_string(path) {
-        Ok(text) => {
-            warn_legacy_traffic_light_name(&text);
-            let mut config: AppearanceConfig = toml::from_str(&text)?;
-            if monochrome_icons(&text) {
-                config.icon_color.get_or_insert(graphite());
-            }
-            config.color_scheme = config.current_scheme();
-            Ok(Some(config))
+    static PARSED: Slot<AppearanceConfig> = Mutex::new(None);
+    let parsed = read_parsed(&PARSED, path, |text| {
+        warn_legacy_traffic_light_name(text);
+        let mut config: AppearanceConfig = toml::from_str(text)?;
+        if monochrome_icons(text) {
+            config.icon_color.get_or_insert(graphite());
         }
-        Err(_) => Ok(None),
+        Ok(config)
+    })?;
+    Ok(parsed.map(|mut config| {
+        config.color_scheme = config.current_scheme();
+        config
+    }))
+}
+
+type Stamp = (u64, SystemTime, u64);
+
+struct Parsed<T> {
+    path: PathBuf,
+    stamp: Stamp,
+    value: T,
+}
+
+type Slot<T> = Mutex<Option<Parsed<T>>>;
+
+// A file changed this recently can change again within the same timestamp tick, so it is parsed on every read.
+const SETTLED: Duration = Duration::from_secs(1);
+
+// The stamp is taken from the open file, before its text: a change in between leaves a stamp the next read rejects.
+fn read_parsed<T: Clone, E>(
+    slot: &Slot<T>,
+    path: &Path,
+    parse: impl FnOnce(&str) -> Result<T, E>,
+) -> Result<Option<T>, E> {
+    let Ok(mut file) = File::open(path) else {
+        return Ok(None);
+    };
+    let Ok(metadata) = file.metadata() else {
+        return Ok(None);
+    };
+    let modified = metadata.modified().ok();
+    let stamp = modified.map(|modified| (metadata.ino(), modified, metadata.len()));
+    let mut slot = slot.lock().unwrap_or_else(PoisonError::into_inner);
+    if let (Some(stamp), Some(cached)) = (stamp, slot.as_ref())
+        && cached.path == path
+        && cached.stamp == stamp
+    {
+        return Ok(Some(cached.value.clone()));
     }
+    let mut text = String::new();
+    if file.read_to_string(&mut text).is_err() {
+        return Ok(None);
+    }
+    let value = parse(&text)?;
+    *slot = stamp
+        .filter(|(_, modified, _)| modified.elapsed().is_ok_and(|age| age >= SETTLED))
+        .map(|stamp| Parsed {
+            path: path.to_path_buf(),
+            stamp,
+            value: value.clone(),
+        });
+    Ok(Some(value))
 }
 
 const RETIRED_KEYS: [&str; 6] = [
@@ -687,7 +742,10 @@ pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Re
 }
 
 fn read_wallpaper_state(path: &Path) -> Option<WallpaperState> {
-    toml::from_str(&std::fs::read_to_string(path).ok()?).ok()
+    static PARSED: Slot<WallpaperState> = Mutex::new(None);
+    read_parsed(&PARSED, path, |text| toml::from_str(text))
+        .ok()
+        .flatten()
 }
 
 #[cfg(test)]
@@ -1123,6 +1181,52 @@ tint_parts = ["window", "halo"]
         write_appearance(&path, &config).unwrap();
         let read = read_appearance_from(&path).unwrap().unwrap();
         assert_eq!(config, read);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    fn parsed_text(slot: &Slot<String>, path: &Path, parses: &std::cell::Cell<u32>) -> String {
+        read_parsed(slot, path, |text| {
+            parses.set(parses.get() + 1);
+            Ok::<_, ()>(text.to_string())
+        })
+        .unwrap()
+        .unwrap()
+    }
+
+    fn written(path: &Path, text: &str, age: Duration) {
+        replace_file(path, text).unwrap();
+        File::options()
+            .write(true)
+            .open(path)
+            .unwrap()
+            .set_modified(SystemTime::now() - age)
+            .unwrap();
+    }
+
+    #[test]
+    fn a_settled_file_is_parsed_once_and_again_after_it_is_replaced() {
+        let dir = std::env::temp_dir().join(format!("ctappearance-parsed-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let (path, slot, parses) = (dir.join("a.domain"), Mutex::new(None), 0.into());
+        written(&path, "one", Duration::from_secs(60));
+        assert_eq!(parsed_text(&slot, &path, &parses), "one");
+        assert_eq!(parsed_text(&slot, &path, &parses), "one");
+        assert_eq!(parses.get(), 1);
+        written(&path, "two", Duration::from_secs(60));
+        assert_eq!(parsed_text(&slot, &path, &parses), "two");
+        assert_eq!(parses.get(), 2);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn a_file_changed_a_moment_ago_is_parsed_on_every_read() {
+        let dir = std::env::temp_dir().join(format!("ctappearance-fresh-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let (path, slot, parses) = (dir.join("a.domain"), Mutex::new(None), 0.into());
+        written(&path, "one", Duration::ZERO);
+        parsed_text(&slot, &path, &parses);
+        parsed_text(&slot, &path, &parses);
+        assert_eq!(parses.get(), 2);
         std::fs::remove_dir_all(&dir).ok();
     }
 }

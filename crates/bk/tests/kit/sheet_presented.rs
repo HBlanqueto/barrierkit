@@ -1,4 +1,5 @@
 use bk::modifiers::ViewModifiers;
+use bk::views::feedback::Alert;
 use ctappearance::{AppearanceConfig, resolve};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -61,4 +62,60 @@ fn a_sheet_shows_while_its_state_is_true_and_goes_when_it_is_false() {
     assert!(count(&mut test) > 1000);
     presented.set(false);
     assert_eq!(count(&mut test), 0);
+}
+
+struct AlertCase(std::rc::Rc<std::cell::RefCell<Option<State<bool>>>>);
+
+impl App for AlertCase {
+    fn render(&self) -> impl IntoElement {
+        let presented = use_state(|| false);
+        *self.0.borrow_mut() = Some(presented);
+        rect().expanded().alert(presented, || {
+            Alert::new("Delete file?", "It cannot be undone.").confirm("Delete", |_| {})
+        })
+    }
+}
+
+fn centre_of(test: &TestingRunner, label: &str) -> Option<(f64, f64)> {
+    test.find(|node, element| {
+        (element.accessibility().builder.label() == Some(label)).then(|| {
+            let area = node.layout().area;
+            (
+                f64::from(area.min_x() + area.width() / 2.0),
+                f64::from(area.min_y() + area.height() / 2.0),
+            )
+        })
+    })
+}
+
+#[test]
+fn an_alert_shows_while_its_state_is_true_and_a_button_press_dismisses_it() {
+    let resolved = resolve(
+        &AppearanceConfig {
+            reduced_motion: true,
+            ..Default::default()
+        },
+        None,
+    );
+    let handle = Default::default();
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(AlertCase(std::rc::Rc::clone(&handle))),
+        Size2D::new(600.0, 400.0),
+        move |runner| {
+            runner.provide_root_context(move || State::create(resolved));
+        },
+        1.0,
+    );
+    test.sync_and_update();
+    assert!(centre_of(&test, "Delete file?").is_none());
+    let mut presented = handle.borrow().unwrap();
+    presented.set(true);
+    test.sync_and_update();
+    test.sync_and_update();
+    assert!(centre_of(&test, "Delete file?").is_some());
+    test.click_cursor(centre_of(&test, "Delete").expect("the confirm button"));
+    test.sync_and_update();
+    test.sync_and_update();
+    assert!(!*presented.read());
+    assert!(centre_of(&test, "Delete file?").is_none());
 }

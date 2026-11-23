@@ -24,7 +24,7 @@ fonts, links and spell checking.
    TextEditor::new(notes, "Notes").styles(styles).height(Size::px(200.0))
    ```
 
-3. Style the text. Select some and press Ctrl+B or Ctrl+I, or Ctrl+T for the
+3. Style the text. Select some and press Ctrl+B, Ctrl+I or Ctrl+U, or Ctrl+T for the
    [font panel](#font-panel). The editor writes the runs into `styles`
    ([Rich text](#rich-text)).
 4. Check spelling. Install a Hunspell dictionary for the app language (on NixOS, for example
@@ -69,7 +69,7 @@ system face.
 | Ctrl+Z | Undo |
 | Ctrl+Y or Shift+Ctrl+Z | Redo |
 | Ctrl+F | Opens the [find bar](#find-bar) |
-| Ctrl+B, Ctrl+I | Toggle bold or italic on the selection (with `styles`) |
+| Ctrl+B, Ctrl+I, Ctrl+U | Toggle bold, italic or underline on the selection (with `styles`) |
 | Ctrl+T | Opens the font panel for the selection (with `styles`) |
 
 A focused editor has an accent ring. When the app replaces `value`, the editor takes the new
@@ -99,10 +99,10 @@ in character indices.
 
 | Type | Fields |
 |---|---|
-| `RunStyle` | `bold`, `italic`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`; `Default` is plain |
+| `RunStyle` | `bold`, `italic`, `underline`, `link: Option<String>`, `family: Option<String>`, `size: Option<f32>`; `Default` is plain |
 | `StyleRun` | `range: Range<usize>`, `style: RunStyle` |
 | `FontChoice` | `family`, `size`, `bold`, `italic` |
-| `Emphasis` | `Bold`, `Italic` |
+| `Emphasis` | `Bold`, `Italic`, `Underline` |
 
 ```rust
 let styles = use_state(|| vec![StyleRun {
@@ -115,8 +115,8 @@ How the editor draws and edits runs:
 
 | Behavior | Rule |
 |---|---|
-| Typing | Runs move with the text. Typed text inherits the bold, italic and font of the previous character, not its link |
-| Ctrl+B, Ctrl+I | If the whole selection has the emphasis, it is removed; otherwise it is added |
+| Typing | Runs move with the text. Typed text inherits the bold, italic, underline and font of the previous character, not its link |
+| Ctrl+B, Ctrl+I, Ctrl+U | If the whole selection has the emphasis, it is removed; otherwise it is added |
 | Links | Drawn in the accent and underlined. The pointer becomes a hand; a click opens the link through the `OpenURI` portal instead of moving the caret |
 | Fonts | `family` and `size` replace `BODY` for their run |
 
@@ -180,7 +180,10 @@ FontPicker::new(font.read().clone()).on_change(move |picked| font.set(picked))
    when there are none), then Ignore Spelling and Learn Spelling.
 6. Ignore accepts the word until the app quits. Learn also appends it to Enchant's personal
    list, `$XDG_CONFIG_HOME/enchant/<dictionary>.dic`, shared with GTK and GNOME apps
-   ([enchant(5)](https://man.archlinux.org/man/enchant.5.en)).
+   ([enchant(5)](https://man.archlinux.org/man/enchant.5.en)). The list is read once, with the
+   dictionary, and again when its modification time changes, so words other apps learn show up.
+   A word learned before the list is open waits and is saved when it opens. A list that cannot
+   be read (for example, not UTF-8) is never written to: Learn then works until the app quits.
 
 | Function | Returns |
 |---|---|

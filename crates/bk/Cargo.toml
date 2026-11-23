@@ -96,6 +96,10 @@ name = "callback"
 path = "../../agents/recipes/callback.rs"
 
 [[example]]
+name = "color_effect"
+path = "../../agents/recipes/color_effect.rs"
+
+[[example]]
 name = "control_modifiers"
 path = "../../agents/recipes/control_modifiers.rs"
 
@@ -242,6 +246,10 @@ path = "../../agents/recipes/navigation_stack.rs"
 [[example]]
 name = "popups"
 path = "../../agents/recipes/popups.rs"
+
+[[example]]
+name = "presentations"
+path = "../../agents/recipes/presentations.rs"
 
 [[example]]
 name = "glass_container"

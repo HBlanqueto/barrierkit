@@ -13,6 +13,7 @@ use freya_engine::prelude::{
 };
 
 use crate::style::linear;
+use crate::theme::color;
 
 // The Settings icon's body on the 1024 grid.
 const GRID: f32 = 1024.0;
@@ -76,15 +77,6 @@ fn read(raster: &SkImage) -> Option<Pixels> {
         center: ((left + right) as f32 / 2.0, (top + bottom) as f32 / 2.0),
         extent: (right - left).max(bottom - top) as f32,
     })
-}
-
-fn color(rgba: Rgba) -> Color {
-    Color::from_argb(
-        (rgba.a * 255.0).round() as u8,
-        (rgba.r * 255.0).round() as u8,
-        (rgba.g * 255.0).round() as u8,
-        (rgba.b * 255.0).round() as u8,
-    )
 }
 
 /// `raster` is an app icon; the result is the same icon on a plate, on the 1024 grid, in the user's icon style. With `glass_plate` the compositor draws the plate, so only the logo is drawn.

@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CivilDate {
     pub year: i32,
@@ -98,6 +100,13 @@ pub fn days_in_month(year: i32, month: u32) -> u32 {
     }
 }
 
+fn utc_days_since_epoch() -> i64 {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default();
+    (now.as_secs() / 86_400) as i64
+}
+
 impl CivilDate {
     pub fn new(year: i32, month: u32, day: u32) -> Self {
         let month = month.clamp(1, 12);
@@ -140,7 +149,7 @@ impl CivilDate {
 
     pub fn today() -> Self {
         ctappearance::local_date().map_or_else(
-            || Self::from_days(0),
+            || Self::from_days(utc_days_since_epoch()),
             |(year, month, day)| Self::new(year, month, day),
         )
     }
@@ -241,6 +250,19 @@ mod tests {
             CivilDate::new(2026, 2, 28)
         );
         assert_eq!(at.typed(DatePart::Hour, 30).hour, 23);
+    }
+
+    #[test]
+    fn typing_a_month_or_year_keeps_the_day_inside_the_new_month() {
+        let at = |year, month, day| CivilDateTime::new(CivilDate::new(year, month, day), 9, 0);
+        assert_eq!(
+            at(2026, 3, 31).typed(DatePart::Month, 4).date,
+            CivilDate::new(2026, 4, 30)
+        );
+        assert_eq!(
+            at(2024, 2, 29).typed(DatePart::Year, 2025).date,
+            CivilDate::new(2025, 2, 28)
+        );
     }
 
     #[test]

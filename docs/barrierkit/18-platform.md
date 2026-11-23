@@ -72,14 +72,14 @@ These steps open a shell surface, the task only this chapter covers.
 | Wayland | The compositor sends events | Input, configure, frame callbacks |
 | Freya ping | A component changes state or asks for a redraw | Polls every surface, opens pending popups and windows, installs timers, requests frame callbacks |
 | Wake ping | A `WakeHandle`, a D-Bus menu or another thread wakes the app | Runs the wake callbacks and menu actions, then polls |
-| Appearance watch (inotify) | `appearance.domain` or `wallpaper.state` changes | Resolves the appearance again and redraws every surface |
+| Appearance watch (inotify) | `appearance.domain` or `wallpaper.state` changes | Resolves the appearance again and redraws every surface; `load_appearance` and `load_dominant` parse a file once until its inode, modification time or length changes, and always parse one changed in the last second |
 | The same watch | Another `.domain` file in the config dir changes | Bumps the defaults revision when the app reads that file with `use_defaults`, or calls `use_watched`; the title bar reads `window.domain` |
 | Idle timer, every 10 s | Always | Releases Skia GPU resources unused for 10 s |
 
 The loop ends when the last main window closes (utility windows do not
 count), the compositor closes a layer surface, the lock is released, or the
 Vulkan device is lost again after two recreations without a presented frame.
-A lost device is destroyed and recreated with every surface; a presented
+A swapchain image that is not ready within one second counts as a lost device. A lost device is destroyed and recreated with every surface; a presented
 frame resets the count. Debug builds fake one loss after `n` draws with
 `BARRIERKIT_LOSE_DEVICE_AT=n`.
 

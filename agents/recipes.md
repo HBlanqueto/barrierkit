@@ -422,3 +422,15 @@ The program is [`recipes/gestures.rs`](recipes/gestures.rs).
 3. The deepest view wins a pointer. A tap that has moved 10 points is no tap; a long press fires after
    500 ms in place. Two fingers (two `finger_id`s) drive `MagnifyGesture` and `RotateGesture`; a trackpad
    pinch needs the runner to map it.
+
+## 34. An alert and a popover driven by state
+
+SwiftUI: `.alert("Delete this file?", isPresented: $deleting) { Button("Delete", role: .destructive) { .. } }` and `Button("Info") { info = true }.popover(isPresented: $info) { Text("Updated just now").padding() }`.
+
+The program is [`recipes/presentations.rs`](recipes/presentations.rs).
+
+1. `.alert(state, || Alert::new(..))` on a container shows the alert while the `State<bool>` is `true`;
+   any button, Enter or Escape writes `false` after the callback. `.sheet(state, || content)` works the same,
+   but only the app closes a sheet.
+2. `.popover(state, size, || content)` opens a popover that points at the view it sits on, so put it on a
+   `rect()` around the button, not on the container. A click outside writes `false`. It uses a hook: call it on every render.

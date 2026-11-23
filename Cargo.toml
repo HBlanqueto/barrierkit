@@ -30,9 +30,9 @@ libc = "0.2"
 zeroize = "1"
 
 serde = { version = "1", features = ["derive"] }
-toml = "0.8"
+toml = "1"
 md-5 = "0.11"
-toml_edit = "0.22"
+toml_edit = "0.25"
 
 zbus = "5"
 xkbcommon = "0.8"

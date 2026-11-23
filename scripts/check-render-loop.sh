@@ -15,7 +15,8 @@ fi
 
 file=$(find "${CARGO_HOME:-$HOME/.cargo}/registry/src" -path "*/freya-core-$version/src/render_pipeline.rs" 2>/dev/null | head -n 1)
 if [ -z "$file" ]; then
-    printf 'check-render-loop: freya-core %s is not in the cargo registry; skipped\n' "$version" >&2
+    printf 'check-render-loop: SKIP: freya-core %s is not in the cargo registry (run cargo fetch)\n' "$version" >&2
+    [ -n "${CI:-}" ] && exit 1
     exit 0
 fi
 

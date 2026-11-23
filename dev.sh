@@ -61,6 +61,7 @@ check() {
     }
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
+    "$script_dir/scripts/check-platform-cfg.sh"
     "$script_dir/scripts/check-links.sh"
     "$script_dir/scripts/check-recipes.sh"
     "$script_dir/scripts/check-render-loop.sh"

@@ -7,14 +7,16 @@ cd "$root"
 blocks=$(mktemp -d)
 trap 'rm -rf "$blocks"' EXIT
 
-awk -v dir="$blocks" '
-    /^```rust$/ { n++; file = dir "/" n ".rs"; inside = 1; next }
-    /^```$/ { inside = 0; next }
-    inside { print > file }
-' docs/barrierkit/02-first-app.md
+for doc in docs/barrierkit/*.md agents/*.md; do
+    awk -v dir="$blocks" -v doc="$(basename "$doc" .md)" '
+        /^```rust$/ { n++; file = dir "/" doc "-" n ".rs"; inside = 1; next }
+        /^```$/ { inside = 0; next }
+        inside { print > file }
+    ' "$doc"
+done
 
 status=0
-grep -lq 'fn main' "$blocks"/*.rs 2>/dev/null || {
+grep -lq 'fn main' "$blocks"/02-first-app-*.rs 2>/dev/null || {
     printf 'check-recipes: no program found in 02-first-app.md\n' >&2
     status=1
 }
@@ -31,7 +33,7 @@ for block in "$blocks"/*.rs; do
         cmp -s "$block" "$recipe" && found=1 && break
     done
     if [ "$found" = 0 ]; then
-        printf 'check-recipes: a program in 02-first-app.md is not a file of agents/recipes/\n' >&2
+        printf 'check-recipes: a program in %s is not a file of agents/recipes/\n' "$(basename "$block")" >&2
         sed 's/^/  /' "$block" >&2
         status=1
     fi

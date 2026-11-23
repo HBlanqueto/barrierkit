@@ -675,7 +675,8 @@ TextField::new(name, "User name").style(|s| TextFieldStyle { shape: Shape::Capsu
 | `state()`, `masked()` | The state and the `•` string |
 
 Growing the buffer copies it into a new zeroized one, so no copy of the secret is freed
-without being wiped.
+without being wiped. `SecureField.revealed(true)` copies the text into a Freya label, which cannot
+wipe it.
 
 ## Color picker
 
@@ -746,7 +747,7 @@ Module `date` does the calendar arithmetic without dependencies, with
 
 | Item | What it does |
 |---|---|
-| `CivilDate { year, month, day }` | `new` clamps the month to 1–12 and the day to the month. `add_days`, `add_months`, `shifted(part, delta)`, `weekday_from_monday()`, `month_grid(monday_first)` (42 days) |
+| `CivilDate { year, month, day }` | `new` clamps the month to 1–12 and the day to the month, as `Calendar` does when a month or year change leaves no such day. `today()` is the local date, or the UTC date when the local time is unavailable. `add_days`, `add_months`, `shifted(part, delta)`, `weekday_from_monday()`, `month_grid(monday_first)` (42 days) |
 | `CivilDateTime { date, hour, minute }` | `new` clamps the hour to 23 and the minute to 59. `shifted(part, delta)`, `typed(part, value)` |
 | `DatePart` | `Day`, `Month`, `Year`, `Hour`, `Minute`; `digits()` is 4 for the year, 2 otherwise |
 | `days_in_month(year, month)` | 28 to 31, with leap years |

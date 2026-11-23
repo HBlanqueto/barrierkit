@@ -11,6 +11,7 @@ use crate::styles::{
     ControlState, ControlStyle, Paints, ShadowStyle, ShapeStyle, StateValue, StyleScope, Theme,
     system_effect,
 };
+use crate::views::feedback::Alert;
 
 pub trait ViewModifiers: EventHandlersExt + Sized {
     fn context_menu(
@@ -27,6 +28,42 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
     {
         let presented = *is_presented.read();
         self.maybe_child(presented.then(|| crate::views::feedback::Sheet::new(content())))
+    }
+
+    fn alert(self, is_presented: State<bool>, content: impl Fn() -> Alert) -> Self
+    where
+        Self: ChildrenExt,
+    {
+        let presented = *is_presented.read();
+        self.maybe_child(presented.then(|| content().dismissing(is_presented)))
+    }
+
+    fn popover(
+        self,
+        is_presented: State<bool>,
+        size: (f32, f32),
+        content: impl Fn() -> Element + 'static,
+    ) -> Self
+    where
+        Self: LayoutExt,
+    {
+        crate::popover::use_popover(self, is_presented, size, content)
+    }
+
+    fn on_hover(self, perform: impl Into<Callback<bool, ()>>) -> Self {
+        let perform = perform.into();
+        let leave = perform.clone();
+        self.on_pointer_enter(move |_| perform.call(true))
+            .on_pointer_leave(move |_| leave.call(false))
+    }
+
+    fn on_tap_gesture(self, count: u32, perform: impl Into<Callback<(), ()>>) -> Self {
+        let perform = perform.into();
+        self.gesture(
+            crate::gesture::TapGesture::new()
+                .count(count)
+                .on_ended(move |_| perform.call(())),
+        )
     }
 
     fn gesture(self, gesture: impl crate::gesture::Attachable) -> Self {

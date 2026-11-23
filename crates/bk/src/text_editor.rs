@@ -226,6 +226,7 @@ impl Component for TextEditor {
             let emphasis = match &event.key {
                 Key::Character(c) if c == "b" => Some(Emphasis::Bold),
                 Key::Character(c) if c == "i" => Some(Emphasis::Italic),
+                Key::Character(c) if c == "u" => Some(Emphasis::Underline),
                 _ => None,
             };
             if let (Some(mut styles), Some(emphasis), true) = (
@@ -577,9 +578,10 @@ fn styled_spans(text: &str, runs: &[StyleRun], link: ctdesign::Rgba) -> Vec<Span
             span = span.font_size(size);
         }
         if style.link.is_some() {
-            span = span
-                .color(color(link))
-                .text_decoration(TextDecoration::Underline);
+            span = span.color(color(link));
+        }
+        if style.link.is_some() || style.underline {
+            span = span.text_decoration(TextDecoration::Underline);
         }
         spans.push(span);
         start = end;

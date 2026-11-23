@@ -1,6 +1,7 @@
+use std::any::Any;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::time::Instant;
 
 use ctdesign::GESTURE;
@@ -1441,7 +1442,7 @@ pub struct Trackpad {
     pub kind: TrackpadKind,
 }
 
-type Target = Box<dyn Fn(Trackpad) -> bool>;
+type Target = (Weak<dyn Any>, Box<dyn Fn(Trackpad)>);
 
 thread_local! {
     static TRACKPAD_TARGETS: RefCell<Vec<Target>> = RefCell::new(Vec::new());
@@ -1455,17 +1456,21 @@ const TRACKPAD_SPAN: f32 = 100.0;
 /// pointer, as the two fingers it stands for. The macOS runner calls it; the Wayland one has no source yet.
 pub fn trackpad(event: Trackpad) {
     TRACKPAD_TARGETS.with(|targets| {
-        let list: Vec<_> = std::mem::take(&mut *targets.borrow_mut());
-        let mut alive = Vec::new();
-        for target in list.into_iter().rev() {
-            if target(event) {
-                alive.push(target);
-            }
+        let mut list = std::mem::take(&mut *targets.borrow_mut());
+        list.retain(|(engine, _)| engine.strong_count() > 0);
+        for (_, send) in list.iter().rev() {
+            send(event);
         }
-        alive.reverse();
+        list.append(&mut targets.borrow_mut());
+        *targets.borrow_mut() = list;
+    });
+}
+
+fn add_trackpad_target(target: Target) {
+    TRACKPAD_TARGETS.with(|targets| {
         let mut targets = targets.borrow_mut();
-        alive.append(&mut targets);
-        *targets = alive;
+        targets.retain(|(engine, _)| engine.strong_count() > 0);
+        targets.push(target);
     });
 }
 
@@ -1650,15 +1655,14 @@ where
             }));
             if <G::Recognizer as Recognizer>::TRACKPAD {
                 let weak = Rc::downgrade(&engine);
-                TRACKPAD_TARGETS.with(|targets| {
-                    targets.borrow_mut().push(Box::new(move |event| {
-                        let Some(engine) = weak.upgrade() else {
-                            return false;
-                        };
-                        Engine::trackpad(&engine, event);
-                        true
-                    }));
-                });
+                add_trackpad_target((
+                    weak.clone(),
+                    Box::new(move |event| {
+                        if let Some(engine) = weak.upgrade() {
+                            Engine::trackpad(&engine, event);
+                        }
+                    }),
+                ));
             }
             engine
         });
@@ -2078,5 +2082,18 @@ mod tests {
             sequence.feed(input(1, Phase::Move, 20.0, 0.0, 220.0)),
             Step::Changed(SequenceValue::Second(_, Some(_)))
         ));
+    }
+
+    #[test]
+    fn a_new_trackpad_target_drops_the_ones_whose_view_is_gone_without_any_pinch() {
+        let count = || TRACKPAD_TARGETS.with(|targets| targets.borrow().len());
+        let gone: Rc<()> = Rc::new(());
+        add_trackpad_target((Rc::downgrade(&gone) as Weak<dyn Any>, Box::new(|_| {})));
+        let kept: Rc<()> = Rc::new(());
+        add_trackpad_target((Rc::downgrade(&kept) as Weak<dyn Any>, Box::new(|_| {})));
+        assert_eq!(count(), 2);
+        drop(gone);
+        add_trackpad_target((Rc::downgrade(&kept) as Weak<dyn Any>, Box::new(|_| {})));
+        assert_eq!(count(), 2);
     }
 }

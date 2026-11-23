@@ -17,6 +17,7 @@ esac
 case "$scheme" in light) args= ;; dark) args=dark ;; *) echo "twin-reference: light or dark" >&2; exit 2 ;; esac
 
 probes=${BARRIERKIT_PROBES:-$HOME/src/probes}
+[ -d "$probes" ] || { echo "twin-reference: $probes not found; set BARRIERKIT_PROBES to the directory of the SwiftUI probes" >&2; exit 2; }
 # shellcheck source=screen-lock.sh
 . "$(dirname -- "$0")/screen-lock.sh"
 work=$(mktemp -d)

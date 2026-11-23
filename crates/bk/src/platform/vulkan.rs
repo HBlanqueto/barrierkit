@@ -27,6 +27,8 @@ const SURFACE_MAINTENANCE_EXTENSIONS: [&CStr; 2] = [
 ];
 const SWAPCHAIN_FORMAT: ash_vk::Format = ash_vk::Format::B8G8R8A8_UNORM;
 
+const ACQUIRE_TIMEOUT_NANOS: u64 = 1_000_000_000;
+
 pub(crate) const OUT_OF_DATE: &str = "swapchain out of date";
 
 fn failed(call: &'static str) -> impl Fn(ash_vk::Result) -> RunError {
@@ -558,7 +560,7 @@ impl Graphics {
         let acquired = unsafe {
             shared.swapchain_fns.acquire_next_image(
                 self.swapchain,
-                u64::MAX,
+                ACQUIRE_TIMEOUT_NANOS,
                 ash_vk::Semaphore::null(),
                 self.acquired,
             )
@@ -572,13 +574,17 @@ impl Graphics {
             Err(result) => return Err(failed("vkAcquireNextImageKHR")(result)),
         };
         // SAFETY: the fence was handed to the successful acquire above.
-        unsafe {
+        let ready = unsafe {
             shared
                 .device
-                .wait_for_fences(&[self.acquired], true, u64::MAX)
+                .wait_for_fences(&[self.acquired], true, ACQUIRE_TIMEOUT_NANOS)
                 .and_then(|()| shared.device.reset_fences(&[self.acquired]))
+        };
+        // A timed-out acquire still owns the fence and the image: rebuild the device instead of reusing them.
+        match ready {
+            Err(ash_vk::Result::TIMEOUT) => return Err(RunError::DeviceLost),
+            other => other.map_err(failed("vkWaitForFences"))?,
         }
-        .map_err(failed("vkWaitForFences"))?;
         self.image_index = index;
         self.skia = Some(self.targets[index as usize].clone());
         Ok(())

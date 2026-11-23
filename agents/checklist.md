@@ -26,7 +26,7 @@ reason it cannot be.
 5. Is every name the glossary name? Nothing named `App` of your own, nothing
    that copies a kit control (a knob drawn by hand included: `Switch`, `Slider`
    and `LevelSlider` hand their held knob to the compositor on their own).
-6. Are hooks (every `use_*`, and `.help(..)`, which hides one) called on every
+6. Are hooks (every `use_*`, and `.help(..)` and `.popover(..)`, which hide one) called on every
    render, never inside a condition, a loop or an iterator closure?
 7. Are there no comments besides `// SAFETY:` and one-line invariants?
 8. Is the `Application` name the same one passed to `use_app_language` and

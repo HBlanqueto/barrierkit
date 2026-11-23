@@ -334,11 +334,11 @@ impl Runtime {
     fn refresh_appearance(&mut self) {
         let resolved = resolve(&system::appearance(), load_dominant());
         let mut own = self.resolved;
-        own.set(resolved);
+        own.set_if_modified(resolved);
         for window in &mut self.windows {
             let mut state = window.app.resolved;
-            state.set(resolved);
-            window.needs_redraw = true;
+            window.needs_redraw |= *state.peek() != resolved;
+            state.set_if_modified(resolved);
         }
     }
 

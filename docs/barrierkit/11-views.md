@@ -740,8 +740,17 @@ only removing it closes it.
 sheet shows while the `State<bool>` is `true`, and the app closes it by writing `false`
 (from a button of the sheet, as there is no other way to close one). It has no `onDismiss`
 and no `item:` form: nothing closes a sheet but the app. A sheet and its window do not
-animate in the kit; the compositor or AppKit draws them. `Alert` and `Popover` keep their
-current forms: an alert is built from fields and a popover needs the area it points at.
+animate in the kit; the compositor or AppKit draws them.
+
+`.alert(is_presented, || Alert::new(..))` is `alert(_:isPresented:actions:message:)`: the alert
+shows while the `State<bool>` is `true`, and every button, Enter and Escape write `false` after
+their callback, as SwiftUI dismisses an alert from its actions. `.popover(is_presented, size,
+content)` is `popover(isPresented:content:)`: it opens a [`Popover`](07-menus-and-popovers.md#popover)
+that points at the view it sits on, writes `false` when the user dismisses it (a click outside) and
+closes it when the app writes `false`. `size` is the card's, as in `Popover::new`; the closure runs
+each time the popover opens, and nothing opens until the view has a size. `.popover` uses a hook:
+call it unconditionally. Neither has `onDismiss`, `item:`, `attachmentAnchor` or `arrowEdge`.
+The recipe is [`presentations.rs`](../../agents/recipes/presentations.rs).
 
 ### `Alert`
 
@@ -774,8 +783,9 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 The alert is `DIALOG_ALERT_WIDTH` (260) wide and splits its two large buttons
 evenly, 16 from the sides and the bottom (`DIALOG_ALERT_PADDING`) while the
 texts keep the sheet's 20. Title and message are one color and 16 a line, 10
-apart (`DIALOG_ALERT_SPACING`). It does not close itself: the callbacks stop
-drawing it. Its glass and its shadow are the compositor's.
+apart (`DIALOG_ALERT_SPACING`). Built by hand, it does not close itself: the
+callbacks stop drawing it; `.alert(is_presented, ..)` closes it. Its glass and
+its shadow are the compositor's.
 
 ### `SheetButtons`
 

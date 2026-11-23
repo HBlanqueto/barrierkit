@@ -441,7 +441,7 @@ lists.
 | `MissingGlobal(name)` | A [needed global](18-platform.md#wayland-protocols) is missing, `zwlr_layer_shell_v1` for `run_layer`, or `ext_session_lock_manager_v1` for `run_lock` |
 | `Vulkan(reason)` | No `libvulkan`, no GPU that can present, or the surface lacks the swapchain format |
 | `Skia` | Skia cannot create its Vulkan context |
-| `DeviceLost` | The GPU device cannot be recreated, or is lost again after two recreations without a presented frame |
+| `DeviceLost` | The GPU device cannot be recreated, or is lost again after two recreations without a presented frame; a swapchain image not ready within one second counts as a loss |
 | `SurfaceLost` | Never returned: the runner creates a new Vulkan surface and swapchain |
 | `LayerSize` | A `LayerSpec` leaves a size at 0 without anchoring both opposite edges |
 | `NoWindow` | `Application::run` finds no scene to open at launch (only `Settings`, or none) |
