@@ -8,7 +8,7 @@ use std::time::{Duration, SystemTime};
 use ctdesign::{
     COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, POINTER_SIZES, Rgba, TEXT_SIZES, TINT_STRENGTH,
 };
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::DeserializeOwned};
 
 use crate::icon_style::{IconStyle, IconTone};
 use crate::tinting::WallpaperGrid;
@@ -89,7 +89,7 @@ impl Default for TintParts {
 pub(crate) fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
-    T: serde::de::DeserializeOwned + Default,
+    T: DeserializeOwned + Default,
 {
     let value = toml::Value::deserialize(deserializer)?;
     Ok(T::deserialize(value).unwrap_or_else(|error| {
@@ -107,9 +107,16 @@ fn display_contrast<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D
     stepped(deserializer, &DISPLAY_CONTRAST)
 }
 
-fn hour<'de, D: Deserializer<'de>>(deserializer: D) -> Result<u8, D::Error> {
-    Ok(u8::deserialize(deserializer)?.min(23))
+fn hour<'de, D: Deserializer<'de>, const FALLBACK: u8>(deserializer: D) -> Result<u8, D::Error> {
+    Ok(lenient::<D, Option<u8>>(deserializer)?.map_or(FALLBACK, |hour| hour.min(23)))
 }
+
+fn lenient_true<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
+    Ok(lenient::<D, Option<bool>>(deserializer)?.unwrap_or(true))
+}
+
+const DARK_FROM: u8 = 19;
+const DARK_UNTIL: u8 = 7;
 
 fn text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
     stepped(deserializer, &TEXT_SIZES)
@@ -252,22 +259,27 @@ impl TextSizes {
 pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub color_scheme: ColorScheme,
+    #[serde(deserialize_with = "lenient")]
     pub automatic_scheme: bool,
-    #[serde(deserialize_with = "hour")]
+    #[serde(deserialize_with = "hour::<_, DARK_FROM>")]
     pub automatic_dark_from: u8,
-    #[serde(deserialize_with = "hour")]
+    #[serde(deserialize_with = "hour::<_, DARK_UNTIL>")]
     pub automatic_dark_until: u8,
     #[serde(skip_serializing)]
     pub accent: Option<String>,
     #[serde(skip_serializing)]
     pub accent_color: Option<[f32; 3]>,
+    #[serde(deserialize_with = "lenient")]
     pub wallpaper_accent: bool,
+    #[serde(deserialize_with = "lenient")]
     pub contrast: bool,
+    #[serde(deserialize_with = "lenient")]
     pub reduced_motion: bool,
     #[serde(deserialize_with = "lenient")]
     pub scroll_bars: ScrollBars,
     #[serde(deserialize_with = "lenient")]
     pub scroll_bar_click: ScrollBarClick,
+    #[serde(deserialize_with = "lenient")]
     pub reduce_transparency: bool,
     #[serde(deserialize_with = "lenient")]
     pub window_color: WindowColorMode,
@@ -280,10 +292,15 @@ pub struct AppearanceConfig {
         serialize_with = "serialize_tint_parts"
     )]
     pub tint_parts: TintParts,
+    #[serde(deserialize_with = "lenient_true")]
     pub wallpaper_tinting: bool,
+    #[serde(deserialize_with = "lenient")]
     pub wallpaper_tinting_in_light: bool,
+    #[serde(deserialize_with = "lenient")]
     pub invert_colors: bool,
+    #[serde(deserialize_with = "lenient")]
     pub show_borders: bool,
+    #[serde(deserialize_with = "lenient")]
     pub differentiate_without_color: bool,
     #[serde(deserialize_with = "display_contrast")]
     pub display_contrast: f32,
@@ -298,9 +315,11 @@ pub struct AppearanceConfig {
     pub icon_tone: IconTone,
     #[serde(skip_serializing)]
     pub icon_color: Option<[f32; 3]>,
+    #[serde(deserialize_with = "lenient_true")]
     pub shake_to_locate: bool,
     #[serde(deserialize_with = "pointer_size")]
     pub pointer_size: f32,
+    #[serde(deserialize_with = "lenient")]
     pub color_filters: bool,
     #[serde(deserialize_with = "lenient")]
     pub color_filter: ColorFilter,
@@ -308,7 +327,9 @@ pub struct AppearanceConfig {
     pub color_filter_intensity: f32,
     #[serde(deserialize_with = "liquid_glass_tint")]
     pub liquid_glass_tint: f32,
+    #[serde(deserialize_with = "lenient_true")]
     pub gtk_bridge: bool,
+    #[serde(deserialize_with = "lenient_true")]
     pub qt_bridge: bool,
 }
 
@@ -317,8 +338,8 @@ impl Default for AppearanceConfig {
         Self {
             color_scheme: ColorScheme::default(),
             automatic_scheme: false,
-            automatic_dark_from: 19,
-            automatic_dark_until: 7,
+            automatic_dark_from: DARK_FROM,
+            automatic_dark_until: DARK_UNTIL,
             accent: None,
             accent_color: None,
             wallpaper_accent: false,
@@ -550,9 +571,17 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
         }
     };
 
+    // Reads resolve `color_scheme` to the hour's scheme; writing that back would lose Dark Tint.
+    let kept_scheme = doc
+        .get("color_scheme")
+        .cloned()
+        .filter(|_| config.automatic_scheme);
     let fresh = toml_edit::ser::to_document(config).map_err(std::io::Error::other)?;
     for (key, item) in fresh.iter() {
         doc[key] = item.clone();
+    }
+    if let Some(scheme) = kept_scheme {
+        doc["color_scheme"] = scheme;
     }
     // A key that no field reads any more would stay in the file forever.
     for retired in RETIRED_KEYS {
@@ -720,15 +749,22 @@ pub fn load_dominant() -> Option<Rgba> {
     })
 }
 
-// A state file that exists but cannot be read is never replaced; one that does not parse is copied to `.bak` first.
-pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Result<()> {
+// A file that exists but cannot be read is never replaced; one that does not parse is copied to `<name>.bak` first.
+pub(crate) fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> std::io::Result<()> {
     match std::fs::read_to_string(path) {
-        Ok(text) if toml::from_str::<WallpaperState>(&text).is_err() => {
-            std::fs::copy(path, path.with_extension("state.bak"))?;
+        Ok(text) if toml::from_str::<T>(&text).is_err() => {
+            let mut backup = path.as_os_str().to_owned();
+            backup.push(".bak");
+            std::fs::copy(path, backup)?;
         }
         Err(error) if error.kind() != std::io::ErrorKind::NotFound => return Err(error),
         _ => {}
     }
+    Ok(())
+}
+
+pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Result<()> {
+    keep_unparsed::<WallpaperState>(path)?;
     if *state == WallpaperState::default() {
         return match std::fs::remove_file(path) {
             Err(error) if error.kind() != std::io::ErrorKind::NotFound => Err(error),
@@ -886,6 +922,29 @@ traffic_lights = "standard"
     }
 
     #[test]
+    fn an_edit_made_at_noon_keeps_dark_tint_for_the_night() {
+        let dir = std::env::temp_dir().join(format!("ctappearance-auto-{}", std::process::id()));
+        let path = dir.join("appearance.domain");
+        let chosen = AppearanceConfig {
+            automatic_scheme: true,
+            color_scheme: ColorScheme::DarkTint,
+            ..AppearanceConfig::default()
+        };
+        write_appearance(&path, &chosen).unwrap();
+        let read_at_noon = AppearanceConfig {
+            color_scheme: chosen.scheme_at(12),
+            contrast: true,
+            ..chosen
+        };
+        write_appearance(&path, &read_at_noon).unwrap();
+        let written: AppearanceConfig =
+            toml::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        assert_eq!(written.scheme_at(22), ColorScheme::DarkTint);
+        assert!(written.contrast);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
     fn the_retired_monochrome_icon_style_reads_as_tinted_in_graphite() {
         let dir = std::env::temp_dir().join(format!("ctappearance-mono-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
@@ -1015,9 +1074,15 @@ window_color = "accent"
 window_tint_scope = "windows"
 traffic_lights = "standard"
 sidebar_style = "flat"
+invert_colors = "yes"
+gtk_bridge = 1
+automatic_dark_from = -1
 "#,
         )
         .unwrap();
+        assert!(!config.invert_colors);
+        assert!(config.gtk_bridge);
+        assert_eq!(config.automatic_dark_from, DARK_FROM);
         assert_eq!(config.tint_strength, TintStrength::Normal);
         assert_eq!(config.tint_parts, TintParts::default());
         assert!(config.wallpaper_tinting);

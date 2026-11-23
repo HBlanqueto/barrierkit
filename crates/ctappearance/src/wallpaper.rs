@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::config::{config_dir, data_dir, replace_file};
+use crate::config::{config_dir, data_dir, keep_unparsed, replace_file};
 
 pub const ALL_DESKTOPS: &str = "default";
 
@@ -355,6 +355,7 @@ pub fn write_wallpaper_selection(
     path: &Path,
     selection: &WallpaperSelection,
 ) -> std::io::Result<()> {
+    keep_unparsed::<WallpaperSelection>(path)?;
     replace_file(
         path,
         &toml::to_string(selection).map_err(std::io::Error::other)?,
@@ -546,6 +547,7 @@ pub fn read_wallpaper_config(path: &Path) -> Result<WallpaperConfig, toml::de::E
 }
 
 pub fn write_wallpaper_config(path: &Path, config: &WallpaperConfig) -> std::io::Result<()> {
+    keep_unparsed::<WallpaperConfig>(path)?;
     replace_file(
         path,
         &toml::to_string(config).map_err(std::io::Error::other)?,
@@ -566,6 +568,20 @@ mod tests {
         let selection = read_wallpaper_selection(&path).unwrap();
         assert_eq!(selection, WallpaperSelection::default());
         assert_eq!(selection.source(Some(1)), None);
+    }
+
+    #[test]
+    fn a_selection_that_does_not_parse_is_backed_up_before_a_write() {
+        let dir = std::env::temp_dir().join(format!("ctappearance-sel-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("wallpaper-selection.state");
+        std::fs::write(&path, "desktops = 1").unwrap();
+        write_wallpaper_selection(&path, &WallpaperSelection::default()).unwrap();
+        assert_eq!(
+            std::fs::read(dir.join("wallpaper-selection.state.bak")).unwrap(),
+            b"desktops = 1"
+        );
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]
