@@ -7,7 +7,7 @@ use crate::adornments::Divider;
 use std::any::TypeId;
 
 use crate::compact::Stepper;
-use crate::controls::{Checkbox, ControlSize, SegmentedControl, Switch, TextField};
+use crate::controls::{Button, Checkbox, ControlSize, SegmentedControl, Switch, TextField};
 use crate::date_picker::DatePicker;
 use crate::elements::{Overrides, forward_overrides};
 use crate::indicator::CapacityIndicator;
@@ -85,6 +85,20 @@ impl Row {
         on_press: impl Into<Callback<(), ()>>,
     ) -> Self {
         Self::new(title).with(Accessory::Destructive(on_press.into()))
+    }
+
+    // A bordered button at the start of the row, like a SwiftUI `Button` in a `Form`.
+    pub fn button(
+        title: impl Into<Cow<'static, str>>,
+        on_press: impl Into<Callback<(), ()>>,
+    ) -> Self {
+        let title = title.into();
+        let on_press = on_press.into();
+        Self::new(title.clone()).with(Accessory::Leading(
+            Button::new(title)
+                .on_press(move |_| on_press.call(()))
+                .into_element(),
+        ))
     }
 
     pub fn toggle(

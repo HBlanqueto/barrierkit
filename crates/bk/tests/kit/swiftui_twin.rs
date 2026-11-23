@@ -1,11 +1,12 @@
 use std::{fs, path::PathBuf};
 
+use bk::choices::RadioGroup;
 use bk::compact::IconButton;
 use bk::compact::Stepper;
-use bk::controls::{Checkbox, SegmentedControl, Slider, TextField, ToolGroup};
+use bk::controls::{Button, Checkbox, SearchField, SegmentedControl, Slider, TextField, ToolGroup};
 use bk::date::{CivilDate, CivilDateTime};
 use bk::date_picker::DatePicker;
-use bk::elements::Label;
+use bk::elements::{Label, VStack};
 use bk::indicator::CapacityIndicator;
 use bk::popup_button::PopUpButton;
 use bk::progress::ProgressView;
@@ -23,7 +24,7 @@ use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
-use torin::prelude::{Direction, Size, Size2D};
+use torin::prelude::{Alignment, Direction, Gaps, Size, Size2D};
 
 const SIZE: (f32, f32) = (760.0, 480.0);
 const TOLERANCE: u8 = 8;
@@ -81,7 +82,7 @@ const FORM_ELEMENTS: [Element; 7] = [
     element("text field row", (28, 152, 732, 186), true, 4.0),
 ];
 
-const CONTROLS_ELEMENTS: [Element; 8] = [
+const CONTROLS_ELEMENTS: [Element; 9] = [
     element("pop-up button", (560, 82, 725, 112), true, 11.0),
     element("segmented control", (485, 121, 725, 150), true, 14.0),
     element("stepper", (695, 163, 725, 191), false, 11.0),
@@ -90,6 +91,7 @@ const CONTROLS_ELEMENTS: [Element; 8] = [
     element("progress", (28, 278, 732, 332), true, 3.0),
     element("capacity gauge", (28, 334, 732, 394), true, 6.0),
     element("checkbox", (28, 396, 200, 430), true, 10.0),
+    element("button row", (28, 436, 200, 474), true, 5.0),
 ];
 
 struct ControlsTwin {
@@ -152,8 +154,58 @@ impl App for ControlsTwin {
                                 .stacked()
                                 .control(CapacityIndicator::new("Level", 0.5)),
                         )
-                        .row(Row::new("").control(Checkbox::new("Check").checked(true))),
+                        .row(Row::new("").control(Checkbox::new("Check").checked(true)))
+                        .row(Row::button("Reset", |()| {})),
                 ),
+            )
+    }
+}
+
+const STANDALONE_ELEMENTS: [Element; 5] = [
+    element("pop-up button", (18, 50, 120, 78), true, 19.0),
+    element("checkbox", (18, 92, 84, 114), true, 36.0),
+    element("radio group", (18, 128, 70, 174), true, 27.0),
+    element("button", (18, 188, 82, 218), true, 24.0),
+    element("search field", (17, 232, 224, 262), true, 20.0),
+];
+
+struct StandaloneTwin {
+    dark: bool,
+}
+
+impl App for StandaloneTwin {
+    fn render(&self) -> impl IntoElement {
+        use_init_theme(|| theme::for_scheme(self.dark));
+        let search = use_state(String::new);
+        rect()
+            .expanded()
+            .background(theme::color(theme::surface_background(
+                &theme::resolved(),
+                SurfaceKind::Toplevel,
+            )))
+            .direction(Direction::Vertical)
+            .child(rect().height(Size::px(32.0)))
+            .child(
+                VStack::new()
+                    .spacing(20.0)
+                    .padding(Gaps::new_all(20.0))
+                    .cross_align(Alignment::Start)
+                    .child(
+                        PopUpButton::new("Size")
+                            .item("Small")
+                            .item("Medium")
+                            .item("Large")
+                            .selected(1),
+                    )
+                    .child(Checkbox::new("Check").checked(true))
+                    .child(
+                        RadioGroup::new("Mode")
+                            .option("One")
+                            .option("Two")
+                            .selected(0),
+                    )
+                    .child(Button::new("Reset"))
+                    .child(SearchField::new(search, "Search").width(Size::px(200.0))),
             )
     }
 }
@@ -409,6 +461,15 @@ fn the_controls_window_matches_the_swiftui_twin_per_element() {
         "controls",
         |dark| AppComponent::new(ControlsTwin { dark }),
         &CONTROLS_ELEMENTS,
+    );
+}
+
+#[test]
+fn the_standalone_controls_match_the_swiftui_twin_per_element() {
+    compare(
+        "standalone",
+        |dark| AppComponent::new(StandaloneTwin { dark }),
+        &STANDALONE_ELEMENTS,
     );
 }
 

@@ -202,6 +202,7 @@ Form::new().style(FormStyle::columns).section(
 | `Row::navigation(title, on_press)` | A chevron; the whole row is a button |
 | `Row::page(title, pane_id)` | A chevron; the row opens that page of a [`SettingsWindow`](12-patterns.md#pane) |
 | `Row::destructive(title, on_press)` | The title in red; the whole row is a button |
+| `Row::button(title, on_press)` | A bordered `Button` at the start of the row, as a SwiftUI `Button` in a `Form` |
 | `Row::toggle(title, on, on_toggle)` | A mini [`Switch`](05-controls.md#switch-and-checkbox) (36 × 16, the size SwiftUI uses in a form) on the right, with the title as its label |
 
 | Method | Effect |

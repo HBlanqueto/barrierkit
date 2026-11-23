@@ -1258,6 +1258,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::form::Section::illustration` | method | — | — | — | A full-width view at the top of a form card | [11](11-views.md#section) |
 | `views::form::Row` | struct | `LabeledContent` | — | `UIListContentConfiguration` | A form row: control, value, navigation or destructive | [11](11-views.md#row) |
 | `views::form::Row::page` | function | ≈ `NavigationLink(value:)` | — | ≈ `UINavigationController.pushViewController(_:animated:)` | A row that opens a page of a `SettingsWindow` | [11](11-views.md#row) |
+| `views::form::Row::button` | function | `Button` in a `Form` | — | `UIButton`, `UITableView` | A row with a bordered button at the start | [11](11-views.md#row) |
 | `views::form::Row::toggle` | function | `Toggle` in a `Form` | — | `UISwitch`, `UITableView` | A row with a switch on the right | [11](11-views.md#row) |
 | `views::form::Row::symbol` | method | ≈ `Label(_:systemImage:)` | — | ≈ `UIListContentConfiguration` | A `SymbolTile` before the row title | [11](11-views.md#row) |
 | `views::form::Row::icon` | method | `Label(title:icon:)` | — | `UIListContentConfiguration` | Any view before the row title | [11](11-views.md#row) |
