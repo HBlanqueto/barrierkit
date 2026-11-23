@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # Sourced by the macOS scripts.
 
 # bundle <dir/name.app> <binary> <bundle id>: wraps the binary in an ad-hoc signed app named <name>.

@@ -91,8 +91,8 @@ export APPKIT_LAYOUT APPKIT_CONTENT APPKIT_TAG
 case "$scene" in
     accents | accents-contrast)
         for accent in ${APPKIT_ACCENTS:-multicolor blue purple pink red orange yellow green graphite}; do
-            [ "$accent" = multicolor ] && unset APPKIT_ACCENT || export APPKIT_ACCENT=$accent
-            export APPKIT_TAG=accents-$accent${APPKIT_CONTRAST:+-hc}
+            if [ "$accent" = multicolor ]; then unset APPKIT_ACCENT; else export APPKIT_ACCENT="$accent"; fi
+            export APPKIT_TAG="accents-$accent${APPKIT_CONTRAST:+-hc}"
             cargo test -p bk --test kit --features bk/shell appkit_scene -- --ignored
             cargo test -p bk --test kit --features bk/shell appkit_pressed -- --ignored
         done
@@ -107,8 +107,8 @@ case "$scene" in
         light=ffffff
         dark=1e1e1e
         [ -z "${APPKIT_CONTRAST:-}" ] || dark=202020
-        APPKIT_MODE=light APPKIT_BG=$light cargo test -p bk --test kit --features bk/shell $test -- --ignored
-        APPKIT_MODE=dark APPKIT_BG=$dark cargo test -p bk --test kit --features bk/shell $test -- --ignored
+        APPKIT_MODE=light APPKIT_BG=$light cargo test -p bk --test kit --features bk/shell "$test" -- --ignored
+        APPKIT_MODE=dark APPKIT_BG=$dark cargo test -p bk --test kit --features bk/shell "$test" -- --ignored
         exit
         ;;
     buttons | buttons-contrast)

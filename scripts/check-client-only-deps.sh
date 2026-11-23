@@ -29,6 +29,6 @@ violations=$(jq -r '
 ' <<<"$metadata")
 
 if [ -n "$violations" ]; then
-  sed 's/^/check-client-only-deps: /' <<<"$violations" >&2
+  while IFS= read -r line; do echo "check-client-only-deps: $line"; done <<<"$violations" >&2
   exit 1
 fi

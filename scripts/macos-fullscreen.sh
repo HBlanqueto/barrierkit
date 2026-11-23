@@ -56,8 +56,8 @@ full_screen() {
 
 # The kit's own green light: 72 and 26 from the window's corner, as the Titlebar draws it.
 press_kit_green() {
-    set -- $(ax "$1" 'position of window 1' | tr 'x' ' ')
-    "$work/click" "$(($1 + 72))" "$(($2 + 26))"
+    position=$(ax "$1" 'position of window 1')
+    "$work/click" "$((${position%x*} + 72))" "$((${position#*x} + 26))"
 }
 
 # Prints "<size in window> <size in full screen> <size back> told|silent" for one window; told: the app learned it was in full screen.
@@ -90,8 +90,9 @@ exercise() {
 }
 
 failed=0
+# shellcheck disable=SC2086
 for style in title-bar hidden-title-bar plain; do
-    case $style in plain) kind=kit-plain ;; *) kind=kit ;; esac
+    case $style in plain) kind='kit-plain' ;; *) kind=kit ;; esac
     kit_result=$(exercise "kit-$style" "$kit" "$style" "$kind" "$style")
     swift_result=$(exercise "swift-$style" "$work/swift-$style" "$style" swift "")
     echo "$style"
