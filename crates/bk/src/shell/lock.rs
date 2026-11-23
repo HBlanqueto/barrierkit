@@ -52,17 +52,12 @@ pub fn run_lock(app: AppComponent) -> Result<(), RunError> {
     } = Runtime::connect()?;
     let qh = runtime.qh.clone();
     ShellState::install(&mut runtime, app, &globals, &qh);
-    let lock = {
-        let session_lock_state = runtime
-            .extension::<ShellState>()
-            .expect("ShellState not installed after install")
-            .session_lock
-            .as_ref()
-            .ok_or(RunError::MissingGlobal("ext_session_lock_manager_v1"))?;
-        session_lock_state
-            .lock(&qh)
-            .map_err(|_| RunError::MissingGlobal("ext_session_lock_manager_v1 (lock refused)"))?
-    };
+    let lock = runtime
+        .extension::<ShellState>()
+        .expect("ShellState not installed after install")
+        .session_lock
+        .lock(&qh)
+        .map_err(|_| RunError::MissingGlobal("ext_session_lock_manager_v1"))?;
     let unlock_lock = lock.clone();
     runtime
         .extension_mut::<ShellState>()

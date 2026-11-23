@@ -53,7 +53,7 @@ use activation::ActivationCallback;
 pub(crate) struct ShellState {
     pub(crate) app: AppComponent,
     pub(crate) layer_shell: Option<LayerShell>,
-    pub(crate) session_lock: Option<SessionLockState>,
+    pub(crate) session_lock: SessionLockState,
     pub(crate) active_lock: Option<SessionLock>,
     pub(crate) session_unlock: Option<SessionUnlock>,
     pub(crate) _foreign_list: Option<ExtForeignToplevelListV1>,
@@ -106,7 +106,7 @@ impl ShellState {
         let shell = Self {
             app,
             layer_shell: LayerShell::bind(globals, qh).ok(),
-            session_lock: Some(SessionLockState::new(globals, qh)),
+            session_lock: SessionLockState::new(globals, qh),
             active_lock: None,
             session_unlock: None,
             _foreign_list: foreign_list,

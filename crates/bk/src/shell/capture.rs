@@ -98,13 +98,14 @@ impl Runtime {
             };
             entry.list.clone().or_else(|| {
                 shell.capture.as_ref().and_then(|capture| {
-                    capture
-                        .listed
-                        .iter()
-                        .find(|listed| {
-                            listed.app_id == entry.info.app_id && listed.title == entry.info.title
-                        })
-                        .map(|listed| listed.handle.clone())
+                    let mut matches = capture.listed.iter().filter(|listed| {
+                        listed.app_id == entry.info.app_id && listed.title == entry.info.title
+                    });
+                    // Two windows with one app id and title cannot be told apart: capture neither.
+                    match (matches.next(), matches.next()) {
+                        (Some(listed), None) => Some(listed.handle.clone()),
+                        _ => None,
+                    }
                 })
             })
         };

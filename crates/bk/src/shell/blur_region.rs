@@ -1,6 +1,6 @@
 use sctk::compositor::Region;
 use sctk::reexports::client::backend::ObjectId;
-use sctk::reexports::client::{Connection, Dispatch, QueueHandle};
+use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 use wayland_protocols::ext::background_effect::v1::client::ext_background_effect_manager_v1::{
     self, ExtBackgroundEffectManagerV1,
 };
@@ -33,12 +33,20 @@ impl Runtime {
             }
         }
         let qh = self.qh.clone();
+        let live: Vec<ObjectId> = self.surfaces.iter().map(|s| s.surface.id()).collect();
         let Some(shell) = self.extension_mut::<ShellState>() else {
             return;
         };
         let Some(manager) = shell.background_effect.as_ref() else {
             return;
         };
+        shell.background_effects.retain(|id, effect| {
+            let alive = live.contains(id);
+            if !alive {
+                effect.destroy();
+            }
+            alive
+        });
         let effect = shell
             .background_effects
             .entry(surface_id.clone())

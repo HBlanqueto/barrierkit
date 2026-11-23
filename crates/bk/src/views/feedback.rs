@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use freya_core::integration::AppComponent;
@@ -222,18 +222,23 @@ impl Component for SheetWindow {
             shared.set(self.content.clone());
         }
         let opened: Rc<RefCell<Option<WindowControls>>> = use_hook(Rc::default);
+        let closed: Rc<Cell<bool>> = use_hook(Rc::default);
         let style: SheetStyle = resolve(&self.theme);
         let paints = Paints::current(ControlState::default(), style.effect);
         let theme = self.theme.clone();
         let parent = self.parent.0.clone();
         let registered = opened.clone();
+        let unmounted = closed.clone();
         use_hook(move || {
             parent.open_sheet(
-                AppComponent::from(move || sheet_window_root(shared, &theme, &registered)),
+                AppComponent::from(move || {
+                    sheet_window_root(shared, &theme, &registered, &unmounted)
+                }),
                 WindowOptions::new("", "sheet").size((DIALOG_SHEET_WIDTH, DIALOG_SHEET_HEIGHT)),
             )
         });
         use_drop(move || {
+            closed.set(true);
             if let Some(window) = opened.borrow_mut().take() {
                 window.close();
             }
@@ -261,11 +266,19 @@ fn sheet_window_root(
     content: State<Element>,
     theme: &Theme,
     opened: &Rc<RefCell<Option<WindowControls>>>,
+    closed: &Rc<Cell<bool>>,
 ) -> Rect {
     let window = WindowControls::get();
     let registered = opened.clone();
     let own = window.clone();
-    use_hook(move || *registered.borrow_mut() = Some(own));
+    let unmounted = closed.get();
+    use_hook(move || {
+        if unmounted {
+            own.close();
+        } else {
+            *registered.borrow_mut() = Some(own);
+        }
+    });
     let style: SheetStyle = resolve(theme);
     let paints = Paints::current(ControlState::default(), style.effect);
     rect().expanded().painted(&paints, &style.background).child(
