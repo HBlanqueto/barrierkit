@@ -1894,6 +1894,23 @@ pub struct MenuPalette {
     pub glass_disabled_fg: Rgba,
 }
 
+// The veil a SwiftUI sidebar lays over its glass for a selection the focus is not on, as measured on macOS 26 over two wallpapers.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct GlassSelection {
+    pub unfocused: Rgba,
+    pub inactive: Rgba,
+}
+
+pub const SIDEBAR_GLASS_SELECTION_LIGHT: GlassSelection = GlassSelection {
+    unfocused: Rgba::rgba8(0, 0, 0, 0.094),
+    inactive: Rgba::rgba8(0, 0, 0, 0.047),
+};
+
+pub const SIDEBAR_GLASS_SELECTION_DARK: GlassSelection = GlassSelection {
+    unfocused: Rgba::rgba8(255, 255, 255, 0.133),
+    inactive: Rgba::rgba8(255, 255, 255, 0.063),
+};
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SidebarPalette {
     pub item_ink: Rgba,

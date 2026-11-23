@@ -111,6 +111,7 @@ y = 52, under the bar.
 | Label inset | From the selection's edge: `SIDEBAR.item_padding_x` (8) before a symbol, `SIDEBAR.item_text_padding_x` (6) before a label without one, so its text starts at x 16 as in SwiftUI |
 | Section header | `SIDEBAR.section_height` (19), `SIDEBAR.section_margin_bottom` (13) between sections |
 | Selection | `#0270f5` in light, `#007aff` in dark, with white text |
+| Gray selection over the glass | A veil the glass shows through, as SwiftUI's: `SIDEBAR_GLASS_SELECTION_LIGHT` (black at 9.4 %, 4.7 % in an inactive window) and `SIDEBAR_GLASS_SELECTION_DARK` (white at 13.3 %, 6.3 %). Over a flat sidebar it stays opaque |
 
 The strip above the first row moves the window when dragged. When the traffic
 lights are in the sidebar, the first row starts below them.

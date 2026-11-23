@@ -1,6 +1,9 @@
 use crate::elements::{Overrides, forward_container, forward_overrides};
-use ctappearance::SidebarSurface;
-use ctdesign::{Rgba, SIDEBAR, SidebarPalette, TEXT_FIELD};
+use ctappearance::{ColorScheme, SidebarSurface};
+use ctdesign::{
+    GlassSelection, Rgba, SIDEBAR, SIDEBAR_GLASS_SELECTION_DARK, SIDEBAR_GLASS_SELECTION_LIGHT,
+    SidebarPalette, TEXT_FIELD,
+};
 use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
@@ -68,11 +71,20 @@ fn unemphasized(s: SidebarItemStyle) -> SidebarItemStyle {
     }
 }
 
+// Over glass the selection is a veil the glass shows through, as in SwiftUI; elsewhere it is the opaque token.
+fn glass_selection() -> Option<GlassSelection> {
+    crate::glass_panel::sidebar_glass().map(|_| match theme::resolved().scheme {
+        ColorScheme::Light => SIDEBAR_GLASS_SELECTION_LIGHT,
+        ColorScheme::Dark | ColorScheme::DarkTint => SIDEBAR_GLASS_SELECTION_DARK,
+    })
+}
+
 pub(crate) fn item_palette(emphasized: bool) -> SidebarPalette {
     let palette = sidebar_palette();
+    let veil = glass_selection();
     if !crate::platform::window_activated() {
         SidebarPalette {
-            selected_bg: palette.inactive_selected_bg,
+            selected_bg: veil.map_or(palette.inactive_selected_bg, |veil| veil.inactive),
             selected_ink: palette.inactive_selected_ink,
             item_ink: palette.inactive_ink,
             item_icon: palette.inactive_ink,
@@ -80,7 +92,7 @@ pub(crate) fn item_palette(emphasized: bool) -> SidebarPalette {
         }
     } else if !emphasized {
         SidebarPalette {
-            selected_bg: palette.inactive_selected_bg,
+            selected_bg: veil.map_or(palette.inactive_selected_bg, |veil| veil.unfocused),
             selected_ink: palette.item_ink,
             ..palette
         }
