@@ -22,9 +22,10 @@ use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
-    NSApplication, NSApplicationActivationPolicy, NSColor, NSEvent, NSEventModifierFlags,
-    NSEventType, NSWindow, NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask,
-    NSWindowTitleVisibility,
+    NSApplication, NSApplicationActivationPolicy, NSApplicationPresentationOptions, NSColor,
+    NSEvent, NSEventModifierFlags, NSEventType, NSTitlebarSeparatorStyle, NSToolbar, NSWindow,
+    NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
+    NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -83,6 +84,8 @@ struct Window {
     app: AppInstance,
     controls: Option<WindowControls>,
     popup: Option<PopupState>,
+    // The frame a borderless window had before it filled the screen.
+    restore: Option<NSRect>,
     ime_area: Option<ImeArea>,
     // A window the process lives for: not a popup, a sheet or a utility window.
     main: bool,
@@ -140,7 +143,12 @@ fn native(id: u64, command: Native) {
         }
         Native::Minimize => window.miniaturize(None),
         Native::Zoom => window.zoom(None),
-        Native::FullScreen => window.toggleFullScreen(None),
+        Native::FullScreen if window.styleMask().contains(NSWindowStyleMask::Titled) => {
+            window.toggleFullScreen(None)
+        }
+        Native::FullScreen => {
+            with_runtime(|runtime| runtime.toggle_borderless_fullscreen(id));
+        }
         Native::Front => window.makeKeyAndOrderFront(None),
         Native::Title(title) => window.setTitle(&NSString::from_str(&title)),
         Native::Size(width, height) => {
@@ -237,6 +245,42 @@ impl Runtime {
         }
     }
 
+    // `toggleFullScreen` needs a titled window: a borderless one fills the screen and hides the menu bar and the Dock itself.
+    fn toggle_borderless_fullscreen(&mut self, id: u64) {
+        let mtm = self.mtm;
+        let Some(window) = self.window(id) else {
+            return;
+        };
+        let Some(controls) = &window.controls else {
+            return;
+        };
+        let mut status = controls.status;
+        let (frame, radius, options) = match window.restore.take() {
+            Some(frame) => (
+                frame,
+                f64::from(ctdesign::CORNER_WINDOW.fitted),
+                NSApplicationPresentationOptions::Default,
+            ),
+            None => {
+                let Some(screen) = window.window.screen() else {
+                    return;
+                };
+                window.restore = Some(window.window.frame());
+                (
+                    screen.frame(),
+                    0.0,
+                    NSApplicationPresentationOptions::HideMenuBar
+                        | NSApplicationPresentationOptions::HideDock,
+                )
+            }
+        };
+        status.write().fullscreen = window.restore.is_some();
+        window.layer.setCornerRadius(radius);
+        window.window.setFrame_display(frame, true);
+        NSApplication::sharedApplication(mtm).setPresentationOptions(options);
+        self.resized(id);
+    }
+
     fn window(&mut self, id: u64) -> Option<&mut Window> {
         self.windows.iter_mut().find(|window| window.id == id)
     }
@@ -275,6 +319,9 @@ impl Runtime {
             WindowStyle::HiddenTitleBar => {
                 window.setTitlebarAppearsTransparent(true);
                 window.setTitleVisibility(NSWindowTitleVisibility::Hidden);
+                window.setToolbar(Some(&NSToolbar::new(self.mtm)));
+                window.setToolbarStyle(NSWindowToolbarStyle::Unified);
+                window.setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
             }
             WindowStyle::Plain => {
                 window.setOpaque(false);
@@ -365,6 +412,7 @@ impl Runtime {
             app: instance,
             controls: Some(controls),
             popup: None,
+            restore: None,
             ime_area: None,
             main: !utility,
             needs_redraw: true,

@@ -149,6 +149,10 @@ name = "list_rows"
 path = "../../agents/recipes/list_rows.rs"
 
 [[example]]
+name = "settings_window"
+path = "../../agents/recipes/settings_window.rs"
+
+[[example]]
 name = "tasks_list"
 path = "../../agents/recipes/tasks_list.rs"
 

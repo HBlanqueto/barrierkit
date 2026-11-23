@@ -204,6 +204,7 @@ impl Runtime {
             _delegate: delegate,
             app,
             controls: None,
+            restore: None,
             ime_area: None,
             popup: Some(PopupState {
                 id,

@@ -14,7 +14,7 @@ pub(super) fn frame(
         ),
         WindowStyle::HiddenTitleBar => (
             NSWindowStyleMask::Titled | NSWindowStyleMask::FullSizeContentView | lights,
-            DecorationResponse::Server,
+            DecorationResponse::Hybrid,
         ),
         WindowStyle::Plain => (
             NSWindowStyleMask::Borderless | lights,
@@ -42,10 +42,10 @@ mod tests {
     }
 
     #[test]
-    fn a_hidden_title_bar_window_keeps_the_native_lights_under_its_content() {
+    fn a_hidden_title_bar_window_keeps_the_native_lights_and_the_kit_draws_its_bar() {
         let (mask, decoration) = frame(WindowStyle::HiddenTitleBar, true);
         assert!(mask.contains(NSWindowStyleMask::Titled | NSWindowStyleMask::FullSizeContentView));
-        assert_eq!(decoration, DecorationResponse::Server);
+        assert_eq!(decoration, DecorationResponse::Hybrid);
     }
 
     #[test]

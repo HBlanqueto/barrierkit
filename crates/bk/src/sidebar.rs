@@ -281,6 +281,9 @@ impl Component for Sidebar {
         let (traffic_x, traffic_y) = style.lights_position;
 
         let controls = try_consume_root_context::<WindowControls>();
+        let draws_lights = controls
+            .as_ref()
+            .is_none_or(|controls| controls.draws_traffic_lights());
         let lights_opacity = crate::chrome::lights_opacity();
         let lights_shown = controls
             .as_ref()
@@ -383,7 +386,7 @@ impl Component for Sidebar {
                     .maybe(overlay_top.is_some(), |el| {
                         el.layer(crate::titlebar::TITLEBAR_OVERLAY_LAYER + 1)
                     })
-                    .maybe_child(lights_shown.then(|| {
+                    .maybe_child((lights_shown && draws_lights).then(|| {
                         rect()
                             .probe("sidebar-traffic-lights")
                             .opacity(lights_opacity)
@@ -397,6 +400,7 @@ impl Component for Sidebar {
             );
         } else if self.traffic_lights
             && lights_shown
+            && draws_lights
             && sidebar_shown
             && chrome.layout == TitlebarLayout::Top
         {

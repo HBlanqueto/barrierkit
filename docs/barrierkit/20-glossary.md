@@ -1153,7 +1153,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `platform::WindowControls` | struct | — | `≈ NSWindow` | `UIWindow` | Window state and commands: close, minimize, zoom, full screen, move, resize | [8](08-windows.md#window-controls) |
 | `platform::WindowControls::make_key_and_order_front` | method | — | `NSWindow.makeKeyAndOrderFront(_:)` | `UIWindow.makeKeyAndVisible()` | Brings the window to the front with the keyboard, using the last press | [8](08-windows.md#window-controls) |
 | `platform::WindowStatus` | struct | — | — | — | Configure state: activated, maximized, fullscreen, decoration, fixed | [8](08-windows.md#window-state) |
-| `platform::DecorationResponse` | enum | — | — | — | Who draws the title bar: `Client` or `Server` | [8](08-windows.md#window-state) |
+| `platform::DecorationResponse` | enum | — | — | — | Who draws the title bar: `Client`, `Server` or `Hybrid` (system lights, kit bar) | [8](08-windows.md#window-state) |
 | `platform::WindowStyle` | enum | `WindowStyle` | `≈ NSWindow.StyleMask` | — | Who frames a main window on macOS: `TitleBar`, `HiddenTitleBar` or `Plain` | [8](08-windows.md#window-style) |
 | `platform::WindowOptions::window_style` | method | `windowStyle(_:)` | — | — | Chooses the `WindowStyle` of a window | [8](08-windows.md#window-style) |
 | `platform::WindowEdge` | enum | — | — | — | Edge or corner for a compositor resize | [8](08-windows.md#resizing-from-the-edges) |

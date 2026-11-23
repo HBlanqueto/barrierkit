@@ -154,7 +154,7 @@ in.
 | `activated` | The window has focus. `true` before the first configure |
 | `maximized` | The compositor maximized it |
 | `fullscreen` | It is in full screen (Malaysia's focus mode included) |
-| `decoration` | `DecorationResponse::Client` (the app draws the title bar) or `Server` (the compositor does; `Titlebar` then takes no space) |
+| `decoration` | `DecorationResponse::Client` (the app draws the title bar and the lights), `Server` (the compositor does; `Titlebar` then takes no space) or `Hybrid` (the system draws the lights and the app the bar) |
 | `fixed` | Minimum size equals maximum size |
 
 The look of the title bar in each state is in
@@ -169,12 +169,12 @@ windows and sheets are always `TitleBar`.
 | Variant | `NSWindow` | `WindowStatus::decoration` | Use |
 |---|---|---|---|
 | `TitleBar` | titled, native lights | `Server` | Apps that look like any Mac app |
-| `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, native lights over the content | `Server` | Content under the native lights; `Titlebar` takes no space and the sidebar draws no lights of its own (`traffic_lights(false)`) |
+| `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, an empty unified `NSToolbar` that puts the native lights where the kit draws its own | `Hybrid` | The kit draws its `Titlebar` and sidebar beside the native lights and draws none of its own |
 | `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | The kit draws the `Titlebar` and `TrafficLights`, as on Linux |
 
 A `Plain` window moves with `WindowControls::move_window` (a press on the
 `Titlebar`) and resizes from the edge AppKit gives a resizable window. Full
-screen needs a titled window, so `Plain` has none.
+screen of a `Plain` window fills the screen and hides the menu bar and the Dock, without a Space of its own.
 
 ```rust
 WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain)

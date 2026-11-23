@@ -218,20 +218,25 @@ impl Component for Titlebar {
         let lights_shown = controls
             .as_ref()
             .is_none_or(WindowControls::traffic_lights_shown);
+        let draws_lights = controls
+            .as_ref()
+            .is_none_or(WindowControls::draws_traffic_lights);
         let vertical = layout != crate::chrome::TitlebarLayout::Top;
         let lights_opacity = crate::chrome::lights_opacity();
-        let traffic = if sidebar || !lights_shown || vertical || lights_opacity == 0.0 {
-            None
-        } else {
-            Some(
-                rect()
-                    .opacity(lights_opacity)
-                    .child(
-                        TrafficLights::for_window(status.activated, fixed).close_only(close_only),
-                    )
-                    .into_element(),
-            )
-        };
+        let traffic =
+            if sidebar || !lights_shown || !draws_lights || vertical || lights_opacity == 0.0 {
+                None
+            } else {
+                Some(
+                    rect()
+                        .opacity(lights_opacity)
+                        .child(
+                            TrafficLights::for_window(status.activated, fixed)
+                                .close_only(close_only),
+                        )
+                        .into_element(),
+                )
+            };
 
         let title_font = if unified {
             style.sidebar_title_font
@@ -252,7 +257,14 @@ impl Component for Titlebar {
 
         let shield = crate::views::feedback::OpenSheets::any().then(|| drag.clone());
         let (bar, height) = if unified {
-            self.sidebar_bar(&style, &paints, traffic, title_label, drag, background)
+            let lights = match traffic {
+                Some(traffic) => Lights::Drawn(traffic),
+                None if status.decoration == DecorationResponse::Hybrid && !sidebar => {
+                    Lights::Native
+                }
+                None => Lights::Absent,
+            };
+            self.sidebar_bar(&style, &paints, lights, title_label, drag, background)
         } else {
             self.centered_bar(
                 &style,
@@ -288,12 +300,18 @@ impl Component for Titlebar {
     }
 }
 
+enum Lights {
+    Drawn(Element),
+    Native,
+    Absent,
+}
+
 impl Titlebar {
     fn sidebar_bar(
         &self,
         style: &TitlebarStyle,
         paints: &Paints,
-        traffic: Option<Element>,
+        traffic: Lights,
         title_label: Label,
         drag: impl Fn(Event<MouseEventData>) + 'static,
         background: Fill,
@@ -305,23 +323,27 @@ impl Titlebar {
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let (traffic_x, traffic_y) = sidebar.lights_position;
         let lights_end = traffic_x + lights.length();
-        let lights_beside_title = traffic.is_some() && self.left.is_none();
-        let padding_left = if traffic.is_some() {
+        let lights_space = !matches!(traffic, Lights::Absent);
+        let lights_beside_title = lights_space && self.left.is_none();
+        let padding_left = if lights_space {
             padding_x.max(lights_end + padding_x - occupied)
         } else {
             padding_x
         };
         // The lights stay at the sidebar's window position while it folds (fold in place).
-        let fixed_lights = traffic.map(|traffic| {
-            rect()
-                .position(
-                    Position::new_absolute()
-                        .left(traffic_x - occupied - padding_left)
-                        .top(traffic_y),
-                )
-                .layer(TITLEBAR_OVERLAY_LAYER + 1)
-                .child(traffic)
-        });
+        let fixed_lights = match traffic {
+            Lights::Drawn(traffic) => Some(
+                rect()
+                    .position(
+                        Position::new_absolute()
+                            .left(traffic_x - occupied - padding_left)
+                            .top(traffic_y),
+                    )
+                    .layer(TITLEBAR_OVERLAY_LAYER + 1)
+                    .child(traffic),
+            ),
+            Lights::Native | Lights::Absent => None,
+        };
 
         let left_slot = rect()
             .width(Size::auto())

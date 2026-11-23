@@ -48,6 +48,7 @@ pub enum WindowEdge {
 pub enum DecorationResponse {
     Client,
     Server,
+    Hybrid,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -241,7 +242,12 @@ pub(crate) fn window_activated() -> bool {
 
 impl WindowControls {
     pub fn traffic_lights_shown(&self) -> bool {
-        !self.status.read().fullscreen || *self.focus_bar_progress.read() > 0.0
+        self.status.read().decoration != DecorationResponse::Server
+            && (!self.status.read().fullscreen || *self.focus_bar_progress.read() > 0.0)
+    }
+
+    pub(crate) fn draws_traffic_lights(&self) -> bool {
+        self.status.read().decoration == DecorationResponse::Client
     }
 
     pub fn titlebar_overlaid(&self) -> bool {

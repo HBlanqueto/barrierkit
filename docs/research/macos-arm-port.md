@@ -286,7 +286,7 @@ style mask and to `DecorationResponse` (four unit tests).
 | `WindowStyle` | Result |
 |---|---|
 | `TitleBar` | The SSD window of M1, still the default |
-| `HiddenTitleBar` | The cheap hybrid: `fullSizeContentView`, transparent title bar, hidden title, native lights over the content, `Server` (the kit `Titlebar` takes no space). Run with `notes_sidebar`: the native lights sit over the sidebar, and `Sidebar::traffic_lights(true)` draws a second set there, so an app in this mode leaves it off |
+| `HiddenTitleBar` | The hybrid: `fullSizeContentView`, transparent title bar, hidden title, an empty unified `NSToolbar` that puts the native lights at the kit's place, and `DecorationResponse::Hybrid`: the kit draws its `Titlebar` and sidebar and no lights |
 | `Plain` | The CSD window: a `BKToplevel` (an `NSWindow` that can be key and main) that is borderless, not opaque, with shadow, and a content layer with the continuous corner `CORNER_WINDOW.fitted`; `Client`, so the kit draws `Titlebar` and `TrafficLights` |
 
 Checked on this Mac with `notes_sidebar`, `custom_window` and
@@ -299,15 +299,14 @@ same size, texts, scheme and position: the two lights, the sidebar edge (x 220)
 and the sidebar rows agree to 1 px, and the silhouette corner differs by at most
 2 px in the first row.
 
+The Settings window (`recipes/settings_window.rs`) runs in the three modes: `TitleBar` draws the native title and no kit lights, `HiddenTitleBar` and `Plain` draw the same sidebar and toolbar, the first with the native lights and the second with the kit's. A `Plain` window enters full screen by filling the screen and hiding the menu bar and the Dock (`toggleFullScreen` needs a titled window) and leaves it back to its frame; checked with a toolbar button.
+
 Differences left: the shadow of a borderless window is the system's smaller one;
 the kit draws a hairline under the title bar and a darker, heavier title; the
 sidebar toggle has no ring; `ContentUnavailableView` is smaller and not bold;
 the sidebar icons are badges, not plain symbols; the kit's default
 `traffic_lights = "wallpaper"` tints the lights (the twin sets `"standard"`).
-Not done: full screen of a `Plain` window (`toggleFullScreen` needs `titled`),
-the kit `Titlebar` drawn under native lights (needs a way to reserve their room),
-the Settings recipe in the three modes, and the zoom button on a borderless
-window.
+Not done: a Space for the full screen of a `Plain` window, the menu bar that slides down over it, and the zoom button on a borderless window.
 
 ### M3 result: native menu bar (2026-11-22)
 

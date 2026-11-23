@@ -46,7 +46,7 @@ search and saved state.
    SettingsWindow::new().restoration("notes").group(group)
    ```
 
-5. Run it as its own window with `run_window`: it draws its own sidebar and
+5. Run it as its own window with `run_window` ([`recipes/settings_window.rs`](../../agents/recipes/settings_window.rs)): it draws its own sidebar and
    titlebar, so `Application::window` would add a second titlebar.
 
    ```rust
