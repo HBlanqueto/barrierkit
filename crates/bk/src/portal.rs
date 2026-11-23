@@ -11,35 +11,54 @@ const PORTAL: &str = "org.freedesktop.portal.Desktop";
 const PORTAL_PATH: &str = "/org/freedesktop/portal/desktop";
 
 pub async fn open_files(title: &str, multiple: bool, directory: bool) -> Option<Vec<PathBuf>> {
-    let options = HashMap::from([
-        ("multiple", Value::from(multiple)),
-        ("directory", Value::from(directory)),
-    ]);
-    choose("OpenFile", title, options).await
+    #[cfg(target_os = "macos")]
+    return crate::platform::panels::open_files(title, multiple, directory).await;
+    #[cfg(not(target_os = "macos"))]
+    {
+        let options = HashMap::from([
+            ("multiple", Value::from(multiple)),
+            ("directory", Value::from(directory)),
+        ]);
+        choose("OpenFile", title, options).await
+    }
 }
 
 pub async fn save_file(title: &str, current_name: &str) -> Option<PathBuf> {
-    let options = HashMap::from([("current_name", Value::from(current_name))]);
-    choose("SaveFile", title, options).await?.into_iter().next()
+    #[cfg(target_os = "macos")]
+    return crate::platform::panels::save_file(title, current_name).await;
+    #[cfg(not(target_os = "macos"))]
+    {
+        let options = HashMap::from([("current_name", Value::from(current_name))]);
+        choose("SaveFile", title, options).await?.into_iter().next()
+    }
 }
 
 pub async fn open_uri(uri: &str, ask: bool) {
-    let result = async {
-        let connection = crate::session_bus::connection().await?;
-        let proxy = zbus::Proxy::new(
-            &connection,
-            PORTAL,
-            PORTAL_PATH,
-            "org.freedesktop.portal.OpenURI",
-        )
-        .await?;
-        let options = HashMap::from([("ask", Value::from(ask))]);
-        let _: OwnedObjectPath = proxy.call("OpenURI", &("", uri, options)).await?;
-        zbus::Result::Ok(())
+    #[cfg(target_os = "macos")]
+    {
+        let _ = ask;
+        crate::platform::panels::open_uri(uri);
+        return;
     }
-    .await;
-    if let Err(error) = result {
-        tracing::warn!(%error, "BarrierKit: the open URI portal failed");
+    #[cfg(not(target_os = "macos"))]
+    {
+        let result = async {
+            let connection = crate::session_bus::connection().await?;
+            let proxy = zbus::Proxy::new(
+                &connection,
+                PORTAL,
+                PORTAL_PATH,
+                "org.freedesktop.portal.OpenURI",
+            )
+            .await?;
+            let options = HashMap::from([("ask", Value::from(ask))]);
+            let _: OwnedObjectPath = proxy.call("OpenURI", &("", uri, options)).await?;
+            zbus::Result::Ok(())
+        }
+        .await;
+        if let Err(error) = result {
+            tracing::warn!(%error, "BarrierKit: the open URI portal failed");
+        }
     }
 }
 

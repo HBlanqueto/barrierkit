@@ -27,6 +27,8 @@ mod ime;
 mod input;
 #[cfg(target_os = "macos")]
 mod macos;
+#[cfg(target_os = "macos")]
+pub(crate) use macos::panels;
 mod main_menu_export;
 mod popup;
 #[cfg(target_os = "linux")]

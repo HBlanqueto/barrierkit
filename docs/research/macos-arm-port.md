@@ -324,6 +324,16 @@ with Command+Q; texts in `bk.ftl`) stays first; the kit's menus follow it.
 | An action calls `menu_actions.dispatch(id)` of the window that owns the menu, then polls and redraws | `fire` |
 | `performKeyEquivalent:` of `ContentView` gives a Command chord to a focused text field when `edits_text` matches, so Command+C reaches the field and not the menu; the field gets it as META, because Freya's editor reads Command as META on macOS (before, Command+C typed a `c`) | `view.rs`, `input::edit_chord` |
 
+### M4 result: file panels (2026-11-22)
+
+`portal::open_files`, `save_file` and `open_uri` call `NSOpenPanel`, `NSSavePanel`
+and `NSWorkspace` on the main queue (`platform/macos/panels.rs`); the panel's
+completion handler answers the `async` function through a oneshot channel, so no
+thread blocks. Checked on this Mac with a window of two buttons: the open panel shows
+with its message, Escape answers `None`, and the save panel with Return answers
+`Some("/Users/humbe/Documents/note.txt")`. Choosing an existing file was not
+driven (the key tool has no slash); the path conversion is the same call.
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

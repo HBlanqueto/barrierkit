@@ -25,8 +25,8 @@ use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
     NSApplication, NSApplicationActivationPolicy, NSApplicationPresentationOptions,
     NSAutoresizingMaskOptions, NSColor, NSEvent, NSEventModifierFlags, NSEventType,
-    NSTitlebarSeparatorStyle, NSToolbar, NSView, NSVisualEffectBlendingMode, NSVisualEffectView,
-    NSWindow, NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
+    NSTitlebarSeparatorStyle, NSToolbar, NSView, NSVisualEffectBlendingMode, NSWindow,
+    NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
     NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
@@ -55,6 +55,7 @@ mod blur;
 mod frame;
 mod input;
 mod menu;
+pub(crate) mod panels;
 mod place;
 mod popups;
 mod system;
