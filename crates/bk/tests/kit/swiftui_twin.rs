@@ -34,15 +34,6 @@ struct Element {
     rect: (usize, usize, usize, usize),
     text: bool,
     ceiling: f32,
-    // With the system's Reduce Transparency on.
-    reduced_ceiling: f32,
-}
-
-impl Element {
-    const fn reduced(mut self, ceiling: f32) -> Self {
-        self.reduced_ceiling = ceiling;
-        self
-    }
 }
 
 const fn element(
@@ -56,14 +47,13 @@ const fn element(
         rect,
         text,
         ceiling,
-        reduced_ceiling: ceiling,
     }
 }
 
 const NOTES: [Element; 10] = [
     element("lights", (10, 10, 100, 42), false, 14.0),
     element("sidebar toggle", (170, 2, 218, 50), false, 24.0),
-    element("sidebar selected row", (10, 52, 210, 84), true, 14.0).reduced(15.0),
+    element("sidebar selected row", (10, 52, 210, 84), true, 14.0),
     element("sidebar rows", (10, 84, 210, 152), true, 10.0),
     element("sidebar background", (0, 160, 220, 480), false, 1.0),
     element("title", (230, 10, 330, 42), true, 12.0),
@@ -78,8 +68,7 @@ const TASKS_ELEMENTS: [Element; 6] = [
     element("title", (100, 10, 220, 42), true, 12.0),
     element("toolbar group", (670, 2, 758, 50), false, 16.0),
     element("list rows", (0, 56, 760, 160), true, 8.0),
-    // The SwiftUI list draws a hairline under the toolbar when Reduce Transparency replaces its scroll-edge effect; the kit draws none.
-    element("title bar edge", (0, 48, 760, 56), false, 1.0).reduced(13.0),
+    element("title bar edge", (0, 48, 760, 56), false, 1.0),
     element("window background", (0, 170, 760, 480), false, 1.0),
 ];
 
@@ -434,15 +423,10 @@ fn compare(name: &str, scene: fn(bool) -> AppComponent, elements: &[Element]) {
                 element.name,
                 if element.text { "(text)" } else { "" }
             );
-            let ceiling = if reduced {
-                element.reduced_ceiling
-            } else {
-                element.ceiling
-            };
-            if percent > ceiling {
+            if percent > element.ceiling {
                 worse.push(format!(
-                    "{name} {cell} {}: {percent:.1}% over {ceiling}%",
-                    element.name
+                    "{name} {cell} {}: {percent:.1}% over {}%",
+                    element.name, element.ceiling
                 ));
             }
         }

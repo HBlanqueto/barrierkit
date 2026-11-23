@@ -1557,6 +1557,7 @@
       "min-speed": 0.05,
       "velocity-window": 100,
       "band": 0.071,
+      "touch-band": 0.55,
       "band-speed": 0.3,
       "return-omega": 12,
       "refresh-trigger": 80,

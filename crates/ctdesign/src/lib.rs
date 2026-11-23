@@ -1294,6 +1294,7 @@ pub struct ScrollPhysicsMetrics {
     pub min_speed: f32,
     pub velocity_window_ms: f32,
     pub band: f32,
+    pub touch_band: f32,
     pub band_speed: f32,
     pub return_omega: f32,
     pub refresh_trigger: f32,

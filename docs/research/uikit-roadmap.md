@@ -210,7 +210,7 @@ feeds them without a change here.
 
 **Order.** 1. The pure recognizers and the arena, tests first (a table of
 inputs and states). 2. The element: a hook that attaches the handlers, arms the
-long-press timer and calls the arena; the modifiers. 3. The scroll pan on top of it.
+long-press timer and calls the arena; the modifiers. 3. The scroll pan on top of it (done for `ScrollView`: `DragGesture::touches_only`, band 0.55 unmeasured, no 150 ms delay).
 4. A trackpad pinch in each runner (macOS done: `gesture::trackpad`; Wayland needs `pointer-gestures-unstable-v1`). Not measured: the thresholds on UIKit, the 150 ms delay, the touch band.
 
 ## Risks

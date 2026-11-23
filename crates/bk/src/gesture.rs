@@ -277,6 +277,7 @@ pub struct DragValue {
 #[derive(Default)]
 pub struct DragRecognizer {
     minimum_distance: f32,
+    touches_only: bool,
     down: Option<(u64, Point)>,
     began: bool,
     x: VelocityTracker,
@@ -286,6 +287,12 @@ pub struct DragRecognizer {
 }
 
 impl DragRecognizer {
+    /// A mouse does not begin it: the pan of a scroll view takes fingers only.
+    pub fn touches_only(mut self, touches_only: bool) -> Self {
+        self.touches_only = touches_only;
+        self
+    }
+
     pub fn new(minimum_distance: f32) -> Self {
         Self {
             minimum_distance,
@@ -315,6 +322,7 @@ impl Recognizer for DragRecognizer {
 
     fn feed(&mut self, input: Input) -> Step<DragValue> {
         match (input.phase, self.down) {
+            (Phase::Down, None) if self.touches_only && input.id == 0 => Step::Idle,
             (Phase::Down, None) => {
                 self.state = Some(State::Possible);
                 self.down = Some((input.id, input.at));
@@ -1020,6 +1028,7 @@ gesture!(
 /// `DragGesture`: the pointer moves `minimum_distance` with the button or the finger down.
 pub struct DragGesture {
     minimum_distance: f32,
+    touches_only: bool,
     callbacks: Callbacks<DragValue>,
 }
 
@@ -1027,8 +1036,15 @@ impl DragGesture {
     pub fn new() -> Self {
         Self {
             minimum_distance: GESTURE.drag_distance,
+            touches_only: false,
             callbacks: Callbacks::default(),
         }
+    }
+
+    /// Only a finger drags; a mouse does not (a scroll view's pan).
+    pub fn touches_only(mut self) -> Self {
+        self.touches_only = true;
+        self
     }
 
     pub fn minimum_distance(mut self, distance: f32) -> Self {
@@ -1047,7 +1063,7 @@ gesture!(
     DragGesture,
     DragRecognizer,
     DragValue,
-    |g: &DragGesture| DragRecognizer::new(g.minimum_distance),
+    |g: &DragGesture| DragRecognizer::new(g.minimum_distance).touches_only(g.touches_only),
     true
 );
 

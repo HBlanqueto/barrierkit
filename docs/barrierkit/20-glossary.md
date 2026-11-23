@@ -281,6 +281,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `gesture::TapGesture` | struct | `TapGesture` | `NSClickGestureRecognizer` | `UITapGestureRecognizer` | One or more taps; `.count`, `.on_ended` | [5](05-controls.md#gestures) |
 | `gesture::LongPressGesture` | struct | `LongPressGesture` | ≈ `NSPressGestureRecognizer` | `UILongPressGestureRecognizer` | The pointer stays down in place; `.minimum_duration`, `.maximum_distance` | [5](05-controls.md#gestures) |
 | `gesture::DragGesture` | struct | `DragGesture` | ≈ `NSPanGestureRecognizer` | `UIPanGestureRecognizer` | A drag with translation and velocity; `.minimum_distance` | [5](05-controls.md#gestures) |
+| `gesture::DragGesture::touches_only` | method | — | — | `UIScrollView.panGestureRecognizer` | A drag that only a finger begins, not a mouse | [5](05-controls.md#gestures) |
 | `gesture::MagnifyGesture` | struct | `MagnifyGesture` | `NSMagnificationGestureRecognizer` | `UIPinchGestureRecognizer` | Two fingers apart or together | [5](05-controls.md#gestures) |
 | `gesture::RotateGesture` | struct | `RotateGesture` | `NSRotationGestureRecognizer` | `UIRotationGestureRecognizer` | Two fingers turning | [5](05-controls.md#gestures) |
 | `gesture::GestureState` | struct | `GestureState` | — | — | A state that goes back when its gesture ends; `use_gesture_state` | [5](05-controls.md#gestures) |

@@ -13,6 +13,8 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::adornments::Divider;
 use crate::elements::{Overrides, forward_overrides};
+use crate::gesture::{DragGesture, DragValue};
+use crate::modifiers::ViewModifiers;
 use crate::platform::Timers;
 use crate::progress::Spinner;
 use crate::scroll_physics::{Glide, VelocityTracker, rubber_band, rubber_band_input};
@@ -132,6 +134,8 @@ pub(crate) struct Elastic {
     refresh: Rc<RefCell<Option<Refresh>>>,
     dragging: Rc<Cell<bool>>,
     fired: Rc<Cell<bool>>,
+    touching: Rc<Cell<bool>>,
+    panned: Rc<Cell<f32>>,
 }
 
 type Refresh = (bool, Callback<(), ()>);
@@ -147,6 +151,8 @@ pub(crate) fn use_elastic(controller: ScrollController, refresh: Option<Refresh>
         refresh: use_hook(|| Rc::new(RefCell::new(None))),
         dragging: use_hook(|| Rc::new(Cell::new(false))),
         fired: use_hook(|| Rc::new(Cell::new(false))),
+        touching: use_hook(|| Rc::new(Cell::new(false))),
+        panned: use_hook(|| Rc::new(Cell::new(0.0))),
     };
     let refreshing = refresh.as_ref().is_some_and(|(refreshing, _)| *refreshing);
     *elastic.refresh.borrow_mut() = refresh;
@@ -218,6 +224,60 @@ impl Elastic {
         }
     }
 
+    // The pan of a finger, as a gesture of the lowest priority on the content (ADR 0105). The finger's
+    // velocity at the release is the glide's, whichever platform: only a wheel has system momentum.
+    pub(crate) fn pan(&self, controller: ScrollController, horizontal: bool) -> DragGesture {
+        let (changed, ended) = (self.clone(), self.clone());
+        let (changed_controller, last) = (controller, self.panned.clone());
+        let started = last.clone();
+        let along = move |(width, height): (f32, f32)| if horizontal { width } else { height };
+        let span = move |controller: ScrollController| {
+            let viewport = along(*controller.viewport.peek());
+            (
+                viewport,
+                (along(*controller.content.peek()) - viewport).max(0.0),
+            )
+        };
+        DragGesture::new()
+            .touches_only()
+            .on_changed(move |value: DragValue| {
+                let (viewport, limit) = span(changed_controller);
+                let travel = if horizontal {
+                    value.translation.0
+                } else {
+                    value.translation.1
+                };
+                if !changed.touching.get() {
+                    changed.touching.set(true);
+                    changed.grab(changed_controller, horizontal, viewport);
+                    started.set(0.0);
+                }
+                let delta = -(travel - last.get());
+                last.set(travel);
+                if *changed.reduced_motion.peek() {
+                    let (rest, _) = changed.pose.get();
+                    let rest = (rest + delta).clamp(0.0, limit);
+                    changed.pose.set((rest, 0.0));
+                    scroll_to(changed_controller, horizontal, rest);
+                } else {
+                    changed.drag(changed_controller, horizontal, (viewport, limit), delta);
+                }
+            })
+            .on_ended(move |value: DragValue| {
+                let (_, limit) = span(controller);
+                let speed = -(if horizontal {
+                    value.velocity.0
+                } else {
+                    value.velocity.1
+                });
+                ended.touching.set(false);
+                if *ended.reduced_motion.peek() {
+                    return;
+                }
+                ended.release_at(controller, horizontal, limit, speed);
+            })
+    }
+
     fn now(&self) -> f32 {
         self.began.elapsed().as_secs_f32() * 1000.0
     }
@@ -240,6 +300,8 @@ impl Elastic {
             .is_some_and(|(refreshing, _)| !refreshing);
         if pulling && raw < 0.0 {
             SCROLL_PHYSICS.refresh_band
+        } else if self.touching.get() {
+            SCROLL_PHYSICS.touch_band
         } else {
             SCROLL_PHYSICS.band
         }
@@ -297,12 +359,16 @@ impl Elastic {
     }
 
     fn release(&self, controller: ScrollController, horizontal: bool, limit: f32, flung: bool) {
-        self.dragging.set(false);
         let speed = if flung && !cfg!(target_os = "macos") {
             self.tracker.borrow().velocity(self.now())
         } else {
             0.0
         };
+        self.release_at(controller, horizontal, limit, speed);
+    }
+
+    fn release_at(&self, controller: ScrollController, horizontal: bool, limit: f32, speed: f32) {
+        self.dragging.set(false);
         self.tracker.borrow_mut().clear();
         let (rest, _) = self.pose.get();
         let (low, shown) = (self.low(), *self.over.peek());
@@ -715,11 +781,13 @@ impl Component for ScrollView {
                                 Gaps::new(0.0, reserved, 0.0, 0.0)
                             })
                             .show_scrollbar(false)
+                            .drag_scrolling(false)
                             .child(
                                 rect()
                                     .direction(self.direction)
                                     .maybe(!horizontal, |el| el.width(Size::fill()))
                                     .on_wheel(elastic.wheel(controller, horizontal))
+                                    .gesture(elastic.pan(controller, horizontal))
                                     .on_sized(move |event: Event<SizedEventData>| {
                                         content.set_if_modified(size(event.area))
                                     })

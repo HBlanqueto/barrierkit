@@ -159,8 +159,11 @@ cancelled. The defaults of `TapGesture`, `LongPressGesture` and `DragGesture` ar
   and on macOS a trackpad pinch or rotation (`magnifyWithEvent:`, `rotateWithEvent:`) reaches the
   ones under the pointer as two fingers `gesture::trackpad` stands for (the Wayland runner has no
   source yet: it needs `pointer-gestures-unstable-v1`). Hover is not a gesture: `.on_hover`.
-- A touch pan on a scroll view is a gesture of the lowest priority (U6 step 3, not built):
-  today only the wheel scrolls it ([ADR 0104](../decisions.md)).
+- A finger pan on a `ScrollView` is a `DragGesture::touches_only()` on its content, so a gesture
+  inside it wins the finger until the pan has moved 10 points; the release velocity feeds the same
+  glide as the wheel and the stretch uses a band of 0.55 (UIKit's documented constant for touch, not
+  measured: the Mac probe cannot post a finger). A mouse never pans. `Table` keeps Freya's own pan.
+  UIKit delays a touch to a child by 150 ms (`delaysContentTouches`); the kit does not (not measured).
 
 ## Buttons
 

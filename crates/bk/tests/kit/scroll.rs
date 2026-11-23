@@ -11,6 +11,7 @@ use freya_testing::TestingRunner;
 use torin::prelude::{Area, Size2D};
 
 const VIEWPORT: f32 = 300.0;
+const LIMIT_ANY: f32 = CONTENT - VIEWPORT;
 const CONTENT: f32 = 1600.0;
 #[cfg(not(target_os = "macos"))]
 const LIMIT: f32 = CONTENT - VIEWPORT;
@@ -193,4 +194,47 @@ fn a_pull_past_the_threshold_refreshes_holds_and_returns_when_it_is_done() {
     let path = settle(&mut test, 1000);
     assert!(path.last().unwrap().abs() < 0.5, "returned to {path:?}");
     assert_eq!(calls.get(), 1);
+}
+
+fn pan(test: &mut TestingRunner, from: f64, to: f64, steps: u32) {
+    test.press_touch((200.0, from));
+    for step in 1..=steps {
+        let y = from + (to - from) * f64::from(step) / f64::from(steps);
+        test.move_touch((200.0, y));
+        std::thread::sleep(Duration::from_millis(10));
+    }
+}
+
+#[test]
+fn a_finger_pans_the_content_and_it_glides_after_the_release() {
+    let mut test = runner();
+    pan(&mut test, 250.0, 50.0, 20);
+    let held = top(&test);
+    assert!((-210.0..-150.0).contains(&held), "panned to {held}");
+    test.release_touch((200.0, 50.0));
+    let path = settle(&mut test, 1200);
+    assert!(
+        *path.last().unwrap() < held - 20.0,
+        "glided on from {held} to {path:?}"
+    );
+    assert!(*path.last().unwrap() > -LIMIT_ANY);
+}
+
+#[test]
+fn a_mouse_drag_does_not_pan_a_scroll_view() {
+    let mut test = runner();
+    test.press_cursor((200.0, 250.0));
+    test.move_cursor((200.0, 50.0));
+    test.release_cursor((200.0, 50.0));
+    assert_eq!(top(&test), 0.0);
+}
+
+#[test]
+fn a_finger_pulled_past_the_start_stretches_the_content_and_it_returns() {
+    let mut test = runner();
+    pan(&mut test, 50.0, 200.0, 15);
+    assert!(top(&test) > 10.0, "stretched {}", top(&test));
+    test.release_touch((200.0, 200.0));
+    let path = settle(&mut test, 1000);
+    assert!(path.last().unwrap().abs() < 0.5);
 }

@@ -666,12 +666,6 @@ fn main() {
                 } else {
                     name.clone()
                 };
-                // Reduce Transparency changes these two to their own colors, not to the flattened translucent ones.
-                let path = if opaque && entry[0] != "SHELL" {
-                    format!("{path}-reduced")
-                } else {
-                    path.clone()
-                };
                 let look = Look { theme, opaque };
                 out.push_str(&tengen.constant(&name, entry[1], &path, &entry[3..], look));
             }

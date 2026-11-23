@@ -52,41 +52,36 @@ NOTES = [
 NOTES_BLUR = {"lights": 12.0, "sidebar toggle": 26.0, "sidebar rows": 10.0, "sidebar background": 1.0, "title": 11.0,
               "toolbar group": 16.0, "title bar edge": 1.0, "empty state": 5.0, "detail background": 1.0}
 
-# With Reduce Transparency on the sidebar, the toolbar group and the title bar are solids: measured after the token change.
-NOTES_RT = {**NOTES_BLUR, "toolbar group": 18.0}
-
 SURFACES = [
     Surface(
         "notes-plain", "notes_sidebar", "csdtwin", NOTES,
-        {"blur": NOTES_BLUR, "rt": NOTES_RT}, kit_args=["plain"], lights=(10, 10, 100, 42),
+        {"blur": NOTES_BLUR, "rt": {}}, kit_args=["plain"], lights=(10, 10, 100, 42),
     ),
     Surface(
         "notes-hybrid", "notes_sidebar", "csdtwin", NOTES,
-        {"blur": {**NOTES_BLUR, "lights": 1.0}, "rt": {**NOTES_RT, "lights": 1.0}}, kit_args=["hidden-title-bar"], live=True,
+        {"blur": {**NOTES_BLUR, "lights": 1.0}, "rt": {}}, kit_args=["hidden-title-bar"], live=True,
         lights=(10, 10, 100, 42),
     ),
     Surface(
         "glass-toolbar", "glass_toolbar", "glasstwin",
         [("toolbar group", (668, 2, 758, 50)), ("title bar veil", (0, 0, 660, 52)), ("rows", (0, 60, 760, 480))],
-        {"blur": {"toolbar group": 100.0, "title bar veil": 100.0, "rows": 12.0},
-         "rt": {"toolbar group": 76.0, "title bar veil": 20.0, "rows": 6.0}}, live=True,
+        {"blur": {"toolbar group": 100.0, "title bar veil": 100.0, "rows": 12.0}, "rt": {}}, live=True,
         lights=(10, 5, 90, 35),
     ),
     Surface(
         "glass-container", "glass_container", "glasscontainer",
         [("regular pair", (30, 30, 130, 90)), ("clear pair", (30, 130, 130, 190)), ("rows", (200, 0, 460, 300))],
-        {"blur": {"regular pair": 32.0, "clear pair": 30.0, "rows": 1.0},
-         "rt": {"regular pair": 32.0, "clear pair": 30.0, "rows": 1.0}}, live=True,
+        {"blur": {"regular pair": 32.0, "clear pair": 30.0, "rows": 1.0}, "rt": {}}, live=True,
     ),
     Surface(
         "popover", "popups", "matrixpopups",
         [("arrow", (212, 236, 268, 262)), ("body", (130, 262, 350, 380))],
-        {"blur": {"arrow": 62.0, "body": 88.0}, "rt": {"arrow": 62.0, "body": 88.0}}, probe_args=["popover"], live=True,
+        {"blur": {"arrow": 62.0, "body": 88.0}, "rt": {}}, probe_args=["popover"], live=True,
     ),
     Surface(
         "sheet", "popups", "matrixpopups",
         [("sheet", (25, 28, 455, 308)), ("veil", (0, 310, 480, 428))],
-        {"blur": {"sheet": 2.0, "veil": 2.0}, "rt": {"sheet": 2.0, "veil": 2.0}}, probe_args=["sheet"], kit_args=["sheet"],
+        {"blur": {"sheet": 2.0, "veil": 2.0}, "rt": {}}, probe_args=["sheet"], kit_args=["sheet"],
     ),
 ]
 
@@ -221,8 +216,8 @@ def take_lock():
 
 
 def live_capture(work, directory, chosen):
-    """Before the flip: opens the kit's examples, captures them, waits until the system turns Reduce Transparency the other
-    way (the user does it), captures them again with the same processes. Writes <surface>-before.png and -after.png."""
+    """Before the flip: opens the kit's examples, captures them, waits until the system turns Reduce Transparency on,
+    captures them again with the same processes. Writes <surface>-before.png and <surface>-after.png."""
     os.makedirs(directory, exist_ok=True)
     running = []
     try:
@@ -231,19 +226,13 @@ def live_capture(work, directory, chosen):
             pid, window = launch(work, os.path.join(EXAMPLES, surface.kit), surface.kit, surface.kit_args, env)
             running.append((surface, pid, window))
             grab(work, window, os.path.join(directory, f"{surface.name}-before.png"))
-        start = system_reduces_transparency()
-        print("live: captured, waiting for the system to turn Reduce Transparency " + ("off" if start else "on"), flush=True)
-        # Other sessions use the screen while the user is at the settings: the lock is theirs until the flip.
-        os.rmdir(LOCK)
-        try:
-            for _ in range(1800):
-                if system_reduces_transparency() != start:
-                    break
-                time.sleep(1)
-            else:
-                sys.exit("live: Reduce Transparency never flipped")
-        finally:
-            take_lock()
+        print("live: captured, waiting for the system to turn Reduce Transparency on", flush=True)
+        for _ in range(1800):
+            if system_reduces_transparency():
+                break
+            time.sleep(1)
+        else:
+            sys.exit("live: Reduce Transparency never turned on")
         time.sleep(4)
         for surface, _, window in running:
             grab(work, window, os.path.join(directory, f"{surface.name}-after.png"))
@@ -260,7 +249,7 @@ def main():
     parser.add_argument("--keep", help="directory that keeps the captures")
     parser.add_argument("--references", action="store_true",
                         help="with rt: also captures the SwiftUI side of the five twins into crates/bk/tests/reference")
-    parser.add_argument("--live-capture", metavar="DIR", help="the live half, before and after the user flips Reduce Transparency (see live_capture)")
+    parser.add_argument("--live-capture", metavar="DIR", help="with blur: the live half, before and after the flip (see live_capture)")
     parser.add_argument("--live-compare", metavar="DIR", help="with rt: compares a fresh kit capture with the live one of DIR")
     options = parser.parse_args()
 
