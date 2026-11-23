@@ -73,3 +73,24 @@ fn an_interrupted_smooth_spring_matches_the_swiftui_recording() {
         .fold(f32::MAX, f32::min);
     assert!(error <= MAX_ERROR, "{error}");
 }
+
+// A 60 fps recording shows each frame at an instant known only within one frame step, so after the best alignment a curve is
+// known to within the largest change of the curve in half a step. The live check of a kit window against its recording uses this
+// floor, not MAX_ERROR (ADR 0102).
+fn recording_floor(period: Duration) -> f32 {
+    let spring = Spring::new(0.0, 1.0, period, 0.0);
+    let half_step = 1.0 / 120.0;
+    (0..2000)
+        .map(|i| {
+            let t = i as f32 / 2000.0;
+            (spring.value(secs(t)) - spring.value(secs(t - half_step))).abs()
+        })
+        .fold(0.0, f32::max)
+}
+
+#[test]
+fn a_60_fps_recording_cannot_tell_a_smooth_spring_apart_closer_than_its_floor() {
+    let floor = recording_floor(SMOOTH);
+    assert!((0.05..0.06).contains(&floor), "{floor}");
+    assert!(recording_floor(Duration::from_millis(274)) > floor);
+}
