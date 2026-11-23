@@ -1,10 +1,13 @@
 //! U5 of `docs/research/uikit-roadmap.md`: a stack of pages that the app edits as a path, and the push and pop of UIKit.
 
+use std::borrow::Cow;
+
 use ctdesign::{NAVIGATION_DIM, NAVIGATION_PARALLAX, SPRING_PUSH_MS};
 use freya_core::prelude::*;
 use torin::prelude::{Position, Size};
 
 use crate::animation::{effective, use_animated};
+use crate::controls::Button;
 use crate::styles::Animation;
 
 /// SwiftUI's `NavigationPath`, typed: the routes pushed over the root page, last on top.
@@ -97,6 +100,30 @@ impl<R: Clone + PartialEq + 'static> NavigationStack<R> {
 /// The path of the `NavigationStack` above, so a deep child pushes and pops without a callback chain.
 pub fn use_navigation_path<R: Clone + 'static>() -> State<NavigationPath<R>> {
     consume_context()
+}
+
+/// SwiftUI's `NavigationLink(value:)`: a button that pushes `route` onto the path of the stack above it.
+#[derive(PartialEq)]
+pub struct NavigationLink<R: Clone + PartialEq + 'static> {
+    label: Cow<'static, str>,
+    route: R,
+}
+
+impl<R: Clone + PartialEq + 'static> NavigationLink<R> {
+    pub fn new(label: impl Into<Cow<'static, str>>, route: R) -> Self {
+        Self {
+            label: label.into(),
+            route,
+        }
+    }
+}
+
+impl<R: Clone + PartialEq + 'static> Component for NavigationLink<R> {
+    fn render(&self) -> impl IntoElement {
+        let mut path = use_navigation_path::<R>();
+        let route = self.route.clone();
+        Button::new(self.label.clone()).on_press(move |_| path.write().push(route.clone()))
+    }
 }
 
 impl<R: Clone + PartialEq + 'static> Component for NavigationStack<R> {

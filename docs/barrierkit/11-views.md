@@ -858,7 +858,8 @@ a `State`, like `History`).
 |---|---|
 | `NavigationPath::new()`, `push`, `pop`, `pop_to_root`, `truncate(len)`, `len`, `is_empty` | The routes pushed over the root, last on top |
 | `NavigationStack::new(path, root, \|route\| page)` | Draws the root and the page of each route |
-| `use_navigation_path::<R>()` | The path of the stack above, for a page that pushes or pops |
+| `NavigationLink::new(label, route)` | A button that pushes `route` onto the path of the stack above |
+| `use_navigation_path::<R>()` | The path of the stack above, for a page that pops or pushes from code |
 
 A push moves the new page in from the right edge and the page below 30 % of
 the width to the left (`NAVIGATION_PARALLAX`), dimmed by a black of 0.13

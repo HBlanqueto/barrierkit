@@ -1,7 +1,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use bk::views::navigation_stack::{NavigationPath, NavigationStack, use_navigation_path};
+use bk::views::navigation_stack::{
+    NavigationLink, NavigationPath, NavigationStack, use_navigation_path,
+};
 use ctappearance::{AppearanceConfig, resolve};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -96,6 +98,31 @@ fn a_page_pushes_onto_the_path_of_its_stack_without_a_callback_chain() {
         1.0,
     );
     test.sync_and_update();
+    test.sync_and_update();
+    assert_eq!(handle.borrow().unwrap().peek().len(), 1);
+}
+
+#[test]
+fn pressing_a_link_pushes_its_route_onto_the_path_of_the_stack() {
+    struct Linked(Handle);
+    impl App for Linked {
+        fn render(&self) -> impl IntoElement {
+            let path = use_state(NavigationPath::<u8>::new);
+            *self.0.borrow_mut() = Some(path);
+            NavigationStack::new(path, NavigationLink::new("Open", 9u8), |_: &u8| {
+                rect().expanded()
+            })
+        }
+    }
+    let handle = Handle::default();
+    let (mut test, _) = TestingRunner::new(
+        AppComponent::new(Linked(handle.clone())),
+        Size2D::new(SIZE.0, SIZE.1),
+        |_| {},
+        1.0,
+    );
+    test.sync_and_update();
+    test.click_cursor((20.0, 10.0));
     test.sync_and_update();
     assert_eq!(handle.borrow().unwrap().peek().len(), 1);
 }

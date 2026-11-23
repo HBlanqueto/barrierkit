@@ -1,5 +1,7 @@
 use bk::prelude::*;
-use bk::views::navigation_stack::{NavigationPath, NavigationStack, use_navigation_path};
+use bk::views::navigation_stack::{
+    NavigationLink, NavigationPath, NavigationStack, use_navigation_path,
+};
 
 #[derive(Clone, PartialEq)]
 enum Route {
@@ -11,10 +13,9 @@ struct Home;
 
 impl Component for Home {
     fn render(&self) -> impl IntoElement {
-        let mut path = use_navigation_path::<Route>();
         VStack::new()
             .child(Text::new("Home"))
-            .child(Button::new("Open 1").on_press(move |_| path.write().push(Route::Detail(1))))
+            .child(NavigationLink::new("Open 1", Route::Detail(1)))
     }
 }
 
@@ -26,10 +27,7 @@ impl Component for Detail {
         let mut path = use_navigation_path::<Route>();
         VStack::new()
             .child(Text::new(format!("Detail {}", self.0)))
-            .child(Button::new("Open next").on_press({
-                let next = self.0 + 1;
-                move |_| path.write().push(Route::Detail(next))
-            }))
+            .child(NavigationLink::new("Open next", Route::Detail(self.0 + 1)))
             .child(Button::new("Back").on_press(move |_| {
                 path.write().pop();
             }))
