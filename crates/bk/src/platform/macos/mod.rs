@@ -85,14 +85,20 @@ struct ChromeLayer {
     wanted: Wanted,
     view: Retained<ChromeView>,
     layer: Retained<CAMetalLayer>,
-    effects: Vec<Retained<Effect>>,
+    effects: Vec<Retained<NSView>>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Backing {
+    Visual(Material),
+    Glass,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 struct Wanted {
     placement: Placement,
     requests: Requests,
-    material: Option<Material>,
+    native: Option<Backing>,
 }
 
 struct Window {
@@ -314,8 +320,9 @@ impl Runtime {
             font_collection: crate::fonts::collection(),
             font_manager: crate::fonts::manager(),
             defaults_revision: self.defaults_revision,
-            glass: true,
+            glass: false,
             backdrop: true,
+            native_glass: blur::glass_available(),
             knobs: false,
         }
     }
@@ -470,8 +477,12 @@ impl Runtime {
             (f64::from(width) * scale) as u32,
             (f64::from(height) * scale) as u32,
         );
+        let host = Host {
+            glass: !options.opaque,
+            ..self.host()
+        };
         let instance = AppInstance::new(
-            &self.host(),
+            &host,
             ObjectId::from_raw(id),
             app,
             scale,
@@ -716,12 +727,27 @@ impl Runtime {
         gpu.context.flush_and_submit();
         drop(surface);
         presented.push(content);
+        // The layers of a window with chromes present inside one Core Animation transaction, so that the content and the glass over it move together.
+        let together = !layers.is_empty();
+        window.layer.setPresentsWithTransaction(together);
+        for chrome in layers {
+            chrome.layer.setPresentsWithTransaction(together);
+        }
         if let Some(buffer) = gpu.queue.commandBuffer() {
-            for drawable in &presented {
-                let drawable: Retained<ProtocolObject<dyn MTLDrawable>> = drawable.into();
-                buffer.presentDrawable(&drawable);
+            if together {
+                buffer.commit();
+                buffer.waitUntilScheduled();
+                for drawable in &presented {
+                    let drawable: Retained<ProtocolObject<dyn MTLDrawable>> = drawable.into();
+                    drawable.present();
+                }
+            } else {
+                for drawable in &presented {
+                    let drawable: Retained<ProtocolObject<dyn MTLDrawable>> = drawable.into();
+                    buffer.presentDrawable(&drawable);
+                }
+                buffer.commit();
             }
-            buffer.commit();
         }
         app.ticker_sender.notify();
     }
@@ -742,8 +768,9 @@ impl Runtime {
             .map(|chrome| Wanted {
                 placement: chrome.placement(scale as f32),
                 requests: Requests::of(chrome, scale as f32),
-                material: chrome.effects.iter().find_map(|(effect, _)| match effect {
-                    Declared::Material { material, .. } => Some(*material),
+                native: chrome.effects.iter().find_map(|(effect, _)| match effect {
+                    Declared::Material { material, .. } => Some(Backing::Visual(*material)),
+                    Declared::Glass { .. } => Some(Backing::Glass),
                     Declared::ScrollEdge { .. } => None,
                 }),
             })
@@ -768,23 +795,11 @@ impl Runtime {
             let (x, y) = wanted.placement.origin;
             let (width, strip) = wanted.placement.size;
             let mut effects = Vec::new();
-            if let Some(material) = wanted.material {
-                for &(left, top, w, h) in &wanted.requests.backdrop.rects {
-                    let effect = blur::effect(
-                        mtm,
-                        material,
-                        NSVisualEffectBlendingMode::WithinWindow,
-                        wanted.requests.backdrop.radius as f32,
-                    );
-                    effect.setFrame(blur::frame((x + left, y + top, w, h), height));
-                    effects.push(effect);
-                }
-            }
             if let Some(edge) = wanted.requests.scroll_edge {
                 let rect = blur::edge_rect(edge.edge, (x, y), (width, strip), edge.depth);
                 let effect = blur::effect(
                     mtm,
-                    Material::WindowBackground,
+                    Material::Titlebar,
                     NSVisualEffectBlendingMode::WithinWindow,
                     0.0,
                 );
@@ -792,7 +807,45 @@ impl Runtime {
                 if edge.style == ScrollEdgeEffectStyle::Soft {
                     blur::fade(&effect, edge.edge);
                 }
-                effects.push(effect);
+                effects.push(Retained::into_super(Retained::into_super(effect)));
+            }
+            let radius = wanted.requests.backdrop.radius as f32;
+            match wanted.native {
+                Some(Backing::Visual(material)) => {
+                    for &(left, top, w, h) in &wanted.requests.backdrop.rects {
+                        let effect = blur::effect(
+                            mtm,
+                            material,
+                            NSVisualEffectBlendingMode::WithinWindow,
+                            radius,
+                        );
+                        effect.setFrame(blur::frame((x + left, y + top, w, h), height));
+                        effects.push(Retained::into_super(Retained::into_super(effect)));
+                    }
+                }
+                Some(Backing::Glass) => {
+                    let rects = &wanted.requests.backdrop.rects;
+                    let strip_frame = blur::frame((x, y, width as i32, strip as i32), height);
+                    if rects.len() > 1 {
+                        let members: Vec<_> = rects
+                            .iter()
+                            .map(|&(left, top, w, h)| {
+                                let glass = blur::glass(mtm, radius);
+                                glass.setFrame(blur::frame((left, top, w, h), f64::from(strip)));
+                                glass
+                            })
+                            .collect();
+                        let group = blur::glass_group(mtm, strip_frame, &members);
+                        effects.push(Retained::into_super(Retained::into_super(group)));
+                    } else {
+                        for &(left, top, w, h) in rects {
+                            let glass = blur::glass(mtm, radius);
+                            glass.setFrame(blur::frame((x + left, y + top, w, h), height));
+                            effects.push(Retained::into_super(Retained::into_super(glass)));
+                        }
+                    }
+                }
+                None => {}
             }
             for effect in &effects {
                 container.addSubview(effect);

@@ -61,6 +61,7 @@ pub(crate) struct Host {
     pub(crate) defaults_revision: State<u64>,
     pub(crate) glass: bool,
     pub(crate) backdrop: bool,
+    pub(crate) native_glass: bool,
     pub(crate) knobs: bool,
 }
 
@@ -81,6 +82,7 @@ impl Runtime {
             defaults_revision: self.defaults_revision,
             glass: self.glass_supported(),
             backdrop: self.backdrop_supported(),
+            native_glass: false,
             knobs: self.knobs_supported(),
         }
     }
@@ -234,6 +236,8 @@ impl AppInstance {
         let glass_outbox = runner.provide_root_context(super::GlassOutbox::default);
         let backdrop = window.is_some() && host.backdrop;
         runner.provide_root_context(move || super::backdrop::BackdropSupport(backdrop));
+        let native_glass = backdrop && host.native_glass;
+        runner.provide_root_context(move || super::backdrop::NativeGlass(native_glass));
         let knobs = window.is_some() && host.knobs;
         runner.provide_root_context(move || super::KnobSupport(knobs));
         let knob_outbox = runner.provide_root_context(super::KnobOutbox::default);

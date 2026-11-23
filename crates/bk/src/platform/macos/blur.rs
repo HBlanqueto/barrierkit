@@ -2,15 +2,15 @@ use ctappearance::material::Material;
 use objc2::rc::Retained;
 use objc2::{MainThreadMarker, MainThreadOnly};
 use objc2_app_kit::{
-    NSAutoresizingMaskOptions, NSView, NSVisualEffectBlendingMode, NSVisualEffectMaterial,
-    NSVisualEffectState,
+    NSAutoresizingMaskOptions, NSGlassEffectViewStyle, NSView, NSVisualEffectBlendingMode,
+    NSVisualEffectMaterial, NSVisualEffectState,
 };
 use objc2_core_graphics::CGColor;
-use objc2_foundation::NSArray;
+use objc2_foundation::{NSArray, NSNumber};
 use objc2_foundation::{NSPoint, NSRect, NSSize};
 use objc2_quartz_core::{CAGradientLayer, kCACornerCurveContinuous};
 
-use super::view::Effect;
+use super::view::{Effect, Glass, GlassGroup};
 use crate::platform::window_style::Edge;
 
 pub(super) fn material(material: Material) -> NSVisualEffectMaterial {
@@ -101,22 +101,34 @@ pub(super) fn edge_rect(
     }
 }
 
+// The material stays whole over the first part of the depth and fades to clear at the end.
+const FADE_STOPS: [f64; 3] = [0.0, 0.75, 1.0];
+
+// How much of the material a soft edge shows where it is whole: the SwiftUI window over a red row shows it at half.
+const FADE_STRENGTH: f64 = 0.6;
+
 // The effect shows through a mask that is opaque at the edge and clear at the depth.
 pub(super) fn fade(effect: &Effect, edge: Edge) {
     let gray = |alpha| CGColor::new_generic_gray(0.0, alpha);
     let (start, end) = edge_points(edge);
     let layer = CAGradientLayer::new();
     layer.setFrame(effect.bounds());
-    let (opaque, clear) = (gray(1.0), gray(0.0));
+    let (opaque, clear) = (gray(FADE_STRENGTH), gray(0.0));
     // SAFETY: a CGColor is a Core Foundation object, and CAGradientLayer takes them as its colors.
     let colors = unsafe {
         NSArray::from_slice(&[
             &*(std::ptr::from_ref::<CGColor>(&opaque).cast::<objc2::runtime::AnyObject>()),
+            &*(std::ptr::from_ref::<CGColor>(&opaque).cast::<objc2::runtime::AnyObject>()),
             &*(std::ptr::from_ref::<CGColor>(&clear).cast::<objc2::runtime::AnyObject>()),
         ])
     };
-    // SAFETY: the colors are the two CGColors above.
+    // SAFETY: the colors are the three CGColors above.
     unsafe { layer.setColors(Some(&colors)) };
+    let stops: Vec<_> = FADE_STOPS
+        .iter()
+        .map(|stop| NSNumber::new_f64(*stop))
+        .collect();
+    layer.setLocations(Some(&NSArray::from_retained_slice(&stops)));
     layer.setStartPoint(NSPoint::new(start.0, start.1));
     layer.setEndPoint(NSPoint::new(end.0, end.1));
     effect.setWantsLayer(true);
@@ -124,6 +136,35 @@ pub(super) fn fade(effect: &Effect, edge: Edge) {
         // SAFETY: a gradient layer is a layer.
         unsafe { host.setMask(Some(&layer)) };
     }
+}
+
+// NSGlassEffectView is macOS 26's: without it the controls paint their own fill.
+pub(super) fn glass_available() -> bool {
+    objc2::runtime::AnyClass::get(c"NSGlassEffectView").is_some()
+        && objc2::runtime::AnyClass::get(c"NSGlassEffectContainerView").is_some()
+}
+
+pub(super) fn glass(mtm: MainThreadMarker, radius: f32) -> Retained<Glass> {
+    let glass = Glass::new(mtm);
+    glass.setStyle(NSGlassEffectViewStyle::Regular);
+    glass.setCornerRadius(f64::from(radius));
+    glass
+}
+
+// Glass views of one chrome merge when they are near, as in a SwiftUI `GlassEffectContainer`.
+pub(super) fn glass_group(
+    mtm: MainThreadMarker,
+    frame: NSRect,
+    members: &[Retained<Glass>],
+) -> Retained<GlassGroup> {
+    let group = GlassGroup::new(mtm);
+    group.setFrame(frame);
+    let holder = NSView::initWithFrame(NSView::alloc(mtm), NSRect::new(NSPoint::ZERO, frame.size));
+    for member in members {
+        holder.addSubview(member);
+    }
+    group.setContentView(Some(&holder));
+    group
 }
 
 pub(super) fn container(mtm: MainThreadMarker, frame: NSRect) -> Retained<NSView> {

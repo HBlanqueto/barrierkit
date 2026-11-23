@@ -1158,6 +1158,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `platform::DecorationResponse` | enum | — | — | — | Who draws the title bar: `Client`, `Server` or `Hybrid` (system lights, kit bar) | [8](08-windows.md#window-state) |
 | `platform::WindowStyle` | enum | `WindowStyle` | `≈ NSWindow.StyleMask` | — | Who frames a main window on macOS: `TitleBar`, `HiddenTitleBar` or `Plain` | [8](08-windows.md#window-style) |
 | `platform::WindowOptions::window_style` | method | `windowStyle(_:)` | — | — | Chooses the `WindowStyle` of a window | [8](08-windows.md#window-style) |
+| `platform::WindowOptions::opaque` | method | — | `NSWindow.isOpaque` | — | Whether the window is opaque; `false` lets the sidebar glass be the system's material on macOS | [8](08-windows.md#window-options) |
 | `platform::WindowEdge` | enum | — | — | — | Edge or corner for a compositor resize | [8](08-windows.md#resizing-from-the-edges) |
 | `app::UtilityWindow` | struct | `UtilityWindow` | `≈ NSPanel` | — | A floating panel child of the current window; `.open()` shows it | [8](08-windows.md#utility-windows) |
 | `platform::PanelBehavior` | struct | — | `≈ NSPanel` | — | Panel flags: hides on deactivate, floating, key only if needed | [8](08-windows.md#utility-windows) |

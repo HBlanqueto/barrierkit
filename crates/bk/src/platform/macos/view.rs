@@ -9,9 +9,9 @@ use objc2::{
     AllocAnyThread, DefinedClass, MainThreadMarker, MainThreadOnly, define_class, msg_send,
 };
 use objc2_app_kit::{
-    NSBackingStoreType, NSEvent, NSEventModifierFlags, NSPanel, NSTextInputClient, NSTrackingArea,
-    NSTrackingAreaOptions, NSView, NSVisualEffectView, NSWindow, NSWindowDelegate,
-    NSWindowStyleMask,
+    NSBackingStoreType, NSEvent, NSEventModifierFlags, NSGlassEffectContainerView,
+    NSGlassEffectView, NSPanel, NSTextInputClient, NSTrackingArea, NSTrackingAreaOptions, NSView,
+    NSVisualEffectView, NSWindow, NSWindowDelegate, NSWindowStyleMask,
 };
 use objc2_foundation::{
     NSArray, NSAttributedString, NSAttributedStringKey, NSNotFound, NSNotification, NSObject,
@@ -414,6 +414,52 @@ impl Effect {
     pub(super) fn new(mtm: MainThreadMarker) -> Retained<Self> {
         let this = Self::alloc(mtm).set_ivars(());
         // SAFETY: NSVisualEffectView's designated initializer.
+        unsafe { msg_send![super(this), init] }
+    }
+}
+
+define_class!(
+    // Liquid Glass over the content lets every event through to it.
+    #[unsafe(super(NSGlassEffectView))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKGlassView"]
+    pub(super) struct Glass;
+
+    impl Glass {
+        #[unsafe(method(hitTest:))]
+        fn hit_test(&self, _: NSPoint) -> *mut NSView {
+            std::ptr::null_mut()
+        }
+    }
+);
+
+impl Glass {
+    pub(super) fn new(mtm: MainThreadMarker) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(());
+        // SAFETY: NSGlassEffectView's designated initializer.
+        unsafe { msg_send![super(this), init] }
+    }
+}
+
+define_class!(
+    // Glass views inside it merge when they are near, and none takes an event.
+    #[unsafe(super(NSGlassEffectContainerView))]
+    #[thread_kind = MainThreadOnly]
+    #[name = "BKGlassGroup"]
+    pub(super) struct GlassGroup;
+
+    impl GlassGroup {
+        #[unsafe(method(hitTest:))]
+        fn hit_test(&self, _: NSPoint) -> *mut NSView {
+            std::ptr::null_mut()
+        }
+    }
+);
+
+impl GlassGroup {
+    pub(super) fn new(mtm: MainThreadMarker) -> Retained<Self> {
+        let this = Self::alloc(mtm).set_ivars(());
+        // SAFETY: NSGlassEffectContainerView's designated initializer.
         unsafe { msg_send![super(this), init] }
     }
 }

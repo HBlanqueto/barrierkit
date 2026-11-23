@@ -184,15 +184,20 @@ WindowServer is the compositor, so the same declarations become native views
 
 | Declaration | Native view |
 |---|---|
-| The sidebar's panel (`WindowGlass`, `Sidebar`) | An `NSVisualEffectView`, `sidebar` material, `behindWindow`, below the content view; the window turns non-opaque |
+| The sidebar's panel (`WindowGlass`, `Sidebar`) | With `WindowOptions::opaque(false)`: an `NSVisualEffectView`, `sidebar` material, `behindWindow`, below the content view, and the window turns non-opaque. The default is the flat sidebar, which is what SwiftUI draws in an ordinary window |
 | `Material` | An `NSVisualEffectView`, `withinWindow`, of `MaterialStyle::material`, with the corner radius, over the content |
 | `TopGlass`, `ProgressiveGlass`, `FullscreenBar::Glass` | An `NSVisualEffectView` of the window background material along the edge; the soft ones have a gradient mask, the hard one none |
+| The glass of a `ToolGroup` (the toolbar capsules, the sidebar toggle) | An `NSGlassEffectView` (`regular`) with the capsule's radius; two or more in one chrome sit in an `NSGlassEffectContainerView` and merge when near. On macOS before 26 the group paints its own fill |
 | The chrome of a glass | A second `CAMetalLayer` view above the effect, which takes no event |
 
 The effect views read what the content layer drew, with no frame of lag
 ([measurements](../research/macos-arm-port.md#blur-three-proposals)); Reduce
-Transparency and Increase Contrast are AppKit's. The glass styles of
-`NSGlassEffectView` and `GlassContainer` are not mapped yet.
+Transparency and Increase Contrast are AppKit's. The layers of a window with
+chromes present inside one Core Animation transaction, so the content and what
+lies over the glass move together. `GlassContainer` (the Skia lens) is not mapped
+yet; a `ToolGroup` over scrolling content is
+[`recipes/glass_toolbar.rs`](../../agents/recipes/glass_toolbar.rs): its `Titlebar` needs a
+clear background to let the glass show.
 
 ### Style
 

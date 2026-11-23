@@ -414,9 +414,28 @@ Reduce Transparency, Increase Contrast and Reduce Motion come from `NSWorkspace`
 place (`macos/system.rs`) and add to `appearance.domain`; the runner resolves the
 appearance again on `NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification`
 (the notification is wired and not exercised: changing a system setting is the
-owner's). Not done: `NSGlassEffectView` for the glass styles and `GlassContainer`,
-layer-to-layer sync of the content and the chrome (both present on their own),
-and scale 2.
+owner's).
+
+Finish of M5 (2026-11-22): the glass of a `ToolGroup` is an `NSGlassEffectView`
+(`regular`, the capsule's radius), declared as `Effect::Glass` and drawn natively when
+`NSGlassEffectView` exists; below macOS 26 and under Reduce Transparency the group
+paints its fill. Several glasses in one chrome sit in an `NSGlassEffectContainerView`.
+The lens, the rim and the blue light at the bottom of the SwiftUI capsule come from
+the system: the capsule of the notes twin differs from SwiftUI's in 13.3% of its
+pixels (it was 9 to 21% with the kit's flat fill, a different render), the sidebar
+toggle in 23.4%, light, scale 1, over `notes_sidebar` and the SwiftUI twin. The
+layers of a window with chromes present in one transaction: a bar in the content
+and a marker of the same state in the chrome, 8 captures each, never differ by
+more than 0.5 px with it, and 1 of 8 differs by 3 px without it. A toolbar over
+colored rows (`recipes/glass_toolbar.rs` against a SwiftUI `NavigationStack`
+with the content under the toolbar): the capsule is within 24 levels for 76% of its
+pixels and the veil is within 16 levels of SwiftUI's (a soft edge of the
+`titlebar` material at 0.6, whole over 75% of its depth); the rows differ in
+height, so the whole scene is not a percentage. A window that is
+non-opaque shows the sidebar material (`WindowOptions::opaque(false)`); the default
+stays flat, as the SwiftUI twin is. Not done: `GlassContainer`'s lens, `glass_clear`,
+a committed bench (glass exists only in WindowServer, so `freya-testing` renders the
+solid), and scale 2.
 
 Other things macOS draws that the kit does not, with the proposal:
 

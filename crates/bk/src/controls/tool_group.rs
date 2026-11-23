@@ -121,17 +121,53 @@ impl Component for ToolGroup {
                 .height(Size::px(thickness))
                 .padding(Gaps::new(0.0, padding, 0.0, padding))
         };
+        let corner_radius =
+            style
+                .shape
+                .corner_radius(slot_width, slot_height, LayoutDirection::LeftToRight);
         let root = root
             .cross_align(Alignment::Center)
             .children(items)
-            .map(self.probe, ProbeExt::probe)
+            .map(self.probe, ProbeExt::probe);
+        if crate::glass::native_glass() {
+            let count = self.children.len() as f32;
+            let separators = if style.separator.is_some() {
+                count - 1.0
+            } else {
+                0.0
+            };
+            let along = 2.0 * padding + count * slot_width + separators * separator_width;
+            let glass_size = if vertical {
+                (
+                    thickness,
+                    2.0 * padding + count * slot_height + separators * separator_height,
+                )
+            } else {
+                (along, thickness)
+            };
+            let (width, height) = if vertical {
+                (Size::px(thickness), Size::auto())
+            } else {
+                (Size::auto(), Size::px(thickness))
+            };
+            let glass = rect()
+                .width(width)
+                .height(height)
+                .corner_radius(corner_radius)
+                .child(crate::platform::backdrop::Declared::glass(
+                    style
+                        .shape
+                        .corner_radius(glass_size.0, glass_size.1, LayoutDirection::LeftToRight)
+                        .top_left(),
+                    glass_size,
+                ))
+                .child(root);
+            return self.overrides.apply(dimmed(glass, style.opacity));
+        }
+        let root = root
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
-            .corner_radius(style.shape.corner_radius(
-                slot_width,
-                slot_height,
-                LayoutDirection::LeftToRight,
-            ));
+            .corner_radius(corner_radius);
         self.overrides
             .apply(dimmed(shadowed(root, &style.shadows), style.opacity))
     }

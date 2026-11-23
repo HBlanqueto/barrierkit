@@ -269,6 +269,7 @@ a `CAMetalLayer`, and wakes the kit's `calloop` pings from AppKit's run loop.
 | The menu bar from the key window's `MainMenu`, after the standard app menu: Command key equivalents for the Ctrl shortcuts, checkmarks, disabled items, patched when the menu changes. A key that edits a focused text field goes to the field, not to the menu | Palettes, search fields, icons and badges of a menu item; `Header` is a disabled item; the About panel of a bundled app (not run) |
 | Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | Notifications, file panels, accessibility |
 | `Timers`, `WakeHandle`, clipboard text | `GlassContainer` and `ShapeStyle::Material` (Skia and the opaque solid), the live system appearance |
+| The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
 
 The window and its popups take the kit's scheme (`appearance.domain`), not the system's. Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.

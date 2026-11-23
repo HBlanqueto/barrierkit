@@ -20,6 +20,10 @@ use crate::glass::GlassEdge;
 #[derive(Clone, Copy)]
 pub(crate) struct BackdropSupport(pub(crate) bool);
 
+// The platform draws Liquid Glass itself: a control declares its glass and draws only what lies over it.
+#[derive(Clone, Copy)]
+pub(crate) struct NativeGlass(pub(crate) bool);
+
 // Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own.
 const MOST_CHROMES: usize = 3;
 
@@ -31,6 +35,9 @@ pub(crate) enum Effect {
     },
     Material {
         material: Material,
+        radius: u32,
+    },
+    Glass {
         radius: u32,
     },
 }
@@ -90,6 +97,19 @@ impl Declared {
             GlassEdge::Left => Edge::Leading,
         };
         Some(Self::scroll_edge(edge, style, layout))
+    }
+
+    pub(crate) fn glass(radius: f32, (width, height): (f32, f32)) -> Element {
+        crate::glass::leaf(Self {
+            effect: Effect::Glass {
+                radius: radius.round() as u32,
+            },
+            layout: crate::glass::layout(
+                Size::px(width),
+                Size::px(height),
+                Position::new_absolute().top(0.0).left(0.0),
+            ),
+        })
     }
 
     pub(crate) fn material(material: Material, radius: f32) -> Element {
@@ -277,28 +297,41 @@ impl Requests {
                     });
                 }
                 Effect::Material { material, radius } => {
-                    let material = wire(material);
-                    let backdrop = &mut requests.backdrop;
-                    let same = *backdrop.material.get_or_insert(material) == material
-                        && (backdrop.rects.is_empty() || backdrop.radius == radius);
-                    if same {
-                        backdrop.radius = radius;
-                        let (left, top) = (
-                            floor(area.min_x(), scale) - x,
-                            floor(area.min_y(), scale) - y,
-                        );
-                        backdrop.rects.push((
-                            left,
-                            top,
-                            ceil(area.max_x(), scale) - x - left,
-                            ceil(area.max_y(), scale) - y - top,
-                        ));
-                    }
+                    requests.add_backdrop(wire(material), radius, area, (x, y), scale);
+                }
+                Effect::Glass { radius } => {
+                    requests.add_backdrop(WireMaterial::GlassRegular, radius, area, (x, y), scale);
                 }
                 Effect::ScrollEdge { .. } => {}
             }
         }
         requests
+    }
+
+    fn add_backdrop(
+        &mut self,
+        material: WireMaterial,
+        radius: u32,
+        area: &Area,
+        (x, y): (i32, i32),
+        scale: f32,
+    ) {
+        let backdrop = &mut self.backdrop;
+        let same = *backdrop.material.get_or_insert(material) == material
+            && (backdrop.rects.is_empty() || backdrop.radius == radius);
+        if same {
+            backdrop.radius = radius;
+            let (left, top) = (
+                floor(area.min_x(), scale) - x,
+                floor(area.min_y(), scale) - y,
+            );
+            backdrop.rects.push((
+                left,
+                top,
+                ceil(area.max_x(), scale) - x - left,
+                ceil(area.max_y(), scale) - y - top,
+            ));
+        }
     }
 }
 
@@ -754,6 +787,32 @@ mod tests {
                 material: Some(WireMaterial::Menu),
                 radius: 6,
                 rects: vec![(10, 10, 100, 50), (130, 10, 60, 50)],
+            }
+        );
+    }
+
+    #[test]
+    fn a_glass_is_a_glass_regular_backdrop_of_its_radius_and_one_request_holds_one_kind() {
+        let chrome = chrome(
+            vec![
+                (Effect::Glass { radius: 19 }, at(20.0, 30.0, 76.0, 38.0)),
+                (Effect::Glass { radius: 19 }, at(120.0, 30.0, 38.0, 38.0)),
+                (
+                    Effect::Material {
+                        material: Material::Menu,
+                        radius: 19,
+                    },
+                    at(0.0, 0.0, 10.0, 10.0),
+                ),
+            ],
+            at(10.0, 20.0, 200.0, 100.0),
+        );
+        assert_eq!(
+            Requests::of(&chrome, 1.0).backdrop,
+            Backdrop {
+                material: Some(WireMaterial::GlassRegular),
+                radius: 19,
+                rects: vec![(10, 10, 76, 38), (110, 10, 38, 38)],
             }
         );
     }

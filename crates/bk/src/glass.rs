@@ -35,6 +35,13 @@ pub(crate) fn transparency_reduced() -> bool {
     crate::theme::resolved().reduce_transparency
 }
 
+// A control whose glass the platform draws declares it; the rest of the time it paints its own fill.
+pub(crate) fn native_glass() -> bool {
+    composed_by_compositor()
+        && try_consume_root_context::<crate::platform::backdrop::NativeGlass>()
+            .is_some_and(|support| support.0)
+}
+
 fn composed_by_compositor() -> bool {
     !transparency_reduced()
         && try_consume_root_context::<BackdropSupport>().is_some_and(|support| support.0)
