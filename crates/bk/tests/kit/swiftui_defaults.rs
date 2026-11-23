@@ -60,13 +60,13 @@ fn with_actions() -> Element {
 
 // A probed box includes its top margin, which is the gap above its line.
 #[test]
-fn the_symbol_sits_in_a_44_high_line_and_the_title_20_below_it_as_in_swiftui() {
+fn the_symbol_sits_in_a_44_high_line_and_the_title_23_5_below_it() {
     let test = runner(title_only);
     let symbol = area(&test, "content-unavailable-symbol");
     let title = area(&test, "content-unavailable-title");
     assert_eq!(symbol.height(), 44.0);
     assert_eq!(title.min_y(), symbol.max_y());
-    assert_eq!(title.height(), 20.0 + 19.0);
+    assert_eq!(title.height(), 23.5 + 19.0);
 }
 
 #[test]
@@ -312,4 +312,46 @@ fn a_spinner_is_10_16_and_32_square() {
         let (width, height) = size_of(move || Spinner::new("S").control_size(size).into_element());
         assert_eq!((width, height), (side, side), "{size:?}");
     }
+}
+
+// Gaps read from SwiftUI's VStack on macOS 27.2 (~/src/probes/spacing.swift): none between two texts, 9 under a text,
+// 5 over one, 8 between two buttons.
+#[test]
+fn a_text_touches_the_text_under_it() {
+    let (_, height) = size_of(|| {
+        VStack::new()
+            .child(Text::new("A"))
+            .child(Text::new("B"))
+            .into_element()
+    });
+    assert_eq!(height, 32.0);
+}
+
+#[test]
+fn a_button_is_9_under_a_text_and_5_over_one() {
+    let (_, under) = size_of(|| {
+        VStack::new()
+            .child(Text::new("A"))
+            .child(Button::new("OK"))
+            .into_element()
+    });
+    let (_, over) = size_of(|| {
+        VStack::new()
+            .child(Button::new("OK"))
+            .child(Text::new("A"))
+            .into_element()
+    });
+    assert_eq!((under, over), (16.0 + 9.0 + 24.0, 24.0 + 5.0 + 16.0));
+}
+
+#[test]
+fn a_spacing_set_by_hand_replaces_the_distances_of_the_neighbours() {
+    let (_, height) = size_of(|| {
+        VStack::new()
+            .child(Text::new("A"))
+            .child(Text::new("B"))
+            .spacing(4.0)
+            .into_element()
+    });
+    assert_eq!(height, 36.0);
 }

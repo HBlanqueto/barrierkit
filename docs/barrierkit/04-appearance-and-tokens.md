@@ -1006,6 +1006,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | Constant | Value |
 |---|---|
 | `SPACE_1`, `SPACE_2`, `SPACE_3`, `SPACE_4` | 4, 8, 12, 16 |
+| `STACK_COLUMN_GAPS` | The gap in a `VStack` between a view of one kind and the next, 5 × 5 (above, below) for text, symbol, label, checkbox and any other control, read from SwiftUI; `HStack` is always `SPACE_2` |
 | `HAIRLINE` | 1, the width of a separator |
 
 ### Type

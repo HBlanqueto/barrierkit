@@ -2244,7 +2244,7 @@
     "content-unavailable": {
       "icon": 45,
       "icon-line": 44,
-      "icon-gap": 20,
+      "icon-gap": 23.5,
       "title": {
         "family": "sans",
         "size": 15,
@@ -2265,6 +2265,15 @@
       "icon-height": 16.5,
       "icon-frame": 1.25,
       "gap": 6
+    },
+    "stack": {
+      "column-gaps": [
+        0, 0, 0, 8, 9,
+        0, 0, 0, 3, 3,
+        0, 0, 0, 7, 8,
+        4, 2, 3, 5, 6,
+        5, 2, 4, 6, 8
+      ]
     },
     "hairline": 1,
     "glass-mask": "#ffffff",

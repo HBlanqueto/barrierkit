@@ -1,12 +1,15 @@
+use std::any::TypeId;
 use std::borrow::Cow;
 
 use ctdesign::{
     Font, LABEL_GAP, LABEL_ICON_FRAME, LABEL_ICON_HEIGHT, LABEL_ICON_WIDTH, SPACE_1, SPACE_2,
+    STACK_COLUMN_GAPS,
 };
 use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Size};
 
+use crate::controls::Checkbox;
 use crate::style::Palette;
 use crate::style::with_font;
 use crate::styles::{
@@ -271,11 +274,91 @@ impl Label {
 
 forward_container!(Label);
 
-pub struct VStack(Rect);
+// What a view is to its neighbours in a column: SwiftUI spaces a text, a symbol, a label, a checkbox and any other
+// control by their own preferred distances.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Neighbor {
+    Text,
+    Image,
+    Label,
+    Checkbox,
+    Control,
+}
+
+impl Neighbor {
+    fn of<C: 'static>() -> Self {
+        let id = TypeId::of::<C>();
+        if id == TypeId::of::<Text>() {
+            Self::Text
+        } else if id == TypeId::of::<Image>() {
+            Self::Image
+        } else if id == TypeId::of::<Label>() {
+            Self::Label
+        } else if id == TypeId::of::<Checkbox>() {
+            Self::Checkbox
+        } else {
+            Self::Control
+        }
+    }
+}
+
+pub(crate) fn column_gap(above: Neighbor, below: Neighbor) -> f32 {
+    STACK_COLUMN_GAPS[above as usize * 5 + below as usize]
+}
+
+// The rect, the kind of the last child, where the gaps sit among the children and whether the gaps adapt.
+pub struct VStack(Rect, Option<Neighbor>, Vec<usize>, bool);
 
 impl VStack {
     pub fn new() -> Self {
-        Self(stack(Direction::Vertical))
+        Self(
+            stack(Direction::Vertical).spacing(0.0),
+            None,
+            Vec::new(),
+            true,
+        )
+    }
+
+    pub fn child<C: IntoElement + 'static>(self, child: C) -> Self {
+        self.push(Neighbor::of::<C>(), child.into_element())
+    }
+
+    pub fn maybe_child<C: IntoElement + 'static>(self, child: Option<C>) -> Self {
+        match child {
+            Some(child) => self.child(child),
+            None => self,
+        }
+    }
+
+    pub fn children<C: IntoElement>(self, children: impl IntoIterator<Item = C>) -> Self {
+        children.into_iter().fold(self, |column, child| {
+            column.push(Neighbor::Control, child.into_element())
+        })
+    }
+
+    // A spacing set by hand replaces the distances of the neighbours.
+    pub fn spacing(mut self, spacing: f32) -> Self {
+        for index in self.2.drain(..).rev() {
+            self.0.children_mut().remove(index);
+        }
+        self.3 = false;
+        self.0 = self.0.spacing(spacing);
+        self
+    }
+
+    fn push(mut self, kind: Neighbor, child: Element) -> Self {
+        if let Some(above) = self.1.filter(|_| self.3) {
+            let gap = column_gap(above, kind);
+            if gap > 0.0 {
+                self.2.push(self.0.children_mut().len());
+                self.0
+                    .children_mut()
+                    .push(rect().height(Size::px(gap)).into_element());
+            }
+        }
+        self.0.children_mut().push(child);
+        self.1 = Some(kind);
+        self
     }
 }
 

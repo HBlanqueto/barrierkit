@@ -421,7 +421,7 @@ The size of each control is a row in its own family.
 | `HStack(alignment: .firstTextBaseline)`, `GridRow(alignment: .firstTextBaseline)` | `NSStackView.alignment` `.firstBaseline`, `NSGridRow.rowAlignment` | — | `missing`: torin cannot state a baseline ([ADR 0089](../decisions.md)) | probe `layout` (L7) | P3 |
 | `LazyVGrid`, `LazyHGrid` | `NSCollectionView` | `CollectionView` | `partial`: one vertical wrap of fixed-width tiles, not lazy, no `GridItem`, no sections, no keyboard | none | P3 |
 | — | `NSPredicateEditor`, `NSRuleEditor` | `RuleEditor` | `partial`: `RuleKind` has Text, Number and Choice only | none | P3 |
-| `HStack`, `VStack` | `NSStackView` | `HStack`, `VStack` | `partial`: wrap a `rect()`; no distribution, gravity or hiding priority | none | — |
+| `HStack`, `VStack` | `NSStackView` | `HStack`, `VStack` | `partial`: wrap a `rect()`; no distribution, gravity or hiding priority; the `HStack` gap is 8 and the `VStack` gap follows the neighbours as SwiftUI's (a text, a symbol, a label, a checkbox, other controls); a label over a label is 0, not -1; a child added with `children` counts as a control | test `swiftui_defaults`; probe `spacing` | — |
 | `ZStack`, `ViewThatFits`, `Layout` | — | Freya's `rect` | `partial` | none | P3 |
 | `reorderable()` (macOS 27), swipe actions | drag in `NSTableView` | — | `missing` | sdk | P3 |
 
