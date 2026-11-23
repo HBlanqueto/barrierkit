@@ -1320,6 +1320,7 @@ pub struct ListGroupMetrics {
     pub slider_share: f32,
     pub control_overhang: f32,
     pub capacity_frame: f32,
+    pub dark_accent_lift: [f32; 3],
     pub card: [Rgba; 4],
     pub separator_line: [Rgba; 4],
 }

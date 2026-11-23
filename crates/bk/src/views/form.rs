@@ -19,9 +19,9 @@ use crate::sidebar::SymbolTile;
 use crate::style::text;
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, DatePickerStyle, DividerStyle, FormStyle, LayoutDirection, Paints,
-    PopUpButtonStyle, SegmentedControlStyle, ShapeStyle, SliderStyle, StateValue, StepperStyle,
-    StyleScope, TextFieldStyle, Theme, resolve,
+    CheckboxStyle, ControlState, DatePickerStyle, DividerStyle, FormStyle, LayoutDirection, Paints,
+    PopUpButtonStyle, RadioGroupStyle, SegmentedControlStyle, ShapeStyle, SliderStyle, StateValue,
+    StepperStyle, StyleScope, SwitchStyle, TextFieldStyle, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
 
@@ -460,6 +460,7 @@ impl Component for FormRow {
                         .style(|style: PopUpButtonStyle| style.plain())
                         .style(|style: SegmentedControlStyle| SegmentedControlStyle {
                             equal_segments: true,
+                            selected: style.selected.vibrant(),
                             ..style
                         })
                         .style(|style: StepperStyle| StepperStyle {
@@ -467,7 +468,20 @@ impl Component for FormRow {
                             ..style
                         })
                         .style(|style: DatePickerStyle| style.plain())
+                        .style(|style: SwitchStyle| SwitchStyle {
+                            fill: style.fill.vibrant(),
+                            ..style
+                        })
+                        .style(|style: CheckboxStyle| CheckboxStyle {
+                            fill: style.fill.vibrant(),
+                            ..style
+                        })
+                        .style(|style: RadioGroupStyle| RadioGroupStyle {
+                            fill: style.fill.vibrant(),
+                            ..style
+                        })
                         .style(move |style: SliderStyle| SliderStyle {
+                            fill: style.fill.vibrant(),
                             width: if slider_width > 0.0 {
                                 slider_width
                             } else {

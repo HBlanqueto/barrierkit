@@ -206,7 +206,7 @@ Form::new().style(FormStyle::columns).section(
 
 | Method | Effect |
 |---|---|
-| `.control(view)` | The control on the right, aligned with the first line of the title; a `TextField` fills the row after the title, with no border and its text ending at the right, as in a SwiftUI `Form`. The other controls take the look of a `Form` row as well: a `PopUpButton` has no bezel and ends in a 20 circle, a `SegmentedControl` sizes its segments to the widest title, a `Stepper` shows no value, a `DatePicker` is an outlined field with no arrows, a `Slider` is 55 % of the row, a `ProgressView` and a `CapacityIndicator` go under a `.stacked()` title with no gap, and a `Checkbox` takes the whole row at the start |
+| `.control(view)` | The control on the right, aligned with the first line of the title; a `TextField` fills the row after the title, with no border and its text ending at the right, as in a SwiftUI `Form`. The other controls take the look of a `Form` row as well: a `PopUpButton` has no bezel and ends in a 20 circle, a `SegmentedControl` sizes its segments to the widest title, a `Stepper` shows no value, a `DatePicker` is an outlined field with no arrows, a `Slider` is 55 % of the row, a `ProgressView` and a `CapacityIndicator` go under a `.stacked()` title with no gap, and a `Checkbox` takes the whole row at the start. A `Switch`, `Checkbox`, `RadioGroup`, `SegmentedControl` and `Slider` on a row draw the accent vibrantly: in the dark it is lifted by (18, -1, 0) |
 | `.detail(text)` | An explanation under the title |
 | `.symbol(symbol, tint)` | A [`SymbolTile`](10-sidebar.md#symboltile) before the title |
 | `.icon(view)` | Any view before the title, such as a device picture; it replaces `.symbol` |

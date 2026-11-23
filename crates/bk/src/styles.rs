@@ -10,9 +10,9 @@ use ctdesign::{
     BEZEL_CONTRAST_DARK, BEZEL_CONTRAST_DARK_TINT, BEZEL_CONTRAST_LIGHT, BEZEL_DARK,
     BEZEL_DARK_TINT, BEZEL_LIGHT, BezelPalette, DISABLED_CONTRAST_DARK,
     DISABLED_CONTRAST_DARK_TINT, DISABLED_CONTRAST_LIGHT, DISABLED_DARK, DISABLED_DARK_TINT,
-    DISABLED_LIGHT, DisabledPalette, MATERIAL, MaterialThickness, PRESSED_CONTRAST_DARK,
-    PRESSED_CONTRAST_DARK_TINT, PRESSED_CONTRAST_LIGHT, PRESSED_DARK, PRESSED_DARK_TINT,
-    PRESSED_LIGHT, PressedPalette,
+    DISABLED_LIGHT, DisabledPalette, LIST_GROUP, MATERIAL, MaterialThickness,
+    PRESSED_CONTRAST_DARK, PRESSED_CONTRAST_DARK_TINT, PRESSED_CONTRAST_LIGHT, PRESSED_DARK,
+    PRESSED_DARK_TINT, PRESSED_LIGHT, PressedPalette,
 };
 use freya_core::prelude::*;
 
@@ -230,6 +230,7 @@ pub enum Role {
     AccentInactive,
     OnAccent,
     ToggleAccent,
+    RowAccent,
     ToggleAccentDisabled,
     SelectedContent,
     SelectedContentInactive,
@@ -245,6 +246,22 @@ pub enum Role {
     Scrim,
     SelectedControl,
     CardBorder,
+}
+
+// A control on a `Form` row draws the accent vibrantly: in the dark, over the row's fill, it is lifted by
+// `LIST_GROUP.dark_accent_lift` (measured on SwiftUI's blue, (6,126,255) to (24,125,255)).
+fn row_accent(accent: Rgba) -> Rgba {
+    if appearance_index() != 1 || crate::backdrop::tinted().is_some() {
+        return accent;
+    }
+    let [r, g, b] = LIST_GROUP.dark_accent_lift;
+    let lift = |channel: f32, by: f32| (channel + by / 255.0).clamp(0.0, 1.0);
+    Rgba {
+        r: lift(accent.r, r),
+        g: lift(accent.g, g),
+        b: lift(accent.b, b),
+        ..accent
+    }
 }
 
 impl Role {
@@ -266,6 +283,7 @@ impl Role {
             Self::AccentInactive => palette.accent_inactive,
             Self::OnAccent => palette.on_accent,
             Self::ToggleAccent => palette.toggle_accent,
+            Self::RowAccent => row_accent(palette.toggle_accent),
             Self::SelectedContent => palette.selected_content,
             Self::SelectedContentInactive => palette.selected_content_inactive,
             Self::OnSelectedContent => palette.on_selected_content,
@@ -325,6 +343,15 @@ pub struct StateValue<T> {
     pressed: Option<T>,
     focused: Option<T>,
     disabled: Option<T>,
+}
+
+impl StateValue<ShapeStyle> {
+    pub(crate) fn vibrant(mut self) -> Self {
+        if self.normal == ShapeStyle::Role(Role::ToggleAccent) {
+            self.normal = ShapeStyle::Role(Role::RowAccent);
+        }
+        self
+    }
 }
 
 impl<T> StateValue<T> {

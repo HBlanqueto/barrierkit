@@ -1045,6 +1045,10 @@
   --bk-list-group-slider-share: 0.55;
   --bk-list-group-control-overhang: 4;
   --bk-list-group-capacity-frame: 24;
+  --bk-list-group-dark-accent-lift: 18 -1 0;
+  --bk-list-group-dark-accent-lift-0: 18;
+  --bk-list-group-dark-accent-lift-1: -1;
+  --bk-list-group-dark-accent-lift-2: 0;
   --bk-list-group-card: #f7f7f7 #252525 #f7f7f7 #252525;
   --bk-list-group-card-0: #f7f7f7;
   --bk-list-group-card-1: #252525;

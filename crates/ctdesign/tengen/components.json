@@ -697,6 +697,7 @@
       "slider-share": 0.55,
       "control-overhang": 4,
       "capacity-frame": 24,
+      "dark-accent-lift": [18, -1, 0],
       "card": ["#f7f7f7", "#252525", "#f7f7f7", "#252525"],
       "separator-line": ["#0000000c", "#ffffff0c", "#00000033", "#ffffff33"],
       "padding": [

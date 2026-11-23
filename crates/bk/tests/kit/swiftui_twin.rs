@@ -75,7 +75,7 @@ const FORM_ELEMENTS: [Element; 7] = [
     element("heading", (28, 50, 140, 72), true, 17.0),
     element("card background", (300, 80, 600, 112), false, 1.0),
     element("row separators", (28, 113, 732, 116), false, 1.0),
-    element("switch", (680, 82, 730, 110), false, 26.0),
+    element("switch", (680, 82, 730, 110), false, 14.0),
     element("row labels", (28, 80, 200, 186), true, 6.0),
     element("row values", (560, 116, 732, 150), true, 8.0),
     element("text field row", (28, 152, 732, 186), true, 4.0),
@@ -83,9 +83,9 @@ const FORM_ELEMENTS: [Element; 7] = [
 
 const CONTROLS_ELEMENTS: [Element; 8] = [
     element("pop-up button", (560, 82, 725, 112), true, 11.0),
-    element("segmented control", (485, 121, 725, 150), true, 37.0),
+    element("segmented control", (485, 121, 725, 150), true, 14.0),
     element("stepper", (695, 163, 725, 191), false, 11.0),
-    element("slider", (340, 205, 725, 230), false, 17.0),
+    element("slider", (340, 205, 725, 230), false, 11.0),
     element("date field", (640, 240, 725, 270), true, 26.0),
     element("progress", (28, 278, 732, 332), true, 3.0),
     element("capacity gauge", (28, 334, 732, 394), true, 6.0),
