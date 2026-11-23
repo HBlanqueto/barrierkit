@@ -63,24 +63,33 @@ pub async fn open_uri(uri: &str, ask: bool) {
 }
 
 pub async fn notify(id: &str, title: &str, body: &str) {
-    let result = async {
-        let connection = crate::session_bus::connection().await?;
-        let proxy = zbus::Proxy::new(
-            &connection,
-            PORTAL,
-            PORTAL_PATH,
-            "org.freedesktop.portal.Notification",
-        )
-        .await?;
-        let notification =
-            HashMap::from([("title", Value::from(title)), ("body", Value::from(body))]);
-        proxy
-            .call::<_, _, ()>("AddNotification", &(id, notification))
-            .await
-    }
-    .await;
-    if let Err(error) = result {
-        tracing::warn!(%error, "BarrierKit: the notification portal failed");
+    #[cfg(target_os = "macos")]
+    return crate::platform::notifications::notify(
+        id.to_owned(),
+        title.to_owned(),
+        body.to_owned(),
+    );
+    #[cfg(not(target_os = "macos"))]
+    {
+        let result = async {
+            let connection = crate::session_bus::connection().await?;
+            let proxy = zbus::Proxy::new(
+                &connection,
+                PORTAL,
+                PORTAL_PATH,
+                "org.freedesktop.portal.Notification",
+            )
+            .await?;
+            let notification =
+                HashMap::from([("title", Value::from(title)), ("body", Value::from(body))]);
+            proxy
+                .call::<_, _, ()>("AddNotification", &(id, notification))
+                .await
+        }
+        .await;
+        if let Err(error) = result {
+            tracing::warn!(%error, "BarrierKit: the notification portal failed");
+        }
     }
 }
 

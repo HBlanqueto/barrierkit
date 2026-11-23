@@ -1,18 +1,27 @@
+#[cfg(not(target_os = "macos"))]
 use std::collections::HashMap;
 use std::process::Command;
-use std::sync::{Mutex, OnceLock};
+use std::sync::Mutex;
+#[cfg(not(target_os = "macos"))]
+use std::sync::OnceLock;
 use std::thread;
 
+#[cfg(not(target_os = "macos"))]
 use zbus::blocking::Proxy;
+#[cfg(not(target_os = "macos"))]
 use zbus::zvariant::Value;
 
+#[cfg(not(target_os = "macos"))]
 const SERVICE: &str = "org.freedesktop.Notifications";
+#[cfg(not(target_os = "macos"))]
 const PATH: &str = "/org/freedesktop/Notifications";
+#[cfg(not(target_os = "macos"))]
 const DEFAULT_ACTION: &str = "default";
 
 type Clicked = Box<dyn FnOnce(Option<String>) + Send>;
 
-static WAITING: Mutex<Vec<(u32, Clicked)>> = Mutex::new(Vec::new());
+pub(crate) static WAITING: Mutex<Vec<(u32, Clicked)>> = Mutex::new(Vec::new());
+#[cfg(not(target_os = "macos"))]
 static TOKENS: Mutex<Vec<(u32, String)>> = Mutex::new(Vec::new());
 
 pub struct Notification {
@@ -25,6 +34,9 @@ pub struct Notification {
 
 // `clicked` gets the xdg-activation token the server sends before ActionInvoked (spec 1.2).
 pub fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 'static) {
+    #[cfg(target_os = "macos")]
+    return crate::platform::notifications::post(notice, clicked);
+    #[cfg(not(target_os = "macos"))]
     thread::spawn(move || {
         let Some(proxy) = proxy() else {
             return;
@@ -65,9 +77,12 @@ pub fn play_event_sound(sound: &str) {
     }
 }
 
+#[cfg(not(target_os = "macos"))]
 static PROXY: OnceLock<Proxy<'static>> = OnceLock::new();
+#[cfg(not(target_os = "macos"))]
 static CONNECTING: Mutex<()> = Mutex::new(());
 
+#[cfg(not(target_os = "macos"))]
 fn proxy() -> Option<&'static Proxy<'static>> {
     if let Some(proxy) = PROXY.get() {
         return Some(proxy);
@@ -94,6 +109,7 @@ fn proxy() -> Option<&'static Proxy<'static>> {
     Some(PROXY.get_or_init(|| proxy))
 }
 
+#[cfg(not(target_os = "macos"))]
 fn hear(message: &zbus::Message) {
     let header = message.header();
     let body = message.body();
@@ -120,13 +136,13 @@ fn hear(message: &zbus::Message) {
     }
 }
 
-fn take<T>(pending: &Mutex<Vec<(u32, T)>>, id: u32) -> Option<T> {
+pub(crate) fn take<T>(pending: &Mutex<Vec<(u32, T)>>, id: u32) -> Option<T> {
     let mut pending = lock(pending);
     let index = pending.iter().position(|(waiting, _)| *waiting == id)?;
     Some(pending.remove(index).1)
 }
 
-fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+pub(crate) fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     mutex
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner())

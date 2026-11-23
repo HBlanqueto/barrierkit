@@ -344,6 +344,19 @@ Keychain: create, search by one attribute, read, change, delete, and a search th
 finds nothing, with `=`, `&` and `%` in a value. Items with the same attributes and a
 different label are two items here, and one on Linux.
 
+### M4 result: notifications (2026-11-22)
+
+`notifications::post` and `portal::notify` call `UNUserNotificationCenter`
+(`objc2-user-notifications`, `platform/macos/notifications.rs`) on the main queue. A
+delegate shows the banner while the app is in front and answers a click through the
+callback list that Linux uses (`WAITING`). The center raises an exception in a process
+without a bundle identifier, so `post` checks `NSBundle.mainBundle.bundleIdentifier`
+first: a bare binary logs a warning (checked with the `cargo` binary). Checked with an
+ad-hoc signed `.app`: the authorization and the add request reach the real center, which
+answered "Notifications are not allowed for this application" without a prompt, so a
+banner on screen and a click were not seen. Granting a test bundle is a notification
+setting of the user, so it is left to them.
+
 ## Parity test
 
 **Goal:** show that a kit app and a native app look the same on one Mac.

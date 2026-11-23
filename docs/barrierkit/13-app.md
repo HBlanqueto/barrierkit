@@ -420,6 +420,14 @@ It gets the xdg-activation token the server sends, so the app can bring its
 window to the front. It never runs if the notification closes unclicked.
 Without a notification server, `post` logs a warning and does nothing.
 
+On macOS `post` uses `UNUserNotificationCenter` (`platform/macos/notifications.rs`). The
+first call asks the user's permission. `summary` and `body` are the title and the text; the
+click on the banner runs `clicked(None)` (there is no activation token), and the system
+brings the app forward. `app_name`, `desktop_entry` and `action` are not used: the app's
+bundle gives the name and the icon, and the banner has no action button. A process
+without a bundle identifier (a bare binary from `cargo run`) cannot post: `post` logs a
+warning and does nothing, so run the app from an `.app` bundle.
+
 `play_event_sound(name)` plays a sound from the freedesktop sound theme
 (`"message-new-email"`) with `canberra-gtk-play`.
 
@@ -456,7 +464,7 @@ zeroed.
 | `open_files(title, multiple, directory)` | `FileChooser.OpenFile` | `Option<Vec<PathBuf>>`; `None` if cancelled |
 | `save_file(title, current_name)` | `FileChooser.SaveFile` | `Option<PathBuf>` |
 | `open_uri(uri, ask)` | `OpenURI`; `ask` lets the user pick the app | — |
-| `notify(id, title, body)` | `Notification.AddNotification` | — |
+| `notify(id, title, body)` | `Notification.AddNotification`; on macOS a banner with `id` as its identifier (see [Notifications](#notifications)) | — |
 
 `file_uri(path)` turns a path into a `file://` URI escaped like GLib;
 `file_path(uri)` does the reverse and returns `None` for other schemes.

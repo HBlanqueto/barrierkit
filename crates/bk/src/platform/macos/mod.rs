@@ -56,6 +56,7 @@ mod frame;
 mod input;
 pub(crate) mod keychain;
 mod menu;
+pub(crate) mod notifications;
 pub(crate) mod panels;
 mod place;
 mod popups;
