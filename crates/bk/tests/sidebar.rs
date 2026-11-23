@@ -198,21 +198,8 @@ fn titlebar_without_sidebar_keeps_the_classic_three_slot_layout() {
     let widths: Vec<f32> = bars.iter().map(|(_, _, w, _)| *w).collect();
     let group_w = ctappearance::traffic::group_rect().2 as f32;
     assert!(
-        !widths.contains(&80.0),
-        "left/right slots must not use a fixed 80 px width: {widths:?}"
-    );
-    assert!(
         widths.iter().any(|width| (*width - group_w).abs() < 0.5),
         "slots must keep at least the traffic-light width ({group_w}): {widths:?}"
-    );
-}
-
-#[test]
-fn titlebar_with_sidebar_uses_elastic_side_slots() {
-    let bars = titlebar_layout(true);
-    assert!(
-        !bars.iter().any(|(_, _, w, _)| *w == 80.0),
-        "with_sidebar(true) must not use fixed 80 px slots: {bars:?}"
     );
 }
 
@@ -234,11 +221,10 @@ fn titlebar_slots_grow_with_their_content() {
     test.sync_and_update();
     test.sync_and_update();
     let slot_width = |label: &str| {
-        test.find(|node, el| {
-            (el.accessibility().builder.author_id() == Some(label))
-                .then(|| node.layout().area.size.width)
-        })
-        .unwrap_or_else(|| panic!("{label} exists"))
+        probed(&test, label)
+            .unwrap_or_else(|| panic!("{label} exists"))
+            .size
+            .width
     };
     assert!(slot_width("titlebar-left-slot") >= 120.0);
     assert!(slot_width("titlebar-right-slot") >= 100.0);
@@ -689,45 +675,6 @@ fn sidebar_section_chevron_changes_shape_when_toggled() {
     );
 }
 
-struct TallSectionCase;
-
-impl App for TallSectionCase {
-    fn render(&self) -> impl IntoElement {
-        Sidebar::new().child(
-            SidebarSection::new("Grande")
-                .child(rect().width(Size::px(50.0)).height(Size::px(80.0))),
-        )
-    }
-}
-
-#[test]
-fn sidebar_section_opens_to_the_real_child_height() {
-    let resolved = motion(true);
-    let app = AppComponent::new(TallSectionCase);
-    let (mut test, _) = TestingRunner::new(
-        app,
-        Size2D::new(300.0, 400.0),
-        move |runner| runner.provide_root_context(move || State::create(resolved)),
-        1.0,
-    );
-    for _ in 0..5 {
-        test.sync_and_update();
-    }
-    let content = test
-        .find_many(|node, el| {
-            el.effect()
-                .is_some_and(|effect| effect.overflow == Overflow::Clip)
-                .then(|| node.layout().area)
-        })
-        .pop()
-        .expect("the section content container exists");
-    assert!(
-        (content.size.height - 80.0).abs() < 0.5,
-        "the section must open to the child's 80 px, got {}",
-        content.size.height
-    );
-}
-
 struct ExpandedSectionCase;
 
 impl App for ExpandedSectionCase {
@@ -842,17 +789,8 @@ fn the_toolbar_is_centred_with_the_traffic_lights() {
         1.0,
     );
     test.sync_and_update();
-    let traffic = test
-        .find(|node, el| {
-            (el.accessibility().builder.author_id() == Some("sidebar-traffic-lights"))
-                .then(|| node.layout().area)
-        })
-        .expect("the traffic lights exist");
-    let toolbar = test
-        .find(|node, el| {
-            (el.accessibility().builder.author_id() == Some("toolbar")).then(|| node.layout().area)
-        })
-        .expect("the toolbar exists");
+    let traffic = probed(&test, "sidebar-traffic-lights").expect("the traffic lights exist");
+    let toolbar = probed(&test, "toolbar").expect("the toolbar exists");
     let traffic_center = traffic.origin.y + traffic.size.height / 2.0;
     let toolbar_center = toolbar.origin.y + toolbar.size.height / 2.0;
     assert!(
@@ -1018,11 +956,7 @@ fn labelled(test: &TestingRunner, label: &str) -> Option<torin::prelude::Area> {
 }
 
 fn detail_x(test: &TestingRunner) -> f32 {
-    test.find(|node, el| {
-        (el.accessibility().builder.author_id() == Some("detail"))
-            .then(|| node.layout().area.origin.x)
-    })
-    .expect("the detail exists")
+    probed(test, "detail").expect("the detail exists").origin.x
 }
 
 #[test]

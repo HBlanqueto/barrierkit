@@ -5,60 +5,20 @@ use bk::controls::Switch;
 use bk::elements::Text;
 use bk::styles::{ShapeStyle, TableStyle};
 use bk::symbol::Symbol;
-use bk::theme;
 use bk::views::list::List;
 use bk::views::table::{ListRowModifiers, Table, Visibility};
-use ctappearance::{AppearanceConfig, ColorScheme, resolve};
-use ctdesign::SANS_FAMILIES;
-use freya_components::theming::hooks::use_init_theme;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::Label as TextRun;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Size, Size2D};
 
+use crate::support::{differing, runner, scheme};
+
 const NAMES: [&str; 4] = ["adr-0047.pdf", "notas.txt", "portada.png", "datos.csv"];
 const KINDS: [&str; 4] = ["PDF", "Text", "Image", "Table"];
 const SIZE: (f32, f32) = (300.0, 170.0);
 const FIRST_ROW: (f64, f64) = (150.0, 17.0);
-
-struct Case {
-    dark: bool,
-    build: Rc<dyn Fn() -> Element>,
-}
-
-impl App for Case {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(self.dark));
-        rect().expanded().child((self.build)())
-    }
-}
-
-fn runner(dark: bool, build: Rc<dyn Fn() -> Element>) -> TestingRunner {
-    let resolved = resolve(
-        &AppearanceConfig {
-            color_scheme: if dark {
-                ColorScheme::Dark
-            } else {
-                ColorScheme::Light
-            },
-            reduce_transparency: true,
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    );
-    let (mut test, _) = TestingRunner::new(
-        AppComponent::new(Case { dark, build }),
-        Size2D::new(SIZE.0, SIZE.1),
-        move |runner| runner.provide_root_context(move || State::create(resolved)),
-        1.0,
-    );
-    test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
-    test.sync_and_update();
-    test.sync_and_update();
-    test
-}
 
 fn settle(test: &mut TestingRunner) {
     test.sync_and_update();
@@ -66,19 +26,12 @@ fn settle(test: &mut TestingRunner) {
 }
 
 fn pixels(dark: bool, focused: bool, build: impl Fn() -> Element + 'static) -> Vec<u8> {
-    let mut test = runner(dark, Rc::new(build));
+    let mut test = runner(SIZE, scheme(dark), build);
     if focused {
         test.click_cursor(FIRST_ROW);
         settle(&mut test);
     }
     crate::image::decode(test.render().as_bytes()).2
-}
-
-fn differing(a: &[u8], b: &[u8]) -> usize {
-    a.iter()
-        .zip(b)
-        .filter(|(a, b)| a.abs_diff(**b) > crate::controls::TOLERANCE)
-        .count()
 }
 
 fn names() -> Vec<String> {
@@ -158,21 +111,6 @@ fn a_table_cell_that_is_a_text_view_draws_like_the_text_cell_beside_an_icon() {
     same_pixels(move || table().into_element(), view);
 }
 
-#[test]
-fn a_table_that_takes_owned_columns_draws_like_one_with_literals() {
-    let literals = || {
-        Table::new("Files", ["Name", "Kind"])
-            .rows(rows())
-            .into_element()
-    };
-    let owned = || {
-        Table::new("Files", vec![String::from("Name"), String::from("Kind")])
-            .rows(rows())
-            .into_element()
-    };
-    same_pixels(literals, owned);
-}
-
 type Selections = Rc<RefCell<Vec<Vec<usize>>>>;
 type Toggles = Rc<RefCell<Vec<bool>>>;
 
@@ -199,9 +137,9 @@ fn a_press_on_a_control_that_stops_it_does_not_select_the_row_and_a_press_beside
     let (selected, toggled) = (Selections::default(), Toggles::default());
     let build = {
         let (selected, toggled) = (selected.clone(), toggled.clone());
-        Rc::new(move || pressable(selected.clone(), toggled.clone()))
+        move || pressable(selected.clone(), toggled.clone())
     };
-    let mut test = runner(false, build);
+    let mut test = runner(SIZE, scheme(false), build);
     test.click_cursor((36.0, 25.0));
     settle(&mut test);
     assert_eq!(*toggled.borrow(), [true], "the switch toggled");

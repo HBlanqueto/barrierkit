@@ -10,6 +10,8 @@ use freya_core::integration::{AppComponent, PlatformEvent, WheelEventName, Wheel
 use freya_testing::TestingRunner;
 use torin::prelude::{Area, Size2D};
 
+use crate::support::area;
+
 const VIEWPORT: f32 = 300.0;
 const LIMIT_ANY: f32 = CONTENT - VIEWPORT;
 const CONTENT: f32 = 1600.0;
@@ -92,12 +94,7 @@ fn positioned() -> (TestingRunner, Handles) {
 }
 
 fn target_top(test: &TestingRunner) -> f32 {
-    test.find(|node, element| {
-        (element.accessibility().builder.author_id() == Some("target"))
-            .then(|| -> Area { node.layout().area })
-    })
-    .expect("target")
-    .min_y()
+    area(test, "target").min_y()
 }
 
 struct TableCase;
@@ -121,12 +118,7 @@ fn runner_of(app: AppComponent) -> TestingRunner {
 }
 
 fn top(test: &TestingRunner) -> f32 {
-    test.find(|node, element| {
-        (element.accessibility().builder.author_id() == Some("first"))
-            .then(|| -> Area { node.layout().area })
-    })
-    .expect("first")
-    .min_y()
+    area(test, "first").min_y()
 }
 
 fn first_row(test: &TestingRunner) -> f32 {

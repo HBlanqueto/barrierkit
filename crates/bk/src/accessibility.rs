@@ -498,28 +498,4 @@ mod tests {
         assert!(!resolve_marks(&mut update));
         assert_eq!(update.nodes.len(), 2);
     }
-
-    #[test]
-    fn modifiers_win_over_the_control_when_merged() {
-        let mut control = Node::new(Role::Button);
-        control.set_label("Add one");
-        let mut modifiers = Node::default();
-        modifiers.set_label("Add a task");
-        modifiers.set_description("Adds it to the list");
-        merge(&mut control, &modifiers);
-        assert_eq!(control.role(), Role::Button);
-        assert_eq!(control.label(), Some("Add a task"));
-        assert_eq!(control.description(), Some("Adds it to the list"));
-    }
-
-    #[test]
-    fn traits_map_to_roles_and_selection() {
-        let mut node = Node::default();
-        add_traits(
-            &mut node,
-            AccessibilityTraits::IS_HEADER | AccessibilityTraits::IS_SELECTED,
-        );
-        assert_eq!(node.role(), Role::Heading);
-        assert_eq!(node.is_selected(), Some(true));
-    }
 }

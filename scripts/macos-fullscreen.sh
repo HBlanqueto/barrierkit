@@ -14,6 +14,8 @@ trap cleanup EXIT
 trap 'exit 130' INT TERM
 
 cd "$root"
+# shellcheck source-path=SCRIPTDIR source=macos-app.sh
+. "$root/scripts/macos-app.sh"
 cargo build -p bk --example full_screen
 kit=${CARGO_TARGET_DIR:-$root/target}/debug/examples/full_screen
 swiftc -parse-as-library -O scripts/fullscreen-reference.swift -o "$work/swift-title-bar"
@@ -27,20 +29,7 @@ screen=$(osascript -e 'tell application "Finder" to get bounds of window of desk
 # Opens <binary> <arg> as <name>.app and prints its pid once its window shows.
 launch() {
     app=$work/$1.app
-    mkdir -p "$app/Contents/MacOS"
-    cp "$2" "$app/Contents/MacOS/$1"
-    cat > "$app/Contents/Info.plist" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-<key>CFBundleExecutable</key><string>$1</string>
-<key>CFBundleIdentifier</key><string>local.barrierkit.fullscreen.$1</string>
-<key>CFBundleName</key><string>$1</string>
-<key>CFBundlePackageType</key><string>APPL</string>
-<key>NSHighResolutionCapable</key><true/>
-</dict></plist>
-PLIST
-    codesign --force --sign - "$app" >/dev/null 2>&1
+    bundle "$app" "$2" "local.barrierkit.fullscreen.$1"
     if [ -n "${3:-}" ]; then
         open -n --stderr "$work/$1.log" "$app" --args "$3"
     else

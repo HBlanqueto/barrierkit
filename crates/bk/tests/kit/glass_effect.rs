@@ -2,7 +2,7 @@ use bk::ProbeExt;
 use bk::prelude::*;
 use freya_core::integration::{App, AppComponent};
 use freya_testing::TestingRunner;
-use torin::prelude::{Area, Size2D};
+use torin::prelude::Size2D;
 
 struct Case;
 
@@ -31,12 +31,7 @@ fn a_glass_effect_wraps_its_view_without_moving_or_resizing_it() {
     );
     test.sync_and_update();
     test.sync_and_update();
-    let area = test
-        .find(|node, element| {
-            (element.accessibility().builder.author_id() == Some("inside"))
-                .then(|| -> Area { node.layout().area })
-        })
-        .expect("the view is in the tree");
+    let area = crate::support::area(&test, "inside");
     assert_eq!(
         (area.min_x(), area.min_y(), area.width(), area.height()),
         (0.0, 10.0, 60.0, 20.0)

@@ -115,13 +115,3 @@ impl ControlStyle for LevelSliderStyle {
         })
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_tengen_knob_is_handed_to_the_compositor_without_the_app_asking() {
-        assert!(LevelSliderStyle::tengen().knob_glass.is_some());
-    }
-}

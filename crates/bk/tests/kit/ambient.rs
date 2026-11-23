@@ -19,68 +19,25 @@ use bk::menu::MenuItem;
 use bk::modifiers::EnvironmentModifiers;
 use bk::popup_button::PopUpButton;
 use bk::symbol::Symbol;
-use bk::theme;
-use ctappearance::{AppearanceConfig, ColorScheme, resolve};
-use ctdesign::{Rgba, SANS_FAMILIES};
-use freya_components::theming::hooks::use_init_theme;
+use ctdesign::Rgba;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Gaps, Size2D};
 
+use crate::support::{differing, runner, scheme};
+
 const SIZE: (f32, f32) = (300.0, 120.0);
 
-struct Case {
-    dark: bool,
-    build: Rc<dyn Fn() -> Element>,
-}
-
-impl App for Case {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(self.dark));
+fn pixels(dark: bool, build: impl Fn() -> Element + 'static) -> Vec<u8> {
+    let mut test = runner(SIZE, scheme(dark), move || {
         rect()
             .expanded()
             .padding(Gaps::new(24.0, 24.0, 24.0, 24.0))
-            .child((self.build)())
-    }
-}
-
-fn runner(dark: bool, build: Rc<dyn Fn() -> Element>) -> TestingRunner {
-    let resolved = resolve(
-        &AppearanceConfig {
-            color_scheme: if dark {
-                ColorScheme::Dark
-            } else {
-                ColorScheme::Light
-            },
-            reduce_transparency: true,
-            reduced_motion: true,
-            ..Default::default()
-        },
-        None,
-    );
-    let (mut test, _) = TestingRunner::new(
-        AppComponent::new(Case { dark, build }),
-        Size2D::new(SIZE.0, SIZE.1),
-        move |runner| runner.provide_root_context(move || State::create(resolved)),
-        1.0,
-    );
-    test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
-    test.sync_and_update();
-    test.sync_and_update();
-    test
-}
-
-fn pixels(dark: bool, build: impl Fn() -> Element + 'static) -> Vec<u8> {
-    let mut test = runner(dark, Rc::new(build));
+            .child(build())
+            .into_element()
+    });
     crate::image::decode(test.render().as_bytes()).2
-}
-
-fn differing(a: &[u8], b: &[u8]) -> usize {
-    a.iter()
-        .zip(b)
-        .filter(|(a, b)| a.abs_diff(**b) > crate::controls::TOLERANCE)
-        .count()
 }
 
 fn date_time() -> CivilDateTime {
@@ -269,15 +226,12 @@ fn the_controls_without_a_flag_announce_a_disabled_container() {
     ];
     for (name, build) in builds {
         for disabled in [false, true] {
-            let test = runner(
-                false,
-                Rc::new(move || {
-                    VStack::new()
-                        .child(build())
-                        .disabled(disabled)
-                        .into_element()
-                }),
-            );
+            let test = runner(SIZE, scheme(false), move || {
+                VStack::new()
+                    .child(build())
+                    .disabled(disabled)
+                    .into_element()
+            });
             let nodes = interactive_nodes_are_disabled(&test);
             assert!(!nodes.is_empty(), "{name} has no button or link node");
             assert!(

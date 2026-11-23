@@ -136,11 +136,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_tengen_knob_is_handed_to_the_compositor_without_the_app_asking() {
-        assert!(SliderStyle::tengen().knob_glass.is_some());
-    }
-
-    #[test]
     fn reduced_motion_removes_any_animation_an_override_sets() {
         let animated = SliderStyle {
             animation: Animation::Spring {

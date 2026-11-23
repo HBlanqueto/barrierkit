@@ -10,9 +10,3 @@ command -v swiftc >/dev/null 2>&1 || {
 }
 
 python3 -I scripts/swift-to-bk/tests/run.py
-
-if [ "${1:-}" = "--build" ]; then
-    for recipe in agents/recipes/swift_*.rs; do
-        cargo build -p bk --example "$(basename "$recipe" .rs)"
-    done
-fi

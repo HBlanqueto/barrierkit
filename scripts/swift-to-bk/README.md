@@ -42,11 +42,11 @@ code, nor several files at once. Design and limits:
    It writes `agents/recipes/swift_my_app.rs`, registers the `[[example]]` in
    `crates/bk/Cargo.toml` and runs `cargo build -p bk --example swift_my_app`.
    It writes nothing while the summary is not empty.
-5. Check the tool after a change. `check.sh` runs the tests, and with `--build`
-   it also builds every `swift_*` recipe:
+5. Check the tool after a change. `check.sh` runs the tests; `./dev.sh check`
+   also builds every `swift_*` recipe with the other examples:
 
    ```sh
-   scripts/swift-to-bk/check.sh --build
+   scripts/swift-to-bk/check.sh
    ```
 
    `python3 -I scripts/swift-to-bk/tests/run.py --bless` rewrites the expected

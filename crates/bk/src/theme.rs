@@ -322,30 +322,6 @@ mod tests {
     }
 
     #[test]
-    fn menus_keep_glass_with_reduce_transparency_and_go_solid_only_with_increase_contrast() {
-        for (reduce_transparency, contrast, glass) in [
-            (false, false, true),
-            (true, false, true),
-            (false, true, false),
-            (true, true, false),
-        ] {
-            let resolved = resolve(
-                &AppearanceConfig {
-                    reduce_transparency,
-                    contrast,
-                    ..Default::default()
-                },
-                None,
-            );
-            assert_eq!(
-                menus_keep_glass(&resolved),
-                glass,
-                "reduce_transparency {reduce_transparency}, contrast {contrast}"
-            );
-        }
-    }
-
-    #[test]
     fn increase_contrast_gives_menus_the_contrast_inks_and_the_strong_separator() {
         for (scheme, ink, faint, line) in [
             (

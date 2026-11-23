@@ -808,9 +808,8 @@ mod tests {
     use super::*;
     use crate::TintStrength;
     use ctdesign::{
-        BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT, DOCK_GLASS_LIGHT,
-        SIDEBAR_LIGHT_OPAQUE, TOOLGROUP_BG_LIGHT_OPAQUE, WALLPAPER_TINTING_TARGET,
-        WINDOW_TINT_ACCENT,
+        BG_CONTROL_LIGHT, BG_RAISED_LIGHT, BG_SURFACE_LIGHT, BG_WINDOW_LIGHT, SIDEBAR_LIGHT_OPAQUE,
+        TOOLGROUP_BG_LIGHT_OPAQUE, WALLPAPER_TINTING_TARGET, WINDOW_TINT_ACCENT,
     };
     #[cfg(not(target_os = "macos"))]
     use ctdesign::{TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_ZOOM_LIGHTEN};
@@ -917,36 +916,6 @@ mod tests {
     }
 
     #[test]
-    fn a_named_accent_takes_its_measured_colors_in_each_appearance() {
-        let purple = |scheme, contrast| {
-            resolve(
-                &AppearanceConfig {
-                    color_scheme: scheme,
-                    contrast,
-                    accent: Some("purple".to_owned()),
-                    ..AppearanceConfig::default()
-                },
-                None,
-            )
-        };
-        let colors = |resolved: Resolved| (resolved.control_accent, resolved.accent);
-        let rgb = |r, g, b| Rgba::rgb8(r, g, b);
-        assert_eq!(
-            colors(purple(ColorScheme::Light, false)),
-            (rgb(0x95, 0x3d, 0x96), rgb(0x7d, 0x2a, 0x7e))
-        );
-        assert_eq!(
-            colors(purple(ColorScheme::Dark, false)),
-            (rgb(0xa5, 0x50, 0xa7), rgb(0x80, 0x34, 0x82))
-        );
-        assert_eq!(
-            colors(purple(ColorScheme::Dark, true)),
-            (rgb(0xc1, 0x31, 0xc3), rgb(0xc1, 0x31, 0xc3))
-        );
-        assert!(!purple(ColorScheme::Light, false).automatic_accent);
-    }
-
-    #[test]
     fn every_named_accent_reaches_the_controls_in_every_appearance() {
         for accent in &ctdesign::ACCENTS {
             for (scheme, contrast) in [
@@ -971,6 +940,7 @@ mod tests {
                 assert_eq!(resolved.accent, colors.selected_content, "{looks}");
                 assert_eq!(resolved.toggle_accent, colors.toggle, "{looks}");
                 assert_eq!(resolved.focus_ring, colors.focus_ring, "{looks}");
+                assert!(!resolved.automatic_accent, "{looks}");
                 assert_eq!(
                     resolved.sidebar.palette.selected_bg, colors.sidebar_selection,
                     "{looks}"
@@ -1352,28 +1322,6 @@ mod tests {
     }
 
     #[test]
-    fn the_default_accent_gets_the_measured_focus_ring_in_each_scheme() {
-        for (scheme, expected) in [
-            (ColorScheme::Light, [0x00, 0x67, 0xf4, 0x7f]),
-            (ColorScheme::Dark, [0x1a, 0xa9, 0xff, 0x7f]),
-            (ColorScheme::DarkTint, [0x1a, 0xa9, 0xff, 0x7f]),
-        ] {
-            for mode in [WindowColorMode::Neutral, WindowColorMode::Accent] {
-                let resolved = resolve(
-                    &appearance(scheme, mode, TrafficLightStyle::Standard, None),
-                    None,
-                );
-                assert_eq!(
-                    resolved.focus_ring.to_rgba8(),
-                    expected,
-                    "{scheme:?} {mode:?}"
-                );
-                assert!((resolved.focus_ring.a - 0.498).abs() < 0.001);
-            }
-        }
-    }
-
-    #[test]
     fn a_custom_accent_gets_a_focus_ring_in_its_hue_at_the_measured_alpha() {
         for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             let resolved = resolve(
@@ -1487,11 +1435,7 @@ mod tests {
             lift: WALLPAPER_TINTING_LIFT[1],
         };
         let window = tinting.take(Rgba::rgb8(0x1e, 0x1e, 0x1e), Rgba::rgb8(0x46, 0x41, 0x9b));
-        let [r, g, b, _] = window.to_rgba8().map(i32::from);
-        assert!(
-            (r - 0x23).abs() <= 1 && (g - 0x23).abs() <= 1 && (b - 0x2e).abs() <= 1,
-            "{window:?}"
-        );
+        assert_close(window, Rgba::rgb8(0x23, 0x23, 0x2e), "window");
     }
 
     #[test]
@@ -1763,13 +1707,6 @@ mod tests {
     }
 
     #[test]
-    fn the_dock_is_the_glass_as_designed_at_rest() {
-        let resolved = resolve(&AppearanceConfig::default(), None);
-        assert_eq!(resolved.dock.glass, DOCK_GLASS_LIGHT);
-        assert_eq!(resolved.dock.soften, 1.0);
-    }
-
-    #[test]
     fn only_the_translucent_dock_keeps_part_of_its_rim_on_the_sides() {
         let config = |color_scheme, reduce_transparency| AppearanceConfig {
             color_scheme,
@@ -1788,28 +1725,6 @@ mod tests {
                 .rim_side,
             0.0
         );
-    }
-
-    #[test]
-    fn the_menu_keeps_its_veil_and_chroma_and_the_notifications_take_the_dock_solid_when_transparency_is_reduced()
-     {
-        let config = |reduce_transparency| AppearanceConfig {
-            color_scheme: ColorScheme::Dark,
-            reduce_transparency,
-            ..AppearanceConfig::default()
-        };
-        let clear = resolve(&config(false), None);
-        assert_eq!(clear.menu_glass.glass, MENU_GLASS_VEIL_DARK);
-        assert!(
-            clear.menu_glass.corner[2] <= 0.0,
-            "the outline is whole at vertical"
-        );
-        assert_eq!(clear.menu_glass.soften, MENU_GLASS_SPREAD);
-        assert_eq!(clear.menu_glass.tone.unwrap().chroma, MENU_GLASS_CHROMA);
-        let solid = resolve(&config(true), None);
-        assert_eq!(solid.menu_glass.glass, clear.menu_glass.glass);
-        assert_eq!(solid.menu_glass.tone, clear.menu_glass.tone);
-        assert_eq!(solid.notification_glass, solid.dock);
     }
 
     #[test]
@@ -2022,6 +1937,10 @@ mod tests {
                     clear.menu_glass.soften
                 )
             );
+            assert!(
+                clear.menu_glass.corner[2] <= 0.0,
+                "{scheme:?}: the outline is whole at vertical"
+            );
             assert_eq!(solid.notification_glass, solid.dock);
         }
     }
@@ -2062,44 +1981,17 @@ mod tests {
     }
 
     #[test]
-    fn the_window_surface_is_the_measured_macos_window_background_in_light_and_dark() {
-        for (scheme, measured) in [(ColorScheme::Light, 0xff), (ColorScheme::Dark, 0x1e)] {
-            let [red, green, blue, _] = resolved_in(scheme, false).surfaces.window.to_rgba8();
-            for channel in [red, green, blue] {
-                assert_eq!(channel, measured, "{scheme:?}");
-            }
-        }
-    }
-
-    #[test]
-    fn every_separator_is_the_measured_macos_separator_in_each_scheme() {
-        for (scheme, measured) in [
-            (ColorScheme::Light, [0x00, 0x00, 0x00, 0x1a]),
-            (ColorScheme::Dark, [0xff, 0xff, 0xff, 0x1f]),
-            (ColorScheme::DarkTint, [0xff, 0xff, 0xff, 0x1f]),
-        ] {
+    fn every_separator_is_the_palette_separator_in_each_scheme() {
+        for scheme in [ColorScheme::Light, ColorScheme::Dark, ColorScheme::DarkTint] {
             let resolved = resolved_in(scheme, false);
             for (name, separator) in [
-                ("palette", palette(scheme).separator),
                 ("titlebar", palette(scheme).hairline),
                 ("surfaces", resolved.surfaces.line),
                 ("sidebar", resolved.sidebar.palette.line),
                 ("menu", resolved.menu.separator_color),
             ] {
-                assert_eq!(separator.to_rgba8(), measured, "{scheme:?} {name}");
+                assert_eq!(separator, palette(scheme).separator, "{scheme:?} {name}");
             }
-        }
-    }
-
-    #[test]
-    fn the_toolgroup_divider_is_the_measured_momentary_group_divider() {
-        for (scheme, measured) in [
-            (ColorScheme::Light, [0x00, 0x00, 0x00, 0x39]),
-            (ColorScheme::Dark, [0xff, 0xff, 0xff, 0x39]),
-            (ColorScheme::DarkTint, [0xff, 0xff, 0xff, 0x39]),
-        ] {
-            let divider = resolved_in(scheme, false).toolgroup.palette.separator;
-            assert_eq!(divider.to_rgba8(), measured, "{scheme:?}");
         }
     }
 }

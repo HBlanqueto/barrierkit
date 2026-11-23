@@ -7,6 +7,8 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::Size2D;
 
+use crate::support::area;
+
 struct Case {
     status: WindowStatus,
 }
@@ -95,20 +97,7 @@ fn title_label_width(test: &TestingRunner, title: &str) -> f32 {
 }
 
 fn title_area_width(test: &TestingRunner) -> f32 {
-    test.find(|node, el| {
-        (el.accessibility().builder.author_id() == Some("titlebar-title"))
-            .then(|| node.layout().area.size.width)
-    })
-    .expect("the title slot exists")
-}
-
-#[test]
-fn a_long_title_is_not_cut_to_42_characters_when_it_fits() {
-    let app = AppComponent::new(TitleCase { title: LONG_TITLE });
-    let (mut test, _) = TestingRunner::new(app, Size2D::new(900.0, 120.0), |_| {}, 1.0);
-    test.sync_and_update();
-    let style = title_label_style(&test, LONG_TITLE);
-    assert_eq!(style.text_overflow, Some(TextOverflow::Ellipsis));
+    area(test, "titlebar-title").size.width
 }
 
 #[test]

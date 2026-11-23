@@ -6,7 +6,9 @@ use bk::views::feedback::ContentUnavailableView;
 use bk::views::form::{Form, Row, Section};
 use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
-use torin::prelude::{Area, Size2D};
+use torin::prelude::Size2D;
+
+use crate::support::area;
 
 struct Case(Box<dyn Fn() -> Element>);
 
@@ -26,13 +28,6 @@ fn runner(build: impl Fn() -> Element + 'static) -> TestingRunner {
     test.sync_and_update();
     test.sync_and_update();
     test
-}
-
-fn area(test: &TestingRunner, id: &str) -> Area {
-    test.find(|node, element| {
-        (element.accessibility().builder.author_id() == Some(id)).then(|| node.layout().area)
-    })
-    .unwrap_or_else(|| panic!("no node probed as {id}"))
 }
 
 // Frames read from a SwiftUI ContentUnavailableView in a 400 x 300 view on macOS 27.2 (~/src/probes/contentunavailable.swift).

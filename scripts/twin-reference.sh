@@ -23,34 +23,13 @@ cleanup() { pkill -f "$work/$probe.app/" 2>/dev/null || true; rm -rf "$work"; }
 trap cleanup EXIT
 trap 'exit 130' INT TERM
 
+# shellcheck source-path=SCRIPTDIR source=macos-app.sh
+. "$(dirname -- "$0")/macos-app.sh"
 [ -x "$probes/$probe" ] || swiftc -O "$probes/$probe.swift" -o "$probes/$probe"
 app=$work/$probe.app
-mkdir -p "$app/Contents/MacOS"
-cp "$probes/$probe" "$app/Contents/MacOS/$probe"
-cat > "$app/Contents/Info.plist" <<PLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-<key>CFBundleExecutable</key><string>$probe</string>
-<key>CFBundleIdentifier</key><string>local.barrierkit.twin.$probe</string>
-<key>CFBundleName</key><string>$probe</string>
-<key>CFBundlePackageType</key><string>APPL</string>
-<key>NSHighResolutionCapable</key><true/>
-</dict></plist>
-PLIST
-codesign --force --sign - "$app" >/dev/null 2>&1
+bundle "$app" "$probes/$probe" "local.barrierkit.twin.$probe"
 # shellcheck disable=SC2086
 open -n "$app" --args $args
-
-window_of() {
-    osascript -l JavaScript -e "
-        ObjC.import('CoreGraphics');
-        var all = ObjC.deepUnwrap(ObjC.castRefToObject(
-            \$.CGWindowListCopyWindowInfo(\$.kCGWindowListOptionOnScreenOnly, 0)));
-        var mine = all.filter(function (w) {
-            return w.kCGWindowOwnerPID == $1 && w.kCGWindowLayer == 0; });
-        mine.length ? mine[0].kCGWindowNumber : 0" 2>/dev/null || echo 0
-}
 
 id=0
 tries=0

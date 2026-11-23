@@ -1,18 +1,16 @@
-use std::rc::Rc;
-
 use bk::controls::Button;
 use bk::elements::{Label, Text};
 use bk::styles::ButtonStyle;
 use bk::symbol::Symbol;
-use bk::theme;
-use ctappearance::{AppearanceConfig, ColorScheme, resolve};
-use ctdesign::{SANS_FAMILIES, TEXT_SIZES};
-use freya_components::theming::hooks::use_init_theme;
+use ctappearance::AppearanceConfig;
+use ctdesign::TEXT_SIZES;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::Label as TextRun;
 use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Gaps, Size2D};
+
+use crate::support::{self, differing, scheme};
 
 const SIZE: (f32, f32) = (200.0, 70.0);
 const CURSOR: (f64, f64) = (60.0, 35.0);
@@ -49,50 +47,25 @@ fn button(look: Look, view: View) -> Element {
     .into_element()
 }
 
-struct Case {
-    dark: bool,
-    build: Rc<dyn Fn() -> Element>,
-}
-
-impl App for Case {
-    fn render(&self) -> impl IntoElement {
-        use_init_theme(|| theme::for_scheme(self.dark));
-        rect()
-            .expanded()
-            .padding(Gaps::new(24.0, 24.0, 24.0, 24.0))
-            .child((self.build)())
-    }
-}
-
-fn runner(dark: bool, text_size: f32, build: Rc<dyn Fn() -> Element>) -> TestingRunner {
-    let resolved = resolve(
-        &AppearanceConfig {
-            color_scheme: if dark {
-                ColorScheme::Dark
-            } else {
-                ColorScheme::Light
-            },
-            reduce_transparency: true,
-            reduced_motion: true,
+fn runner(dark: bool, text_size: f32, build: impl Fn() -> Element + 'static) -> TestingRunner {
+    support::runner(
+        SIZE,
+        AppearanceConfig {
             text_size,
-            ..Default::default()
+            ..scheme(dark)
         },
-        None,
-    );
-    let (mut test, _) = TestingRunner::new(
-        AppComponent::new(Case { dark, build }),
-        Size2D::new(SIZE.0, SIZE.1),
-        move |runner| runner.provide_root_context(move || State::create(resolved)),
-        1.0,
-    );
-    test.set_default_fonts(&SANS_FAMILIES.map(std::borrow::Cow::Borrowed));
-    test.sync_and_update();
-    test.sync_and_update();
-    test
+        move || {
+            rect()
+                .expanded()
+                .padding(Gaps::new(24.0, 24.0, 24.0, 24.0))
+                .child(build())
+                .into_element()
+        },
+    )
 }
 
 fn pixels(dark: bool, text_size: f32, pressed: bool, look: Look, view: View) -> Vec<u8> {
-    let mut test = runner(dark, text_size, Rc::new(move || button(look, view)));
+    let mut test = runner(dark, text_size, move || button(look, view));
     if pressed {
         test.move_cursor(CURSOR);
         test.press_cursor(CURSOR);
@@ -100,13 +73,6 @@ fn pixels(dark: bool, text_size: f32, pressed: bool, look: Look, view: View) -> 
         test.sync_and_update();
     }
     crate::image::decode(test.render().as_bytes()).2
-}
-
-fn differing(a: &[u8], b: &[u8]) -> usize {
-    a.iter()
-        .zip(b)
-        .filter(|(a, b)| a.abs_diff(**b) > crate::controls::TOLERANCE)
-        .count()
 }
 
 #[test]
@@ -148,7 +114,7 @@ fn the_states_compared_are_not_all_the_same_picture() {
 }
 
 fn size_at(text_size: f32, view: View) -> (f32, f32) {
-    let test = runner(false, text_size, Rc::new(move || button(Look::Plain, view)));
+    let test = runner(false, text_size, move || button(Look::Plain, view));
     test.find(|node, element| {
         (element.accessibility().builder.label() == Some("Guardar")).then(|| {
             let area = node.layout().area;
@@ -233,15 +199,11 @@ fn a_view_label_follows_state_changes_and_never_stales() {
 
 #[test]
 fn the_string_given_to_new_stays_the_accessible_name() {
-    let test = runner(
-        false,
-        TEXT_SIZES[0],
-        Rc::new(|| {
-            Button::new("Guardar")
-                .label(|| Label::new("Otro texto", Symbol::Plus))
-                .into_element()
-        }),
-    );
+    let test = runner(false, TEXT_SIZES[0], || {
+        Button::new("Guardar")
+            .label(|| Label::new("Otro texto", Symbol::Plus))
+            .into_element()
+    });
     let named = test.find(|_, element| {
         (element.accessibility().builder.label() == Some("Guardar")).then_some(())
     });

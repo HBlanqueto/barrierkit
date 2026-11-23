@@ -10,6 +10,8 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Area, Size2D};
 
+use crate::support::area;
+
 struct Case(TitlebarLayout, RailStyle);
 
 impl App for Case {
@@ -85,12 +87,7 @@ fn the_title_is_centred_in_the_window_whatever_each_side_holds() {
     );
     test.sync_and_update();
     test.sync_and_update();
-    let title = test
-        .find(|node, el| {
-            (el.accessibility().builder.author_id() == Some("titlebar-title"))
-                .then(|| node.layout().area)
-        })
-        .expect("title");
+    let title = area(&test, "titlebar-title");
     assert!(
         (title.center().x - 450.0).abs() < 0.5,
         "title centre {}",

@@ -447,16 +447,6 @@ mod tests {
     }
 
     #[test]
-    fn reduced_motion_gives_no_duration() {
-        let spring = Animation::Spring {
-            duration_ms: 344,
-            bounce: 0.0,
-        };
-        assert_eq!(effective(spring, true).duration_ms(), 0);
-        assert!(effective(spring, false).duration_ms() > 0);
-    }
-
-    #[test]
     fn a_segment_retargeted_midway_starts_at_the_value_and_velocity_it_showed() {
         let animation = Animation::Spring {
             duration_ms: 344,

@@ -12,6 +12,8 @@ use freya_core::prelude::*;
 use freya_testing::TestingRunner;
 use torin::prelude::{Size, Size2D};
 
+use crate::support::area;
+
 fn marker(id: &'static str) -> Rect {
     rect()
         .width(Size::px(20.0))
@@ -78,13 +80,8 @@ impl App for ThreeColumns {
 }
 
 fn area_of(test: &TestingRunner, id: &str) -> (f32, f32) {
-    test.find(|node, el| {
-        (el.accessibility().builder.author_id() == Some(id)).then(|| {
-            let area = node.layout().area;
-            (area.origin.x, area.size.width)
-        })
-    })
-    .unwrap_or_else(|| panic!("{id} exists"))
+    let area = area(test, id);
+    (area.origin.x, area.size.width)
 }
 
 #[test]

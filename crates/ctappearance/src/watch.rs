@@ -155,14 +155,6 @@ fn push_unique(events: &mut Vec<AppearanceEvent>, event: AppearanceEvent) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn only_appearance_and_wallpaper_changes_restyle_the_desktop() {
-        assert!(AppearanceEvent::Appearance.restyles());
-        assert!(AppearanceEvent::Wallpaper.restyles());
-        assert!(!AppearanceEvent::Defaults(None).restyles());
-        assert!(!AppearanceEvent::WallpaperSelection.restyles());
-    }
     use std::path::Path;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{Duration, Instant};
@@ -185,6 +177,17 @@ mod tests {
         std::fs::rename(&tmp, path).unwrap();
     }
 
+    fn wait_for(watch: &mut AppearanceWatch, event: AppearanceEvent) -> bool {
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while Instant::now() < deadline {
+            if watch.drain().is_ok_and(|events| events.contains(&event)) {
+                return true;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        false
+    }
+
     #[test]
     fn creates_watched_directories_when_missing() {
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
@@ -202,48 +205,16 @@ mod tests {
         assert!(config_dir.exists());
         assert!(data_dir.exists());
 
-        let path = config_dir.join("appearance.domain");
-        write(&path, "color_scheme = \"dark\"\n");
-
-        let deadline = Instant::now() + Duration::from_secs(2);
-        let mut found = false;
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::Appearance)
-            {
-                found = true;
-                break;
-            }
-            std::thread::sleep(Duration::from_millis(5));
-        }
+        write(
+            &config_dir.join("appearance.domain"),
+            "color_scheme = \"dark\"\n",
+        );
         assert!(
-            found,
+            wait_for(&mut watch, AppearanceEvent::Appearance),
             "appearance.domain rename was not detected after creating dirs"
         );
         let _ = std::fs::remove_dir_all(&config_dir);
         let _ = std::fs::remove_dir_all(&data_dir);
-    }
-
-    #[test]
-    fn detects_appearance_domain_rename() {
-        let (config_dir, data_dir) = tmp_dirs();
-        let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
-        let path = config_dir.join("appearance.domain");
-
-        write(&path, "color_scheme = \"dark\"\n");
-
-        let deadline = Instant::now() + Duration::from_secs(2);
-        let mut found = false;
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::Appearance)
-            {
-                found = true;
-                break;
-            }
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        assert!(found, "appearance.domain rename was not detected");
     }
 
     fn defaults(name: &str) -> AppearanceEvent {
@@ -289,16 +260,8 @@ mod tests {
                 &config_dir.join("appearance.domain"),
                 "color_scheme = \"dark\"\n",
             );
-            let mut found = false;
-            while Instant::now() < deadline && !found {
-                found = watch
-                    .drain()
-                    .unwrap()
-                    .contains(&AppearanceEvent::Appearance);
-                std::thread::sleep(Duration::from_millis(5));
-            }
             assert!(
-                found,
+                wait_for(&mut watch, AppearanceEvent::Appearance),
                 "no event after the folder came back (moved: {moved})"
             );
         }
@@ -326,43 +289,23 @@ mod tests {
     #[test]
     fn detects_wallpaper_state_close_write() {
         let (config_dir, data_dir) = tmp_dirs();
-        let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir.clone()).unwrap();
-        let path = data_dir.join("wallpaper.state");
-
-        write(&path, "dominant = [0.8, 0.2, 0.1]\n");
-
-        let deadline = Instant::now() + Duration::from_secs(2);
-        let mut found = false;
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::Wallpaper)
-            {
-                found = true;
-                break;
-            }
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        assert!(found, "wallpaper.state close_write was not detected");
+        let mut watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
+        write(
+            &data_dir.join("wallpaper.state"),
+            "dominant = [0.8, 0.2, 0.1]\n",
+        );
+        assert!(wait_for(&mut watch, AppearanceEvent::Wallpaper));
     }
 
     #[test]
     fn detects_wallpaper_selection_rename() {
         let (config_dir, data_dir) = tmp_dirs();
         let mut watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
-        let path = data_dir.join("wallpaper-selection.state");
-
-        write(&path, "[desktops]\ndefault = \"file:///Solid Gray.png\"\n");
-
-        let deadline = Instant::now() + Duration::from_secs(2);
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::WallpaperSelection)
-            {
-                return;
-            }
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        panic!("wallpaper-selection.state rename was not detected");
+        write(
+            &data_dir.join("wallpaper-selection.state"),
+            "[desktops]\ndefault = \"file:///Solid Gray.png\"\n",
+        );
+        assert!(wait_for(&mut watch, AppearanceEvent::WallpaperSelection));
     }
 
     #[test]
@@ -370,22 +313,11 @@ mod tests {
         let (config_dir, data_dir) = tmp_dirs();
         let mut watch = AppearanceWatch::new_for(config_dir.clone(), data_dir).unwrap();
         let path = config_dir.join("appearance.domain");
-
         write(&path, "color_scheme = \"dark\"\n");
         let _ = watch.drain();
 
         std::fs::rename(&path, config_dir.join("appearance.old")).unwrap();
-
-        let deadline = Instant::now() + Duration::from_secs(2);
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::Appearance)
-            {
-                return;
-            }
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        panic!("appearance.domain moved away was not detected");
+        assert!(wait_for(&mut watch, AppearanceEvent::Appearance));
     }
 
     #[test]
@@ -393,21 +325,10 @@ mod tests {
         let (config_dir, data_dir) = tmp_dirs();
         let mut watch = AppearanceWatch::new_for(config_dir, data_dir.clone()).unwrap();
         let path = data_dir.join("wallpaper.state");
-
         write(&path, "dominant = [0.8, 0.2, 0.1]\n");
         let _ = watch.drain();
 
         std::fs::remove_file(&path).unwrap();
-
-        let deadline = Instant::now() + Duration::from_secs(2);
-        while Instant::now() < deadline {
-            if let Ok(events) = watch.drain()
-                && events.contains(&AppearanceEvent::Wallpaper)
-            {
-                return;
-            }
-            std::thread::sleep(Duration::from_millis(5));
-        }
-        panic!("wallpaper.state delete was not detected");
+        assert!(wait_for(&mut watch, AppearanceEvent::Wallpaper));
     }
 }

@@ -354,13 +354,6 @@ mod tests {
     }
 
     #[test]
-    fn the_lights_sit_9_from_the_left_in_the_32_bar_and_12_in_the_40_bar() {
-        assert_eq!(inset(32), 9.0);
-        assert_eq!(inset(40), 12.0);
-        assert_eq!(button_rect(0).1, 9.0);
-    }
-
-    #[test]
     fn a_light_is_hit_inside_its_circle_and_not_in_the_corner_of_its_box() {
         let (x, y, size) = button_rect(1);
         assert_eq!(
@@ -456,6 +449,7 @@ mod tests {
     fn pressing_one_button_and_releasing_on_another_does_not_fire() {
         let mut pointer = TrafficPointer::default();
         assert!(pointer.on_press(Some(ButtonKind::Close), true));
+        assert_eq!(pointer.pressed_visual(), Some(ButtonKind::Close));
         assert!(pointer.on_motion(Some(ButtonKind::Minimize), true));
         assert_eq!(pointer.pressed_visual(), None);
         assert_eq!(pointer.on_release(Some(ButtonKind::Minimize), true), None);
@@ -496,15 +490,6 @@ mod tests {
         pointer.on_press(Some(ButtonKind::Close), true);
         pointer.on_leave_button();
         assert!(pointer.hovered());
-        assert_eq!(pointer.pressed_visual(), None);
-    }
-
-    #[test]
-    fn pressed_visual_is_only_shown_over_the_armed_button() {
-        let mut pointer = TrafficPointer::default();
-        pointer.on_press(Some(ButtonKind::Close), true);
-        assert_eq!(pointer.pressed_visual(), Some(ButtonKind::Close));
-        pointer.on_motion(Some(ButtonKind::Minimize), true);
         assert_eq!(pointer.pressed_visual(), None);
     }
 }

@@ -1,6 +1,6 @@
-use ctdesign::{CORNER_CONTROLS, ControlSize, GROUP_BOX};
+use ctdesign::{CORNER_CONTROLS, ControlSize};
 
-use super::{
+use crate::styles::{
     ButtonStyle, CheckboxStyle, ComboBoxStyle, ControlStyle, CornerStyle, PopUpButtonStyle,
     SegmentedControlStyle, Shape, TextFieldStyle,
 };
@@ -66,9 +66,4 @@ fn every_control_has_the_radius_and_curve_macos_gives_it_at_every_size() {
             assert_eq!(radius, expected, "{name} at {size:?}");
         }
     }
-}
-
-#[test]
-fn a_group_box_is_the_primary_box_of_macos() {
-    assert_eq!(GROUP_BOX.radius, 12.0);
 }

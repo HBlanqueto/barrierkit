@@ -3,7 +3,9 @@ use bk::prelude::*;
 use bk::views::form::{Form, Row, Section};
 use freya_core::integration::AppComponent;
 use freya_testing::TestingRunner;
-use torin::prelude::{Alignment, Area, Size, Size2D};
+use torin::prelude::{Alignment, Size, Size2D};
+
+use crate::support::area;
 
 struct Case(Box<dyn Fn() -> Element>);
 
@@ -27,13 +29,6 @@ fn runner(build: impl Fn() -> Element + 'static) -> TestingRunner {
     test.sync_and_update();
     test.sync_and_update();
     test
-}
-
-fn area(test: &TestingRunner, id: &str) -> Area {
-    test.find(|node, element| {
-        (element.accessibility().builder.author_id() == Some(id)).then(|| node.layout().area)
-    })
-    .unwrap_or_else(|| panic!("no node probed as {id}"))
 }
 
 fn at(test: &TestingRunner, id: &str) -> (f32, f32) {

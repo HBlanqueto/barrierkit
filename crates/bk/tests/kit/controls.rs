@@ -239,13 +239,16 @@ fn form() -> Element {
 }
 
 fn backdrop() -> Element {
-    let cover = [
+    backdrop_over(BackdropSource::Colors([
         Rgba::rgb8(122, 59, 94),
         Rgba::rgb8(45, 110, 106),
         Rgba::rgb8(180, 112, 63),
-    ];
+    ]))
+}
+
+pub(crate) fn backdrop_over(source: BackdropSource) -> Element {
     Backdrop::new(
-        BackdropSource::Colors(cover),
+        source,
         rect()
             .width(Size::px(420.0))
             .padding(16.0)
@@ -498,7 +501,7 @@ fn golden_path(name: &str, dark: bool) -> PathBuf {
         ))
 }
 
-fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
+pub(crate) fn render(size: (f32, f32), dark: bool, build: fn() -> Element) -> Vec<u8> {
     let app = AppComponent::new(Case { dark, build });
     // The goldens must not depend on the host's appearance.domain, wallpaper accent or default transparency.
     let resolved = resolve(
@@ -652,71 +655,53 @@ fn slider_that_is_not_continuous_reports_once_when_released() {
 }
 
 #[test]
-fn checkbox_click_toggles_and_disabled_does_not_emit() {
+fn checkbox_and_switch_clicks_toggle_and_disabled_ones_do_not_emit() {
     use std::cell::RefCell;
     use std::rc::Rc;
 
-    struct CheckboxCase {
+    struct ToggleCase {
+        switch: bool,
         disabled: bool,
         values: Rc<RefCell<Vec<bool>>>,
     }
-    impl App for CheckboxCase {
+    impl App for ToggleCase {
         fn render(&self) -> impl IntoElement {
             let values = self.values.clone();
-            Checkbox::new("Recordarme")
-                .checked(false)
-                .disabled(self.disabled)
-                .on_toggle(move |v| values.borrow_mut().push(v))
+            let toggled = move |v| values.borrow_mut().push(v);
+            if self.switch {
+                Switch::new("Wi-Fi")
+                    .disabled(self.disabled)
+                    .on_toggle(toggled)
+                    .into_element()
+            } else {
+                Checkbox::new("Recordarme")
+                    .checked(false)
+                    .disabled(self.disabled)
+                    .on_toggle(toggled)
+                    .into_element()
+            }
         }
     }
 
-    for (disabled, expected) in [(false, vec![true, false]), (true, vec![])] {
-        let values = Rc::new(RefCell::new(Vec::new()));
-        let app = AppComponent::new(CheckboxCase {
-            disabled,
-            values: values.clone(),
-        });
-        let (mut test, _) = TestingRunner::new(app, Size2D::new(160.0, 60.0), |_| {}, 1.0);
-        test.sync_and_update();
-        for _ in 0..2 {
-            test.click_cursor((8.0, 8.0));
+    for (switch, size, at) in [
+        (false, Size2D::new(160.0, 60.0), (8.0, 8.0)),
+        (true, Size2D::new(60.0, 30.0), (10.0, 9.0)),
+    ] {
+        for (disabled, expected) in [(false, vec![true, false]), (true, vec![])] {
+            let values = Rc::new(RefCell::new(Vec::new()));
+            let app = AppComponent::new(ToggleCase {
+                switch,
+                disabled,
+                values: values.clone(),
+            });
+            let (mut test, _) = TestingRunner::new(app, size, |_| {}, 1.0);
             test.sync_and_update();
+            for _ in 0..2 {
+                test.click_cursor(at);
+                test.sync_and_update();
+            }
+            assert_eq!(*values.borrow(), expected, "switch: {switch}");
         }
-        assert_eq!(*values.borrow(), expected);
-    }
-}
-
-#[test]
-fn switch_click_toggles_and_disabled_does_not_emit() {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    struct SwitchCase {
-        disabled: bool,
-        values: Rc<RefCell<Vec<bool>>>,
-    }
-    impl App for SwitchCase {
-        fn render(&self) -> impl IntoElement {
-            let values = self.values.clone();
-            Switch::new("Wi-Fi")
-                .disabled(self.disabled)
-                .on_toggle(move |v| values.borrow_mut().push(v))
-        }
-    }
-
-    for (disabled, expected) in [(false, vec![true, false]), (true, vec![])] {
-        let values = Rc::new(RefCell::new(Vec::new()));
-        let app = AppComponent::new(SwitchCase {
-            disabled,
-            values: values.clone(),
-        });
-        let (mut test, _) = TestingRunner::new(app, Size2D::new(60.0, 30.0), |_| {}, 1.0);
-        test.sync_and_update();
-        for _ in 0..2 {
-            test.click_cursor((10.0, 9.0));
-            test.sync_and_update();
-        }
-        assert_eq!(*values.borrow(), expected);
     }
 }
 

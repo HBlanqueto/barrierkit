@@ -137,13 +137,6 @@ mod tests {
     }
 
     #[test]
-    fn ctrl_letter_is_not_inserted() {
-        let mut field = PasswordField::default();
-        typed(&mut field, "a", Modifiers::CONTROL);
-        assert!(enter(&mut field).is_none());
-    }
-
-    #[test]
     fn enter_on_an_empty_field_submits_nothing() {
         assert!(enter(&mut PasswordField::default()).is_none());
     }

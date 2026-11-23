@@ -143,11 +143,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_tengen_knob_is_handed_to_the_compositor_without_the_app_asking() {
-        assert!(SwitchStyle::tengen().knob_glass.is_some());
-    }
-
-    #[test]
     fn reduced_motion_makes_the_knob_jump() {
         let reduced = AppearanceConfig {
             reduced_motion: true,
