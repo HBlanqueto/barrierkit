@@ -320,6 +320,8 @@ Module `compact`.
   (`TOOLGROUP`), and its
   symbol grows to 21 with a 1.6 stroke (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`): the size
   AppKit draws toolbar symbols at ([sizes](../research/macos-control-metrics.md#toolbar-items-and-navigation-buttons)).
+  In an inactive window a toolbar symbol takes `Role(TertiaryLabel)`, as AppKit dims toolbar
+  items (Dark, measured 2026-11-23: ink 0.29 over the platter, `tertiaryLabelColor` is 0.25).
 - `Stepper` shows the value and, 8 to its right, the arrows: 20 × 24, up above down
   (`STEPPER`). ↑ and ↓ also step. An arrow is dimmed at its limit.
 - `ToggleGroup` is a row of independent toggles on one background, for text formatting.

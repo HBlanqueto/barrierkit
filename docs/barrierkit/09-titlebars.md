@@ -69,7 +69,8 @@ Behavior:
   The title uses `TITLEBAR.font`.
 - With items the bar is the unified one, as in SwiftUI: 52 high, the traffic
   lights at (19, 19) and the title `SETTINGS.toolbar_lights_gap` (22) after them, in
-  `TITLE_2`. A first `Navigation` item starts `TITLEBAR_TOOLBAR_START.unified`
+  `TITLE_2`. The first item (the sidebar toggle, a `.left` view or a
+  `Navigation` item) starts `TITLEBAR_TOOLBAR_START.unified`
   (16) after the lights, and the title follows it `SETTINGS.toolbar_gap` (13)
   later. In the compact bar that item starts `TITLEBAR_TOOLBAR_START.compact`
   (22) after the lights; they land at x 95 and 94, where SwiftUI puts them.

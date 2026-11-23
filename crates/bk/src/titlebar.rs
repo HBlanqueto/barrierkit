@@ -401,9 +401,9 @@ impl Titlebar {
         let (traffic_x, traffic_y) = sidebar.lights_position;
         let lights_end = traffic_x + lights.length();
         let lights_space = !matches!(traffic, Lights::Absent);
-        let item_first = self.left.is_none()
-            && crate::sidebar::sidebar_control().is_none()
-            && slots.navigation.is_some();
+        let item_first = self.left.is_some()
+            || crate::sidebar::sidebar_control().is_some()
+            || slots.navigation.is_some();
         let lights_beside_title = lights_space && self.left.is_none() && slots.navigation.is_none();
         let lights_gap = if item_first {
             TITLEBAR_TOOLBAR_START.unified
@@ -762,7 +762,7 @@ pub(crate) fn sidebar_toggle_placement(occupied: f32, content: f32) -> (f32, f32
     let lights: TrafficLightsStyle = resolve(&Theme::tengen());
     let platter = TOOLGROUP.height as f32;
     let padding_x = style.sidebar_padding_x;
-    let hidden_x = sidebar.lights_position.0 + lights.length() + padding_x;
+    let hidden_x = sidebar.lights_position.0 + lights.length() + TITLEBAR_TOOLBAR_START.unified;
     let docked_x = occupied - platter - SIDEBAR.toggle_inset;
     let zone_x = (occupied + content + padding_x).max(hidden_x);
     (

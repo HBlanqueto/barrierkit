@@ -865,9 +865,8 @@ fn the_sidebar_toggle_sits_at_the_sidebar_end_and_after_the_lights_once_it_hides
     test.poll(Duration::from_millis(16), Duration::from_millis(100));
     let toggle = probed(&test, "sidebar-toggle").expect("toggle");
     let (_, _, lights_width, _) = ctappearance::traffic::group_rect();
-    let hidden_x = SIDEBAR.traffic_x as f32
-        + lights_width as f32
-        + ctdesign::SETTINGS.toolbar_padding_x as f32;
+    let hidden_x =
+        SIDEBAR.traffic_x as f32 + lights_width as f32 + ctdesign::TITLEBAR_TOOLBAR_START.unified;
     assert!(
         (toggle.origin.x - hidden_x).abs() < 0.5,
         "hidden at {hidden_x}, got {}",

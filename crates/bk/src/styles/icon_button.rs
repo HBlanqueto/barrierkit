@@ -25,7 +25,8 @@ pub struct IconButtonStyle {
     pub shape: Shape,
     /// Tengen: `Clear`, pressed `Color(PressedPalette.bezel)`, disabled `Clear`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`.
+    /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`; in a toolbar of an inactive window
+    /// `Role(TertiaryLabel)`, as AppKit dims toolbar items.
     pub icon: StateValue<ShapeStyle>,
     /// Tengen: `None`.
     pub border: Option<(ShapeStyle, f32)>,
@@ -46,7 +47,9 @@ pub struct IconButtonStyle {
 
 impl ControlStyle for IconButtonStyle {
     fn tengen() -> Self {
-        let (size, icon_size, stroke, shape) = match crate::compact::toolbar_style() {
+        let toolbar = crate::compact::toolbar_style();
+        let dimmed = toolbar.is_some() && !crate::platform::window_activated();
+        let (size, icon_size, stroke, shape) = match toolbar {
             Some(_) => {
                 let height = TOOLGROUP.height as f32;
                 let size = crate::compact::slim_toolbar_items()
@@ -75,8 +78,12 @@ impl ControlStyle for IconButtonStyle {
             background: StateValue::new(ShapeStyle::Clear)
                 .pressed(ShapeStyle::Color(pressed_palette().bezel))
                 .disabled(ShapeStyle::Clear),
-            icon: StateValue::new(ShapeStyle::Role(Role::Label))
-                .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
+            icon: StateValue::new(ShapeStyle::Role(if dimmed {
+                Role::TertiaryLabel
+            } else {
+                Role::Label
+            }))
+            .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             border: None,
             shadows: Vec::new(),
             opacity: 1.0,

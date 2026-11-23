@@ -281,8 +281,9 @@ titlebar's left zone: `Titlebar::new().left(SidebarToggle)`. It takes
 While the sidebar is docked the button leaves the bar and sits inside the
 sidebar, at its right end, `SIDEBAR.toggle_inset` (7) from the edge, as in
 SwiftUI's `NavigationSplitView`; the title then starts 20 from the edge. When
-the sidebar hides, the button slides to its place in the bar, after the
-traffic lights, and takes its width there. Floating over the content in a
+the sidebar hides, the button slides to its place in the bar,
+`TITLEBAR_TOOLBAR_START.unified` (16) after the traffic lights, where SwiftUI
+puts it, and takes its width there. Floating over the content in a
 narrow window, the sidebar does not move it.
 
 `TOGGLE_SIDEBAR` is the [`Action`](13-app.md) with the id `toggle-sidebar` and
