@@ -10,7 +10,7 @@ use crate::elements::{Overrides, forward_overrides};
 use crate::environment::{use_disabled, use_is_enabled};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
-use crate::style::with_font;
+use crate::style::{text_style, with_font};
 use crate::styles::Painted;
 use crate::styles::{
     Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, StepperStyle, Theme,
@@ -502,9 +502,7 @@ impl Component for Toggle {
             .maybe(!disabled, |el| el.on_press(move |_| on_press.call(())))
             .child(
                 paragraph()
-                    .font_family(font.family)
-                    .font_size(font.size as f32)
-                    .font_weight(font.weight as i32)
+                    .with(|el| text_style(el, font))
                     .font_slant(match face {
                         Face::Italic => FontSlant::Italic,
                         Face::Bold | Face::Underline => FontSlant::Upright,

@@ -10,6 +10,7 @@ use crate::elements::{Overrides, forward_overrides};
 use crate::glass::{GlassEdge, fullscreen_backdrop};
 use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
+use crate::style::text_style;
 use crate::styles::Painted;
 use crate::styles::{
     ControlState, ControlStyle, FullscreenBarStyle, LayoutDirection, Paints, ShadowStyle,
@@ -583,9 +584,7 @@ impl Component for RotatedTitle {
                     .child(
                         label()
                             .text(self.title.clone())
-                            .font_family(self.font.family)
-                            .font_size(self.font.size as f32)
-                            .font_weight(FontWeight::from(self.font.weight as i32))
+                            .with(|el| text_style(el, self.font))
                             .color(crate::theme::color(self.ink))
                             .max_lines(1)
                             .text_overflow(TextOverflow::Ellipsis),

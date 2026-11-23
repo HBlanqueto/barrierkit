@@ -3,6 +3,7 @@ use std::ops::Range;
 use ctdesign::MONO;
 use freya_core::prelude::*;
 
+use crate::style::sized_font;
 use crate::styles::{Paints, ShapeStyle};
 use crate::theme::color;
 
@@ -295,11 +296,18 @@ pub(crate) fn styled_spans(
         if style.italic {
             span = span.font_slant(FontSlant::Italic);
         }
-        for family in style.family.iter().flat_map(|list| list.split(',')) {
-            span = span.font_family(family.trim().to_owned());
-        }
+        let families: Vec<&str> = style
+            .family
+            .iter()
+            .flat_map(|list| list.split(','))
+            .map(str::trim)
+            .collect();
         if let Some(size) = style.size {
-            span = span.font_size(size);
+            let first = families.first().copied().unwrap_or(ctdesign::BODY.family);
+            span = sized_font(span, first, size);
+        }
+        for family in families {
+            span = span.font_family(family.to_owned());
         }
         if let Some(foreground) = &style.foreground_style {
             span = span.color(color(paints.color(foreground)));

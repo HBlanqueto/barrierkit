@@ -15,11 +15,11 @@ use crate::rich_text::{
     Emphasis, FontChoice, StyleRun, apply_font, font_at, link_at, restyle_after_edit, styled_spans,
     toggle,
 };
-use crate::style::text;
+use crate::style::{text, text_style};
 use crate::symbol::Symbol;
 
 use crate::context_menu::{Spelling, edit_menu};
-use crate::controls::{dimmed, text_style};
+use crate::controls::dimmed;
 use crate::interaction::ring;
 use crate::scroll::{ScrollView, use_scroll_controller};
 use crate::spelling::{

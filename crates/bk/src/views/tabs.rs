@@ -8,6 +8,7 @@ use crate::controls::shadowed;
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::measure_text;
+use crate::style::text_style;
 use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, TabType, TabViewStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
@@ -321,9 +322,7 @@ impl Component for ToolbarTab {
             .child(
                 label()
                     .text(self.title.clone())
-                    .font_family(style.font.family)
-                    .font_size(style.font.size as f32)
-                    .font_weight(style.font.weight as i32)
+                    .with(|el| text_style(el, style.font))
                     .max_lines(1)
                     .color(color(ink)),
             );
@@ -376,9 +375,7 @@ impl Component for StripTab {
             .child(
                 label()
                     .text(self.title.clone())
-                    .font_family(style.font.family)
-                    .font_size(style.font.size as f32)
-                    .font_weight(style.font.weight as i32)
+                    .with(|el| text_style(el, style.font))
                     .max_lines(1)
                     .color(color(ink)),
             );

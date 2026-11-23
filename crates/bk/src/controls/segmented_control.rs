@@ -206,9 +206,7 @@ impl Component for Segment {
                         label()
                             .text(self.text.clone())
                             .max_lines(1)
-                            .font_family(font.family)
-                            .font_size(font.size as f32)
-                            .font_weight(font.weight as i32)
+                            .with(|el| text_style(el, font))
                             .color(paints.fill(ink)),
                     ),
             )

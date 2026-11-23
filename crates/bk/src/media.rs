@@ -14,7 +14,7 @@ use crate::animation::use_animated;
 use crate::controls::{dimmed, shadowed};
 pub use crate::glass::{Material, TopGlass};
 use crate::interaction::{control_state, use_interaction};
-use crate::style::Palette;
+use crate::style::{Palette, text_style};
 use crate::styles::Painted;
 use crate::styles::{LayoutDirection, MediaButtonStyle, Paints, RoundButtonStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
@@ -144,9 +144,7 @@ impl Component for MediaButton {
             .child(
                 label()
                     .text(self.label.clone())
-                    .font_family(font.family)
-                    .font_size(font.size as f32)
-                    .font_weight(font.weight as i32)
+                    .with(|el| text_style(el, font))
                     .max_lines(1)
                     .color(paints.fill(&style.label)),
             );

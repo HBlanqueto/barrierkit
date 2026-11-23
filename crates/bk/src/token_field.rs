@@ -4,10 +4,10 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed, text_style};
+use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed};
 use crate::elements::{Overrides, forward_overrides};
 use crate::focus::use_focus_target;
-use crate::style::with_font;
+use crate::style::{text_style, with_font};
 use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, Theme, TokenFieldStyle, resolve};
 

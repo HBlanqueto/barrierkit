@@ -20,6 +20,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use crate::ProbeExt;
 use crate::app::DefaultsRevision;
 use crate::platform::{Bar, DecorationResponse, WindowControls, WindowStatus};
+use crate::style::text_style;
 use crate::styles::{
     ControlState, Paints, ShapeStyle, SidebarStyle, StateValue, Theme, TitlebarStyle,
     TrafficLightsStyle, resolve,
@@ -270,9 +271,7 @@ impl Component for Titlebar {
         };
         let title_label = label()
             .text(title)
-            .font_family(title_font.family)
-            .font_size(title_font.size as f32)
-            .font_weight(FontWeight::from(title_font.weight as i32))
+            .with(|el| text_style(el, title_font))
             .color(theme::color(title_color))
             .max_lines(1)
             .text_overflow(TextOverflow::Ellipsis)

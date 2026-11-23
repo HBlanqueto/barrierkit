@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use ctdesign::{CORNER_SMOOTHING, Font, Rgba, WINDOW_CORNER};
 use freya_core::prelude::*;
 
-use crate::theme::color;
+use crate::{fonts::optical, theme::color};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Palette {
@@ -109,11 +109,21 @@ pub fn text(content: impl Into<Cow<'static, str>>, face: Font, ink: Rgba) -> Lab
 }
 
 pub(crate) fn with_font(label: Label, face: Font) -> Label {
-    label
-        .font_family(face.family)
-        .font_size(face.size as f32)
-        .font_weight(face.weight as i32)
-        .line_height(face.line_height as f32 / face.size as f32)
+    text_style(label, face).line_height(face.line_height as f32 / face.size as f32)
+}
+
+pub(crate) fn text_style<T: TextStyleExt>(element: T, face: Font) -> T {
+    sized_font(element, face.family, face.size as f32).font_weight(face.weight as i32)
+}
+
+pub(crate) fn sized_font<T: TextStyleExt>(element: T, family: &str, size: f32) -> T {
+    let (family, spacing) = optical(family, size);
+    let element = element.font_family(family).font_size(size);
+    if let Some(spacing) = spacing {
+        element.letter_spacing(spacing)
+    } else {
+        element
+    }
 }
 
 pub fn continuous_corner(radius: f32) -> CornerRadius {

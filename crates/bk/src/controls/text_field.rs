@@ -652,13 +652,6 @@ pub(crate) fn default_pre_key(event: &Event<KeyboardEventData>) -> bool {
     }
 }
 
-pub(crate) fn text_style(element: Rect, font: Font) -> Rect {
-    element
-        .font_family(font.family)
-        .font_size(font.size as f32)
-        .font_weight(font.weight as i32)
-}
-
 pub(crate) fn input(
     value: State<String>,
     placeholder: impl Into<Cow<'static, str>>,

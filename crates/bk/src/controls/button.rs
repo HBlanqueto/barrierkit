@@ -188,10 +188,7 @@ impl Component for Button {
                 })
             })
             .maybe(self.content.is_some(), |el| {
-                el.font_family(font.family)
-                    .font_size(font.size as f32)
-                    .font_weight(font.weight as i32)
-                    .color(paints.fill(&style.label))
+                text_style(el, font).color(paints.fill(&style.label))
             })
             .maybe_child(self.content.clone().map(|content| {
                 TextStyleScope::new(style.font, style.label.resolve(state).clone(), content)

@@ -24,6 +24,9 @@ pub(crate) use ::calloop;
 #[cfg(target_os = "linux")]
 pub(crate) use sctk::reexports::calloop;
 
+// CoreText sets each face's optical size and `trak` tracking from the point size; Linux keeps the face as it is.
+pub(crate) const OPTICAL_SIZING: bool = cfg!(target_os = "macos");
+
 pub use input::{inserts_text, modifier_flags};
 pub use main_menu_export::MainMenuAddress;
 pub use popup::{

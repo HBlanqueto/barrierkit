@@ -8,7 +8,7 @@ use freya_components::input::{
 };
 use freya_components::theming::macros::Preference;
 
-use ctdesign::{Font, HAIRLINE, Rgba, TEXT_LINE_HEIGHT};
+use ctdesign::{HAIRLINE, Rgba, TEXT_LINE_HEIGHT};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, CursorPoint, Direction, Gaps, Position, Size};
 
@@ -28,7 +28,7 @@ use crate::password::PasswordField;
 use crate::spelling::{
     InputParagraphs, Squiggles, char_index, dictionary, known, misspelled, utf16_ranges,
 };
-use crate::style::with_font;
+use crate::style::{text_style, with_font};
 use crate::styles::Painted;
 use crate::styles::{
     Axis, ButtonStyle, CheckboxStyle, ControlState, Edge, LayoutDirection, Paints,
@@ -53,7 +53,7 @@ pub use circular_slider::CircularSlider;
 pub use segmented_control::SegmentedControl;
 pub use slider::Slider;
 pub use text_field::{SearchField, SecureField, TextField};
-pub(crate) use text_field::{default_pre_key, input, text_style};
+pub(crate) use text_field::{default_pre_key, input};
 pub use toggle::{Checkbox, Switch};
 pub use tool_group::ToolGroup;
 

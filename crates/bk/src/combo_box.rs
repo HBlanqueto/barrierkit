@@ -4,15 +4,14 @@ use std::borrow::Cow;
 use torin::prelude::{Area, Gaps, Position, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{
-    ControlSize, default_pre_key, dimmed, input, outer_hairline, shadowed, text_style,
-};
+use crate::controls::{ControlSize, default_pre_key, dimmed, input, outer_hairline, shadowed};
 use crate::elements::{Overrides, forward_overrides};
 use crate::environment::use_disabled;
 use crate::focus::use_focus_target;
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
+use crate::style::text_style;
 use crate::styles::Painted;
 use crate::styles::{
     ComboBoxStyle, ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextFieldStyle,

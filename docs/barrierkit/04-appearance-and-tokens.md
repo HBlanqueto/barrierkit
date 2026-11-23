@@ -322,6 +322,14 @@ bk::register_font(include_bytes!("../fonts/Display.otf"));
 The type tokens use Adwaita Sans and Geist Mono ([Type](#type)). The dev shell
 installs them.
 
+On macOS those families are missing, so text falls back to the system font.
+CoreText picks a face's optical size (`opsz`) and its `trak` tracking from the
+point size; Skia pins both. So on macOS the kit lays out every type token as
+CoreText does: a copy of the face at `opsz` equal to the size, and the `trak`
+value as letter spacing. A 22 pt bold title is then as wide as in AppKit.
+Set sizes with `Text::font`: a bare `.font_size(..)` keeps Skia's layout.
+Linux keeps the face as it is.
+
 ## Theme functions
 
 `bk::theme` connects the resolved appearance with Freya.

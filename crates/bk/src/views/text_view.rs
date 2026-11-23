@@ -6,6 +6,7 @@ use freya_edit::*;
 use torin::prelude::{Area, Size};
 
 use crate::elements::{Overrides, forward_overrides};
+use crate::style::sized_font;
 use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TextViewStyle, Theme, resolve};
 use crate::theme::color;
 
@@ -261,8 +262,7 @@ impl Component for TextView {
             .on_focus_press(on_focus_press)
             .width(self.width.clone())
             .height(self.height.clone())
-            .font_family(self.family.clone())
-            .font_size(self.size)
+            .with(|el| sized_font(el, &self.family, self.size))
             .line_height(self.line_height / self.size)
             .color(color(paints.color(style.text.resolve(state))))
             .cursor_index(focused.then(|| editor.cursor_pos()))
