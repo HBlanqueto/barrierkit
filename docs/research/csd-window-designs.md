@@ -38,10 +38,21 @@ session named in section 4.
 
 | # | Swift design | Kit option | Active / inactive | Zoomed | Tiled | Full screen |
 | - | ------------ | ---------- | ----------------- | ------ | ----- | ----------- |
-| A | `WindowGroup`, no toolbar (system bar) | `WindowStyle::TitleBar` | measured, same ([macos-windows.md](macos-windows.md)) | animation same, 21 fr / 333 ms; look owed | owed | same as Swift rows 1 and 2 of [fullscreen-titlebars.md](fullscreen-titlebars.md); the kit `Titlebar` disappears |
-| B | `.toolbar{}` with `.windowToolbarStyle(.unified)`, `.unifiedCompact`, `.expanded` | `Titlebar::toolbar_style` (`Unified`, `UnifiedCompact`; no `Expanded`) | kit variants in [09](../barrierkit/09-titlebars.md#variants-in-a-normal-window); Swift twin owed | owed | owed | Swift pins the toolbar and shifts the content 52 / 40 / 68 px (rows 3 to 8); `.autoHideToolbar` hides it (row 11); kit has neither |
-| C | `.windowStyle(.hiddenTitleBar)`, AppKit `titlebarAppearsTransparent` + `.fullSizeContentView` | `WindowStyle::HiddenTitleBar` | measured, kit bar beside native lights | animation same; look owed | owed | lights at the top edge as in Swift; the kit bar's place in full screen is being changed by the running session `kit-csd-drag` |
-| D | `.windowStyle(.plain)`, borderless `NSWindow` | `WindowStyle::Plain` | kit lights drawn by the kit | zoom by the green light same as Swift; by title-bar double click does not zoom (not diagnosed) | owed: no Move & Resize menu on a kit light | Swift `.plain` never enters; kit enters with one frame jump (2 bounds), hides menu bar and Dock for good |
+| A | `WindowGroup`, no toolbar (system bar) | `WindowStyle::TitleBar` | measured, same ([macos-windows.md](macos-windows.md)) | animation same, 21 fr / 333 ms; look owed | same in Swift and kit, nothing changes but the frame: Left `0,30 1280×1325`, Top Left `1280×662`, Fill and a drag to the top `2560×1325`, Center moves only; corner 16, shadow 56 px, lights and focus as windowed; Swift `isZoomed` is true after Fill only (`tile/swift-A-*`, `tile/kit-app-title-bar-*`) | same as Swift rows 1 and 2 of [fullscreen-titlebars.md](fullscreen-titlebars.md); the kit `Titlebar` disappears |
+| B | `.toolbar{}` with `.windowToolbarStyle(.unified)`, `.unifiedCompact`, `.expanded` | `Titlebar::toolbar_style` (`Unified`, `UnifiedCompact`; no `Expanded`) | kit variants in [09](../barrierkit/09-titlebars.md#variants-in-a-normal-window); Swift twin owed | owed | Swift `.unified` as A, toolbar unchanged (`tile/swift-B-*`); the kit toolbar sits in A's `NSWindow`, not captured | Swift pins the toolbar and shifts the content 52 / 40 / 68 px (rows 3 to 8); `.autoHideToolbar` hides it (row 11); kit has neither |
+| C | `.windowStyle(.hiddenTitleBar)`, AppKit `titlebarAppearsTransparent` + `.fullSizeContentView` | `WindowStyle::HiddenTitleBar` | measured, kit bar beside native lights | animation same; look owed | as A in Swift and kit, lights keep their windowed offset (`tile/swift-C-*`, `tile/kit-notes-hidden-title-bar-*`) | lights at the top edge as in Swift; the kit bar's place in full screen is being changed by the running session `kit-csd-drag` |
+| D | `.windowStyle(.plain)`, borderless `NSWindow` | `WindowStyle::Plain` | kit lights drawn by the kit | zoom by the green light same as Swift; by title-bar double click does not zoom (not diagnosed) | Swift `.plain` never tiles: the Window menu and a drag do nothing (`tile/swift-D-*`). Kit tiles through Window > Fill, Center and Move & Resize of an `Application` with A's frames, keeping corner 16.8 and its 23 px shadow; not by a drag to an edge (the kit moves the window itself) nor from its lights; a `run_window` window has no Window menu (`tile/kit-app-plain-*`, `tile/kit-notes-plain-*`) | Swift `.plain` never enters; kit enters with one frame jump (2 bounds), hides menu bar and Dock for good |
+
+Tiled is a ceiling: macOS 27.2 has no public tiled state. The SDK has
+`isZoomed` and the full-screen tile behaviors only, the Window menu items
+call private actions (`_zoomLeft:`, `_zoomFill:`), and AppKit posts only
+`windowWillStartLiveResize`, `windowDidResize` and `windowDidEndLiveResize`.
+Firefox needs a private API for the same state
+([bug 2054999](https://bugzilla.mozilla.org/show_bug.cgi?id=2054999)). No
+design looks different when tiled, so `WindowStatus` has no tiled field.
+"Tiled windows have margins" is off on this Mac
+(`EnableTiledWindowMargins = 0`); with margins on, nothing was measured.
+Probe `~/src/probes/tile/`, captures `~/src/captures/tile/`.
 
 Rows 13 and 14 of [fullscreen-titlebars.md](fullscreen-titlebars.md)
 (title-bar accessories) belong to design B; rows 15, 16 and 19 (kiosk, keep

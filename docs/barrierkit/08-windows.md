@@ -158,6 +158,9 @@ in.
 | `decoration` | `DecorationResponse::Client` (the app draws the title bar and the lights), `Server` (the compositor does; `Titlebar` then takes no space) or `Hybrid` (the system draws the lights and the app the bar) |
 | `fixed` | Minimum size equals maximum size |
 
+macOS has no public tiled state: a tiled window only moves and resizes
+([window designs](../research/csd-window-designs.md#2-designs-against-states)).
+
 The look of the title bar in each state is in
 [9. Titlebars](09-titlebars.md#maximized-full-screen-and-focus-mode).
 
