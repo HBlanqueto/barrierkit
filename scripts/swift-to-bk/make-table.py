@@ -43,14 +43,14 @@ def swift_key(token):
 
 def glossary_rows():
     for c in table_rows(GLOSSARY):
-        if len(c) != 6 or c[0] in ('BarrierKit', 'Before', 'Name'):
+        if len(c) != 7 or c[0] in ('BarrierKit', 'Before', 'Name'):
             continue
         kit = TICKS.search(c[0])
         for token in TICKS.findall(c[2]):
             key, labels = swift_key(token)
             if key and kit:
                 row = {'swift': key, 'kit': kit.group(1), 'status': 'partial' if '≈' in c[2] else 'mapped',
-                       'origin': 'glossary', 'chapter': c[5]}
+                       'origin': 'glossary', 'chapter': c[6]}
                 if labels is not None:
                     row['labels'] = labels
                 yield row
