@@ -214,3 +214,31 @@ fn a_row_with_a_button_is_44_high() {
     });
     assert_eq!(height, 20.0 + 16.0 + 10.0 + 44.0 + 20.0);
 }
+
+// NSSlider and SwiftUI's Slider are 12, 14, 16 and 20 high at mini, small, regular and large; a label line is only
+// reserved when the slider has labels (~/src/probes/intrinsic.swift).
+#[test]
+fn a_slider_is_as_tall_as_its_knob_until_it_has_labels() {
+    use bk::controls::{ControlSize, Slider};
+    for (size, height) in [
+        (ControlSize::Mini, 12.0),
+        (ControlSize::Small, 14.0),
+        (ControlSize::Regular, 16.0),
+        (ControlSize::Large, 20.0),
+    ] {
+        let (_, found) = size_of(move || {
+            rect()
+                .width(Size::px(100.0))
+                .child(Slider::new("S").size(size))
+                .into_element()
+        });
+        assert_eq!(found, height, "{size:?}");
+    }
+    let (_, labeled) = size_of(|| {
+        rect()
+            .width(Size::px(100.0))
+            .child(Slider::new("S").labels(&["Low", "High"]))
+            .into_element()
+    });
+    assert!(labeled > 16.0);
+}

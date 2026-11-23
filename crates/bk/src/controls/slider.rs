@@ -204,10 +204,11 @@ impl Component for Slider {
             }
         };
 
+        let label_edge = style.labels.filter(|_| !self.labels.is_empty());
         let labels_first =
-            matches!(style.labels, Some(Edge::Top | Edge::Leading)) != (vertical && right_to_left);
+            matches!(label_edge, Some(Edge::Top | Edge::Leading)) != (vertical && right_to_left);
         let label_line = style.label_font.size as f32 * TEXT_LINE_HEIGHT;
-        let (width, height, direction) = match (vertical, style.labels) {
+        let (width, height, direction) = match (vertical, label_edge) {
             (true, _) => (Size::auto(), Size::px(length), Direction::Horizontal),
             (false, Some(_)) => (
                 Size::px(length),
@@ -382,7 +383,7 @@ impl Component for Slider {
             .child(knob_rect);
 
         let shown = steps.unwrap_or(self.labels.len());
-        let labels_row = style.labels.map(|_| {
+        let labels_row = label_edge.map(|_| {
             let names = self.labels.iter().take(shown).map(|text| {
                 let label_node = with_font(label().text(text.clone()), style.label_font)
                     .max_lines(1)

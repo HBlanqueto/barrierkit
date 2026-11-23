@@ -640,11 +640,11 @@ fn slider_that_is_not_continuous_reports_once_when_released() {
         });
         let (mut test, _) = TestingRunner::new(app, Size2D::new(240.0, 80.0), |_| {}, 1.0);
         test.sync_and_update();
-        test.press_cursor((190.0, 20.0));
+        test.press_cursor((190.0, 8.0));
         test.sync_and_update();
-        test.move_cursor((130.0, 20.0));
+        test.move_cursor((130.0, 8.0));
         test.sync_and_update();
-        test.release_cursor((130.0, 20.0));
+        test.release_cursor((130.0, 8.0));
         test.sync_and_update();
         assert_eq!(*values.borrow(), expected);
     }
