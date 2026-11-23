@@ -19,6 +19,7 @@ mod layout;
 mod list_rows;
 mod menu;
 mod modifiers;
+mod motion;
 mod swiftui_defaults;
 mod swiftui_twin;
 mod template;

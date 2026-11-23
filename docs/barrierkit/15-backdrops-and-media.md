@@ -235,7 +235,7 @@ GlassContainer::new(20.0)
    shapes melt into each other.
 3. When the set of items or their frames change, each shape moves from its
    old frame to the new one with the `animation` of its style (Tengen:
-   `Ease` over `DURATION_BASE`, the kit's spring without bounce; none with
+   `Ease` over `DURATION_BASE`, the cubic ease-out; none with
    reduced motion). The first layout does not animate.
 
 The morph plan is public, for tests and for other containers:

@@ -357,3 +357,20 @@ The program is [`recipes/tasks_list.rs`](recipes/tasks_list.rs).
    gives the compact bar with a centered title.
 2. A `ToolGroup` of two items is a 76 wide capsule and one item is a 38 circle;
    no divider, as in SwiftUI.
+
+## 30. A change that animates only when you say so
+
+SwiftUI: `Button("Show") { withAnimation(.smooth) { expanded.toggle() } }` and a `frame(height:)` that follows `expanded`.
+
+The program is [`recipes/with_animation.rs`](recipes/with_animation.rs).
+
+1. `use_animated(target, Animation::None)` returns the value that follows
+   `target`. With `Animation::None` as its default, it moves only inside a
+   transaction.
+2. `with_animation(animation, || expanded.toggle())` tags the change with
+   `animation`: here the spring of a sheet (`SPRING_SHEET_MS`, `bounce` 0).
+   Every `use_animated` whose target changes right after it uses that
+   animation, and reduced motion turns it into 0 ms.
+3. A change made again while the value moves goes on from the value and the
+   velocity it shows.
+

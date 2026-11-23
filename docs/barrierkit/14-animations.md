@@ -44,13 +44,14 @@ reduced motion.
 
 ## Durations
 
-The kit times every animation with three tokens of `ctdesign`:
+The kit times every animation with these tokens of `ctdesign` (the springs are in [Spring](#spring)):
 
 | Token | Use |
 |---|---|
 | `DURATION_FAST_MS` | Following the pointer: scroll bars, the sidebar width while dragging |
 | `DURATION_BASE` | Showing, hiding, collapsing, morphing |
 | `DURATION_SLOW_MS` | Fading between backdrops |
+| `DURATION_LIST_ROW_MS`, `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | Measured on Mac Catalyst; no kit control uses them yet |
 
 A Freya animation takes them as milliseconds: `AnimNum::new(from, to)
 .time(DURATION_BASE).ease(Ease::Out).function(Function::Cubic)`. A component
@@ -79,25 +80,57 @@ Pressing a button changes its fill to the pressed color; `BUTTON.pressed_scale` 
 
 ## Spring
 
-`Spring` is the kit's spring curve (Grade). It implements Freya's
-`AnimatedValue`, so it works in `use_animation` and
+`Spring` is the kit's spring, SwiftUI's `Spring(duration:bounce:)`. It
+implements Freya's `AnimatedValue`, so it works in `use_animation` and
 `use_animation_transition` like `AnimNum`.
 
 | Item | What it does |
 |---|---|
-| `Spring::new(from, to, duration, bounce)` | `bounce` is clamped to 0–1 |
+| `Spring::new(from, to, duration, bounce)` | `duration` is the period `2π / ω0`; `bounce` is `1 − ζ`, clamped to 0–0.95 |
+| `.with_velocity(v)` | The velocity at the start, in units per second |
+| `.settling_duration()` | When the value is within 0.001 of the travel; from then on it is `to` exactly |
+| `.value(elapsed)`, `.velocity(elapsed)` | The value and its rate after `elapsed` |
 | `.current()` | The value at the animation's current time |
-| `.value(elapsed)` | The value after `elapsed`; `to` from `duration` on |
-| `.value_at(progress)` | The value at `progress` 0–1, clamped |
 
-- With `bounce` 0 the curve is a cubic ease-out, with no overshoot. That curve and the
-  cubic ease-in-out are `ctdesign::ease_out` and `ctdesign::ease_in_out`: the kit, the shell
-  and the compositor call the same two functions.
-- With more bounce it is a damped oscillation,
-  `1 − e^(−SPRING_DAMPING·t)·cos(π(1 + bounce)·t)`, that overshoots and
-  settles. `SPRING_DAMPING` is a `ctdesign` token.
-- It always ends exactly on `to` at `duration`. In reverse it runs from `to`
-  to `from`.
+- With `bounce` 0 the spring is critically damped: no overshoot. Every spring
+  measured on Mac Catalyst is this one, with periods of 344 ms (sheets), 274 ms
+  (alerts) and about 251 ms (push); they are the `SPRING_*_MS` tokens
+  ([UIKit animations](../research/uikit-animations.md#2-motion-table)).
+- With more bounce it is underdamped and overshoots.
+- A spring started from the value and velocity of another goes on exactly as
+  the first would have. That is how a change interrupted midway keeps moving
+  without a jump.
+- `ctdesign::ease_out` and `ctdesign::ease_in_out` are the kit's timed curves:
+  the kit, the shell and the compositor call the same two functions.
+- In reverse it runs from `to` to `from`, from rest.
+
+## Implicit animation
+
+SwiftUI animates what changes inside `withAnimation`. The kit does the same
+with two functions ([ADR 0102](../decisions.md)):
+
+| Item | What it does |
+|---|---|
+| `with_animation(animation, body)` | Runs `body` and tags the changes that follow it with `animation`. `Animation::None` is `withAnimation(nil)` |
+| `use_animated(target, animation)` | Returns a value that follows `target`. When `target` changes within 100 ms of a `with_animation`, it uses that animation; otherwise `animation` |
+
+```rust
+let progress = use_animated(f32::from(u8::from(*expanded.read())), Animation::None);
+Button::new("Show").on_press(move |_| {
+    with_animation(Animation::Spring { duration_ms: SPRING_SHEET_MS, bounce: 0.0 }, || expanded.toggle())
+})
+```
+
+- Reduced motion turns every animation into `Animation::None`.
+- A target that changes while the value moves starts a new animation from the
+  value and the velocity shown. A spring keeps the velocity; `Ease` and
+  `Custom` start from rest.
+- The outermost `with_animation` of a turn decides. SwiftUI scopes a transaction
+  to the writes in its closure, so an inner `withAnimation` animates its own
+  writes; the kit ignores the inner call, because a Freya `State` has one write
+  path the kit cannot tag.
+- `Transition` (how a view enters and leaves) is decided in the ADR and not built
+  yet; its first user is navigation and presentation.
 
 ## Reduced motion
 

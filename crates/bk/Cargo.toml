@@ -216,3 +216,7 @@ path = "../../agents/recipes/titlebar_over_gradient.rs"
 [[example]]
 name = "toggle"
 path = "../../agents/recipes/toggle.rs"
+
+[[example]]
+name = "with_animation"
+path = "../../agents/recipes/with_animation.rs"

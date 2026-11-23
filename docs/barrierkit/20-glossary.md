@@ -156,7 +156,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::Shape` | enum | `Rectangle`, `RoundedRectangle`, `UnevenRoundedRectangle`, `Capsule`, `Circle` | ≈ `NSBezierPath` | ≈ `UIBezierPath` | Outline of a part | [Styles](../../agents/styles.md#value-types) |
 | `styles::CornerStyle` | enum | `RoundedCornerStyle` | — | `CALayerCornerCurve` | `Continuous` or `Circular` corners | [Styles](../../agents/styles.md#value-types) |
 | `styles::ShadowStyle` | struct | `ShadowStyle` (`.drop`, `.inner`) | `NSShadow` | `NSShadow` | One shadow: color, x, y, blur, spread, inner | [Styles](../../agents/styles.md#value-types) |
-| `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | How a change moves: `None`, `Ease`, `Spring`, `Custom` | [Styles](../../agents/styles.md#value-types) |
+| `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | How a change moves: `None`, `Ease`, `Spring` (period and bounce), `Custom`; ADR 0102 | [Styles](../../agents/styles.md#value-types) |
 | `styles::ColorEffect` | type | — | ≈ `NSColor.withSystemEffect(_:)` | — | `fn(Rgba, ControlState) -> Rgba` applied to every paint of a control | [Styles](../../agents/styles.md#value-types) |
 | `styles::system_effect` | fn | — | ≈ `NSColor.SystemEffect` | — | Tengen's color effect: returns the color unchanged | [Styles](../../agents/styles.md#value-types) |
 | `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `NSLayoutConstraint.Axis` | `Horizontal` or `Vertical` | [Styles](../../agents/styles.md#value-types) |
@@ -847,7 +847,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` | constant | — | — | — | Durations: 120, 250, 420 ms; theme fade wait | [4](04-appearance-and-tokens.md#motion) |
 | `ctdesign::DURATION_LIST_ROW_MS`, `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | constant | — | — | ≈ `UITableView.RowAnimation`, `UIMenu`, `UIPopoverPresentationController` | Measured Mac Catalyst durations: 300, 200, 210, 120 ms | [4](04-appearance-and-tokens.md#motion) |
 | `ctdesign::SPRING_SHEET_MS`, `SPRING_ALERT_MS`, `SPRING_PUSH_MS` | constant | ≈ `Spring.duration` | — | ≈ `UISheetPresentationController`, `UIAlertController`, `UINavigationController` | Perceptual duration of the measured Mac Catalyst springs (bounce 0): 344, 274, 251 ms | [4](04-appearance-and-tokens.md#motion) |
-| `ctdesign::SPRING_DAMPING` | constant | ≈ `Spring.damping` | — | ≈ `UISpringTimingParameters` | Damping of the kit's spring | [4](04-appearance-and-tokens.md#motion) |
+| `ctdesign::SPRING_DAMPING` | constant | ≈ `Spring.damping` | — | ≈ `UISpringTimingParameters` | Damping of the old spring; no reader in the kit since ADR 0102 | [4](04-appearance-and-tokens.md#motion) |
 | `ctdesign::LIGHT`, `DARK`, `DARK_TINT` | constant | — | — | — | Base palette of each theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::BG_WINDOW_LIGHT`, `BG_WINDOW_DARK`, `BG_WINDOW_DARK_TINT`, `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT`, `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT`, `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT`, `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT`, `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | constant | — | ≈ `NSColor.windowBackgroundColor`… | — | Background layers per theme | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | constant | — | — | — | Share of the window tint each layer takes | [4](04-appearance-and-tokens.md#colors) |
@@ -1446,7 +1446,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
-| `animation::Spring` | struct | `Spring` | ≈ `CASpringAnimation` | ≈ `CASpringAnimation` | The kit's spring curve with duration and bounce; a Freya animated value | [14](14-animations.md#spring) |
+| `animation::Spring` | struct | `Spring` | ≈ `CASpringAnimation` | ≈ `CASpringAnimation` | A damped spring by perceptual duration and bounce, with initial velocity and settling duration; a Freya animated value | [14](14-animations.md#spring) |
+| `animation::with_animation` | fn | `withAnimation(_:_:)` | ≈ `NSAnimationContext.runAnimationGroup(_:)` | ≈ `UIView.animate(withDuration:animations:)` | Tags the changes of its closure with an `Animation`; the outermost call of a turn wins; `Animation::None` is `withAnimation(nil)` | [14](14-animations.md#implicit-animation) |
+| `animation::use_animated` | fn | ≈ `View.animation(_:value:)` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | Hook returning a value that follows its target with the animation of a transaction or its default; a change midway keeps the velocity | [14](14-animations.md#implicit-animation) |
 | `animation::use_reduced_motion` | fn | `EnvironmentValues.accessibilityReduceMotion` | `NSWorkspace.accessibilityDisplayShouldReduceMotion` | `UIAccessibility.isReduceMotionEnabled` | Hook returning the live reduced motion preference | [14](14-animations.md#reduced-motion) |
 | `animation::motion_ms` | fn | — | — | — | A duration, or 0 when reduced motion is on | [14](14-animations.md#reduced-motion) |
 | `animation::use_switch_progress` | fn | — | — | — | Hook easing 0–1 after a boolean state with an `Animation`; jumps with reduced motion | [14](14-animations.md#helpers) |

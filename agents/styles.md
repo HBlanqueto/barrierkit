@@ -96,7 +96,7 @@ All of them are in `bk::styles` and in the prelude.
 | `Shape` | the outline of a part | `Rectangle`, `RoundedRectangle { radius, style }`, `UnevenRoundedRectangle { top_leading, bottom_leading, bottom_trailing, top_trailing, style }`, `Capsule`, `Circle` (a capsule on a part that is not square) |
 | `CornerStyle` | the corner curve | `Continuous` (macOS's smooth corner, smoothing 0.745), `Circular` |
 | `ShadowStyle` | one shadow | `color: Rgba`, `x`, `y`, `blur`, `spread`, `inner`; a part takes a `Vec` |
-| `Animation` | how a value change moves | `None`, `Ease { duration_ms }` (cubic ease-out), `Spring { duration_ms, bounce }`, `Custom { duration_ms, curve }` with `curve: fn(f32) -> f32` from 0–1 to 0–1 |
+| `Animation` | how a value change moves | `None`, `Ease { duration_ms }` (cubic ease-out), `Spring { duration_ms, bounce }` (SwiftUI's spring: `duration_ms` is its period, `bounce` 0 is critically damped; it carries the velocity of a change interrupted midway), `Custom { duration_ms, curve }` with `curve: fn(f32) -> f32` from 0–1 to 0–1 |
 | `ColorEffect` | your own color algorithm | `fn(Rgba, ControlState) -> Rgba`, applied to every paint of the control; Tengen's `system_effect` returns the color unchanged |
 | `Axis` | orientation | `Horizontal`, `Vertical` |
 | `Edge` | where labels go | `Top`, `Bottom`, `Leading`, `Trailing` |

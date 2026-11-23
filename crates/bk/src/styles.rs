@@ -496,23 +496,34 @@ impl Animation {
     pub(crate) fn duration_ms(self) -> u64 {
         match self {
             Self::None => 0,
-            Self::Ease { duration_ms }
-            | Self::Spring { duration_ms, .. }
-            | Self::Custom { duration_ms, .. } => duration_ms,
+            Self::Ease { duration_ms } | Self::Custom { duration_ms, .. } => duration_ms,
+            Self::Spring {
+                duration_ms,
+                bounce,
+            } => unit_spring(duration_ms, bounce)
+                .settling_duration()
+                .as_millis() as u64,
         }
     }
 
     pub(crate) fn progress(self, elapsed: f32) -> f32 {
-        let spring = |bounce| {
-            crate::animation::Spring::new(0.0, 1.0, Duration::ZERO, bounce).value_at(elapsed)
-        };
         match self {
             Self::None => 1.0,
-            Self::Ease { .. } => spring(0.0),
-            Self::Spring { bounce, .. } => spring(bounce),
+            Self::Ease { .. } => crate::animation::ease_out(elapsed.clamp(0.0, 1.0)),
+            Self::Spring {
+                duration_ms,
+                bounce,
+            } => {
+                let spring = unit_spring(duration_ms, bounce);
+                spring.value(spring.settling_duration().mul_f32(elapsed.clamp(0.0, 1.0)))
+            }
             Self::Custom { curve, .. } => curve(elapsed),
         }
     }
+}
+
+fn unit_spring(duration_ms: u64, bounce: f32) -> crate::animation::Spring {
+    crate::animation::Spring::new(0.0, 1.0, Duration::from_millis(duration_ms), bounce)
 }
 
 pub type ColorEffect = fn(Rgba, ControlState) -> Rgba;
