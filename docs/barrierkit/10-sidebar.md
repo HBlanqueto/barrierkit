@@ -95,7 +95,7 @@ The column of navigation rows. Its children scroll in a
 | `.style(f)` | Tengen | A `SidebarStyle` ([Style](#style)) |
 | `.key(key)` | none | Diff key, as on any Freya element |
 
-The sidebar is flat and full height, as in macOS 27 ([ADR 0079](../decisions.md)):
+The sidebar is flat and full height, as in macOS 27 ([Glass](#glass)):
 it starts at the window's left edge and runs from the top to the bottom, with
 no inset, rounded corner, rim or line. Only its color sets it apart from the
 content: `#ededed` against `#ffffff` in light, `#262626` against `#1e1e1e` in
@@ -121,7 +121,8 @@ lights are in the sidebar, the first row starts below them.
 With a compositor that offers `infinity_window_style_v1` version 6, as
 Malaysia does, the sidebar is a glass panel. The kit leaves its rectangle
 transparent and sends it with `set_glass`; the compositor draws the material and
-the rim under and over the rows ([ADR 0065](../decisions.md)).
+the rim under and over the rows. Only the compositor sees the wallpaper, so
+only it can draw the material.
 The app does nothing. The kit sends the panel again whenever the sidebar's area
 changes. On macOS the panel is AppKit's own sidebar, the same glass as SwiftUI's
 `NavigationSplitView` ([15](15-backdrops-and-media.md#on-macos)). On macOS 26
@@ -324,7 +325,8 @@ hid by itself in a narrow window counts as visible.
 
 `.content(view)` is the middle column of
 `NavigationSplitView(sidebar:content:detail:)`. The recipe is
-[`three_columns.rs`](../../agents/recipes/three_columns.rs).
+[`three_columns.rs`](../../agents/recipes/three_columns.rs). A three-column
+app needs it, and SwiftUI's split view takes one.
 
 - It starts `SIDEBAR.width` wide and has the sidebar's grip, keys and limits
   (`.sidebar_range`, `.resizable`): there is no token for this column, so it

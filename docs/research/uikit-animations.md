@@ -242,7 +242,7 @@ is looser than the band above: an input of 120 and 240 pt gave 63 and 72 pt, 600
 pt gave 96 pt (the first 5 events jump to about 55 pt), and the stretch past the
 held edge is the stiff band again. Three pulls only; the mapping is not fitted.
 
-**Model for the kit** (`crates/bk/src/scroll_physics.rs`, ADR 0104):
+**Model for the kit** (`crates/bk/src/scroll_physics.rs`, [Scrolling](../barrierkit/05-controls.md#scrolling)):
 
 | Constant | Value | Source |
 |---|---|---|

@@ -618,7 +618,10 @@ The program is [`recipes/documents.rs`](recipes/documents.rs).
 2. `document.save().await` is the Save command: it asks for a file when `document.url()` is `None`, then calls your closure.
 3. `.on_open_url(|url: OpenedUrl| ..)` receives the files that Finder and `open -a` hand to the app. Declare
    `CFBundleDocumentTypes` in the app's `Info.plist`.
-4. macOS only: on Linux nothing is vetoed and no open event arrives ([ADR 0112](../docs/decisions.md)).
+4. On Linux the compositor's close request and `WindowControls::close()` ask with the kit's `Alert` in a sheet window
+   (Save, Don’t Save, Cancel), quit asks for the first edited window first, and `org.freedesktop.Application.Open`
+   hands each URI to `on_open_url`; there is no dirty dot
+   ([chapter 8](../docs/barrierkit/08-windows.md#documents-and-file-dialogs)).
 
 ## 49. An inspector and a background extension
 

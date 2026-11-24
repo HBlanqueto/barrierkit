@@ -69,6 +69,8 @@ before deleting.
 
 `Spacer`, `Frame`, `Grid`, `ZStack`, `Layout` and `ViewThatFits` are in `bk::layout`, and the prelude exports them.
 A `VStack` or an `HStack` is a column or a row; these say what a stack cannot.
+They are the SwiftUI layout views app authors miss most; without them each app
+builds them by hand with `rect()` and measured widths.
 
 ### `Spacer`
 
@@ -130,7 +132,7 @@ The program is [`layout_grid.rs`](../../agents/recipes/layout_grid.rs). Three li
    different rows are in different columns. Put the Grid in a parent aligned
    `Start`, or give it a `.height`.
 3. There is no `gridCellAnchor`, no hidden row and no baseline alignment: torin
-   cannot state a baseline ([ADR 0089](../decisions.md)).
+   cannot state a baseline.
 
 ### `ZStack`, `overlay` and `background_view`
 
@@ -146,7 +148,7 @@ grow it. The recipe is [`layout_layers.rs`](../../agents/recipes/layout_layers.r
 Image::system(Symbol::Bell).overlay(ContentAlignment::TOP_TRAILING, badge)
 ```
 
-Three limits ([ADR 0110](../decisions.md)):
+Three limits ([Custom layout](#custom-layout)):
 
 1. Torin sizes the parent from the first child (the view, for an overlay and a
    background). A `ZStack` whose first child is not the largest is sized right
@@ -164,6 +166,8 @@ gets the space offered and the size of each subview, and returns a `Placement`
 with the size of the container and the origin of each subview in it.
 `LayoutContainer::with_layout(layout).child(..)` is the view; `ZStack` is the
 `ZStackLayout` one. The program is `layout_layers.rs`, with a flow layout.
+Torin cannot give a child its sibling's size or a reverse direction, but it can
+move a child after it measures, so a layout is a placement.
 
 Torin measures each subview once, with the space the container has, so a
 layout cannot ask a subview for another size (`sizeThatFits` with several
@@ -186,7 +190,8 @@ candidate; the measured size replaces it right after.
 
 `view.layout_direction(LayoutDirection::RightToLeft)` is SwiftUI's
 `.environment(\.layoutDirection, .rightToLeft)`. `LayoutDirection` defaults to
-`LeftToRight`; the kit does not read the locale. Under it:
+`LeftToRight`; the kit does not read the locale. Torin has no reverse
+direction, so the direction is a scope that kit views read and mirror. Under it:
 
 | Mirrors | How |
 |---|---|
@@ -404,9 +409,10 @@ The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-tab
 
 1. The closure takes the row index and returns any view. The app keeps its data
    (an `Rc`, or a `Copy` struct of `State`s) and the closure reads the row from
-   it.
+   it. It is a closure, not a view, so the table runs it in the row's scope and
+   only for the visible rows.
 2. The strings of `rows` give the row count. The string of a view cell stays its
-   accessible name ([ADR 0084](../decisions.md)). A column without `.cell`
+   accessible name ([Common rules](05-controls.md#common-rules)). A column without `.cell`
    draws its string, so a table can mix text and views.
 3. The view runs inside a text scope: `Text`, `Label` and a Freya `label()` take
    the font of the table and the ink of the row, which is `OnSelectedContent`
@@ -436,7 +442,7 @@ The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-tab
 
 Not measured: the height and the insets of a row that holds a view, and where
 the separator starts under an avatar. The rows keep the values of text rows;
-there are no `listRow*` modifiers because no value backs them.
+the [list row modifiers](#list-row-modifiers) choose only among those.
 
 ### `SortOrder`
 
@@ -445,7 +451,7 @@ direction.
 
 ### List row modifiers
 
-`List` and `Table` take `ListRowModifiers`, like SwiftUI's `listRow*`. Each method takes a closure of the row index, which in a sectioned `List` counts across the sections. The program is [`list_rows.rs`](../../agents/recipes/list_rows.rs).
+`List` and `Table` take `ListRowModifiers`, like SwiftUI's `listRow*`. Each method takes a closure of the row index, which in a sectioned `List` counts across the sections. The program is [`list_rows.rs`](../../agents/recipes/list_rows.rs). SwiftUI apps style their rows with these, so the kit takes the same names.
 
 | Method | Effect |
 |---|---|
@@ -759,6 +765,7 @@ that points at the view it sits on, writes `false` when the user dismisses it (a
 closes it when the app writes `false`. `size` is the card's, as in `Popover::new`; the closure runs
 each time the popover opens, and nothing opens until the view has a size. `.popover` uses a hook:
 call it unconditionally. Neither has `onDismiss`, `item:`, `attachmentAnchor` or `arrowEdge`.
+Both take a `State<bool>`, as `sheet` does, because the kit has no `Binding`.
 The recipe is [`presentations.rs`](../../agents/recipes/presentations.rs).
 
 ### `Alert`

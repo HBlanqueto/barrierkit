@@ -138,7 +138,7 @@ impl ScrollController {
     }
 }
 
-// A touchpad scroll past an edge stretches the content and a release glides (ADR 0104). The rest offset stays
+// A touchpad scroll past an edge stretches the content and a release glides (docs/barrierkit/05-controls.md#scrolling). The rest offset stays
 // in Freya's controller; the stretch is a shift of the whole view, so nothing else reads it. While the view
 // is refreshing the start edge is `refresh_hold` above the content, so the offset may be negative.
 #[derive(Clone)]
@@ -246,7 +246,7 @@ impl Elastic {
         }
     }
 
-    // The pan of a finger, as a gesture of the lowest priority on the content (ADR 0105). The finger's
+    // The pan of a finger, as a gesture of the lowest priority on the content (docs/barrierkit/05-controls.md#gestures). The finger's
     // velocity at the release is the glide's, whichever platform: only a wheel has system momentum.
     pub(crate) fn pan(&self, controller: ScrollController, horizontal: bool) -> DragGesture {
         let (changed, ended) = (self.clone(), self.clone());

@@ -108,7 +108,7 @@ const FADE_STOPS: [f64; 3] = [0.0, 0.75, 1.0];
 // How much of the material a soft edge shows where it is whole and at its end: the SwiftUI window over a red row shows it at half.
 pub(super) const FADE_STRENGTH: (f64, f64) = (0.6, 0.0);
 
-// SwiftUI's sidebar scroll pocket under a full-screen bar, read from Resonance Swift (ADR 0116), with Core Animation's private
+// SwiftUI's sidebar scroll pocket under a full-screen bar, read from Resonance Swift (docs/barrierkit/09-titlebars.md#full-screen), with Core Animation's private
 // backdrop layers: a half-scale variable blur of the rows, and over it the background behind the rows, captured below them and shown
 // through a gradient. Both run 10 pt past the pocket's bottom; the blur's mask and the gradient each ramp over 30 pt there.
 const POCKET_RAMP: f64 = 30.0;

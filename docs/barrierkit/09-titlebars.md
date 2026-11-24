@@ -163,7 +163,7 @@ The recipe is [`toolbar_items.rs`](../../agents/recipes/toolbar_items.rs).
   declared. Apple's page for `primaryAction` says "leading edge" for macOS; the
   probe disagrees and the kit follows the probe. The same probe showed no effect
   of `ToolbarSpacer` in a plain `.toolbar { }`, so the spacer follows Apple's
-  description of it (a gap, or a push), as [ADR 0108](../decisions.md) says.
+  description of it (a gap, or a push).
 
 ### Style
 
@@ -212,7 +212,8 @@ detail's bar takes the toolbar background, not the sidebar layout's veil.
 
 With the pointer at the top edge, the menu bar comes down with AppKit's strip.
 The kit's row rides in that strip with the native lights and the title, as
-SwiftUI's ([ADR 0116](../decisions.md#0116--in-full-screen-the-title-bar-row-of-a-hiddentitlebar-window-rides-with-appkits-bar)):
+SwiftUI's. AppKit fills its full-screen bar with an opaque background that no
+public setting clears, so the kit's own row cannot show through it:
 
 - the title of a unified or compact bar rides on a layer of its own;
 - in the expanded bar AppKit draws the title row, the toolbar row rides
@@ -233,6 +234,8 @@ Close, minimize and zoom, drawn as macOS 27 draws them: 14 pt discs with a
 vertical gradient, a 0.5 pt ring, a halo in the light appearances and a glyph
 while the pointer is over the group. The measurement is in
 [macOS control metrics](../research/macos-control-metrics.md#traffic-lights-macos-27).
+They are the most seen control of a window, so the kit draws them from that
+measurement.
 `Titlebar` and `Sidebar::traffic_lights(true)` place them with
 `TrafficLights::for_window(focused, fixed)`, which wires them to
 `WindowControls` and the user's settings. In a fixed-width window

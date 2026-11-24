@@ -109,7 +109,7 @@ thread_local! {
     static TRANSACTION: Cell<Option<(Instant, Animation)>> = const { Cell::new(None) };
 }
 
-// Freya's State has one write path the kit cannot tag, so the outermost call of a turn decides (ADR 0102).
+// Freya's State has one write path the kit cannot tag, so the outermost call of a turn decides (docs/barrierkit/14-animations.md#implicit-animation).
 pub fn with_animation<R>(animation: Animation, body: impl FnOnce() -> R) -> R {
     let depth = NESTING.get();
     NESTING.set(depth + 1);

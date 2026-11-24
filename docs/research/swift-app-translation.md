@@ -200,9 +200,9 @@ snapshots of 2026-11-20 and 2026-11-21:
 | Coverage matrix, rows | 65 measured, 36 implemented | 81 | 39 |
 | API gap, items | 144 implemented | 504 | 733 (284 `n/a`, 7 out of scope) |
 
-ADRs 0084 to 0089 closed rows of the top 20 after those snapshots: owned
-labels, views in `List` and `Table`, `Spacer`, `Grid` and `frame`, scenes and
-the standard menus, ambient `disabled`, environment values and focus by name.
+The kit closed rows of the top 20 after those snapshots: [owned
+labels](../barrierkit/05-controls.md#common-rules), [views in `List` and `Table`](../barrierkit/11-views.md#views-in-rows-and-cells), [`Spacer`, `Grid` and `frame`](../barrierkit/11-views.md#layout), [scenes](../barrierkit/08-windows.md#scenes) and
+[the standard menus](../barrierkit/13-app.md#standard-menus), ambient [`disabled`](../barrierkit/16-swiftui-to-the-kit.md#disabled), [environment values](../barrierkit/16-swiftui-to-the-kit.md#environment) and [focus](../barrierkit/16-swiftui-to-the-kit.md#focus) by name.
 
 The AppKit side has no kit counterpart for these
 ([swift-syntax-in-rust.md](swift-syntax-in-rust.md), 2): `NSResponder` and

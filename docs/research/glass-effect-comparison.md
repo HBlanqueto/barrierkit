@@ -1,6 +1,6 @@
 # `glassEffect` against the kit: measured on macOS 27.2.1
 
-**Goal:** know how far `.glass_effect(Glass, Shape)` (ADR 0113) is from SwiftUI's `.glassEffect(_:in:)`, in light and dark, key and not key, nested, and under Reduce Transparency and Increase Contrast.
+**Goal:** know how far `.glass_effect(Glass, Shape)` ([Glass on any view](../barrierkit/15-backdrops-and-media.md#glass-on-any-view)) is from SwiftUI's `.glassEffect(_:in:)`, in light and dark, key and not key, nested, and under Reduce Transparency and Increase Contrast.
 **Scope:** macOS arm64, 2560 x 1440 at scale 1, measured 2026-11-23. The kit's native path (`NSGlassEffectView` in a chrome, ADR 0100) and its Skia fallback. Not measured: scale 2, `Glass.tint`, `.interactive()`, `glassEffectUnion` (not built), macOS below 26.
 **Reader:** whoever changes `glass_container.rs`, `StyleModifiers::glass_effect`, `platform/backdrop.rs` or the glass branch of `platform/macos/mod.rs`.
 **Input:** a Mac in an unlocked session, `~/src/probes/glasseffect.swift` (SwiftUI twin), `~/src/probes/glass_probe.rs` (the kit's layouts), `~/src/probes/glasscmp/` (capture and pixel scripts, Python 3 standard library only).

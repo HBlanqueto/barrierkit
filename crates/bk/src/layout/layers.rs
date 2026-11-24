@@ -117,7 +117,7 @@ impl LayoutElement {
     }
 }
 
-// Torin measures the subviews with the space the container has; `post_measure` then moves them where the layout says (ADR 0110).
+// Torin measures the subviews with the space the container has; `post_measure` then moves them where the layout says (docs/barrierkit/11-views.md#custom-layout).
 impl ElementExt for LayoutElement {
     fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
         !layout_diff(self, other).is_empty()

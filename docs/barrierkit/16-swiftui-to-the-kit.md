@@ -71,7 +71,7 @@ other control takes its value and a callback
 
 `.environment(value)` puts a value in the environment of a view, and `use_environment::<T>()` reads the nearest one below it. The type is the key, so an app wraps a `bool` or a `String` in its own type. `T` is `Clone + PartialEq + Default`: the default is what a reader gets when no view above provides one.
 
-The scope keeps a `State` and writes the new value in its render, so a view that read the value renders again when it changes. Put the modifier after the children, as in SwiftUI.
+The scope keeps a `State` and writes the new value in its render, so a view that read the value renders again when it changes: Freya 0.5.3 has no other way to make a context change visible. Put the modifier after the children, as in SwiftUI.
 
 ✓ [`environment.rs`](../../agents/recipes/environment.rs).
 
@@ -113,7 +113,7 @@ it in the render (its fields are hooks), and give it to `use_provide_context`.
 
 ## Focus
 
-`use_focus_state::<T>()` returns a `FocusState<T>`. It is `Copy`; `T` is your enum of fields (`Clone + PartialEq`). `.focused(state, value)` on a view registers the controls inside it under `value`: the text fields (`TextField`, `SecureField`, `SearchField`, `TextEditor`, `ComboBox`, `TokenField`) and every other control the kit draws with `use_interaction`.
+`use_focus_state::<T>()` returns a `FocusState<T>`. It is `Copy`; `T` is your enum of fields (`Clone + PartialEq`). `.focused(state, value)` on a view registers the controls inside it under `value`, so the app moves the focus by its own name, not by a raw id: the text fields (`TextField`, `SecureField`, `SearchField`, `TextEditor`, `ComboBox`, `TokenField`) and every other control the kit draws with `use_interaction`.
 
 - `state.get()` returns the value of the focused control, or `None`, and subscribes the view.
 - `state.set(Some(value))` moves the focus to the first control registered under `value`; `state.set(None)` takes it off.
@@ -185,7 +185,7 @@ The hooks are in `freya-core` 0.5.3, `src/lifecycle/` and `src/hooks/`.
 
 ## What the kit does not do
 
-[ADR 0085](../decisions.md) fixes these as non-goals until an app asks for one; [ADR 0112](../decisions.md) builds the close veto, the quit and the open-URL event for documents.
+[ADR 0085](../decisions.md) fixes these as non-goals until an app asks for one; the kit builds the close veto, the quit and the open-URL event for documents ([Documents and file dialogs](08-windows.md#documents-and-file-dialogs)).
 
 | SwiftUI or AppKit | In the kit |
 |---|---|

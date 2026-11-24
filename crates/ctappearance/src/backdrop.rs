@@ -79,7 +79,7 @@ pub fn take_chroma(base: Rgba, source: Rgba, amount: f32) -> Rgba {
     tinted
 }
 
-// The glass saturates smoothly towards `cap`, so a vivid wallpaper does not turn the panel into a window (ADR 0078).
+// The glass saturates smoothly towards `cap`, so a vivid wallpaper does not turn the panel into a window (docs/barrierkit/10-sidebar.md#glass).
 pub fn take_chroma_capped(base: Rgba, source: Rgba, amount: f32, cap: f32) -> Rgba {
     let (p, q) = (Oklab::from_rgba(base), Oklab::from_rgba(source));
     let t = amount.clamp(0.0, 1.0);
@@ -95,7 +95,7 @@ pub fn take_chroma_capped(base: Rgba, source: Rgba, amount: f32, cap: f32) -> Rg
     tinted
 }
 
-// macOS 26 also lifts a dark window towards this lightness as it takes the wallpaper's hue (ADR 0065).
+// macOS 26 also lifts a dark window towards this lightness as it takes the wallpaper's hue (Malaysia ADR 0065).
 pub fn lift(color: Rgba, amount: f32) -> Rgba {
     let mut lab = Oklab::from_rgba(color);
     lab.l += (WALLPAPER_TINTING_TARGET - lab.l) * amount.clamp(0.0, 1.0);

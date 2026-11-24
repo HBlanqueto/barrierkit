@@ -82,7 +82,8 @@ Pressing a button changes its fill to the pressed color; `BUTTON.pressed_scale` 
 
 `Spring` is the kit's spring, SwiftUI's `Spring(duration:bounce:)`. It
 implements Freya's `AnimatedValue`, so it works in `use_animation` and
-`use_animation_transition` like `AnimNum`.
+`use_animation_transition` like `AnimNum`. A physical spring matches the
+measured curves and carries its velocity, which a timed curve cannot.
 
 | Item | What it does |
 |---|---|
@@ -109,7 +110,7 @@ implements Freya's `AnimatedValue`, so it works in `use_animation` and
 ## Implicit animation
 
 SwiftUI animates what changes inside `withAnimation`. The kit does the same
-with two functions ([ADR 0102](../decisions.md)):
+with two functions:
 
 | Item | What it does |
 |---|---|
@@ -141,7 +142,8 @@ Button::new("Show").on_press(move |_| {
 ## Transitions
 
 A view that comes and goes animates when an app wraps it in `Presence` and
-changes the state inside `with_animation` ([ADR 0113](../decisions.md)):
+changes the state inside `with_animation`. It reuses `use_animated` and the
+`with_animation` transaction, so a transition moves as any other change does:
 
 ```rust
 Presence::new((*shown.read()).then(|| Text::new("Hello")))

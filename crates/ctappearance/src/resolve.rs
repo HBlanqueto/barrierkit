@@ -206,7 +206,7 @@ impl Resolved {
     }
 }
 
-// How much of the wallpaper's chroma the sidebar glass takes, and the chroma it saturates towards (ADR 0078).
+// How much of the wallpaper's chroma the sidebar glass takes, and the chroma it saturates towards (docs/barrierkit/10-sidebar.md#glass).
 pub fn glass_chroma(scheme: ColorScheme) -> (f32, f32) {
     if scheme.is_dark() {
         (GLASS.chroma_dark, GLASS.chroma_cap_dark)
@@ -242,7 +242,7 @@ pub fn glass_blur_passes(scheme: ColorScheme) -> u32 {
     }
 }
 
-// The wallpaper shows along the left, top and bottom edges of a panel: `intensity` at the edge, fading over `span` logical pixels, with `chroma` and `lightness` of what is `offset` logical pixels outside the window (ADR 0078).
+// The wallpaper shows along the left, top and bottom edges of a panel: `intensity` at the edge, fading over `span` logical pixels, with `chroma` and `lightness` of what is `offset` logical pixels outside the window (docs/barrierkit/10-sidebar.md#glass).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GlassEdge {
     pub intensity: f32,

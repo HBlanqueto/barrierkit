@@ -85,7 +85,7 @@ method changes one field (the fields are also public).
 | `new(title, app_name)` | — | Visible title and short, stable name |
 | `.app_id(id)` | `io.github.hblanqueto.malaysia.<app_name>` | The Wayland `app_id`. [`titlebar::app_id(name)`](09-titlebars.md#helpers) builds the default |
 | `.size((width, height))` | `WINDOW_DEFAULT_SIZE` (640 × 420) | Initial size of the whole window, AppKit's title bar included, as SwiftUI's `defaultSize`. A size saved on close wins, clamped to the limits |
-| `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits of the content below the window's bar, as SwiftUI's `.frame(minWidth:minHeight:)`: the window adds 52 for `HiddenTitleBar`, the native bar for `TitleBar` (40 on Linux) and 0 for `Plain` (ADR 0117). Equal limits make the window fixed-size (`WindowStatus::fixed`); a 0 in the maximum leaves that dimension unbounded |
+| `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits of the content below the window's bar, as SwiftUI's `.frame(minWidth:minHeight:)`: the window adds 52 for `HiddenTitleBar`, the native bar for `TitleBar` (40 on Linux) and 0 for `Plain`, so the window stops where its SwiftUI twin does. Equal limits make the window fixed-size (`WindowStatus::fixed`); a 0 in the maximum leaves that dimension unbounded |
 | `.menu(MainMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
 | `.status_item(StatusItem)` | none | A status icon in the menu bar ([13. App](13-app.md)) |
 | `.window_style(WindowStyle)` | `TitleBar` | Who frames the window on macOS ([Window style](#window-style)); Linux ignores it |
@@ -206,7 +206,7 @@ rides instead, in a row of its own under the lights, as SwiftUI's `.expanded`
 does. Under the bar, a `Sidebar` gets a soft blurred edge as deep as the bar
 reaches, as SwiftUI's sidebar does; the content beside it is left as it is.
 The content does not move
-([ADR 0116](../decisions.md#0116--in-full-screen-the-title-bar-row-of-a-hiddentitlebar-window-rides-with-appkits-bar)).
+([Full screen](09-titlebars.md#full-screen)).
 
 ### Resizing from the edges
 
@@ -229,7 +229,8 @@ along each corner.
 An `Application` declares its windows as scenes. `.window(title, content)` is
 the first, `.scene(..)` adds the others, and `.options(..)` changes the
 `WindowOptions` of the scene declared last. The first scene that is not
-`Settings` opens at launch; the rest open when the app asks.
+`Settings` opens at launch; the rest open when the app asks. A scene gives each window an id, so the
+app can open, front, close and list its windows, and each keeps its own saved size.
 
 | Type | Like | What it is |
 |---|---|---|
@@ -471,7 +472,7 @@ and `DocumentGroup`; AppKit: `NSOpenPanel`, `NSSavePanel` and `NSDocument`. The 
 7. **Close.** The native close button of an edited window shows the "Do you want to save the changes made to the document “name”?" sheet with Save, Cancel and Don’t Save. Save writes and closes; a write that fails keeps the window open. Cmd-W and Cmd-Q go through the same delegate methods and are meant to ask the same, but were not run. On Linux the compositor's close request and `WindowControls::close()` show the kit's `Alert` in a sheet window with the same buttons, and quit asks for the first edited window first; there is no dirty dot.
 8. **Open.** `.on_open_url(|url: OpenedUrl| ..)` runs for each file (`OpenedUrl::File(path)`) or address (`OpenedUrl::Other(text)`) that Finder, `open` or a link hands to the app. The app declares `CFBundleDocumentTypes` and `CFBundleURLTypes` in its `Info.plist`; the kit does not generate it.
 
-On macOS `WindowControls::close()` and the kit's own traffic lights (a `Plain` window) close without asking. What is not built is in [ADR 0112](../decisions.md).
+On macOS `WindowControls::close()` and the kit's own traffic lights (a `Plain` window) close without asking. Not built: `UTType` filters, `FileDocument`, `DocumentGroup`, autosave and versions, and a recent-documents menu. The kit does not use `NSDocument`: it would be a second owner of the file and of the window.
 
 ## Errors
 

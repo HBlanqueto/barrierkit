@@ -356,7 +356,7 @@ fn open_placed_menu(
     on_dismissed: Option<Rc<dyn Fn()>>,
     arrow: bool,
 ) {
-    // The compositor draws its glass under a kit client's menus (ADR 0071), in a window too.
+    // The compositor draws its glass under a kit client's menus (Malaysia ADR 0071), in a window too.
     let glass: fn(MenuPalette) -> MenuPalette = if arrow {
         dock_menu
     } else {

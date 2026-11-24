@@ -270,7 +270,7 @@ not publish its morph curve; only the duration and the bounce would change.
 ## Glass on any view
 
 `view.glass_effect(Glass::REGULAR, Shape::Capsule)` puts glass behind one
-view, as SwiftUI's `glassEffect(_:in:)` does ([ADR 0113](../decisions.md)).
+view, as SwiftUI's `glassEffect(_:in:)` does.
 It is a `GlassContainer` of one item, so it takes the native glass on macOS 26
 and later and the kit's blur or opaque solid elsewhere, as the container does.
 

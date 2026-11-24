@@ -64,7 +64,8 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
 ## Common rules
 
 - The label of `new` is the accessible name. Controls with visible text (`Button`,
-  `Checkbox`, `RadioGroup` options) also show it.
+  `Checkbox`, `RadioGroup` options) also show it. The text is owned or borrowed, never
+  interned, so a list built at run time does not keep each text for the life of the process.
 - Tab moves the focus. A keyboard focus draws the focus ring
   (`FOCUS_RING`, 3 px, a translucent accent; opaque with Increase Contrast) only while the
   window is active.
@@ -120,14 +121,16 @@ Button::new(tr!("save")).margin(SPACE_2).help(tr!("save"))
 - `StyleScope` (a scope), `Sheet` and `Alert` (modal windows), `SidebarToggle` (a unit struct)
   and `Titlebar` (placed by the window) take none: put the modifiers on a `rect()` that holds
   them.
+- `.keyboard_shortcut(Shortcut)` on any view gives it to every `Button` inside that has none
+  ([16](16-swiftui-to-the-kit.md#actions)): it reuses the environment scope and the button's key handler.
 
 The program is [`control_modifiers.rs`](../../agents/recipes/control_modifiers.rs).
 
 ## Gestures
 
 `.gesture(g)`, `.simultaneous_gesture(g)` and `.high_priority_gesture(g)` of `ViewModifiers`
-attach a gesture to any view; the gestures are in `bk::gesture` ([ADR 0105](../decisions.md),
-recipe 33 of [agents](../../agents/recipes.md)).
+attach a gesture to any view; the gestures are in `bk::gesture` (recipe 33 of [agents](../../agents/recipes.md)).
+A touch pan, a long press and drag, and a pinch need recognizers and a rule for who wins a pointer.
 
 | Gesture | Value | Default |
 |---|---|---|
@@ -919,8 +922,8 @@ the distance and the path measured on a Mac Catalyst `UIScrollView`; a glide tha
 reaches an edge bounces. A mouse wheel steps as before, with no stretch, and with
 reduced motion nothing stretches or glides. On macOS the system's momentum events
 already glide, so only the stretch and the return act. The constants and their
-measures are in [UIKit animations](../research/uikit-animations.md#6-scroll) and
-[ADR 0104](../decisions.md); `List` and `OutlineView` inherit it.
+measures are in [UIKit animations](../research/uikit-animations.md#6-scroll); `List` and `OutlineView` inherit it.
+The kit owns the offset because Freya clamps it and flings linearly, while the measured stop distance is not linear in the velocity.
 
 `use_scroll_controller()` returns a `ScrollController` (`Copy`):
 
@@ -955,7 +958,7 @@ finger gives `Interacting` and then `Decelerating`; `scroll_to` with an animatio
 `Interacting`. A mouse wheel gives no phase, and on macOS the system's momentum counts as `Interacting`.
 
 The program is [`recipes/scroll_position.rs`](../../agents/recipes/scroll_position.rs).
-[ADR 0109](../decisions.md) has the limits.
+Not built: `scrollTargetBehavior`, `defaultScrollAnchor` and a position set before the first layout.
 
 ### Style
 
@@ -1008,7 +1011,7 @@ A `Canvas` has no style: the painter draws everything.
 
 `Rectangle`, `RoundedRectangle::new(corner_radius)`, `Capsule`, `Circle`, `Ellipse` and `Path` (in
 `shapes` and the prelude) fill their frame; give them a size with `.width(..)`, `.height(..)` or a
-`Frame`. They draw with a [Canvas](#canvas).
+`Frame`. They draw with a [Canvas](#canvas): Freya has no path element, and its `rect` cannot draw an ellipse.
 
 | Method | Effect |
 |---|---|
@@ -1017,7 +1020,7 @@ A `Canvas` has no style: the painter draws everything.
 | `Path::new().move_to(p)`, `.add_line(p)`, `.add_curve(to, c1, c2)`, `.close_subpath()` | A path in the points of the frame; `.stroke(ShapeStyle, line_width)` draws it centered |
 
 A `RoundedRectangle` has the continuous corner of the system
-(`CORNER_SMOOTHING`, [ADR 0101](../decisions.md)). A `Circle` is centered in a frame that is not
+(`CORNER_SMOOTHING`, [Corners](04-appearance-and-tokens.md#corners)). A `Circle` is centered in a frame that is not
 square. A `ShapeStyle::Material` fills with its tint and does not blur.
 
 `.clip_shape(Shape)` (`ShapeModifiers`, in the prelude) clips a view and its children to a `Shape` of
@@ -1051,7 +1054,9 @@ and `.accessibilityAddTraits`. The program is
 3. On macOS each window publishes its tree to VoiceOver and to the AX API ([18](18-platform.md#accessibility)). To check it, run `axdump <pid>` from `~/src/probes` and read the title, help and identifier of each element.
 4. The tree is built only when a client asks, so a window with no screen reader costs nothing.
 
-On Linux the modifiers set the same node data and AT-SPI reads it; `accessibility_element` does nothing there ([ADR 0112](../decisions.md)).
+The kit applies the modifiers to the finished tree because Freya replaces the label of a node that has text.
+
+On Linux AT-SPI reads the same resolved tree, `accessibility_element` included.
 
 ## Building a new control
 

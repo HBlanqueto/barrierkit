@@ -298,14 +298,14 @@ affected.
   of `menu_glass`, the panel luma that picks the ink).
 
 These stay in place and keep working until the pipeline of section 13 replaces
-them; they are superseded, not removed (ADR 0094).
+them; they are superseded, not removed ([Shell glass](../barrierkit/04-appearance-and-tokens.md#shell-glass)).
 
 ## 10. Code gaps against the current kit and compositor
 
 Superseded on 2026-11-22: the veils, lifts and caps below were fitted to the
 shifted numbers of [section 9.1](#91-2026-11-21-mid-tones-read-with-sample-were-too-light).
 They stay in `ctdesign` and `ctappearance` until Malaysia moves to
-`ShellGlass` ([ADR 0094](../decisions.md)); [section 14](#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)
+`ShellGlass` ([Shell glass](../barrierkit/04-appearance-and-tokens.md#shell-glass)); [section 14](#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)
 has the measured replacement.
 
 Closed on 2026-11-20 in `ctdesign` and `ctappearance`; the tests in

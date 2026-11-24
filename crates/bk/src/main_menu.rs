@@ -191,7 +191,7 @@ pub(crate) fn dbusmenu_label(label: &str) -> String {
     label.replace('_', "__")
 }
 
-// A focused text field serves these Edit items before the app, as AppKit's responder chain does (ADR 0088).
+// A focused text field serves these Edit items before the app, as AppKit's responder chain does (docs/barrierkit/13-app.md#standard-menus).
 const FIELD_EDITS: [(Action, &str); 6] = [
     (UNDO, "z"),
     (REDO, "y"),

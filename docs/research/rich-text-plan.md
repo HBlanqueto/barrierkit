@@ -11,7 +11,7 @@ runs of `RunStyle { bold, italic, underline, strikethrough, link, family, size, 
 `styled_spans` draws one Freya `Span` per run. Runs follow edits (`restyle_after_edit`), Ctrl+B,
 Ctrl+I and Ctrl+U toggle emphasis, Ctrl+T sets the font, and a link opens through the portal.
 `rich_text::markdown` reads inline Markdown into the same runs and `styled_spans` draws them, for `Text::markdown`
-and `Text + Text` too (ADR 0111).
+and `Text + Text` too ([Text runs](../barrierkit/06-text-and-editing.md#text-runs)).
 
 ## Gap
 
@@ -25,7 +25,7 @@ and `Text + Text` too (ADR 0111).
 
 ## Plan
 
-1. Done (ADR 0111): `strikethrough: bool` beside `underline`, drawn when no link or underline shares the
+1. Done ([Text runs](../barrierkit/06-text-and-editing.md#text-runs)): `strikethrough: bool` beside `underline`, drawn when no link or underline shares the
    run. Left: an editor shortcut. Size S.
 2. Done: `foreground_style: Option<ShapeStyle>`. Left: a `ColorPicker` shortcut in the editor. Size M.
 3. Wait for Freya paragraph options before paragraph styles and lists. Size L.

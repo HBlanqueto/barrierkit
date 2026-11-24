@@ -134,7 +134,7 @@ pub fn continuous_corner(radius: f32) -> CornerRadius {
     continuous(CornerRadius::new_all(radius))
 }
 
-// The curve macOS draws on screen for cornerCurve = .continuous: Freya's smoothing s runs it to (1 + s) R (ADR 0097).
+// The curve macOS draws on screen for cornerCurve = .continuous: Freya's smoothing s runs it to (1 + s) R (docs/barrierkit/04-appearance-and-tokens.md#corners).
 pub(crate) fn continuous(radius: CornerRadius) -> CornerRadius {
     radius.with_smoothing(CORNER_SMOOTHING)
 }

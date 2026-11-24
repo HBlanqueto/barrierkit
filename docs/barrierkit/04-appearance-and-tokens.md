@@ -109,7 +109,7 @@ ring (`docs/research/macos-control-metrics.md`). Outlines use the separator.
 | Function | What it does |
 |---|---|
 | `style::text(content, face, ink) -> Label` | A one-line Freya `label` with the family, size, weight and line height of a `Font` token and the color `ink`. For text that wraps, use `Text` ([2](02-first-app.md)). |
-| `style::continuous_corner(radius) -> CornerRadius` | A corner radius with macOS's continuous curve, smoothed as `CORNER_SMOOTHING` says (0.745, what the window server draws for `cornerCurve = .continuous`; [ADR 0101](../decisions.md)). |
+| `style::continuous_corner(radius) -> CornerRadius` | A corner radius with macOS's continuous curve, smoothed as `CORNER_SMOOTHING` says (0.745, what the window server draws for `cornerCurve = .continuous`; [Corners](#corners)). |
 | `style::panel_edges(body, radius, fill) -> Rect` | A card filled with `fill` and framed like a panel window: the glass inner line in dark (`panel_inner_line`: brighter top and bottom edges, inward glow), the window inner line otherwise, and the outer line, each one physical pixel wide. Same colours and widths as the compositor's panel frames. |
 | `theme::color(rgba) -> Color` | Converts a Tengen `Rgba` to Freya's `Color`. |
 
@@ -459,7 +459,7 @@ Notes on the values:
 - The old value `"auto"` reads as `light`; `is_dark()` is true for `dark` and
   `dark_tint`.
 - A number outside its token list reads as the nearest end of the list.
-- A `sidebar_style` key from an older file is ignored: the sidebar has one look ([ADR 0079](../decisions.md)).
+- A `sidebar_style` key from an older file is ignored: the sidebar has one look ([Glass](10-sidebar.md#glass)).
 - `TintStrength::factor()` multiplies the accent tint and the wallpaper tint by
   `TINT_STRENGTH`: 0.5, 1, 1.5 or 2.
 - `scroll_bars = "automatic"` is macOS «Automatically based on mouse or
@@ -474,7 +474,7 @@ Notes on the values:
   that still has it loads, and the next write removes it.
 - `glass_blur` is retired: macOS has no blur strength to set, so every blur is
   the measured one of its surface. A file that still has it loads, and the next
-  write removes it ([ADR 0096](../decisions.md)).
+  write removes it.
 - The accessibility keys follow macOS System Settings › Accessibility ›
   Display. The kit applies three of them in `ControlStyle::accessible`:
   `show_borders` draws a `ControlBorder` line around icon buttons, tool groups
@@ -594,7 +594,7 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `menu_glass` | `DockSurface` of the menus: the `_LIGHT` veil, lift and cap of `MENU_GLASS_*` in the light scheme, the `_DARK` ones in dark and dark tint. Transparency does not change its veil or tone. |
 | `notification_glass` | `DockSurface` of the notifications: the tone and blur of `menu_glass` in the Dock's frame, with the menus' dark veil in dark and `NOTIFICATION_GLASS_VEIL_LIGHT` in light. With transparency reduced, `dock`. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
-| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([ADR 0065](../decisions.md)). |
+| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([Glass](10-sidebar.md#glass)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. `line` is the separator color. |
 
@@ -657,6 +657,7 @@ with the accent set per process (`-AppleAccentColor`), never in the system
 ([measurements](../research/macos-control-metrics.md#accent-and-selection)).
 Multicolor is no entry: with no `accent` the controls are blue and
 `automatic_accent` is true, so an app keeps its own accent.
+macOS has its own value for every accent in every look, so one color for light and dark is wrong.
 
 `Accent::colors(dark, contrast)` returns the `AccentColors` of one look:
 
@@ -735,11 +736,11 @@ light ink.
 ### Shell glass
 
 `ctdesign::ShellGlass` is the glass of one desktop surface in one scheme, as macOS 27.2.1 composes it, and
-`ctappearance::shell_glass` is its reference function ([ADR 0094](../decisions.md);
-[the measurements](../research/macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)). The tokens are
+`ctappearance::shell_glass` is its reference function ([the measurements](../research/macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)). The tokens are
 `components.shell-glass.<surface>.<scheme>`; today `menu` (also the banner), `spotlight`, `apps`, `notification-card`, `control-center`,
 `control-center-panel` and `dock` (glass), and `spaces-bar` (a `MaterialLook`: use `ctappearance::material::over`), dark only. Light, Reduce
 Transparency and Increase Contrast have no token: they were not measured.
+A veil and a cap per surface miss the menu and the Dock by over 6 levels; this pipeline misses by 1.7 at most.
 
 1. The backdrop is blurred by `sigma` px, plus `halo_weight` of a wide `halo_sigma` px blur when the weight is not 0
    (the compositor can get the same sigma from a Gaussian on a downsampled backdrop, or from a Dual Kawase of
@@ -913,7 +914,7 @@ let radius = WINDOW_CORNER.titlebar as f32;
 let radius = ctdesign::CORNER_WINDOW.fitted;
 ```
 
-The kit draws every `CornerStyle::Continuous` shape through one function, `style::continuous`, with `CORNER_SMOOTHING`; no shape holds its own number. A control is continuous where its layer in macOS is (push, pop-up, segmented, text field, combo box, checkbox, group box, tab view, sidebar item, rows, cards, sheet) and circular where it is not or nobody measured it. A text field and a combo box take their radius from `ControlSize` (4, 5, 6, 7, 9) and the combo button 2.5, 3.5, 4.5, 5.5, 6.5. A `Sheet` is `CORNER_SHEET.fitted` and an `Alert` `CORNER_ALERT.fitted`. A shape nested in a rounded one takes `style::concentric(outer, inset)` unless its radius was measured. The table of every radius, the Skia tolerance and the parity tests are in [macOS corners](../research/macos-corners.md#12-the-kit).
+The kit draws every `CornerStyle::Continuous` shape through one function, `style::continuous`, with `CORNER_SMOOTHING`; no shape holds its own number. That smoothing, 0.745, is what the window server draws, not the 0.61 of a CPU render. A control is continuous where its layer in macOS is (push, pop-up, segmented, text field, combo box, checkbox, group box, tab view, sidebar item, rows, cards, sheet) and circular where it is not or nobody measured it. A text field and a combo box take their radius from `ControlSize` (4, 5, 6, 7, 9) and the combo button 2.5, 3.5, 4.5, 5.5, 6.5. A `Sheet` is `CORNER_SHEET.fitted` and an `Alert` `CORNER_ALERT.fitted`. A shape nested in a rounded one takes `style::concentric(outer, inset)` unless its radius was measured. The table of every radius, the Skia tolerance and the parity tests are in [macOS corners](../research/macos-corners.md#12-the-kit).
 
 ### Backdrop colors
 
@@ -1071,7 +1072,7 @@ the kit measures text without laying it out.
 | `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
 | `NAVIGATION_PARALLAX`, `NAVIGATION_DIM` | 0.3 of the width and a black of 0.13 laid over the page below a push (Mac Catalyst; the dimming is one reading) |
 | `SCROLL_POCKET_BLUR`, `SCROLL_POCKET_SCALE_*`, `SCROLL_POCKET_OFFSET_*` | 3.4 pt, and the tone `scale * content + offset` (0 to 1 units) of a scroll pocket: 0.5 and 0.5349 in light, 0.4 and 0.0976 in dark; fitted to the pixels of macOS 27.2.1 ([Shader needs](../research/shader-needs.md)) |
-| `SPRING_DAMPING` | 5; no reader in the kit since ADR 0102 ([14](14-animations.md)) |
+| `SPRING_DAMPING` | 5; no reader in the kit ([14](14-animations.md#spring)) |
 | `DURATION_LIST_ROW_MS`, `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | 300, 200, 210, 120 ms: rows inserted or removed, a menu closing, a popover in and out (Mac Catalyst; [UIKit animations](../research/uikit-animations.md#2-motion-table)) |
 | `SPRING_SHEET_MS`, `SPRING_ALERT_MS`, `SPRING_PUSH_MS` | 344, 274, 251 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents, an alert, a push and pop; the last is a fit |
 
@@ -1127,6 +1128,7 @@ weights are renormalised at the border, so nothing outside the region reaches
 the pixels inside. The values are numbers of the macOS 27.2.1 stack, measured at
 scale 1 and in the display's device space; the compositor applies them in its
 own output space ([research](../research/macos-materials.md#10-materials-in-windows-measured-2026-11-22)).
+The render server's layer stack is the only source of these numbers: one veil and one cap per surface cannot tell the saturation, the cap and the floor apart.
 
 ### Liquid Glass
 
@@ -1152,7 +1154,7 @@ own output space ([research](../research/macos-materials.md#10-materials-in-wind
 stages and `render(set, tint, amount, state, &backdrop, &shape)` the CPU reference over an
 `Image`. Values are device values at scale 1 as macOS 27.2.1 draws them; the
 compositor applies them in its own output space
-([research](../research/macos-liquid-glass.md#6-the-model)).
+([research](../research/macos-liquid-glass.md#6-the-model)). The layer tree names each part, which one veil and one cap cannot: the lens, the blur profile, the state and the size.
 
 `LIQUID_GLASS_TINT_<STYLE>_<SCHEME>` are the `GlassTint` of the Appearance › Liquid
 Glass slider (`AppearanceConfig::liquid_glass_tint`, 0 to 1): `blur`, `blur_fill_opacity`,
@@ -1162,7 +1164,7 @@ positions at which the read through the backdrop halves its resolution, and
 `liquid_glass::tint(glass, scheme)` returns it and
 `tinted(&set, &tint, amount, shorter)` the active look at that position, with the
 blur fill (`Tinted`); `render(set, tint, amount, state, &backdrop, &shape)` takes both.
-At 0 the look is the unchanged one
+The slider is a function of one number, so a compositor can apply it to every glass it draws. At 0 the look is the unchanged one
 ([research](../research/macos-liquid-glass.md#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)).
 
 ### Colors
@@ -1179,7 +1181,7 @@ At 0 the look is the unchanged one
 | `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
 | `WINDOW_TINT_ACCENT` | `[f32; 2]` | Accent tint amount in light and dark. |
 | `ACCENT_CHROMA_GAIN` | `f32` | Gain (2.5) of the accent's chroma share, so the chroma-only tint looks as strong as the old sRGB mix did. |
-| `WALLPAPER_TINTING`, `WALLPAPER_TINTING_LIFT`, `WALLPAPER_TINTING_TARGET`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_SIDEBAR_LIFT`, `WALLPAPER_TINTING_GRID` | `[f32; 2]`, `[f32; 2]`, `f32`, `f32`, `f32`, `u32` | Share of the wallpaper's OKLab chroma a window takes in light and dark (0.2, 0.15), and share of the way its lightness moves to the target (0, 0.14), measured on macOS 26 (ADR 0065); that target, L 0.43; the sidebar's share of the chroma (1.8 times) and of the lift (0.5 times); cells per side of the wallpaper grid. |
+| `WALLPAPER_TINTING`, `WALLPAPER_TINTING_LIFT`, `WALLPAPER_TINTING_TARGET`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_SIDEBAR_LIFT`, `WALLPAPER_TINTING_GRID` | `[f32; 2]`, `[f32; 2]`, `f32`, `f32`, `f32`, `u32` | Share of the wallpaper's OKLab chroma a window takes in light and dark (0.2, 0.15), and share of the way its lightness moves to the target (0, 0.14), measured on macOS 26 (malaysia ADR 0065); that target, L 0.43; the sidebar's share of the chroma (1.8 times) and of the lift (0.5 times); cells per side of the wallpaper grid. |
 | `TINT_STRENGTH` | `[f32; 4]` | Factor of each `TintStrength`: 0.5, 1, 1.5, 2. |
 | `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |
 | `DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | `[f32; 2]`, `f32` | Lightness range and minimum chroma of a wallpaper's dominant color. |
@@ -1283,7 +1285,7 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read the per-scheme ones with `glass_chroma`, `glass_lightness`, `glass_rim_lift`, `glass_blur_passes`, `glass_edge` and `glass_shadow` ([ADR 0065](../decisions.md)). Values chosen by the owner on the sidebar mockup |
+| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read the per-scheme ones with `glass_chroma`, `glass_lightness`, `glass_rim_lift`, `glass_blur_passes`, `glass_edge` and `glass_shadow` ([Glass](10-sidebar.md#glass)). Values chosen by the owner on the sidebar mockup |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` and `item_selected_weight` (both 400) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |

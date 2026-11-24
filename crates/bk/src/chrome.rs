@@ -30,7 +30,7 @@ pub enum RestingEdge {
     Accent,
 }
 
-// ADR 0054: the overlaid titlebar slides and fades in with the compositor bar instead of popping in.
+// Malaysia ADR 0054: the overlaid titlebar slides and fades in with the compositor bar instead of popping in.
 pub(crate) fn use_focus_bar_reveal() {
     let controls = try_consume_root_context::<WindowControls>();
     let fallback = use_state(|| false);
@@ -88,7 +88,7 @@ fn fullscreen_overlay() -> bool {
         .is_some_and(|controls| controls.titlebar_overlaid())
 }
 
-// ADR 0054: in full screen the chrome shows exactly while the compositor bar is down.
+// Malaysia ADR 0054: in full screen the chrome shows exactly while the compositor bar is down.
 fn shown_as(reveal: Reveal) -> Reveal {
     if fullscreen_overlay() {
         Reveal::Always

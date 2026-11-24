@@ -4,7 +4,7 @@
 **Scope:** windows and sheets, popovers, menus, tooltips, the Dock, banners, Notification Center widgets, Control Center modules, Spotlight, the controls inside windows and the concentric rule that sets an inner radius from an outer one. Measured 2026-11-22 at scale 1 on a 2560 x 1440 display, light and dark. It excludes scale 2, which needs the user's `hidpi-720` run (section 8).
 **Reader:** whoever changes `ctdesign` corner tokens, `ctappearance::corner`, a window or popover shape in Malaysia, or a rounded control in the kit.
 **Input:** the probes in `~/src/probes` (`cornerwin`, `cornerpop`, `cornerctl`, `cornerconc`, `cornerref`) and the analysis in `~/src/probes/corners`; captures in `~/src/captures/corners`; the white and black pairs of `~/src/captures/shellblur/dark`.
-**Output:** the tables below, `components.corner` in `crates/ctdesign/tengen/components.json`, `crates/ctappearance/src/corner.rs` with its measured tiles, and [ADR 0097](../decisions.md).
+**Output:** the tables below, `components.corner` in `crates/ctdesign/tengen/components.json`, `crates/ctappearance/src/corner.rs` with its measured tiles, and [Corners](../barrierkit/04-appearance-and-tokens.md#corners).
 
 ## Steps
 
@@ -214,7 +214,7 @@ Existing tokens that changed, and why Malaysia's drawing changes with them:
 | `components.shell.menu.panel.radius` | 14 | 12 | menu 12.5 |
 | `components.shell.launcher.corner-radius` | 16 | 24.5 | Spotlight 24.5 |
 
-`components.window.corner.expansion` (1.52866) and `.exponent` (3.34) did not change: they fit a continuous layer. `components.window.corner.titlebar` (`radius.lg`, 16), `components.popover.radius` (20), `components.tooltip.radius` (5.25) and `components.shell.dock.radius` (0.272) are confirmed within the fit error. The kit's `continuous_corner` smoothing was 0.52866, not the on-screen 0.745; it is `CORNER_SMOOTHING` since 2026-11-22 ([ADR 0101](../decisions.md), section 12).
+`components.window.corner.expansion` (1.52866) and `.exponent` (3.34) did not change: they fit a continuous layer. `components.window.corner.titlebar` (`radius.lg`, 16), `components.popover.radius` (20), `components.tooltip.radius` (5.25) and `components.shell.dock.radius` (0.272) are confirmed within the fit error. The kit's `continuous_corner` smoothing was 0.52866, not the on-screen 0.745; it is `CORNER_SMOOTHING` since 2026-11-22 ([Corners](../barrierkit/04-appearance-and-tokens.md#corners), section 12).
 
 ## 11. Every radius token and what the measurements say
 
@@ -256,7 +256,7 @@ A plain sheet in the kit was drawn with radius 26, right for an `Alert` and 9.2 
 
 ## 12. The kit
 
-The kit (`crates/bk`) draws a corner through one function, `style::continuous` (`Shape::corner_radius` and `style::continuous_corner` call it), whose smoothing is `CORNER_SMOOTHING` (0.745). Decided 2026-11-22, [ADR 0101](../decisions.md).
+The kit (`crates/bk`) draws a corner through one function, `style::continuous` (`Shape::corner_radius` and `style::continuous_corner` call it), whose smoothing is `CORNER_SMOOTHING` (0.745). Decided 2026-11-22, [Corners](../barrierkit/04-appearance-and-tokens.md#corners).
 
 **Which curve.** The on-screen 0.745 applies to a Skia path because the kit draws what the user sees: the window server's pixels (section 2). The 0.61 of a CPU render (`CALayer.render`, `ImageRenderer`) is a different renderer and not the look on screen. A control is `Continuous` where its layer is (section 6) and `Circular` where its layer is circular or nobody measured it. A capsule and a circle are the same in both curves. Freya shortens the tails when the radius is over a quarter of the shorter side; CoreAnimation's clamp is not measured (section 8).
 

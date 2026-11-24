@@ -29,7 +29,7 @@ impl ViewThatFits {
 
 forward_key!(ViewThatFits);
 
-// Torin cannot measure a view before it picks it, so each candidate states its extent and the container's measured size chooses (ADR 0110).
+// Torin cannot measure a view before it picks it, so each candidate states its extent and the container's measured size chooses (docs/barrierkit/11-views.md#custom-layout).
 impl Component for ViewThatFits {
     forward_key!();
 

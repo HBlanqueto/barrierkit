@@ -144,6 +144,7 @@ an app. Titles, order and shortcuts come from a SwiftUI app measured on
 macOS 27.2.1 in English and Spanish
 ([the measurement](../research/macos-standard-menus.md)). Every `Application`
 has them (ADR 0115); a scene whose options carry a `MainMenu` keeps that one.
+They are data over `MenuItem`, so no app builds the same menus by hand.
 An app that draws its own title bar sets `HiddenTitleBar` in
 `.options(..)`: its window gets no kit `Titlebar`, and keeps the menus.
 
@@ -519,6 +520,7 @@ paste ([6. Text and editing](06-text-and-editing.md)).
 
 Module `pasteboard`. `Pasteboard::general()` is the system clipboard and `Pasteboard::named("name")` a
 private board; recipe [43](../../agents/recipes.md#43-copy-paste-and-drag-typed-data) runs it.
+An app copies more than text (rich text, images, files), as `NSPasteboard` and SwiftUI's `Transferable` do.
 
 ```rust
 use bk::drag::DragPayload;

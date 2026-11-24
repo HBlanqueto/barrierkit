@@ -52,7 +52,7 @@ impl WindowStyle {
     }
 }
 
-// The limits count the content below the bar drawn inside the window, as SwiftUI's `frame(minHeight:)` sits under the toolbar (ADR 0117).
+// The limits count the content below the bar drawn inside the window, as SwiftUI's `frame(minHeight:)` sits under the toolbar (docs/barrierkit/08-windows.md#window-options).
 pub(crate) fn below_bar(limit: Option<(u32, u32)>, bar: u32) -> Option<(u32, u32)> {
     limit.map(|(width, height)| (width, if height == 0 { 0 } else { height + bar }))
 }

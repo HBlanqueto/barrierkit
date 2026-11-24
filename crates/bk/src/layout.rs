@@ -205,7 +205,7 @@ impl ElementExt for Spacer {
     }
 }
 
-// A stack with a Spacer shares its space with flex and fills its axis, and the Spacer takes that axis (ADR 0089).
+// A stack with a Spacer shares its space with flex and fills its axis, and the Spacer takes that axis (docs/barrierkit/11-views.md#layout).
 pub(crate) fn resolve_spacers(mut element: Element) -> Element {
     let Element::Element {
         element: node,
@@ -453,7 +453,7 @@ impl Default for Grid {
     }
 }
 
-// A column is a vertical stack so torin sizes it before post_measure; spanning cells float above the stacks (ADR 0089).
+// A column is a vertical stack so torin sizes it before post_measure; spanning cells float above the stacks (docs/barrierkit/11-views.md#layout).
 impl From<Grid> for Element {
     fn from(grid: Grid) -> Self {
         let Grid {
@@ -724,7 +724,7 @@ impl GridElement {
     }
 }
 
-// Like Freya's paragraph with inline children (freya-core 0.5.3 elements/paragraph.rs), post_measure moves each cell to its slot (ADR 0089).
+// Like Freya's paragraph with inline children (freya-core 0.5.3 elements/paragraph.rs), post_measure moves each cell to its slot (docs/barrierkit/11-views.md#layout).
 impl ElementExt for GridElement {
     fn changed(&self, other: &Rc<dyn ElementExt>) -> bool {
         !layout_diff(self, other).is_empty()

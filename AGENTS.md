@@ -69,6 +69,9 @@ Aplica a `README.md`, `docs/`, `agents/` y los ADR.
    Nada se repite: se enlaza a su única fuente (el ADR, el capítulo o
    `docs/barrierkit/20-glossary.md`). Ejemplos mínimos y ejecutables, mejor en pareja ✗/✓.
 5. **Comentarios en el código:** reglas 5 y 6 de «Código mínimo».
+6. **No se escriben ADR nuevos.** `docs/decisions.md` guarda solo las
+   decisiones de arquitectura que ya tiene. El porqué de una función nueva es
+   una línea en la sección del capítulo que la documenta, o en el commit.
 
 ## Nombres y glosario
 
@@ -171,7 +174,7 @@ Se cumplen al pie de la letra. Ganan el diff más corto y la respuesta más cort
    - `// SAFETY:` en cada `unsafe`;
    - una línea con el *porqué* de un invariante cuya rotura desestabiliza y que
      el código no puede expresar: orden de protocolo, rodeo de un bug externo
-     (con enlace) o seguridad. Cita el ADR si existe.
+     (con enlace) o seguridad. Cita el ADR o el capítulo si existe.
 
    Prohibido: explicar qué hace el código, contar historia («antes…», «ahora…»),
    `TODO` sin issue, código comentado, cabeceras decorativas y `///` que repiten

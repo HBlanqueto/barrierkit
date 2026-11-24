@@ -91,7 +91,7 @@ creates.
 |---|---|---|---|---|
 | SSD | `titled`, `closable`, `miniaturizable`, `resizable` | native | WindowServer | apps that look like any Mac app; default |
 | Hybrid | the same plus `fullSizeContentView` and `titlebarAppearsTransparent` | native (`standardWindowButton`) | WindowServer | a kit `Titlebar` and toolbar under the native lights: Settings, Notes, Finder |
-| CSD | `borderless`, `hasShadow` | the kit's `TrafficLights` | the kit (corner 16, continuous; ADR 0097) | titleless apps, HUDs, and the Linux look |
+| CSD | `borderless`, `hasShadow` | the kit's `TrafficLights` | the kit (corner 16, continuous; [Corners](../barrierkit/04-appearance-and-tokens.md#corners)) | titleless apps, HUDs, and the Linux look |
 
 Hybrid is how Mac apps with a unified toolbar are made. The kit already
 measures the insets it needs (`macos-windows.md`, `macos-control-metrics.md`).

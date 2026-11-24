@@ -154,7 +154,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
 | `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
 | `ext_image_copy_capture_manager_v1` + `ext_foreign_toplevel_image_capture_source_manager_v1` + `wl_shm` | 1 | No | [`capture_window`](#toplevels), in layer-shell components | `capture_window` answers `None` |
-| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([ADR 0065](../decisions.md)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
+| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in
@@ -280,7 +280,7 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 | The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |
 | AppKit's own title bar under a unified `Titlebar` that no `ScrollView` reaches, with the bar row in a titlebar accessory, on macOS 26 and later ([15](15-backdrops-and-media.md#on-macos)) | Per column of a split view |
 | The glass of a toolbar `SegmentedControl`, `ToolbarSearch` field and `Button`, and of `ButtonStyle::glass` and `glass_prominent`, as an `NSGlassEffectView` each on macOS 26 and later, the prominent ones with the accent as `tintColor` ([15](15-backdrops-and-media.md#on-macos)) | SwiftUI's lens over a pressed segment, its press glow on content buttons |
-| `glass_effect(Glass, Shape)` on any view as an `NSGlassEffectView` behind it on macOS 26 and later, with the view drawn in a Metal chrome above; below 26 or under Reduce Transparency the kit's own blur or opaque solid. Up to 8 chromes per window here, 3 on Linux; one radius and one variant per chrome ([15](15-backdrops-and-media.md#glass-on-any-view), ADR 0113) | `tint`, `interactive`, `glassEffectUnion`, a shape per corner |
+| `glass_effect(Glass, Shape)` on any view as an `NSGlassEffectView` behind it on macOS 26 and later, with the view drawn in a Metal chrome above; below 26 or under Reduce Transparency the kit's own blur or opaque solid. Up to 8 chromes per window here, 3 on Linux; one radius and one variant per chrome ([15](15-backdrops-and-media.md#glass-on-any-view)) | `tint`, `interactive`, `glassEffectUnion`, a shape per corner |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
 
 The window and its popups take the system's light or dark, live ([The system's light or dark](04-appearance-and-tokens.md#the-systems-light-or-dark)). Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
@@ -350,7 +350,7 @@ role, title, value, help, identifier, frame and children of each node, and
 
 On both systems, a tree whose views use `accessibility_element` or a text field
 is sent whole on every change, because the kit folds subtrees and names the input node
-([ADR 0112](../decisions.md)). The macOS label is `AXTitle`, not `AXDescription`.
+([Accessibility modifiers](05-controls.md#accessibility-modifiers)). The macOS label is `AXTitle`, not `AXDescription`.
 
 ## Desktop services
 
@@ -392,7 +392,7 @@ app calls, who answers on macOS, who answers on Linux.
 |---|---|---|---|
 | Window, popup, popover | `NSWindow` and child panels (`frame.rs`, `popups.rs`) | `xdg_toplevel` and `xdg_popup` on sctk; `set_popover` and `set_popover_shape` style the popup | both |
 | Blur, glass, scroll edge | Core Animation layers (`blur.rs`) | The compositor: `set_backdrop`, `set_glass`, `set_scroll_edge` (version 10) | both; the client keeps its Skia path where Malaysia does not serve a case |
-| Traffic lights, title bar | The kit draws them ([ADR 0082](../decisions.md)); the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
+| Traffic lights, title bar | The kit draws them ([Traffic lights](09-titlebars.md#traffic-lights)); the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
 | Frame pacing | One `CADisplayLink` per window | The frame callback of the surface ([The frame](#the-frame)) | both |
 | Full screen (the green light) | `toggleFullScreen`, with the menu bar and the Dock hidden for a `Plain` window; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../agents/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |
 | Clipboard | `macos/clipboard.rs` (text) and `macos/pasteboard.rs` (typed: text, HTML, PNG and TIFF, file URLs, private boards) on `NSPasteboard` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection; `linux/pasteboard.rs` holds text only, so images, files and named boards report false | both; typed on macOS only |
@@ -417,7 +417,7 @@ left out of the current round, by who would answer it:
 | 4 Accessibility by SwiftUI name | The modifiers (done) | `accesskit_macos` (done) | AT-SPI (done) |
 | 7 Typed drag and drop | `Transferable` and `Pasteboard` (done) | `NSPasteboard` types (done); a drop target (none) | `wl_data_device` MIME types (offers done; a typed drop target none) |
 | 11 `glassEffect` on any view | The modifier | A layer per view | `set_backdrop` on a sub-surface per view |
-| 12 Document apps | `Document`, `use_document`, `on_open_url` (done, [ADR 0112](../decisions.md)) | `NSWindow` dirty state, `windowShouldClose:`, `NSAlert`, the app delegate (done) | The close veto, the kit's `Alert` and `org.freedesktop.Application.Open` (done); no dirty dot |
+| 12 Document apps | `Document`, `use_document`, `on_open_url` (done, [Documents](08-windows.md#documents-and-file-dialogs)) | `NSWindow` dirty state, `windowShouldClose:`, `NSAlert`, the app delegate (done) | The close veto, the kit's `Alert` and `org.freedesktop.Application.Open` (done); no dirty dot |
 | 13 Dialogs attached to their window | `FileDialog`, `file_importer`, `file_exporter` (done) | `beginSheetModalForWindow` (done) | `xdg-foreign`, not bound |
 
 How to keep it true:

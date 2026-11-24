@@ -1318,7 +1318,7 @@ pub struct ScrollPhysicsMetrics {
     pub refresh_band: f32,
 }
 
-// Measured on a Mac Catalyst `UIScrollView` fed with touchpad scroll events (UIKit animations, section 6, ADR 0104).
+// Measured on a Mac Catalyst `UIScrollView` fed with touchpad scroll events (UIKit animations, section 6, docs/barrierkit/05-controls.md#scrolling).
 // Speeds are points per millisecond, distances are points.
 pub const SCROLL_FLING_POWER: i32 = 4;
 pub const SCROLL_SETTLED_OVER: f32 = 0.25;
