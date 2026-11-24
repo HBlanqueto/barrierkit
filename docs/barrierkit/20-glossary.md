@@ -59,6 +59,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::SCROLL_BAR.always_opacity`, `SCROLL_BAR.opacity` (one value) | `SCROLL_BAR.opacity` and `SCROLL_BAR.track_opacity`, four values each (light, dark, then both with Increase Contrast); `ScrollViewStyle.always_thumb_opacity` is gone | 2026-11-20 |
 | `controls::Button::style(ButtonStyle)` | `controls::Button::style(\|s\| ..)`, the closure of every control | 2026-11-07 |
 | `styles::TabType::Left`, `TabViewStyle.tab_padding_y`, `ctdesign::TAB_VIEW.strip_padding_y` and `.left_strip_top` | Removed: no app used the left strip | 2026-11-23 |
+| `Titlebar::right(view)` | `.toolbar(ToolbarItem::new(ToolbarItemPlacement::PrimaryAction, view))`, SwiftUI's only way to add trailing items | 2026-11-23 |
 | `ButtonStyle::Secondary` | `ButtonStyle::tengen()`, the default (SwiftUI `.bordered`) | 2026-11-07 |
 | `ButtonStyle::Primary` | `ButtonStyle::bordered_prominent` | 2026-11-07 |
 | `ButtonStyle::Glass` | `ButtonStyle::glass` | 2026-11-07 |
@@ -1399,7 +1400,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `titlebar::WindowToolbarStyle` | enum | `WindowToolbarStyle` | `≈ NSWindow.ToolbarStyle` | — | The bar of a `Titlebar`: `Unified` (52 high, title at the start), `UnifiedCompact` (centered title) or `Expanded` (a 28 title row over a 40 toolbar row, items 28 high) | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar::shows_title` | method | `.unified(showsTitle:)`, `.unifiedCompact(showsTitle:)` | `NSWindow.titleVisibility` | — | `false` drops the title; the trailing items then follow the lights | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar::toolbar_style` | method | `windowToolbarStyle(_:)` | `NSWindow.toolbarStyle` | — | Chooses the `WindowToolbarStyle`; by default `Unified` with a sidebar or items | [9](09-titlebars.md#titlebar) |
-| `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | ≈ `UIToolbar` | Client-side title bar: traffic lights, left and right items, title | [9](09-titlebars.md#titlebar) |
+| `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | ≈ `UIToolbar` | Client-side title bar: traffic lights, a left item, toolbar items by placement, title | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar::toolbar` | method | `.toolbar(content:)` | `NSToolbar.insertItem(withItemIdentifier:at:)` | — | Adds one `ToolbarItem` or `ToolbarSpacer`, laid by placement | [9](09-titlebars.md#toolbar-items) |
 | `views::toolbar::ToolbarItem` | struct | `ToolbarItem` | `≈ NSToolbarItem` | `≈ UIBarButtonItem` | A view with a `ToolbarItemPlacement` | [9](09-titlebars.md#toolbar-items) |
 | `views::toolbar::ToolbarItemPlacement` | enum | `ToolbarItemPlacement` | — | — | Where an item goes: `Automatic`, `Principal`, `Navigation`, `PrimaryAction`, `Status` | [9](09-titlebars.md#toolbar-items) |

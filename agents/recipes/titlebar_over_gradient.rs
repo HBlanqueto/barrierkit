@@ -11,11 +11,12 @@ impl Component for Hello {
         VStack::new()
             .expanded()
             .child(
-                Titlebar::new().title("Hello").right(
+                Titlebar::new().title("Hello").toolbar(ToolbarItem::new(
+                    ToolbarItemPlacement::PrimaryAction,
                     ToolGroup::new()
                         .child(IconButton::new(Symbol::Plus, "Add"))
                         .child(IconButton::new(Symbol::Ellipsis, "More")),
-                ),
+                )),
             )
             .child(
                 rect()
@@ -31,6 +32,6 @@ fn main() -> Result<(), RunError> {
         .window("Hello", || {
             Backdrop::new(BackdropSource::Colors(BACKDROP_SCENES.dusk), Hello)
         })
-        .options(|window| window.window_style(WindowStyle::Plain))
+        .options(|window| window.window_style(WindowStyle::HiddenTitleBar))
         .run()
 }

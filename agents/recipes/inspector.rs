@@ -28,12 +28,16 @@ fn main() -> Result<(), RunError> {
                 .alignment(ContentAlignment::TOP)
                 .child(bands())
                 .child(
-                    Titlebar::new().title("Photos").with_sidebar(true).right(
-                        ToolGroup::new().child(
-                            IconButton::new(Symbol::SidebarRight, "Inspector")
-                                .on_press(move |_| inspector.toggle()),
-                        ),
-                    ),
+                    Titlebar::new()
+                        .title("Photos")
+                        .with_sidebar(true)
+                        .toolbar(ToolbarItem::new(
+                            ToolbarItemPlacement::PrimaryAction,
+                            ToolGroup::new().child(
+                                IconButton::new(Symbol::SidebarRight, "Inspector")
+                                    .on_press(move |_| inspector.toggle()),
+                            ),
+                        )),
                 );
             SplitView::new(
                 Sidebar::new().traffic_lights(true).child(

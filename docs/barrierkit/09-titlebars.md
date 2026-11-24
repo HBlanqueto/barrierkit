@@ -54,7 +54,7 @@ bar: traffic lights, a left zone, the title and a right zone.
 | `Titlebar::new()` | — | A bar that reads the title and state from `WindowControls` |
 | `.title(text)` | the window title | Replaces the title shown |
 | `.shows_title(bool)` | `true` | `false` drops the title and lays the trailing items after the lights, as SwiftUI's `.unified(showsTitle: false)` and `.unifiedCompact(showsTitle: false)` |
-| `.left(view)`, `.right(view)` | empty; with a `SplitView` above, `left` is the `SidebarToggle` | Items at each side |
+| `.left(view)` | empty; with a `SplitView` above, the `SidebarToggle` | Items before the navigation items; trailing items go through `.toolbar(..)` |
 | `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
@@ -112,8 +112,8 @@ Behavior:
   with only close enabled. Utility and HUD windows switch to it by themselves
   ([8](08-windows.md#utility-windows)).
 - With server-side decoration (`DecorationResponse::Server`) the bar takes no
-  space: the compositor draws one. On macOS, `WindowStyle::Plain` asks for the
-  bar ([8](08-windows.md#window-style)).
+  space: the compositor or AppKit draws one, and its toolbar items do not show. On
+  macOS, `WindowStyle::HiddenTitleBar` asks for the bar ([8](08-windows.md#window-style)).
 
 ### Toolbar items
 

@@ -40,6 +40,10 @@ fn main() -> Result<(), RunError> {
                         .child(Text::new(page).font(TITLE)),
                 )
         })
-        .options(|window| window.size((760, 480)).window_style(WindowStyle::Plain))
+        .options(|window| {
+            window
+                .size((760, 480))
+                .window_style(WindowStyle::HiddenTitleBar)
+        })
         .run()
 }

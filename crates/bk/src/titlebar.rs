@@ -42,7 +42,6 @@ pub struct Titlebar {
     sidebar: bool,
     toolbar_style: Option<WindowToolbarStyle>,
     left: Option<Element>,
-    right: Option<Element>,
     toolbar: Vec<ToolbarContent>,
     probe: Option<&'static str>,
     close_only: bool,
@@ -71,7 +70,6 @@ impl Titlebar {
             sidebar: false,
             toolbar_style: None,
             left: None,
-            right: None,
             toolbar: Vec::new(),
             probe: None,
             close_only: false,
@@ -108,11 +106,6 @@ impl Titlebar {
 
     pub fn left(mut self, child: impl IntoElement) -> Self {
         self.left = Some(child.into_element());
-        self
-    }
-
-    pub fn right(mut self, child: impl IntoElement) -> Self {
-        self.right = Some(child.into_element());
         self
     }
 
@@ -169,11 +162,7 @@ impl Component for Titlebar {
                 .is_some_and(|controls| controls.hud || controls.panel);
         let panel = controls.as_ref().is_some_and(|controls| controls.panel);
         let toolbar_style = self.toolbar_style.unwrap_or(
-            if self.sidebar
-                || self.left.is_some()
-                || self.right.is_some()
-                || !self.toolbar.is_empty()
-            {
+            if self.sidebar || self.left.is_some() || !self.toolbar.is_empty() {
                 WindowToolbarStyle::Unified
             } else {
                 WindowToolbarStyle::UnifiedCompact
@@ -221,6 +210,14 @@ impl Component for Titlebar {
         let bar_down = controls
             .as_ref()
             .is_some_and(|controls| *controls.focus_bar.read());
+        if status.decoration == DecorationResponse::Server && !self.toolbar.is_empty() {
+            static WARNED: std::sync::Once = std::sync::Once::new();
+            WARNED.call_once(|| {
+                tracing::warn!(
+                    "BarrierKit: the system draws this window's title bar, so the Titlebar's toolbar items do not show; on macOS set WindowStyle::HiddenTitleBar"
+                )
+            });
+        }
         if status.decoration == DecorationResponse::Server || (on_hover && !bar_down) {
             return rect()
                 .width(Size::fill())
@@ -484,22 +481,20 @@ impl Titlebar {
     fn toolbar_slots(&self, style: &TitlebarStyle) -> ToolbarSlots {
         let gap = style.sidebar_padding_x;
         let sections = lay_out(&self.toolbar, gap);
-        let trailing: Vec<Element> = self
-            .right
-            .iter()
-            .cloned()
-            .chain(sections.trailing)
-            .collect();
         if self.shows_title {
             ToolbarSlots {
                 navigation: row(sections.navigation, gap),
                 principal: row(sections.center, gap),
-                trailing: row(trailing, gap),
+                trailing: row(sections.trailing, gap),
             }
         } else {
             ToolbarSlots {
                 navigation: row(
-                    sections.navigation.into_iter().chain(trailing).collect(),
+                    sections
+                        .navigation
+                        .into_iter()
+                        .chain(sections.trailing)
+                        .collect(),
                     gap,
                 ),
                 principal: row(sections.center, gap),

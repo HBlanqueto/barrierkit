@@ -7,8 +7,8 @@ use bk::views::split::SplitView;
 fn main() -> Result<(), RunError> {
     let style = match std::env::args().nth(1).as_deref() {
         Some("title-bar") => WindowStyle::TitleBar,
-        Some("hidden-title-bar") => WindowStyle::HiddenTitleBar,
-        _ => WindowStyle::Plain,
+        Some("plain") => WindowStyle::Plain,
+        _ => WindowStyle::HiddenTitleBar,
     };
     run_window(
         || {
@@ -23,11 +23,15 @@ fn main() -> Result<(), RunError> {
                 .expanded()
                 .direction(Direction::Vertical)
                 .child(
-                    Titlebar::new().title("Notes").with_sidebar(true).right(
-                        ToolGroup::new()
-                            .child(IconButton::new(Symbol::SquareAndPencil, "New note"))
-                            .child(IconButton::new(Symbol::Ellipsis, "More")),
-                    ),
+                    Titlebar::new()
+                        .title("Notes")
+                        .with_sidebar(true)
+                        .toolbar(ToolbarItem::new(
+                            ToolbarItemPlacement::PrimaryAction,
+                            ToolGroup::new()
+                                .child(IconButton::new(Symbol::SquareAndPencil, "New note"))
+                                .child(IconButton::new(Symbol::Ellipsis, "More")),
+                        )),
                 )
                 .child(ContentUnavailableView::new(
                     "No Note Selected",

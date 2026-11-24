@@ -144,7 +144,7 @@ an app. Titles, order and shortcuts come from a SwiftUI app measured on
 macOS 27.2.1 in English and Spanish
 ([the measurement](../research/macos-standard-menus.md)). Every `Application`
 has them (ADR 0115); a scene whose options carry a `MainMenu` keeps that one.
-An app that draws its own title bar sets `HiddenTitleBar` or `Plain` in
+An app that draws its own title bar sets `HiddenTitleBar` in
 `.options(..)`: its window gets no kit `Titlebar`, and keeps the menus.
 
 1. To change them, pass `.commands(Commands::new()..)` to the `Application`.

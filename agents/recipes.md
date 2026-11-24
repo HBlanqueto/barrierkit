@@ -62,9 +62,10 @@ field does not compile under `#[derive(PartialEq)]`.
 
 ## 7. Drawing the whole window yourself
 
-Use it when the titlebar needs a sidebar or toolbar items. `WindowStyle::Plain`
-or `HiddenTitleBar` in `.options(..)` leaves out the kit `Titlebar`, so you draw
-your own ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
+Use it when the window draws its own bar: a title beside the lights, a sidebar or
+toolbar items. `WindowStyle::HiddenTitleBar`
+in `.options(..)` leaves out the kit `Titlebar`, so you draw your own beside AppKit's
+lights; [recipe 50](#50-every-swiftui-window-design) lists every design ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
 
 The program is [`recipes/custom_window.rs`](recipes/custom_window.rs).
 
@@ -94,9 +95,8 @@ The program is [`recipes/titlebar_over_gradient.rs`](recipes/titlebar_over_gradi
    and makes the `Titlebar` transparent. Its colors come from a
    `BACKDROP_SCENES` preset or from an image (`BackdropSource::Image`).
 2. The content is a `Component`, so it reads the backdrop's palette.
-3. `WindowStyle::Plain` leaves out the kit `Titlebar`, because the window
-   draws its own with buttons ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)). Every kit window is
-   client-side decorated.
+3. `WindowStyle::HiddenTitleBar` leaves out the kit `Titlebar`, because the window
+   draws its own with buttons ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
 
 ## 11. Style one control
 
@@ -335,15 +335,15 @@ The program is [`recipes/glass_window.rs`](recipes/glass_window.rs).
    [chapter 18](../docs/barrierkit/18-platform.md#glass-over-the-windows-content)
    says.
 
-## 28. A window with its own frame on macOS
+## 28. A window with a sidebar on macOS
 
-SwiftUI: `WindowGroup { NavigationSplitView { List { … } } detail: { … } }` with `.windowStyle(.plain)` and a `.toolbar`.
+SwiftUI: `WindowGroup { NavigationSplitView { List { … } } detail: { … } }` with a `.toolbar`.
 
-The program is [`recipes/notes_sidebar.rs`](recipes/notes_sidebar.rs).
+The program is [`recipes/notes_sidebar.rs`](recipes/notes_sidebar.rs). It takes `title-bar` or `plain` to try the
+other window styles; without an argument it is a `HiddenTitleBar` window.
 
-1. `WindowOptions::window_style(WindowStyle::Plain)` makes the window borderless
-   on macOS, so the `Titlebar` and its traffic lights are the kit's. Linux
-   ignores it; the compositor decides there.
+1. `WindowOptions::window_style(WindowStyle::HiddenTitleBar)` keeps AppKit's lights and the wallpaper tint, and the
+   kit draws the bar beside them, as SwiftUI's window. Linux ignores it; the compositor decides there.
 2. `Sidebar::traffic_lights(true)` holds the lights while the sidebar shows, and
    `Titlebar::with_sidebar(true)` puts the title at the start of the detail.
    [`custom_window`](recipes/custom_window.rs) and
@@ -492,7 +492,7 @@ The program is [`recipes/shapes.rs`](recipes/shapes.rs).
 
 SwiftUI: the green light, `View > Enter Full Screen`, and `NSWindow.didEnterFullScreenNotification`.
 
-The program is [`recipes/full_screen.rs`](recipes/full_screen.rs). It takes `title-bar`, `hidden-title-bar` or `plain`,
+The program is [`recipes/full_screen.rs`](recipes/full_screen.rs). It takes `title-bar`, `hidden-title-bar` (the default) or `plain`,
 then `unified`, `compact` or `expanded` for its `WindowToolbarStyle`: SwiftUI's `.toolbar { }` with `.windowToolbarStyle(..)`.
 
 1. `WindowControls::get().status.read().fullscreen` is true while the window is in full screen, whichever way it

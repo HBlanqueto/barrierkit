@@ -51,7 +51,10 @@ version.
 - **Shape of every app:** `use bk::prelude::*;`, then
   `Application::new(name).window(title, || view).run()` in `main`. The program
   and what each part does are in
-  [chapter 2](../docs/barrierkit/02-first-app.md#hello-world).
+  [chapter 2](../docs/barrierkit/02-first-app.md#hello-world). A window that
+  draws its own bar (a `Titlebar` with a sidebar or toolbar items) adds
+  `.options(|w| w.window_style(WindowStyle::HiddenTitleBar))`; every design is
+  in [recipe 50](recipes.md#50-every-swiftui-window-design).
 
 ## Hard rules
 

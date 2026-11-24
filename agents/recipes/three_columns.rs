@@ -28,10 +28,11 @@ fn main() -> Result<(), RunError> {
                     Titlebar::new()
                         .title(NOTES[*note.read()])
                         .with_sidebar(true)
-                        .right(
+                        .toolbar(ToolbarItem::new(
+                            ToolbarItemPlacement::PrimaryAction,
                             ToolGroup::new()
                                 .child(IconButton::new(Symbol::SquareAndPencil, "New note")),
-                        ),
+                        )),
                 )
                 .child(
                     rect()
@@ -50,6 +51,10 @@ fn main() -> Result<(), RunError> {
             .content(content)
             .sidebar_width(200.0)
         })
-        .options(|window| window.size((860, 480)).window_style(WindowStyle::Plain))
+        .options(|window| {
+            window
+                .size((860, 480))
+                .window_style(WindowStyle::HiddenTitleBar)
+        })
         .run()
 }

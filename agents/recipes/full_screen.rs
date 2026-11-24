@@ -4,9 +4,9 @@ use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
     let style = match std::env::args().nth(1).as_deref() {
-        Some("hidden-title-bar") => WindowStyle::HiddenTitleBar,
+        Some("title-bar") => WindowStyle::TitleBar,
         Some("plain") => WindowStyle::Plain,
-        _ => WindowStyle::TitleBar,
+        _ => WindowStyle::HiddenTitleBar,
     };
     let toolbar_style = match std::env::args().nth(2).as_deref() {
         Some("compact") => WindowToolbarStyle::UnifiedCompact,

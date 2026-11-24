@@ -41,16 +41,17 @@ fn main() -> Result<(), RunError> {
                                     background: StateValue::new(ShapeStyle::Clear),
                                     ..style
                                 })
-                                .right(
+                                .toolbar(ToolbarItem::new(
+                                    ToolbarItemPlacement::PrimaryAction,
                                     ToolGroup::new()
                                         .child(IconButton::new(Symbol::Plus, "Add"))
                                         .child(IconButton::new(Symbol::Ellipsis, "More")),
-                                ),
+                                )),
                         ),
                 )
         },
         WindowOptions::new("Glass", "glass")
             .size((760, 480))
-            .window_style(WindowStyle::Plain),
+            .window_style(WindowStyle::HiddenTitleBar),
     )
 }

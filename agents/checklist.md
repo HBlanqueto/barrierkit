@@ -27,7 +27,8 @@ reason it cannot be.
    that copies a kit control (a knob drawn by hand included: `Switch`, `Slider`
    and `LevelSlider` hand their held knob to the compositor on their own, and a
    toolbar item goes through `Titlebar::toolbar` with a placement, not a row of
-   your own).
+   your own). Does a window with a `Titlebar` set `WindowStyle::HiddenTitleBar`?
+   Without it macOS shows AppKit's bar and none of the items.
 6. Are hooks (every `use_*`, and `.help(..)`, `.popover(..)`, `.file_importer(..)`, `.file_exporter(..)` and `.on_open_url(..)`, which hide one) called on every
    render, never inside a condition, a loop or an iterator closure?
 7. Are there no comments besides `// SAFETY:` and one-line invariants?

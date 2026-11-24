@@ -18,7 +18,7 @@ Wayland protocols) is in [18. Platform](18-platform.md).
 1. Open the window with `Application`
    ([2](02-first-app.md#what-application-does-for-you)). A window that draws
    its own title bar (a sidebar, toolbar items) sets `WindowStyle::HiddenTitleBar`
-   or `Plain` and gets no kit `Titlebar` ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
+   and gets no kit `Titlebar` ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
    An app with more than one window declares [scenes](#scenes) on the
    `Application`.
 2. Describe the window with `WindowOptions` in `.options(..)`:
@@ -171,8 +171,8 @@ windows and sheets are always `TitleBar`.
 | Variant | `NSWindow` | `WindowStatus::decoration` | Use |
 |---|---|---|---|
 | `TitleBar` | titled, native lights | `Server` | Apps that look like any Mac app |
-| `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, and, once a `Titlebar` is drawn, an empty `NSToolbar` whose style follows its `toolbar_style`, so the native lights sit where the kit draws its own: (18, 18) under `Unified`, (11, 12) under `UnifiedCompact`, (9, 9) under `Expanded`, (8, 8) with no `Titlebar`, as SwiftUI's `.hiddenTitleBar` | `Hybrid` | The kit draws its `Titlebar` and sidebar beside the native lights and draws none of its own |
-| `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | The kit draws the `Titlebar` and `TrafficLights`, as on Linux |
+| `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, and, once a `Titlebar` is drawn, an empty `NSToolbar` whose style follows its `toolbar_style`, so the native lights sit where the kit draws its own: (18, 18) under `Unified`, (11, 12) under `UnifiedCompact`, (9, 9) under `Expanded`, (8, 8) with no `Titlebar`, as SwiftUI's `.hiddenTitleBar` | `Hybrid` | Any window with a `Titlebar`: the kit draws it and the sidebar beside the native lights, with AppKit's wallpaper tint |
+| `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | A frame drawn as on Linux: the kit draws the `Titlebar` and `TrafficLights`, with no wallpaper tint and the limits below |
 
 In an `Application`, a `HiddenTitleBar` or `Plain` window gets no kit
 `Titlebar`: the app draws its own and keeps the scenes and the standard menus
