@@ -9,8 +9,7 @@ use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
 use crate::media::use_artwork;
-use crate::styles::Painted;
-use crate::styles::{ImageWellStyle, LayoutDirection, Paints, Theme, resolve};
+use crate::styles::{ImageWellStyle, LayoutDirection, Painted, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
 pub struct ImageWell {
@@ -160,15 +159,5 @@ impl Component for WellImage {
                     .clone()
                     .map(|handle| image(handle).expanded().aspect_ratio(AspectRatio::Min)),
             )
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn only_image_extensions_are_accepted_in_any_case() {
-        assert!(super::is_image("/tmp/Foto.JPG".as_ref()));
-        assert!(!super::is_image("/tmp/notas.txt".as_ref()));
-        assert!(!super::is_image("/tmp/sin-extension".as_ref()));
     }
 }

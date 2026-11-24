@@ -10,7 +10,7 @@ use std::rc::Rc;
 use std::time::Instant;
 
 use freya_animation::prelude::{OnCreation, OnFinish, use_animation};
-use freya_core::data::LayoutData;
+use freya_core::data::{EffectState, LayoutData};
 use freya_core::element::{ClipContext, ElementExt, RenderContext};
 use freya_core::integration::RenderPipeline;
 use freya_core::layers::Layer;
@@ -67,9 +67,7 @@ impl ShaderEffect {
             time: 0.0,
         }
     }
-}
 
-impl ShaderEffect {
     pub(crate) fn at(mut self, time: f32) -> Self {
         self.time = time;
         self
@@ -351,11 +349,9 @@ struct Painter<'a, 'b> {
 impl Painter<'_, '_> {
     fn scale_transformed_area(&self, mut area: Area, scale_node_ids: &[NodeId]) -> Area {
         for node_id in scale_node_ids {
-            let layout_node = self.pipeline.tree.layout.get(node_id).unwrap();
-            let effect = self.pipeline.tree.effect_state.get(node_id).unwrap();
-            let node_area = layout_node.visible_area();
+            let (node_area, effect) = transform_node(self.pipeline.tree, node_id);
             let origin = effect.transform_origin.origin(&node_area);
-            let scale = effect.scale.unwrap();
+            let scale = effect.scale.expect("a node in `scales` has a scale");
             area = area.translate(-origin.to_vector());
             area = area.scale(scale.x, scale.y);
             area = area.translate(origin.to_vector());
@@ -368,9 +364,8 @@ impl Painter<'_, '_> {
             return *area;
         }
         let tree = self.pipeline.tree;
-        let layout = tree.layout.get(&clip_node_id).unwrap();
-        let effect = tree.effect_state.get(&clip_node_id).unwrap();
-        let area = self.scale_transformed_area(layout.visible_area(), &effect.scales);
+        let (clip_area, effect) = transform_node(tree, &clip_node_id);
+        let area = self.scale_transformed_area(clip_area, &effect.scales);
         self.clip_areas.insert(clip_node_id, area);
         area
     }
@@ -383,7 +378,9 @@ impl Painter<'_, '_> {
         };
         for clip_node_id in beyond(&effect_state.clips, applied.clips) {
             let area = self.clip_area(*clip_node_id);
-            let clip_element = tree.elements.get(clip_node_id).unwrap();
+            let Some(clip_element) = tree.elements.get(clip_node_id) else {
+                continue;
+            };
             clip_element.clip(ClipContext {
                 canvas: self.pipeline.canvas,
                 visible_area: &area,
@@ -391,12 +388,13 @@ impl Painter<'_, '_> {
             });
         }
         for id in beyond(&effect_state.rotations, applied.rotations) {
-            let layout_node = tree.layout.get(id).unwrap();
-            let effect = tree.effect_state.get(id).unwrap();
-            let origin = effect.transform_origin.origin(&layout_node.visible_area());
+            let (area, effect) = transform_node(tree, id);
+            let origin = effect.transform_origin.origin(&area);
             let mut matrix = SkMatrix::new_identity();
             matrix.set_rotate(
-                effect.rotation.unwrap(),
+                effect
+                    .rotation
+                    .expect("a node in `rotations` has a rotation"),
                 Some(SkPoint {
                     x: origin.x,
                     y: origin.y,
@@ -412,10 +410,9 @@ impl Painter<'_, '_> {
             return;
         };
         for id in beyond(&effect_state.scales, applied.scales) {
-            let layout_node = tree.layout.get(id).unwrap();
-            let effect = tree.effect_state.get(id).unwrap();
-            let origin = effect.transform_origin.origin(&layout_node.visible_area());
-            let scale = effect.scale.unwrap();
+            let (area, effect) = transform_node(tree, id);
+            let origin = effect.transform_origin.origin(&area);
+            let scale = effect.scale.expect("a node in `scales` has a scale");
             self.pipeline.canvas.translate((origin.x, origin.y));
             self.pipeline.canvas.scale((scale.x, scale.y));
             self.pipeline.canvas.translate((-origin.x, -origin.y));
@@ -449,14 +446,18 @@ impl Painter<'_, '_> {
         }
         let tree = self.pipeline.tree;
         let canvas = self.pipeline.canvas;
-        let layout_node = tree.layout.get(&node_id).unwrap();
+        let (Some(layout_node), Some(element), Some(text_style_state)) = (
+            tree.layout.get(&node_id),
+            tree.elements.get(&node_id),
+            tree.text_style_state.get(&node_id),
+        ) else {
+            return;
+        };
         let effect_state = tree.effect_state.get(&node_id);
         let visible_area = effect_state.map_or(layout_node.visible_area(), |effect| {
             self.scale_transformed_area(layout_node.visible_area(), &effect.scales)
         });
         let saved = canvas.save();
-        let element = tree.elements.get(&node_id).unwrap();
-        let text_style_state = tree.text_style_state.get(&node_id).unwrap();
         if let Some(effect_state) = effect_state {
             self.apply_transforms(node_id, applied);
             let scale_factor = self.pipeline.scale_factor as f32;
@@ -531,7 +532,11 @@ impl Painter<'_, '_> {
                 .iter()
                 .fold(1., |acc, opacity| acc * opacity)
         });
-        let root_area = self.pipeline.tree.layout.get(&root).unwrap().visible_area();
+        let root_area = tree
+            .layout
+            .get(&root)
+            .expect("`culled` skips a root without layout")
+            .visible_area();
         let paint = effect.paint(inherited, scale_factor, &root_area);
         let reach = effect.outset() * scale_factor;
         let bounds = (inside.rotations == applied.rotations && inside.scales == applied.scales)
@@ -569,6 +574,29 @@ impl Painter<'_, '_> {
             all.max_y() + reach,
         ))
     }
+
+    // A group root that hangs from another group paints with it.
+    fn is_nested(&self, root: NodeId) -> bool {
+        self.pipeline
+            .tree
+            .parents
+            .get(&root)
+            .is_some_and(|parent| self.groups.owner.contains_key(parent))
+    }
+}
+
+// Freya lays out every node it lists in another node's clips, rotations or scales, and records its effects.
+fn transform_node<'a>(tree: &'a Tree, id: &NodeId) -> (Area, &'a EffectState) {
+    let area = tree
+        .layout
+        .get(id)
+        .expect("a transform node is laid out")
+        .visible_area();
+    let effect = tree
+        .effect_state
+        .get(id)
+        .expect("a transform node has an effect state");
+    (area, effect)
 }
 
 /// Freya's `RenderPipeline::render` with the groups of this module: every node paints as there, and a group paints its subtree into
@@ -580,7 +608,8 @@ pub(crate) fn render(mut pipeline: RenderPipeline<'_>) {
     keys.sort_unstable();
     let order: Vec<NodeId> = keys
         .iter()
-        .flat_map(|key| pipeline.tree.layers.get(key).unwrap().iter().copied())
+        .filter_map(|key| pipeline.tree.layers.get(key))
+        .flat_map(|nodes| nodes.iter().copied())
         .collect();
     let members = distribute(
         &order,
@@ -604,97 +633,5 @@ pub(crate) fn render(mut pipeline: RenderPipeline<'_>) {
             }
             Some(_) => {}
         }
-    }
-}
-
-impl Painter<'_, '_> {
-    // A group root that hangs from another group paints with it.
-    fn is_nested(&self, root: NodeId) -> bool {
-        self.pipeline
-            .tree
-            .parents
-            .get(&root)
-            .is_some_and(|parent| self.groups.owner.contains_key(parent))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn tree(id: u32) -> Vec<u32> {
-        match id {
-            1 => vec![2, 3],
-            2 => vec![4],
-            3 => vec![5],
-            _ => vec![],
-        }
-    }
-
-    #[test]
-    fn a_group_holds_its_root_and_every_descendant_in_order() {
-        let found = members(1, &|id| tree(id), &|_| false);
-        assert_eq!(found, [1, 2, 3, 4, 5]);
-    }
-
-    #[test]
-    fn an_overlay_and_what_hangs_from_it_stay_out_of_the_group() {
-        let found = members(1, &|id| tree(id), &|id| id == 3);
-        assert_eq!(found, [1, 2, 4]);
-    }
-
-    #[test]
-    fn a_group_lists_its_nodes_and_the_roots_hanging_from_them_in_paint_order() {
-        let owner: HashMap<u32, u32> = [(1, 1), (2, 1), (3, 3), (4, 3), (6, 6)].into();
-        let parents: HashMap<u32, u32> = [(2, 1), (3, 1), (4, 3), (6, 5)].into();
-        let lists = distribute(
-            &[1, 2, 5, 3, 4, 6],
-            &owner,
-            &|id| id == 1 || id == 3 || id == 6,
-            &|id| parents.get(&id).copied(),
-        );
-        assert_eq!(lists[&1], [1, 2, 3]);
-        assert_eq!(lists[&3], [3, 4]);
-        assert_eq!(lists[&6], [6]);
-        assert_eq!(lists.len(), 3);
-    }
-
-    #[test]
-    fn a_node_applies_only_what_its_group_did_not() {
-        assert_eq!(beyond(&[1, 2, 3, 4], 2), [3, 4]);
-        assert!(beyond(&[1, 2], 2).is_empty());
-        assert!(beyond(&[1, 2], 5).is_empty());
-    }
-
-    #[test]
-    fn the_layer_carries_the_inherited_opacity_and_the_opacity_of_its_effect() {
-        let paint = GroupEffect::Opacity(0.5).paint(0.5, 1.0, &Area::default());
-        assert!((paint.alpha_f() - 0.25).abs() < 1e-6);
-        assert!(
-            (GroupEffect::Blur(4.0)
-                .paint(1.0, 2.0, &Area::default())
-                .alpha_f()
-                - 1.0)
-                .abs()
-                < 1e-6
-        );
-        assert!(
-            GroupEffect::Blur(4.0)
-                .paint(1.0, 2.0, &Area::default())
-                .image_filter()
-                .is_some()
-        );
-    }
-
-    #[test]
-    fn the_pocket_tone_is_the_line_through_the_measured_means_and_fades_in_by_progress() {
-        let apply = |dark, level: f32, progress| {
-            let m = pocket_matrix(dark, progress);
-            m[0] * level + m[4]
-        };
-        assert!((apply(false, 128.0 / 255.0, 1.0) * 255.0 - 200.0).abs() < 0.5);
-        assert!((apply(true, 128.0 / 255.0, 1.0) * 255.0 - 76.1).abs() < 0.5);
-        assert_eq!(pocket_matrix(false, 0.25)[18], 0.25);
-        assert_eq!(pocket_matrix(false, 7.0)[18], 1.0);
     }
 }

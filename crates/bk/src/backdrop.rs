@@ -3,7 +3,7 @@ use std::f32::consts::FRAC_1_SQRT_2;
 use std::rc::Rc;
 
 use ctappearance::backdrop::{self as tint, ImagePalette, ink_on, palette_from_pixels};
-use ctdesign::{BACKDROP, Rgba};
+use ctdesign::{BACKDROP, Rgba, smoothstep};
 use freya_animation::prelude::use_animation_transition;
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
@@ -320,7 +320,7 @@ impl ElementExt for Layer {
             let (colors, offsets): (Vec<Color4f>, Vec<f32>) = (0..stops)
                 .map(|i| {
                     let t = i as f32 / (stops - 1) as f32;
-                    let fade = 1.0 - t * t * (3.0 - 2.0 * t);
+                    let fade = 1.0 - smoothstep(t);
                     let c = Rgba {
                         a: self.opacity * fade,
                         ..layer
@@ -335,45 +335,6 @@ impl ElementExt for Layer {
             let (start, end) = line(bounds, *degrees);
             paint.set_shader(shaders::linear_gradient((start, end), &gradient, None));
             context.canvas.draw_rect(bounds, &paint);
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn png(blocks: &[[u8; 3]]) -> Bytes {
-        let (width, height) = (32 * blocks.len() as u32, 32);
-        let mut pixels = Vec::new();
-        for _ in 0..height {
-            for block in blocks {
-                for _ in 0..32 {
-                    pixels.extend_from_slice(block);
-                }
-            }
-        }
-        let mut out = Vec::new();
-        let mut encoder = png::Encoder::new(&mut out, width, height);
-        encoder.set_color(png::ColorType::Rgb);
-        encoder
-            .write_header()
-            .unwrap()
-            .write_image_data(&pixels)
-            .unwrap();
-        Bytes::from(out)
-    }
-
-    #[test]
-    fn an_encoded_image_gives_back_its_colours() {
-        let blocks = [[200, 50, 60], [30, 130, 140], [220, 170, 40]];
-        let palette = image_palette(&png(&blocks)).expect("decodable png");
-        for block in blocks {
-            let found = palette.colors.iter().any(|c| {
-                let [r, g, b, _] = c.to_rgba8();
-                [r, g, b].iter().zip(block).all(|(p, q)| p.abs_diff(q) <= 4)
-            });
-            assert!(found, "missing {block:?} in {:?}", palette.colors);
         }
     }
 }

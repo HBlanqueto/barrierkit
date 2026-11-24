@@ -1,9 +1,8 @@
 use freya_core::prelude::*;
 
-use super::{Action, Shortcut, ShortcutKey, use_menu_action};
+use crate::app::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::i18n::text;
-use crate::main_menu::MenuHandle;
-use crate::menu::MenuItem;
+use crate::main_menu::use_menu_enabled;
 
 pub const UNDO: Action =
     Action::new("undo", || text!("undo")).shortcut(Shortcut::ctrl(ShortcutKey::Char('z')));
@@ -102,42 +101,7 @@ pub fn use_undo<T: Clone + 'static>(value: State<T>) -> UndoManager<T> {
             manager.redo();
         }
     });
-    use_menu_enabled(UNDO, manager.can_undo());
-    use_menu_enabled(REDO, manager.can_redo());
+    use_menu_enabled(UNDO.id, manager.can_undo());
+    use_menu_enabled(REDO.id, manager.can_redo());
     manager
-}
-
-fn use_menu_enabled(action: Action, enabled: bool) {
-    let handle = use_hook(try_consume_root_context::<MenuHandle>);
-    let mut published = use_state(|| None::<bool>);
-    if *published.peek() == Some(enabled) {
-        return;
-    }
-    published.set(Some(enabled));
-    if let Some(handle) = handle {
-        handle.update(action.id, |item| {
-            if let MenuItem::Action { enabled: shown, .. } = item {
-                *shown = enabled;
-            }
-        });
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn undo_and_redo_walk_the_recorded_values_and_a_new_change_drops_the_redo() {
-        let mut stack = UndoStack::default();
-        stack.record(0);
-        stack.record(1);
-        assert_eq!(stack.undo(2), Some(1));
-        assert_eq!(stack.undo(1), Some(0));
-        assert_eq!(stack.undo(0), None);
-        assert_eq!(stack.redo(0), Some(1));
-        stack.record(1);
-        assert_eq!(stack.redo(5), None);
-        assert_eq!(stack.undo(5), Some(1));
-    }
 }

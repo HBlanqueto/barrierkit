@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use freya_core::prelude::try_consume_root_context;
 
-use super::MenuActions;
+use crate::app::MenuActions;
 use crate::document::{OpenedUrl, deliver_open};
 use crate::platform::{Timers, WakeHandle, WindowControls, instance};
 use crate::portal::file_path;

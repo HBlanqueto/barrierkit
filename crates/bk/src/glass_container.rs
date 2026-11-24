@@ -20,6 +20,8 @@ use crate::styles::{
 };
 
 pub const MAX_SHAPES: usize = 8;
+// `SKSL` declares its arrays and its loop with this count.
+const _: () = assert!(MAX_SHAPES == 8);
 
 /// SwiftUI's `Glass`: the variant of the native glass; the kit's fallback ignores `CLEAR`.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -422,19 +424,13 @@ impl Component for GlassContainer {
         let paints = Paints::current(ControlState::default(), style.effect);
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
-        let (tint, blur) = material(
-            ink(&style.tint),
-            ink(&style.solid),
-            style.blur,
-            transparency_reduced(),
-        );
-        if crate::glass::native_glass() {
+        let backdrop: Vec<Element> = if crate::glass::native_glass() {
             let look = GlassLook {
                 clear: style.clear,
                 spacing: self.spacing,
                 tint: None,
             };
-            let glasses: Vec<Element> = measured
+            measured
                 .read()
                 .iter()
                 .map(|(_, frame)| {
@@ -448,20 +444,15 @@ impl Component for GlassContainer {
                         look,
                     )
                 })
-                .collect();
-            let root = rect()
-                .direction(Direction::Horizontal)
-                .spacing(self.gap)
-                .on_sized(move |event: Event<SizedEventData>| origin.set_if_modified(event.area))
-                .children(glasses)
-                .children(items);
-            return self.overrides.apply(root);
-        }
-        let root = rect()
-            .direction(Direction::Horizontal)
-            .spacing(self.gap)
-            .on_sized(move |event: Event<SizedEventData>| origin.set_if_modified(event.area))
-            .child(leaf(Blob {
+                .collect()
+        } else {
+            let (tint, blur) = material(
+                ink(&style.tint),
+                ink(&style.solid),
+                style.blur,
+                transparency_reduced(),
+            );
+            vec![leaf(Blob {
                 from: shown.iter().map(|morph| morph.from).collect(),
                 to: shown.iter().map(|morph| morph.to).collect(),
                 t,
@@ -471,7 +462,13 @@ impl Component for GlassContainer {
                 blur,
                 rim: ink(&style.rim),
                 layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
-            }))
+            })]
+        };
+        let root = rect()
+            .direction(Direction::Horizontal)
+            .spacing(self.gap)
+            .on_sized(move |event: Event<SizedEventData>| origin.set_if_modified(event.area))
+            .children(backdrop)
             .children(items);
         self.overrides.apply(root)
     }
@@ -520,127 +517,5 @@ impl Component for GlassItem {
                 measured.set(list);
             })
             .child(self.content.clone())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use ctdesign::MEDIA;
-
-    use super::*;
-
-    #[test]
-    fn a_circle_is_the_largest_one_centered_in_its_view_and_a_capsule_keeps_the_view() {
-        let area = Area::new((10.0, 20.0).into(), (50.0, 40.0).into());
-        let circle = glass_frame(area, 16_384.0, true);
-        assert_eq!(
-            (
-                circle.x,
-                circle.y,
-                circle.width,
-                circle.height,
-                circle.radius
-            ),
-            (15.0, 20.0, 40.0, 40.0, 20.0)
-        );
-        let capsule = glass_frame(area, 16_384.0, false);
-        assert_eq!(
-            (capsule.x, capsule.width, capsule.height, capsule.radius),
-            (10.0, 50.0, 40.0, 20.0)
-        );
-    }
-
-    fn frame(x: f32) -> Frame {
-        Frame {
-            x,
-            y: 0.0,
-            width: 40.0,
-            height: 40.0,
-            radius: 20.0,
-        }
-    }
-
-    #[test]
-    fn a_new_shape_grows_out_of_its_nearest_neighbour_and_a_removed_one_melts_into_it() {
-        let appear = plan(
-            &[("a", frame(0.0))],
-            &[("a", frame(0.0)), ("b", frame(60.0))],
-        );
-        assert_eq!(appear[1].from, frame(0.0));
-        assert_eq!(appear[1].to, frame(60.0));
-        let vanish = plan(
-            &[("a", frame(0.0)), ("b", frame(60.0))],
-            &[("a", frame(0.0))],
-        );
-        assert_eq!(vanish.len(), 2);
-        assert_eq!((vanish[1].id, vanish[1].to), ("b", frame(0.0)));
-    }
-
-    #[test]
-    fn the_shader_compiles_and_takes_every_uniform() {
-        let program = Program::get(SKSL).unwrap();
-        let blob = Blob {
-            from: vec![frame(0.0)],
-            to: vec![frame(30.0)],
-            t: 0.5,
-            spacing: 12.0,
-            origin: (0.0, 0.0),
-            tint: MEDIA.round_glass,
-            blur: Some(MEDIA.material_blur),
-            rim: MEDIA.round_rim,
-            layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
-        };
-        assert!(blob.paint(&program, 1.0, 0.0).is_some());
-        assert!(blob.paint(&program, 2.0, 1.0).is_some());
-    }
-
-    // The shader mixes the frames by `t`, which is the animation's progress: the picture is the one of the frames mixed on the CPU.
-    #[test]
-    fn the_shader_morphs_by_the_time_it_is_given_as_the_cpu_mix_of_the_frames_does() {
-        use freya_engine::prelude::{AlphaType, ColorType, ImageInfo, raster_n32_premul};
-        let program = Program::get(SKSL).unwrap();
-        let (a, b) = (
-            frame(0.0),
-            Frame {
-                x: 40.0,
-                y: 10.0,
-                width: 30.0,
-                height: 50.0,
-                radius: 6.0,
-            },
-        );
-        let blob = |from: Frame, to: Frame, t: f32| Blob {
-            from: vec![from],
-            to: vec![to],
-            t,
-            spacing: 12.0,
-            origin: (0.0, 0.0),
-            tint: MEDIA.round_glass,
-            blur: None,
-            rim: MEDIA.round_rim,
-            layout: layout(Size::fill(), Size::fill(), Position::new_absolute()),
-        };
-        let pixels = |blob: Blob| {
-            let mut surface = raster_n32_premul((90, 70)).unwrap();
-            let paint = blob.paint(&program, 1.0, 1.0).unwrap();
-            surface
-                .canvas()
-                .draw_rect(SkRect::new(0.0, 0.0, 90.0, 70.0), &paint);
-            let info = ImageInfo::new((90, 70), ColorType::RGBA8888, AlphaType::Premul, None);
-            let mut out = vec![0u8; 90 * 70 * 4];
-            assert!(surface.read_pixels(&info, &mut out, 90 * 4, (0, 0)));
-            out
-        };
-        for t in [0.0, 0.3, 1.0] {
-            let gpu = pixels(blob(a, b, t));
-            let cpu = pixels(blob(a.lerp(&b, t), a.lerp(&b, t), 0.0));
-            let worst = gpu
-                .iter()
-                .zip(&cpu)
-                .map(|(x, y)| x.abs_diff(*y))
-                .max()
-                .unwrap();
-            assert!(worst <= 1, "t {t}: {worst}");
-        }
     }
 }

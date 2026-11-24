@@ -11,9 +11,8 @@ use crate::glass::{GlassEdge, fullscreen_backdrop};
 use crate::platform::FullscreenBar;
 use crate::platform::WindowControls;
 use crate::style::text_style;
-use crate::styles::Painted;
 use crate::styles::{
-    ControlState, ControlStyle, FullscreenBarStyle, LayoutDirection, Paints, ShadowStyle,
+    ControlState, ControlStyle, FullscreenBarStyle, LayoutDirection, Painted, Paints, ShadowStyle,
     ShapeStyle, StateValue, Theme, TrafficLightsStyle, WindowChromeStyle, resolve,
     use_provide_theme,
 };
@@ -397,7 +396,7 @@ impl Component for WindowChrome {
             ),
             (true, _) => Some(resting_edge(&style, true).into_element()),
         };
-        let mut root = rect()
+        let root = rect()
             .expanded()
             .direction(Direction::Horizontal)
             .content(Content::flex())
@@ -413,47 +412,52 @@ impl Component for WindowChrome {
                 );
                 revealed.set_if_modified(wanted);
             })
-            .on_pointer_leave(move |_| revealed.set_if_modified(false));
-        root = root.maybe_child(edge).child(content);
-        if layout == TitlebarLayout::Top && hidden && reveal != Reveal::Popup {
-            root = root.child(
+            .on_pointer_leave(move |_| revealed.set_if_modified(false))
+            .maybe_child(edge)
+            .child(content)
+            .maybe_child(
+                (layout == TitlebarLayout::Top && hidden && reveal != Reveal::Popup).then(|| {
+                    rect()
+                        .position(Position::new_absolute().top(0.0).left(0.0).right(0.0))
+                        .width(Size::fill())
+                        .layer(Layer::Overlay)
+                        .child(resting_edge(&style, false))
+                }),
+            )
+            .maybe_child(
+                (vertical_rail && reveal == Reveal::Drawer && progress > 0.0).then(|| {
+                    let extent = style.rail_width;
+                    let drawer = rect()
+                        .position(
+                            Position::new_absolute()
+                                .top(0.0)
+                                .left(-extent * (1.0 - progress)),
+                        )
+                        .height(Size::fill())
+                        .layer(Layer::Overlay);
+                    let background = window_paints(&style).fill(&style.drawer_background);
+                    shadowed(drawer, &style.shadows)
+                        .child(rail(&style, items, 1.0).background(background))
+                }),
+            )
+            .maybe_child((rail_over && focus_progress > 0.0).then(|| {
+                let extent = style.rail_width;
                 rect()
-                    .position(Position::new_absolute().top(0.0).left(0.0).right(0.0))
-                    .width(Size::fill())
-                    .layer(Layer::Overlay)
-                    .child(resting_edge(&style, false)),
-            );
-        }
-        if vertical_rail && reveal == Reveal::Drawer && progress > 0.0 {
-            let extent = style.rail_width;
-            let position = Position::new_absolute().top(0.0);
-            let drawer = rect()
-                .position(position.left(-extent * (1.0 - progress)))
-                .height(Size::fill())
-                .layer(Layer::Overlay);
-            let background = window_paints(&style).fill(&style.drawer_background);
-            root = root.child(
-                shadowed(drawer, &style.shadows)
-                    .child(rail(&style, items, 1.0).background(background)),
-            );
-        }
-        if rail_over && focus_progress > 0.0 {
-            let extent = style.rail_width;
-            let position = Position::new_absolute().top(0.0);
-            let position = position.left(-extent * (1.0 - focus_progress));
-            root = root.child(
-                rect()
-                    .position(position)
+                    .position(
+                        Position::new_absolute()
+                            .top(0.0)
+                            .left(-extent * (1.0 - focus_progress)),
+                    )
                     .width(Size::px(extent))
                     .height(Size::percent(100.0))
                     .layer(Layer::Overlay)
                     .child(fullscreen_backdrop(bar, GlassEdge::Left, extent, 1.0))
-                    .child(rail(&style, items, 1.0)),
+                    .child(rail(&style, items, 1.0))
+            }))
+            .maybe_child(
+                (reveal == Reveal::Popup && progress > 0.0 && !overlaid)
+                    .then(|| pill(&style, layout == TitlebarLayout::Rail, progress)),
             );
-        }
-        if reveal == Reveal::Popup && progress > 0.0 && !overlaid {
-            root = root.child(pill(&style, layout == TitlebarLayout::Rail, progress));
-        }
         self.overrides.apply(root)
     }
 }

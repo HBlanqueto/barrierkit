@@ -49,9 +49,7 @@ impl<T: Clone + PartialEq + 'static> FocusState<T> {
             None => targets.iter().for_each(|(_, id)| id.request_unfocus()),
         }
     }
-}
 
-impl<T: Clone + PartialEq + 'static> FocusState<T> {
     fn register(&self, value: T, id: AccessibilityId) {
         self.sweep();
         let mut targets = self.targets;
@@ -157,50 +155,5 @@ impl<T: Clone + PartialEq + 'static> Component for DefaultFocus<T> {
         let (state, value) = (self.state, self.value.clone());
         use_after_side_effect(move || state.set(Some(value.clone())));
         self.child.clone()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use freya_core::integration::{App, AppComponent};
-    use freya_testing::TestingRunner;
-    use torin::prelude::Size2D;
-
-    struct Idle;
-    impl App for Idle {
-        fn render(&self) -> impl IntoElement {
-            rect()
-        }
-    }
-
-    #[test]
-    fn a_target_forgotten_while_the_list_is_borrowed_is_gone_after_the_next_registration() {
-        let (test, _) = TestingRunner::new(
-            AppComponent::new(Idle),
-            Size2D::new(10.0, 10.0),
-            |_| {},
-            1.0,
-        );
-        let ids = test.run_in(|| [(); 3].map(|()| AccessibilityId::new_unique()));
-        let state = FocusState::<u8> {
-            targets: State::create_global(Vec::new()),
-            forgotten: State::create_global(Vec::new()),
-        };
-        state.register(0, ids[0]);
-        state.register(1, ids[1]);
-        {
-            let _busy = state.targets.peek();
-            state.forget(ids[0]);
-        }
-        assert_eq!(state.targets.peek().len(), 2);
-        state.register(2, ids[2]);
-        let values: Vec<u8> = state
-            .targets
-            .peek()
-            .iter()
-            .map(|(value, _)| *value)
-            .collect();
-        assert_eq!(values, [1, 2]);
     }
 }

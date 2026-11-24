@@ -1,9 +1,10 @@
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::path::PathBuf;
 use std::rc::Rc;
 
 use freya_core::prelude::*;
 
+use crate::controlled::use_latest;
 use crate::environment::use_environment;
 use crate::platform::{WindowControls, panels};
 
@@ -87,8 +88,7 @@ pub(crate) fn use_file_dialog(
         directory: dialog.directory.or(directory),
         ..dialog
     };
-    let latest = use_hook(|| Rc::new(RefCell::new((dialog.clone(), on_completion.clone()))));
-    *latest.borrow_mut() = (dialog, on_completion);
+    let latest = use_latest((dialog, on_completion));
     let showing = use_hook(|| Rc::new(Cell::new(false)));
     let window = try_consume_root_context::<WindowControls>();
     use_side_effect(move || {

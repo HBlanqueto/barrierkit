@@ -950,6 +950,7 @@ pub struct DatePickerMetrics {
     pub selected_width: f32,
     pub selected_height: f32,
     pub selected_overhang: f32,
+    pub selected_lift: f32,
     pub day_radius: f32,
     pub segment_radius: f32,
 }
@@ -1050,6 +1051,9 @@ pub struct SpellingMetrics {
 pub struct FontPanelMetrics {
     pub sizes: [f32; 14],
     pub size_column: f32,
+    pub name_columns: f32,
+    pub visible_rows: f32,
+    pub preview_rows: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

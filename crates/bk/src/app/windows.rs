@@ -6,11 +6,11 @@ use std::rc::Rc;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 
-use super::commands::{
+use crate::app::commands::{
     BRING_ALL_TO_FRONT, CLOSE_WINDOW, Commands, Layout, MINIMIZE, NEW_WINDOW, QUIT, SETTINGS,
     TOGGLE_FULL_SCREEN, WINDOW_ACTIVATE, WINDOW_OPEN, ZOOM,
 };
-use super::use_menu_action;
+use crate::app::use_menu_action;
 use crate::document::first_edited;
 use crate::i18n::text;
 use crate::main_menu::MenuHandle;

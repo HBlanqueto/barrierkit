@@ -303,6 +303,7 @@
   --bk-date-picker-selected-width: 19;
   --bk-date-picker-selected-height: 16;
   --bk-date-picker-selected-overhang: 3.25;
+  --bk-date-picker-selected-lift: 0.5;
   --bk-date-picker-day-radius: 4.5;
   --bk-date-picker-segment-radius: 3;
   --bk-token-field-padding-x: 10;
@@ -376,6 +377,9 @@
   --bk-font-panel-sizes-12: 48;
   --bk-font-panel-sizes-13: 72;
   --bk-font-panel-size-column: 72;
+  --bk-font-panel-name-columns: 3;
+  --bk-font-panel-visible-rows: 10;
+  --bk-font-panel-preview-rows: 2;
   --bk-popover-radius: 20;
   --bk-popover-arrow-width: 25.42;
   --bk-popover-arrow-height: 13;

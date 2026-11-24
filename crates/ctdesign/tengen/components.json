@@ -138,6 +138,7 @@
       "selected-width": 19,
       "selected-height": 16,
       "selected-overhang": 3.25,
+      "selected-lift": 0.5,
       "day-radius": 4.5,
       "segment-radius": 3
     },
@@ -214,7 +215,10 @@
     },
     "font-panel": {
       "sizes": [6, 8, 9, 10, 11, 12, 13, 14, 16, 20, 24, 36, 48, 72],
-      "size-column": 72
+      "size-column": 72,
+      "name-columns": 3,
+      "visible-rows": 10,
+      "preview-rows": 2
     },
     "popover": {
       "radius": 20,

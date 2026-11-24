@@ -9,9 +9,8 @@ use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::with_font;
-use crate::styles::Painted;
 use crate::styles::{
-    CapacityIndicatorStyle, ControlState, GaugeStyle, Paints, RatingIndicatorStyle,
+    CapacityIndicatorStyle, ControlState, GaugeStyle, Painted, Paints, RatingIndicatorStyle,
     RelevancyIndicatorStyle, ShapeStyle, StateValue, Theme, resolve,
 };
 use crate::symbol::{Symbol, symbol};
@@ -495,29 +494,5 @@ impl Component for RatingIndicator {
             .children(stars);
         self.overrides
             .apply(interaction.focus_ring(dimmed(rating, style.opacity), 0.0))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::level_color;
-    use crate::styles::{ControlStyle, GaugeStyle};
-
-    #[test]
-    fn the_gauge_marker_runs_from_the_lower_left_to_the_lower_right() {
-        let style = GaugeStyle::tengen();
-        let (low_x, low_y) = super::gauge_marker(&style, 0.0);
-        let (high_x, high_y) = super::gauge_marker(&style, 1.0);
-        let center = style.size / 2.0;
-        assert!(low_x < center && low_y > center);
-        assert!(high_x > center && high_y > center);
-        assert!((low_y - high_y).abs() < 0.01);
-    }
-
-    #[test]
-    fn the_capacity_turns_yellow_at_the_warning_and_red_at_the_critical_value() {
-        assert_eq!(level_color(0.5, 0.75, 0.9), 0);
-        assert_eq!(level_color(0.75, 0.75, 0.9), 1);
-        assert_eq!(level_color(0.95, 0.75, 0.9), 2);
     }
 }

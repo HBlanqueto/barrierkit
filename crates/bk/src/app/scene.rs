@@ -2,8 +2,8 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use std::borrow::Cow;
 
-use super::commands::Commands;
-use super::windows::{MAIN_WINDOW, Scene, Scenes, WindowGroup};
+use crate::app::commands::Commands;
+use crate::app::windows::{MAIN_WINDOW, Scene, Scenes, WindowGroup};
 use crate::platform::{RunError, WindowOptions, open_utility_window, run_window};
 use crate::styles::Theme;
 
@@ -25,6 +25,9 @@ impl Application {
     }
 
     pub fn theme(mut self, theme: Theme) -> Self {
+        for scene in &mut self.scenes {
+            scene.options.theme = theme.clone();
+        }
         self.theme = theme;
         self
     }
@@ -45,6 +48,7 @@ impl Application {
         self
     }
 
+    /// Configures the window added last, so it goes after its `window` or `scene`.
     pub fn options(mut self, configure: impl FnOnce(WindowOptions) -> WindowOptions) -> Self {
         if let Some(scene) = self.scenes.last_mut() {
             scene.options = configure(scene.options.clone());

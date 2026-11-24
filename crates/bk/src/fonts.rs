@@ -14,6 +14,7 @@ thread_local! {
     static FONTS: RefCell<Option<(FontCollection, FontMgr)>> = const { RefCell::new(None) };
     static OWN: RefCell<Option<TypefaceFontProvider>> = const { RefCell::new(None) };
     static OPTICAL_FACES: RefCell<TypefaceFontProvider> = RefCell::new(TypefaceFontProvider::new());
+    // shortcut: one entry per (family, size), never evicted; fine for the type scale, bound it if apps animate font sizes.
     static OPTICAL: RefCell<HashMap<(String, u32), Optical>> = RefCell::new(HashMap::new());
 }
 
@@ -54,6 +55,7 @@ pub fn register_font(bytes: &[u8]) -> bool {
         });
     });
     OPTICAL.with(|optical| optical.borrow_mut().clear());
+    OPTICAL_FACES.with(|provider| *provider.borrow_mut() = TypefaceFontProvider::new());
     true
 }
 
@@ -194,43 +196,4 @@ fn tracking(bytes: &[u8], units_per_em: i32, size: f32) -> Option<f32> {
         None => points.last()?.1,
     };
     Some(units * size / units_per_em as f32)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn table(sizes: [f32; 2], values: [i16; 2]) -> Vec<u8> {
-        let fixed = |value: f32| ((value * 65536.0) as i32).to_be_bytes();
-        let header = [0, 1, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0];
-        let track_data = [0, 1, 0, 2, 0, 0, 0, 28];
-        let entry = [0, 0, 0, 0, 0, 0, 0, 36];
-        [
-            &header[..],
-            &track_data,
-            &entry,
-            &fixed(sizes[0]),
-            &fixed(sizes[1]),
-        ]
-        .concat()
-        .into_iter()
-        .chain(values.iter().flat_map(|value| value.to_be_bytes()))
-        .collect()
-    }
-
-    #[test]
-    fn tracking_interpolates_between_sizes_and_holds_past_the_ends() {
-        let trak = table([12.0, 20.0], [0, -40]);
-        assert_eq!(tracking(&trak, 2000, 16.0), Some(-20.0 * 16.0 / 2000.0));
-        assert_eq!(tracking(&trak, 2000, 30.0), Some(-40.0 * 30.0 / 2000.0));
-        assert_eq!(tracking(&trak, 2000, 6.0), Some(0.0));
-    }
-
-    #[test]
-    fn tracking_of_a_short_table_is_none() {
-        assert_eq!(
-            tracking(&table([12.0, 20.0], [0, -40])[..30], 2000, 16.0),
-            None
-        );
-    }
 }

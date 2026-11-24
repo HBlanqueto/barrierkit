@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::rc::Rc;
 
-use ctdesign::{HAIRLINE, SYMBOL};
+use ctdesign::{DATE_PICKER, HAIRLINE, SYMBOL};
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
@@ -18,9 +18,9 @@ use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupSpec, Popups,
 };
 use crate::style::with_font;
-use crate::styles::Painted;
 use crate::styles::{
-    ControlState, DatePickerStyle, LayoutDirection, Paints, ShapeStyle, StateValue, Theme, resolve,
+    ControlState, DatePickerStyle, LayoutDirection, Painted, Paints, ShapeStyle, StateValue, Theme,
+    resolve,
 };
 use crate::symbol::{Symbol, symbol};
 
@@ -578,7 +578,10 @@ impl Component for CalendarView {
                                 .position(
                                     Position::new_absolute()
                                         .right(-style.selected_overhang)
-                                        .top((style.day_height - selected_height) / 2.0 - 0.5),
+                                        .top(
+                                            (style.day_height - selected_height) / 2.0
+                                                - DATE_PICKER.selected_lift,
+                                        ),
                                 )
                                 .layer(-1)
                                 .width(Size::px(selected_width))

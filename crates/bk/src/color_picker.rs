@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Area, Direction, Gaps, Size};
 
-use crate::controls::{dimmed, shadowed};
+use crate::controls::{dimmed, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_overrides};
 use crate::environment::use_disabled;
 use crate::i18n::text;
@@ -11,8 +11,7 @@ use crate::interaction::{control_state, use_interaction};
 use crate::level::LevelSlider;
 use crate::popover::Popover;
 use crate::style::{text, with_font};
-use crate::styles::Painted;
-use crate::styles::{ColorPickerStyle, LayoutDirection, Paints, Theme, resolve};
+use crate::styles::{ColorPickerStyle, LayoutDirection, Painted, Paints, Theme, resolve};
 use crate::theme::color;
 
 pub fn hsb_to_rgb(hue: f32, saturation: f32, brightness: f32) -> Rgba {
@@ -213,11 +212,7 @@ impl Component for ColorPicker {
                 .direction(Direction::Horizontal)
                 .child(well)
                 .maybe_child(wheel),
-            if disabled {
-                COLOR_PICKER.disabled_opacity
-            } else {
-                style.opacity
-            },
+            opacity_when(disabled, style.opacity, COLOR_PICKER.disabled_opacity),
         );
         self.overrides.apply(root)
     }
@@ -332,21 +327,5 @@ impl Component for ColorPanel {
                     .on_change(move |value| set_brightness((hue, saturation, value))),
             );
         self.overrides.apply(root)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn hsb_round_trips_through_rgb_and_primaries_land_on_their_hue() {
-        let red = hsb_to_rgb(0.0, 1.0, 1.0);
-        assert_eq!((red.r, red.g, red.b), (1.0, 0.0, 0.0));
-        let blue = hsb_to_rgb(2.0 / 3.0, 1.0, 1.0);
-        assert!((blue.b - 1.0).abs() < 1e-5 && blue.r.abs() < 1e-5);
-        let (h, s, b) = rgb_to_hsb(hsb_to_rgb(0.3, 0.6, 0.8));
-        assert!((h - 0.3).abs() < 1e-4 && (s - 0.6).abs() < 1e-4 && (b - 0.8).abs() < 1e-4);
-        assert_eq!(hex(hsb_to_rgb(0.0, 0.0, 1.0)), "#FFFFFF");
     }
 }

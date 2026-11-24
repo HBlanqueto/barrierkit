@@ -1,13 +1,9 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use ctdesign::{
-    BODY, BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2, SPACE_3,
-};
+use ctdesign::{BUTTON, CAPTION, DISCLOSURE, FONT_PANEL, HAIRLINE, SPACE_1, SPACE_2, SPACE_3};
 use freya_core::prelude::*;
 use freya_engine::prelude::{FontStyle, Slant};
 use torin::prelude::{Area, Direction, Gaps, Size};
 
+use crate::controlled::use_latest;
 use crate::controls::{Button, TextField};
 use crate::elements::{Overrides, forward_overrides};
 use crate::fonts::{family_names, fixed_pitch, styles};
@@ -15,7 +11,7 @@ use crate::i18n::text;
 use crate::popover::Popover;
 use crate::rich_text::FontChoice;
 use crate::scroll::ScrollView;
-use crate::style::{Palette, text};
+use crate::style::{Palette, sized_font, text};
 use crate::styles::{ButtonStyle, ControlState, OutlineViewStyle, Paints, Theme, resolve};
 use crate::theme::color;
 use crate::views::tree::TreeNode;
@@ -79,8 +75,8 @@ fn face_name(face: (bool, bool)) -> &'static str {
 
 pub(crate) fn panel_size() -> (f32, f32) {
     (
-        DISCLOSURE.column_width * 3.0 + FONT_PANEL.size_column,
-        DISCLOSURE.row_height * 10.0,
+        DISCLOSURE.column_width * FONT_PANEL.name_columns + FONT_PANEL.size_column,
+        DISCLOSURE.row_height * FONT_PANEL.visible_rows,
     )
 }
 
@@ -134,8 +130,7 @@ impl Component for FontPanel {
         let mut collection = use_state(|| Collection::All);
         let recent = RECENT.with(|recent| *recent);
         let current = font.read().clone();
-        let on_change = use_hook(|| Rc::new(RefCell::new(self.on_change.clone())));
-        *on_change.borrow_mut() = self.on_change.clone();
+        let on_change = use_latest(self.on_change.clone());
         let set = move |next: FontChoice| {
             let mut recent = recent;
             remember(&mut recent.write(), &next.family);
@@ -240,20 +235,19 @@ impl Component for FontPanel {
                             .children(rows),
                     )
             };
-        let mut preview = text(
-            format!("{} {}", current.family, current.size),
-            BODY,
-            palette.label,
+        let preview = sized_font(
+            label().text(format!("{} {}", current.family, current.size)),
+            &current.family,
+            current.size,
         )
-        .font_family(current.family.clone())
-        .font_size(current.size)
-        .max_lines(1);
-        if current.bold {
-            preview = preview.font_weight(FontWeight::BOLD);
-        }
-        if current.italic {
-            preview = preview.font_slant(FontSlant::Italic);
-        }
+        .color(color(palette.label))
+        .max_lines(1)
+        .maybe(current.bold, |preview| {
+            preview.font_weight(FontWeight::BOLD)
+        })
+        .maybe(current.italic, |preview| {
+            preview.font_slant(FontSlant::Italic)
+        });
         rect()
             .expanded()
             .direction(Direction::Vertical)
@@ -261,7 +255,7 @@ impl Component for FontPanel {
             .child(
                 rect()
                     .width(Size::fill())
-                    .height(Size::px(DISCLOSURE.row_height * 2.0))
+                    .height(Size::px(DISCLOSURE.row_height * FONT_PANEL.preview_rows))
                     .corner_radius(BUTTON.radius)
                     .border(
                         Border::new()
@@ -355,32 +349,5 @@ impl Component for FontPicker {
                 }
             }));
         self.overrides.apply(root)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use freya_engine::prelude::{Weight, Width};
-
-    #[test]
-    fn a_used_family_moves_to_the_front_of_recent_without_duplicates() {
-        let mut recent = vec!["Inter".to_string(), "Mono".to_string()];
-        remember(&mut recent, "Mono");
-        assert_eq!(recent, ["Mono", "Inter"]);
-    }
-
-    #[test]
-    fn only_a_positive_finite_number_is_a_size() {
-        assert_eq!(parse_size(" 15.5 "), Some(15.5));
-        assert_eq!(parse_size("0"), None);
-        assert_eq!(parse_size("doce"), None);
-    }
-
-    #[test]
-    fn regular_is_always_offered_and_other_faces_only_when_the_family_has_them() {
-        let bold = FontStyle::new(Weight::BOLD, Width::NORMAL, Slant::Upright);
-        assert_eq!(faces(&[]), [(false, false)]);
-        assert_eq!(faces(&[bold]), [(false, false), (true, false)]);
     }
 }

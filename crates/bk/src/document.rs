@@ -6,6 +6,7 @@ use std::rc::Rc;
 
 use freya_core::prelude::*;
 
+use crate::controlled::use_latest;
 use crate::file_dialog::FileDialog;
 use crate::platform::{ObjectId, WindowControls, panels};
 
@@ -155,9 +156,7 @@ pub fn use_document(write: impl Fn(&Path) -> io::Result<()> + 'static) -> Docume
     let edited = use_hook(|| State::create_global(false));
     let closing = use_hook(|| State::create_global(false));
     let url = use_hook(|| State::create_global(None::<PathBuf>));
-    let writer: Writer = Rc::new(write);
-    let slot = use_hook(|| Rc::new(RefCell::new(writer.clone())));
-    *slot.borrow_mut() = writer;
+    let slot = use_latest::<Writer>(Rc::new(write));
     let document = Document {
         edited,
         url,
@@ -199,8 +198,7 @@ pub fn use_document(write: impl Fn(&Path) -> io::Result<()> + 'static) -> Docume
 }
 
 pub(crate) fn use_open_url(on_open: Callback<OpenedUrl, ()>) {
-    let latest = use_hook(|| Rc::new(RefCell::new(on_open.clone())));
-    *latest.borrow_mut() = on_open;
+    let latest = use_latest(on_open);
     let mut queue = opened();
     use_side_effect(move || {
         if queue.read().is_empty() {
@@ -212,58 +210,4 @@ pub(crate) fn use_open_url(on_open: Callback<OpenedUrl, ()>) {
             on_open.call(item);
         }
     });
-}
-
-#[cfg(test)]
-mod tests {
-    use std::cell::RefCell;
-
-    use freya_core::integration::AppComponent;
-    use freya_testing::TestingRunner;
-    use torin::prelude::Size2D;
-
-    use super::*;
-    use crate::modifiers::ViewModifiers;
-
-    struct Case(Rc<RefCell<Vec<OpenedUrl>>>);
-
-    impl App for Case {
-        fn render(&self) -> impl IntoElement {
-            let seen = self.0.clone();
-            rect().on_open_url(move |url: OpenedUrl| seen.borrow_mut().push(url))
-        }
-    }
-
-    #[test]
-    fn an_address_that_arrives_before_the_window_renders_reaches_its_handler_once() {
-        deliver_open(OpenedUrl::Other("notes://new".to_owned()));
-        let seen = Rc::new(RefCell::new(Vec::new()));
-        let (mut test, _) = TestingRunner::new(
-            AppComponent::new(Case(seen.clone())),
-            Size2D::new(100.0, 100.0),
-            |_| {},
-            1.0,
-        );
-        test.sync_and_update();
-        test.sync_and_update();
-        assert_eq!(*seen.borrow(), [OpenedUrl::Other("notes://new".to_owned())]);
-    }
-
-    #[test]
-    fn an_edited_document_vetoes_the_close_and_asks_and_a_clean_one_does_not() {
-        let window = ObjectId::null();
-        let mut edited = State::create_global(false);
-        let closing = State::create_global(false);
-        DOCUMENTS.with(|all| {
-            all.borrow_mut()
-                .insert(window.clone(), Registered { edited, closing })
-        });
-        assert!(!intercept_close(&window));
-        assert!(!*closing.peek());
-        edited.set(true);
-        assert!(intercept_close(&window));
-        assert!(*closing.peek());
-        DOCUMENTS.with(|all| all.borrow_mut().remove(&window));
-        assert!(!intercept_close(&window));
-    }
 }

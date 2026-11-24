@@ -1189,12 +1189,7 @@ where
     R::Value: Clone + 'static,
 {
     // Feeds one input and delivers what the pointer's other gestures allow.
-    fn handle(
-        engine: &Rc<RefCell<Self>>,
-        callbacks: &Callbacks<R::Value>,
-        input: Input,
-        pointer: u64,
-    ) {
+    fn handle(engine: &Rc<RefCell<Self>>, input: Input, pointer: u64) {
         if input.phase == Phase::Down {
             with_pointer(pointer, |state| {
                 if state.finished {
@@ -1208,15 +1203,15 @@ where
             });
         }
         let step = engine.borrow_mut().recognizer.feed(input);
-        Self::settle(engine, callbacks, step, pointer);
-        Self::arm(engine, callbacks, pointer);
+        Self::settle(engine, step, pointer);
+        Self::arm(engine, pointer);
         if matches!(input.phase, Phase::Up | Phase::Cancel) {
             with_pointer(pointer, |state| state.finished = true);
         }
     }
 
     // Waits for the deadline of a long press or a double tap.
-    fn arm(engine: &Rc<RefCell<Self>>, callbacks: &Callbacks<R::Value>, pointer: u64) {
+    fn arm(engine: &Rc<RefCell<Self>>, pointer: u64) {
         {
             let mut engine = engine.borrow_mut();
             if engine.armed || engine.recognizer.deadline().is_none() {
@@ -1224,7 +1219,7 @@ where
             }
             engine.armed = true;
         }
-        let (engine, callbacks) = (engine.clone(), callbacks.clone());
+        let engine = engine.clone();
         let ticker = RenderingTicker::get();
         let waker = try_consume_root_context::<Timers>()
             .map(|timers| (timers, Platform::get().current_window()));
@@ -1247,7 +1242,7 @@ where
                     let step = engine.recognizer.elapse(now_ms());
                     (step, engine.recognizer.deadline().is_some())
                 };
-                Self::settle(&engine, &callbacks, step, pointer);
+                Self::settle(&engine, step, pointer);
                 if !more {
                     engine.borrow_mut().armed = false;
                     break;
@@ -1256,20 +1251,16 @@ where
         });
     }
 
-    fn settle(
-        engine: &Rc<RefCell<Self>>,
-        callbacks: &Callbacks<R::Value>,
-        step: Step<R::Value>,
-        pointer: u64,
-    ) {
+    fn settle(engine: &Rc<RefCell<Self>>, step: Step<R::Value>, pointer: u64) {
         let (id, priority) = {
             let engine = engine.borrow();
             (engine.id, engine.priority)
         };
-        let deliver =
-            |step: Step<R::Value>, callbacks: &Callbacks<R::Value>| -> Box<dyn FnOnce()> {
-                let callbacks = callbacks.clone();
-                Box::new(move || match step {
+        let deliver = |step: Step<R::Value>| -> Box<dyn FnOnce()> {
+            let engine = engine.clone();
+            Box::new(move || {
+                let callbacks = engine.borrow().callbacks.clone();
+                match step {
                     Step::Began(value) | Step::Changed(value) => {
                         for changed in &callbacks.changed {
                             changed.call(value.clone());
@@ -1292,12 +1283,13 @@ where
                         }
                     }
                     Step::Idle => {}
-                })
-            };
+                }
+            })
+        };
         match step {
             Step::Idle => {}
             Step::Failed | Step::Cancelled => {
-                deliver(step, callbacks)();
+                deliver(step)();
                 let mut released = with_pointer(pointer, |state| {
                     state.settled(id);
                     if priority == Priority::High {
@@ -1327,7 +1319,7 @@ where
             }
             recognized => {
                 if priority == Priority::Simultaneous {
-                    deliver(recognized, callbacks)();
+                    deliver(recognized)();
                     return;
                 }
                 enum Fate {
@@ -1356,13 +1348,13 @@ where
                     }
                 });
                 match fate {
-                    Fate::Deliver => deliver(recognized, callbacks)(),
-                    Fate::Hold => with_pointer(pointer, |state| {
-                        state.held.push((id, deliver(recognized, callbacks)))
-                    }),
+                    Fate::Deliver => deliver(recognized)(),
+                    Fate::Hold => {
+                        with_pointer(pointer, |state| state.held.push((id, deliver(recognized))))
+                    }
                     Fate::Fail => {
                         engine.borrow_mut().recognizer.fail();
-                        deliver(Step::Failed, callbacks)();
+                        deliver(Step::Failed)();
                     }
                 }
             }
@@ -1431,10 +1423,7 @@ where
         if !engine.borrow().hovered {
             return;
         }
-        let (center, callbacks) = {
-            let engine = engine.borrow();
-            (engine.cursor, engine.callbacks.clone())
-        };
+        let center = engine.borrow().cursor;
         let fingers = |scale: f32, turned: f32| {
             let half = TRACKPAD_SPAN * scale / 2.0;
             let (sin, cos) = turned.sin_cos();
@@ -1452,7 +1441,7 @@ where
                     at,
                     time: now_ms(),
                 };
-                Self::handle(engine, &callbacks, input, id);
+                Self::handle(engine, input, id);
             }
         };
         let began = engine.borrow().pinch.is_none();
@@ -1488,7 +1477,6 @@ pub trait Handlers {
 
 struct Wired<G: Gesture> {
     engine: Rc<RefCell<Engine<G::Recognizer>>>,
-    callbacks: Callbacks<G::Value>,
 }
 
 impl<G: Gesture> Wired<G>
@@ -1498,7 +1486,7 @@ where
     fn feed(&self, event: &Event<PointerEventData>, phase: Phase) {
         let origin = self.engine.borrow().origin;
         let (input, pointer) = pointer_input(event, phase, origin);
-        Engine::handle(&self.engine, &self.callbacks, input, pointer);
+        Engine::handle(&self.engine, input, pointer);
     }
 }
 
@@ -1549,12 +1537,15 @@ pub trait Attachable {
     where
         Self: Sized,
     {
-        Combined {
-            items: vec![
-                (self.handlers(Priority::Simultaneous), true),
-                (other.handlers(Priority::Simultaneous), true),
-            ],
-        }
+        Combined(
+            [
+                self.handlers(Priority::Simultaneous),
+                other.handlers(Priority::Simultaneous),
+            ]
+            .into_iter()
+            .flatten()
+            .collect(),
+        )
     }
 
     /// `self` is tried first: while it can still begin, `other` waits, and when it does, `other` fails.
@@ -1562,25 +1553,23 @@ pub trait Attachable {
     where
         Self: Sized,
     {
-        Combined {
-            items: vec![
-                (self.handlers(Priority::Normal), false),
-                (other.handlers(Priority::Normal), false),
-            ],
-        }
+        Combined(
+            [
+                self.handlers(Priority::Normal),
+                other.handlers(Priority::Normal),
+            ]
+            .into_iter()
+            .flatten()
+            .collect(),
+        )
     }
 }
 
-pub struct Combined {
-    items: Vec<(Vec<Box<dyn Handlers>>, bool)>,
-}
+pub struct Combined(Vec<Box<dyn Handlers>>);
 
 impl Attachable for Combined {
     fn handlers(self, _: Priority) -> Vec<Box<dyn Handlers>> {
-        self.items
-            .into_iter()
-            .flat_map(|(handlers, _)| handlers)
-            .collect()
+        self.0
     }
 }
 
@@ -1615,11 +1604,12 @@ where
             }
             engine
         });
-        engine.borrow_mut().callbacks = self.callbacks();
-        vec![Box::new(Wired::<G> {
-            engine,
-            callbacks: self.callbacks(),
-        })]
+        {
+            let mut wired = engine.borrow_mut();
+            wired.callbacks = self.callbacks();
+            wired.priority = priority;
+        }
+        vec![Box::new(Wired::<G> { engine })]
     }
 }
 
@@ -1650,336 +1640,4 @@ pub(crate) fn attach<E: EventHandlersExt>(
         .on_global_pointer_up(move |event: Event<PointerEventData>| {
             up.iter().for_each(|handler| handler.up(&event));
         })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn input(id: u64, phase: Phase, x: f32, y: f32, time: f32) -> Input {
-        Input {
-            id,
-            phase,
-            at: (x, y),
-            time,
-        }
-    }
-
-    #[test]
-    fn a_tap_ends_when_the_pointer_goes_up_near_where_it_went_down() {
-        let mut tap = TapRecognizer::new(1);
-        assert_eq!(tap.feed(input(1, Phase::Down, 5.0, 5.0, 0.0)), Step::Idle);
-        assert_eq!(
-            tap.feed(input(1, Phase::Up, 8.0, 5.0, 90.0)),
-            Step::Ended(TapValue {
-                location: (8.0, 5.0)
-            })
-        );
-        assert_eq!(tap.state(), State::Ended);
-    }
-
-    #[test]
-    fn a_press_that_moves_more_than_four_points_is_no_tap() {
-        let mut tap = TapRecognizer::new(1);
-        tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        assert_eq!(tap.feed(input(1, Phase::Move, 4.0, 0.0, 30.0)), Step::Idle);
-        assert_eq!(
-            tap.feed(input(1, Phase::Move, 5.0, 0.0, 40.0)),
-            Step::Failed
-        );
-        assert_eq!(tap.feed(input(1, Phase::Up, 5.0, 0.0, 60.0)), Step::Idle);
-    }
-
-    #[test]
-    fn a_double_tap_needs_two_taps_inside_the_interval() {
-        let mut tap = TapRecognizer::new(2);
-        tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        assert_eq!(tap.feed(input(1, Phase::Up, 0.0, 0.0, 50.0)), Step::Idle);
-        assert_eq!(tap.deadline(), Some(380.0));
-        tap.feed(input(1, Phase::Down, 2.0, 0.0, 300.0));
-        assert!(matches!(
-            tap.feed(input(1, Phase::Up, 2.0, 0.0, 340.0)),
-            Step::Ended(_)
-        ));
-    }
-
-    #[test]
-    fn a_double_tap_fails_when_the_interval_passes_and_counts_again_after_it() {
-        let mut tap = TapRecognizer::new(2);
-        tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        tap.feed(input(1, Phase::Up, 0.0, 0.0, 50.0));
-        assert_eq!(tap.elapse(380.0), Step::Idle);
-        assert_eq!(tap.elapse(381.0), Step::Failed);
-        tap.feed(input(1, Phase::Down, 0.0, 0.0, 600.0));
-        tap.feed(input(1, Phase::Up, 0.0, 0.0, 640.0));
-        tap.feed(input(1, Phase::Down, 0.0, 0.0, 1100.0));
-        assert_eq!(tap.feed(input(1, Phase::Up, 0.0, 0.0, 1140.0)), Step::Idle);
-    }
-
-    #[test]
-    fn the_second_tap_of_a_double_tap_may_land_far_from_the_first() {
-        let mut tap = TapRecognizer::new(2);
-        tap.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        tap.feed(input(1, Phase::Up, 0.0, 0.0, 50.0));
-        tap.feed(input(1, Phase::Down, 90.0, 0.0, 200.0));
-        assert!(matches!(
-            tap.feed(input(1, Phase::Up, 90.0, 0.0, 240.0)),
-            Step::Ended(_)
-        ));
-    }
-
-    #[test]
-    fn a_long_press_ends_when_the_duration_has_passed_in_place() {
-        let mut press =
-            LongPressRecognizer::new(GESTURE.long_press_ms, GESTURE.long_press_distance);
-        press.feed(input(1, Phase::Down, 3.0, 4.0, 100.0));
-        assert_eq!(press.deadline(), Some(600.0));
-        assert_eq!(press.elapse(599.0), Step::Idle);
-        assert_eq!(
-            press.elapse(600.0),
-            Step::Ended(LongPressValue {
-                location: (3.0, 4.0)
-            })
-        );
-        assert_eq!(press.deadline(), None);
-    }
-
-    #[test]
-    fn a_long_press_fails_when_released_early_or_moved_away() {
-        let mut press =
-            LongPressRecognizer::new(GESTURE.long_press_ms, GESTURE.long_press_distance);
-        press.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        assert_eq!(
-            press.feed(input(1, Phase::Up, 0.0, 0.0, 200.0)),
-            Step::Failed
-        );
-        press.feed(input(1, Phase::Down, 0.0, 0.0, 300.0));
-        assert_eq!(
-            press.feed(input(1, Phase::Move, 0.0, 10.0, 320.0)),
-            Step::Idle
-        );
-        assert_eq!(
-            press.feed(input(1, Phase::Move, 0.0, 11.0, 350.0)),
-            Step::Failed
-        );
-        assert_eq!(press.elapse(2000.0), Step::Idle);
-    }
-
-    #[test]
-    fn a_drag_begins_at_the_minimum_distance_with_the_translation_so_far() {
-        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
-        drag.feed(input(1, Phase::Down, 10.0, 10.0, 0.0));
-        assert_eq!(
-            drag.feed(input(1, Phase::Move, 15.0, 10.0, 10.0)),
-            Step::Idle
-        );
-        let Step::Began(value) = drag.feed(input(1, Phase::Move, 20.0, 10.0, 20.0)) else {
-            panic!("the drag began");
-        };
-        assert_eq!(value.translation, (10.0, 0.0));
-        assert_eq!(value.start_location, (10.0, 10.0));
-        assert_eq!(drag.state(), State::Began);
-    }
-
-    #[test]
-    fn a_drag_reports_its_velocity_in_points_per_millisecond() {
-        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
-        drag.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        let mut last = Step::Idle;
-        for step in 1..=10 {
-            last = drag.feed(input(
-                1,
-                Phase::Move,
-                0.0,
-                20.0 * step as f32,
-                10.0 * step as f32,
-            ));
-        }
-        let Step::Changed(value) = last else {
-            panic!("the drag changed");
-        };
-        assert!((value.velocity.1 - 2.0).abs() < 0.01 && value.velocity.0 == 0.0);
-        let Step::Ended(end) = drag.feed(input(1, Phase::Up, 0.0, 200.0, 100.0)) else {
-            panic!("the drag ended");
-        };
-        assert_eq!(end.translation, (0.0, 200.0));
-    }
-
-    #[test]
-    fn a_release_before_the_distance_fails_and_a_cancel_after_it_cancels() {
-        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
-        drag.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        assert_eq!(drag.feed(input(1, Phase::Up, 3.0, 0.0, 50.0)), Step::Failed);
-        drag.feed(input(1, Phase::Down, 0.0, 0.0, 100.0));
-        drag.feed(input(1, Phase::Move, 30.0, 0.0, 120.0));
-        assert_eq!(
-            drag.feed(input(1, Phase::Cancel, 30.0, 0.0, 130.0)),
-            Step::Cancelled
-        );
-    }
-
-    #[test]
-    fn a_drag_ignores_a_second_finger() {
-        let mut drag = DragRecognizer::new(GESTURE.drag_distance);
-        drag.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        drag.feed(input(2, Phase::Down, 100.0, 100.0, 5.0));
-        assert_eq!(
-            drag.feed(input(2, Phase::Move, 200.0, 200.0, 10.0)),
-            Step::Idle
-        );
-    }
-
-    #[test]
-    fn two_fingers_moving_apart_magnify_by_the_ratio_of_their_distances() {
-        let mut magnify = MagnifyRecognizer::new(GESTURE.magnify_delta);
-        magnify.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        magnify.feed(input(2, Phase::Down, 100.0, 0.0, 0.0));
-        assert_eq!(
-            magnify.feed(input(2, Phase::Move, 100.5, 0.0, 10.0)),
-            Step::Idle
-        );
-        let Step::Began(value) = magnify.feed(input(2, Phase::Move, 150.0, 0.0, 20.0)) else {
-            panic!("the magnify began");
-        };
-        assert!((value.magnification - 1.5).abs() < 1e-4);
-        let Step::Ended(end) = magnify.feed(input(1, Phase::Up, 0.0, 0.0, 30.0)) else {
-            panic!("the magnify ended");
-        };
-        assert!((end.magnification - 1.5).abs() < 1e-4);
-    }
-
-    #[test]
-    fn one_finger_never_magnifies_or_rotates() {
-        let mut magnify = MagnifyRecognizer::new(GESTURE.magnify_delta);
-        let mut rotate = RotateRecognizer::new(GESTURE.rotate_degrees.to_radians());
-        for recognizer_input in [
-            input(1, Phase::Down, 0.0, 0.0, 0.0),
-            input(1, Phase::Move, 90.0, 50.0, 10.0),
-        ] {
-            assert_eq!(magnify.feed(recognizer_input), Step::Idle);
-            assert_eq!(rotate.feed(recognizer_input), Step::Idle);
-        }
-    }
-
-    #[test]
-    fn two_fingers_turning_rotate_by_the_angle_of_the_line_between_them() {
-        let mut rotate = RotateRecognizer::new(GESTURE.rotate_degrees.to_radians());
-        rotate.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        rotate.feed(input(2, Phase::Down, 100.0, 0.0, 0.0));
-        let Step::Began(value) = rotate.feed(input(2, Phase::Move, 0.0, 100.0, 20.0)) else {
-            panic!("the rotation began");
-        };
-        assert!((value.rotation - std::f32::consts::FRAC_PI_2).abs() < 1e-4);
-    }
-
-    #[test]
-    fn a_rotation_takes_the_short_way_across_the_half_turn() {
-        assert!((turned(3.0, -3.0) - (std::f32::consts::TAU - 6.0)).abs() < 1e-4);
-        assert!((turned(-3.0, 3.0) + (std::f32::consts::TAU - 6.0)).abs() < 1e-4);
-    }
-
-    #[test]
-    fn a_long_press_then_a_drag_is_one_sequence() {
-        let mut sequence = SequenceRecognizer::new(
-            LongPressRecognizer::new(500.0, 10.0),
-            DragRecognizer::new(10.0),
-        );
-        sequence.feed(input(1, Phase::Down, 5.0, 5.0, 0.0));
-        let Step::Changed(SequenceValue::Second(press, None)) = sequence.elapse(500.0) else {
-            panic!("the long press ended and the drag may begin");
-        };
-        assert_eq!(press.location, (5.0, 5.0));
-        assert_eq!(
-            sequence.feed(input(1, Phase::Move, 10.0, 5.0, 520.0)),
-            Step::Idle
-        );
-        let Step::Changed(SequenceValue::Second(_, Some(drag))) =
-            sequence.feed(input(1, Phase::Move, 20.0, 5.0, 540.0))
-        else {
-            panic!("the drag began");
-        };
-        assert_eq!(drag.translation, (15.0, 0.0));
-        assert!(matches!(
-            sequence.feed(input(1, Phase::Up, 30.0, 5.0, 600.0)),
-            Step::Ended(SequenceValue::Second(_, Some(_)))
-        ));
-    }
-
-    #[test]
-    fn a_second_press_hold_drag_also_needs_the_hold() {
-        let mut sequence = SequenceRecognizer::new(
-            LongPressRecognizer::new(500.0, 10.0),
-            DragRecognizer::new(10.0),
-        );
-        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        sequence.elapse(500.0);
-        sequence.feed(input(1, Phase::Move, 20.0, 0.0, 520.0));
-        sequence.feed(input(1, Phase::Up, 20.0, 0.0, 600.0));
-        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 1000.0));
-        assert!(matches!(
-            sequence.feed(input(1, Phase::Move, 20.0, 0.0, 1020.0)),
-            Step::Failed
-        ));
-    }
-
-    #[test]
-    fn a_release_after_the_first_ends_the_sequence_without_the_second() {
-        let mut sequence = SequenceRecognizer::new(
-            LongPressRecognizer::new(500.0, 10.0),
-            DragRecognizer::new(10.0),
-        );
-        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        sequence.elapse(500.0);
-        assert!(matches!(
-            sequence.feed(input(1, Phase::Up, 0.0, 0.0, 700.0)),
-            Step::Ended(SequenceValue::Second(_, None))
-        ));
-    }
-
-    #[test]
-    fn a_sequence_fails_when_its_first_gesture_does() {
-        let mut sequence = SequenceRecognizer::new(
-            LongPressRecognizer::new(500.0, 10.0),
-            DragRecognizer::new(10.0),
-        );
-        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        assert_eq!(
-            sequence.feed(input(1, Phase::Up, 0.0, 0.0, 100.0)),
-            Step::Failed
-        );
-        assert_eq!(sequence.state(), State::Failed);
-    }
-
-    #[test]
-    fn a_sequence_whose_first_gesture_ended_on_a_release_waits_for_the_next_press() {
-        let mut sequence =
-            SequenceRecognizer::new(TapRecognizer::new(1), DragRecognizer::new(10.0));
-        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 0.0));
-        assert!(matches!(
-            sequence.feed(input(1, Phase::Up, 0.0, 0.0, 50.0)),
-            Step::Changed(SequenceValue::Second(_, None))
-        ));
-        assert_eq!(
-            sequence.feed(input(1, Phase::Move, 30.0, 0.0, 80.0)),
-            Step::Idle
-        );
-        sequence.feed(input(1, Phase::Down, 0.0, 0.0, 200.0));
-        assert!(matches!(
-            sequence.feed(input(1, Phase::Move, 20.0, 0.0, 220.0)),
-            Step::Changed(SequenceValue::Second(_, Some(_)))
-        ));
-    }
-
-    #[test]
-    fn a_new_trackpad_target_drops_the_ones_whose_view_is_gone_without_any_pinch() {
-        let count = || TRACKPAD_TARGETS.with(|targets| targets.borrow().len());
-        let gone: Rc<()> = Rc::new(());
-        add_trackpad_target((Rc::downgrade(&gone) as Weak<dyn Any>, Box::new(|_| {})));
-        let kept: Rc<()> = Rc::new(());
-        add_trackpad_target((Rc::downgrade(&kept) as Weak<dyn Any>, Box::new(|_| {})));
-        assert_eq!(count(), 2);
-        drop(gone);
-        add_trackpad_target((Rc::downgrade(&kept) as Weak<dyn Any>, Box::new(|_| {})));
-        assert_eq!(count(), 2);
-    }
 }

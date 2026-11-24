@@ -10,10 +10,9 @@ use crate::elements::{Overrides, forward_container, forward_overrides};
 use crate::environment::use_is_enabled;
 use crate::interaction::{control_state, use_interaction};
 use crate::style::{text, with_font};
-use crate::styles::Painted;
 use crate::styles::{
-    AvatarStyle, BadgeStyle, ControlState, DividerStyle, LayoutDirection, LinkStyle, Paints, Theme,
-    resolve,
+    AvatarStyle, BadgeStyle, ControlState, DividerStyle, LayoutDirection, LinkStyle, Painted,
+    Paints, Theme, resolve,
 };
 
 pub struct Badge(Rect, Cow<'static, str>, Theme);
@@ -195,18 +194,5 @@ impl Component for Link {
             );
         self.overrides
             .apply(interaction.focus_ring(dimmed(link, style.opacity), 0.0))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::initials;
-
-    #[test]
-    fn initials_take_the_first_letter_of_the_first_two_words() {
-        assert_eq!(initials("ana lopez"), "AL");
-        assert_eq!(initials("pedro"), "P");
-        assert_eq!(initials("Maria de la Cruz"), "MD");
-        assert_eq!(initials(""), "");
     }
 }

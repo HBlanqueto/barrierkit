@@ -1,7 +1,8 @@
+use std::ops::Range;
+
 use freya_core::prelude::*;
 
 use crate::i18n::text;
-
 use crate::menu::MenuItem;
 use crate::platform::{EditShortcut, PopupAnchor};
 use crate::popup_button::open_popover_menu;
@@ -121,7 +122,7 @@ pub(crate) fn edit_menu(
     })
 }
 
-fn replace_word(mut spelling: Spelling, range: std::ops::Range<usize>, guess: &str) {
+fn replace_word(mut spelling: Spelling, range: Range<usize>, guess: &str) {
     let old = spelling.value.peek().clone();
     let new = replace_chars(&old, range, guess);
     if let Some(mut styles) = spelling.styles {
