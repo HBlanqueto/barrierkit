@@ -323,7 +323,9 @@ Module `compact`.
   In an inactive window a toolbar symbol takes `Role(TertiaryLabel)`, as AppKit dims toolbar
   items (Dark, measured 2026-11-23: ink 0.29 over the platter, `tertiaryLabelColor` is 0.25).
   Under the pointer it takes `Role(Label)` and the hover circle, as AppKit lights the item even
-  in an inactive window; the window takes the pointer while it is not key.
+  in an inactive window; the window takes the pointer while it is not key. On native glass the
+  circle is 32 wide (`TOOLBAR_ITEM_HIGHLIGHT`); an item alone in its `ToolGroup`, as the sidebar
+  toggle, is lit over its whole capsule, and stronger in dark (`alone_hover_dark`), as SwiftUI's.
 - `Stepper` shows the value and, 8 to its right, the arrows: 20 × 24, up above down
   (`STEPPER`). ↑ and ↓ also step. An arrow is dimmed at its limit.
 - `ToggleGroup` is a row of independent toggles on one background, for text formatting.

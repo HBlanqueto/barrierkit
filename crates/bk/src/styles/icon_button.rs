@@ -15,7 +15,8 @@ use super::{
 pub struct IconButtonStyle {
     /// Tengen: width and height, `ICON_BUTTON.size` square; in a unified toolbar `TOOLGROUP.height`
     /// square; in a compact one `TOOLGROUP.compact_width` less twice `TOOLGROUP.compact_inset` by
-    /// `TOOLGROUP.compact_height`, in an expanded one the same with the `expanded_` metrics.
+    /// `TOOLGROUP.compact_height`, in an expanded one the same with the `expanded_` metrics. On
+    /// native glass `TOOLBAR_ITEM_HIGHLIGHT.size`, or the whole capsule alone in its `ToolGroup`.
     pub size: (f32, f32),
     /// Tengen: `ICON_BUTTON.icon`, in a toolbar `ICON_BUTTON.toolbar_icon`.
     pub icon_size: f32,
@@ -25,7 +26,8 @@ pub struct IconButtonStyle {
     /// Tengen: `RoundedRectangle { radius: ICON_BUTTON.radius, style: Circular }`, in a toolbar
     /// `Capsule`.
     pub shape: Shape,
-    /// Tengen: `Clear`, pressed `Color(PressedPalette.bezel)`, disabled `Clear`.
+    /// Tengen: `Clear`, pressed `Color(PressedPalette.bezel)`, disabled `Clear`. On native glass
+    /// hovered and pressed take `TOOLBAR_ITEM_HIGHLIGHT`, its `alone_` hover alone in a `ToolGroup`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`; in a toolbar of an inactive window
     /// `Role(TertiaryLabel)`, hovered `Role(Label)`, as AppKit dims toolbar items and lights the one
@@ -54,13 +56,15 @@ impl ControlStyle for IconButtonStyle {
         let dimmed = toolbar.is_some() && !crate::platform::window_activated();
         // shortcut: assumes interactive glass (macOS 27+), so a press on macOS 26 shows nothing; pass the platform's answer if 26 matters.
         let on_glass = crate::compact::toolbar_glass();
+        let alone = on_glass && crate::compact::toolbar_item_alone();
         let (size, icon_size, stroke, shape) = match toolbar {
             Some(_) => {
                 let height = TOOLGROUP.height as f32;
-                let item = if on_glass {
-                    TOOLBAR_ITEM_HIGHLIGHT.size
-                } else {
-                    height
+                let item = match (on_glass, alone) {
+                    (true, false) => TOOLBAR_ITEM_HIGHLIGHT.size,
+                    // The glass's rim lies inside the capsule, and SwiftUI lights only within it.
+                    (true, true) => height - 2.0 * HAIRLINE,
+                    (false, _) => height,
                 };
                 let size = crate::compact::slim_toolbar_items()
                     .map_or((item, item), |(width, height, inset)| {
@@ -87,15 +91,13 @@ impl ControlStyle for IconButtonStyle {
             shape,
             // On native glass the glass lights a press itself, as in SwiftUI, and the item lays its own circle over that light.
             background: if on_glass {
-                let (hover, pressed) = match crate::theme::resolved().scheme {
-                    ColorScheme::Light => (
-                        TOOLBAR_ITEM_HIGHLIGHT.hover_light,
-                        TOOLBAR_ITEM_HIGHLIGHT.pressed_light,
-                    ),
-                    ColorScheme::Dark | ColorScheme::DarkTint => (
-                        TOOLBAR_ITEM_HIGHLIGHT.hover_dark,
-                        TOOLBAR_ITEM_HIGHLIGHT.pressed_dark,
-                    ),
+                let light = crate::theme::resolved().scheme == ColorScheme::Light;
+                let highlight = TOOLBAR_ITEM_HIGHLIGHT;
+                let (hover, pressed) = match (light, alone) {
+                    (true, false) => (highlight.hover_light, highlight.pressed_light),
+                    (true, true) => (highlight.alone_hover_light, highlight.pressed_light),
+                    (false, false) => (highlight.hover_dark, highlight.pressed_dark),
+                    (false, true) => (highlight.alone_hover_dark, highlight.pressed_dark),
                 };
                 StateValue::new(ShapeStyle::Clear)
                     .hovered(ShapeStyle::Color(hover))

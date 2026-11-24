@@ -1912,11 +1912,14 @@ pub const SIDEBAR_GLASS_SELECTION_DARK: GlassSelection = GlassSelection {
 };
 
 // A SwiftUI toolbar item on glass: the circle under the pointer and under a press, inset in the capsule, as measured on macOS 27.
+// An item alone on its glass is lit over the whole capsule instead, with the `alone_` hover (Resonance's sidebar toggle, 2026-11-23).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ToolbarItemHighlight {
     pub size: f32,
     pub hover_light: Rgba,
     pub hover_dark: Rgba,
+    pub alone_hover_light: Rgba,
+    pub alone_hover_dark: Rgba,
     pub pressed_light: Rgba,
     pub pressed_dark: Rgba,
 }
@@ -1925,6 +1928,8 @@ pub const TOOLBAR_ITEM_HIGHLIGHT: ToolbarItemHighlight = ToolbarItemHighlight {
     size: 32.0,
     hover_light: Rgba::rgba8(0, 0, 0, 0.048),
     hover_dark: Rgba::rgba8(255, 255, 255, 0.047),
+    alone_hover_light: Rgba::rgba8(0, 0, 0, 0.042),
+    alone_hover_dark: Rgba::rgba8(255, 255, 255, 0.105),
     pressed_light: Rgba::rgba8(0, 0, 0, 0.02),
     pressed_dark: Rgba::rgba8(255, 255, 255, 0.142),
 };

@@ -44,6 +44,23 @@ pub(crate) fn toolbar_style() -> Option<WindowToolbarStyle> {
     try_consume_context::<ToolbarItems>().and_then(|items| *items.0.read())
 }
 
+#[derive(Clone, Copy)]
+struct ToolbarItemAlone(State<bool>);
+
+// A group of one gives its item the whole capsule, which SwiftUI lights whole under the pointer.
+pub(crate) fn use_toolbar_item_alone(alone: bool) {
+    let mut state = use_hook(|| {
+        let state = State::create(alone);
+        provide_context(ToolbarItemAlone(state));
+        state
+    });
+    state.set_if_modified(alone);
+}
+
+pub(crate) fn toolbar_item_alone() -> bool {
+    try_consume_context::<ToolbarItemAlone>().is_some_and(|alone| *alone.0.read())
+}
+
 // A toolbar item that sits on its own native glass capsule, as SwiftUI's segmented control, search field and buttons do.
 pub(crate) fn toolbar_glass() -> bool {
     crate::glass::native_glass() && toolbar_style().is_some()
