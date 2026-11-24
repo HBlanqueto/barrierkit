@@ -14,7 +14,10 @@ pub fn use_app_language(domain: &str) {
 }
 
 pub(crate) fn languages() -> Vec<String> {
-    requested_languages(APP_LANGUAGE.get().cloned().flatten().as_deref())
+    requested_languages(
+        APP_LANGUAGE.get().cloned().flatten().as_deref(),
+        crate::platform::preferred_languages,
+    )
 }
 
 pub fn load(loader: FluentLanguageLoader, assets: &dyn I18nAssets) -> FluentLanguageLoader {

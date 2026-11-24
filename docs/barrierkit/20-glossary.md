@@ -793,7 +793,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `ctappearance::language::read_language` | fn | — | — | — | The `language` key of a `.domain` file | [4](04-appearance-and-tokens.md#language) |
 | `ctappearance::language::system_language` | fn | — | — | — | The language chosen in `language.domain` | [4](04-appearance-and-tokens.md#language) |
-| `ctappearance::language::requested_languages` | fn | — | — | — | App, system or POSIX-locale languages as tags, in order | [4](04-appearance-and-tokens.md#language) |
+| `ctappearance::language::requested_languages` | fn | — | — | — | App, system or the given preferred languages as tags, in order | [4](04-appearance-and-tokens.md#language) |
+| `ctappearance::language::locale_languages` | fn | — | — | — | The POSIX-locale languages as tags, gettext order | [4](04-appearance-and-tokens.md#language) |
 | `ctappearance::xdg::config_home` | fn | — | — | — | `$XDG_CONFIG_HOME` or `~/.config` | [4](04-appearance-and-tokens.md#directories) |
 | `ctappearance::ini::value`, `ini::set` | fn | — | — | — | Read, set or remove a key of an INI file (GTK `settings.ini`, qt5ct and qt6ct) | [4](04-appearance-and-tokens.md#directories) |
 | `ctappearance::xdg::data_home` | fn | — | — | — | `$XDG_DATA_HOME` or `~/.local/share` | [4](04-appearance-and-tokens.md#directories) |

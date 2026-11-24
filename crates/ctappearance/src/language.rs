@@ -18,15 +18,16 @@ pub fn system_language() -> Option<String> {
     read_language(&crate::config_dir().join("language.domain"))
 }
 
-pub fn requested_languages(app_language: Option<&str>) -> Vec<String> {
+pub fn requested_languages(
+    app_language: Option<&str>,
+    preferred: impl FnOnce() -> Vec<String>,
+) -> Vec<String> {
     let chosen = app_language.map(str::to_owned).or_else(system_language);
-    requested_from(chosen, |name| std::env::var(name).ok())
+    chosen.map_or_else(preferred, |language| vec![language])
 }
 
-fn requested_from(chosen: Option<String>, var: impl Fn(&str) -> Option<String>) -> Vec<String> {
-    if let Some(language) = chosen {
-        return vec![language];
-    }
+pub fn locale_languages() -> Vec<String> {
+    let var = |name: &str| std::env::var(name).ok();
     let Some(locale) = ["LC_ALL", "LC_MESSAGES", "LANG"]
         .into_iter()
         .find_map(|name| var(name).filter(|value| !value.is_empty()))

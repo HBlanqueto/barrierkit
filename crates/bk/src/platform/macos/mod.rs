@@ -35,7 +35,9 @@ use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
 };
 use objc2_core_graphics::{CGColorSpace, kCGColorSpaceSRGB};
-use objc2_foundation::{NSPoint, NSRect, NSRunLoop, NSRunLoopCommonModes, NSSize, NSString};
+use objc2_foundation::{
+    NSLocale, NSPoint, NSRect, NSRunLoop, NSRunLoopCommonModes, NSSize, NSString,
+};
 use objc2_metal::{
     MTLCommandBuffer, MTLCommandQueue, MTLCreateSystemDefaultDevice, MTLDevice, MTLDrawable,
     MTLPixelFormat,
@@ -85,6 +87,13 @@ pub(crate) fn app_folders(app_id: &str) -> (PathBuf, PathBuf) {
         .join("Library/Application Support")
         .join(app_id);
     (folder.clone(), folder)
+}
+
+pub(crate) fn preferred_languages() -> Vec<String> {
+    NSLocale::preferredLanguages()
+        .iter()
+        .map(|tag| tag.to_string())
+        .collect()
 }
 // CoreText sets each face's optical size and `trak` tracking from the point size.
 pub(crate) const OPTICAL_SIZING: bool = true;

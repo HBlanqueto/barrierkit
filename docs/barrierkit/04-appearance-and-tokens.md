@@ -803,7 +803,8 @@ The kit draws every `CornerStyle::Continuous` shape through one function, `style
 |---|---|
 | `read_language(path)` | The `language = "…"` of a `.domain` file; an empty value is `None`. |
 | `system_language()` | `read_language` of `config_dir()/language.domain`. |
-| `requested_languages(app_language)` | The app's language, else the system's, else `LANGUAGE` followed by the first of `LC_ALL`, `LC_MESSAGES`, `LANG`, as tags such as `es-MX`. The `C` locale requests nothing. |
+| `requested_languages(app_language, preferred)` | The app's language, else the system's, else what `preferred` returns. The kit passes its backend's list ([17](17-languages.md#how-the-language-is-chosen)). |
+| `locale_languages()` | `LANGUAGE` followed by the first of `LC_ALL`, `LC_MESSAGES`, `LANG`, as tags such as `es-MX`. The `C` locale requests nothing. |
 
 ### Directories
 

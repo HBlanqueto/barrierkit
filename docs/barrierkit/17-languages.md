@@ -80,13 +80,15 @@ first time it reads a text. The first source that gives a value wins:
 |---|---|---|
 | 1 | `language` in `<app_id>.domain` in the app's settings folder ([13](13-app.md#settings-and-restoration)) | The app's language picker |
 | 2 | `language` in `language.domain` in the config dir | The system language picker (Settings) |
-| 3 | `LANGUAGE`, then the first of `LC_ALL`, `LC_MESSAGES`, `LANG` | The session |
+| 3 | Linux: `LANGUAGE`, then the first of `LC_ALL`, `LC_MESSAGES`, `LANG`. macOS: `NSLocale.preferredLanguages` | The session, or System Settings › Language & Region on macOS |
 | 4 | `fallback_language` of `i18n.toml` (`en`) | The app |
 
 - The config dir is `$MALAYSIA_CONFIG_DIR`, or `$XDG_CONFIG_HOME/malaysia`
   (`~/.config/malaysia`).
-- Step 3 follows gettext: `LANGUAGE` is a `:` list and goes before the locale.
-  With the `C` or `POSIX` locale, step 3 requests nothing.
+- On Linux step 3 follows gettext: `LANGUAGE` is a `:` list and goes before the
+  locale. With the `C` or `POSIX` locale, step 3 requests nothing.
+- On macOS step 3 ignores `LANG`, as AppKit does: an app opened from the Finder
+  has none. `-AppleLanguages '(es)'` on the command line overrides it.
 - A locale becomes a tag: `es_MX.UTF-8` → `es-MX`. i18n-embed negotiates
   `es-MX` down to the `es` files.
 - An empty `language` value counts as not set.

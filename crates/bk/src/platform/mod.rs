@@ -25,6 +25,7 @@ pub use sys::ObjectId;
 pub(crate) use sys::{
     MODIFIER_GLYPHS, MOST_CHROMES, NATIVE_LIGHTS, OPTICAL_SIZING, SYSTEM_MOMENTUM, app_folders,
     appearance, clipboard, instance, keychain, notifications, panels, pasteboard,
+    preferred_languages,
 };
 
 #[cfg(target_os = "macos")]

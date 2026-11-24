@@ -30,6 +30,7 @@ mod window_style;
 
 use std::path::PathBuf;
 
+pub(crate) use ctappearance::language::locale_languages as preferred_languages;
 use freya_core::prelude::Modifiers;
 pub use sctk::reexports::client::backend::ObjectId;
 
