@@ -216,7 +216,11 @@ impl Runtime {
 
     fn drop_of(parent: &Parent, spec: &PopupSpec) -> f64 {
         let (_, anchor_top, _, anchor_height) = spec.anchor_rect;
-        if crate::platform::macos::in_bar_row(anchor_top as f32, anchor_height as f32, parent.bar_row) {
+        if crate::platform::macos::in_bar_row(
+            anchor_top as f32,
+            anchor_height as f32,
+            parent.bar_row,
+        ) {
             parent.bar_drop
         } else {
             0.0
