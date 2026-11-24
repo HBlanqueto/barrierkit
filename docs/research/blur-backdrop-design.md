@@ -136,7 +136,7 @@ Consequences:
 No public kit name changes
 ([glossary](../barrierkit/20-glossary.md)). The kit enum for the edge style
 would be `ScrollEdgeEffectStyle` with `Automatic`, `Soft` and `Hard`, the
-SwiftUI name first (AGENTS.md, "Nombres y glosario", rule 2). Which
+SwiftUI name first (AGENTS.md, «Names and glossary», rule 2). Which
 `NSVisualEffectView.Material` each `styles::Thickness` takes is an open
 question (section 9).
 

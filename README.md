@@ -2,11 +2,15 @@
 
 ![BarrierKit, the application toolkit of Malaysia Compositor](docs/barrierkit/assets/brand/barrierkit-banner.svg)
 
-BarrierKit is a Rust UI toolkit with the names and look of SwiftUI and AppKit. Its priority is macOS on Apple silicon: build Mac apps that look native, and port SwiftUI apps visually. It is also the toolkit of [Malaysia](https://github.com/HBlanqueto/malaysia) on Linux.
+BarrierKit is a Rust UI toolkit with SwiftUI's and AppKit's names and look. It builds native-looking Mac apps on Apple silicon, ports SwiftUI apps, and is the toolkit of [Malaysia](https://github.com/HBlanqueto/malaysia) on Linux.
 
-The idea behind it: as on macOS, the compositor draws every blur and glass of a window, never the app. An app declares a material and where it goes: the sidebar, the toolbar, a popover, a control. On macOS, WindowServer composes it through AppKit's own views. On Linux, any Wayland compositor can compose it by implementing the same protocol. The first one is [Malaysia](https://github.com/HBlanqueto/malaysia), the compositor built for this purpose. Every app then stays in step with the desktop: the same blur, wallpaper tint and accessibility settings, with no lag behind the content. An app may still add its own shaders as extras.
+**What is the kit's main goal?**
 
-**Where is my Liquid Glass?** On macOS it is the real one. The kit calls AppKit from Rust (`NSGlassEffectView`, `NSVisualEffectView`, `NSPopover`) and has no Swift code. The kit draws only the content and the colors over the glass, measured against SwiftUI. What AppKit cannot reproduce is listed, not faked: see [ADR 0118](docs/decisions.md#0118--on-macos-appkit-composes-every-blur-and-glass-and-swiftui-is-the-reference) and [Backdrops and media](docs/barrierkit/15-backdrops-and-media.md#on-macos).
+That the compositor, not the app, draws every blur and glass of a window, as on macOS. An app only declares a material and where it goes: the sidebar, the toolbar, a popover, a control. On macOS, WindowServer composes it through AppKit's own views. On Linux, any Wayland compositor that implements the same protocol can compose it; [Malaysia](https://github.com/HBlanqueto/malaysia) is the first. So every app stays in step with the desktop: the same blur, wallpaper tint and accessibility settings, with no lag behind the content. An app may still add its own shaders on top.
+
+**Where is my Liquid Glass?**
+
+On macOS it is the real one. The kit calls AppKit from Rust (`NSGlassEffectView`, `NSVisualEffectView`, `NSPopover`) and has no Swift code. The kit draws only the content and the colors over the glass, measured against SwiftUI. What AppKit cannot reproduce is listed, not faked: see [ADR 0118](docs/decisions.md#0118--on-macos-appkit-composes-every-blur-and-glass-and-swiftui-is-the-reference) and [Backdrops and media](docs/barrierkit/15-backdrops-and-media.md#on-macos).
 
 ## How to install
 

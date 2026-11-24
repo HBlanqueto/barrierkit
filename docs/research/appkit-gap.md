@@ -30,7 +30,7 @@ Rows that quote an `rg` claim and are not marked were re-run: they still hold.
 4. To check a row, run its `rg` pattern from the repository root. A pattern
    that finds a hit means the row is out of date: fix the row.
 5. When a commit closes a gap, change the row here and the matrix row in the
-   same commit (`AGENTS.md`, «Documentación», rule 3), and add the
+   same commit (`AGENTS.md`, «Documentation», rule 3), and add the
    [glossary](../barrierkit/20-glossary.md) row for each new public name.
 6. To start a gap that has a [proposed matrix row](#proposed-matrix-rows),
    add the row to the matrix first.

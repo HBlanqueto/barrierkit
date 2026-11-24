@@ -598,7 +598,7 @@ Other things macOS draws that the kit does not, with the proposal:
 4. ~~The appearance~~ decided: the kit follows the system's light or dark
    ([ADR 0114](../decisions.md)).
 5. Whether `agents/prompt.md` changes now («Linux on Wayland») or when M1
-   lands (`AGENTS.md`, rule 3 of «Documentación»).
+   lands (`AGENTS.md`, rule 3 of «Documentation»).
 
 ## Not verified
 

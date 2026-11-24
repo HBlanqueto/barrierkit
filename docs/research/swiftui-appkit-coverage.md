@@ -24,7 +24,7 @@ and a backlog per area at the end.
    [status](#statuses) and where the measure is.
 3. To pick work, go to the [backlog](#backlog) and take one item of your area.
 4. When a commit changes what a row says, change the row in that commit
-   (`AGENTS.md`, «Documentación», rule 3).
+   (`AGENTS.md`, «Documentation», rule 3).
 5. To check a row, rerun its evidence:
    [`appkit-comparison.md`](appkit-comparison.md) says how.
 

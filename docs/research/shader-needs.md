@@ -258,7 +258,7 @@ Shipped with the kit (SkSL beside its element, values in `ctdesign`): the glass
 union and plate edge (exist), the material tone (veil, lift, cap, chroma:
 `MENU_GLASS_*` and `MATERIAL` exist), mesh gradient, the `plusDarker` blender.
 The app brings its own effects. Nothing is exposed as a library function the
-kit does not use (rule 2 of «Código mínimo»).
+kit does not use (rule 2 of «Minimal code»).
 
 ## P1 plan
 
@@ -290,7 +290,7 @@ Design:
 
 1. **Payload.** A kit group value holds opacity, blend mode, color filter, image
    filter and mask. It lives on a kit container element that wraps Freya's `rect`
-   and forwards its `ElementExt` methods, as rule 3 of «Código mínimo» asks of
+   and forwards its `ElementExt` methods, as rule 3 of «Minimal code» asks of
    view wrappers. `ViewModifiers` methods wrap a view in it. The group keeps its
    opacity in the payload, not in `EffectData`, so its descendants do not dim
    themselves again.
@@ -311,7 +311,7 @@ Milestones, in order:
 |---|---|---|---|
 | M0 | Run the golden scenes and the `bk` tests in the container and record which fail today | S | A baseline list exists |
 | M1 | Copy the loop into the kit unchanged; call it from `platform/surface.rs`; add a script that fails when the pinned `freya-core` loop file differs from the copy's source version | S | Every golden is byte-identical |
-| M2 | `compositing_group` with opacity only; glossary row, chapter and `agents/` entry in the same commit (rule 4 of «Nombres y glosario») | M | Two overlapping children at 50% show no seam (pixel assertion); scenes without a group are unchanged |
+| M2 | `compositing_group` with opacity only; glossary row, chapter and `agents/` entry in the same commit (rule 4 of «Names and glossary») | M | Two overlapping children at 50% show no seam (pixel assertion); scenes without a group are unchanged |
 | M3 | The depth-first group pass of design 2 and 3 | L | One golden each: nested groups, clipped parent, scaled parent, rotated parent, shadow at the edge |
 | M4 | Use a group in the slider and the level indicator instead of per-part dimming (`controls/slider.rs:290`, `level.rs:207`) | S | Goldens equal or better; the two comments go |
 | M5 | Effects, one commit each: `mask`, `blur`, color modifiers (stock `ColorFilter`), `blend_mode`; then the three shader effects once P2 exists | S to M each | One golden per effect |

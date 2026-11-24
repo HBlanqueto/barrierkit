@@ -20,7 +20,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
    For SwiftUI syntax that is not a name (`$x`, `@Environment`, `ForEach`,
    `if/else`), read [SwiftUI to the kit](16-swiftui-to-the-kit.md).
 3. To add or rename a public item, follow [How names are chosen](#how-names-are-chosen)
-   and add its row here in the same commit (`AGENTS.md`, «Nombres y glosario»).
+   and add its row here in the same commit (`AGENTS.md`, «Names and glossary»).
 
 ## How names are chosen
 

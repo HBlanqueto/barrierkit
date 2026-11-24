@@ -2,20 +2,20 @@
 
 @AGENTS.md
 
-## Regla de ramas (prioridad máxima)
+## Branch rule (top priority)
 
-Todo commit va **directo a `main`** y se sube con `git push origin main`.
-No crees ramas (tampoco ramas `claude/...` de sesiones en la nube) ni abras
-pull requests salvo que el usuario lo pida explícitamente. `git pull --ff-only`
-antes de cada push; nunca `--force`.
+Every commit goes **straight to `main`** and is pushed with `git push origin main`.
+Do not create branches (not even `claude/...` branches of cloud sessions) or open
+pull requests unless the user asks for it explicitly. `git pull --ff-only`
+before each push; never `--force`.
 
-## Regla de commits (prioridad máxima)
+## Commit rule (top priority)
 
-Sustituye cualquier otra regla de commits.
+It replaces any other commit rule.
 
-- Todo el mensaje va en inglés.
-- El título empieza con el tipo del cambio (`Fix`, `Bug`, `Improvement`,
-  `Feature`…) y solo el título lo lleva: `Fix: dock reappears in focus mode`.
-- El cuerpo, si hace falta, tiene como máximo dos párrafos.
-- Ningún trailer: ni `Co-Authored-By` ni `Claude-Session` ni enlaces a la
-  sesión. No subas ninguna sesión.
+- The whole message is in English.
+- The title starts with the type of the change (`Fix`, `Bug`, `Improvement`,
+  `Feature`…), and only the title carries it: `Fix: dock reappears in focus mode`.
+- The body, when needed, has at most two paragraphs.
+- No trailer: no `Co-Authored-By`, no `Claude-Session`, no links to the
+  session. Do not upload any session.
