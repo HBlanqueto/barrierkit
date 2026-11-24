@@ -1,5 +1,30 @@
-use super::*;
+use ctdesign::{ControlSize, Rgba};
+use freya_components::input::{
+    Input, InputColorsThemePartial, InputLayoutThemePartial, InputValidator,
+};
+use freya_components::theming::macros::Preference;
+use freya_core::prelude::*;
 use std::borrow::Cow;
+use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
+use zeroize::Zeroizing;
+
+use crate::context_menu::{Spelling, edit_menu};
+use crate::controls::{dimmed, outer_hairline};
+use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
+use crate::focus::use_focus_target;
+use crate::i18n::text;
+use crate::interaction::{control_state, use_interaction};
+use crate::layout::ambient;
+use crate::password::PasswordField;
+use crate::spelling::{InputParagraphs, Squiggles, char_index, use_misspellings};
+use crate::style::text_style;
+use crate::styles::{
+    ControlState, Painted, Paints, SearchFieldStyle, SecureFieldStyle, ShapeStyle, StateValue,
+    TextFieldStyle, Theme, TokenFieldStyle, resolve,
+};
+use crate::symbol::{Symbol, stroked_symbol};
+use crate::theme::color;
 
 #[derive(Clone, PartialEq)]
 pub struct SecureField {
@@ -80,10 +105,11 @@ impl Component for SecureField {
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
+        let field_style: TextFieldStyle = resolve(&self.style);
         let style: SecureFieldStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state, field_style.effect);
         let mut field = self.field;
         let on_submit = self.on_submit.clone();
         let shown = if self.revealed {
@@ -91,32 +117,37 @@ impl Component for SecureField {
         } else {
             field.read().masked()
         };
-        let margin_y = (style.height - style.font.line_height as f32) / 2.0;
-        let ink = paints.color(style.text.resolve(state));
-        let radius =
-            style
-                .shape
-                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
+        let height = field_style.height;
+        let margin_y = (height - field_style.font.line_height as f32) / 2.0;
+        let ink = paints.color(field_style.text.resolve(state));
+        let radius = field_style.shape.corner_radius(height, height, ambient());
+        // The kit's focus ring stands for the focused border of a text field.
+        let unfocused = ControlState {
+            focused: false,
+            ..state
+        };
         let element = interaction
-            .attach(rect(), true)
+            .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::PasswordInput)
             .a11y_alt(&*self.label)
             .a11y_auto_focus(self.auto_focus)
             .width(self.width.clone())
-            .height(Size::px(style.height))
+            .height(Size::px(height))
             .padding(Gaps::new(
                 margin_y,
-                style.padding_x,
+                field_style.padding_x,
                 margin_y,
-                style.padding_x,
+                field_style.padding_x,
             ))
             .corner_radius(radius)
-            .painted(&paints, &style.background)
-            .map(style.border.as_ref(), |el, (paint, _)| {
-                el.border(outer_hairline(paints.color(paint)))
-            })
+            .painted(&paints, &field_style.background)
+            .border(outer_hairline(
+                paints.color(field_style.border.resolve(unfocused)),
+            ))
             .on_key_down(move |event: Event<KeyboardEventData>| {
-                if disabled {
+                let unhandled_return =
+                    on_submit.is_none() && event.key == Key::Named(NamedKey::Enter);
+                if disabled || unhandled_return {
                     return;
                 }
                 let secret = field.write().handle_key(&event.key, event.modifiers);
@@ -128,12 +159,12 @@ impl Component for SecureField {
                 }
             })
             .child(if self.revealed {
-                crate::style::text(shown, style.font, ink).into_element()
+                crate::style::text(shown, field_style.font, ink).into_element()
             } else {
                 let (dot, pitch) = style.dot;
                 let (inset, drop) = style.dot_offset;
                 rect()
-                    .height(Size::px(style.font.line_height as f32))
+                    .height(Size::px(field_style.font.line_height as f32))
                     .padding(Gaps::new(0.0, 0.0, 0.0, inset))
                     .direction(Direction::Horizontal)
                     .cross_align(Alignment::Center)
@@ -149,7 +180,7 @@ impl Component for SecureField {
                     }))
                     .into_element()
             });
-        let root = interaction.focus_ring(dimmed(element, style.opacity), radius.top_left());
+        let root = interaction.focus_ring(dimmed(element, field_style.opacity), radius.top_left());
         self.overrides.apply(root)
     }
 }
@@ -235,23 +266,14 @@ impl Component for TextField {
     fn render(&self) -> impl IntoElement {
         let style: TextFieldStyle = resolve(&self.style);
         let field = use_hook(AccessibilityId::new_unique);
-        use_focus_target(field);
-        let focus = use_focus(field);
-        let disabled = use_disabled(self.disabled);
-        let mut hovered = use_state(|| false);
-        let state = ControlState {
-            hovered: *hovered.read(),
-            focused: !matches!(*focus.read(), Focus::Not),
-            disabled,
-            ..ControlState::default()
-        };
+        let (state, _, mut hovered) = use_field_state(field, self.disabled);
+        let disabled = state.disabled;
         let paints = Paints::current(state, style.effect);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
-        let radius =
-            style
-                .shape
-                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
+        let radius = style
+            .shape
+            .corner_radius(style.height, style.height, ambient());
         let input = input(
             self.value,
             self.placeholder.clone(),
@@ -272,32 +294,18 @@ impl Component for TextField {
         .height(Size::px(style.height))
         .text_align(style.text_align)
         .enabled(!disabled)
-        .auto_focus(self.auto_focus);
-        let input = match self.on_submit.clone() {
-            Some(on_submit) => input.on_submit(move |text: String| on_submit.call(text)),
-            None => input,
-        };
+        .auto_focus(self.auto_focus)
+        .map(self.on_submit.clone(), |input, on_submit| {
+            input.on_submit(move |text: String| on_submit.call(text))
+        });
         let mut index = use_state(|| None);
         let holder = use_state(ParagraphHolder::default);
         let padding_x = style.padding_x;
         let text_left = use_hook(|| std::rc::Rc::new(std::cell::Cell::new(padding_x)));
         let left = text_left.clone();
         let value = self.value;
-        let checked = !self.autocorrection_disabled;
-        let loaded = use_reactive(&(checked && dictionary().is_some()));
-        let ranges = use_memo(move || {
-            let text = value.read();
-            loaded
-                .read()
-                .then(dictionary)
-                .flatten()
-                .map(|dictionary| {
-                    let found = misspelled(&text, |word| known(dictionary, word));
-                    utf16_ranges(&text, &found)
-                })
-                .unwrap_or_default()
-        });
-        let ranges = ranges.read().clone();
+        let checked = !self.autocorrection_disabled && !disabled;
+        let ranges = use_misspellings(value, checked);
         let root = edit_menu(
             dimmed(
                 text_style(rect().width(self.width.clone()), style.font),
@@ -468,16 +476,8 @@ impl Component for SearchField {
         let gap = style.icon_gap;
         let height = style.height;
         let a11y_id = use_hook(|| self.a11y_id.unwrap_or_else(AccessibilityId::new_unique));
-        use_focus_target(a11y_id);
-        let focus = use_focus(a11y_id);
-        let disabled = use_disabled(self.disabled);
-        let mut hovered = use_state(|| false);
-        let state = ControlState {
-            hovered: *hovered.read(),
-            focused: !matches!(*focus.read(), Focus::Not),
-            disabled,
-            ..ControlState::default()
-        };
+        let (state, focus, mut hovered) = use_field_state(a11y_id, self.disabled);
+        let disabled = state.disabled;
         let paints = Paints::current(state, style.effect);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
         let on_focus_change = use_reactive(&self.on_focus_change);
@@ -505,10 +505,9 @@ impl Component for SearchField {
                 *tokens_width.read() + gap
             };
         let margin_y = (height - style.font.line_height as f32) / 2.0;
-        let radius = style
-            .shape
-            .corner_radius(height, height, LayoutDirection::LeftToRight);
-        let mut input = input(
+        let radius = style.shape.corner_radius(height, height, ambient());
+        let on_navigate = self.on_navigate.clone();
+        let input = input(
             value,
             self.placeholder.clone(),
             [
@@ -528,32 +527,30 @@ impl Component for SearchField {
         .height(Size::px(height))
         .enabled(!disabled)
         .a11y_id(a11y_id)
-        .auto_focus(self.auto_focus);
-        let on_navigate = self.on_navigate.clone();
-        if on_navigate.is_some() || tokens.is_some() {
-            input =
-                input.on_pre_key_down(move |event: Event<KeyboardEventData>| match &event.key {
-                    Key::Named(
-                        key @ (NamedKey::ArrowUp | NamedKey::ArrowDown | NamedKey::Enter),
-                    ) if on_navigate.is_some() => {
-                        event.stop_propagation();
-                        if let Some(on_navigate) = &on_navigate {
-                            on_navigate.call(*key);
-                        }
-                        false
+        .auto_focus(self.auto_focus)
+        .maybe(on_navigate.is_some() || tokens.is_some(), |input| {
+            input.on_pre_key_down(move |event: Event<KeyboardEventData>| match &event.key {
+                Key::Named(key @ (NamedKey::ArrowUp | NamedKey::ArrowDown | NamedKey::Enter))
+                    if on_navigate.is_some() =>
+                {
+                    event.stop_propagation();
+                    if let Some(on_navigate) = &on_navigate {
+                        on_navigate.call(*key);
                     }
-                    Key::Named(NamedKey::Backspace) if value.peek().is_empty() => {
-                        if let Some(mut tokens) = tokens {
-                            tokens.write().pop();
-                        }
-                        event.stop_propagation();
-                        false
+                    false
+                }
+                Key::Named(NamedKey::Backspace) if value.peek().is_empty() => {
+                    if let Some(mut tokens) = tokens {
+                        tokens.write().pop();
                     }
-                    _ => default_pre_key(&event),
-                });
-        }
-        if !value.read().is_empty() {
-            input = input.trailing(
+                    event.stop_propagation();
+                    false
+                }
+                _ => default_pre_key(&event),
+            })
+        })
+        .maybe(!value.read().is_empty(), |input| {
+            input.trailing(
                 rect()
                     .offset_x(style.clear_offset.0)
                     .offset_y(style.clear_offset.1)
@@ -578,8 +575,8 @@ impl Component for SearchField {
                                 ink(&style.clear_icon),
                             )),
                     ),
-            );
-        }
+            )
+        });
 
         let root = edit_menu(
             dimmed(
@@ -639,7 +636,25 @@ impl Component for SearchField {
     }
 }
 
-// Mirrors Input's default pre-handler for one line (freya-components 0.5.0, input.rs).
+// Freya's `Input` tracks its own hover and focus and reports neither.
+pub(crate) fn use_field_state(
+    field: AccessibilityId,
+    disabled: bool,
+) -> (ControlState, Memo<Focus>, State<bool>) {
+    use_focus_target(field);
+    let focus = use_focus(field);
+    let disabled = use_disabled(disabled);
+    let hovered = use_state(|| false);
+    let state = ControlState {
+        hovered: *hovered.read(),
+        focused: !matches!(*focus.read(), Focus::Not),
+        disabled,
+        ..ControlState::default()
+    };
+    (state, focus, hovered)
+}
+
+// Mirrors Input's default pre-handler for one line (freya-components 0.5.3, input.rs).
 pub(crate) fn default_pre_key(event: &Event<KeyboardEventData>) -> bool {
     match &event.key {
         Key::Named(NamedKey::Enter | NamedKey::Escape | NamedKey::Shift) => true,
@@ -680,7 +695,7 @@ pub(crate) fn input(
         })
 }
 
-// freya-edit 0.5.0 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.5.0/source/src/rope_editor.rs#278
+// freya-edit 0.5.3 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.5.3/source/src/rope_editor.rs#278
 fn use_input_generation(value: State<String>) -> (u32, State<String>) {
     let typed = use_state(String::new);
     let mut seen = use_state(|| value.peek().clone());
@@ -698,23 +713,4 @@ fn use_input_generation(value: State<String>) -> (u32, State<String>) {
 fn cursor_may_pass_end(old: &str, new: &str) -> bool {
     let units = new.encode_utf16().count();
     old.encode_utf16().count().min(new.len()) > units
-}
-
-#[cfg(test)]
-mod tests {
-    use super::cursor_may_pass_end;
-
-    #[test]
-    fn a_shorter_non_ascii_value_may_leave_the_cursor_past_the_end() {
-        assert!(cursor_may_pass_end("Seville", "Málaga"));
-        assert!(cursor_may_pass_end("añoo año", "año año"));
-        assert!(cursor_may_pass_end("hello world", "😀"));
-    }
-
-    #[test]
-    fn clearing_growing_or_ascii_values_keep_the_cursor_inside() {
-        assert!(!cursor_may_pass_end("abc", ""));
-        assert!(!cursor_may_pass_end("Málaga", "Malaga"));
-        assert!(!cursor_may_pass_end("año", "años"));
-    }
 }

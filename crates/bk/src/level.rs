@@ -12,6 +12,7 @@ use crate::controls::{dimmed, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_overrides};
 use crate::environment::use_disabled;
 use crate::interaction::{Interaction, control_state, use_interaction};
+use crate::layout::ambient;
 use crate::platform::{Knob, KnobOutbox, KnobSupport, Knobs};
 use crate::styles::Painted;
 use crate::styles::{
@@ -100,7 +101,7 @@ impl Component for LevelSlider {
         let enabled = !disabled;
         let fraction = *value.read();
         let measured = *width.read();
-        let direction = style.layout_direction;
+        let direction = ambient();
         let right_to_left = direction == LayoutDirection::RightToLeft;
 
         let height = style.height;
@@ -146,11 +147,7 @@ impl Component for LevelSlider {
                 )
             });
 
-        let animation = if interaction.held() {
-            Animation::None
-        } else {
-            style.animation
-        };
+        let animation = crate::animation::effective(style.animation, interaction.held());
         let knob_x = run * crate::animation::use_animated(fraction, animation);
         let knob_scale = use_pressed_scale(
             interaction.held(),
@@ -211,7 +208,7 @@ impl Component for LevelSlider {
                     paints.color(style.icon.resolve(state)),
                 ))
         });
-        // freya 0.5.0 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
+        // freya 0.5.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
         root = root.child(dimmed(
             part(
                 offset,
@@ -327,5 +324,5 @@ pub(crate) fn on_drag<T: 'static>(
     })
 }
 
-// freya 0.5.0 paints by depth (data.rs `LayerState`); a sibling knob must outrank the fill, two levels down.
+// freya 0.5.3 paints by depth (data.rs `LayerState`); a sibling knob must outrank the fill, two levels down.
 pub(crate) const KNOB_ABOVE_FILL: i16 = 2;

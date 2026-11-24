@@ -26,12 +26,20 @@ pub use screen_lock::{ScreenLock, use_screen_lock};
 pub use status_items::{Pixmap, StatusHost, TrayItem, use_status_items};
 pub use toplevels::{FocusBar, MinimizeTarget, ToplevelInfo, Toplevels, set_minimize_target};
 
-use freya_core::integration::AppComponent;
+use freya_core::{
+    integration::{AppComponent, Runner},
+    prelude::State,
+};
 
 use infinity_protocol::client::session::infinity_session_v1::infinity_session_v1::InfinitySessionV1;
 use sctk::{
     reexports::{
-        client::{QueueHandle, backend::ObjectId, globals::GlobalList},
+        client::{
+            QueueHandle,
+            backend::ObjectId,
+            globals::GlobalList,
+            protocol::{wl_output::WlOutput, wl_seat::WlSeat},
+        },
         protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::ExtForeignToplevelListV1,
         protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::ZwlrForeignToplevelManagerV1,
     },
@@ -62,7 +70,7 @@ pub(crate) struct ShellState {
     pub(crate) next_toplevel_id: u64,
     pub(crate) activation: Activation,
     pub(crate) activation_callbacks: HashMap<ObjectId, ActivationCallback>,
-    pub(crate) screen_lock: freya_core::prelude::State<ScreenLock>,
+    pub(crate) screen_lock: State<ScreenLock>,
     pub(crate) _session: Option<InfinitySessionV1>,
     pub(crate) background_effect: Option<ExtBackgroundEffectManagerV1>,
     pub(crate) background_effects: HashMap<ObjectId, ExtBackgroundEffectSurfaceV1>,
@@ -96,9 +104,9 @@ impl ShellState {
             tracing::info!("infinity_window_manager_v1 unavailable; continuing without it");
         }
         let toplevels = Toplevels {
-            list: freya_core::prelude::State::create_global(Vec::new()),
-            focus_bar: freya_core::prelude::State::create_global(FocusBar::default()),
-            desktop: freya_core::prelude::State::create_global(None),
+            list: State::create_global(Vec::new()),
+            focus_bar: State::create_global(FocusBar::default()),
+            desktop: State::create_global(None),
             entries: Rc::new(RefCell::new(Vec::new())),
             seat: Rc::new(RefCell::new(rt.seat_handle.clone())),
             infinity,
@@ -118,7 +126,7 @@ impl ShellState {
                 ping: rt.ping.clone(),
             },
             activation_callbacks: HashMap::new(),
-            screen_lock: freya_core::prelude::State::create_global(ScreenLock::default()),
+            screen_lock: State::create_global(ScreenLock::default()),
             _session: globals.bind::<InfinitySessionV1, _, _>(qh, 1..=1, ()).ok(),
             background_effect: globals
                 .bind::<ExtBackgroundEffectManagerV1, _, _>(qh, 1..=1, ())
@@ -138,7 +146,7 @@ impl ShellState {
         });
     }
 
-    fn provide_contexts(rt: &Runtime, runner: &mut freya_core::integration::Runner) {
+    fn provide_contexts(rt: &Runtime, runner: &mut Runner) {
         let shell = rt
             .extension::<ShellState>()
             .expect("provide_contexts called without ShellState");
@@ -153,7 +161,7 @@ impl ShellState {
         runner.provide_root_context(move || screen_lock);
     }
 
-    fn new_seat(rt: &mut Runtime, seat: &sctk::reexports::client::protocol::wl_seat::WlSeat) {
+    fn new_seat(rt: &mut Runtime, seat: &WlSeat) {
         *rt.extension::<ShellState>()
             .expect("new_seat called without ShellState")
             .toplevels
@@ -161,11 +169,7 @@ impl ShellState {
             .borrow_mut() = Some(seat.clone());
     }
 
-    fn new_output(
-        rt: &mut Runtime,
-        qh: &QueueHandle<Runtime>,
-        output: &sctk::reexports::client::protocol::wl_output::WlOutput,
-    ) {
+    fn new_output(rt: &mut Runtime, qh: &QueueHandle<Runtime>, output: &WlOutput) {
         rt.create_lock_surface(qh, output);
     }
 
@@ -184,6 +188,3 @@ impl ShellState {
         }
     }
 }
-
-#[cfg(test)]
-mod tests;

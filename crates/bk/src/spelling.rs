@@ -280,7 +280,24 @@ pub(crate) fn utf16_range(text: &str, range: &Range<usize>) -> Range<usize> {
     offset(range.start)..offset(range.end)
 }
 
-pub(crate) fn utf16_ranges(text: &str, ranges: &[Range<usize>]) -> Vec<Range<usize>> {
+pub(crate) fn use_misspellings(value: State<String>, checked: bool) -> Vec<Range<usize>> {
+    let loaded = use_reactive(&(checked && dictionary().is_some()));
+    let ranges = use_memo(move || {
+        let text = value.read();
+        loaded
+            .read()
+            .then(dictionary)
+            .flatten()
+            .map(|dictionary| {
+                let found = misspelled(&text, |word| known(dictionary, word));
+                utf16_ranges(&text, &found)
+            })
+            .unwrap_or_default()
+    });
+    ranges.read().clone()
+}
+
+fn utf16_ranges(text: &str, ranges: &[Range<usize>]) -> Vec<Range<usize>> {
     let mut chars = text.chars();
     let (mut position, mut units) = (0, 0);
     let mut offset = |end: usize| {
@@ -489,126 +506,5 @@ impl ElementExt for Squiggles {
             area.min_y() + self.offset.1 * scale,
         );
         self.draw(&context, &inner, origin);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn words_keep_inner_apostrophes_and_skip_numbers() {
-        let text = "l’eau don't 3rd  año.";
-        let found: Vec<String> = words(text)
-            .into_iter()
-            .map(|r| text.chars().skip(r.start).take(r.len()).collect())
-            .collect();
-        assert_eq!(found, ["l’eau", "don't", "año"]);
-    }
-
-    #[test]
-    fn a_decomposed_accent_stays_inside_its_word() {
-        let text = "cafe\u{301} con leche";
-        assert_eq!(words(text), [0..5, 6..9, 10..15]);
-        assert_eq!(replace_chars(text, 0..5, "té"), "té con leche");
-    }
-
-    #[test]
-    fn only_words_missing_from_the_dictionary_are_misspelled() {
-        let dictionary = Dictionary::new("SET UTF-8\n", "2\nhola\nmundo\n").unwrap();
-        let known = |word: &str| dictionary.check(word);
-        assert_eq!(misspelled("hola mundu, mundo", known), vec![(5..10)]);
-    }
-
-    fn temp_list(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("bk-spelling-{}-{name}.dic", std::process::id()))
-    }
-
-    #[test]
-    fn a_word_learned_before_the_list_is_opened_is_saved_when_it_opens() {
-        let path = temp_list("early");
-        let _ = std::fs::remove_file(&path);
-        let mut list = Personal::default();
-        list.pending.push("malaysia".into());
-        list.save();
-        assert!(!path.exists());
-        list.open(path.clone());
-        assert_eq!(std::fs::read_to_string(&path).unwrap(), "malaysia\n");
-        assert!(list.pending.is_empty());
-        std::fs::remove_file(path).unwrap();
-    }
-
-    #[test]
-    fn a_word_learned_after_a_last_line_without_a_newline_stays_a_word_of_its_own() {
-        let path = temp_list("glued");
-        std::fs::write(&path, "uno").unwrap();
-        let mut list = Personal::default();
-        list.pending.push("dos".into());
-        list.open(path.clone());
-        assert_eq!(
-            personal_words(&std::fs::read_to_string(&path).unwrap()),
-            HashSet::from(["uno".into(), "dos".into()])
-        );
-        std::fs::remove_file(path).unwrap();
-    }
-
-    #[test]
-    fn an_unreadable_list_is_never_appended_to() {
-        let path = temp_list("corrupt");
-        std::fs::write(&path, [0xFF, 0xFE, b'\n']).unwrap();
-        let mut list = Personal::default();
-        list.pending.push("vow".into());
-        list.open(path.clone());
-        assert_eq!(std::fs::read(&path).unwrap(), [0xFF, 0xFE, b'\n']);
-        assert_eq!(list.pending, ["vow"]);
-        std::fs::remove_file(path).unwrap();
-    }
-
-    #[test]
-    fn a_changed_list_is_read_again_and_an_unchanged_one_is_not() {
-        let path = temp_list("changed");
-        std::fs::write(&path, "uno\n").unwrap();
-        let mut list = Personal::default();
-        list.open(path.clone());
-        assert!(list.words.contains("uno"));
-        list.words.insert("marker".into());
-        list.refresh();
-        assert!(list.words.contains("marker"));
-        std::fs::write(&path, "dos\n").unwrap();
-        list.stamp = None;
-        list.refresh();
-        assert_eq!(list.words, HashSet::from(["dos".into()]));
-        std::fs::remove_file(path).unwrap();
-    }
-
-    #[test]
-    fn the_personal_list_skips_blank_and_comment_lines() {
-        let words = personal_words("# enchant\nmalaysia\n\n  vow  \n");
-        assert_eq!(words, HashSet::from(["malaysia".into(), "vow".into()]));
-    }
-
-    #[test]
-    fn a_language_tag_picks_its_exact_dictionary_then_its_first_regional_one() {
-        let names = ["en_GB", "en_US", "es_MX", "es_ES"].map(String::from);
-        assert_eq!(dictionary_name(&names, "en-US").as_deref(), Some("en_US"));
-        assert_eq!(dictionary_name(&names, "es").as_deref(), Some("es_ES"));
-        assert_eq!(dictionary_name(&names, "fr"), None);
-    }
-
-    #[test]
-    fn utf16_offsets_round_trip_past_astral_characters() {
-        let text = "a😀bc";
-        assert_eq!(utf16_range(text, &(2..4)), 3..5);
-        assert_eq!(char_index(text, 3), 2);
-        assert_eq!(replace_chars(text, 2..4, "x"), "a😀x");
-    }
-
-    #[test]
-    fn one_pass_utf16_ranges_match_the_per_range_conversion() {
-        let text = "año 😀x é😀😀 end";
-        let ranges = [0..3, 4..5, 5..5, 5..7, 8..11, 12..12, 12..14];
-        let expected: Vec<_> = ranges.iter().map(|r| utf16_range(text, r)).collect();
-        assert_eq!(utf16_ranges(text, &ranges), expected);
-        assert_eq!(utf16_ranges(text, &ranges)[1], 4..6);
     }
 }

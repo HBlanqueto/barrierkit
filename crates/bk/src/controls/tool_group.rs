@@ -31,16 +31,11 @@ impl ToolGroup {
         self.style = self.style.style(restyle);
         self
     }
+}
 
-    pub fn child(mut self, child: impl IntoElement) -> Self {
-        self.children.push(child.into_element());
-        self
-    }
-
-    pub fn children(mut self, children: impl IntoIterator<Item = impl IntoElement>) -> Self {
-        self.children
-            .extend(children.into_iter().map(IntoElement::into_element));
-        self
+impl ChildrenExt for ToolGroup {
+    fn children_mut(&mut self) -> &mut Vec<Element> {
+        &mut self.children
     }
 }
 
@@ -83,27 +78,32 @@ impl Component for ToolGroup {
             (along, across)
         };
 
-        let mut items: Vec<Element> = Vec::with_capacity(self.children.len());
         let last = self.children.len().saturating_sub(1);
-        for (i, child) in self.children.iter().cloned().enumerate() {
-            items.push(
-                rect()
+        let items = self
+            .children
+            .iter()
+            .cloned()
+            .enumerate()
+            .flat_map(|(i, child)| {
+                let slot = rect()
                     .width(Size::px(slot_width))
                     .height(Size::px(slot_height))
                     .center()
                     .child(child)
-                    .into_element(),
-            );
-            if let Some(separator) = style.separator.as_ref().filter(|_| i != last) {
-                items.push(
-                    rect()
-                        .width(Size::px(separator_width))
-                        .height(Size::px(separator_height))
-                        .background(paints.fill(separator))
-                        .into_element(),
-                );
-            }
-        }
+                    .into_element();
+                let separator = style
+                    .separator
+                    .as_ref()
+                    .filter(|_| i != last)
+                    .map(|separator| {
+                        rect()
+                            .width(Size::px(separator_width))
+                            .height(Size::px(separator_height))
+                            .background(paints.fill(separator))
+                            .into_element()
+                    });
+                std::iter::once(slot).chain(separator)
+            });
 
         let padding = if self.children.len() == 1 {
             style.padding_alone
@@ -121,10 +121,9 @@ impl Component for ToolGroup {
                 .height(Size::px(thickness))
                 .padding(Gaps::new(0.0, padding, 0.0, padding))
         };
-        let corner_radius =
-            style
-                .shape
-                .corner_radius(slot_width, slot_height, LayoutDirection::LeftToRight);
+        let corner_radius = style
+            .shape
+            .corner_radius(slot_width, slot_height, ambient());
         let root = root
             .cross_align(Alignment::Center)
             .children(items)
@@ -159,7 +158,7 @@ impl Component for ToolGroup {
                 .child(crate::platform::backdrop::Declared::glass(
                     style
                         .shape
-                        .corner_radius(glass_size.0, glass_size.1, LayoutDirection::LeftToRight)
+                        .corner_radius(glass_size.0, glass_size.1, ambient())
                         .top_left(),
                     glass_size,
                     (HAIRLINE, HAIRLINE),

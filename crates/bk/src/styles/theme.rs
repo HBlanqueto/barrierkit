@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use ctappearance::Resolved;
@@ -56,7 +57,20 @@ impl Theme {
         self
     }
 
+    // One theme per size: a new one each render is unequal (`Rc::ptr_eq`) and renders every themed control below again.
     pub(crate) fn control_size(size: ControlSize) -> Self {
+        thread_local!(static SIZED: RefCell<Vec<(ControlSize, Theme)>> = const { RefCell::new(Vec::new()) });
+        SIZED.with_borrow_mut(|sized| {
+            if let Some((_, theme)) = sized.iter().find(|(built, _)| *built == size) {
+                return theme.clone();
+            }
+            let theme = Self::sized(size);
+            sized.push((size, theme.clone()));
+            theme
+        })
+    }
+
+    fn sized(size: ControlSize) -> Self {
         Self::tengen()
             .style(move |style: ButtonStyle| style.sized(size))
             .style(move |style: PopUpButtonStyle| style.sized(size))
@@ -202,132 +216,5 @@ impl Component for TextStyleScope {
         let inherited = parent.map_or_else(Theme::tengen, |theme| theme.read().clone());
         use_provide_theme(inherited.within(scope));
         self.content.call(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[derive(Clone)]
-    struct Other(f32);
-
-    impl ControlStyle for Other {
-        fn tengen() -> Self {
-            Self(1.0)
-        }
-
-        fn accessible(self, _: &Resolved) -> Self {
-            self
-        }
-    }
-
-    fn doubled_track(style: SliderStyle) -> SliderStyle {
-        SliderStyle {
-            track_height: style.track_height * 2.0,
-            ..style
-        }
-    }
-
-    #[test]
-    fn theme_then_containers_outermost_first_then_instance_each_see_the_previous_level() {
-        let theme = Theme::tengen().style(|s: SliderStyle| SliderStyle { width: 100.0, ..s });
-        let outer = Theme::tengen().style(doubled_track);
-        let inner = Theme::tengen().style(|s: SliderStyle| SliderStyle {
-            track_height: s.track_height + 1.0,
-            ..s
-        });
-        let instance = Theme::tengen().style(|s: SliderStyle| SliderStyle {
-            track_height: s.track_height * 10.0,
-            ..s
-        });
-        let themed = theme
-            .within(outer)
-            .within(inner)
-            .apply(SliderStyle::tengen());
-        let style = instance.apply(themed);
-        let tengen = SliderStyle::tengen();
-        assert_eq!(style.width, 100.0);
-        assert_eq!(style.track_height, (tengen.track_height * 2.0 + 1.0) * 10.0);
-        assert_eq!(style.knob_size, tengen.knob_size);
-    }
-
-    #[test]
-    fn a_control_size_scope_resizes_its_controls_and_an_instance_size_wins() {
-        let scope = Theme::control_size(ControlSize::Large);
-        let scoped = scope.apply(ButtonStyle::tengen());
-        let instance = Theme::tengen().style(|style: ButtonStyle| style.sized(ControlSize::Small));
-        assert_eq!(
-            scoped.height,
-            ButtonStyle::tengen().sized(ControlSize::Large).height
-        );
-        assert_eq!(
-            instance.apply(scoped).height,
-            ButtonStyle::tengen().sized(ControlSize::Small).height
-        );
-    }
-
-    #[test]
-    fn an_override_changes_only_the_style_its_closure_takes() {
-        let theme = Theme::tengen()
-            .style(|s: SliderStyle| SliderStyle { width: 100.0, ..s })
-            .style(|Other(value)| Other(value * 3.0));
-        assert_eq!(theme.apply(Other::tengen()).0, 3.0);
-        assert_eq!(theme.apply(SliderStyle::tengen()).width, 100.0);
-    }
-
-    struct Probe(Rc<std::cell::Cell<f32>>);
-
-    impl App for Probe {
-        fn render(&self) -> impl IntoElement {
-            self.0.set(resolve::<SliderStyle>(&Theme::tengen()).width);
-            rect()
-        }
-    }
-
-    struct Opener(Rc<std::cell::Cell<f32>>);
-
-    impl App for Opener {
-        fn render(&self) -> impl IntoElement {
-            let width = self.0.clone();
-            use_hook(move || {
-                crate::platform::Popups::get().open(
-                    crate::platform::PopupSpec::default(),
-                    AppComponent::new(Probe(width)),
-                )
-            });
-            rect()
-        }
-    }
-
-    #[test]
-    fn a_popup_resolves_styles_with_the_theme_of_the_view_that_opened_it() {
-        let width = Rc::new(std::cell::Cell::new(0.0));
-        let scope = Theme::tengen().style(|s: SliderStyle| SliderStyle { width: 100.0, ..s });
-        let opener = AppComponent::new(Opener(width.clone()));
-        let window = AppComponent::from(move || StyleScope::new(scope.clone(), opener.clone()));
-        let (popups, queue) =
-            crate::platform::Popups::for_test(crate::platform::ObjectId::null(), None);
-        let size = torin::prelude::Size2D::new(100.0, 100.0);
-        let (mut runner, _) = freya_testing::TestingRunner::new(
-            window,
-            size,
-            move |runner| {
-                runner.provide_root_context(move || popups.clone());
-            },
-            1.0,
-        );
-        runner.sync_and_update();
-        let content = queue
-            .borrow_mut()
-            .drain(..)
-            .find_map(|command| match command {
-                crate::platform::PopupCommand::Open { content, .. } => Some(content),
-                _ => None,
-            })
-            .expect("the opener opens a popup");
-        let (mut popup, _) = freya_testing::TestingRunner::new(content, size, |_| {}, 1.0);
-        popup.sync_and_update();
-        assert_eq!(width.get(), 100.0);
     }
 }

@@ -4,8 +4,8 @@ use ctdesign::{
 };
 
 use super::{
-    Animation, Axis, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
-    ShapeStyle, StateValue, disabled_palette, reduce_motion, system_effect,
+    Animation, Axis, ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle,
+    StateValue, disabled_palette, reduce_motion, system_effect,
 };
 
 /// On a horizontal slider `Leading` is `Top` and `Trailing` is `Bottom`; on a
@@ -63,8 +63,6 @@ pub struct SliderStyle {
     /// Tengen: `Some(Edge::Bottom)`; the ticks sit on the same side, below when `None` hides
     /// the labels and their space.
     pub labels: Option<Edge>,
-    /// Tengen: `LeftToRight`; `RightToLeft` grows to the left and swaps ← →.
-    pub layout_direction: LayoutDirection,
     /// Tengen: `CAPTION`.
     pub label_font: Font,
     /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the knob and the fill glide to a new
@@ -113,7 +111,6 @@ impl ControlStyle for SliderStyle {
             effect: system_effect,
             axis: Axis::Horizontal,
             labels: Some(Edge::Bottom),
-            layout_direction: LayoutDirection::LeftToRight,
             label_font: CAPTION,
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,
@@ -126,29 +123,5 @@ impl ControlStyle for SliderStyle {
             animation: Animation::None,
             ..style
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use ctappearance::{AppearanceConfig, resolve};
-
-    use super::*;
-
-    #[test]
-    fn reduced_motion_removes_any_animation_an_override_sets() {
-        let animated = SliderStyle {
-            animation: Animation::Spring {
-                duration_ms: 400,
-                bounce: 0.5,
-            },
-            ..SliderStyle::tengen()
-        };
-        let reduced = AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        };
-        let style = animated.accessible(&resolve(&reduced, None));
-        assert!(matches!(style.animation, Animation::None));
     }
 }

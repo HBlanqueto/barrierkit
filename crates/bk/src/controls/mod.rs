@@ -3,42 +3,30 @@ pub use crate::scroll::{
     use_scroll_controller,
 };
 
-use freya_components::input::{
-    Input, InputColorsThemePartial, InputLayoutThemePartial, InputValidator,
-};
-use freya_components::theming::macros::Preference;
-
-use ctdesign::{HAIRLINE, Rgba, TEXT_LINE_HEIGHT};
+use ctdesign::{Font, HAIRLINE, Rgba};
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Content, CursorPoint, Direction, Gaps, Position, Size};
+use std::borrow::Cow;
+use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::app::Shortcut;
 use crate::backdrop::Tint;
 use crate::choices::use_choice;
-use crate::context_menu::{Spelling, edit_menu};
 use crate::controlled::commit;
 use crate::elements::{Overrides, forward_overrides};
 use crate::environment::use_disabled;
-use crate::focus::use_focus_target;
-use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
+use crate::layout::ambient;
 use crate::level;
-use crate::password::PasswordField;
-use crate::spelling::{
-    InputParagraphs, Squiggles, char_index, dictionary, known, misspelled, utf16_ranges,
-};
 use crate::style::{text_style, with_font};
 use crate::styles::Painted;
 use crate::styles::{
     Axis, ButtonStyle, CheckboxStyle, ControlState, Edge, LayoutDirection, Paints,
-    SearchFieldStyle, SecureFieldStyle, SegmentedControlStyle, ShadowStyle, Shape, ShapeStyle,
-    SliderStyle, StateValue, SwitchStyle, TextFieldStyle, TextStyleScope, Theme, TokenFieldStyle,
-    ToolGroupStyle, resolve,
+    SegmentedControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, SwitchStyle, TextStyleScope,
+    Theme, ToolGroupStyle, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol};
 use crate::theme::color;
-use zeroize::Zeroizing;
 
 mod button;
 mod circular_slider;
@@ -53,7 +41,7 @@ pub use circular_slider::CircularSlider;
 pub use segmented_control::SegmentedControl;
 pub use slider::Slider;
 pub use text_field::{SearchField, SecureField, TextField};
-pub(crate) use text_field::{default_pre_key, input};
+pub(crate) use text_field::{default_pre_key, input, use_field_state};
 pub use toggle::{Checkbox, Switch};
 pub use tool_group::ToolGroup;
 
@@ -89,7 +77,13 @@ pub(crate) fn opacity_when(disabled: bool, opacity: f32, disabled_opacity: f32) 
     }
 }
 
-pub(crate) fn dimmed_label(text: Label, opacity: f32) -> Element {
+pub(crate) fn edge_label(
+    text: impl Into<Cow<'static, str>>,
+    font: Font,
+    fill: Fill,
+    opacity: f32,
+) -> Element {
+    let text = with_font(label().text(text), font).max_lines(1).color(fill);
     if opacity < 1.0 {
         rect().opacity(opacity).child(text).into_element()
     } else {
@@ -97,19 +91,12 @@ pub(crate) fn dimmed_label(text: Label, opacity: f32) -> Element {
     }
 }
 
-pub(crate) fn labeled(
-    row: Rect,
-    control: Rect,
-    label: Element,
-    edge: Edge,
-    direction: LayoutDirection,
-    gap: f32,
-) -> Rect {
+pub(crate) fn labeled(row: Rect, control: Rect, label: Element, edge: Edge, gap: f32) -> Rect {
     let label_first = match edge {
         Edge::Top => true,
         Edge::Bottom => false,
-        Edge::Leading => direction == LayoutDirection::LeftToRight,
-        Edge::Trailing => direction == LayoutDirection::RightToLeft,
+        Edge::Leading => ambient() == LayoutDirection::LeftToRight,
+        Edge::Trailing => ambient() == LayoutDirection::RightToLeft,
     };
     let row = row
         .direction(if matches!(edge, Edge::Top | Edge::Bottom) {

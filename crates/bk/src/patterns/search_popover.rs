@@ -9,13 +9,14 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Size};
 
 use crate::interaction::{control_state, use_interaction};
+use crate::layout::ambient;
 use crate::platform::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupId, PopupSpec, Popups, anchor_rect,
 };
 use crate::sidebar::SymbolTile;
 use crate::style::text;
 use crate::styles::Painted;
-use crate::styles::{ControlState, LayoutDirection, Paints, SettingsWindowStyle, Theme, resolve};
+use crate::styles::{ControlState, Paints, SettingsWindowStyle, Theme, resolve};
 use crate::symbol::Symbol;
 
 #[derive(Clone, PartialEq)]
@@ -234,9 +235,7 @@ impl Component for SearchResult {
             )
         };
         let height = result_height(&style, subtitle.as_deref());
-        let radius = style
-            .result_shape
-            .corner_radius(height, height, LayoutDirection::LeftToRight);
+        let radius = style.result_shape.corner_radius(height, height, ambient());
         let row = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::ListItem)

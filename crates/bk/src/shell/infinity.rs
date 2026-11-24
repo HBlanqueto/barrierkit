@@ -4,13 +4,12 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 use crate::platform::{MainMenuAddress, runtime::Runtime};
 use crate::shell::{FocusBar, GtkMenusAddress, ShellState};
 
+use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
+    Event, FocusBar as WireFocusBar,
+};
 pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
     InfinityWindowManagerV1, Layout, PairLayout,
 };
-
-pub mod protocol {
-    pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1;
-}
 
 impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
     fn event(
@@ -21,7 +20,6 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        use self::protocol::infinity_window_manager_v1::Event;
         let mut space_changed = false;
         {
             let shell = state
@@ -54,26 +52,24 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                     application_object_path,
                     window_object_path,
                 } => {
-                    let address = GtkMenusAddress::new(
+                    let address = (!unique_bus_name.is_empty()
+                        && !(menubar_path.is_empty() && app_menu_path.is_empty()))
+                    .then(|| GtkMenusAddress {
                         unique_bus_name,
                         application_id,
                         menubar_path,
                         app_menu_path,
                         application_object_path,
                         window_object_path,
-                    );
+                    });
                     shell
                         .toplevels
                         .update(&toplevel, |info| info.gtk_menus = address);
                 }
                 Event::Space { focus_bar } => {
                     let focus_bar = match focus_bar.into_result() {
-                        Ok(protocol::infinity_window_manager_v1::FocusBar::Hidden) => {
-                            FocusBar::Hidden
-                        }
-                        Ok(protocol::infinity_window_manager_v1::FocusBar::Revealed) => {
-                            FocusBar::Revealed
-                        }
+                        Ok(WireFocusBar::Hidden) => FocusBar::Hidden,
+                        Ok(WireFocusBar::Revealed) => FocusBar::Revealed,
                         _ => FocusBar::None,
                     };
                     if *shell.toplevels.focus_bar.peek() != focus_bar {

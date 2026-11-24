@@ -1,11 +1,24 @@
+use ctdesign::{ControlSize, Rgba, SLIDER, SLIDER_KEY_STEP, TEXT_LINE_HEIGHT};
+use freya_core::prelude::*;
 use std::borrow::Cow;
 use std::ops::RangeInclusive;
+use torin::prelude::{Alignment, CursorPoint, Direction, Gaps, Position, Size};
 
-use ctdesign::{SLIDER, SLIDER_KEY_STEP};
-
-use super::*;
+use crate::ProbeExt;
+use crate::backdrop::Tint;
+use crate::controlled::commit;
+use crate::controls::{dimmed, inner_border, opacity_when, shadowed};
+use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
+use crate::interaction::{control_state, use_interaction};
+use crate::layout::ambient;
+use crate::level;
 use crate::platform::Knob;
-use crate::styles::Animation;
+use crate::style::with_font;
+use crate::styles::{
+    Axis, Edge, LayoutDirection, Painted, Paints, Shape, ShapeStyle, SliderStyle, StateValue,
+    Theme, resolve,
+};
 
 #[derive(PartialEq)]
 pub struct Slider {
@@ -143,7 +156,8 @@ impl Component for Slider {
         let pending = use_state(|| None::<f32>);
 
         let vertical = style.axis == Axis::Vertical;
-        let right_to_left = style.layout_direction == LayoutDirection::RightToLeft;
+        let layout_direction = ambient();
+        let right_to_left = layout_direction == LayoutDirection::RightToLeft;
         let reversed = vertical || right_to_left;
         let length = style.width;
         let (knob, knob_thickness) = style.knob_size;
@@ -155,11 +169,7 @@ impl Component for Slider {
         let nudge = if stepped { 1.0 } else { span * SLIDER_KEY_STEP };
         let run = (length - knob).max(0.0);
         let current = (*value.read()).clamp(low, high);
-        let animation = if interaction.held() {
-            Animation::None
-        } else {
-            style.animation
-        };
+        let animation = crate::animation::effective(style.animation, interaction.held());
         let fraction = (current - low) / span;
         let knob_at = run * crate::animation::use_animated(fraction, animation);
         let knob_scale = level::use_pressed_scale(
@@ -222,10 +232,15 @@ impl Component for Slider {
         };
         let step_name = self
             .labels
-            .get(current.round() as usize)
+            .get((current - low).round() as usize)
             .cloned()
             .filter(|_| steps == Some(self.labels.len()));
-        let mut root = interaction
+        let forward = if right_to_left && !vertical {
+            NamedKey::ArrowLeft
+        } else {
+            NamedKey::ArrowRight
+        };
+        let root = interaction
             .attach(rect(), !disabled)
             .width(width)
             .height(height)
@@ -240,33 +255,27 @@ impl Component for Slider {
                 if let Some(name) = step_name {
                     node.set_value(name);
                 }
+            })
+            .maybe(!disabled, |el| {
+                level::on_drag(el, interaction, origin, set_from_point, drag)
+                    .on_global_pointer_up(move |_| {
+                        interaction.release();
+                        let mut pending = pending;
+                        let released = *pending.peek();
+                        if let (Some(done), Some(callback)) = (released, &on_release) {
+                            pending.set(None);
+                            callback.call(done);
+                        }
+                    })
+                    .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
+                        Key::Named(NamedKey::ArrowUp) => update((current + nudge).min(high)),
+                        Key::Named(key) if key == forward => update((current + nudge).min(high)),
+                        Key::Named(
+                            NamedKey::ArrowLeft | NamedKey::ArrowRight | NamedKey::ArrowDown,
+                        ) => update((current - nudge).max(low)),
+                        _ => {}
+                    })
             });
-
-        if !disabled {
-            let forward = if right_to_left && !vertical {
-                NamedKey::ArrowLeft
-            } else {
-                NamedKey::ArrowRight
-            };
-            root = level::on_drag(root, interaction, origin, set_from_point, drag)
-                .on_global_pointer_up(move |_| {
-                    interaction.release();
-                    let mut pending = pending;
-                    let released = *pending.peek();
-                    if let (Some(done), Some(callback)) = (released, &on_release) {
-                        pending.set(None);
-                        callback.call(done);
-                    }
-                })
-                .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
-                    Key::Named(NamedKey::ArrowUp) => update((current + nudge).min(high)),
-                    Key::Named(key) if key == forward => update((current + nudge).min(high)),
-                    Key::Named(
-                        NamedKey::ArrowLeft | NamedKey::ArrowRight | NamedKey::ArrowDown,
-                    ) => update((current - nudge).max(low)),
-                    _ => {}
-                });
-        }
 
         let place = |main: f32, size: f32, parent: f32, cross: f32, thickness: f32| {
             let main = if reversed { parent - main - size } else { main };
@@ -289,14 +298,13 @@ impl Component for Slider {
                 .position(position)
                 .width(Size::px(width))
                 .height(Size::px(height))
-                .corner_radius(shape.corner_radius(width, height, style.layout_direction))
+                .corner_radius(shape.corner_radius(width, height, layout_direction))
                 .painted(&paints, paint)
         };
-        let dim = |el: Rect, opacity: f32| el.maybe(opacity < 1.0, |el| el.opacity(opacity));
-        // freya 0.5.0 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
+        // freya 0.5.3 dims each element on its own (render_pipeline.rs): a dimmed knob would show the fill.
         let parts_opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
-        let track_rect = dim(
+        let track_rect = dimmed(
             part(
                 0.0,
                 length,
@@ -326,7 +334,7 @@ impl Component for Slider {
         let mark_segments = marks.saturating_sub(1).max(1) as f32;
         let ticks = (0..marks).map(|i| {
             let x = knob / 2.0 + run * (i as f32 / mark_segments);
-            dim(
+            dimmed(
                 part(
                     x - tick / 2.0,
                     tick,
@@ -355,20 +363,13 @@ impl Component for Slider {
                 &style.knob,
             ),
         };
-        let knob_rect = level::knob_shadows(glass, &style.knob_shadows)
-            .iter()
-            .fold(knob_body, |el, shadow| el.shadow(*shadow))
-            .map(style.knob_border.as_ref(), |el, (paint, width)| {
-                el.border(
-                    Border::new()
-                        .width(*width)
-                        .alignment(BorderAlignment::Inner)
-                        .fill(color(paints.color(paint))),
-                )
+        let knob_rect = shadowed(knob_body, level::knob_shadows(glass, &style.knob_shadows))
+            .map(style.knob_border.as_ref(), |el, border| {
+                el.border(inner_border(&paints, border))
             })
             .layer(level::KNOB_ABOVE_FILL)
             .maybe(knob_scale != 1.0, |el| el.scale(knob_scale));
-        let knob_rect = dim(knob_rect, style.opacity);
+        let knob_rect = dimmed(knob_rect, style.opacity);
         let (band_width, band_height) = if vertical {
             (knob_thickness, length)
         } else {
@@ -413,7 +414,7 @@ impl Component for Slider {
                     .direction(Direction::Horizontal)
                     .padding(Gaps::new(0.0, knob / 2.0, 0.0, knob / 2.0))
             };
-            dim(
+            dimmed(
                 row.main_align(Alignment::SpaceBetween)
                     .margin(margin)
                     .children(names),
@@ -421,12 +422,12 @@ impl Component for Slider {
             )
         });
 
-        root = if labels_first {
+        let root = if labels_first {
             root.map(labels_row, |el, row| el.child(row)).child(band)
         } else {
             root.child(band).map(labels_row, |el, row| el.child(row))
         };
-        root = interaction.focus_ring(root, knob / 2.0);
+        let root = interaction.focus_ring(root, knob / 2.0);
 
         self.overrides.apply(root.map(self.probe, ProbeExt::probe))
     }

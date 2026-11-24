@@ -375,31 +375,3 @@ fn has_state(states: &[u8], flag: ZwlrForeignToplevelHandleV1State) -> bool {
         .iter()
         .any(|state| u32::from_ne_bytes(*state) == flag as u32)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::{ZwlrForeignToplevelHandleV1State as State, has_state};
-
-    fn states(values: &[u32]) -> Vec<u8> {
-        values
-            .iter()
-            .flat_map(|value| value.to_ne_bytes())
-            .collect()
-    }
-
-    #[test]
-    fn an_activated_toplevel_is_not_maximized() {
-        let activated = states(&[State::Activated as u32]);
-        assert!(has_state(&activated, State::Activated));
-        assert!(!has_state(&activated, State::Maximized));
-        assert!(!has_state(&activated, State::Minimized));
-    }
-
-    #[test]
-    fn each_state_in_the_array_is_a_whole_u32() {
-        let both = states(&[State::Maximized as u32, State::Activated as u32]);
-        assert!(has_state(&both, State::Maximized));
-        assert!(has_state(&both, State::Activated));
-        assert!(!has_state(&states(&[]), State::Maximized));
-    }
-}

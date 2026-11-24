@@ -5,60 +5,52 @@ use std::rc::Rc;
 
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
-use crate::controls::{dimmed, dimmed_label, labeled, opacity_when, shadowed};
+use crate::buttons::open_menu_below;
+use crate::controls::{dimmed, edge_label, labeled, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_overrides};
-use crate::environment::{use_disabled, use_is_enabled};
+use crate::environment::{use_disabled, use_environment, use_is_enabled, use_provide_environment};
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
-use crate::style::{text_style, with_font};
+use crate::layout::ambient;
+use crate::style::text_style;
 use crate::styles::Painted;
 use crate::styles::{
-    Axis, ControlState, IconButtonStyle, LayoutDirection, Paints, SearchFieldStyle, ShapeStyle,
-    StateValue, StepperStyle, Theme, ToggleGroupStyle, ToolbarSearchStyle, resolve,
+    Axis, ControlState, IconButtonStyle, Paints, SearchFieldStyle, ShapeStyle, StateValue,
+    StepperStyle, Theme, ToggleGroupStyle, ToolbarSearchStyle, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol};
 use crate::titlebar::WindowToolbarStyle;
 
-#[derive(Clone, Copy)]
-struct ToolbarItems(State<Option<WindowToolbarStyle>>);
+#[derive(Clone, Copy, Default, PartialEq)]
+struct ToolbarItems(Option<WindowToolbarStyle>);
 
 // Toolbar items are glass capsules, 36 high in the unified bar, 24 in the compact one and 28 in the expanded one.
 pub(crate) fn use_toolbar_items(style: Option<WindowToolbarStyle>) {
-    let mut items = use_hook(|| {
-        let items = State::create(style);
-        provide_context(ToolbarItems(items));
-        items
-    });
-    items.set_if_modified(style);
+    use_provide_environment(ToolbarItems(style));
 }
 
 pub(crate) fn use_toolbar_items_or(style: WindowToolbarStyle) {
     use_hook(|| {
-        if try_consume_context::<ToolbarItems>().is_none() {
-            provide_context(ToolbarItems(State::create(Some(style))));
+        if try_consume_context::<State<ToolbarItems>>().is_none() {
+            provide_context(State::create(ToolbarItems(Some(style))));
         }
     });
 }
 
 pub(crate) fn toolbar_style() -> Option<WindowToolbarStyle> {
-    try_consume_context::<ToolbarItems>().and_then(|items| *items.0.read())
+    use_environment::<ToolbarItems>().0
 }
 
-#[derive(Clone, Copy)]
-struct ToolbarItemAlone(State<bool>);
+#[derive(Clone, Copy, Default, PartialEq)]
+struct ToolbarItemAlone(bool);
 
 // A group of one gives its item the whole capsule, which SwiftUI lights whole under the pointer.
 pub(crate) fn use_toolbar_item_alone(alone: bool) {
-    let mut state = use_hook(|| {
-        let state = State::create(alone);
-        provide_context(ToolbarItemAlone(state));
-        state
-    });
-    state.set_if_modified(alone);
+    use_provide_environment(ToolbarItemAlone(alone));
 }
 
 pub(crate) fn toolbar_item_alone() -> bool {
-    try_consume_context::<ToolbarItemAlone>().is_some_and(|alone| *alone.0.read())
+    use_environment::<ToolbarItemAlone>().0
 }
 
 // A toolbar item that sits on its own native glass capsule, as SwiftUI's segmented control, search field and buttons do.
@@ -138,9 +130,7 @@ impl Component for IconButton {
         );
         let on_press = self.on_press.clone();
         let (width, height) = style.size;
-        let radius = style
-            .shape
-            .corner_radius(width, height, LayoutDirection::LeftToRight);
+        let radius = style.shape.corner_radius(width, height, ambient());
         let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
         let button = interaction
@@ -248,9 +238,7 @@ impl Component for Stepper {
         let down =
             (!disabled && current > min).then(|| Rc::new(move || step_down(-1)) as Rc<dyn Fn()>);
         let (width, height) = style.arrows_size;
-        let radius = style
-            .shape
-            .corner_radius(width, height, LayoutDirection::LeftToRight);
+        let radius = style.shape.corner_radius(width, height, ambient());
         let arrows =
             interaction.focus_ring(stepper_arrows(&style, state, up, down), radius.top_left());
 
@@ -269,19 +257,18 @@ impl Component for Stepper {
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .child(arrows),
-            Some(edge) => {
-                let text = with_font(label().text(current.to_string()), style.value_font)
-                    .max_lines(1)
-                    .color(paints.fill(&style.value));
-                labeled(
-                    row,
-                    arrows,
-                    dimmed_label(text, style.opacity),
-                    edge,
-                    style.layout_direction,
-                    style.value_gap,
-                )
-            }
+            Some(edge) => labeled(
+                row,
+                arrows,
+                edge_label(
+                    current.to_string(),
+                    style.value_font,
+                    paints.fill(&style.value),
+                    style.opacity,
+                ),
+                edge,
+                style.value_gap,
+            ),
         };
         self.overrides.apply(root)
     }
@@ -325,11 +312,7 @@ pub(crate) fn stepper_arrows(
         .width(Size::px(width))
         .height(Size::px(height))
         .content(Content::flex())
-        .corner_radius(
-            style
-                .shape
-                .corner_radius(width, height, LayoutDirection::LeftToRight),
-        )
+        .corner_radius(style.shape.corner_radius(width, height, ambient()))
         .painted(&paints, &style.background)
         .bordered(&paints, style.border.as_ref())
         .child(arrow(
@@ -465,11 +448,7 @@ impl Component for ToggleGroup {
             .direction(direction)
             .padding(Gaps::new_all(style.padding))
             .spacing(style.gap)
-            .corner_radius(style.shape.corner_radius(
-                thickness,
-                thickness,
-                LayoutDirection::LeftToRight,
-            ))
+            .corner_radius(style.shape.corner_radius(thickness, thickness, ambient()))
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
             .children(toggles);
@@ -507,9 +486,7 @@ impl Component for Toggle {
             Face::Italic | Face::Underline => style.font,
         };
         let (width, height) = style.item_size;
-        let radius = style
-            .item_shape
-            .corner_radius(width, height, LayoutDirection::LeftToRight);
+        let radius = style.item_shape.corner_radius(width, height, ambient());
 
         let toggle = interaction
             .attach(rect(), !disabled)
@@ -674,19 +651,7 @@ impl Component for ToolbarOverflow {
                     ..IconButton::new(Symbol::ChevronDoubleRight, text!("more-items"))
                 }
                 .on_press(move |_| {
-                    let anchor = *area.peek();
-                    let on_activate = on_activate.clone();
-                    crate::popup_button::open_popover_menu(
-                        items.clone(),
-                        crate::platform::PopupAnchor::BottomLeft,
-                        crate::platform::anchor_rect(anchor),
-                        None,
-                        move |id| {
-                            if let Some(on_activate) = &on_activate {
-                                on_activate.call(id);
-                            }
-                        },
-                    );
+                    open_menu_below(items.clone(), *area.peek(), on_activate.clone())
                 }),
             );
         self.overrides.apply(root)

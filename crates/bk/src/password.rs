@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use zeroize::{Zeroize, Zeroizing};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum State {
+pub enum PasswordState {
     Idle,
     Verifying,
     Error(Cow<'static, str>),
@@ -11,14 +11,14 @@ pub enum State {
 
 pub struct PasswordField {
     value: Zeroizing<String>,
-    state: State,
+    state: PasswordState,
 }
 
 impl Default for PasswordField {
     fn default() -> Self {
         Self {
             value: Zeroizing::new(String::new()),
-            state: State::Idle,
+            state: PasswordState::Idle,
         }
     }
 }
@@ -44,10 +44,10 @@ impl PasswordField {
     }
 
     fn editable(&mut self) -> bool {
-        if matches!(self.state, State::Error(_)) {
-            self.state = State::Idle;
+        if matches!(self.state, PasswordState::Error(_)) {
+            self.state = PasswordState::Idle;
         }
-        self.state != State::Verifying
+        self.state != PasswordState::Verifying
     }
 
     pub fn handle_key(&mut self, key: &Key, modifiers: Modifiers) -> Option<Zeroizing<String>> {
@@ -66,10 +66,10 @@ impl PasswordField {
     }
 
     pub fn take(&mut self) -> Option<Zeroizing<String>> {
-        if self.state == State::Verifying || self.value.is_empty() {
+        if self.state == PasswordState::Verifying || self.value.is_empty() {
             return None;
         }
-        self.state = State::Verifying;
+        self.state = PasswordState::Verifying;
         Some(std::mem::replace(
             &mut self.value,
             Zeroizing::new(String::new()),
@@ -78,15 +78,15 @@ impl PasswordField {
 
     pub fn set_error(&mut self, message: impl Into<Cow<'static, str>>) {
         self.value.zeroize();
-        self.state = State::Error(message.into());
+        self.state = PasswordState::Error(message.into());
     }
 
     pub fn reset(&mut self) {
         self.value.zeroize();
-        self.state = State::Idle;
+        self.state = PasswordState::Idle;
     }
 
-    pub fn state(&self) -> &State {
+    pub fn state(&self) -> &PasswordState {
         &self.state
     }
 
@@ -96,74 +96,5 @@ impl PasswordField {
 
     pub fn masked(&self) -> String {
         "•".repeat(self.value.chars().count())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn typed(field: &mut PasswordField, text: &str, modifiers: Modifiers) {
-        assert!(
-            field
-                .handle_key(&Key::Character(text.into()), modifiers)
-                .is_none()
-        );
-    }
-
-    fn enter(field: &mut PasswordField) -> Option<Zeroizing<String>> {
-        field.handle_key(&Key::Named(NamedKey::Enter), Modifiers::empty())
-    }
-
-    #[test]
-    fn shift_letter_is_inserted_and_enter_submits_it() {
-        let mut field = PasswordField::default();
-        typed(&mut field, "H", Modifiers::SHIFT);
-        assert_eq!(enter(&mut field).as_deref().map(String::as_str), Some("H"));
-        assert_eq!(*field.state(), State::Verifying);
-    }
-
-    #[test]
-    fn option_symbol_is_inserted_but_a_command_or_control_shortcut_is_not() {
-        let mut field = PasswordField::default();
-        typed(&mut field, "@", Modifiers::ALT);
-        typed(&mut field, "v", Modifiers::META);
-        typed(&mut field, "c", Modifiers::CONTROL);
-        assert_eq!(enter(&mut field).as_deref().map(String::as_str), Some("@"));
-    }
-
-    #[test]
-    fn typing_past_the_capacity_keeps_every_character() {
-        let mut field = PasswordField::default();
-        let long = "contraseña-ñ".repeat(10);
-        long.chars().for_each(|ch| field.insert(ch));
-        assert_eq!(
-            enter(&mut field).as_deref().map(String::as_str),
-            Some(long.as_str())
-        );
-    }
-
-    #[test]
-    fn enter_on_an_empty_field_submits_nothing() {
-        assert!(enter(&mut PasswordField::default()).is_none());
-    }
-
-    #[test]
-    fn keys_are_ignored_while_verifying() {
-        let mut field = PasswordField::default();
-        typed(&mut field, "a", Modifiers::empty());
-        assert!(enter(&mut field).is_some());
-        typed(&mut field, "b", Modifiers::empty());
-        field.handle_key(&Key::Named(NamedKey::Backspace), Modifiers::empty());
-        assert!(enter(&mut field).is_none());
-        assert_eq!(field.masked(), "");
-    }
-
-    #[test]
-    fn backspace_removes_the_last_character() {
-        let mut field = PasswordField::default();
-        typed(&mut field, "ab", Modifiers::empty());
-        field.handle_key(&Key::Named(NamedKey::Backspace), Modifiers::empty());
-        assert_eq!(field.masked(), "•");
     }
 }

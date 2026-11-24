@@ -24,14 +24,18 @@ impl<T> EnvironmentScope<T> {
     }
 }
 
-// The scope keeps one `State` and writes the new value into it, so the readers that subscribed to it render again.
 impl<T: Clone + PartialEq + 'static> Component for EnvironmentScope<T> {
     fn render(&self) -> impl IntoElement {
-        let mut shared = use_state(|| self.value.clone());
-        shared.set_if_modified(self.value.clone());
-        use_hook(move || provide_context(shared));
+        use_provide_environment(self.value.clone());
         self.child.clone()
     }
+}
+
+// One `State` per scope takes the new value, so the readers that subscribed to it render again.
+pub(crate) fn use_provide_environment<T: Clone + PartialEq + 'static>(value: T) {
+    let mut shared = use_state(|| value.clone());
+    shared.set_if_modified(value);
+    use_hook(move || provide_context(shared));
 }
 
 #[derive(PartialEq)]

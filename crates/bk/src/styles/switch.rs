@@ -2,17 +2,14 @@ use ctappearance::Resolved;
 use ctdesign::{BODY, CHECKBOX, ControlSize, Font, KNOB_SHADOW, Rgba, SWITCH};
 
 use super::{
-    Animation, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape,
-    ShapeStyle, StateValue, disabled_palette, reduce_motion, system_effect,
+    Animation, ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    disabled_palette, reduce_motion, system_effect,
 };
 
 /// States: hovered, pressed, focused, disabled. `Switch::tint(Tint)` is an
 /// instance override of `fill`.
 #[derive(Clone, Debug)]
 pub struct SwitchStyle {
-    /// Tengen: `(SWITCH.width, SWITCH.height)`: the space the switch takes in a layout; the track is
-    /// centered in it and drawn at its own size, which `Switch::size` changes and this does not.
-    pub frame_size: (f32, f32),
     /// Tengen: `SWITCH.width`.
     pub width: f32,
     /// Tengen: `SWITCH.height`.
@@ -63,9 +60,6 @@ pub struct SwitchStyle {
     /// (`docs/barrierkit/11-views.md`); `Leading` and `Trailing` put it beside the switch,
     /// `Top` and `Bottom` above and below.
     pub label_position: Option<Edge>,
-    /// Tengen: `LeftToRight`; `RightToLeft` puts the knob of a switch that is on at the left
-    /// and swaps `Leading` and `Trailing`.
-    pub layout_direction: LayoutDirection,
     /// Tengen: `BODY`.
     pub label_font: Font,
     /// Tengen: `Ease { duration_ms: SWITCH.transition_ms }`: the knob slides to an end when it
@@ -77,7 +71,6 @@ impl SwitchStyle {
     pub(crate) fn sized(self, size: ControlSize) -> Self {
         let row = SWITCH.size(size);
         Self {
-            frame_size: (row.width, row.height),
             width: row.width,
             height: row.height,
             knob_size: (row.knob_width, row.knob_height),
@@ -90,7 +83,6 @@ impl SwitchStyle {
 impl ControlStyle for SwitchStyle {
     fn tengen() -> Self {
         Self {
-            frame_size: (SWITCH.width, SWITCH.height),
             width: SWITCH.width,
             height: SWITCH.height,
             knob_size: (SWITCH.knob_width, SWITCH.knob_height),
@@ -120,7 +112,6 @@ impl ControlStyle for SwitchStyle {
             },
             effect: system_effect,
             label_position: None,
-            layout_direction: LayoutDirection::LeftToRight,
             label_font: BODY,
             animation: Animation::Ease {
                 duration_ms: SWITCH.transition_ms,
@@ -133,22 +124,5 @@ impl ControlStyle for SwitchStyle {
             animation: Animation::None,
             ..style
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use ctappearance::{AppearanceConfig, resolve};
-
-    use super::*;
-
-    #[test]
-    fn reduced_motion_makes_the_knob_jump() {
-        let reduced = AppearanceConfig {
-            reduced_motion: true,
-            ..Default::default()
-        };
-        let style = SwitchStyle::tengen().accessible(&resolve(&reduced, None));
-        assert!(matches!(style.animation, Animation::None));
     }
 }

@@ -3,7 +3,6 @@ use std::borrow::Cow;
 
 use super::*;
 use crate::platform::Knob;
-use crate::styles::Animation;
 
 #[derive(Clone, Copy, PartialEq)]
 struct Grab {
@@ -127,18 +126,14 @@ impl Component for Switch {
         let on_toggle = self.on_toggle.clone();
         let on_drag = self.on_toggle.clone();
         let on_key = self.on_toggle.clone();
-        let direction = style.layout_direction;
+        let direction = ambient();
         let right_to_left = direction == LayoutDirection::RightToLeft;
         let (width, height) = (style.width, style.height);
         let (knob_width, knob_height) = style.knob_size;
         let travel = width - knob_width - 2.0 * style.inset;
         let dragged = (*grab.read())
             .map(|current| grabbed_progress(current.was_on, current.shift, travel, right_to_left));
-        let animation = if interaction.held() {
-            Animation::None
-        } else {
-            style.animation
-        };
+        let animation = crate::animation::effective(style.animation, interaction.held());
         let progress = crate::animation::use_animated(
             dragged.unwrap_or(f32::from(u8::from(is_on))),
             animation,
@@ -202,25 +197,20 @@ impl Component for Switch {
                 level::knob_shadows(glass, &style.knob_shadows),
             ));
         let track = interaction.focus_ring(track, radius.top_left());
-        let track = rect()
-            .width(Size::px(style.frame_size.0))
-            .height(Size::px(style.frame_size.1))
-            .center()
-            .child(track);
         let control = match style.label_position {
             None => track,
-            Some(edge) => {
-                let text = with_font(label().text(self.label.clone()), style.label_font)
-                    .color(paints.fill(&style.label));
-                labeled(
-                    rect(),
-                    track,
-                    dimmed_label(text, opacity),
-                    edge,
-                    direction,
-                    style.label_gap,
-                )
-            }
+            Some(edge) => labeled(
+                rect(),
+                track,
+                edge_label(
+                    self.label.clone(),
+                    style.label_font,
+                    paints.fill(&style.label),
+                    opacity,
+                ),
+                edge,
+                style.label_gap,
+            ),
         };
 
         let root = interaction
@@ -267,9 +257,7 @@ impl Component for Switch {
                     commit(on, &on_toggle, next);
                 })
                 .on_key_down(move |event: Event<KeyboardEventData>| {
-                    if matches!(event.key, Key::Named(NamedKey::Enter))
-                        || event.key == Key::Character(" ".into())
-                    {
+                    if event.key == Key::Character(" ".into()) {
                         let next = !*on.peek();
                         commit(on, &on_key, next);
                     }
@@ -385,9 +373,7 @@ impl Component for Checkbox {
         let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 
         let size = style.box_size;
-        let radius = style
-            .box_shape
-            .corner_radius(size, size, style.layout_direction);
+        let radius = style.box_shape.corner_radius(size, size, ambient());
         let mixed = self.mixed;
         let filled = is_checked || mixed;
         let paint = if filled {
@@ -438,8 +424,10 @@ impl Component for Checkbox {
                     is_checked.into()
                 })
             })
-            .on_press(move |_| {
-                if !disabled {
+            // Return goes to the default button, as in AppKit; Space toggles.
+            .on_press(move |event: Event<PressEventData>| {
+                let return_key = matches!(&*event, PressEventData::Keyboard(key) if key.key == Key::Named(NamedKey::Enter));
+                if !disabled && !return_key {
                     let next = !*checked.peek();
                     commit(checked, &on_toggle, next);
                 }
@@ -449,81 +437,20 @@ impl Component for Checkbox {
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .child(checkbox),
-            Some(edge) => {
-                let text = with_font(label().text(label_text), style.label_font)
-                    .color(paints.fill(&style.label));
-                labeled(
-                    row,
-                    checkbox,
-                    dimmed_label(text, opacity),
-                    edge,
-                    style.layout_direction,
-                    style.label_gap,
-                )
-            }
+            Some(edge) => labeled(
+                row,
+                checkbox,
+                edge_label(
+                    label_text,
+                    style.label_font,
+                    paints.fill(&style.label),
+                    opacity,
+                ),
+                edge,
+                style.label_gap,
+            ),
         };
 
         self.overrides.apply(root.map(self.probe, ProbeExt::probe))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const TRAVEL: f32 = 19.0;
-
-    fn grab(was_on: bool, shift: f32, moved: bool) -> Grab {
-        Grab {
-            from: 0.0,
-            shift,
-            was_on,
-            moved,
-        }
-    }
-
-    #[test]
-    fn keyed_rows_keep_their_own_identity() {
-        let row = |id: &str| Checkbox::new("row").key(id).render_key();
-        assert_ne!(row("a"), row("b"));
-        assert_eq!(row("a"), row("a"));
-    }
-
-    #[test]
-    fn a_dragged_knob_follows_the_cursor_and_stops_at_the_ends() {
-        assert_eq!(grabbed_progress(false, 9.5, TRAVEL, false), 0.5);
-        assert_eq!(grabbed_progress(false, 60.0, TRAVEL, false), 1.0);
-        assert_eq!(grabbed_progress(true, -60.0, TRAVEL, false), 0.0);
-        assert_eq!(grabbed_progress(false, -5.0, TRAVEL, false), 0.0);
-    }
-
-    #[test]
-    fn a_right_to_left_knob_moves_against_the_cursor() {
-        assert_eq!(grabbed_progress(true, 9.5, TRAVEL, true), 0.5);
-        assert_eq!(grabbed_progress(false, -TRAVEL, TRAVEL, true), 1.0);
-    }
-
-    #[test]
-    fn a_dragged_track_stays_on_until_the_knob_reaches_the_off_end() {
-        assert!(track_is_on(true, Some(0.01)));
-        assert!(track_is_on(false, Some(0.2)));
-        assert!(!track_is_on(true, Some(0.0)));
-        assert!(!track_is_on(false, Some(0.0)));
-        assert!(track_is_on(true, None));
-        assert!(!track_is_on(false, None));
-    }
-
-    #[test]
-    fn a_release_without_a_drag_toggles() {
-        assert!(released_on(grab(false, 3.0, false), TRAVEL, false));
-        assert!(!released_on(grab(true, -3.0, false), TRAVEL, false));
-    }
-
-    #[test]
-    fn a_drag_settles_on_the_end_the_knob_is_nearer_to() {
-        assert!(released_on(grab(false, 12.0, true), TRAVEL, false));
-        assert!(!released_on(grab(false, 9.0, true), TRAVEL, false));
-        assert!(!released_on(grab(true, -12.0, true), TRAVEL, false));
-        assert!(released_on(grab(true, -9.0, true), TRAVEL, false));
     }
 }

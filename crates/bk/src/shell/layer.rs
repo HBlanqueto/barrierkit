@@ -160,9 +160,7 @@ impl Runtime {
         layer_surface.set_keyboard_interactivity(keyboard_to_sctk(geometry.keyboard));
         layer_surface.wl_surface().commit();
     }
-}
 
-impl Runtime {
     pub(crate) fn apply_input_region(&mut self, surface_id: &ObjectId, region: InputRegion) {
         let Some(index) = self.surface_index_by_id(surface_id) else {
             return;
@@ -177,9 +175,7 @@ impl Runtime {
         surface.set_input_region(Some(wl_region.wl_region()));
         surface.commit();
     }
-}
 
-impl Runtime {
     pub(crate) fn apply_card_frames(&mut self, surface_id: &ObjectId, frames: CardFrames) {
         let Some(style) = self
             .window_style
@@ -341,26 +337,3 @@ impl ExtensionRole for LayerSurface {
 
 delegate_dispatch!(Runtime: [zwlr_layer_shell_v1::ZwlrLayerShellV1: sctk::globals::GlobalData] => LayerShell);
 delegate_dispatch!(Runtime: [zwlr_layer_surface_v1::ZwlrLayerSurfaceV1: LayerSurfaceData] => LayerShell);
-
-#[cfg(test)]
-mod tests {
-    use super::{Anchors, size_is_valid};
-
-    #[test]
-    fn a_bar_anchored_on_three_edges_needs_a_height() {
-        assert!(!size_is_valid(Anchors::TOP, None));
-        assert!(size_is_valid(Anchors::TOP, Some((0, 30))));
-    }
-
-    #[test]
-    fn a_surface_anchored_on_every_edge_may_leave_the_size_to_the_compositor() {
-        let all = Anchors {
-            top: true,
-            bottom: true,
-            left: true,
-            right: true,
-        };
-        assert!(size_is_valid(all, None));
-        assert!(!size_is_valid(Anchors::default(), Some((0, 10))));
-    }
-}

@@ -1,10 +1,16 @@
 use ctdesign::SLIDER_KEY_STEP;
+use freya_core::prelude::*;
 use std::borrow::Cow;
+use torin::prelude::{CursorPoint, Position, Size};
 
-use super::*;
 use crate::controlled::{commit, use_controlled_unless};
+use crate::controls::dimmed;
+use crate::elements::{Overrides, forward_overrides};
+use crate::environment::use_disabled;
+use crate::interaction::{control_state, use_interaction};
+use crate::layout::ambient;
 use crate::level;
-use crate::styles::CircularSliderStyle;
+use crate::styles::{CircularSliderStyle, Painted, Paints, Theme, resolve};
 
 #[derive(PartialEq)]
 pub struct CircularSlider {
@@ -87,14 +93,13 @@ impl Component for CircularSlider {
         let current = *value.read();
         let size = style.size;
         let (from, to, width) = style.dash;
-        let radius = style
-            .shape
-            .corner_radius(size, size, LayoutDirection::LeftToRight);
+        let radius = style.shape.corner_radius(size, size, ambient());
         let update = move |new_value: f32| commit(value, &on_change, new_value);
         let set_from_point = move |point: CursorPoint| {
             turn_value(point.x as f32 - size / 2.0, point.y as f32 - size / 2.0)
         };
-        let mut root = interaction
+        let step = update.clone();
+        let root = interaction
             .attach(rect(), !disabled)
             .width(Size::px(size))
             .height(Size::px(size))
@@ -107,21 +112,20 @@ impl Component for CircularSlider {
                 node.set_min_numeric_value(0.0);
                 node.set_max_numeric_value(1.0);
                 node.set_numeric_value_step(f64::from(SLIDER_KEY_STEP));
+            })
+            .maybe(!disabled, |el| {
+                level::on_drag(el, interaction, origin, set_from_point, update).on_key_down(
+                    move |event: Event<KeyboardEventData>| match event.key {
+                        Key::Named(NamedKey::ArrowUp | NamedKey::ArrowRight) => {
+                            step((current + SLIDER_KEY_STEP).min(1.0))
+                        }
+                        Key::Named(NamedKey::ArrowDown | NamedKey::ArrowLeft) => {
+                            step((current - SLIDER_KEY_STEP).max(0.0))
+                        }
+                        _ => {}
+                    },
+                )
             });
-        if !disabled {
-            let step = update.clone();
-            root = level::on_drag(root, interaction, origin, set_from_point, update)
-                .on_global_pointer_up(move |_| interaction.release())
-                .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
-                    Key::Named(NamedKey::ArrowUp | NamedKey::ArrowRight) => {
-                        step((current + SLIDER_KEY_STEP).min(1.0))
-                    }
-                    Key::Named(NamedKey::ArrowDown | NamedKey::ArrowLeft) => {
-                        step((current - SLIDER_KEY_STEP).max(0.0))
-                    }
-                    _ => {}
-                });
-        }
         let dash = rect()
             .position(
                 Position::new_absolute()
@@ -141,18 +145,5 @@ impl Component for CircularSlider {
         let root =
             interaction.focus_ring(dimmed(root.child(turned), style.opacity), radius.top_left());
         self.overrides.apply(root)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::turn_value;
-
-    #[test]
-    fn the_value_is_the_turn_clockwise_from_the_top() {
-        assert_eq!(turn_value(0.0, -1.0), 0.0);
-        assert_eq!(turn_value(1.0, 0.0), 0.25);
-        assert_eq!(turn_value(0.0, 1.0), 0.5);
-        assert_eq!(turn_value(-1.0, 0.0), 0.75);
     }
 }

@@ -133,10 +133,9 @@ impl Component for Button {
             .or(crate::environment::use_environment::<Option<Shortcut>>());
         let on_press = self.on_press.clone();
         let shortcut_press = on_press.clone();
-        let radius =
-            style
-                .shape
-                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
+        let radius = style
+            .shape
+            .corner_radius(style.height, style.height, ambient());
         let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
         let font = style.font.scaled(crate::theme::resolved().text_size);
         let glass = style.glass.filter(|_| crate::glass::native_glass());

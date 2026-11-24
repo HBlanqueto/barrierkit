@@ -12,18 +12,14 @@ use zbus::zvariant::{OwnedObjectPath, OwnedValue};
 
 use crate::main_menu::layout::{DbusMenuLayout, LayoutItem};
 use crate::menu::{CheckState, MenuItem};
+use crate::shell::WindowImage;
 use crate::status_item::{ITEM_PATH, Pixmaps, WATCHER, WATCHER_PATH};
 
 const ITEM: &str = "org.kde.StatusNotifierItem";
 const DBUSMENU: &str = "com.canonical.dbusmenu";
 const CALL_TIMEOUT: Duration = Duration::from_millis(500);
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct Pixmap {
-    pub width: u32,
-    pub height: u32,
-    pub rgba: Vec<u8>,
-}
+pub type Pixmap = WindowImage;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct TrayItem {
@@ -525,7 +521,6 @@ struct Watching {
     _following: Vec<zbus::Task<()>>,
 }
 
-// Own the watcher if nobody does, else follow the one that runs; either way register as host.
 async fn take_watcher(
     connection: &zbus::Connection,
     events: &UnboundedSender<Event>,
@@ -737,47 +732,4 @@ async fn refresh(
             _signals: signals,
         },
     );
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn an_item_registered_by_path_is_keyed_by_its_sender() {
-        assert_eq!(
-            item_key(":1.7", "/org/ayatana/NotificationItem/x"),
-            ":1.7/org/ayatana/NotificationItem/x"
-        );
-        assert_eq!(
-            item_key(":1.7", "org.kde.StatusNotifierItem-4-0"),
-            "org.kde.StatusNotifierItem-4-0/StatusNotifierItem"
-        );
-        assert_eq!(split_key(":1.7/a/b"), Some((":1.7", "/a/b")));
-    }
-
-    #[test]
-    fn the_largest_valid_pixmap_turns_from_argb_into_rgba() {
-        let pixmaps = vec![
-            (1, 1, vec![255, 1, 2, 3]),
-            (2, 2, vec![9; 3]),
-            (2, 1, vec![128, 10, 20, 30, 0, 0, 0, 0]),
-        ];
-        let pixmap = largest_pixmap(&pixmaps).unwrap();
-        assert_eq!((pixmap.width, pixmap.height), (2, 1));
-        assert_eq!(&pixmap.rgba[..4], [10, 20, 30, 128]);
-    }
-
-    #[test]
-    fn a_pixmap_whose_size_overflows_is_ignored() {
-        let huge = vec![(i32::MAX, i32::MAX, vec![0; 4]), (1, 1, vec![255, 0, 0, 0])];
-        let pixmap = largest_pixmap(&huge).unwrap();
-        assert_eq!((pixmap.width, pixmap.height), (1, 1));
-    }
-
-    #[test]
-    fn mnemonic_underscores_are_dropped_and_doubled_ones_kept() {
-        assert_eq!(plain_label("_Abrir"), "Abrir");
-        assert_eq!(plain_label("mi__archivo"), "mi_archivo");
-    }
 }

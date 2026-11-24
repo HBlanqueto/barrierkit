@@ -97,6 +97,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::TrafficLightsStyle { fills, rims, glyphs, rim_width, glyph_size, shape, effect }` | `styles::TrafficLightsStyle { looks, ring_width, halo, backdrop }` | 2026-11-20 |
 | `app::Scene` (one window; `.options`, `.run`), returned by `Application::window` | `Application::window` returns `Application`, which has `.options` and `.run`; `app::Scene` is now what `Application::scene` takes | 2026-11-21 |
 | `titlebar::window_drag_handler` | `titlebar::use_window_drag` (a hook) | 2026-11-23 |
+| `password::State` | `password::PasswordState` | 2026-11-23 |
+| `SecureFieldStyle` `height`, `padding_x`, `shape`, `background`, `text`, `border`, `opacity`, `effect`, `font`; `SwitchStyle::frame_size`; `layout_direction` of `CheckboxStyle`, `LevelSliderStyle`, `RadioGroupStyle`, `SliderStyle`, `StepperStyle` and `SwitchStyle` | Gone: `SecureField` draws from `TextFieldStyle`, a switch takes its track's size, and the controls read the ambient `.layout_direction(..)` | 2026-11-23 |
 
 ## How to read the tables
 
@@ -197,8 +199,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::ToolGroupStyle` | struct | — | — | — | Every visual property of `ToolGroup`, with its axis | [Styles](../../crates/bk/src/styles/tool_group.rs) |
 | `styles::TextFieldStyle` | struct | `TextFieldStyle` | ≈ `NSTextFieldCell` | ≈ `UITextField` | Every visual property of `TextField` | [Styles](../../crates/bk/src/styles/text_field.rs) |
 | `styles::SearchFieldStyle` | struct | — | ≈ `NSSearchFieldCell` | ≈ `UISearchTextField` | Every visual property of `SearchField` | [Styles](../../crates/bk/src/styles/search_field.rs) |
-| `styles::SecureFieldStyle` | struct | ≈ `TextFieldStyle` | ≈ `NSSecureTextFieldCell` | ≈ `UITextField.isSecureTextEntry` | Every visual property of `SecureField` | [Styles](../../crates/bk/src/styles/text_field.rs) |
-| `styles::LevelSliderStyle` | struct | — | ≈ `NSSliderCell` | ≈ `UISlider` | Every visual property of `LevelSlider`, with the layout direction | [Styles](../../crates/bk/src/styles/level_slider.rs) |
+| `styles::SecureFieldStyle` | struct | ≈ `TextFieldStyle` | ≈ `NSSecureTextFieldCell` | ≈ `UITextField.isSecureTextEntry` | The dots of `SecureField`; the field draws from the `TextFieldStyle` in context | [Styles](../../crates/bk/src/styles/text_field.rs) |
+| `styles::LevelSliderStyle` | struct | — | ≈ `NSSliderCell` | ≈ `UISlider` | Every visual property of `LevelSlider` | [Styles](../../crates/bk/src/styles/level_slider.rs) |
 | `styles::LevelSliderStyle::fat` | method | — | — | — | Preset: the 22 tall Control Center bar without a knob, with a symbol | [Styles](../../crates/bk/src/styles/level_slider.rs) |
 | `styles::RadioGroupStyle` | struct | `RadioGroupPickerStyle` | ≈ `NSButtonCell` (radio) | — | Every visual property of `RadioGroup`, with the axis and the label position | [Styles](../../crates/bk/src/styles/radio_group.rs) |
 | `styles::ColorWellStyle` | struct | ≈ `PalettePickerStyle` | ≈ `NSColorWell.Style` | ≈ `UIColorWell` | Every visual property of `ColorWell`, with the axis and wrapping of the swatches | [Styles](../../crates/bk/src/styles/color_well.rs) |
@@ -1085,7 +1087,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `controls::SecureField::revealed` | method | — | — | — | Shows the typed text instead of dots | [5](05-controls.md#text-fields) |
 | `combo_box::ComboBox` | struct | — | `NSComboBox` | — | Text field with an arrow that opens suggested values | [5](05-controls.md#text-fields) |
 | `password::PasswordField` | struct | — | — | — | Zeroizing password buffer with idle, verifying and error states | [5](05-controls.md#passwords) |
-| `password::State` | enum | — | — | — | `Idle`, `Verifying`, `Error(String)` of a password field | [5](05-controls.md#passwords) |
+| `password::PasswordState` | enum | — | — | — | `Idle`, `Verifying`, `Error(String)` of a password field | [5](05-controls.md#passwords) |
 | `color_picker::ColorPicker` | struct | `ColorPicker` | `≈ NSColorWell` | `UIColorWell` | Color well opening an HSB popover, not a color panel | [5](05-controls.md#color-picker) |
 | `color_picker::ColorPanel::show` | fn | — | `NSColorPanel` | `UIColorPickerViewController` | Opens the HSB color popover beside an area, without a well | [5](05-controls.md#color-picker) |
 | `color_picker::hsb_to_rgb` | fn | — | `≈ NSColor.init(hue:saturation:brightness:alpha:)` | — | Opaque color from hue, saturation and brightness | [5](05-controls.md#color-picker) |
@@ -1425,7 +1427,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `layout::LayoutContainer` | struct | a `Layout` called as a view | — | — | The view of a `Layout`: `LayoutContainer::with_layout(layout).child(..)` | [11](11-views.md#custom-layout) |
 | `layout::Placement` | struct | `ProposedViewSize` result of `sizeThatFits` plus `place(at:)` | — | — | The size of a container and the origin of each subview in it | [11](11-views.md#custom-layout) |
 | `layout::ViewThatFits` | struct | `ViewThatFits` | — | — | Shows the first candidate whose stated extent fits the width or height offered, the last when none does | [11](11-views.md#viewthatfits) |
-| `modifiers::EnvironmentModifiers::layout_direction` | method | `.environment(\.layoutDirection, _)` | `NSView.userInterfaceLayoutDirection` | `UIView.semanticContentAttribute` | Sets the layout direction of a view: mirrors the stacks, frames, grids, ZStacks and texts already built in it and sets it for the six control styles and for everything built below | [11](11-views.md#right-to-left) |
+| `modifiers::EnvironmentModifiers::layout_direction` | method | `.environment(\.layoutDirection, _)` | `NSView.userInterfaceLayoutDirection` | `UIView.semanticContentAttribute` | Sets the layout direction of a view: mirrors the stacks, frames, grids, ZStacks and texts already built in it and sets it for everything built below, controls included | [11](11-views.md#right-to-left) |
 
 ## Forms and groups
 

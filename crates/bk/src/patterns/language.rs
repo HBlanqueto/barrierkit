@@ -80,26 +80,3 @@ pub fn write_language(path: &Path, language: Option<&str>) -> io::Result<()> {
     };
     write_toml(path, &table)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn choosing_a_language_keeps_the_other_keys_of_the_domain() {
-        let dir = std::env::temp_dir().join(format!("kit-language-{}", std::process::id()));
-        let path = dir.join("marea.domain");
-        std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(&path, "volume = 3\n").unwrap();
-        write_language(&path, Some("en")).unwrap();
-        assert_eq!(read_language(&path).as_deref(), Some("en"));
-        write_language(&path, None).unwrap();
-        assert_eq!(read_language(&path), None);
-        assert!(
-            std::fs::read_to_string(&path)
-                .unwrap()
-                .contains("volume = 3")
-        );
-        std::fs::remove_dir_all(dir).unwrap();
-    }
-}

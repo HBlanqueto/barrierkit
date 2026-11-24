@@ -1,8 +1,8 @@
 use ctdesign::{BODY, CHECKBOX, ControlSize, Font, SETTINGS};
 
 use super::{
-    Axis, ColorEffect, ControlStyle, Edge, LayoutDirection, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, disabled_palette, pressed_palette, system_effect,
+    Axis, ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    disabled_palette, pressed_palette, system_effect,
 };
 
 /// States: each option is hovered, pressed, focused and disabled on its own.
@@ -47,8 +47,6 @@ pub struct RadioGroupStyle {
     pub axis: Axis,
     /// Tengen: `Some(Edge::Trailing)`; `None` hides the labels, which stay accessible.
     pub label_position: Option<Edge>,
-    /// Tengen: `LeftToRight`; `RightToLeft` swaps `Leading` and `Trailing`.
-    pub layout_direction: LayoutDirection,
     /// Tengen: `BODY` with `CHECKBOX.size` as `line_height`, so the row is as high as the button.
     pub label_font: Font,
 }
@@ -96,7 +94,6 @@ impl ControlStyle for RadioGroupStyle {
             effect: system_effect,
             axis: Axis::Vertical,
             label_position: Some(Edge::Trailing),
-            layout_direction: LayoutDirection::LeftToRight,
             label_font: Font {
                 line_height: CHECKBOX.size as u32,
                 ..BODY

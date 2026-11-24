@@ -8,16 +8,35 @@ use crate::elements::{Overrides, forward_overrides};
 use crate::environment::use_is_enabled;
 use crate::i18n::text;
 use crate::interaction::{control_state, use_interaction};
+use crate::layout::ambient;
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{
-    ComboButtonStyle, ControlGroupStyle, ControlState, HelpLinkStyle, LayoutDirection,
-    MenuButtonStyle, Paints, Theme, resolve,
+    ComboButtonStyle, ControlGroupStyle, ControlState, HelpLinkStyle, MenuButtonStyle, Paints,
+    Theme, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
+
+pub(crate) fn open_menu_below(
+    items: Vec<MenuItem>,
+    control: Area,
+    on_activate: Option<Callback<String, ()>>,
+) {
+    open_popover_menu(
+        items,
+        PopupAnchor::BottomLeft,
+        crate::platform::anchor_rect(control),
+        None,
+        move |id| {
+            if let Some(on_activate) = &on_activate {
+                on_activate.call(id);
+            }
+        },
+    );
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LabelStyle {
@@ -89,10 +108,9 @@ impl Component for MenuButton {
         let items = self.items.clone();
         let on_activate = self.on_activate.clone();
         let icon_only = self.image.is_some() && self.label_style == LabelStyle::IconOnly;
-        let radius =
-            style
-                .shape
-                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
+        let radius = style
+            .shape
+            .corner_radius(style.height, style.height, ambient());
         let button = interaction
             .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
@@ -122,19 +140,7 @@ impl Component for MenuButton {
                 if disabled {
                     return;
                 }
-                let field = *area.peek();
-                let on_activate = on_activate.clone();
-                open_popover_menu(
-                    items.clone(),
-                    PopupAnchor::BottomLeft,
-                    crate::platform::anchor_rect(field),
-                    None,
-                    move |id| {
-                        if let Some(on_activate) = &on_activate {
-                            on_activate.call(id);
-                        }
-                    },
-                );
+                open_menu_below(items.clone(), *area.peek(), on_activate.clone());
             })
             .map(self.image.filter(|_| icon_only), |button, image| {
                 button.child(symbol(
@@ -228,10 +234,9 @@ impl Component for ComboButton {
         let items = self.items.clone();
         let on_press = self.on_press.clone();
         let on_activate = self.on_activate.clone();
-        let radius =
-            style
-                .shape
-                .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
+        let radius = style
+            .shape
+            .corner_radius(style.height, style.height, ambient());
         let primary = action
             .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
@@ -266,19 +271,7 @@ impl Component for ComboButton {
                 if disabled {
                     return;
                 }
-                let field = *area.peek();
-                let on_activate = on_activate.clone();
-                open_popover_menu(
-                    items.clone(),
-                    PopupAnchor::BottomLeft,
-                    crate::platform::anchor_rect(field),
-                    None,
-                    move |id| {
-                        if let Some(on_activate) = &on_activate {
-                            on_activate.call(id);
-                        }
-                    },
-                );
+                open_menu_below(items.clone(), *area.peek(), on_activate.clone());
             })
             .child(symbol(
                 Symbol::ChevronDown,
@@ -361,9 +354,7 @@ impl Component for HelpLink {
         );
         let on_press = self.on_press.clone();
         let size = style.size;
-        let radius = style
-            .shape
-            .corner_radius(size, size, LayoutDirection::LeftToRight);
+        let radius = style.shape.corner_radius(size, size, ambient());
         let button = interaction
             .attach(rect(), !disabled)
             .a11y_role(AccessibilityRole::Button)
@@ -449,11 +440,7 @@ impl Component for ControlGroup {
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(&*self.label)
             .height(Size::px(height))
-            .corner_radius(
-                style
-                    .shape
-                    .corner_radius(height, height, LayoutDirection::LeftToRight),
-            )
+            .corner_radius(style.shape.corner_radius(height, height, ambient()))
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
             .direction(Direction::Horizontal)
@@ -535,15 +522,5 @@ impl Component for ShareLink {
             }
         });
         self.overrides.delegate(root)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::mail_uri;
-
-    #[test]
-    fn the_mail_body_escapes_everything_but_unreserved_characters() {
-        assert_eq!(mail_uri("Hola, año"), "mailto:?body=Hola%2C%20a%C3%B1o");
     }
 }

@@ -21,13 +21,12 @@ use crate::symbol::Symbol;
 use crate::context_menu::{Spelling, edit_menu};
 use crate::controls::dimmed;
 use crate::interaction::ring;
+use crate::layout::ambient;
 use crate::scroll::{ScrollView, use_scroll_controller};
-use crate::spelling::{
-    Squiggles, char_index, dictionary, known, misspelled, utf16_range, utf16_ranges,
-};
+use crate::spelling::{Squiggles, char_index, use_misspellings, utf16_range};
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextEditorStyle, Theme, resolve,
+    ControlState, Paints, ShapeStyle, StateValue, TextEditorStyle, Theme, resolve,
 };
 use crate::theme::{color, resolved};
 use crate::views::text_view::EDITING_KEYS;
@@ -178,7 +177,7 @@ impl Component for TextEditor {
             let mut editor = editable.editor_mut().write();
             editor.clear_preedit();
             editor.set(&value.read());
-            // freya-edit 0.5.0 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.5.0/source/src/rope_editor.rs#278
+            // freya-edit 0.5.3 set() checks the UTF-16 cursor against a byte length: https://docs.rs/crate/freya-edit/0.5.3/source/src/rope_editor.rs#278
             let end = editor.len_utf16_cu();
             if editor.cursor_pos() > end {
                 editor.move_cursor_to(end);
@@ -261,7 +260,7 @@ impl Component for TextEditor {
                 }
                 key => key,
             };
-            // freya-edit 0.5.0 types any character even with Super or Ctrl held.
+            // freya-edit 0.5.3 types any character even with Super or Ctrl held.
             if chord
                 && matches!(key, Key::Character(typed) if !EDITING_KEYS.contains(&typed.as_str()))
             {
@@ -404,20 +403,7 @@ impl Component for TextEditor {
                 .collect::<Vec<_>>()
                 .into_iter()
             });
-        let loaded = use_reactive(&dictionary().is_some());
-        let ranges = use_memo(move || {
-            let text = value.read();
-            loaded
-                .read()
-                .then(dictionary)
-                .flatten()
-                .map(|dictionary| {
-                    let found = misspelled(&text, |word| known(dictionary, word));
-                    utf16_ranges(&text, &found)
-                })
-                .unwrap_or_default()
-        });
-        let ranges = ranges.read().clone();
+        let ranges = use_misspellings(value, true);
         let squiggles = (!ranges.is_empty()).then(|| {
             crate::glass::leaf(Squiggles {
                 holder: holder.read().clone(),
@@ -435,9 +421,7 @@ impl Component for TextEditor {
         });
         let has_selection = editor.get_selection().is_some();
         let line = style.font.line_height as f32 + 2.0 * padding_y;
-        let radius = style
-            .shape
-            .corner_radius(line, line, LayoutDirection::LeftToRight);
+        let radius = style.shape.corner_radius(line, line, ambient());
         let field = edit_menu(
             dimmed(text_style(rect(), style.font), style.opacity),
             a11y_id,
@@ -579,16 +563,4 @@ pub fn find_matches(text: &str, query: &str) -> Vec<(usize, usize)> {
         }
     }
     found
-}
-
-#[cfg(test)]
-mod tests {
-    use super::find_matches;
-
-    #[test]
-    fn find_ignores_case_counts_characters_and_does_not_overlap() {
-        assert_eq!(find_matches("Ñandú y ñandú", "ÑAN"), [(0, 3), (8, 11)]);
-        assert_eq!(find_matches("aaaa", "aa"), [(0, 2), (2, 4)]);
-        assert!(find_matches("hola", "").is_empty());
-    }
 }

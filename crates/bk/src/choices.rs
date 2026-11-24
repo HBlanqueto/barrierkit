@@ -8,13 +8,13 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Position, Size};
 
 use crate::backdrop::Tint;
-use crate::controls::{dimmed, dimmed_label, inner_border, labeled, opacity_when, shadowed};
+use crate::controls::{dimmed, edge_label, inner_border, labeled, opacity_when, shadowed};
 use crate::interaction::{control_state, ring, use_interaction};
+use crate::layout::ambient;
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{
-    Axis, ChoiceCardsStyle, ColorWellStyle, LayoutDirection, Paints, RadioGroupStyle, StateValue,
-    Theme, resolve,
+    Axis, ChoiceCardsStyle, ColorWellStyle, Paints, RadioGroupStyle, StateValue, Theme, resolve,
 };
 use crate::theme::color;
 
@@ -220,7 +220,7 @@ impl Component for RadioOption {
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
-        let direction = style.layout_direction;
+        let direction = ambient();
         let size = style.button_size;
         let dot = style.dot_size;
         let selected = self.selected;
@@ -272,19 +272,18 @@ impl Component for RadioOption {
                 .direction(Direction::Horizontal)
                 .cross_align(Alignment::Center)
                 .child(circle),
-            Some(edge) => {
-                let text = with_font(label().text(self.text.clone()), style.label_font)
-                    .max_lines(1)
-                    .color(paints.fill(&style.label));
-                labeled(
-                    row,
-                    circle,
-                    dimmed_label(text, opacity),
-                    edge,
-                    direction,
-                    style.label_gap,
-                )
-            }
+            Some(edge) => labeled(
+                row,
+                circle,
+                edge_label(
+                    self.text.clone(),
+                    style.label_font,
+                    paints.fill(&style.label),
+                    opacity,
+                ),
+                edge,
+                style.label_gap,
+            ),
         }
     }
 }
@@ -453,9 +452,7 @@ impl Component for Swatch {
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let size = style.swatch_size;
-        let radius = style
-            .swatch_shape
-            .corner_radius(size, size, LayoutDirection::LeftToRight);
+        let radius = style.swatch_shape.corner_radius(size, size, ambient());
         let selected = self.selected;
         let enabled = !disabled;
         let on_select = self.on_select.clone();
@@ -633,9 +630,7 @@ impl Component for Card {
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state, style.effect);
         let (width, height) = style.card_size;
-        let radius = style
-            .card_shape
-            .corner_radius(width, height, LayoutDirection::LeftToRight);
+        let radius = style.card_shape.corner_radius(width, height, ambient());
         let selected = self.selected;
         let enabled = !disabled;
         let on_select = self.on_select.clone();

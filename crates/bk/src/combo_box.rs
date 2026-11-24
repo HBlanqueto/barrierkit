@@ -4,18 +4,18 @@ use std::borrow::Cow;
 use torin::prelude::{Area, Gaps, Position, Size};
 
 use crate::context_menu::edit_menu;
-use crate::controls::{ControlSize, default_pre_key, dimmed, input, outer_hairline, shadowed};
+use crate::controls::{
+    ControlSize, default_pre_key, dimmed, input, outer_hairline, shadowed, use_field_state,
+};
 use crate::elements::{Overrides, forward_overrides};
-use crate::environment::use_disabled;
-use crate::focus::use_focus_target;
+use crate::layout::ambient;
 use crate::menu::MenuItem;
 use crate::platform::PopupAnchor;
 use crate::popup_button::open_popover_menu;
 use crate::style::text_style;
 use crate::styles::Painted;
 use crate::styles::{
-    ComboBoxStyle, ControlState, LayoutDirection, Paints, ShapeStyle, StateValue, TextFieldStyle,
-    Theme, resolve,
+    ComboBoxStyle, ControlState, Paints, ShapeStyle, StateValue, TextFieldStyle, Theme, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol};
 
@@ -85,16 +85,8 @@ impl Component for ComboBox {
         let mut area = use_state(Area::default);
         let items = self.items.clone();
         let field = use_hook(AccessibilityId::new_unique);
-        use_focus_target(field);
-        let focus = use_focus(field);
-        let disabled = use_disabled(self.disabled);
-        let mut hovered = use_state(|| false);
-        let state = ControlState {
-            hovered: *hovered.read(),
-            focused: !matches!(*focus.read(), Focus::Not),
-            disabled,
-            ..ControlState::default()
-        };
+        let (state, _, mut hovered) = use_field_state(field, self.disabled);
+        let disabled = state.disabled;
         let field_paints = Paints::current(state, field_style.effect);
         let ink = |paint: &StateValue<ShapeStyle>| field_paints.color(paint.resolve(state));
         let button_state = ControlState {
@@ -104,11 +96,9 @@ impl Component for ComboBox {
         let paints = Paints::current(button_state, style.effect);
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
         let trailing = style.button_inset + style.button_size.0 + style.text_gap;
-        let radius = field_style.shape.corner_radius(
-            style.height,
-            style.height,
-            LayoutDirection::LeftToRight,
-        );
+        let radius = field_style
+            .shape
+            .corner_radius(style.height, style.height, ambient());
         let input = input(
             value,
             self.placeholder.clone(),
@@ -162,11 +152,11 @@ impl Component for ComboBox {
         let button = rect()
             .width(Size::px(button_width))
             .height(Size::px(button_height))
-            .corner_radius(style.button_shape.corner_radius(
-                button_width,
-                button_height,
-                LayoutDirection::LeftToRight,
-            ))
+            .corner_radius(
+                style
+                    .button_shape
+                    .corner_radius(button_width, button_height, ambient()),
+            )
             .center()
             .painted(&paints, &style.button)
             .bordered(&paints, style.button_border.as_ref())

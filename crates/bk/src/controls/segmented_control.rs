@@ -1,5 +1,5 @@
 use super::*;
-use crate::menu::measure_text;
+use crate::menu::measure_text_weight;
 use std::borrow::Cow;
 
 #[derive(PartialEq)]
@@ -79,18 +79,20 @@ impl Component for SegmentedControl {
         let paints = Paints::current(ControlState::default(), style.effect);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let keyed = use_state(|| false);
-        let widest = self
+        let weight = FontWeight::from(style.font.weight as i32);
+        let measured: Vec<f32> = self
             .segments
             .iter()
-            .map(|text| measure_text(text, style.font.size as f32))
-            .fold(0.0, f32::max);
+            .map(|text| measure_text_weight(text, style.font.size as f32, weight))
+            .collect();
+        let widest = measured.iter().copied().fold(0.0, f32::max);
+        let width_of = |width: f32| {
+            let width = if style.equal_segments { widest } else { width };
+            width + 2.0 * style.segment_padding_x
+        };
         let segments = self.segments.iter().enumerate().map(|(index, text)| {
             Segment {
-                width: if style.equal_segments {
-                    widest + 2.0 * style.segment_padding_x
-                } else {
-                    measure_text(text, style.font.size as f32) + 2.0 * style.segment_padding_x
-                },
+                width: width_of(measured[index]),
                 text: text.clone(),
                 active: choice.is(index),
                 disabled: self.disabled,
@@ -110,17 +112,7 @@ impl Component for SegmentedControl {
             ),
         };
         let height = height + 2.0 * style.padding;
-        let natural_width = self
-            .segments
-            .iter()
-            .map(|text| {
-                if style.equal_segments {
-                    widest + 2.0 * style.segment_padding_x
-                } else {
-                    measure_text(text, style.font.size as f32) + 2.0 * style.segment_padding_x
-                }
-            })
-            .sum::<f32>()
+        let natural_width = measured.iter().copied().map(width_of).sum::<f32>()
             + (count - 1.0).max(0.0) * style.gap
             + 2.0 * style.padding;
 
@@ -135,11 +127,7 @@ impl Component for SegmentedControl {
             .content(Content::flex())
             .padding(Gaps::new_all(style.padding))
             .spacing(style.gap)
-            .corner_radius(
-                style
-                    .shape
-                    .corner_radius(height, height, LayoutDirection::LeftToRight),
-            )
+            .corner_radius(style.shape.corner_radius(height, height, ambient()))
             .painted(&paints, &style.background)
             .bordered(&paints, style.border.as_ref())
             .children(segments);
@@ -188,10 +176,7 @@ impl Component for Segment {
         };
         let font = style.font;
         let height = style.segment_height;
-        let radius =
-            style
-                .segment_shape
-                .corner_radius(height, height, LayoutDirection::LeftToRight);
+        let radius = style.segment_shape.corner_radius(height, height, ambient());
 
         let segment = interaction
             .attach(rect(), !disabled)
@@ -205,7 +190,7 @@ impl Component for Segment {
             .height(Size::px(height))
             .corner_radius(radius)
             .center()
-            .on_press(move |_| on_select.call(()))
+            .maybe(!disabled, |el| el.on_press(move |_| on_select.call(())))
             .child(
                 rect()
                     .padding(Gaps::new(

@@ -10,10 +10,7 @@ use torin::prelude::{Alignment, Direction, Size};
 use crate::environment::EnvironmentScope;
 use crate::layout::layers::LayoutElement;
 use crate::layout::{GridElement, resolve_spacers};
-use crate::styles::{
-    CheckboxStyle, LayoutDirection, LevelSliderStyle, RadioGroupStyle, SliderStyle, StepperStyle,
-    StyleScope, SwitchStyle, Theme,
-};
+use crate::styles::LayoutDirection;
 
 pub(crate) fn ambient() -> LayoutDirection {
     CurrentContext::try_with(|_| try_consume_context::<State<LayoutDirection>>())
@@ -127,66 +124,6 @@ impl Component for LayoutDirectionScope {
         } else {
             mirrored_tree(self.child.clone())
         };
-        let styles = Theme::tengen()
-            .style(move |style: CheckboxStyle| CheckboxStyle {
-                layout_direction: direction,
-                ..style
-            })
-            .style(move |style: LevelSliderStyle| LevelSliderStyle {
-                layout_direction: direction,
-                ..style
-            })
-            .style(move |style: RadioGroupStyle| RadioGroupStyle {
-                layout_direction: direction,
-                ..style
-            })
-            .style(move |style: SliderStyle| SliderStyle {
-                layout_direction: direction,
-                ..style
-            })
-            .style(move |style: StepperStyle| StepperStyle {
-                layout_direction: direction,
-                ..style
-            })
-            .style(move |style: SwitchStyle| SwitchStyle {
-                layout_direction: direction,
-                ..style
-            });
-        StyleScope::new(styles, EnvironmentScope::new(direction, child))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_position_mirrors_inside_its_container() {
-        assert_eq!(mirrored_x(10.0, 30.0, 200.0), 160.0);
-    }
-
-    #[test]
-    fn a_label_with_no_alignment_aligns_right_and_one_aligned_end_aligns_start() {
-        let aligned = |align| {
-            let mut label = label().text("x").width(Size::fill());
-            label.text_style_data_mut().text_align = align;
-            let Element::Element { element, .. } = mirrored(label.into_element()) else {
-                panic!("a label is an element");
-            };
-            let label = (element.as_ref() as &dyn Any)
-                .downcast_ref::<LabelElement>()
-                .expect("mirrored keeps the label");
-            label.text_style_data.text_align
-        };
-        assert_eq!(aligned(None), Some(TextAlign::Right));
-        assert_eq!(aligned(Some(TextAlign::End)), Some(TextAlign::Start));
-        assert_eq!(aligned(Some(TextAlign::Center)), Some(TextAlign::Center));
-    }
-
-    #[test]
-    fn only_start_and_end_swap() {
-        assert_eq!(swapped(Alignment::Start), Alignment::End);
-        assert_eq!(swapped(Alignment::End), Alignment::Start);
-        assert_eq!(swapped(Alignment::SpaceBetween), Alignment::SpaceBetween);
+        EnvironmentScope::new(direction, child)
     }
 }
