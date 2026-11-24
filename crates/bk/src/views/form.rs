@@ -4,6 +4,7 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::adornments::Divider;
+use crate::scroll::{InScrollView, ScrollView};
 use std::any::TypeId;
 
 use crate::compact::Stepper;
@@ -310,7 +311,8 @@ impl Component for Form {
         if style.columns {
             return self
                 .overrides
-                .apply(columns(&self.sections, &style, &paints));
+                .apply(columns(&self.sections, &style, &paints))
+                .into_element();
         }
         let corner_radius = style
             .shape
@@ -377,7 +379,13 @@ impl Component for Form {
                     .spacing(style.section_spacing)
                     .children(sections),
             );
-        self.overrides.apply(root)
+        let root = self.overrides.apply(root);
+        // SwiftUI's grouped Form scrolls, so the bar over it takes it as content that scrolls under.
+        if try_consume_context::<InScrollView>().is_some() {
+            root.into_element()
+        } else {
+            ScrollView::new().expanded().child(root).into_element()
+        }
     }
 }
 

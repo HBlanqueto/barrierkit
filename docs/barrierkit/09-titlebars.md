@@ -144,7 +144,7 @@ The recipe is [`toolbar_items.rs`](../../agents/recipes/toolbar_items.rs).
 | `ToolbarItemPlacement` | Where it goes |
 |---|---|
 | `Navigation` | The left zone, after the sidebar toggle |
-| `Principal`, `Status` | The title's place: the item replaces the title text and is centered |
+| `Principal`, `Status` | The title's place: the item replaces the title text and is centered on the window, as AppKit centers it |
 | `PrimaryAction` | The right zone |
 | `Automatic` | The right zone; with a flexible spacer later in the list, the left zone |
 

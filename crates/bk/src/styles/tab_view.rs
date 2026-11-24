@@ -11,6 +11,8 @@ use crate::styles::{
 /// the icon-over-title tabs of a settings window, or a box without tabs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TabType {
+    /// SwiftUI's `TabView` in a window on macOS 26 and later: a segmented control centered in the title bar, the title hidden.
+    Automatic,
     Top,
     Bottom,
     Toolbar,
@@ -126,6 +128,13 @@ fn pill() -> StateValue<ShapeStyle> {
 }
 
 impl TabViewStyle {
+    pub fn automatic() -> Self {
+        Self {
+            tab_type: TabType::Automatic,
+            ..Self::tengen()
+        }
+    }
+
     pub fn toolbar() -> Self {
         Self {
             tab_type: TabType::Toolbar,

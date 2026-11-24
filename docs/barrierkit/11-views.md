@@ -221,7 +221,9 @@ The recipe is [`right_to_left.rs`](../../agents/recipes/right_to_left.rs). Limit
 ### `Form`
 
 The settings layout: sections of rows inside rounded cards. It is SwiftUI's
-`Form` with the grouped style.
+`Form` with the grouped style, and like it, it scrolls: outside a `ScrollView`
+it puts itself in one, so it takes the room it is given and the bar over it
+treats it as content that scrolls under, with no fill or line at rest.
 
 ```rust
 let zoom = use_state(|| true);
@@ -616,6 +618,7 @@ It fills the space it is given.
 
 | `TabType` | `NSTabView.TabType` | Look |
 |---|---|---|
+| `Automatic` | SwiftUI's `TabView` in a window (macOS 26 and later) | The titles as a glass segmented control centered on the window's bar, the title hidden, the page below: `TabViewStyle::automatic()`; the window is `HiddenTitleBar` |
 | `Top` | `.topTabsBezelBorder` | The strip straddles the top edge of the bezel box (default) |
 | `Bottom` | `.bottomTabsBezelBorder` | The strip straddles the bottom edge |
 | `Toolbar` | `NSTabViewController` `.toolbar` | Icon over title, as in a settings window: `TabViewStyle::toolbar()` |

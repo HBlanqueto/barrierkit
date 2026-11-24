@@ -792,10 +792,14 @@ pub(crate) fn use_scroll_bar(
 
 forward_overrides!(ScrollView);
 
+#[derive(Clone, Copy)]
+pub(crate) struct InScrollView;
+
 impl Component for ScrollView {
     forward_key!();
 
     fn render(&self) -> impl IntoElement {
+        use_provide_context(|| InScrollView);
         let style: ScrollViewStyle = resolve(&self.style);
         let own = use_scroll_controller();
         let controller = self.controller.unwrap_or(own);

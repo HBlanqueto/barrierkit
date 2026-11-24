@@ -284,6 +284,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::CollectionViewStyle` | struct | — | ≈ `NSCollectionViewItem` | ≈ `UICollectionViewCell` | Every visual property of `CollectionView` and its tiles | [Styles](../../crates/bk/src/styles/collection_view.rs) |
 | `styles::OutlineViewStyle` | struct | ≈ `ListStyle` | ≈ `NSOutlineView`, `NSBrowser` | ≈ `UICollectionView` | Every visual property of `OutlineView` and `Browser` | [Styles](../../crates/bk/src/styles/outline_view.rs) |
 | `styles::TabViewStyle` | struct | `TabViewStyle` | ≈ `NSTabView` | ≈ `UITabBarController` | Every visual property of `TabView` and its tabs | [Styles](../../crates/bk/src/styles/tab_view.rs) |
+| `styles::TabViewStyle::automatic` | method | `TabView` in a window, `.tabViewStyle(.automatic)` | — | — | The tabs as a glass segmented control centered on the window's bar | [11](11-views.md) |
 | `styles::TextViewStyle` | struct | ≈ `TextEditorStyle` | ≈ `NSTextView` (`textColor`, `insertionPointColor`) | ≈ `UITextView` | Paint of the text and caret of `TextView` | [Styles](../../crates/bk/src/styles/text_view.rs) |
 | `styles::SheetStyle` | struct | ≈ `presentationBackground(_:)` | ≈ `NSWindow` sheet | ≈ `UIWindow` | Every visual property of `Sheet` and of the sheet under an `Alert` | [Styles](../../crates/bk/src/styles/sheet.rs) |
 | `styles::AlertStyle` | struct | — | ≈ `NSAlert` | ≈ `UIAlertController` | Every visual property of `Alert` but its sheet, buttons and checkbox | [Styles](../../crates/bk/src/styles/alert.rs) |

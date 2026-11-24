@@ -4,6 +4,7 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 
 use crate::choices::Choice;
+use crate::controls::SegmentedControl;
 use crate::controls::shadowed;
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
@@ -13,6 +14,8 @@ use crate::styles::Painted;
 use crate::styles::{ControlState, LayoutDirection, Paints, TabType, TabViewStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
+use crate::titlebar::Titlebar;
+use crate::views::toolbar::{ToolbarItem, ToolbarItemPlacement};
 
 #[derive(PartialEq)]
 pub struct TabView {
@@ -77,6 +80,7 @@ impl Component for TabView {
         let current = (0..self.tabs.len()).find(|&i| choice.is(i)).unwrap_or(0);
         let page = self.tabs.get(current).map(|tab| tab.2.clone());
         let root = match style.tab_type {
+            TabType::Automatic => self.automatic(&choice, page),
             TabType::Toolbar => self.toolbar(&style, &choice, current, page),
             tab_type => self.boxed(&style, &choice, current, page, tab_type),
         };
@@ -85,6 +89,22 @@ impl Component for TabView {
 }
 
 impl TabView {
+    fn automatic(&self, choice: &Choice, page: Option<Element>) -> Rect {
+        let tabs = self.tabs.iter().fold(
+            SegmentedControl::new(self.label.clone(), choice.0),
+            |tabs, (_, title, _)| tabs.segment(title.clone()),
+        );
+        rect()
+            .expanded()
+            .direction(Direction::Vertical)
+            .child(
+                Titlebar::new()
+                    .shows_title(false)
+                    .toolbar(ToolbarItem::new(ToolbarItemPlacement::Principal, tabs)),
+            )
+            .maybe_child(page)
+    }
+
     fn toolbar(
         &self,
         style: &TabViewStyle,
@@ -169,7 +189,9 @@ impl TabView {
                 )
             }
             TabType::NoTabsLineBorder => (Gaps::new_all(0.0), Gaps::new_all(1.0)),
-            TabType::Toolbar | TabType::NoTabsNoBorder => (Gaps::new_all(0.0), Gaps::new_all(0.0)),
+            TabType::Automatic | TabType::Toolbar | TabType::NoTabsNoBorder => {
+                (Gaps::new_all(0.0), Gaps::new_all(0.0))
+            }
         };
         let (background, border, radius) = match tab_type {
             TabType::NoTabsLineBorder => {

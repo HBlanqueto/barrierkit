@@ -577,19 +577,28 @@ impl Titlebar {
             }))
             .maybe_child(slots.navigation);
 
+        let principal = slots.principal.map(|principal| {
+            // AppKit centers the principal item on the window, not on the room the lights leave.
+            rect()
+                .position(
+                    Position::new_absolute()
+                        .left(-occupied - padding_left)
+                        .top(0.0),
+                )
+                .width(Size::window_percent(100.0))
+                .height(Size::px(height))
+                .center()
+                .child(principal)
+        });
         let title = rect()
             .width(Size::flex(1.0))
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
-            .main_align(if slots.principal.is_some() {
-                Alignment::Center
-            } else {
-                style.sidebar_title_alignment.clone()
-            })
+            .main_align(style.sidebar_title_alignment.clone())
             .probe("titlebar-title")
             .on_mouse_down(drag)
-            .child(slots.principal.unwrap_or(title_label));
+            .maybe_child(principal.is_none().then_some(title_label));
 
         let root = rect()
             .width(Size::fill())
@@ -615,7 +624,8 @@ impl Titlebar {
                     .probe("titlebar-right-slot")
                     .child(right)
             }))
-            .maybe_child(fixed_lights);
+            .maybe_child(fixed_lights)
+            .maybe_child(principal);
         let bar = rect()
             .width(Size::fill())
             .height(Size::px(height))
