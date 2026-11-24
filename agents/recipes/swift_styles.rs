@@ -3,7 +3,7 @@ use bk::prelude::*;
 fn main() -> Result<(), RunError> {
     Application::new("com.example.styles")
         .window("Styles", || {
-            let mut on = use_state(|| true);
+            let on = use_state(|| true);
             let mut busy = use_state(|| false);
             HStack::new()
                 .padding((0.0, 20.0))
@@ -21,11 +21,7 @@ fn main() -> Result<(), RunError> {
                         .disabled(*busy.read())
                         .on_press(move |_| busy.toggle()),
                 )
-                .child(
-                    Switch::new("Switch")
-                        .on(*on.read())
-                        .on_toggle(move |checked| on.set(checked)),
-                )
+                .child(Switch::new("Switch", on))
         })
         .run()
 }

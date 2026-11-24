@@ -17,18 +17,17 @@ page follows the selected item.
 1. Keep the selected page in state:
 
    ```rust
-   let mut page = use_state(|| 0);
+   let page = use_state(|| 0);
    ```
 
-2. Build one `SidebarItem` per page. It shows the selection the app passes and
-   reports a press through `on_select`:
+2. Build one `SidebarItem` per page. `.tag(page, index)` selects the row while `page` holds
+   `index`, and a press stores it:
 
    ```rust
    let item = |index: usize, title: &'static str, glyph: Symbol| {
        SidebarItem::new(title)
            .symbol(glyph)
-           .selected(*page.read() == index)
-           .on_select(move |_| page.set(index))
+           .tag(page, index)
    };
    ```
 
@@ -162,13 +161,12 @@ A row with an optional symbol and a one-line label.
 | `SidebarItem::new(label)` | — | A row with that text |
 | `.symbol(Symbol)` | none | A bare glyph before the label: the accent, the selected ink on the selected row, as a SwiftUI `Label` in a sidebar `List` |
 | `.symbol_tile(Symbol, tint)` | none | A [`SymbolTile`](#symboltile) of color `tint` before the label, as System Settings draws it |
-| `.selected(bool)` | `false` | Draws the row as selected. The app decides which row is selected |
+| `.tag(State<T>, value)` | not selected | Draws the row as selected while the `State` holds `value`; a press stores `value` in it (SwiftUI `List(selection:)` with `.tag`) |
 | `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent. Inside a `Sidebar` it turns gray on its own while the keyboard focus is outside the sidebar, as in AppKit |
 | `.style(f)` | Tengen | A `SidebarItemStyle` ([Style](#style)) |
-| `.on_select(callback)` | none | Called when the row is pressed |
 | `.key(key)` | none | Diff key |
 
-**Events:** `on_select(())`. After it, the item closes the sidebar if it floats
+**Events:** a press stores the tag. After it, the item closes the sidebar if it floats
 over the content (see [Narrow windows](#narrow-windows)).
 
 **Look:** `SIDEBAR.item_height` (32) high, radius `SIDEBAR.item_radius` (8),
@@ -305,7 +303,7 @@ than `SPLIT_VIEW.collapse_below` (760 px):
 | Variant | The sidebar |
 |---|---|
 | `Push` (default) | Stays docked and narrows the detail, as `NavigationSplitView` does on macOS. The window's `min_size` bounds the detail |
-| `Overlay` | Follows the steps below. It opens floating over the detail, above the `Palette::scrim` veil, without moving the detail. A click on the veil, Escape or an item's `on_select` closes it |
+| `Overlay` | Follows the steps below. It opens floating over the detail, above the `Palette::scrim` veil, without moving the detail. A click on the veil, Escape or a press on an item closes it |
 
 1. When the window becomes narrow, the sidebar hides by itself.
 2. The user opens it with `SidebarToggle` or Ctrl+Alt+S; it floats.

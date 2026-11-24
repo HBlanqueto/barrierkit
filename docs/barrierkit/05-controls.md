@@ -13,53 +13,39 @@ values live in `State`.
 1. Create the value in the view, with a hook at the top of the closure:
 
    ```rust
-   let mut wifi = use_state(|| true);
+   let wifi = use_state(|| true);
    ```
 
-2. Build the control. The first argument of `new` is its accessible label:
+2. Build the control. The first argument of `new` is its accessible label; the next one is
+   the `State` it edits:
 
    ```rust
-   Switch::new("Wi-Fi")
+   Switch::new("Wi-Fi", wifi)
    ```
 
    Visible text is `impl Into<Cow<'static, str>>`: a literal or `tr!("id")` is
    borrowed, a `String` is owned. No text needs `i18n::intern`.
 
-3. Pass the current value with the control's value method (`on`, `checked`, `value`,
-   `selected`):
+3. Add it to the view: `VStack::new().child(..)`. When the user flips the switch, it writes
+   `wifi`; when `wifi` changes, the view runs again and the switch shows the new value.
 
-   ```rust
-   Switch::new("Wi-Fi").on(*wifi.read())
-   ```
-
-4. Store the change in the callback (`on_toggle`, `on_change`, `on_press`):
-
-   ```rust
-   Switch::new("Wi-Fi")
-       .on(*wifi.read())
-       .on_toggle(move |on| wifi.set(on))
-   ```
-
-5. Add it to the view: `VStack::new().child(..)`. When `wifi` changes, the view runs again and
-   the switch shows the new value.
-
-Text fields skip steps 3 and 4: they take the `State<String>` itself
+Text fields work the same way: they take the `State<String>`
 ([Text fields](#text-fields)).
 
 ## The controlled pattern
 
 | Rule | What happens |
 |---|---|
-| The app passes the value | The control seeds its own copy from it |
-| The user changes it | The control shows the change at once and calls the callback with the new value |
-| The app changes the value | The control drops its copy and shows the app's value |
-| The new value equals the old one | No callback |
+| The app owns the value | It creates the `State` and passes it in `new` |
+| The user changes it | The control writes the new value to the `State` |
+| The app changes the value | The control shows the app's value |
+| The new value equals the old one | No write |
 
 ✗ Reading the control's value: there is no getter.
-✓ Keeping the value in `State` and passing it on every render.
+✓ Reading the `State` the control writes.
 
-Three controls keep no copy and only show what the app passes: `RatingIndicator`,
-`ColorPicker` and `FontPicker`. Their callback must update the state, or nothing changes.
+A callback remains only for actions: `Button::on_press`, `TextField::on_submit`,
+`MenuButton::on_activate`. To react to a change, read the `State` in `use_side_effect`.
 
 ## Common rules
 
@@ -274,9 +260,9 @@ Both take one of five sizes on `Button`, `PopUpButton` (also with
 
 ```rust
 Button::new("Save").size(ControlSize::Large)
-Checkbox::new("Remember").size(ControlSize::Small)
-Slider::new("Volume").size(ControlSize::Mini)
-VStack::new().child(Button::new("Save")).child(Slider::new("Volume")).control_size(ControlSize::Small)
+Checkbox::new("Remember", remember).size(ControlSize::Small)
+Slider::new("Volume", volume).size(ControlSize::Mini)
+VStack::new().child(Button::new("Save")).child(Slider::new("Volume", volume)).control_size(ControlSize::Small)
 ```
 
 `.control_size` is a container-level style override ([styles](../../agents/styles.md#levels)): it
@@ -305,8 +291,8 @@ Module `compact`.
 | Item | Build | Reports |
 |---|---|---|
 | `IconButton` | `IconButton::new(Symbol, label)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.on_press(\|_\| ..)` |
-| `Stepper` | `Stepper::new(label, min, max)`, `.value(i64)` (clamped; default `min`), `.disabled(bool)`, `.style(\|s\| ..)` | `.on_change(\|value: i64\| ..)` |
-| `ToggleGroup` | `ToggleGroup::new(label)`, `.item(text, Face, label, on)` per toggle, `.style(\|s\| ..)` | `.on_toggle(\|(index, on)\| ..)` |
+| `Stepper` | `Stepper::new(label, State<i64>, min, max)` (shown clamped), `.disabled(bool)`, `.style(\|s\| ..)` | — (writes the `State`) |
+| `ToggleGroup` | `ToggleGroup::new(label)`, `.item(text, Face, label, State<bool>)` per toggle, `.style(\|s\| ..)` | — (each toggle writes its `State`) |
 
 - `IconButton` is 30 × 30 with a 16 symbol (`ICON_BUTTON`). Inside a
   [`ToolGroup`](#toolbar-controls) or a `Titlebar` it becomes a capsule as tall as the bar's
@@ -327,12 +313,14 @@ Module `compact`.
   the accent.
 
 ```rust
+let cores = use_state(|| 4);
+let (bold, italic, underline) = (use_state(|| true), use_state(|| false), use_state(|| false));
 IconButton::new(Symbol::Plus, "Add")
-Stepper::new("Cores", 1, 16).value(4)
+Stepper::new("Cores", cores, 1, 16)
 ToggleGroup::new("Format")
-    .item("B", Face::Bold, "Bold", true)
-    .item("I", Face::Italic, "Italic", false)
-    .item("U", Face::Underline, "Underline", false)
+    .item("B", Face::Bold, "Bold", bold)
+    .item("I", Face::Italic, "Italic", italic)
+    .item("U", Face::Underline, "Underline", underline)
 ```
 
 ### Style
@@ -343,7 +331,7 @@ ToggleGroup::new("Format")
 fields are in [Styles and themes](../../crates/bk/src/styles/icon_button.rs).
 
 ```rust
-Stepper::new("Cores", 1, 16).style(|s| StepperStyle { value_position: Some(Edge::Trailing), ..s })
+Stepper::new("Cores", cores, 1, 16).style(|s| StepperStyle { value_position: Some(Edge::Trailing), ..s })
 ```
 
 ## Menu buttons
@@ -422,10 +410,10 @@ ToolGroup::new().child(back).child(forward).style(|s| ToolGroupStyle { axis: Axi
 
 ## Switch and checkbox
 
-| Item | Build | Value | Reports |
-|---|---|---|---|
-| `Switch` | `Switch::new(label)` | `.on(bool)` | `.on_toggle(\|on: bool\| ..)` |
-| `Checkbox` | `Checkbox::new(label)`, `.width(Size)` | `.checked(bool)`, `.mixed(bool)` (a dash instead of the check) | `.on_toggle(\|checked: bool\| ..)` |
+| Item | Build |
+|---|---|
+| `Switch` | `Switch::new(label, State<bool>)` |
+| `Checkbox` | `Checkbox::new(label, State<bool>)`, `.width(Size)`, `.mixed(bool)` (a dash instead of the check) |
 
 Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
 
@@ -434,8 +422,8 @@ Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
   `label_position`.
 - Hold the knob to drag it. It follows the cursor, grows to `SWITCH.knob_pressed_scale` (1.65:
   as wide as the track and taller than it) and only lets go on an end: the one it is nearer to.
-  `.on_toggle` runs as soon as the knob passes the middle of the travel, not on release, and
-  again if it goes back. The track stays on while you drag and turns off only when the knob
+  The switch writes its `State` as soon as the knob passes the middle of the travel, not on
+  release, and again if it goes back. The track stays on while you drag and turns off only when the knob
   reaches the off end; it turns on again as soon as the knob leaves it. A press that moves less
   than `DRAG.threshold` is a click and flips the switch when released, as do Space and Enter.
 - A held `Switch`, `Slider` or `LevelSlider` knob is Liquid Glass the compositor draws, with no
@@ -447,10 +435,11 @@ Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
 - `Checkbox` is a 16 box with a 12 check mark, followed by the label.
 
 ```rust
-Switch::new("Off")
-Switch::new("On").on(true)
-Switch::new("Inactive").on(true).disabled(true)
-Checkbox::new("Remember me").checked(true)
+let (off, on, remember) = (use_state(|| false), use_state(|| true), use_state(|| true));
+Switch::new("Off", off)
+Switch::new("On", on)
+Switch::new("Inactive", on).disabled(true)
+Checkbox::new("Remember me", remember)
 ```
 
 ### Style
@@ -461,20 +450,20 @@ with `label_position` (an `Edge`) and `layout_direction`. The fields are in
 [Styles and themes](../../crates/bk/src/styles/switch.rs).
 
 ```rust
-Checkbox::new("Remember me").style(|s| CheckboxStyle { label_position: Some(Edge::Leading), ..s })
+Checkbox::new("Remember me", remember).style(|s| CheckboxStyle { label_position: Some(Edge::Leading), ..s })
 ```
 
 ## Choices
 
-All of them report the chosen index with `.on_change(|index: usize| ..)`.
+Each takes in `new` the `State` of the chosen index and writes it when the user picks.
 
-| Item | Module | Build | Value |
-|---|---|---|---|
-| `RadioGroup` | `choices` | `RadioGroup::new(label)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `SegmentedControl` | `controls` | `SegmentedControl::new(label)`, `.segment(text)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `PopUpButton` | `popup_button` | `PopUpButton::new(label)`, `.pulls_down(bool)` (the first item is the title and the chevron points down), `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.separator()` (a line before the next item), `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
-| `ColorWell` | `choices` | `ColorWell::new(label, swatches)`, `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(Option<usize>)` (default `None`) |
-| `ChoiceCards` | `choices` | `ChoiceCards::new(label)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.selected(usize)` (default 0) |
+| Item | Module | Build |
+|---|---|---|
+| `RadioGroup` | `choices` | `RadioGroup::new(label, State<usize>)`, `.option(text)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` |
+| `SegmentedControl` | `controls` | `SegmentedControl::new(label, State<usize>)`, `.segment(text)`, `.disabled(bool)`, `.style(\|s\| ..)` |
+| `PopUpButton` | `popup_button` | `PopUpButton::new(label, State<usize>)`, `.pulls_down(bool)` (the first item is the title and the chevron points down; the chosen item is still written to the `State`; for actions use [`MenuButton`](#menu-buttons)), `.item(text)`, `.icon_item(text, MenuIcon)`, `.section_header(title)` (a separator and a title before the next item), `.separator()` (a line before the next item), `.disabled(bool)`, `.style(\|s\| ..)` |
+| `ColorWell` | `choices` | `ColorWell::new(label, swatches, State<Option<usize>>)` (`None`: no swatch chosen), `.multicolor(name)`, `.disabled(bool)`, `.style(\|s\| ..)` |
+| `ChoiceCards` | `choices` | `ChoiceCards::new(label, State<usize>)`, `.option(caption, preview)`, `.disabled(bool)`, `.style(\|s\| ..)` |
 
 - `RadioGroup` stacks its options in a column; its style's `axis` puts them in a row. The
   arrow keys move the choice and wrap at the ends.
@@ -494,7 +483,7 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
   under the pointer show their name below. `swatches` is a slice of
   `(name, Rgba)`, for example `&ACCENT_SWATCHES`; a name is a literal, a `tr!` result
   or a `String`, and the well copies it.
-  `ColorWell::accents(label)` is the accent picker: it takes `ACCENT_SWATCHES` and draws
+  `ColorWell::accents(label, selection)` is the accent picker: it takes `ACCENT_SWATCHES` and draws
   each swatch in the `control` color of the current appearance, as System Settings does.
   `.multicolor(name)` puts a rainbow swatch first, from `ctdesign::MULTICOLOR`,
   like «Multicolor» in macOS; it is index 0 and the swatches follow.
@@ -503,19 +492,20 @@ All of them report the chosen index with `.on_change(|index: usize| ..)`.
   `SETTINGS.icon_card_size` cards with the ring `icon_card_ring_gap` away, like macOS.
 
 ```rust
-RadioGroup::new("Apply the tint to")
+let (tint, period, lights) = (use_state(|| 0), use_state(|| 1), use_state(|| 1));
+let accent = use_state(|| Some(0));
+
+RadioGroup::new("Apply the tint to", tint)
     .option("Windows only")
     .option("The whole desktop")
 
-SegmentedControl::new("Period")
+SegmentedControl::new("Period", period)
     .segment("Day").segment("Week").segment("Month")
-    .selected(1)
 
-PopUpButton::new("Traffic lights")
+PopUpButton::new("Traffic lights", lights)
     .item("Automatic").item("Classic").item("Accent")
-    .selected(1)
 
-ColorWell::accents("Accent color").multicolor("Multicolor").selected(Some(0))
+ColorWell::accents("Accent color", accent).multicolor("Multicolor")
 ```
 
 ### Style
@@ -533,19 +523,19 @@ The fields are in [Styles and themes](../../crates/bk/src/styles/radio_group.rs)
 background, label, round indicator and chevron.
 
 ```rust
-SegmentedControl::new("View").segment("Icons").segment("List")
+SegmentedControl::new("View", view).segment("Icons").segment("List")
     .style(|s| SegmentedControlStyle { axis: Axis::Vertical, ..s })
-RadioGroup::new("Size").option("Small").option("Large")
+RadioGroup::new("Size", size).option("Small").option("Large")
     .style(|s| RadioGroupStyle { axis: Axis::Horizontal, ..s })
 ```
 
 ## Sliders
 
-| Item | Module | Build | Value | Reports |
-|---|---|---|---|---|
-| `Slider` | `controls` | `Slider::new(label)`, `Slider::stepped(label, steps)` (at least 2), `.range(lo..=hi)`, `.labels(&[..])`, `.number_of_tick_marks(n)`, `.continuous(bool)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.value(f32)` | `.on_change(\|value: f32\| ..)` |
-| `CircularSlider` | `controls` | `CircularSlider::new(label)`, `.disabled(bool)`, `.style(\|s\| ..)` | `.value(f32)` (0 to 1, once around from the top) | `.on_change(\|value: f32\| ..)` |
-| `LevelSlider` | `level` | `LevelSlider::new(label)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` | `.value(f32)` (0 to 1) | `.on_change(\|value: f32\| ..)` |
+| Item | Module | Build |
+|---|---|---|
+| `Slider` | `controls` | `Slider::new(label, State<f32>)`, `Slider::stepped(label, steps, State<f32>)` (at least 2 steps), `.range(lo..=hi)`, `.labels(&[..])`, `.number_of_tick_marks(n)`, `.continuous(bool)`, `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` |
+| `CircularSlider` | `controls` | `CircularSlider::new(label, State<f32>)` (0 to 1, once around from the top), `.disabled(bool)`, `.style(\|s\| ..)` |
+| `LevelSlider` | `level` | `LevelSlider::new(label, State<f32>)` (0 to 1), `.disabled(bool)`, `.tint(Tint)`, `.style(\|s\| ..)` |
 
 - `Slider` is 220 wide. `Slider::new` is free: the value is continuous inside `.range(lo..=hi)`
   (0 to 1 by default), and the knob goes to wherever the cursor is, over a mark or between two,
@@ -557,9 +547,9 @@ RadioGroup::new("Size").option("Small").option("Large")
   `steps - 1`, with a tick under each step and an optional caption per step. A click or drag
   snaps to the nearest step; the arrows move one step. Fewer captions than steps sit at the
   ends and name no step.
-- `.continuous(false)` is `NSSlider.isContinuous`: `.on_change` runs once, with the value where you let go,
-  instead of at every move. The knob still moves as you drag. An arrow key still reports at once.
-  Use it when each report writes a file or changes the system.
+- `.continuous(false)` is `NSSlider.isContinuous`: the slider writes its `State` once, with the value where
+  you let go, instead of at every move. The knob still moves as you drag. An arrow key still writes at once.
+  Use it when each write saves a file or changes the system.
 - A new value glides in `DURATION_FAST_MS` (`SliderStyle::animation`). While you drag, the knob
   does not wait: a free one follows the pointer and a stepped one jumps from step to step.
 - While you hold a knob it grows by `SLIDER.knob_pressed_scale` (1.3) and turns into Liquid
@@ -574,11 +564,13 @@ RadioGroup::new("Size").option("Small").option("Large")
   Control Center bar with the symbol inside the fill.
 
 ```rust
-Slider::new("Brightness").value(0.3)
-Slider::new("Dock size").range(16.0..=128.0).value(48.0).labels(&["Small", "Large"])
-Slider::stepped("Level", 5).value(2.0).labels(&["A", "B", "C", "D", "E"])
-LevelSlider::new("Brightness").value(0.3)
-LevelSlider::new("Volume").value(0.6).style(|s| s.fat(Symbol::SpeakerWave))
+let (brightness, dock, level) = (use_state(|| 0.3), use_state(|| 48.0), use_state(|| 2.0));
+let volume = use_state(|| 0.6);
+Slider::new("Brightness", brightness)
+Slider::new("Dock size", dock).range(16.0..=128.0).labels(&["Small", "Large"])
+Slider::stepped("Level", 5, level).labels(&["A", "B", "C", "D", "E"])
+LevelSlider::new("Brightness", brightness)
+LevelSlider::new("Volume", volume).style(|s| s.fat(Symbol::SpeakerWave))
 ```
 
 ### Style
@@ -592,7 +584,7 @@ for the whole app. The levels, the fields and the value types are in
 `LevelSliderStyle` ([fields](../../crates/bk/src/styles/level_slider.rs)).
 
 ```rust
-Slider::new("Volume").style(|s| SliderStyle { track_height: 10.0, ..s })
+Slider::new("Volume", volume).style(|s| SliderStyle { track_height: 10.0, ..s })
 ```
 
 ## Text fields
@@ -668,9 +660,9 @@ wipe it.
 
 ## Color picker
 
-`color_picker::ColorPicker::new(label, Rgba)` is a 48 × 24 well filled with the color. A click
+`color_picker::ColorPicker::new(label, State<Rgba>)` is a 48 × 24 well filled with the color. A click
 opens a [popover](07-menus-and-popovers.md) with the hex value and hue, saturation and
-brightness `LevelSlider`s. Each move calls `.on_change(|color: Rgba| ..)`.
+brightness `LevelSlider`s. Each move writes the `State`.
 `ColorPanel::show(color, area, on_change)` opens the same popover beside `area` without a
 well, like `NSColorPanel`, for a menu item such as «Choose Color…».
 
@@ -701,7 +693,7 @@ ColorPicker::new("Color", accent).style(ColorPickerStyle::expanded)
 
 ## Date picker
 
-`date_picker::DatePicker::new(label, CivilDateTime)` is a text field with one segment per part
+`date_picker::DatePicker::new(label, State<CivilDateTime>)` is a text field with one segment per part
 and a stepper beside it, like the `textFieldAndStepper` style of `NSDatePicker`. The
 stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepper.rs) of its `DatePickerStyle`.
 
@@ -712,7 +704,6 @@ stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepp
 | `.size(ControlSize)` | `Regular` | The field stays 78 wide and 21 high; the stepper takes 9 × 13, 11 × 16, 13 × 20, 22 × 28 or 29 × 36, and `Large` and `ExtraLarge` make the field 28 and 36 high (`DATE_PICKER.mini` to `xl`) |
 | `.disabled(bool)` | `false` | Tertiary label ink, a disabled stepper and no input |
 | `.graphical()` | the field | Shows the 139 × 148 month calendar itself, like the `clockAndCalendar` style of `NSDatePicker`: the month and year, ◀ ● ▶ (the dot goes to today), the weekdays over a line and right-aligned days. The chosen day is gray until the calendar has focus, then the selection color |
-| `.on_change(\|value: CivilDateTime\| ..)` | — | Called on every change |
 
 | Input | Effect |
 |---|---|
@@ -725,9 +716,9 @@ The order of the parts (`date-order`: `dmy`, `mdy` or `ymd`) and the first day o
 (`week-start`) come from the language file `bk.ftl`.
 
 ```rust
-DatePicker::new("Date", CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30))
+let moment = use_state(|| CivilDateTime::new(CivilDate::new(2026, 11, 6), 9, 30));
+DatePicker::new("Date", moment)
     .elements(DateElements::DateAndTime)
-    .on_change(move |picked| moment.set(picked))
 ```
 
 Module `date` does the calendar arithmetic without dependencies, with
@@ -823,7 +814,7 @@ Module `indicator`, after `NSLevelIndicator` and SwiftUI `Gauge`.
 | `CapacityIndicator` | `new(label, value)`, `.thresholds(warning, critical)` (default 1, 1), `.discrete(cells)` | 16 tall bar; green, then yellow at `warning`, red at `critical`. `discrete` splits it into touching cells with a darker border |
 | `RelevancyIndicator` | `new(label, value)` | 12 tall track with a row of 1 px lines, as many as `value` fills |
 | `Gauge` | `new(label, value, current)`, `.capacity(bool)` | 44 open ring (270°) with a marker and `current` in the center; `capacity(true)` is a closed ring that fills with the accent |
-| `RatingIndicator` | `new(label, stars)`, `.on_change(\|stars: u32\| ..)` | 5 filled stars 12 apart; editable only with `on_change` (click or arrows) |
+| `RatingIndicator` | `new(label, State<u32>)`, `.editable(bool)` (default `false`) | 5 filled stars 12 apart; editable only with `.editable(true)` (click or arrows) |
 
 | Helper | Returns |
 |---|---|
@@ -834,7 +825,8 @@ The gauge size, stroke and arc are estimates: Apple publishes no figures.
 
 ```rust
 CapacityIndicator::new("Disk", 0.82).thresholds(0.75, 0.9)
-RatingIndicator::new("Rating", 3).on_change(move |value| stars.set(value))
+let stars = use_state(|| 3);
+RatingIndicator::new("Rating", stars).editable(true)
 Gauge::new("Temperature", 0.64, "64°")
 ```
 
@@ -846,7 +838,7 @@ Each indicator has `.style(|s| ..)` and draws from its own style:
 ([fields](../../crates/bk/src/styles/relevancy_indicator.rs)).
 
 ```rust
-RatingIndicator::new("Rating", 3).style(|s| RatingIndicatorStyle { star: StateValue::new(ShapeStyle::Accent), ..s })
+RatingIndicator::new("Rating", stars).style(|s| RatingIndicatorStyle { star: StateValue::new(ShapeStyle::Accent), ..s })
 ```
 
 ## Adornments
@@ -1075,7 +1067,8 @@ On Linux AT-SPI reads the same resolved tree, `accessibility_element` included.
    draws the same ring in another color, as a selection mark.
 6. Paint only with `Palette::current()` and `ctdesign` tokens ([4](04-appearance-and-tokens.md)).
    New metrics go to `ctdesign`.
-7. If the control keeps a value, follow [the controlled pattern](#the-controlled-pattern).
+7. If the control edits a value, take its `State<T>` in `new` and write it
+   ([the controlled pattern](#the-controlled-pattern)).
 8. Inside `bk`, take the [modifiers](#modifiers-on-controls): hold
    `overrides: Overrides` (start it with `Overrides::default()`), add
    `forward_overrides!(Pill);` and end `render` with `self.overrides.apply(root)`, where `root` is

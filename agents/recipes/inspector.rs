@@ -23,6 +23,7 @@ fn main() -> Result<(), RunError> {
     Application::new("com.example.photos")
         .window("Photos", || {
             let mut inspector = use_state(|| true);
+            let selection = use_state(|| 0);
             let detail = ZStack::new()
                 .expanded()
                 .alignment(ContentAlignment::TOP)
@@ -43,7 +44,7 @@ fn main() -> Result<(), RunError> {
                 Sidebar::new().traffic_lights(true).child(
                     SidebarItem::new("Library")
                         .symbol(Symbol::Photo)
-                        .selected(true),
+                        .tag(selection, 0),
                 ),
                 detail,
             )

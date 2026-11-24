@@ -697,12 +697,10 @@ impl Component for Alert {
                         .margin(Gaps::new(gap, 0.0, 0.0, 0.0))
                         .child(view)
                 }))
-                .maybe_child(self.suppressed.map(|mut suppressed| {
-                    rect().margin(Gaps::new(gap, 0.0, 0.0, inset)).child(
-                        Checkbox::new(text!("alert-suppress"))
-                            .checked(*suppressed.read())
-                            .on_toggle(move |checked| suppressed.set(checked)),
-                    )
+                .maybe_child(self.suppressed.map(|suppressed| {
+                    rect()
+                        .margin(Gaps::new(gap, 0.0, 0.0, inset))
+                        .child(Checkbox::new(text!("alert-suppress"), suppressed))
                 }))
                 .child(buttons),
         )

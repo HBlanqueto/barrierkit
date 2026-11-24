@@ -164,24 +164,22 @@ impl Component for IconButton {
 #[derive(PartialEq)]
 pub struct Stepper {
     label: Cow<'static, str>,
-    value: i64,
+    value: State<i64>,
     min: i64,
     max: i64,
     disabled: bool,
-    on_change: Option<Callback<i64, ()>>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl Stepper {
-    pub fn new(label: impl Into<Cow<'static, str>>, min: i64, max: i64) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: State<i64>, min: i64, max: i64) -> Self {
         Self {
             label: label.into(),
-            value: min,
+            value,
             min,
             max,
             disabled: false,
-            on_change: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -196,18 +194,8 @@ impl Stepper {
         self.style(move |style: StepperStyle| style.sized(size))
     }
 
-    pub fn value(mut self, value: i64) -> Self {
-        self.value = value.clamp(self.min, self.max);
-        self
-    }
-
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<i64, ()>>) -> Self {
-        self.on_change = Some(callback.into());
         self
     }
 }
@@ -221,18 +209,17 @@ impl Component for Stepper {
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state);
-        let value = crate::controlled::use_controlled(&self.value);
-        let current = *value.read();
+        let value = self.value;
         let (min, max) = (self.min, self.max);
-        let on_change = self.on_change.clone();
+        let current = value.read().clamp(min, max);
         let step = move |delta: i64| {
             let next = (*value.peek() + delta).clamp(min, max);
-            crate::controlled::commit(value, &on_change, next);
+            crate::controlled::commit(value, next);
             if next == min || next == max {
                 interaction.request_focus();
             }
         };
-        let (step_down, step_up, step_key) = (step.clone(), step.clone(), step);
+        let (step_down, step_up, step_key) = (step, step, step);
 
         let up = (!disabled && current < max).then(|| Rc::new(move || step_up(1)) as Rc<dyn Fn()>);
         let down =
@@ -355,11 +342,12 @@ pub enum Face {
     Underline,
 }
 
+type ToggleItem = (Cow<'static, str>, Face, Cow<'static, str>, State<bool>);
+
 #[derive(PartialEq)]
 pub struct ToggleGroup {
     label: Cow<'static, str>,
-    items: Vec<(Cow<'static, str>, Face, Cow<'static, str>, bool)>,
-    on_toggle: Option<Callback<(usize, bool), ()>>,
+    items: Vec<ToggleItem>,
     style: Theme,
     overrides: Overrides,
 }
@@ -369,7 +357,6 @@ impl ToggleGroup {
         Self {
             label: label.into(),
             items: Vec::new(),
-            on_toggle: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -388,14 +375,9 @@ impl ToggleGroup {
         text: impl Into<Cow<'static, str>>,
         face: Face,
         label: impl Into<Cow<'static, str>>,
-        on: bool,
+        on: State<bool>,
     ) -> Self {
         self.items.push((text.into(), face, label.into(), on));
-        self
-    }
-
-    pub fn on_toggle(mut self, callback: impl Into<Callback<(usize, bool), ()>>) -> Self {
-        self.on_toggle = Some(callback.into());
         self
     }
 }
@@ -406,35 +388,19 @@ impl Component for ToggleGroup {
     fn render(&self) -> impl IntoElement {
         let style: ToggleGroupStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default());
-        let states = crate::controlled::use_controlled(
-            &self.items.iter().map(|item| item.3).collect::<Vec<_>>(),
-        );
-        let toggles = self
-            .items
-            .iter()
-            .enumerate()
-            .map(|(index, (text, face, label, _))| {
-                let mut states = states;
-                let on_toggle = self.on_toggle.clone();
-                let on = states.read().get(index).copied().unwrap_or(false);
-                Toggle {
-                    text: text.clone(),
-                    face: *face,
-                    label: label.clone(),
-                    on,
-                    on_press: Callback::new(move |_| {
-                        let next = !on;
-                        if let Some(slot) = states.write().get_mut(index) {
-                            *slot = next;
-                        }
-                        if let Some(cb) = &on_toggle {
-                            cb.call((index, next));
-                        }
-                    }),
-                    style: self.style.clone(),
-                }
-                .into_element()
-            });
+        let toggles = self.items.iter().map(|(text, face, label, state)| {
+            let mut state = *state;
+            let on = *state.read();
+            Toggle {
+                text: text.clone(),
+                face: *face,
+                label: label.clone(),
+                on,
+                on_press: Callback::new(move |_| state.set(!on)),
+                style: self.style.clone(),
+            }
+            .into_element()
+        });
         let (item_width, item_height) = style.item_size;
         let (direction, thickness) = match style.axis {
             Axis::Horizontal => (Direction::Horizontal, item_height),

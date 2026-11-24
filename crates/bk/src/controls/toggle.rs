@@ -39,9 +39,8 @@ fn released_on(grab: Grab, travel: f32, right_to_left: bool) -> bool {
 #[derive(PartialEq)]
 pub struct Switch {
     label: Cow<'static, str>,
-    on: bool,
+    on: State<bool>,
     disabled: bool,
-    on_toggle: Option<Callback<bool, ()>>,
     probe: Option<&'static str>,
     style: Theme,
     key: DiffKey,
@@ -49,12 +48,11 @@ pub struct Switch {
 }
 
 impl Switch {
-    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, on: State<bool>) -> Self {
         Self {
             label: label.into(),
-            on: false,
+            on,
             disabled: false,
-            on_toggle: None,
             probe: None,
             style: Theme::tengen(),
             key: DiffKey::None,
@@ -78,18 +76,8 @@ impl Switch {
         self.style(move |style: SwitchStyle| style.sized(size))
     }
 
-    pub fn on(mut self, on: bool) -> Self {
-        self.on = on;
-        self
-    }
-
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
-        self
-    }
-
-    pub fn on_toggle(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
-        self.on_toggle = Some(callback.into());
         self
     }
 }
@@ -110,7 +98,7 @@ impl Component for Switch {
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
-        let on = crate::controlled::use_controlled_unless(&self.on, interaction.held());
+        let on = self.on;
         let grab = use_state(|| None::<Grab>);
         let style: SwitchStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
@@ -118,9 +106,6 @@ impl Component for Switch {
         let paints = Paints::current(state);
         let is_on = *on.read();
 
-        let on_toggle = self.on_toggle.clone();
-        let on_drag = self.on_toggle.clone();
-        let on_key = self.on_toggle.clone();
         let direction = ambient();
         let right_to_left = direction == LayoutDirection::RightToLeft;
         let (width, height) = (style.width, style.height);
@@ -238,7 +223,7 @@ impl Component for Switch {
                     };
                     grab.set_if_modified(Some(current));
                     if current.moved {
-                        commit(on, &on_drag, released_on(current, travel, right_to_left));
+                        commit(on, released_on(current, travel, right_to_left));
                     }
                 })
                 .on_global_pointer_up(move |_| {
@@ -249,12 +234,12 @@ impl Component for Switch {
                     };
                     grab.set(None);
                     let next = released_on(current, travel, right_to_left);
-                    commit(on, &on_toggle, next);
+                    commit(on, next);
                 })
                 .on_key_down(move |event: Event<KeyboardEventData>| {
                     if event.key == Key::Character(" ".into()) {
                         let next = !*on.peek();
-                        commit(on, &on_key, next);
+                        commit(on, next);
                     }
                 })
             })
@@ -266,10 +251,9 @@ impl Component for Switch {
 #[derive(PartialEq)]
 pub struct Checkbox {
     label: Cow<'static, str>,
-    checked: bool,
+    checked: State<bool>,
     mixed: bool,
     disabled: bool,
-    on_toggle: Option<Callback<bool, ()>>,
     probe: Option<&'static str>,
     width: Size,
     style: Theme,
@@ -278,13 +262,12 @@ pub struct Checkbox {
 }
 
 impl Checkbox {
-    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, checked: State<bool>) -> Self {
         Self {
             label: label.into(),
-            checked: false,
+            checked,
             mixed: false,
             disabled: false,
-            on_toggle: None,
             probe: None,
             width: Size::auto(),
             style: Theme::tengen(),
@@ -309,11 +292,6 @@ impl Checkbox {
         self.style(move |style: CheckboxStyle| style.sized(size))
     }
 
-    pub fn checked(mut self, checked: bool) -> Self {
-        self.checked = checked;
-        self
-    }
-
     pub fn mixed(mut self, mixed: bool) -> Self {
         self.mixed = mixed;
         self
@@ -321,11 +299,6 @@ impl Checkbox {
 
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
-        self
-    }
-
-    pub fn on_toggle(mut self, callback: impl Into<Callback<bool, ()>>) -> Self {
-        self.on_toggle = Some(callback.into());
         self
     }
 
@@ -350,8 +323,7 @@ impl Component for Checkbox {
     forward_key!();
 
     fn render(&self) -> impl IntoElement {
-        let checked = crate::controlled::use_controlled(&self.checked);
-        let on_toggle = self.on_toggle.clone();
+        let checked = self.checked;
         let disabled = use_disabled(self.disabled);
         let label_text = self.label.clone();
         let interaction = use_interaction();
@@ -418,7 +390,7 @@ impl Component for Checkbox {
                 let return_key = matches!(&*event, PressEventData::Keyboard(key) if key.key == Key::Named(NamedKey::Enter));
                 if !disabled && !return_key {
                     let next = !*checked.peek();
-                    commit(checked, &on_toggle, next);
+                    commit(checked, next);
                 }
             });
         let root = match style.label_position {

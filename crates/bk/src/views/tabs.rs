@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 
-use crate::choices::{Choice, use_choice};
+use crate::choices::Choice;
 use crate::controls::shadowed;
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
@@ -18,8 +18,7 @@ use crate::theme::color;
 pub struct TabView {
     label: Cow<'static, str>,
     tabs: Vec<(Symbol, Cow<'static, str>, Element)>,
-    selected: usize,
-    on_change: Option<Callback<usize, ()>>,
+    selection: Option<State<usize>>,
     style: Theme,
     overrides: Overrides,
 }
@@ -37,8 +36,7 @@ impl TabView {
         Self {
             label: label.into(),
             tabs: Vec::new(),
-            selected: 0,
-            on_change: None,
+            selection: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -63,13 +61,8 @@ impl TabView {
         self
     }
 
-    pub fn selected(mut self, index: usize) -> Self {
-        self.selected = index;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
-        self.on_change = Some(callback.into());
+    pub fn selection(mut self, selection: State<usize>) -> Self {
+        self.selection = Some(selection);
         self
     }
 }
@@ -79,7 +72,8 @@ forward_overrides!(TabView);
 impl Component for TabView {
     fn render(&self) -> impl IntoElement {
         let style: TabViewStyle = resolve(&self.style);
-        let choice = use_choice(Some(self.selected), self.on_change.clone());
+        let own = use_state(|| 0);
+        let choice = Choice(self.selection.unwrap_or(own));
         let current = (0..self.tabs.len()).find(|&i| choice.is(i)).unwrap_or(0);
         let page = self.tabs.get(current).map(|tab| tab.2.clone());
         let root = match style.tab_type {

@@ -167,12 +167,11 @@ Module `font_panel`, after `NSFontPanel`. The panel opens in a
 | Typeface | Regular, plus Italic, Bold and Bold Italic when the family has them |
 | Size | 6, 8, 9, 10, 11, 12, 13, 14, 16, 20, 24, 36, 48, 72 (`FONT_PANEL.sizes`, GTK's list), 72 wide; a field above takes any positive size |
 
-`FontPicker::new(FontChoice)` is a button with the family and size that opens the panel.
-`.on_change(|font: FontChoice| ..)` reports each change. Without `on_change` the button does
-nothing. It shows the `FontChoice` it gets, so store the change.
+`FontPicker::new(State<FontChoice>)` is a button with the family and size that opens the panel.
+Each change in the panel writes the `State`.
 
 ```rust
-FontPicker::new(font.read().clone()).on_change(move |picked| font.set(picked))
+FontPicker::new(font)
 ```
 
 | Helper | Returns |

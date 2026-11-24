@@ -3,23 +3,23 @@ use std::rc::Rc;
 
 use freya_core::prelude::*;
 
-pub(crate) fn use_controlled<T: Clone + PartialEq + 'static>(prop: &T) -> State<T> {
-    use_controlled_unless(prop, false)
-}
-
-// A knob under the pointer is the source of truth: the app's echo of an older value must not pull it back.
-pub(crate) fn use_controlled_unless<T: Clone + PartialEq + 'static>(
-    prop: &T,
-    held: bool,
+// Binds a control to a value its parent derives: the State follows `current`, and a change made through it goes to `changed`.
+pub(crate) fn use_mirror<T: Clone + PartialEq + 'static>(
+    current: T,
+    changed: impl FnMut(T) + 'static,
 ) -> State<T> {
-    let mut value = use_state(|| prop.clone());
-    let mut seen = use_state(|| prop.clone());
-    if *seen.peek() != *prop {
-        seen.set(prop.clone());
-        if !held {
-            value.set(prop.clone());
-        }
+    let mut value = use_state(|| current.clone());
+    if *value.peek() != current {
+        value.set(current.clone());
     }
+    let latest = use_latest((current, Rc::new(RefCell::new(changed))));
+    use_side_effect(move || {
+        let next = value.read().clone();
+        let (current, changed) = latest.borrow().clone();
+        if next != current {
+            (changed.borrow_mut())(next);
+        }
+    });
     value
 }
 
@@ -29,15 +29,8 @@ pub(crate) fn use_latest<T: Clone + 'static>(value: T) -> Rc<RefCell<T>> {
     slot
 }
 
-pub(crate) fn commit<T: Copy + PartialEq + 'static>(
-    mut value: State<T>,
-    on_change: &Option<Callback<T, ()>>,
-    new: T,
-) {
+pub(crate) fn commit<T: PartialEq + 'static>(mut value: State<T>, new: T) {
     if new != *value.peek() {
         value.set(new);
-        if let Some(callback) = on_change {
-            callback.call(new);
-        }
     }
 }

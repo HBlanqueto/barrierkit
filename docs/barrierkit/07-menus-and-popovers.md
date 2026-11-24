@@ -160,7 +160,7 @@ container styles of the view that opened it:
 
 ```rust
 VStack::new()
-    .child(PopUpButton::new("Sort").item("Name").item("Date"))
+    .child(PopUpButton::new("Sort", sort).item("Name").item("Date"))
     .control_style(|s: MenuStyle| MenuStyle { item_radius: 0.0, ..s })
 ```
 

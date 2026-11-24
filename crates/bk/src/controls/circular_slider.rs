@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{CursorPoint, Position, Size};
 
-use crate::controlled::{commit, use_controlled_unless};
+use crate::controlled::commit;
 use crate::controls::dimmed;
 use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
@@ -15,21 +15,19 @@ use crate::styles::{CircularSliderStyle, Painted, Paints, Theme, resolve};
 #[derive(PartialEq)]
 pub struct CircularSlider {
     label: Cow<'static, str>,
-    value: f32,
+    value: State<f32>,
     disabled: bool,
-    on_change: Option<Callback<f32, ()>>,
     style: Theme,
     key: DiffKey,
     overrides: Overrides,
 }
 
 impl CircularSlider {
-    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: State<f32>) -> Self {
         Self {
             label: label.into(),
-            value: 0.0,
+            value,
             disabled: false,
-            on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
             overrides: Overrides::default(),
@@ -44,18 +42,8 @@ impl CircularSlider {
         self
     }
 
-    pub fn value(mut self, value: f32) -> Self {
-        self.value = value.clamp(0.0, 1.0);
-        self
-    }
-
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<f32, ()>>) -> Self {
-        self.on_change = Some(callback.into());
         self
     }
 }
@@ -81,18 +69,17 @@ impl Component for CircularSlider {
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state);
-        let value = use_controlled_unless(&self.value, interaction.held());
+        let value = self.value;
         let origin = use_state(CursorPoint::default);
-        let on_change = self.on_change.clone();
-        let current = *value.read();
+        let current = value.read().clamp(0.0, 1.0);
         let size = style.size;
         let (from, to, width) = style.dash;
         let radius = style.shape.corner_radius(size, size, ambient());
-        let update = move |new_value: f32| commit(value, &on_change, new_value);
+        let update = move |new_value: f32| commit(value, new_value.clamp(0.0, 1.0));
         let set_from_point = move |point: CursorPoint| {
             turn_value(point.x as f32 - size / 2.0, point.y as f32 - size / 2.0)
         };
-        let step = update.clone();
+        let step = update;
         let root = interaction
             .attach(rect(), !disabled)
             .width(Size::px(size))

@@ -3,6 +3,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Area, Direction, Gaps, Size};
 
+use crate::controlled::commit;
 use crate::controls::{dimmed, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_overrides};
 use crate::environment::use_disabled;
@@ -65,20 +66,18 @@ pub fn hex(rgba: Rgba) -> String {
 #[derive(PartialEq)]
 pub struct ColorPicker {
     label: Cow<'static, str>,
-    color: Rgba,
+    color: State<Rgba>,
     disabled: bool,
-    on_change: Option<Callback<Rgba, ()>>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl ColorPicker {
-    pub fn new(label: impl Into<Cow<'static, str>>, color: Rgba) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, color: State<Rgba>) -> Self {
         Self {
             label: label.into(),
             color,
             disabled: false,
-            on_change: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -96,11 +95,6 @@ impl ColorPicker {
         self.disabled = disabled;
         self
     }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<Rgba, ()>>) -> Self {
-        self.on_change = Some(callback.into());
-        self
-    }
 }
 
 forward_overrides!(ColorPicker);
@@ -112,8 +106,9 @@ impl Component for ColorPicker {
         let disabled = use_disabled(self.disabled);
         let paints = Paints::current(control_state(interaction, disabled));
         let mut area = use_state(Area::default);
-        let shown = self.color;
-        let on_change = self.on_change.clone();
+        let bound = self.color;
+        let shown = *bound.read();
+        let on_change = Some(Callback::new(move |picked| commit(bound, picked)));
         let (width, height) = style.size;
         let radius = style
             .well_shape
@@ -278,19 +273,21 @@ impl Component for ColorPanel {
         let radius = style
             .shape
             .corner_radius(height, height, LayoutDirection::LeftToRight);
-        let initial = self.initial;
-        let mut hsb = use_state(|| rgb_to_hsb(initial));
-        let (hue, saturation, brightness) = *hsb.read();
-        let current = hsb_to_rgb(hue, saturation, brightness);
+        let (initial_hue, initial_saturation, initial_brightness) = rgb_to_hsb(self.initial);
+        let hue = use_state(|| initial_hue);
+        let saturation = use_state(|| initial_saturation);
+        let brightness = use_state(|| initial_brightness);
+        let current = hsb_to_rgb(*hue.read(), *saturation.read(), *brightness.read());
         let on_change = self.on_change.clone();
-        let mut set = move |next: (f32, f32, f32)| {
-            hsb.set(next);
-            if let Some(on_change) = &on_change {
-                on_change.call(hsb_to_rgb(next.0, next.1, next.2));
+        let mut started = false;
+        use_side_effect(move || {
+            let picked = hsb_to_rgb(*hue.read(), *saturation.read(), *brightness.read());
+            if std::mem::replace(&mut started, true)
+                && let Some(on_change) = &on_change
+            {
+                on_change.call(picked);
             }
-        };
-        let mut set_saturation = set.clone();
-        let mut set_brightness = set.clone();
+        });
         let root = rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
@@ -309,23 +306,11 @@ impl Component for ColorPanel {
                     )),
             )
             .child(caption(text!("hue")))
-            .child(
-                LevelSlider::new(text!("hue"))
-                    .value(hue)
-                    .on_change(move |value| set((value, saturation, brightness))),
-            )
+            .child(LevelSlider::new(text!("hue"), hue))
             .child(caption(text!("saturation")))
-            .child(
-                LevelSlider::new(text!("saturation"))
-                    .value(saturation)
-                    .on_change(move |value| set_saturation((hue, value, brightness))),
-            )
+            .child(LevelSlider::new(text!("saturation"), saturation))
             .child(caption(text!("brightness")))
-            .child(
-                LevelSlider::new(text!("brightness"))
-                    .value(brightness)
-                    .on_change(move |value| set_brightness((hue, saturation, value))),
-            );
+            .child(LevelSlider::new(text!("brightness"), brightness));
         self.overrides.apply(root)
     }
 }

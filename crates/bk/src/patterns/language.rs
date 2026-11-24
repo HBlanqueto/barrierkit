@@ -5,6 +5,7 @@ use ctappearance::language::read_language;
 use freya_core::prelude::*;
 
 use crate::app::{try_read_toml, write_toml};
+use crate::controlled::use_mirror;
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
 use crate::popup_button::PopUpButton;
@@ -57,17 +58,16 @@ impl Component for LanguagePicker {
                 .unwrap_or(0)
         });
         let path = self.path.clone();
-        let root = PopUpButton::new(text!("language"))
+        let selection = use_mirror(selected(), move |index: usize| {
+            if let Err(error) = write_language(&path, LANGUAGES[index]) {
+                tracing::warn!(path = %path.display(), %error, "could not save the language");
+            }
+            selected.set(index);
+        });
+        let root = PopUpButton::new(text!("language"), selection)
             .item(text!("language-automatic"))
             .item("Español")
-            .item("English")
-            .selected(selected())
-            .on_change(move |index: usize| {
-                if let Err(error) = write_language(&path, LANGUAGES[index]) {
-                    tracing::warn!(path = %path.display(), %error, "could not save the language");
-                }
-                selected.set(index);
-            });
+            .item("English");
         self.overrides.delegate(root)
     }
 }

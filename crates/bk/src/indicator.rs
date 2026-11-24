@@ -5,6 +5,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Direction, Gaps, Position, Size};
 
+use crate::controlled::commit;
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
@@ -402,18 +403,18 @@ impl Component for Gauge {
 #[derive(PartialEq)]
 pub struct RatingIndicator {
     label: Cow<'static, str>,
-    value: u32,
-    on_change: Option<Callback<u32, ()>>,
+    value: State<u32>,
+    editable: bool,
     style: Theme,
     overrides: Overrides,
 }
 
 impl RatingIndicator {
-    pub fn new(label: impl Into<Cow<'static, str>>, value: u32) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: State<u32>) -> Self {
         Self {
             label: label.into(),
             value,
-            on_change: None,
+            editable: false,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -427,8 +428,8 @@ impl RatingIndicator {
         self
     }
 
-    pub fn on_change(mut self, callback: impl Into<Callback<u32, ()>>) -> Self {
-        self.on_change = Some(callback.into());
+    pub fn editable(mut self, editable: bool) -> Self {
+        self.editable = editable;
         self
     }
 }
@@ -441,26 +442,21 @@ impl Component for RatingIndicator {
         let interaction = use_interaction();
         let state = control_state(interaction, false);
         let paints = Paints::current(state);
-        let value = self.value.min(LEVEL_INDICATOR.stars);
+        let bound = self.value;
+        let value = bound.read().min(LEVEL_INDICATOR.stars);
+        let editable = self.editable;
         let stars = (1..=LEVEL_INDICATOR.stars).map(|star| {
             let ink = if star <= value {
                 &style.star
             } else {
                 &style.empty_star
             };
-            let on_change = self.on_change.clone();
             rect()
                 .width(Size::px(style.star_size.1))
                 .height(Size::px(style.star_size.1))
                 .center()
                 .offset_y(style.star_drop)
-                .maybe(on_change.is_some(), |el| {
-                    el.on_press(move |_| {
-                        if let Some(on_change) = &on_change {
-                            on_change.call(star);
-                        }
-                    })
-                })
+                .maybe(editable, |el| el.on_press(move |_| commit(bound, star)))
                 .child(symbol(
                     Symbol::StarFill,
                     style.star_size.0,
@@ -468,9 +464,8 @@ impl Component for RatingIndicator {
                 ))
                 .into_element()
         });
-        let on_change = self.on_change.clone();
         let rating = interaction
-            .attach(rect(), on_change.is_some())
+            .attach(rect(), editable)
             .a11y_role(AccessibilityRole::Slider)
             .a11y_alt(&*self.label)
             .a11y_builder(move |node| {
@@ -479,13 +474,13 @@ impl Component for RatingIndicator {
                 node.set_max_numeric_value(f64::from(LEVEL_INDICATOR.stars));
                 node.set_numeric_value_step(1.0);
             })
-            .map(on_change, |el, on_change| {
+            .maybe(editable, |el| {
                 el.on_key_down(move |event: Event<KeyboardEventData>| match event.key {
                     Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowDown) => {
-                        on_change.call(value.saturating_sub(1))
+                        commit(bound, value.saturating_sub(1))
                     }
                     Key::Named(NamedKey::ArrowRight | NamedKey::ArrowUp) => {
-                        on_change.call((value + 1).min(LEVEL_INDICATOR.stars))
+                        commit(bound, (value + 1).min(LEVEL_INDICATOR.stars))
                     }
                     _ => {}
                 })

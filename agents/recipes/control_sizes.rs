@@ -3,6 +3,8 @@ use bk::prelude::*;
 fn main() -> Result<(), RunError> {
     Application::new("com.example.sizes")
         .window("Sizes", || {
+            let remember = use_state(|| false);
+            let wifi = use_state(|| true);
             [
                 ControlSize::Mini,
                 ControlSize::Small,
@@ -15,8 +17,8 @@ fn main() -> Result<(), RunError> {
                 column.child(
                     HStack::new()
                         .child(Button::new("Save"))
-                        .child(Checkbox::new("Remember"))
-                        .child(Switch::new("Wi-Fi"))
+                        .child(Checkbox::new("Remember", remember))
+                        .child(Switch::new("Wi-Fi", wifi))
                         .control_size(size),
                 )
             })

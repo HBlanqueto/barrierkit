@@ -20,8 +20,8 @@ before deleting.
 
    ```rust
    let mut files = use_state(Vec::<Vec<String>>::new);
-   let mut sort = use_state(|| None::<SortOrder>);
-   let mut selected = use_state(Vec::<usize>::new);
+   let sort = use_state(|| None::<SortOrder>);
+   let selected = use_state(Vec::<usize>::new);
    ```
 
 2. With no data, show an empty state:
@@ -32,16 +32,14 @@ before deleting.
    }
    ```
 
-3. Otherwise, build the view and write back what it reports. The view never
-   changes the data: the app sorts `files` when `sort` changes.
+3. Otherwise, build the view and bind the order and the selection. The view
+   never changes the data: the app sorts `files` when `sort` changes.
 
    ```rust
    let table = Table::new("Files", vec!["Name", "Size"])
        .rows(files.read().clone())
-       .sort(*sort.read())
-       .selected(selected.read().clone())
-       .on_sort(move |order| sort.set(Some(order)))
-       .on_select(move |rows: Vec<usize>| selected.set(rows));
+       .sort_order(sort)
+       .selection(selected);
    ```
 
 4. Ask before a destructive action. Draw the `Alert` while a flag is set and
@@ -223,10 +221,11 @@ The settings layout: sections of rows inside rounded cards. It is SwiftUI's
 `Form` with the grouped style.
 
 ```rust
+let zoom = use_state(|| true);
 Form::new()
     .section(
         Section::titled("Windows")
-            .row(Row::toggle("Zoom", true, |_| {}))
+            .row(Row::toggle("Zoom", zoom))
             .row(Row::value("Status", "Normal · 87 %"))
             .row(Row::navigation("Advanced", |_| {})),
     )
@@ -256,7 +255,7 @@ starts at the control column.
 ```rust
 Form::new().style(FormStyle::columns).section(
     Section::new()
-        .row(Row::new("").control(Checkbox::new("Toggle").checked(true)))
+        .row(Row::new("").control(Checkbox::new("Toggle", toggle)))
         .row(Row::new("Name").control(TextField::new(name, "Name"))),
 )
 ```
@@ -284,7 +283,7 @@ Form::new().style(FormStyle::columns).section(
 | `Row::page(title, pane_id)` | A chevron; the row opens that page of a [`SettingsWindow`](12-patterns.md#pane) |
 | `Row::destructive(title, on_press)` | The title in red; the whole row is a button |
 | `Row::button(title, on_press)` | A bordered `Button` at the start of the row, as a SwiftUI `Button` in a `Form` |
-| `Row::toggle(title, on, on_toggle)` | A mini [`Switch`](05-controls.md#switch-and-checkbox) (36 × 16, the size SwiftUI uses in a form) on the right, with the title as its label |
+| `Row::toggle(title, State<bool>)` | A mini [`Switch`](05-controls.md#switch-and-checkbox) (36 × 16, the size SwiftUI uses in a form) on the right, with the title as its label |
 
 | Method | Effect |
 |---|---|
@@ -341,12 +340,10 @@ Rows of text, or of views, in columns with a header, like `NSTableView`.
 | `Table::new(label, columns)` | `label` names it for accessibility; `columns` are the header titles: literals, `tr!` results, `String`s or `Cow`s |
 | `.rows(Vec<Vec<String>>)` | One `Vec` of cells per row |
 | `.cell(column, \|row\| view)` | Draws `column` as a view in every row: [views in rows and cells](#views-in-rows-and-cells) |
-| `.sort(Option<SortOrder>)` | Shows the arrow on the sorted column |
-| `.selected(Vec<usize>)` | Selected rows |
+| `.sort_order(State<Option<SortOrder>>)` | Shows the arrow on the sorted column; a click on a header writes the [`SortOrder`](#sortorder) the user asks for |
+| `.selection(State<Vec<usize>>)` | The selected rows; a click writes them. Without it rows do not select |
 | `.icons(Vec<Symbol>)` | One symbol per row, drawn before the title of the first column: an icon cell |
 | `.scroll_bar(bool)` | `false` hides the scroll bar, like `hasVerticalScroller = false` |
-| `.on_sort(callback)` | Receives the [`SortOrder`](#sortorder) the user asks for |
-| `.on_select(callback)` | Receives the new selection, `Vec<usize>` |
 
 1. A click on a header asks for a new order with
    [`next_sort`](#table-helpers). The app sorts its rows.
@@ -386,12 +383,11 @@ different `TableStyle`.
 |---|---|
 | `List::new(label, rows)` | `rows` are the strings of the rows; the default is the inset style |
 | `.row(\|index\| view)` | Draws every row as a view: [views in rows and cells](#views-in-rows-and-cells). When the view is a `Label`, rows are 24.5 high and the separator starts at the title, and the symbol is the accent, as in SwiftUI |
-| `.selected(Vec<usize>)` | Selected rows |
-| `.on_select(callback)` | Receives the new selection, `Vec<usize>` |
+| `.selection(State<Vec<usize>>)` | The selected rows; a click writes them. Without it rows do not select |
 | `.style(\|_\| TableStyle::plain_list())` | `inset_list` (rows inset 10, rounded selection), `plain_list` (full width) or `bordered_list` (a hairline border) |
 | `.style(TableStyle::striped)` | Alternating rows, like `.inset(alternatesRowBackgrounds: true)`; it drops the separators |
 | `.scroll_bar(bool)` | `false` hides the scroll bar |
-| `.section(title, rows)` | A header of `LIST_SECTION.header_height` (28) over `rows`, as with SwiftUI's `Section`; the sections scroll together, are `LIST_SECTION.gap` (20) apart, and `.selected` and `.on_select` number the rows across them. Use it with `List::new(label, Vec::new())` |
+| `.section(title, rows)` | A header of `LIST_SECTION.header_height` (28) over `rows`, as with SwiftUI's `Section`; the sections scroll together, are `LIST_SECTION.gap` (20) apart, and `.selection` numbers the rows across them. Use it with `List::new(label, Vec::new())` |
 
 Rows are separated by a hairline from the start of the text to the end of the
 row. A selected row and its neighbors have none.
@@ -418,8 +414,8 @@ The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-tab
    the font of the table and the ink of the row, which is `OnSelectedContent`
    while the row is selected and the table has focus. A view of text draws the
    same pixels as the text it replaces.
-4. In a sectioned list the index counts across the sections, as `.selected` and
-   `.on_select` do. Selection stays by index.
+4. In a sectioned list the index counts across the sections, as `.selection`
+   does. Selection stays by index.
 5. Rows keep the height of the style, `TableStyle::row_height`, so set it for a
    taller row. A row that takes the height of its content is not available:
    Freya's `VirtualScrollView` needs the height before it builds the row.
@@ -427,12 +423,12 @@ The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-tab
 
 ```rust
 // ✗ a click on the switch also selects the row
-.cell(1, |row| Switch::new("On").on(on[row]))
+.cell(1, |row| Switch::new("On", on[row]))
 // ✓ the wrapper stops the press
 .cell(1, |row| {
     rect()
         .on_press(|event: Event<PressEventData>| event.stop_propagation())
-        .child(Switch::new("On").on(on[row]))
+        .child(Switch::new("On", on[row]))
 })
 ```
 
@@ -501,19 +497,17 @@ A wrapping grid of icons with names, like `NSCollectionView`.
 CollectionView::new("Documents")
     .item(icon(), "Notes")
     .item(icon(), "Invoices")
-    .selected(vec![1])
-    .on_select(move |chosen: Vec<usize>| selection.set(chosen))
+    .selection(selection)
 ```
 
 | Method | Effect |
 |---|---|
 | `CollectionView::new(label)` | An empty grid; `label` names it for accessibility |
 | `.item(icon, name)` | A `COLLECTION.tile` (92) wide tile with a 48 icon area |
-| `.selected(Vec<usize>)` | Selected items |
-| `.on_select(callback)` | Receives the new selection |
+| `.selection(State<Vec<usize>>)` | The selected items; a click writes them. Without it items do not select |
 
 Clicks select as in [`Table`](#table). A plain click on an item already
-selected reports nothing.
+selected writes nothing.
 
 ### `select`
 
@@ -542,13 +536,12 @@ from the root: `[0, 1]` is the second child of the first node.
 
 ### `OutlineView`
 
-`OutlineView::new(label, nodes).selected(paths).on_select(callback)`: the tree
+`OutlineView::new(label, nodes).selection(paths)`: the tree
 as indented rows with disclosure chevrons, like SwiftUI's `OutlineGroup` in an
 inset `List`. Rows are `DISCLOSURE.row_height` (24) high, inset 10 from the
-view, and each level indents 13 inside the selection. `selected` is the
-selection the view starts with. The view keeps which nodes are open and which
-are selected. `on_select` receives the selected paths, `Vec<Vec<usize>>`;
-Ctrl+click and Shift+click work over the visible rows as in
+view, and each level indents 13 inside the selection. The view keeps which
+nodes are open. `.selection(State<Vec<Vec<usize>>>)` binds the selected paths;
+without it the view keeps its own. Ctrl+click and Shift+click work over the visible rows as in
 [`select`](#select). A hairline runs under each row from its title to the end
 of the row, except in the last top-level node, next to a selected row and
 under the last row. `.scroll_bar(bool)` hides the scroll bar.
@@ -560,10 +553,11 @@ edge, like `NSTableView.Style.fullWidth`.
 
 ### `Browser`
 
-`Browser::new(label, nodes).on_select(callback)`: the tree as columns,
+`Browser::new(label, nodes).selection(path)`: the tree as columns,
 like Finder's column view (`NSBrowser`). Choosing a node with children opens
 the next column. Columns are `DISCLOSURE.column_width` (200) wide and scroll
-sideways. `on_select` receives the chosen path, `Vec<usize>`.
+sideways. `.selection(State<Vec<usize>>)` binds the chosen path; without it
+the view keeps its own.
 
 ### Tree helpers
 
@@ -596,19 +590,17 @@ narrower), the chosen one is a raised tab, and the strip is opaque.
 TabView::new("Preferences")
     .tab(Symbol::MagnifyingGlass, "Search", search_page)
     .tab(Symbol::SpeakerWave, "Sound", sound_page)
-    .selected(0)
-    .on_change(move |index: usize| tab.set(index))
+    .selection(tab)
 ```
 
 | Method | Effect |
 |---|---|
 | `TabView::new(label)` | An empty tab view; `label` names the strip for accessibility |
 | `.tab(Symbol, title, content)` | Adds a tab and its page; the icon only shows in `TabType::Toolbar` |
-| `.selected(usize)` | The selected tab. A new value selects it again |
-| `.on_change(callback)` | Receives the index the user picks |
+| `.selection(State<usize>)` | The selected tab; a click on a tab writes it. Without it the view keeps its own |
 | `.size(ControlSize)` | Small and mini strips (20 and 16 high), like `controlSize` |
 
-The view switches pages by itself; `on_change` is for the app to remember.
+The view switches pages by itself; `.selection` is for the app to remember or choose the tab.
 It fills the space it is given.
 
 ### Style
@@ -684,7 +676,6 @@ TextView::new(text, MONO.family, 13.0, 16.0, color(Palette::current().label))
 | `.cursor(Color)` | `ink` | Caret color |
 | `.width(Size)`, `.height(Size)` | fill, auto | Size |
 | `.auto_focus(bool)` | `false` | Takes the focus when mounted |
-| `.on_change(callback)` | none | Receives the text after each edit |
 | `.on_focus_change(callback)` | none | Receives `true` on focus and `false` on blur |
 | `.on_key(callback)` | none | Sees each key first; returning `true` consumes it |
 

@@ -22,12 +22,11 @@ pub struct List {
     label: Cow<'static, str>,
     rows: Vec<String>,
     sections: Vec<(Cow<'static, str>, Vec<String>)>,
-    selected: Vec<usize>,
+    selection: Option<State<Vec<usize>>>,
     row: Option<Callback<usize, Element>>,
     list_rows: ListRows,
     label_rows: bool,
     scroll_bar: bool,
-    on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
     overrides: Overrides,
 }
@@ -38,12 +37,11 @@ impl List {
             label: label.into(),
             rows,
             sections: Vec::new(),
-            selected: Vec::new(),
+            selection: None,
             row: None,
             list_rows: ListRows::default(),
             label_rows: false,
             scroll_bar: true,
-            on_select: None,
             style: Theme::tengen().style(|_: TableStyle| TableStyle::inset_list()),
             overrides: Overrides::default(),
         }
@@ -66,18 +64,13 @@ impl List {
         self
     }
 
-    pub fn selected(mut self, rows: Vec<usize>) -> Self {
-        self.selected = rows;
+    pub fn selection(mut self, selection: State<Vec<usize>>) -> Self {
+        self.selection = Some(selection);
         self
     }
 
     pub fn scroll_bar(mut self, shown: bool) -> Self {
         self.scroll_bar = shown;
-        self
-    }
-
-    pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
-        self.on_select = Some(callback.into());
         self
     }
 }
@@ -98,13 +91,10 @@ impl Component for List {
         }
         let mut table = Table::new(self.label.clone(), vec![""])
             .rows(self.rows.iter().map(|row| vec![row.clone()]).collect())
-            .selected(self.selected.clone())
             .scroll_bar(self.scroll_bar)
+            .map(self.selection, Table::selection)
             .map(self.row.clone(), |table, row| {
                 table.cell(0, move |index| row.call(index))
-            })
-            .map(self.on_select.clone(), |table, callback| {
-                table.on_select(callback)
             });
         table.list_rows = self.list_rows.clone();
         self.overrides
@@ -147,25 +137,15 @@ impl List {
             .map(|(index, (title, rows))| {
                 let offset = first;
                 first += rows.len();
-                let selected = self
-                    .selected
-                    .iter()
-                    .filter(|row| (offset..first).contains(row))
-                    .map(|row| row - offset)
-                    .collect();
                 let mut table = Table::new(self.label.clone(), vec![""])
                     .rows(rows.iter().map(|row| vec![row.clone()]).collect())
-                    .selected(selected)
                     .scroll_bar(false)
+                    .map(self.selection, Table::selection)
                     .map(self.row.clone(), |table, row| {
                         table.cell(0, move |local| row.call(local + offset))
-                    })
-                    .map(self.on_select.clone(), |table, callback| {
-                        table.on_select(move |local: Vec<usize>| {
-                            callback.call(local.into_iter().map(|row| row + offset).collect())
-                        })
                     });
                 table.list_rows = self.list_rows.shifted(offset);
+                table.offset = offset;
                 let top = if index == 0 {
                     style.body_inset
                 } else {

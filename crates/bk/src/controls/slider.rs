@@ -25,12 +25,11 @@ pub struct Slider {
     label: Cow<'static, str>,
     range: (f32, f32),
     stepped: bool,
-    value: f32,
+    value: State<f32>,
     labels: Vec<Cow<'static, str>>,
     tick_marks: Option<usize>,
     disabled: bool,
     continuous: bool,
-    on_change: Option<Callback<f32, ()>>,
     probe: Option<&'static str>,
     style: Theme,
     key: DiffKey,
@@ -38,17 +37,16 @@ pub struct Slider {
 }
 
 impl Slider {
-    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: State<f32>) -> Self {
         Self {
             label: label.into(),
             range: (0.0, 1.0),
             stepped: false,
-            value: 0.0,
+            value,
             labels: Vec::new(),
             tick_marks: None,
             disabled: false,
             continuous: true,
-            on_change: None,
             probe: None,
             style: Theme::tengen(),
             key: DiffKey::None,
@@ -57,11 +55,11 @@ impl Slider {
     }
 
     /// A slider whose value is a step from 0 to `steps - 1`; the knob stops only at a step.
-    pub fn stepped(label: impl Into<Cow<'static, str>>, steps: usize) -> Self {
+    pub fn stepped(label: impl Into<Cow<'static, str>>, steps: usize, value: State<f32>) -> Self {
         Self {
             range: (0.0, (steps.max(2) - 1) as f32),
             stepped: true,
-            ..Self::new(label)
+            ..Self::new(label, value)
         }
     }
 
@@ -86,11 +84,6 @@ impl Slider {
         self.style(move |style: SliderStyle| style.sized(size))
     }
 
-    pub fn value(mut self, value: f32) -> Self {
-        self.value = value;
-        self
-    }
-
     pub fn labels<S: Clone + Into<Cow<'static, str>>>(mut self, labels: &[S]) -> Self {
         self.labels = labels.iter().cloned().map(Into::into).collect();
         self
@@ -110,11 +103,6 @@ impl Slider {
 
     pub fn continuous(mut self, continuous: bool) -> Self {
         self.continuous = continuous;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<f32, ()>>) -> Self {
-        self.on_change = Some(callback.into());
         self
     }
 }
@@ -139,13 +127,8 @@ impl Component for Slider {
         let disabled = use_disabled(self.disabled);
         let paints = Paints::current(control_state(interaction, disabled));
         let (low, high) = self.range;
-        let value = crate::controlled::use_controlled_unless(
-            &self.value.clamp(low, high),
-            interaction.held(),
-        );
+        let value = self.value;
         let origin = use_state(CursorPoint::default);
-        let on_change = self.on_change.clone();
-        let on_release = self.on_change.clone();
         let continuous = self.continuous;
         let pending = use_state(|| None::<f32>);
 
@@ -162,7 +145,7 @@ impl Component for Slider {
         let steps = stepped.then(|| span.round() as usize + 1);
         let nudge = if stepped { 1.0 } else { span * SLIDER_KEY_STEP };
         let run = (length - knob).max(0.0);
-        let current = (*value.read()).clamp(low, high);
+        let current = pending.read().unwrap_or(*value.read()).clamp(low, high);
         let animation = crate::animation::effective(style.animation, interaction.held());
         let fraction = (current - low) / span;
         let knob_at = run * crate::animation::use_animated(fraction, animation);
@@ -193,17 +176,12 @@ impl Component for Slider {
             }
         };
 
-        let update = move |new_value: f32| commit(value, &on_change, new_value);
-        let drag = {
-            let update = update.clone();
-            move |new_value: f32| {
-                if continuous {
-                    update(new_value);
-                } else if new_value != *value.peek() {
-                    let (mut value, mut pending) = (value, pending);
-                    value.set(new_value);
-                    pending.set(Some(new_value));
-                }
+        let update = move |new_value: f32| commit(value, new_value);
+        let drag = move |new_value: f32| {
+            if continuous {
+                update(new_value);
+            } else {
+                commit(pending, Some(new_value));
             }
         };
 
@@ -256,9 +234,9 @@ impl Component for Slider {
                         interaction.release();
                         let mut pending = pending;
                         let released = *pending.peek();
-                        if let (Some(done), Some(callback)) = (released, &on_release) {
+                        if let Some(done) = released {
                             pending.set(None);
-                            callback.call(done);
+                            update(done);
                         }
                     })
                     .on_key_down(move |event: Event<KeyboardEventData>| match event.key {

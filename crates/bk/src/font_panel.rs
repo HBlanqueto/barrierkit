@@ -3,7 +3,7 @@ use freya_core::prelude::*;
 use freya_engine::prelude::{FontStyle, Slant};
 use torin::prelude::{Area, Direction, Gaps, Size};
 
-use crate::controlled::use_latest;
+use crate::controlled::{commit, use_latest};
 use crate::controls::{Button, TextField};
 use crate::elements::{Overrides, forward_overrides};
 use crate::fonts::{family_names, fixed_pitch, styles};
@@ -305,17 +305,15 @@ impl Component for FontPanel {
 
 #[derive(PartialEq)]
 pub struct FontPicker {
-    font: FontChoice,
-    on_change: Option<Callback<FontChoice, ()>>,
+    font: State<FontChoice>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl FontPicker {
-    pub fn new(font: FontChoice) -> Self {
+    pub fn new(font: State<FontChoice>) -> Self {
         Self {
             font,
-            on_change: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -325,11 +323,6 @@ impl FontPicker {
         self.style = self.style.style(restyle);
         self
     }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<FontChoice, ()>>) -> Self {
-        self.on_change = Some(callback.into());
-        self
-    }
 }
 
 forward_overrides!(FontPicker);
@@ -337,16 +330,18 @@ forward_overrides!(FontPicker);
 impl Component for FontPicker {
     fn render(&self) -> impl IntoElement {
         let mut area = use_state(Area::default);
-        let font = self.font.clone();
-        let on_change = self.on_change.clone();
+        let bound = self.font;
+        let font = bound.read().clone();
         let mut button = Button::new(format!("{} {}", font.family, font.size));
         button.style = self.style.clone();
         let root = rect()
             .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
             .child(button.on_press(move |_| {
-                if let Some(on_change) = &on_change {
-                    show_font_panel(*area.peek(), font.clone(), on_change.clone());
-                }
+                show_font_panel(
+                    *area.peek(),
+                    font.clone(),
+                    Callback::new(move |picked| commit(bound, picked)),
+                );
             }));
         self.overrides.apply(root)
     }

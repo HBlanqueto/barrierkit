@@ -12,12 +12,9 @@ fn main() -> Result<(), RunError> {
     };
     run_window(
         || {
-            let mut page = use_state(|| 0);
+            let page = use_state(|| 0);
             let item = |index: usize, title: &'static str, glyph: Symbol| {
-                SidebarItem::new(title)
-                    .symbol(glyph)
-                    .selected(*page.read() == index)
-                    .on_select(move |_| page.set(index))
+                SidebarItem::new(title).symbol(glyph).tag(page, index)
             };
             let detail = rect()
                 .expanded()

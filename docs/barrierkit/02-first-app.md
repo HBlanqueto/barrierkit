@@ -82,9 +82,9 @@ fn main() -> Result<(), RunError> {
 
 1. **The view is a function of the state.** Nothing is moved or deleted by
    hand.
-2. **The app holds the state.** Controls are *controlled*: they receive the
-   value (`value`, `on`, `selected`) and report the change (`on_change`,
-   `on_toggle`, `on_press`).
+2. **The app holds the state.** Controls are *controlled*: they take the
+   `State` they edit (`Switch::new("Wi-Fi", wifi)`) and write the change to it;
+   a callback is only for an action (`on_press`).
 3. **Views are built by chaining methods:** `Type::new(..).option(..)`.
 4. **No color or size is written by hand.** `Text` takes its color from the
    palette, and sizes and fonts are tokens ([4](04-appearance-and-tokens.md)).

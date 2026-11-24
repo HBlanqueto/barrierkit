@@ -105,6 +105,9 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `titlebar::window_drag_handler` | `titlebar::use_window_drag` (a hook) | 2026-11-23 |
 | `password::State` | `password::PasswordState` | 2026-11-23 |
 | `SecureFieldStyle` `height`, `padding_x`, `shape`, `background`, `text`, `border`, `opacity`, `effect`, `font`; `SwitchStyle::frame_size`; `layout_direction` of `CheckboxStyle`, `LevelSliderStyle`, `RadioGroupStyle`, `SliderStyle`, `StepperStyle` and `SwitchStyle` | Gone: `SecureField` draws from `TextFieldStyle`, a switch takes its track's size, and the controls read the ambient `.layout_direction(..)` | 2026-11-23 |
+| Value setters and change callbacks of controls: `Checkbox::checked`, `Switch::on` and their `on_toggle`; `.value` and `.on_change` of `Slider`, `CircularSlider`, `LevelSlider` and `Stepper`; `.selected` and `.on_change` of `SegmentedControl`, `PopUpButton`, `RadioGroup`, `ChoiceCards` and `ColorWell`; `ToggleGroup::on_toggle`; `on_change` of `DatePicker`, `ColorPicker`, `FontPicker`, `RatingIndicator` and `TextView`; `Row::toggle(title, on, on_toggle)` | The control takes the `State<T>` it edits in `new`, like SwiftUI's binding: `Checkbox::new(label, state)`, `Slider::stepped(label, steps, state)`, `Stepper::new(label, state, min, max)`, `ColorWell::accents(label, state)`, `ToggleGroup::item(.., State<bool>)`, `Row::toggle(title, state)`; `RatingIndicator::editable(bool)` | 2026-11-24 |
+| `selected` with `on_select` or `on_change` of `TabView`, `List`, `Table`, `OutlineView` and `CollectionView`; `Browser::on_select`; `Table::sort` and `on_sort` | `.selection(State<..>)`; `Table::sort_order(State<Option<SortOrder>>)` | 2026-11-24 |
+| `SidebarItem::selected` and `on_select` | `SidebarItem::tag(selection, value)` | 2026-11-24 |
 | `styles::ColorEffect`, `styles::system_effect`, the `effect` field of every style, the `effect` argument of `Paints::current` | Gone: every style drew its paints unchanged | 2026-11-23 |
 
 ## How to read the tables
@@ -1093,12 +1096,12 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
-| `controls::CircularSlider` | struct | — | `NSSlider` with `sliderType = .circular` | — | A 24 gray disc with a dash that turns once around, dragged or moved with the arrows; `.value`, `.disabled`, `.on_change` | [5](05-controls.md#sliders) |
+| `controls::CircularSlider` | struct | — | `NSSlider` with `sliderType = .circular` | — | A 24 gray disc with a dash that turns once around, dragged or moved with the arrows; edits the `State<f32>` of `new`, `.disabled` | [5](05-controls.md#sliders) |
 | `controls::Slider` | struct | `Slider` | `NSSlider` | `UISlider` | Free slider: a continuous value the knob follows to any point of the track, with optional marks and captions | [5](05-controls.md#sliders) |
 | `controls::Slider::stepped` | method | `Slider(value:in:step:)` | `NSSlider.allowsTickMarkValuesOnly` | — | The slider that stops only at a step, with a tick and a caption per step | [5](05-controls.md#sliders) |
 | `controls::Slider::range` | method | `Slider(value:in:)` | `NSSlider.minValue`, `maxValue` | `UISlider.minimumValue`, `UISlider.maximumValue` | The values the free knob covers; 0 to 1 by default | [5](05-controls.md#sliders) |
 | `controls::Slider::number_of_tick_marks` | method | — | `NSSlider.numberOfTickMarks` | — | Ticks spread evenly; they never snap the knob | [5](05-controls.md#sliders) |
-| `controls::Slider::continuous` | method | ≈ `Slider(onEditingChanged:)` | `NSSlider.isContinuous` | `UISlider.isContinuous` | With `false`, `on_change` runs once, when the knob is released | [5](05-controls.md#sliders) |
+| `controls::Slider::continuous` | method | ≈ `Slider(onEditingChanged:)` | `NSSlider.isContinuous` | `UISlider.isContinuous` | With `false`, the bound `State` changes once, when the knob is released | [5](05-controls.md#sliders) |
 | `level::LevelSlider` | struct | `Slider` | `NSSlider` | `UISlider` | Continuous 0–1 slider, regular or fat with a symbol | [5](05-controls.md#sliders) |
 | `progress::ProgressView` | struct | `ProgressView` | `NSProgressIndicator` | `UIProgressView` | Determinate or indeterminate progress bar | [5](05-controls.md#progress) |
 | `progress::ProgressRing` | struct | `ProgressViewStyle.circular` | `≈ NSProgressIndicator` | `UIActivityIndicatorView` | Determinate circular progress ring | [5](05-controls.md#progress) |
@@ -1106,7 +1109,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `indicator::CapacityIndicator` | struct | `≈ GaugeStyle.linearCapacity` | `≈ NSLevelIndicator` | — | Capacity bar, green-yellow-red by thresholds, continuous or discrete | [5](05-controls.md#level-indicators) |
 | `indicator::RelevancyIndicator` | struct | — | `≈ NSLevelIndicator` | — | Relevancy style: thin lines proportional to the value | [5](05-controls.md#level-indicators) |
 | `indicator::Gauge` | struct | `GaugeStyle.accessoryCircular` | — | — | Open ring with a marker; capacity mode is a filled ring | [5](05-controls.md#level-indicators) |
-| `indicator::RatingIndicator` | struct | — | `≈ NSLevelIndicator` | — | Five-star rating, editable when it has `on_change` | [5](05-controls.md#level-indicators) |
+| `indicator::RatingIndicator` | struct | — | `≈ NSLevelIndicator` | — | Five-star rating of the `State<u32>` of `new`; editable with `.editable(true)` (`NSLevelIndicator.isEditable`) | [5](05-controls.md#level-indicators) |
 | `indicator::level_color` | fn | — | — | — | Index 0–2 of the capacity color for a value | [5](05-controls.md#level-indicators) |
 | `indicator::gauge_marker` | fn | — | — | — | Center of the gauge marker for a `GaugeStyle` and a value | [5](05-controls.md#level-indicators) |
 
@@ -1424,7 +1427,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `sidebar::Sidebar` | struct | `SidebarListStyle` | `NSTableView.Style.sourceList` | `UICollectionLayoutListConfiguration.Appearance.sidebar` | The navigation column: flat and full height | [10](10-sidebar.md#sidebar) |
-| `sidebar::SidebarItem` | struct | ≈ `Label` | — | ≈ `UIListContentConfiguration` | A sidebar row with a bare symbol (or a tile) and label; selection set by the app | [10](10-sidebar.md#sidebaritem) |
+| `sidebar::SidebarItem` | struct | ≈ `Label` | — | ≈ `UIListContentConfiguration` | A sidebar row with a bare symbol (or a tile) and label | [10](10-sidebar.md#sidebaritem) |
+| `sidebar::SidebarItem::tag` | method | `.tag(_:)` in a `List(selection:)` | — | — | Selected while the `State` holds the value; a click stores it | [10](10-sidebar.md#sidebaritem) |
 | `sidebar::SidebarItem::symbol_tile` | method | — | — | — | Draws the row's symbol on a colored tile (before 2026-11-22 `symbol(Symbol, tint)`) | [10](10-sidebar.md#sidebaritem) |
 | `styles::TitlebarStyle::line` | fn | ≈ `NSTitlebarSeparatorStyle.line` | `NSTitlebarSeparatorStyle` | — | The separator under the bar; `Titlebar::hairline(true)` draws it, no line is the default | [9](09-titlebars.md#titlebar) |
 | `sidebar::SidebarSection` | struct | `Section` | — | `UITableView` | A titled, collapsible group of sidebar rows | [10](10-sidebar.md#sidebarsection) |
@@ -1497,11 +1501,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `views::list::List` | struct | `List` | `NSTableView` without header | `UITableView` | One column of rows, text or views, with separators and selection; `inset`, `plain` and `bordered` styles | [11](11-views.md#list) |
-| `views::list::List::selected`, `on_select`, `style` | method | `List(selection:)`, `listStyle(_:)` | `NSTableView.selectedRowIndexes` | `UITableView.indexPathsForSelectedRows` | The selected rows, the callback that receives a new selection, and the `TableStyle` of one list | [11](11-views.md#list) |
+| `views::list::List::selection`, `style` | method | `List(selection:)`, `listStyle(_:)` | `NSTableView.selectedRowIndexes` | `UITableView.indexPathsForSelectedRows` | The `State` of the selected rows (without it rows do not select), and the `TableStyle` of one list | [11](11-views.md#list) |
 | `views::list::List::row` | method | `ForEach` in a `List` | `NSTableView.view(atColumn:row:makeIfNecessary:)` | `UITableView.cellForRow(at:)` | Draws every row as a view built from the row index | [11](11-views.md#views-in-rows-and-cells) |
 | `views::list::List::section` | method | `Section` in a `List` | group rows of `NSTableView` | `UITableView` | A header over a group of rows | [11](11-views.md#list) |
 | `views::table::Table` | struct | `Table` | `NSTableView` | ≈ `UITableView` | Rows of text or views in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
-| `views::table::Table::rows`, `selected`, `on_select`, `sort`, `on_sort` | method | `Table(_:selection:sortOrder:)` | `NSTableView.selectedRowIndexes`, `sortDescriptors` | `UITableView.indexPathsForSelectedRows` | The text of the rows, the selected rows and the callback for a new selection, the column sorted and the callback when a header is clicked | [11](11-views.md#table) |
+| `views::table::Table::rows`, `selection`, `sort_order` | method | `Table(_:selection:sortOrder:)` | `NSTableView.selectedRowIndexes`, `sortDescriptors` | `UITableView.indexPathsForSelectedRows` | The text of the rows, the `State` of the selected rows, and the `State` of the sorted column, which a header click changes | [11](11-views.md#table) |
 | `views::table::Table::cell` | method | `TableColumn(_:content:)` | `NSTableView.viewFor(tableColumn:row:)` | ≈ `UITableView.cellForRow(at:)` | Draws the cell of a column as a view built from the row index | [11](11-views.md#views-in-rows-and-cells) |
 | `views::table::Table::icons` | method | `Label` in a `TableColumn` | `NSTableCellView.imageView` | `UITableViewCell.imageView` | One symbol per row before the title of the first column | [11](11-views.md#table) |
 | `views::table::ListRowModifiers` | trait | `View` modifiers | — | — | The `list_row_*` methods of `List` and `Table`; each takes a closure of the row index | [11](11-views.md#list-row-modifiers) |
@@ -1516,12 +1520,12 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::table::shown_columns` | fn | — | — | — | Column indices not hidden | [11](11-views.md#table-helpers) |
 | `views::table::toggle_column` | fn | — | — | — | Hides or shows a column, keeping at least one visible | [11](11-views.md#table-helpers) |
 | `views::collection::CollectionView` | struct | ≈ `LazyVGrid` | `NSCollectionView` | `UICollectionView` | A wrapping grid of icon tiles with names and multiple selection | [11](11-views.md#collectionview) |
-| `views::collection::CollectionView::item`, `selected`, `on_select` | method | `ForEach` in a `LazyVGrid`, `List(selection:)` | `NSCollectionView.selectionIndexPaths` | `UICollectionView.indexPathsForSelectedItems` | Adds a tile with an icon and a name; the selected indexes, and the callback that receives a new selection | [11](11-views.md#collectionview) |
+| `views::collection::CollectionView::item`, `selection` | method | `ForEach` in a `LazyVGrid`, `List(selection:)` | `NSCollectionView.selectionIndexPaths` | `UICollectionView.indexPathsForSelectedItems` | Adds a tile with an icon and a name; the `State` of the selected indexes | [11](11-views.md#collectionview) |
 | `views::collection::select` | fn | — | — | — | Click selection rule: plain, Ctrl/Super toggle, Shift range | [11](11-views.md#select) |
 | `views::tree::TreeNode` | struct | — | ≈ `NSTreeNode` | — | A node with title, optional icon and children | [11](11-views.md#treenode) |
 | `views::tree::TreeNode::icon`, `child` | method | the children of `OutlineGroup` | `NSTreeNode.children` | — | The symbol before the title, and a node added under this one | [11](11-views.md#treenode) |
 | `views::tree::OutlineView` | struct | `OutlineGroup` | `NSOutlineView` | ≈ `UICollectionView` | A tree as indented rows with disclosure chevrons | [11](11-views.md#outlineview) |
-| `views::tree::OutlineView::on_select`, `views::tree::Browser::on_select` | method | `List(selection:)` | `NSOutlineView.selectedRowIndexes`, `NSBrowser.selectionIndexPaths` | — | Receives the selected nodes as paths of child indexes | [11](11-views.md#outlineview) |
+| `views::tree::OutlineView::selection`, `views::tree::Browser::selection` | method | `List(selection:)` | `NSOutlineView.selectedRowIndexes`, `NSBrowser.selectionIndexPaths` | — | The `State` of the selected nodes as paths of child indexes; without it the view keeps its own | [11](11-views.md#outlineview) |
 | `views::tree::OutlineView::selected` | method | `List(selection:)` | `NSOutlineView.selectRowIndexes(_:byExtendingSelection:)` | `UICollectionView.selectItem(at:animated:scrollPosition:)` | The selection the view starts with, as paths | [11](11-views.md#outlineview) |
 | `views::tree::TreeNode::expanded` | method | `DisclosureGroup(isExpanded:)` | `NSOutlineView.expandItem(_:)` | `UICollectionViewDiffableDataSource.apply` | A node that starts open | [11](11-views.md#treenode) |
 | `views::tree::open_paths` | fn | — | — | — | The paths of the nodes marked expanded | [11](11-views.md#tree-helpers) |
@@ -1534,12 +1538,12 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `views::tabs::TabView` | struct | `TabView` | `NSTabView` | ≈ `UITabBarController` | Pages chosen from a strip of tabs on the top, bottom or left of a box, or icon-over-title tabs | [11](11-views.md#tabview) |
-| `views::tabs::TabView::tab`, `selected`, `on_change` | method | `Tab(_:systemImage:)`, `TabView(selection:)` | `NSTabView.addTabViewItem(_:)`, `selectTabViewItem(at:)` | `UITabBarController.selectedIndex` | Adds a tab with a symbol, a title and its page; the selected tab and the callback when another is chosen | [11](11-views.md#tabview) |
+| `views::tabs::TabView::tab`, `selection` | method | `Tab(_:systemImage:)`, `TabView(selection:)` | `NSTabView.addTabViewItem(_:)`, `selectTabViewItem(at:)` | `UITabBarController.selectedIndex` | Adds a tab with a symbol, a title and its page; the `State` of the selected tab, without which the view keeps its own | [11](11-views.md#tabview) |
 | `views::tabs::TabView::size` | method | `controlSize(_:)` | `NSTabView.controlSize` | — | Small and mini strips | [11](11-views.md#tabview) |
 | `views::split_panes::SplitPanes` | struct | `HSplitView`, `VSplitView` | `NSSplitView` | ≈ `UISplitViewController` | Panes in a row or column with draggable dividers; controlled ratios | [11](11-views.md#splitpanes) |
 | `views::split_panes::SplitPanes::pane`, `ratios`, `on_ratios` | method | the content of `HSplitView` | `NSSplitView.addArrangedSubview(_:)`, `setPosition(_:ofDividerAt:)` | — | Adds a pane; the share of each pane and the callback that receives new shares during a drag | [11](11-views.md#splitpanes) |
 | `views::text_view::TextView` | struct | ≈ `TextEditor` | `NSTextView` | `UITextView` | Frameless multi-line editable text without scrolling | [11](11-views.md#textview) |
-| `views::text_view::TextView::on_change`, `on_focus_change`, `auto_focus`, `cursor`, `width`, `height` | method | `TextEditor(text:)`, `focused(_:)` | `NSTextView.delegate`, `insertionPointColor` | `UITextView.delegate` | The callbacks for new text and for focus, focus on mount, the caret color and the size | [11](11-views.md#textview) |
+| `views::text_view::TextView::on_focus_change`, `auto_focus`, `cursor`, `width`, `height` | method | `focused(_:)` | `NSTextView.delegate`, `insertionPointColor` | `UITextView.delegate` | The callback for focus, focus on mount, the caret color and the size | [11](11-views.md#textview) |
 | `views::text_view::KeyPress` | struct | `KeyPress` | ≈ `NSEvent` | ≈ `UIEvent` | Key, modifiers and caret position passed to `TextView::on_key` | [11](11-views.md#keypress) |
 
 ## Feedback

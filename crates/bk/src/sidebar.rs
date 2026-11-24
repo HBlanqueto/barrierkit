@@ -441,8 +441,11 @@ impl SidebarItem {
         self
     }
 
-    pub fn selected(mut self, selected: bool) -> Self {
-        self.selected = selected;
+    /// SwiftUI's `.tag` in a `List(selection:)`: selected while `selection` holds `value`; a click stores it.
+    pub fn tag<T: Clone + PartialEq + 'static>(mut self, selection: State<T>, value: T) -> Self {
+        self.selected = *selection.read() == value;
+        let mut selection = selection;
+        self.on_select = Some(Callback::new(move |_| selection.set(value.clone())));
         self
     }
 
@@ -459,11 +462,6 @@ impl SidebarItem {
         restyle: impl Fn(SidebarItemStyle) -> SidebarItemStyle + 'static,
     ) -> Self {
         self.style = self.style.style(restyle);
-        self
-    }
-
-    pub fn on_select(mut self, callback: impl Into<Callback<(), ()>>) -> Self {
-        self.on_select = Some(callback.into());
         self
     }
 }

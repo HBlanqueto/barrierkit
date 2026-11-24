@@ -14,8 +14,8 @@ const SERVICES: [&str; 3] = ["Backups", "Sync", "Sharing"];
 fn main() -> Result<(), RunError> {
     Application::new("com.example.list-rows")
         .window("List rows", || {
-            let mut selected = use_state(Vec::<usize>::new);
-            let mut enabled = use_state(|| vec![true, false, true]);
+            let selected = use_state(Vec::<usize>::new);
+            let enabled = use_hook(|| [true, false, true].map(State::create));
             let row_height = SETTINGS.account_avatar as f32 + 2.0 * SPACE_2;
             VStack::new()
                 .padding(SPACE_4)
@@ -46,8 +46,7 @@ fn main() -> Result<(), RunError> {
                         _ => Visibility::Automatic,
                     })
                     .list_row_insets(|_| SPACE_4)
-                    .selected(selected.read().clone())
-                    .on_select(move |rows: Vec<usize>| selected.set(rows))
+                    .selection(selected)
                     .style(move |style| TableStyle {
                         row_height,
                         ..style
@@ -59,11 +58,7 @@ fn main() -> Result<(), RunError> {
                         .cell(1, move |row| {
                             rect()
                                 .on_press(|event: Event<PressEventData>| event.stop_propagation())
-                                .child(
-                                    Switch::new(SERVICES[row])
-                                        .on(enabled.read()[row])
-                                        .on_toggle(move |on: bool| enabled.write()[row] = on),
-                                )
+                                .child(Switch::new(SERVICES[row], enabled[row]))
                         }),
                 )
         })

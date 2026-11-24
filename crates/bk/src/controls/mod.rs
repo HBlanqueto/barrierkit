@@ -11,7 +11,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use crate::ProbeExt;
 use crate::app::Shortcut;
 use crate::backdrop::Tint;
-use crate::choices::use_choice;
+use crate::choices::Choice;
 use crate::controlled::commit;
 use crate::elements::{Overrides, forward_overrides};
 use crate::environment::use_disabled;

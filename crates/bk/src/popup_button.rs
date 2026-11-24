@@ -11,7 +11,7 @@ use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
-use crate::choices::use_choice;
+use crate::choices::Choice;
 use crate::controls::{dimmed, opacity_when, shadowed};
 use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
@@ -32,8 +32,7 @@ pub struct PopUpButton {
     items: Vec<(Cow<'static, str>, Option<MenuIcon>)>,
     section_headers: Vec<(usize, Cow<'static, str>)>,
     separators: Vec<usize>,
-    selected: usize,
-    on_change: Option<Callback<usize, ()>>,
+    selected: State<usize>,
     pulls_down: bool,
     disabled: bool,
     style: Theme,
@@ -42,14 +41,13 @@ pub struct PopUpButton {
 }
 
 impl PopUpButton {
-    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, selection: State<usize>) -> Self {
         Self {
             label: label.into(),
             items: Vec::new(),
             section_headers: Vec::new(),
             separators: Vec::new(),
-            selected: 0,
-            on_change: None,
+            selected: selection,
             pulls_down: false,
             disabled: false,
             style: Theme::tengen(),
@@ -90,16 +88,6 @@ impl PopUpButton {
         self
     }
 
-    pub fn selected(mut self, index: usize) -> Self {
-        self.selected = index;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
-        self.on_change = Some(callback.into());
-        self
-    }
-
     pub fn pulls_down(mut self, pulls_down: bool) -> Self {
         self.pulls_down = pulls_down;
         self
@@ -124,7 +112,7 @@ impl Component for PopUpButton {
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state);
-        let choice = use_choice(Some(self.selected), self.on_change.clone());
+        let choice = Choice(self.selected);
         let mut area = use_state(Area::default);
         let pulls_down = self.pulls_down;
         let current = if pulls_down {

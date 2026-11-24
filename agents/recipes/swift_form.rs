@@ -4,18 +4,14 @@ fn main() -> Result<(), RunError> {
     Application::new("com.example.form")
         .window("Form", || {
             let name = use_state(String::new);
-            let mut subscribed = use_state(|| false);
+            let subscribed = use_state(|| false);
             let mut clicks = use_state(|| 0);
             VStack::new()
                 .cross_align(Alignment::Start)
                 .spacing(8.0)
                 .padding(SPACE_4)
                 .child(TextField::new(name, "Name"))
-                .child(
-                    Checkbox::new("Subscribe")
-                        .checked(*subscribed.read())
-                        .on_toggle(move |checked| subscribed.set(checked)),
-                )
+                .child(Checkbox::new("Subscribe", subscribed))
                 .child(if *subscribed.read() {
                     Text::new(format!("Thanks, {}", name.read())).into_element()
                 } else {

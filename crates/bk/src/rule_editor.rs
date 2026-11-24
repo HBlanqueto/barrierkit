@@ -3,6 +3,7 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::compact::IconButton;
+use crate::controlled::use_mirror;
 use crate::controls::TextField;
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
@@ -308,28 +309,36 @@ fn add_button(
         .on_press(move |_| predicate.write().insert_after(id, &fields, compound))
 }
 
-fn match_picker(
-    style: &RuleEditorStyle,
+#[derive(PartialEq)]
+struct MatchPicker {
     all: bool,
-    on_change: impl FnMut(usize) + 'static,
-) -> impl IntoElement {
-    let paints = Paints::current(ControlState::default());
-    rect()
-        .direction(Direction::Horizontal)
-        .cross_align(Alignment::Center)
-        .spacing(style.spacing)
-        .child(
-            PopUpButton::new(text!("rule-match"))
-                .item(text!("rule-all"))
-                .item(text!("rule-any"))
-                .selected(usize::from(!all))
-                .on_change(on_change),
-        )
-        .child(text(
-            text!("rule-of-the-following"),
-            style.font,
-            paints.color(style.label.resolve(ControlState::default())),
-        ))
+    set_all: Callback<bool, ()>,
+    style: Theme,
+}
+
+impl Component for MatchPicker {
+    fn render(&self) -> impl IntoElement {
+        let style: RuleEditorStyle = resolve(&self.style);
+        let paints = Paints::current(ControlState::default());
+        let set_all = self.set_all.clone();
+        let selection = use_mirror(usize::from(!self.all), move |index| {
+            set_all.call(index == 0)
+        });
+        rect()
+            .direction(Direction::Horizontal)
+            .cross_align(Alignment::Center)
+            .spacing(style.spacing)
+            .child(
+                PopUpButton::new(text!("rule-match"), selection)
+                    .item(text!("rule-all"))
+                    .item(text!("rule-any")),
+            )
+            .child(text(
+                text!("rule-of-the-following"),
+                style.font,
+                paints.color(style.label.resolve(ControlState::default())),
+            ))
+    }
 }
 
 fn indented(depth: usize, indent: f32, row: Rect) -> Rect {
@@ -350,9 +359,11 @@ impl Component for RuleEditor {
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
             .spacing(style.spacing)
-            .child(match_picker(&style, current.all, move |index: usize| {
-                predicate.write().all = index == 0
-            }))
+            .child(MatchPicker {
+                all: current.all,
+                set_all: Callback::new(move |all| predicate.write().all = all),
+                style: self.style.clone(),
+            })
             .maybe_child(
                 current
                     .rules
@@ -388,9 +399,11 @@ impl Component for RuleEditor {
                         .cross_align(Alignment::Center)
                         .spacing(style.row_spacing),
                 )
-                .child(match_picker(&style, group.all, move |index: usize| {
-                    editor.write().set_all(id, index == 0)
-                }))
+                .child(MatchPicker {
+                    all: group.all,
+                    set_all: Callback::new(move |all| editor.write().set_all(id, all)),
+                    style: self.style.clone(),
+                })
                 .child(rect().width(Size::flex(1.0)))
                 .child(
                     IconButton::new(Symbol::Minus, text!("rule-remove"))
@@ -439,68 +452,55 @@ impl Component for RuleRow {
             return rect().into_element();
         };
         let kind = &field.kind;
-        let shown = rule.value.clone();
-        let mut value = use_state(move || shown);
-        if *value.peek() != rule.value {
-            value.set(rule.value.clone());
-        }
-        use_side_effect(move || {
-            let typed = value.read().clone();
-            if predicate
-                .peek()
-                .rule(id)
-                .is_some_and(|rule| rule.value != typed)
-            {
-                predicate.write().update(id, |rule| rule.value = typed);
-            }
+        let value = use_mirror(rule.value.clone(), move |typed| {
+            predicate.write().update(id, |rule| rule.value = typed)
         });
-
         let fields = self.fields.clone();
-        let field_picker = self
-            .fields
-            .iter()
-            .fold(PopUpButton::new(text!("rule-field")), |picker, field| {
-                picker.item(field.label.clone())
-            })
-            .selected(rule.field)
-            .on_change(move |index: usize| {
-                let fresh = Rule::new(id, &fields, index);
-                predicate.write().update(id, |rule| *rule = fresh);
-            });
+        let field = use_mirror(rule.field, move |index| {
+            let fresh = Rule::new(id, &fields, index);
+            predicate.write().update(id, |rule| *rule = fresh);
+        });
+        let field_picker = self.fields.iter().fold(
+            PopUpButton::new(text!("rule-field"), field),
+            |picker, field| picker.item(field.label.clone()),
+        );
         let kind_operators = operators(kind);
-        let operator_picker = kind_operators
-            .iter()
-            .fold(
-                PopUpButton::new(text!("rule-operator")),
-                |picker, operator| picker.item(operator_label(*operator)),
-            )
-            .selected(
-                kind_operators
-                    .iter()
-                    .position(|operator| *operator == rule.operator)
-                    .unwrap_or(0),
-            )
-            .on_change(move |index: usize| {
+        let operator = use_mirror(
+            kind_operators
+                .iter()
+                .position(|operator| *operator == rule.operator)
+                .unwrap_or(0),
+            move |index| {
                 predicate
                     .write()
-                    .update(id, |rule| rule.operator = kind_operators[index]);
-            });
+                    .update(id, |rule| rule.operator = kind_operators[index])
+            },
+        );
+        let operator_picker = kind_operators.iter().fold(
+            PopUpButton::new(text!("rule-operator"), operator),
+            |picker, operator| picker.item(operator_label(*operator)),
+        );
+        let picked = match kind {
+            RuleKind::Choice(choices) => choices.clone(),
+            RuleKind::Text | RuleKind::Number => Vec::new(),
+        };
+        let choice = use_mirror(
+            picked.iter().position(|c| *c == rule.value).unwrap_or(0),
+            move |index| {
+                if let Some(chosen) = picked.get(index) {
+                    let chosen = chosen.to_string();
+                    predicate.write().update(id, |rule| rule.value = chosen);
+                }
+            },
+        );
         let editor = match kind {
-            RuleKind::Choice(choices) => {
-                let picked = choices.clone();
-                choices
-                    .iter()
-                    .fold(PopUpButton::new(text!("rule-value")), |picker, choice| {
-                        picker.item(choice.clone())
-                    })
-                    .selected(choices.iter().position(|c| *c == rule.value).unwrap_or(0))
-                    .on_change(move |index: usize| {
-                        predicate
-                            .write()
-                            .update(id, |rule| rule.value = picked[index].to_string());
-                    })
-                    .into_element()
-            }
+            RuleKind::Choice(choices) => choices
+                .iter()
+                .fold(
+                    PopUpButton::new(text!("rule-value"), choice),
+                    |picker, choice| picker.item(choice.clone()),
+                )
+                .into_element(),
             RuleKind::Text | RuleKind::Number => {
                 TextField::new(value, text!("rule-value")).into_element()
             }

@@ -185,7 +185,6 @@ class View:
         self.native, self.events, self.outer, self.last = [], [], [], []
         self.segs = []
         self.todos = []
-        self.render = None
 
     def code(self):
         parts = [self.base, *self.native, *self.events]
@@ -686,12 +685,7 @@ def toggle(call, c):
     title = call.arg('_', 0)
     state, is_prop = binding(call.arg('isOn'), c)
     ref = binding_ref(state, is_prop)
-    v = View(f'Checkbox::new({rx(title, c)})', control=True)
-    v.render = ('checkbox', ref)
-    c.struct.mutated.add(state)
-    v.native.append(f'.checked(*{ref}.read())')
-    v.events.append(f'.on_toggle(move |checked| {ref}.set(checked))')
-    return v
+    return View(f'Checkbox::new({rx(title, c)}, {ref})', control=True)
 
 
 def text_field(call, c):
@@ -781,10 +775,7 @@ def toggle_style(v, call, c):
     if not v.base.startswith('Checkbox::new') or name not in ('switch', 'checkbox', 'automatic'):
         raise Unsupported('View.toggleStyle')
     if name == 'switch':
-        ref = v.render[1]
         v.base = v.base.replace('Checkbox::new', 'Switch::new')
-        v.native = [f'.on(*{ref}.read())']
-        v.events = [f'.on_toggle(move |checked| {ref}.set(checked))']
 
 
 def disabled(v, call, c):

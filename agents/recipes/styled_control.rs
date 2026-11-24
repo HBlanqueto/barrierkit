@@ -13,8 +13,12 @@ fn main() -> Result<(), RunError> {
                 .style(ButtonStyle::glass),
         )
         .window("Mixer", || {
+            let volume = use_state(|| 0.4);
+            let bass = use_state(|| 0.5);
+            let treble = use_state(|| 0.75);
+            let output = use_state(|| 0.6);
             VStack::new()
-                .child(Slider::new("Volume").value(0.4).style(|s| {
+                .child(Slider::new("Volume", volume).style(|s| {
                     SliderStyle {
                         fill: StateValue::new(ShapeStyle::Role(Role::Destructive))
                             .pressed(ShapeStyle::Role(Role::SecondaryLabel)),
@@ -23,18 +27,14 @@ fn main() -> Result<(), RunError> {
                 }))
                 .child(
                     HStack::new()
-                        .child(Slider::new("Bass").value(0.5))
-                        .child(Slider::new("Treble").value(0.75))
+                        .child(Slider::new("Bass", bass))
+                        .child(Slider::new("Treble", treble))
                         .control_style(|s: SliderStyle| SliderStyle {
                             axis: Axis::Vertical,
                             ..s
                         }),
                 )
-                .child(
-                    LevelSlider::new("Output")
-                        .value(0.6)
-                        .style(|s| s.fat(Symbol::SpeakerWave)),
-                )
+                .child(LevelSlider::new("Output", output).style(|s| s.fat(Symbol::SpeakerWave)))
                 .child(Button::new("Reset"))
         })
         .run()

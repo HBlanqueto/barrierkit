@@ -81,12 +81,11 @@ pub struct Table {
     rows: Vec<Vec<String>>,
     cells: Vec<(usize, Callback<usize, Element>)>,
     pub(crate) list_rows: ListRows,
-    sort: Option<SortOrder>,
-    selected: Vec<usize>,
+    sort_order: Option<State<Option<SortOrder>>>,
+    selection: Option<State<Vec<usize>>>,
+    pub(crate) offset: usize,
     icons: Vec<Symbol>,
     scroll_bar: bool,
-    on_sort: Option<Callback<SortOrder, ()>>,
-    on_select: Option<Callback<Vec<usize>, ()>>,
     style: Theme,
     overrides: Overrides,
 }
@@ -102,12 +101,11 @@ impl Table {
             rows: Vec::new(),
             cells: Vec::new(),
             list_rows: ListRows::default(),
-            sort: None,
-            selected: Vec::new(),
+            sort_order: None,
+            selection: None,
+            offset: 0,
             icons: Vec::new(),
             scroll_bar: true,
-            on_sort: None,
-            on_select: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -138,13 +136,13 @@ impl Table {
         self
     }
 
-    pub fn sort(mut self, sort: Option<SortOrder>) -> Self {
-        self.sort = sort;
+    pub fn sort_order(mut self, sort_order: State<Option<SortOrder>>) -> Self {
+        self.sort_order = Some(sort_order);
         self
     }
 
-    pub fn selected(mut self, rows: Vec<usize>) -> Self {
-        self.selected = rows;
+    pub fn selection(mut self, selection: State<Vec<usize>>) -> Self {
+        self.selection = Some(selection);
         self
     }
 
@@ -155,16 +153,6 @@ impl Table {
 
     pub fn scroll_bar(mut self, shown: bool) -> Self {
         self.scroll_bar = shown;
-        self
-    }
-
-    pub fn on_sort(mut self, callback: impl Into<Callback<SortOrder, ()>>) -> Self {
-        self.on_sort = Some(callback.into());
-        self
-    }
-
-    pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
-        self.on_select = Some(callback.into());
         self
     }
 }
@@ -275,7 +263,21 @@ impl Component for Table {
         let padding_x = style.padding_x;
         let header_padding_x = style.header_padding_x;
         let column_shift = style.column_shift;
-        let sort = self.sort;
+        let sort = self.sort_order.and_then(|order| *order.read());
+        let offset = self.offset;
+        let selected: Vec<usize> = self.selection.map_or_else(Vec::new, |selection| {
+            selection
+                .read()
+                .iter()
+                .filter_map(|row| row.checked_sub(offset))
+                .filter(|row| *row < self.rows.len())
+                .collect()
+        });
+        let on_select = self.selection.map(|mut selection| {
+            Callback::new(move |rows: Vec<usize>| {
+                selection.set(rows.into_iter().map(|row| row + offset).collect())
+            })
+        });
         let held = use_held_modifiers();
         let mut hidden = use_state(Vec::<usize>::new);
         let mut widths = use_state(|| vec![None::<f32>; self.columns.len()]);
@@ -303,10 +305,9 @@ impl Component for Table {
                 title: self.columns[index].clone(),
                 arrow,
                 style: self.style.clone(),
-                on_press: self
-                    .on_sort
-                    .clone()
-                    .map(|on_sort| Callback::new(move |_| on_sort.call(next_sort(sort, index)))),
+                on_press: self.sort_order.map(|mut order| {
+                    Callback::new(move |_| order.set(Some(next_sort(sort, index))))
+                }),
             };
             let handle = rect()
                 .position(
@@ -457,8 +458,8 @@ impl Component for Table {
         let data = (
             self.rows.clone(),
             self.cells.clone(),
-            self.selected.clone(),
-            self.on_select.clone(),
+            selected.clone(),
+            on_select.clone(),
             looks,
             metrics,
             shown.clone(),
@@ -628,11 +629,7 @@ impl Component for Table {
         .length(self.rows.len())
         .item_size(style.row_height);
 
-        let (rows, on_select, selected) = (
-            self.rows.len(),
-            self.on_select.clone(),
-            self.selected.clone(),
-        );
+        let rows = self.rows.len();
         let table = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Table)
             .a11y_alt(&*self.label)

@@ -102,18 +102,9 @@ impl Row {
         ))
     }
 
-    pub fn toggle(
-        title: impl Into<Cow<'static, str>>,
-        on: bool,
-        on_toggle: impl Into<Callback<bool, ()>>,
-    ) -> Self {
+    pub fn toggle(title: impl Into<Cow<'static, str>>, on: State<bool>) -> Self {
         let title = title.into();
-        Self::new(title.clone()).control(
-            Switch::new(title)
-                .size(ControlSize::Mini)
-                .on(on)
-                .on_toggle(on_toggle),
-        )
+        Self::new(title.clone()).control(Switch::new(title, on).size(ControlSize::Mini))
     }
 
     // A `TextField` fills the row after its title and ends its text, as in a SwiftUI `Form`. A segmented

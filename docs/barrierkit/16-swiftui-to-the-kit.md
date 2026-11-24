@@ -24,7 +24,7 @@ know the kit's shape.
 | `@State var count = 0` | `let mut count = use_state(\|\| 0)`; `count.read()`, `count.set(v)`, `*count.write() += 1` | [`counter.rs`](../../agents/recipes/counter.rs) |
 | `@AppStorage("bold") var bold = false` | `let bold = use_app_storage("bold", false)`; a `State` saved in the app's settings | [`app_storage.rs`](../../agents/recipes/app_storage.rs) |
 | `@Binding`, `$text` on a text field | pass the `State<String>`; the field edits it | [`binding.rs`](../../agents/recipes/binding.rs) |
-| `@Binding`, `$on` on any other control | pass the value and handle the change | [`toggle.rs`](../../agents/recipes/toggle.rs) |
+| `@Binding`, `$on` on any other control | pass the `State`: `Switch::new("Wi-Fi", wifi)`; a list or table takes `.selection(state)` | [`toggle.rs`](../../agents/recipes/toggle.rs) |
 | `@Environment`, `.environment(_:_:)` | `.environment(value)` above, `use_environment::<T>()` below | [`environment.rs`](../../agents/recipes/environment.rs) |
 | `.disabled(_:)`, `\.isEnabled` | `.disabled(bool)` on any view, `use_is_enabled()` | [`disabled.rs`](../../agents/recipes/disabled.rs) |
 | `@Observable` | a `Copy` struct of `State`s, given as a context | [`observable.rs`](../../agents/recipes/observable.rs) |
@@ -56,17 +56,18 @@ A hook runs in the same order on every render. Never call one inside an `if`,
 a loop or an iterator closure; a wrong order panics at run time. `.help` is a
 hook ([chapter 7](07-menus-and-popovers.md#view-modifiers)).
 
-The kit has no `Binding`. The text controls (`TextField`, `SearchField`,
-`SecureField`, `TextEditor`, `ComboBox`, `TokenField`) and `ImageWell` take the
-`State` they edit, so a child view receives that `State` as a field. Every
-other control takes its value and a callback
-([the controlled pattern](05-controls.md#the-controlled-pattern)).
+The kit has no `Binding` type: every control takes the `State` it edits, as a
+SwiftUI control takes a binding (`Checkbox::new("Bold", bold)`,
+`Slider::new("Volume", volume)`), so a child view receives that `State` as a
+field. A list, table, outline or tab view takes it with `.selection(state)`, and
+a sidebar row with `.tag(selection, value)`. A part of a `State`, like
+`$items[row]`, is not a `State`: keep one `State` per row.
 
 ```swift
 // ✗ Toggle("Wi-Fi", isOn: $wifi)
 ```
 
-✓ [`toggle.rs`](../../agents/recipes/toggle.rs): `Switch::new("Wi-Fi").on(*wifi.read()).on_toggle(..)`.
+✓ [`toggle.rs`](../../agents/recipes/toggle.rs): `Switch::new("Wi-Fi", wifi)`.
 
 ## Environment
 

@@ -24,21 +24,19 @@ use crate::symbol::symbol;
 #[derive(PartialEq)]
 pub struct LevelSlider {
     label: Cow<'static, str>,
-    value: f32,
+    value: State<f32>,
     disabled: bool,
-    on_change: Option<Callback<f32, ()>>,
     style: Theme,
     key: DiffKey,
     overrides: Overrides,
 }
 
 impl LevelSlider {
-    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: State<f32>) -> Self {
         Self {
             label: label.into(),
-            value: 0.0,
+            value,
             disabled: false,
-            on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
             overrides: Overrides::default(),
@@ -60,18 +58,8 @@ impl LevelSlider {
         self
     }
 
-    pub fn value(mut self, value: f32) -> Self {
-        self.value = value.clamp(0.0, 1.0);
-        self
-    }
-
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<f32, ()>>) -> Self {
-        self.on_change = Some(callback.into());
         self
     }
 }
@@ -89,11 +77,11 @@ impl Component for LevelSlider {
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state);
-        let value = crate::controlled::use_controlled_unless(&self.value, interaction.held());
+        let value = self.value;
         let mut width = use_state(|| 0.0f32);
         let origin = use_state(CursorPoint::default);
         let enabled = !disabled;
-        let fraction = *value.read();
+        let fraction = value.read().clamp(0.0, 1.0);
         let measured = *width.read();
         let direction = ambient();
         let right_to_left = direction == LayoutDirection::RightToLeft;
@@ -103,8 +91,7 @@ impl Component for LevelSlider {
         let knob_width = style.knob_size.map_or(0.0, |(width, _)| width);
         let offset = knob_width / 2.0;
         let run = (measured - knob_width).max(0.0);
-        let on_change = self.on_change.clone();
-        let set = move |new: f32| commit(value, &on_change, new.clamp(0.0, 1.0));
+        let set = move |new: f32| commit(value, new.clamp(0.0, 1.0));
         let from_point = move |point: CursorPoint| {
             let along = ((point.x as f32 - offset) / run.max(1.0)).clamp(0.0, 1.0);
             if right_to_left { 1.0 - along } else { along }
@@ -126,7 +113,7 @@ impl Component for LevelSlider {
                 width.set_if_modified(event.data().area.size.width);
             })
             .maybe(enabled, |el| {
-                on_drag(el, interaction, origin, from_point, set.clone()).on_key_down(
+                on_drag(el, interaction, origin, from_point, set).on_key_down(
                     move |event: Event<KeyboardEventData>| {
                         let step = match event.key {
                             Key::Named(NamedKey::ArrowUp) => SLIDER_KEY_STEP,

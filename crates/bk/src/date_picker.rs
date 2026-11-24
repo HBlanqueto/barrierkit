@@ -7,7 +7,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::compact::stepper_arrows;
-use crate::controlled::{commit, use_controlled};
+use crate::controlled::commit;
 use crate::controls::{ControlSize, dimmed, shadowed};
 use crate::date::{CivilDate, CivilDateTime, DatePart, typing_is_done};
 use crate::elements::{Overrides, forward_overrides};
@@ -35,18 +35,17 @@ pub enum DateElements {
 #[derive(PartialEq)]
 pub struct DatePicker {
     label: Cow<'static, str>,
-    value: CivilDateTime,
+    value: State<CivilDateTime>,
     elements: DateElements,
     graphical: bool,
     stepper: bool,
     disabled: bool,
-    on_change: Option<Callback<CivilDateTime, ()>>,
     style: Theme,
     overrides: Overrides,
 }
 
 impl DatePicker {
-    pub fn new(label: impl Into<Cow<'static, str>>, value: CivilDateTime) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, value: State<CivilDateTime>) -> Self {
         Self {
             label: label.into(),
             value,
@@ -54,7 +53,6 @@ impl DatePicker {
             graphical: false,
             stepper: true,
             disabled: false,
-            on_change: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -87,11 +85,6 @@ impl DatePicker {
 
     pub fn size(self, size: ControlSize) -> Self {
         self.style(move |style: DatePickerStyle| style.sized(size))
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<CivilDateTime, ()>>) -> Self {
-        self.on_change = Some(callback.into());
-        self
     }
 }
 
@@ -194,19 +187,17 @@ impl Component for DatePicker {
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
         let paints = Paints::current(state);
-        let value = use_controlled(&self.value);
+        let value = self.value;
         let current = *value.read();
         let mut selected = use_state(|| 0usize);
         let mut typed = use_state(String::new);
         let mut area = use_state(Area::default);
         if self.graphical {
-            let on_change = self.on_change.clone();
             return self.overrides.apply(rect().child(CalendarView {
                 selected: current.date,
                 on_pick: Callback::new(move |date: CivilDate| {
                     commit(
                         value,
-                        &on_change,
                         CivilDateTime {
                             date,
                             ..*value.peek()
@@ -222,9 +213,7 @@ impl Component for DatePicker {
         if *selected.peek() > last {
             selected.set(last);
         }
-        let on_change = self.on_change.clone();
-        let change: Rc<dyn Fn(CivilDateTime)> =
-            Rc::new(move |next| commit(value, &on_change, next));
+        let change: Rc<dyn Fn(CivilDateTime)> = Rc::new(move |next| commit(value, next));
         let picked = change.clone();
         let calendar_style = style.clone();
         let pick = Callback::new(move |date: CivilDate| {

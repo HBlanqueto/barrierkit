@@ -49,7 +49,7 @@ Later levels win, field by field.
 | 1 | Tengen (default) | `SliderStyle::tengen()` |
 | 2 | Theme | `Application::new("com.example.app").theme(Theme::tengen().style(\|s: SliderStyle\| …))`, or `WindowOptions::theme` for `run_window` |
 | 3 | Container | `VStack::new().child(..).control_style(\|s: SliderStyle\| …)` (outermost first) |
-| 4 | Instance | `Slider::new("Volume").style(\|s\| …)` |
+| 4 | Instance | `Slider::new("Volume", volume).style(\|s\| …)` |
 | 5 | Accessibility | applied by the kit, always |
 
 `Theme::style` and `.control_style` are generic: the type of the closure's
@@ -72,13 +72,13 @@ like the view that opened it. `Slider::tint(Tint)` is an instance override of
 ✗ Copy Tengen's numbers into a style:
 
 ```rust
-Slider::new("Volume").style(|_| SliderStyle { track_height: 6.0, width: 220.0, /* … every field … */ })
+Slider::new("Volume", volume).style(|_| SliderStyle { track_height: 6.0, width: 220.0, /* … every field … */ })
 ```
 
 ✓ Change only what you mean and keep the rest:
 
 ```rust
-Slider::new("Volume").style(|s| SliderStyle { track_height: 10.0, ..s })
+Slider::new("Volume", volume).style(|s| SliderStyle { track_height: 10.0, ..s })
 ```
 
 ## Value types
@@ -162,7 +162,7 @@ This slider red, taller, flat and with almost square corners; the others stay
 normal:
 
 ```rust
-Slider::new("Volume").style(|s| SliderStyle {
+Slider::new("Volume", volume).style(|s| SliderStyle {
     fill: StateValue::new(ShapeStyle::Role(Role::Destructive)),
     track_height: 10.0,
     knob_size: (32.0, 14.0),
@@ -176,8 +176,8 @@ Every slider in a panel vertical, with a translucent track:
 
 ```rust
 HStack::new()
-    .child(Slider::new("Bass"))
-    .child(Slider::new("Treble"))
+    .child(Slider::new("Bass", bass))
+    .child(Slider::new("Treble", treble))
     .control_style(|s: SliderStyle| SliderStyle {
         axis: Axis::Vertical,
         track: StateValue::new(ShapeStyle::Material(Thickness::Thin)),
@@ -200,20 +200,20 @@ Button::new("Delete").style(|s| ButtonStyle {
 CheckboxStyle:
 
 ```rust
-Checkbox::new("Remember me").style(|s| CheckboxStyle { label_position: Some(Edge::Leading), ..s })
-Switch::new("Wi-Fi").style(|s| SwitchStyle { label_position: Some(Edge::Leading), ..s })
+Checkbox::new("Remember me", remember).style(|s| CheckboxStyle { label_position: Some(Edge::Leading), ..s })
+Switch::new("Wi-Fi", wifi).style(|s| SwitchStyle { label_position: Some(Edge::Leading), ..s })
 ```
 
 LevelSliderStyle:
 
 ```rust
-LevelSlider::new("Volume").style(|s| s.fat(Symbol::SpeakerWave))
+LevelSlider::new("Volume", volume).style(|s| s.fat(Symbol::SpeakerWave))
 ```
 
 RadioGroupStyle:
 
 ```rust
-RadioGroup::new("Size").option("Small").option("Large").style(|s| RadioGroupStyle {
+RadioGroup::new("Size", size).option("Small").option("Large").style(|s| RadioGroupStyle {
     axis: Axis::Horizontal,
     label_position: Some(Edge::Leading),
     ..s

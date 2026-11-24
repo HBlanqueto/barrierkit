@@ -17,11 +17,12 @@ search and saved state.
    search finds them by other words:
 
    ```rust
+   let open_at_login = use_state(|| false);
    let startup = Form::new().section(
        Section::titled("Startup").row(
            Row::new("Open at login")
                .keywords(&["launch", "boot"])
-               .control(Switch::new("Open at login")),
+               .control(Switch::new("Open at login", open_at_login)),
        ),
    );
    ```

@@ -31,7 +31,6 @@ pub struct TextView {
     width: Size,
     height: Size,
     auto_focus: bool,
-    on_change: Option<Callback<String, ()>>,
     on_focus_change: Option<Callback<bool, ()>>,
     on_key: Option<Callback<KeyPress, bool>>,
     key: DiffKey,
@@ -57,7 +56,6 @@ impl TextView {
             width: Size::fill(),
             height: Size::auto(),
             auto_focus: false,
-            on_change: None,
             on_focus_change: None,
             on_key: None,
             key: DiffKey::None,
@@ -92,11 +90,6 @@ impl TextView {
 
     pub fn auto_focus(mut self, auto_focus: bool) -> Self {
         self.auto_focus = auto_focus;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<String, ()>>) -> Self {
-        self.on_change = Some(callback.into());
         self
     }
 
@@ -166,7 +159,6 @@ impl Component for TextView {
             editor.clear_selection();
         }
 
-        let on_change = self.on_change.clone();
         let on_key = self.on_key.clone();
         let on_key_down = move |event: Event<KeyboardEventData>| {
             if let Some(on_key) = &on_key {
@@ -201,10 +193,7 @@ impl Component for TextView {
             });
             let text = editable.editor().read().committed_text();
             if *value.peek() != text {
-                value.set(text.clone());
-                if let Some(on_change) = &on_change {
-                    on_change.call(text);
-                }
+                value.set(text);
             }
         };
         let on_key_up = move |event: Event<KeyboardEventData>| {

@@ -161,9 +161,8 @@ pub(crate) fn row(
 pub struct OutlineView {
     label: Cow<'static, str>,
     nodes: Vec<TreeNode>,
-    selected: Vec<Vec<usize>>,
+    selection: Option<State<Vec<Vec<usize>>>>,
     scroll_bar: bool,
-    on_select: Option<Callback<Vec<Vec<usize>>, ()>>,
     style: Theme,
     overrides: Overrides,
 }
@@ -173,9 +172,8 @@ impl OutlineView {
         Self {
             label: label.into(),
             nodes,
-            selected: Vec::new(),
+            selection: None,
             scroll_bar: true,
-            on_select: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -189,18 +187,13 @@ impl OutlineView {
         self
     }
 
-    pub fn selected(mut self, paths: Vec<Vec<usize>>) -> Self {
-        self.selected = paths;
+    pub fn selection(mut self, selection: State<Vec<Vec<usize>>>) -> Self {
+        self.selection = Some(selection);
         self
     }
 
     pub fn scroll_bar(mut self, shown: bool) -> Self {
         self.scroll_bar = shown;
-        self
-    }
-
-    pub fn on_select(mut self, callback: impl Into<Callback<Vec<Vec<usize>>, ()>>) -> Self {
-        self.on_select = Some(callback.into());
         self
     }
 }
@@ -217,7 +210,8 @@ impl Component for OutlineView {
         };
         let paints = Paints::current(state);
         let mut expanded = use_state(|| open_paths(&self.nodes));
-        let mut selected = use_state(|| self.selected.clone());
+        let own = use_state(Vec::new);
+        let mut selected = self.selection.unwrap_or(own);
         let held = use_held_modifiers();
         let rows = visible_rows(&self.nodes, &expanded.read());
         let paths: Rc<Vec<Vec<usize>>> =
@@ -271,7 +265,6 @@ impl Component for OutlineView {
                             ))
                     })
                     .into_element();
-                let on_select = self.on_select.clone();
                 let paths = paths.clone();
                 let divided = !chosen
                     && path[0] + 1 < self.nodes.len()
@@ -300,9 +293,6 @@ impl Component for OutlineView {
                                             .into_iter()
                                             .map(|index| paths[index].clone())
                                             .collect();
-                                    if let Some(on_select) = &on_select {
-                                        on_select.call(next.clone());
-                                    }
                                     selected.set(next);
                                 }),
                         )
@@ -341,7 +331,7 @@ impl Component for OutlineView {
 pub struct Browser {
     label: Cow<'static, str>,
     nodes: Vec<TreeNode>,
-    on_select: Option<Callback<Vec<usize>, ()>>,
+    selection: Option<State<Vec<usize>>>,
     style: Theme,
     overrides: Overrides,
 }
@@ -351,7 +341,7 @@ impl Browser {
         Self {
             label: label.into(),
             nodes,
-            on_select: None,
+            selection: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -365,8 +355,8 @@ impl Browser {
         self
     }
 
-    pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
-        self.on_select = Some(callback.into());
+    pub fn selection(mut self, selection: State<Vec<usize>>) -> Self {
+        self.selection = Some(selection);
         self
     }
 }
@@ -382,7 +372,8 @@ impl Component for Browser {
             ..ControlState::default()
         };
         let paints = Paints::current(state);
-        let mut path = use_state(Vec::<usize>::new);
+        let own = use_state(Vec::<usize>::new);
+        let mut path = self.selection.unwrap_or(own);
         let current = path.read().clone();
         let mut columns: Vec<(Vec<usize>, &[TreeNode])> = vec![(Vec::new(), &self.nodes)];
         for depth in 0..current.len() {
@@ -415,7 +406,6 @@ impl Component for Browser {
                     )
                     .into_element()
                 });
-                let on_select = self.on_select.clone();
                 row(&style, &paints, state, node, chosen, None, trail)
                     .padding(Gaps::new(
                         0.0,
@@ -423,12 +413,7 @@ impl Component for Browser {
                         0.0,
                         style.column_padding_x,
                     ))
-                    .on_press(move |_| {
-                        path.set(target.clone());
-                        if let Some(on_select) = &on_select {
-                            on_select.call(target.clone());
-                        }
-                    })
+                    .on_press(move |_| path.set(target.clone()))
                     .into_element()
             });
             rect()

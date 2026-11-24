@@ -7,22 +7,20 @@ use std::borrow::Cow;
 pub struct SegmentedControl {
     label: Cow<'static, str>,
     segments: Vec<Cow<'static, str>>,
-    selected: usize,
+    selected: State<usize>,
     disabled: bool,
-    on_change: Option<Callback<usize, ()>>,
     style: Theme,
     key: DiffKey,
     overrides: Overrides,
 }
 
 impl SegmentedControl {
-    pub fn new(label: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(label: impl Into<Cow<'static, str>>, selection: State<usize>) -> Self {
         Self {
             label: label.into(),
             segments: Vec::new(),
-            selected: 0,
+            selected: selection,
             disabled: false,
-            on_change: None,
             style: Theme::tengen(),
             key: DiffKey::None,
             overrides: Overrides::default(),
@@ -34,18 +32,8 @@ impl SegmentedControl {
         self
     }
 
-    pub fn selected(mut self, index: usize) -> Self {
-        self.selected = index;
-        self
-    }
-
     pub fn disabled(mut self, disabled: bool) -> Self {
         self.disabled = disabled;
-        self
-    }
-
-    pub fn on_change(mut self, callback: impl Into<Callback<usize, ()>>) -> Self {
-        self.on_change = Some(callback.into());
         self
     }
 
@@ -72,7 +60,7 @@ impl Component for SegmentedControl {
     fn render(&self) -> impl IntoElement {
         let style: SegmentedControlStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default());
-        let choice = use_choice(Some(self.selected), self.on_change.clone());
+        let choice = Choice(self.selected);
         let keyed = use_state(|| false);
         let weight = FontWeight::from(style.font.weight as i32);
         let measured: Vec<f32> = self

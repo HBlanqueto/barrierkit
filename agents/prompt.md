@@ -70,10 +70,12 @@ version.
 3. **No literal visible text in a real app.** Text goes in
    `i18n/{en,es}/<crate>.ftl` and is read with `tr!("id")`. Literals are only
    for throwaway samples.
-4. **Controls are controlled.** Pass the value (`.value`, `.on`, `.selected`)
-   and handle the change (`.on_change`, `.on_toggle`, `.on_press`). A text
-   field takes the `State<String>` it edits instead
-   ([chapter 5](../docs/barrierkit/05-controls.md#text-fields)).
+4. **Controls are controlled.** A control takes the `State<T>` it edits in
+   `new` (`Checkbox::new("Bold", bold)`, `Slider::new("Volume", volume)`), like
+   `TextField` ([chapter 5](../docs/barrierkit/05-controls.md#the-controlled-pattern)).
+   Lists, tables, outlines and tab views take an optional `.selection(state)`;
+   `SidebarItem` uses `.tag(selection, value)`. A callback remains only for
+   actions such as `on_press` and `on_submit`.
 5. **Use the kit's control** before building one from `rect()`, and `Spacer`,
    `.frame()`, `Grid`, `ZStack` and `.overlay(..)` before `Size::flex`, absolute
    `rect()` children and widths you measured.

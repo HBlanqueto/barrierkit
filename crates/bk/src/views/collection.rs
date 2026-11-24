@@ -12,8 +12,7 @@ use crate::styles::{CollectionViewStyle, LayoutDirection, Paints, Theme, resolve
 pub struct CollectionView {
     label: Cow<'static, str>,
     items: Vec<(Element, Cow<'static, str>)>,
-    selected: Vec<usize>,
-    on_select: Option<Callback<Vec<usize>, ()>>,
+    selection: Option<State<Vec<usize>>>,
     style: Theme,
     overrides: Overrides,
 }
@@ -23,8 +22,7 @@ impl CollectionView {
         Self {
             label: label.into(),
             items: Vec::new(),
-            selected: Vec::new(),
-            on_select: None,
+            selection: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
@@ -43,13 +41,8 @@ impl CollectionView {
         self
     }
 
-    pub fn selected(mut self, selected: Vec<usize>) -> Self {
-        self.selected = selected;
-        self
-    }
-
-    pub fn on_select(mut self, callback: impl Into<Callback<Vec<usize>, ()>>) -> Self {
-        self.on_select = Some(callback.into());
+    pub fn selection(mut self, selection: State<Vec<usize>>) -> Self {
+        self.selection = Some(selection);
         self
     }
 }
@@ -83,9 +76,8 @@ impl Component for CollectionView {
         let style: CollectionViewStyle = resolve(&self.style);
         let held = use_held_modifiers();
         let tiles = self.items.iter().enumerate().map(|(index, (icon, name))| {
-            let selected = self.selected.clone();
-            let on_select = self.on_select.clone();
-            let is_selected = selected.contains(&index);
+            let selection = self.selection;
+            let is_selected = selection.is_some_and(|selected| selected.read().contains(&index));
             Tile {
                 icon: icon.clone(),
                 name: name.clone(),
@@ -94,9 +86,10 @@ impl Component for CollectionView {
                 on_press: Callback::new(move |_| {
                     let held = *held.read();
                     if (!is_selected || !held.is_empty())
-                        && let Some(cb) = &on_select
+                        && let Some(mut selection) = selection
                     {
-                        cb.call(select(&selected, index, held));
+                        let next = select(&selection.peek(), index, held);
+                        selection.set(next);
                     }
                 }),
             }

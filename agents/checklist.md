@@ -21,8 +21,10 @@ reason it cannot be.
    and every font one of the typography tokens (except in throwaway samples)?
 3. Is every visible string in `i18n/{en,es}/<crate>.ftl` and read with `tr!`
    (except in throwaway samples)?
-4. Does every control receive its value and handle its change (a text field
-   takes the `State<String>` it edits)?
+4. Does every control take the `State` it edits in `new` (a list, table,
+   outline or tab view in `.selection(state)`, a `SidebarItem` in
+   `.tag(selection, value)`), with callbacks only for actions such as
+   `on_press`?
 5. Is every name the glossary name? Nothing named `App` of your own, nothing
    that copies a kit control (a knob drawn by hand included: `Switch`, `Slider`
    and `LevelSlider` hand their held knob to the compositor on their own, and a

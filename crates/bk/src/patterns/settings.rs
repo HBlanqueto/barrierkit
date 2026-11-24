@@ -7,6 +7,7 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::app::{load_restoration, save_restoration};
+use crate::controlled::use_mirror;
 use crate::controls::SearchField;
 use crate::sidebar::{Sidebar, SidebarAccount, SidebarItem, SidebarSection};
 use crate::styles::{SettingsWindowStyle, Theme, resolve};
@@ -308,12 +309,16 @@ impl Component for SettingsWindow {
         let text = query.read().clone();
         let dismissed = dismissed_at.read().as_ref() == Some(&text);
         let searching = *search_focused.read() && !dismissed;
+        let shown_pane = panes
+            .iter()
+            .find(|pane| pane.with_pages().iter().any(|page| page.id == current))
+            .map_or(current, |pane| pane.id);
+        let shown_pane = use_mirror(shown_pane, move |id| open(id, None).call(()));
         let item = |pane: &Pane| {
             SidebarItem::new(pane.title.clone())
                 .symbol_tile(pane.symbol, pane.tint)
-                .selected(pane.with_pages().iter().any(|page| page.id == current))
+                .tag(shown_pane, pane.id)
                 .emphasized(!searching)
-                .on_select(open(pane.id, None))
                 .into_element()
         };
         let result =

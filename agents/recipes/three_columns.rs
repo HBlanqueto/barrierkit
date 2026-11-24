@@ -11,6 +11,7 @@ fn main() -> Result<(), RunError> {
     Application::new("com.example.notes")
         .window("Notes", || {
             let mut note = use_state(|| 0);
+            let selection = use_state(|| 0);
             let content = rect()
                 .expanded()
                 .direction(Direction::Vertical)
@@ -44,7 +45,7 @@ fn main() -> Result<(), RunError> {
                 Sidebar::new().traffic_lights(true).child(
                     SidebarItem::new("All Notes")
                         .symbol(Symbol::DocText)
-                        .selected(true),
+                        .tag(selection, 0),
                 ),
                 detail,
             )
