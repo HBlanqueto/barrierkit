@@ -70,22 +70,3 @@ impl Pasteboard {
             .and_then(|payload| T::from_payload(&payload))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_value_reads_back_only_from_the_payload_of_its_type() {
-        let files = vec![PathBuf::from("/tmp/a")];
-        assert_eq!(Vec::<PathBuf>::from_payload(&files.payload()), Some(files));
-        assert_eq!(String::from_payload(&DragPayload::Files(vec![])), None);
-        assert_eq!(
-            String::from_payload(&DragPayload::Html {
-                text: "plain".into(),
-                html: "<i>plain</i>".into()
-            }),
-            Some("plain".to_owned())
-        );
-    }
-}

@@ -844,8 +844,8 @@ NSGlassTintAmount`, `[R]`). `-NSGlassTintAmount <t>` on a probe's command line g
 (section 13), so the inputs of a glass are computed in the process that owns the layer, from its own defaults. The
 Appearance extension has no text for the endpoints: the two ends are icons named `Capsule Shape On A Rectangle With A Liquid
 Glass Effect` and `Capsule Shape On A Rectangle` (the accessibility tree of the pane, `[R]`); `Clear` and `Tinted` are the
-options of Icon & widget style, which is a different setting. The same extension has the string `When Reduce Transparency is on,
-adjusting Liquid Glass may turn this setting off.` (`Localizable.loctable`, `[R]`); when it applies was not observed `[N]`.
+options of Icon & widget style, which is a different setting. The same extension has the string "When Reduce Transparency is on,
+adjusting Liquid Glass may turn this setting off." (`Localizable.loctable`, `[R]`); when it applies was not observed `[N]`.
 The two-choice control of macOS 26.1 (Clear, the default, and Tinted) is the earlier form of this slider: Apple's note says
 Tinted "increases opacity of the material in apps and notifications on the Lock Screen", and a reviewer found no difference in
 the menu bar, the widgets and the Dock in light mode ([MacRumors](https://www.macrumors.com/2025/11/03/apple-releases-macos-tahoe-26-1/),
