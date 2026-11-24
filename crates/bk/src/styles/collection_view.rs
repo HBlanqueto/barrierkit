@@ -1,8 +1,10 @@
 use ctdesign::{CAPTION, COLLECTION, Font, Rgba};
 
-use super::button::rounded;
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 use crate::style::Palette;
+use crate::styles::button::rounded;
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+};
 
 #[derive(Clone, Debug)]
 pub struct CollectionViewStyle {
@@ -10,21 +12,9 @@ pub struct CollectionViewStyle {
     pub tile_width: f32,
     /// Tengen: `COLLECTION.icon`.
     pub icon_size: f32,
-    /// Tengen, with `padding`, `label_spacing`, `label_padding_x`: `COLLECTION.gap` between
-    /// tiles, around a tile's content and on each side of the name; half of it between the icon
-    /// and the name.
     pub spacing: f32,
-    /// Tengen, with `spacing`, `label_spacing`, `label_padding_x`: `COLLECTION.gap` between
-    /// tiles, around a tile's content and on each side of the name; half of it between the icon
-    /// and the name.
     pub padding: f32,
-    /// Tengen, with `spacing`, `padding`, `label_padding_x`: `COLLECTION.gap` between tiles,
-    /// around a tile's content and on each side of the name; half of it between the icon and
-    /// the name.
     pub label_spacing: f32,
-    /// Tengen, with `spacing`, `padding`, `label_spacing`: `COLLECTION.gap` between tiles,
-    /// around a tile's content and on each side of the name; half of it between the icon and
-    /// the name.
     pub label_padding_x: f32,
     /// Tengen: `RoundedRectangle { radius: COLLECTION.radius, style: Circular }`, the tile and
     /// the icon area.

@@ -47,6 +47,7 @@
       },
       "bezel": {
         "disabled-opacity": 0.5,
+        "inline-weight": 600,
         "small-square": {"height": 21, "padding-x": 3.35, "radius": 0, "font-size": 13},
         "textured-rounded": {"height": 20, "padding-x": 7.35, "radius": 10, "font-size": 13},
         "textured-square": {"height": 20, "padding-x": 4.35, "radius": 4.5, "font-size": 13},
@@ -130,8 +131,6 @@
       "title-inset": 3,
       "title-lift": 1,
       "weekday-font-size": 10,
-      "nav-width": 6,
-      "nav-height": 7,
       "dot-size": 7,
       "nav-pitch": 14.5,
       "nav-inset": 2.1,
@@ -194,6 +193,8 @@
       "inset": 10,
       "lead": 16,
       "label-gap": 5,
+      "classic-lead": 15,
+      "classic-label-gap": 3,
       "separator-margin": 6,
       "list-chevron": 11.2,
       "list-chevron-stroke": 1.4,
@@ -600,6 +601,9 @@
       "pill-highlight": ["#ffffff", "#6c6c6c", "#ffffff", "#5d5d5d"],
       "pill-ring": [0.15, 0.2, 0.17, 0.2],
       "pill-highlight-depth": 0.25,
+      "pill-soft-mix": 0.25,
+      "pill-soft-stop": 0.4,
+      "page-inset": 3,
       "box-radius": 5,
       "box-inset-x": 7,
       "box-inset-far": 10,
@@ -665,6 +669,7 @@
     },
     "list-section": {
       "header-height": 28,
+      "header-weight": 600,
       "gap": 20
     },
     "list-group": {

@@ -6,18 +6,14 @@ use ctdesign::{
     LEVEL_TRACK_LIGHT,
 };
 
-use super::{
+use crate::styles::{
     ColorEffect, ControlStyle, ShadowStyle, ShapeStyle, StateValue, per_look, system_effect,
 };
 
 /// States: only `normal`.
 #[derive(Clone, Debug)]
 pub struct CapacityIndicatorStyle {
-    /// Tengen, with `segment_gap`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap`
-    /// between the cells of `discrete`.
     pub height: f32,
-    /// Tengen, with `height`: `LEVEL_INDICATOR.height`, `LEVEL_INDICATOR.segment_gap` between
-    /// the cells of `discrete`.
     pub segment_gap: f32,
     /// Tengen: `LEVEL_RING_RADII`, the corner radius of each of the three rings of an edge and of
     /// the fill inside them.
@@ -29,14 +25,8 @@ pub struct CapacityIndicatorStyle {
     pub bottom: [f32; 4],
     /// Tengen: `Color` of `LEVEL_TRACK`.
     pub track: StateValue<ShapeStyle>,
-    /// Tengen, with `warning`, `critical`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and
-    /// `[2]`, picked by `level_color`.
     pub fill: StateValue<ShapeStyle>,
-    /// Tengen, with `fill`, `critical`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and
-    /// `[2]`, picked by `level_color`.
     pub warning: StateValue<ShapeStyle>,
-    /// Tengen, with `fill`, `warning`: `Color` of `LEVEL_INDICATOR_COLORS[0]`, `[1]` and `[2]`,
-    /// picked by `level_color`.
     pub critical: StateValue<ShapeStyle>,
     /// Tengen: `Some((Color of LEVEL_BORDER, HAIRLINE))`.
     pub border: Option<(ShapeStyle, f32)>,

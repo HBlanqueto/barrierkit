@@ -1,4 +1,4 @@
-use super::ControlStyle;
+use crate::styles::{ControlStyle, Theme, resolve_from};
 use crate::theme::{SurfaceKind, menu_palette, popover_palette, resolved};
 
 pub type MenuStyle = ctdesign::MenuPalette;
@@ -10,8 +10,8 @@ impl ControlStyle for MenuStyle {
 }
 
 pub(crate) fn popover_style() -> MenuStyle {
-    super::resolve_from(
+    resolve_from(
         popover_palette(&resolved(), SurfaceKind::Toplevel),
-        &super::Theme::tengen(),
+        &Theme::tengen(),
     )
 }

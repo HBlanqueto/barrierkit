@@ -1,7 +1,7 @@
 use ctdesign::{BODY, CAPTION, ControlSize, Font, HAIRLINE, Rgba, SPACE_1, TABLE};
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 use crate::style::Palette;
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 /// `OutlineViewStyle` is one style for `OutlineView` and `Browser`, which draw
 /// the same rows; the rows of the font panel of `FontPicker` take it too.
@@ -15,35 +15,16 @@ use crate::style::Palette;
 /// States: only `normal`; selection has its own fields.
 #[derive(Clone, Debug)]
 pub struct TableStyle {
-    /// Tengen, with `row_height`, `padding_x`, `header_spacing`: `TABLE.header_height`,
-    /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a
-    /// header title and its arrow.
     pub header_height: f32,
-    /// Tengen, with `header_height`, `padding_x`, `header_spacing`: `TABLE.header_height`,
-    /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a header
-    /// title and its arrow.
     pub row_height: f32,
-    /// Tengen, with `header_height`, `row_height`, `header_spacing`: `TABLE.header_height`,
-    /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a header
-    /// title and its arrow.
     pub padding_x: f32,
-    /// Tengen, with `header_height`, `row_height`, `padding_x`: `TABLE.header_height`,
-    /// `TABLE.row_height`, `TABLE.padding_x` on each side of a cell, `SPACE_1` between a header
-    /// title and its arrow.
     pub header_spacing: f32,
-    /// Tengen, with `column_shift`: `TABLE.header_padding_x` on each side of a header cell,
-    /// `TABLE.column_shift` more at the leading edge of every column after the first.
     pub header_padding_x: f32,
-    /// Tengen, with `header_padding_x`: `TABLE.column_shift`, the extra leading padding of every
-    /// column after the first, in the header and in the rows.
     pub column_shift: f32,
     /// Tengen: `Role(Label)`.
     pub header_label: StateValue<ShapeStyle>,
-    /// Tengen, with `row_radius`, `body_inset`: `TABLE.row_inset` between the table and the header cells and rows.
     pub row_inset: f32,
-    /// Tengen, with `row_inset`, `body_inset`: `TABLE.row_radius`, the corners of a row.
     pub row_radius: f32,
-    /// Tengen, with `row_inset`, `row_radius`: `TABLE.body_inset` above the first row.
     pub body_inset: f32,
     /// Tengen: `Some((Role(SeparatorStrong), TABLE.header_separator))`, the 1 wide separator
     /// after each header cell, with its height.
@@ -84,10 +65,7 @@ pub struct TableStyle {
     pub sort_arrow: StateValue<ShapeStyle>,
     /// Tengen: `BODY`.
     pub font: Font,
-    /// Tengen, with `icon_spacing`: `TABLE.row_size_icon` of the middle row size, the symbol of an
-    /// icon cell, centered in a `TABLE.icon_box` wide box.
     pub icon_size: f32,
-    /// Tengen, with `icon_size`: `TABLE.icon_gap` between the icon box and its title.
     pub icon_spacing: f32,
     /// Tengen: `None`; `source_list` takes `TABLE.source_list_row_height`, the height of a row by
     /// small, medium and large row size.

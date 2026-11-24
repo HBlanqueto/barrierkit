@@ -1,6 +1,8 @@
 use ctdesign::{BODY, CAPTION, Font, HAIRLINE, SPACE_1, SPACE_2, TEXT_EDITOR};
 
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+};
 
 /// `TextEditor` is drawn like an `NSTextView` in a bordered scroll view: a square
 /// field with a 1 line border inside, whose border does not turn to the accent: the focus
@@ -14,11 +16,7 @@ pub struct TextEditorStyle {
     pub padding_x: f32,
     /// Tengen: `TEXT_EDITOR.padding_y`.
     pub padding_y: f32,
-    /// Tengen, with `find_bar_spacing`: `SPACE_1` between the find bar and the text, `SPACE_2`
-    /// inside the find bar.
     pub spacing: f32,
-    /// Tengen, with `spacing`: `SPACE_1` between the find bar and the text, `SPACE_2` inside
-    /// the find bar.
     pub find_bar_spacing: f32,
     /// Tengen: `Rectangle`; a `Capsule` rounds by half of one line.
     pub shape: Shape,
@@ -29,14 +27,8 @@ pub struct TextEditorStyle {
     pub text: StateValue<ShapeStyle>,
     /// Tengen: `Role(TertiaryLabel)`.
     pub placeholder: StateValue<ShapeStyle>,
-    /// Tengen, with `misspelling`, `caption`: `Accent`, `Role(Destructive)`,
-    /// `Role(SecondaryLabel)` for the match count.
     pub link: StateValue<ShapeStyle>,
-    /// Tengen, with `link`, `caption`: `Accent`, `Role(Destructive)`, `Role(SecondaryLabel)`
-    /// for the match count.
     pub misspelling: StateValue<ShapeStyle>,
-    /// Tengen, with `link`, `misspelling`: `Accent`, `Role(Destructive)`,
-    /// `Role(SecondaryLabel)` for the match count.
     pub caption: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(ControlBorder), HAIRLINE))`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,

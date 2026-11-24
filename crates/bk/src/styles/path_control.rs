@@ -1,15 +1,11 @@
 use ctdesign::{BODY, Font, PATH_CONTROL};
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 /// States: only `normal`.
 #[derive(Clone, Debug)]
 pub struct PathControlStyle {
-    /// Tengen, with `gap`: `PATH_CONTROL.height`, `PATH_CONTROL.gap` between parts and
-    /// chevrons.
     pub height: f32,
-    /// Tengen, with `height`: `PATH_CONTROL.height`, `PATH_CONTROL.gap` between parts and
-    /// chevrons.
     pub gap: f32,
     /// Tengen: `PATH_CONTROL.icon`.
     pub icon_size: f32,

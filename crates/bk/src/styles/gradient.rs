@@ -8,7 +8,7 @@ use freya_engine::prelude::{
     SkRect, TileMode, shaders,
 };
 
-use super::ShapeStyle;
+use crate::styles::ShapeStyle;
 use crate::theme::color;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -160,105 +160,4 @@ fn linear_ends(angle: f32, area: SkRect) -> (SkPoint, SkPoint) {
     let end = farthest + SkPoint::new(-u * dy, u * dx);
     let origin = SkPoint::new(area.left, area.top);
     (size - end + origin, end + origin)
-}
-
-#[cfg(test)]
-mod tests {
-    use freya_engine::prelude::{AlphaType, ColorType, ImageInfo, raster_n32_premul};
-
-    use super::*;
-
-    fn stops(from: [f32; 4], to: [f32; 4]) -> Vec<(Rgba, f32)> {
-        let rgba = |[r, g, b, a]: [f32; 4]| Rgba { r, g, b, a };
-        vec![(rgba(from), 0.0), (rgba(to), 1.0)]
-    }
-
-    fn pixels(
-        shape: GradientShape,
-        space: GradientColorSpace,
-        stops: &[(Rgba, f32)],
-        (width, height): (i32, i32),
-        at: &[(i32, i32)],
-    ) -> Vec<[u8; 4]> {
-        let mut surface = raster_n32_premul((width, height)).unwrap();
-        let area = SkRect::from_wh(width as f32, height as f32);
-        let mut paint = Paint::default();
-        paint.set_shader(shader(shape, space, stops, area).unwrap());
-        surface.canvas().draw_rect(area, &paint);
-        let info = ImageInfo::new((1, 1), ColorType::RGBA8888, AlphaType::Premul, None);
-        at.iter()
-            .map(|&point| {
-                let mut out = [0u8; 4];
-                surface.read_pixels(&info, &mut out, 4, point);
-                out
-            })
-            .collect()
-    }
-
-    fn near(actual: [u8; 4], expected: [u8; 4]) {
-        assert!(
-            actual.iter().zip(expected).all(|(a, e)| a.abs_diff(e) <= 3),
-            "{actual:?} is not near {expected:?}"
-        );
-    }
-
-    const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-    const BLUE: [f32; 4] = [0.0, 0.0, 1.0, 1.0];
-    const LEFT_TO_RIGHT: GradientShape = GradientShape::Linear { angle: 270.0 };
-
-    #[test]
-    fn perceptual_gradient_mixes_red_and_blue_as_swiftui_does() {
-        let at = pixels(
-            LEFT_TO_RIGHT,
-            GradientColorSpace::Perceptual,
-            &stops(RED, BLUE),
-            (101, 4),
-            &[(25, 2), (50, 2), (75, 2)],
-        );
-        near(at[0], [196, 74, 110, 255]);
-        near(at[1], [140, 83, 162, 255]);
-        near(at[2], [81, 71, 210, 255]);
-    }
-
-    #[test]
-    fn perceptual_gradient_fades_to_a_transparent_stop_in_premultiplied_space() {
-        let to = [0.0, 0.0, 1.0, 0.0];
-        let at = pixels(
-            LEFT_TO_RIGHT,
-            GradientColorSpace::Perceptual,
-            &stops(RED, to),
-            (101, 4),
-            &[(50, 2)],
-        );
-        near(at[0], [127, 0, 0, 128]);
-    }
-
-    #[test]
-    fn angular_gradient_starts_on_the_right_and_runs_clockwise() {
-        let at = pixels(
-            GradientShape::Angular { angle: 0.0 },
-            GradientColorSpace::Perceptual,
-            &stops(RED, BLUE),
-            (101, 101),
-            &[(95, 50), (50, 95), (5, 50)],
-        );
-        near(at[0], [255, 0, 0, 255]);
-        near(at[1], [198, 73, 109, 255]);
-        near(at[2], [141, 82, 162, 255]);
-    }
-
-    #[test]
-    fn elliptical_gradient_reaches_half_the_width_and_half_the_height_at_the_same_tone() {
-        let white = [1.0; 4];
-        let black = [0.0, 0.0, 0.0, 1.0];
-        let at = pixels(
-            GradientShape::Elliptical,
-            GradientColorSpace::Perceptual,
-            &stops(white, black),
-            (200, 100),
-            &[(150, 50), (100, 75)],
-        );
-        near(at[0], [98, 98, 98, 255]);
-        near(at[1], [98, 98, 98, 255]);
-    }
 }

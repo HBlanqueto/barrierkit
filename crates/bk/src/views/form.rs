@@ -292,10 +292,6 @@ impl Form {
             sections: vec![section],
             ..scrolling.clone()
         });
-        let scrolling = Form {
-            sections: self.sections.clone(),
-            ..scrolling
-        };
         (pinned, scrolling)
     }
 
@@ -479,63 +475,65 @@ impl Component for FormRow {
             _ => ink(&style.title),
         };
         let mut row_width = use_state(|| 0.0f32);
-        let slider_width =
-            (*row_width.read() - 2.0 * style.row_padding.0) * LIST_GROUP.slider_share;
+        let slider_width = use_reactive(
+            &((*row_width.read() - 2.0 * style.row_padding.0) * LIST_GROUP.slider_share),
+        );
+        let control_theme = use_memo(move || {
+            let slider_width = *slider_width.read();
+            Theme::tengen()
+                .style(|style: PopUpButtonStyle| style.plain())
+                .style(|style: SegmentedControlStyle| SegmentedControlStyle {
+                    equal_segments: true,
+                    selected: style.selected.vibrant(),
+                    ..style
+                })
+                .style(|style: StepperStyle| StepperStyle {
+                    value_position: None,
+                    ..style
+                })
+                .style(|style: DatePickerStyle| style.plain())
+                .style(|style: SwitchStyle| SwitchStyle {
+                    fill: style.fill.vibrant(),
+                    ..style
+                })
+                .style(|style: CheckboxStyle| CheckboxStyle {
+                    fill: style.fill.vibrant(),
+                    ..style
+                })
+                .style(|style: RadioGroupStyle| RadioGroupStyle {
+                    fill: style.fill.vibrant(),
+                    ..style
+                })
+                .style(move |style: SliderStyle| SliderStyle {
+                    fill: style.fill.vibrant(),
+                    width: if slider_width > 0.0 {
+                        slider_width
+                    } else {
+                        style.width
+                    },
+                    ..style
+                })
+        });
+        let right_to_left_state = use_reactive(&right_to_left);
+        let field_theme = use_memo(move || {
+            let right_to_left = *right_to_left_state.read();
+            Theme::tengen().style(move |style: TextFieldStyle| TextFieldStyle {
+                text_align: if right_to_left {
+                    TextAlign::Start
+                } else {
+                    TextAlign::End
+                },
+                ..style.plain()
+            })
+        });
         let accessory: Option<Element> = match &row.accessory {
             Accessory::None | Accessory::Destructive(_) => None,
-            Accessory::Control(element) | Accessory::Leading(element) => Some(
-                StyleScope::new(
-                    Theme::tengen()
-                        .style(|style: PopUpButtonStyle| style.plain())
-                        .style(|style: SegmentedControlStyle| SegmentedControlStyle {
-                            equal_segments: true,
-                            selected: style.selected.vibrant(),
-                            ..style
-                        })
-                        .style(|style: StepperStyle| StepperStyle {
-                            value_position: None,
-                            ..style
-                        })
-                        .style(|style: DatePickerStyle| style.plain())
-                        .style(|style: SwitchStyle| SwitchStyle {
-                            fill: style.fill.vibrant(),
-                            ..style
-                        })
-                        .style(|style: CheckboxStyle| CheckboxStyle {
-                            fill: style.fill.vibrant(),
-                            ..style
-                        })
-                        .style(|style: RadioGroupStyle| RadioGroupStyle {
-                            fill: style.fill.vibrant(),
-                            ..style
-                        })
-                        .style(move |style: SliderStyle| SliderStyle {
-                            fill: style.fill.vibrant(),
-                            width: if slider_width > 0.0 {
-                                slider_width
-                            } else {
-                                style.width
-                            },
-                            ..style
-                        }),
-                    element.clone(),
-                )
-                .into_element(),
-            ),
-            Accessory::Field(element) => Some(
-                StyleScope::new(
-                    Theme::tengen().style(move |style: TextFieldStyle| TextFieldStyle {
-                        text_align: if right_to_left {
-                            TextAlign::Start
-                        } else {
-                            TextAlign::End
-                        },
-                        ..style.plain()
-                    }),
-                    element.clone(),
-                )
-                .into_element(),
-            ),
+            Accessory::Control(element) | Accessory::Leading(element) => {
+                Some(StyleScope::new(control_theme.read().clone(), element.clone()).into_element())
+            }
+            Accessory::Field(element) => {
+                Some(StyleScope::new(field_theme.read().clone(), element.clone()).into_element())
+            }
             Accessory::Value(value) => {
                 Some(text(value.clone(), style.value_font, ink(&style.value)).into_element())
             }
@@ -570,7 +568,7 @@ impl Component for FormRow {
                     .into_element(),
             )
         };
-        let mut labels = rect()
+        let labels = rect()
             .width(match (stacked, field) {
                 (true, _) => Size::fill(),
                 (false, true) => Size::auto(),
@@ -588,12 +586,14 @@ impl Component for FormRow {
                     0.0,
                 ))
             })
-            .child(wrapping(row.title.clone(), style.title_font, title_ink));
-        if let Some(detail) = row.detail.clone() {
-            labels = labels.child(wrapping(detail, style.detail_font, ink(&style.detail)));
-        }
+            .child(wrapping(row.title.clone(), style.title_font, title_ink))
+            .maybe_child(
+                row.detail
+                    .clone()
+                    .map(|detail| wrapping(detail, style.detail_font, ink(&style.detail))),
+            );
 
-        let mut element = rect()
+        let element = rect()
             .on_sized(move |event: Event<SizedEventData>| {
                 row_width.set_if_modified(event.area.width())
             })
@@ -633,23 +633,24 @@ impl Component for FormRow {
                     .maybe_child(row.hover_control.clone().filter(|_| *hovered.read()))
                     .maybe_child(accessory)
                     .into_element(),
-            ));
-        if row.hover_control.is_some() {
-            element = element
-                .on_pointer_over(move |_| hovered.set(true))
-                .on_pointer_out(move |_| hovered.set(false));
-        }
-        if let Some(on_press) = pressable {
-            element = interaction
-                .attach(element, true)
-                .a11y_role(AccessibilityRole::Button)
-                .a11y_alt(&*row.title)
-                .on_press(move |_| on_press.call(()));
-            element = interaction.inner_focus_ring(element);
-        }
-        if self.highlighted {
-            element = element.painted(&paints, &style.highlight);
-        }
+            ))
+            .maybe(row.hover_control.is_some(), |element| {
+                element
+                    .on_pointer_over(move |_| hovered.set(true))
+                    .on_pointer_out(move |_| hovered.set(false))
+            })
+            .map(pressable, |element, on_press| {
+                interaction.inner_focus_ring(
+                    interaction
+                        .attach(element, true)
+                        .a11y_role(AccessibilityRole::Button)
+                        .a11y_alt(&*row.title)
+                        .on_press(move |_| on_press.call(())),
+                )
+            })
+            .maybe(self.highlighted, |element| {
+                element.painted(&paints, &style.highlight)
+            });
         let line = style.separator.clone();
         let separator = (!self.first).then(|| {
             rect()

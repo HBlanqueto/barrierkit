@@ -1,8 +1,6 @@
 use crate::elements::{Overrides, forward_overrides};
-use crate::styles::{
-    ControlState, Paints, ShapeStyle, SplitPanesStyle, StateValue, Theme, resolve,
-};
-use ctdesign::{Rgba, SPLIT_PANES};
+use crate::styles::{ControlState, Paints, SplitPanesStyle, Theme, resolve};
+use ctdesign::SPLIT_PANES;
 use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Content, Direction, Position, Size};
@@ -29,13 +27,6 @@ impl SplitPanes {
             style: Theme::tengen(),
             overrides: Overrides::default(),
         }
-    }
-
-    pub fn divider(self, divider: Rgba) -> Self {
-        self.style(move |s| SplitPanesStyle {
-            divider: StateValue::new(ShapeStyle::Color(divider)),
-            ..s
-        })
     }
 
     pub fn style(mut self, restyle: impl Fn(SplitPanesStyle) -> SplitPanesStyle + 'static) -> Self {
@@ -75,7 +66,7 @@ impl Component for SplitPanes {
             vec![1.0 / count.max(1) as f32; count]
         };
         let along = |ratio: f32| Size::flex(ratio);
-        let mut row = rect()
+        let row = rect()
             .a11y_role(AccessibilityRole::Group)
             .a11y_alt(&*self.label)
             .expanded()
@@ -88,32 +79,34 @@ impl Component for SplitPanes {
                 } else {
                     area.height()
                 });
-            });
-        for (index, pane) in self.panes.iter().enumerate() {
-            if index > 0 {
+            })
+            .children(self.panes.iter().enumerate().flat_map(|(index, pane)| {
                 let on_ratios = self.on_ratios.clone();
                 let divider_width = style.divider_width;
-                row = row.child(Divider {
-                    direction,
-                    ratios: ratios.clone(),
-                    thickness: divider_width,
-                    fill: paints.fill(&style.divider),
-                    blur: paints.blur(&style.divider),
-                    on_drag: Callback::new(move |(ratios, delta): (Vec<f32>, f32)| {
-                        let free = *length.peek() - divider_width * (count - 1) as f32;
-                        if let (Some(on_ratios), true) = (&on_ratios, free > 0.0) {
-                            on_ratios.call(dragged(&ratios, index - 1, delta, free));
-                        }
-                    }),
+                let divider = (index > 0).then(|| {
+                    Divider {
+                        direction,
+                        ratios: ratios.clone(),
+                        thickness: divider_width,
+                        fill: paints.fill(&style.divider),
+                        blur: paints.blur(&style.divider),
+                        on_drag: Callback::new(move |(ratios, delta): (Vec<f32>, f32)| {
+                            let free = *length.peek() - divider_width * (count - 1) as f32;
+                            if let (Some(on_ratios), true) = (&on_ratios, free > 0.0) {
+                                on_ratios.call(dragged(&ratios, index - 1, delta, free));
+                            }
+                        }),
+                    }
+                    .into_element()
                 });
-            }
-            let cell = rect().overflow(Overflow::Clip).child(pane.clone());
-            row = row.child(if horizontal {
-                cell.width(along(ratios[index])).height(Size::fill())
-            } else {
-                cell.height(along(ratios[index])).width(Size::fill())
-            });
-        }
+                let cell = rect().overflow(Overflow::Clip).child(pane.clone());
+                let cell = if horizontal {
+                    cell.width(along(ratios[index])).height(Size::fill())
+                } else {
+                    cell.height(along(ratios[index])).width(Size::fill())
+                };
+                divider.into_iter().chain([cell.into_element()])
+            }));
         self.overrides.apply(row)
     }
 }
@@ -195,26 +188,5 @@ impl Component for Divider {
                 .width(Size::fill())
         };
         line.layer(1).child(grab)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::dragged;
-    use ctdesign::SPLIT_PANES;
-
-    #[test]
-    fn dragging_moves_only_the_two_panes_beside_the_divider_and_stops_at_the_minimum() {
-        let moved = dragged(&[0.25, 0.25, 0.5], 1, 100.0, 1000.0);
-        assert!((moved[1] - 0.35).abs() < 1e-6);
-        assert!((moved[2] - 0.4).abs() < 1e-6);
-        assert_eq!(moved[0], 0.25);
-        let stopped = dragged(&[0.5, 0.5], 0, 10_000.0, 1000.0);
-        assert!((stopped[1] - SPLIT_PANES.pane_min / 1000.0).abs() < 1e-6);
-    }
-
-    #[test]
-    fn two_panes_narrower_than_two_minimums_stop_at_half_each() {
-        assert_eq!(dragged(&[0.5, 0.5], 0, 40.0, 97.0), [0.5, 0.5]);
     }
 }

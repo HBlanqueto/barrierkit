@@ -1,6 +1,6 @@
 use ctdesign::{CAPTION, Font, HAIRLINE, SETTINGS, SWITCH};
 
-use super::{
+use crate::styles::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     system_effect,
 };

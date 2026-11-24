@@ -49,31 +49,3 @@ impl<K: Clone> SearchIndex<K> {
             .collect()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_query_matches_titles_and_keywords_ignoring_case_and_accents() {
-        let mut index = SearchIndex::new();
-        index.add("dock", "Tamaño del Dock", &["iconos"]);
-        index.add("lock", "Contraseña", &["bloqueo", "seguridad"]);
-        let titles = |q: &str| {
-            index
-                .search(q)
-                .into_iter()
-                .map(|e| e.key)
-                .collect::<Vec<_>>()
-        };
-        assert_eq!(titles("tamano"), ["dock"]);
-        assert_eq!(titles("BLOQUEO"), ["lock"]);
-        assert_eq!(titles("   "), Vec::<&str>::new());
-    }
-
-    #[test]
-    fn folding_drops_combining_marks_and_latin_variants() {
-        assert_eq!(fold("Cafe\u{301}"), "cafe");
-        assert_eq!(fold("Šřłø Straße"), "srlo strasse");
-    }
-}

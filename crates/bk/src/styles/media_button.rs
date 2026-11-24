@@ -1,10 +1,8 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, BUTTON, DURATION_FAST_MS, Font, MEDIA};
 
-use super::button::rounded;
-use super::{
-    Animation, ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue,
-    reduce_motion, system_effect,
+use crate::styles::button::rounded;
+use crate::styles::{
+    Animation, ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
 
 /// The media buttons sit on artwork, so their Tengen paints are fixed colors.
@@ -68,12 +66,5 @@ impl ControlStyle for MediaButtonStyle {
                 duration_ms: DURATION_FAST_MS,
             },
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

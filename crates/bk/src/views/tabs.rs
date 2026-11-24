@@ -154,10 +154,9 @@ impl TabView {
             TAB_VIEW.box_inset_near,
             TAB_VIEW.box_inset_x,
         ];
-        let page_in = 3.0;
+        let page_in = TAB_VIEW.page_inset;
         let half = style.strip_height / 2.0;
         let past = style.strip_inset + style.strip_height + style.page_gap;
-        // Gaps::new is (top, right, bottom, left).
         let (frame, content) = match tab_type {
             TabType::Top => (
                 Gaps::new(style.strip_inset + half, side, far, side),

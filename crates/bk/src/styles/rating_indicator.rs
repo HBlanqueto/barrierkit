@@ -1,6 +1,6 @@
 use ctdesign::LEVEL_INDICATOR;
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct RatingIndicatorStyle {
@@ -9,9 +9,7 @@ pub struct RatingIndicatorStyle {
     pub star_size: (f32, f32),
     /// Tengen: `LEVEL_INDICATOR.star_drop`: how far below the center of its square each star sits.
     pub star_drop: f32,
-    /// Tengen, with `empty_star`: `star` `Role(SecondaryLabel)`, `empty_star` `Role(SystemFill)`.
     pub star: StateValue<ShapeStyle>,
-    /// Tengen, with `star`: `star` `Role(SecondaryLabel)`, `empty_star` `Role(SystemFill)`.
     pub empty_star: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,

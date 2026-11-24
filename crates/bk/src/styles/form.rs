@@ -1,11 +1,11 @@
 use ctdesign::{BODY, CAPTION, Font, HAIRLINE, HEADLINE, LIST_GROUP, Rgba, SPACE_3};
 
-use super::{
+use crate::backdrop::tinted;
+use crate::style::Palette;
+use crate::styles::{
     ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, appearance_index,
     system_effect,
 };
-use crate::backdrop::tinted;
-use crate::style::Palette;
 
 /// `FormStyle` draws the whole `Form`: its sections and their rows. `Section`
 /// and `Row` are data and take no style.

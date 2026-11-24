@@ -1,7 +1,9 @@
 use ctdesign::SIDEBAR;
 
-use super::button::rounded;
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
+use crate::styles::button::rounded;
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+};
 
 #[derive(Clone, Debug)]
 pub struct SymbolTileStyle {
@@ -11,9 +13,7 @@ pub struct SymbolTileStyle {
     pub symbol_size: f32,
     /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_tile_radius, style: Circular }`.
     pub shape: Shape,
-    /// Tengen, with `symbol`: `background` `Accent`, `symbol` `Role(OnAccent)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`: `background` `Accent`, `symbol` `Role(OnAccent)`.
     pub symbol: StateValue<ShapeStyle>,
     /// Tengen: `border` `None`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,

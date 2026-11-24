@@ -1,7 +1,9 @@
 use ctdesign::{BODY, CAPTION, Font, SETTINGS, SIDEBAR, SPACE_2};
 
-use super::button::rounded;
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
+use crate::styles::button::rounded;
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+};
 use crate::theme::{SurfaceKind, over_glass, popover_palette};
 
 /// `SettingsWindow` is built from styled views: its sidebar takes
@@ -25,16 +27,8 @@ pub struct SettingsWindowStyle {
     pub toolbar_spacing: f32,
     /// Tengen: `SPACE_2` between the sidebar toggle and the arrows.
     pub navigation_spacing: f32,
-    /// Tengen, with `popover_max_height`, `popover_padding`: `SETTINGS.search_popover_gap`
-    /// under the field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu
-    /// palette.
     pub popover_gap: f32,
-    /// Tengen, with `popover_gap`, `popover_padding`: `SETTINGS.search_popover_gap` under the
-    /// field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu palette.
     pub popover_max_height: f32,
-    /// Tengen, with `popover_gap`, `popover_max_height`: `SETTINGS.search_popover_gap` under
-    /// the field, `SETTINGS.search_popover_max_height`, the `padding` of the popover menu
-    /// palette.
     pub popover_padding: f32,
     /// Tengen: `SETTINGS.search_header_height`.
     pub header_height: f32,

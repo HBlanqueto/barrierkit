@@ -5,7 +5,7 @@ use ctdesign::{
 };
 use torin::prelude::Alignment;
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 /// `Titlebar` has two bars: the centered one (no sidebar) and the one beside a
 /// sidebar (`.with_sidebar(true)`). Its paints are `focused` while the window is

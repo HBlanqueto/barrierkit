@@ -1,8 +1,10 @@
 use ctdesign::{CAPTION, Font, GROUP_BOX, HAIRLINE, Rgba};
 
-use super::button::continuous_rounded;
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
 use crate::style::Palette;
+use crate::styles::button::continuous_rounded;
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+};
 
 #[derive(Clone, Debug)]
 pub struct GroupBoxStyle {

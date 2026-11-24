@@ -1,10 +1,8 @@
-use ctappearance::{Resolved, SidebarSurface};
+use ctappearance::SidebarSurface;
 use ctdesign::{DURATION_BASE, SETTINGS, SIDEBAR};
 
-use super::{
-    Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, reduce_motion, system_effect,
-};
 use crate::sidebar::over_backdrop;
+use crate::styles::{Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
 
 /// The sidebar is flat and full height, as in macOS 27: no inset, rim or edge line.
 ///
@@ -66,12 +64,5 @@ impl ControlStyle for SidebarStyle {
             },
         }
         .surface(over_backdrop(crate::theme::resolved().sidebar))
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

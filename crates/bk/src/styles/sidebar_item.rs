@@ -1,8 +1,8 @@
 use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SIDEBAR};
 
-use super::button::continuous_rounded;
-use super::{ColorEffect, ControlStyle, Shape, ShapeStyle, StateValue, system_effect};
+use crate::styles::button::continuous_rounded;
+use crate::styles::{ColorEffect, ControlStyle, Shape, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct SidebarItemStyle {
@@ -16,25 +16,9 @@ pub struct SidebarItemStyle {
     pub spacing: f32,
     /// Tengen: `RoundedRectangle { radius: SIDEBAR.item_radius, style: Continuous }`.
     pub shape: Shape,
-    /// Tengen, with `selected_background`, `label`, `selected_label`: `background` `Clear`;
-    /// `selected_background` `Color` of the selection; `label`,
-    /// `selected_label` `Color` of the item and selected ink. In an inactive window the
-    /// inactive colors.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `label`, `selected_label`: `background` `Clear`;
-    /// `selected_background` `Color` of the selection; `label`,
-    /// `selected_label` `Color` of the item and selected ink. In an inactive window the
-    /// inactive colors.
     pub selected_background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `selected_background`, `selected_label`: `background`
-    /// `Clear`; `selected_background` `Color` of the selection;
-    /// `label`, `selected_label` `Color` of the item and selected ink. In an inactive window
-    /// the inactive colors.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `selected_background`, `label`: `background` `Clear`;
-    /// `selected_background` `Color` of the selection; `label`,
-    /// `selected_label` `Color` of the item and selected ink. In an inactive window the
-    /// inactive colors.
     pub selected_label: StateValue<ShapeStyle>,
     /// Tengen: `SIDEBAR.item_glyph`, the symbol drawn without a tile.
     pub symbol_size: f32,

@@ -1,11 +1,11 @@
 use ctdesign::{BODY, CAPTION, ControlSize, Font, Rgba, SPACE_2, TAB_VIEW, TOOLBAR_TABS};
 
-use super::button::{continuous_rounded, rounded};
-use super::{
-    ColorEffect, ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, system_effect,
-};
 use crate::style::Palette;
+use crate::styles::button::{continuous_rounded, rounded};
+use crate::styles::{
+    ColorEffect, ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle,
+    StateValue, appearance_index, system_effect,
+};
 
 /// Where the tabs are, like `NSTabView.TabType`: a strip of segments on one side of a bezel box,
 /// the icon-over-title tabs of a settings window, or a box without tabs.
@@ -25,14 +25,8 @@ pub enum TabType {
 pub struct TabViewStyle {
     /// Tengen: `Top`.
     pub tab_type: TabType,
-    /// Tengen, with `spacing`, `content_spacing`: `0` inside the strip; `TOOLBAR_TABS.padding`
-    /// in `toolbar`; `TOOLBAR_TABS.gap` between tabs and `SPACE_2` between the strip and the
-    /// page there.
     pub padding: f32,
-    /// Tengen, with `padding`, `content_spacing`: `0` between tabs; `TOOLBAR_TABS.gap` in
-    /// `toolbar`.
     pub spacing: f32,
-    /// Tengen, with `padding`, `spacing`: `0`, the page sits in the box; `SPACE_2` in `toolbar`.
     pub content_spacing: f32,
     /// Tengen: `0`; `TOOLBAR_TABS.tab_min_width` in `toolbar`.
     pub tab_min_width: f32,
@@ -106,35 +100,18 @@ fn label_at(opacity: f32) -> ShapeStyle {
 
 fn over_window(opacity: f32) -> ShapeStyle {
     let palette = Palette::current();
-    ShapeStyle::Color(mix(
-        palette.window_background,
-        Rgba {
-            a: palette.window_background.a,
-            ..palette.label
-        },
-        opacity,
-    ))
-}
-
-fn mix(from: Rgba, to: Rgba, amount: f32) -> Rgba {
-    let blend = |from: f32, to: f32| from + (to - from) * amount;
-    Rgba {
-        r: blend(from.r, to.r),
-        g: blend(from.g, to.g),
-        b: blend(from.b, to.b),
-        a: blend(from.a, to.a),
-    }
+    ShapeStyle::Color(palette.window_background.mix(palette.label, opacity))
 }
 
 fn pill() -> StateValue<ShapeStyle> {
     let (fill, highlight) = (
-        TAB_VIEW.pill_fill[super::appearance_index()],
-        TAB_VIEW.pill_highlight[super::appearance_index()],
+        TAB_VIEW.pill_fill[appearance_index()],
+        TAB_VIEW.pill_highlight[appearance_index()],
     );
     let depth = TAB_VIEW.pill_highlight_depth;
     let (edge, soft, base) = (
         ShapeStyle::Color(highlight),
-        ShapeStyle::Color(mix(fill, highlight, 0.25)),
+        ShapeStyle::Color(fill.mix(highlight, TAB_VIEW.pill_soft_mix)),
         ShapeStyle::Color(fill),
     );
     StateValue::new(ShapeStyle::Gradient(
@@ -142,10 +119,10 @@ fn pill() -> StateValue<ShapeStyle> {
             0.0,
             vec![
                 (edge.clone(), 0.0),
-                (soft.clone(), 0.4 * depth),
+                (soft.clone(), TAB_VIEW.pill_soft_stop * depth),
                 (base.clone(), depth),
                 (base, 1.0 - depth),
-                (soft, 1.0 - 0.4 * depth),
+                (soft, 1.0 - TAB_VIEW.pill_soft_stop * depth),
                 (edge, 1.0),
             ],
         )
@@ -205,7 +182,7 @@ impl TabViewStyle {
 
 impl ControlStyle for TabViewStyle {
     fn tengen() -> Self {
-        let mode = super::appearance_index();
+        let mode = appearance_index();
         Self {
             tab_type: TabType::Top,
             padding: 0.0,

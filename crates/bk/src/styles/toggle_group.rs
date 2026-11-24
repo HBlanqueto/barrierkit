@@ -1,7 +1,7 @@
 use ctdesign::{BODY, Font, ICON_BUTTON, LARGE_TITLE, SEGMENTED};
 
-use super::button::continuous_rounded;
-use super::{
+use crate::styles::button::continuous_rounded;
+use crate::styles::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     system_effect,
 };
@@ -16,17 +16,11 @@ pub struct ToggleGroupStyle {
     pub gap: f32,
     /// Tengen: `(ICON_BUTTON.size, SEGMENTED.segment_height)`.
     pub item_size: (f32, f32),
-    /// Tengen, with `item_shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub shape: Shape,
-    /// Tengen, with `shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub item_shape: Shape,
     /// Tengen: `Role(ControlBackground)`, behind the items.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `selected`: `Clear` for a toggle that is off, `Accent` for one that is on.
     pub item: StateValue<ShapeStyle>,
-    /// Tengen, with `item`: `Clear` for a toggle that is off, `Accent` for one that is on.
     pub selected: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
@@ -42,11 +36,7 @@ pub struct ToggleGroupStyle {
     pub effect: ColorEffect,
     /// Tengen: `Horizontal`; `Vertical` stacks the toggles.
     pub axis: Axis,
-    /// Tengen, with `bold_font`: `BODY` with `SEGMENTED.font_weight`; `BODY` with
-    /// `LARGE_TITLE.weight` for `Face::Bold`; `line_height` has no effect.
     pub font: Font,
-    /// Tengen, with `font`: `BODY` with `SEGMENTED.font_weight`; `BODY` with
-    /// `LARGE_TITLE.weight` for `Face::Bold`; `line_height` has no effect.
     pub bold_font: Font,
 }
 

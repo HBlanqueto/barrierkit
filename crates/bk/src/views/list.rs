@@ -1,4 +1,4 @@
-use ctdesign::{LABEL_GAP, LABEL_ICON_WIDTH, LIST_SECTION, SUBHEADLINE, TABLE};
+use ctdesign::{Font, LABEL_GAP, LABEL_ICON_WIDTH, LIST_SECTION, SUBHEADLINE, TABLE};
 use freya_core::prelude::*;
 use std::any::TypeId;
 use std::borrow::Cow;
@@ -99,19 +99,14 @@ impl Component for List {
         let mut table = Table::new(self.label.clone(), vec![""])
             .rows(self.rows.iter().map(|row| vec![row.clone()]).collect())
             .selected(self.selected.clone())
-            .scroll_bar(self.scroll_bar);
-        table.list_rows = self.list_rows.clone();
-        let table = match &self.row {
-            Some(row) => {
-                let row = row.clone();
+            .scroll_bar(self.scroll_bar)
+            .map(self.row.clone(), |table, row| {
                 table.cell(0, move |index| row.call(index))
-            }
-            None => table,
-        };
-        let table = match &self.on_select {
-            Some(callback) => table.on_select(callback.clone()),
-            None => table,
-        };
+            })
+            .map(self.on_select.clone(), |table, callback| {
+                table.on_select(callback)
+            });
+        table.list_rows = self.list_rows.clone();
         self.overrides
             .delegate(table.themed(self.row_theme()))
             .into_element()
@@ -161,24 +156,16 @@ impl List {
                 let mut table = Table::new(self.label.clone(), vec![""])
                     .rows(rows.iter().map(|row| vec![row.clone()]).collect())
                     .selected(selected)
-                    .scroll_bar(false);
-                table.list_rows = self.list_rows.shifted(offset);
-                let table = match &self.row {
-                    Some(row) => {
-                        let row = row.clone();
+                    .scroll_bar(false)
+                    .map(self.row.clone(), |table, row| {
                         table.cell(0, move |local| row.call(local + offset))
-                    }
-                    None => table,
-                };
-                let table = match &self.on_select {
-                    Some(callback) => {
-                        let callback = callback.clone();
+                    })
+                    .map(self.on_select.clone(), |table, callback| {
                         table.on_select(move |local: Vec<usize>| {
                             callback.call(local.into_iter().map(|row| row + offset).collect())
                         })
-                    }
-                    None => table,
-                };
+                    });
+                table.list_rows = self.list_rows.shifted(offset);
                 let top = if index == 0 {
                     style.body_inset
                 } else {
@@ -194,7 +181,14 @@ impl List {
                             .height(Size::px(LIST_SECTION.header_height))
                             .padding(Gaps::new(0.0, style.padding_x, 0.0, style.padding_x))
                             .main_align(Alignment::Center)
-                            .child(text(title.clone(), SUBHEADLINE, header_ink).font_weight(600))
+                            .child(text(
+                                title.clone(),
+                                Font {
+                                    weight: LIST_SECTION.header_weight,
+                                    ..SUBHEADLINE
+                                },
+                                header_ink,
+                            ))
                             .child(row_divider(
                                 paints.fill(&StateValue::new(ShapeStyle::Role(Role::Separator))),
                                 style.separator_margin.0,

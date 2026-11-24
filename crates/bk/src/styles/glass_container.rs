@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{DURATION_BASE, MEDIA};
 
-use super::{
+use crate::styles::{
     Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, reduce_motion, system_effect,
 };
 

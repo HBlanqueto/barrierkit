@@ -1,9 +1,6 @@
-use ctappearance::Resolved;
 use ctdesign::{DURATION_BASE, FULLSCREEN_GLASS, FullscreenGlassMetrics};
 
-use super::{
-    Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, reduce_motion, system_effect,
-};
+use crate::styles::{Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct FullscreenBarStyle {
@@ -30,12 +27,5 @@ impl ControlStyle for FullscreenBarStyle {
                 curve: crate::animation::ease_out,
             },
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

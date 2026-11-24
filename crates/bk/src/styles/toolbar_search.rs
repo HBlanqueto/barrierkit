@@ -1,11 +1,11 @@
 use ctdesign::TOOLBAR_SEARCH_WIDTH;
 
-use super::ControlStyle;
+use crate::styles::ControlStyle;
 
 /// The open field is a `SearchField` and draws from the `SearchFieldStyle` in
 /// context; the collapsed button is an `IconButton` and draws from the
 /// `IconButtonStyle` in context. Change them with `.control_style` around the
-/// toolbar search:
+/// toolbar search.
 #[derive(Clone, Debug)]
 pub struct ToolbarSearchStyle {
     /// Tengen: `TOOLBAR_SEARCH_WIDTH`, the width of the open field.

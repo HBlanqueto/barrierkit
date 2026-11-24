@@ -1,7 +1,7 @@
 use ctdesign::{Font, HAIRLINE, SETTINGS, SWITCH};
 
-use super::button::rounded;
-use super::{
+use crate::styles::button::rounded;
+use crate::styles::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     system_effect,
 };
@@ -38,11 +38,7 @@ pub struct ChoiceCardsStyle {
     pub axis: Axis,
     /// Tengen: `false`; `true` starts a new line when the next one does not fit.
     pub wraps: bool,
-    /// Tengen, with `selected_caption_font`: `SETTINGS.card_caption_font`, the same with
-    /// `SETTINGS.card_caption_selected_weight`.
     pub caption_font: Font,
-    /// Tengen, with `caption_font`: `SETTINGS.card_caption_font`, the same with
-    /// `SETTINGS.card_caption_selected_weight`.
     pub selected_caption_font: Font,
 }
 

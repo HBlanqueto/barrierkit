@@ -1,10 +1,10 @@
 use ctappearance::backdrop::ink_on;
 use ctdesign::{Font, HEADLINE, SETTINGS};
 
-use super::{
+use crate::style::Palette;
+use crate::styles::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
-use crate::style::Palette;
 
 #[derive(Clone, Debug)]
 pub struct AvatarStyle {
@@ -12,11 +12,7 @@ pub struct AvatarStyle {
     pub size: f32,
     /// Tengen: `Circle`.
     pub shape: Shape,
-    /// Tengen, with `label`: `background` `Role(SecondaryLabel)`, `label` `Color` of the ink
-    /// that contrasts with the secondary label.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`: `background` `Role(SecondaryLabel)`, `label` `Color` of the
-    /// ink that contrasts with the secondary label.
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `None`.
     pub border: Option<(ShapeStyle, f32)>,

@@ -1,6 +1,6 @@
 use ctdesign::{BADGE, CAPTION, Font};
 
-use super::{
+use crate::styles::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
 
@@ -12,9 +12,7 @@ pub struct BadgeStyle {
     pub padding_x: f32,
     /// Tengen: `Capsule`.
     pub shape: Shape,
-    /// Tengen, with `label`: `background` `Role(Destructive)`, `label` `Role(OnAccent)`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`: `background` `Role(Destructive)`, `label` `Role(OnAccent)`.
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `None`.
     pub border: Option<(ShapeStyle, f32)>,

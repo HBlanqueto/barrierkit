@@ -1,7 +1,7 @@
 use ctdesign::{BODY, BUTTON, COLOR_PICKER, Font, SPACE_2, SPLIT_VIEW};
 
-use super::button::{continuous_rounded, rounded};
-use super::{
+use crate::styles::button::{continuous_rounded, rounded};
+use crate::styles::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
 

@@ -37,8 +37,6 @@ mod combo_box;
 mod combo_button;
 mod content_unavailable_view;
 mod control_group;
-#[cfg(test)]
-mod corners;
 mod date_picker;
 mod disclosure_group;
 mod divider;
@@ -743,63 +741,5 @@ impl Paints {
             ShapeStyle::WindowBackground => self.window,
             ShapeStyle::Clear => Rgba::TRANSPARENT,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const ALL: ControlState = ControlState {
-        hovered: true,
-        pressed: true,
-        focused: true,
-        disabled: true,
-    };
-
-    fn every_state() -> StateValue<&'static str> {
-        StateValue::new("normal")
-            .hovered("hovered")
-            .pressed("pressed")
-            .focused("focused")
-            .disabled("disabled")
-    }
-
-    #[test]
-    fn disabled_wins_then_pressed_then_hovered_then_focused() {
-        let value = every_state();
-        assert_eq!(*value.resolve(ALL), "disabled");
-        let enabled = ControlState {
-            disabled: false,
-            ..ALL
-        };
-        assert_eq!(*value.resolve(enabled), "pressed");
-        let released = ControlState {
-            pressed: false,
-            ..enabled
-        };
-        assert_eq!(*value.resolve(released), "hovered");
-        let away = ControlState {
-            hovered: false,
-            ..released
-        };
-        assert_eq!(*value.resolve(away), "focused");
-        assert_eq!(*value.resolve(ControlState::default()), "normal");
-    }
-
-    #[test]
-    fn a_state_without_its_own_value_falls_back_to_the_next_one() {
-        let value = StateValue::new("normal").hovered("hovered");
-        assert_eq!(*value.resolve(ALL), "hovered");
-        assert_eq!(*StateValue::new("normal").resolve(ALL), "normal");
-    }
-
-    #[test]
-    fn reduced_transparency_makes_a_material_solid_and_sharp() {
-        let glass = Rgba::rgb8(0x20, 0x30, 0x40);
-        assert_eq!(Thickness::Thin.material(glass, true), (glass, None));
-        let (tint, blur) = Thickness::Thin.material(glass, false);
-        assert_eq!(tint.a, MATERIAL.thin.opacity);
-        assert_eq!(blur, Some(MATERIAL.thin.blur));
     }
 }

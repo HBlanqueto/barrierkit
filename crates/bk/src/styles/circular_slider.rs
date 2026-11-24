@@ -1,6 +1,8 @@
 use ctdesign::CIRCULAR_SLIDER;
 
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
+};
 
 /// States: hovered, pressed, focused, disabled.
 #[derive(Clone, Debug)]

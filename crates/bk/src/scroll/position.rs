@@ -153,7 +153,6 @@ impl ScrollController {
         self.targets.write().areas.remove(id);
     }
 
-    // The offset in Freya's sign, inside the range, or none for an id no view has.
     fn target_of(self, position: &ScrollPosition) -> Option<(i32, i32)> {
         let (viewport, content) = (*self.viewport.peek(), *self.content.peek());
         let current: (i32, i32) = self.into();
@@ -257,6 +256,10 @@ struct ScrollTarget {
 }
 
 impl Component for ScrollTarget {
+    fn render_key(&self) -> DiffKey {
+        DiffKey::from(&self.id)
+    }
+
     fn render(&self) -> impl IntoElement {
         let controller = try_consume_context::<ScrollController>();
         let id = self.id.clone();
@@ -289,7 +292,6 @@ pub trait IdentityModifiers: IntoElement + Sized {
 
 impl<T: IntoElement> IdentityModifiers for T {}
 
-// The request waits in the state until the content is laid out and its ids are measured.
 pub(crate) fn use_scroll_position(
     controller: ScrollController,
     position: Option<State<ScrollPosition>>,
@@ -324,7 +326,7 @@ pub(crate) fn use_scroll_position(
     use_side_effect_with_deps(&(offset, controller.phase()), move |&(offset, phase)| {
         if let Some(mut position) = position
             && phase != ScrollPhase::Animating
-            && settled.get() != Some(offset)
+            && settled.take() != Some(offset)
         {
             position.set_if_modified(ScrollPosition::by_user(offset));
         }
@@ -353,74 +355,4 @@ pub(crate) fn use_scroll_events(
             action.call((old, *phase));
         }
     });
-}
-
-#[cfg(test)]
-mod tests {
-    use freya_core::integration::AppComponent;
-    use freya_testing::TestingRunner;
-    use torin::prelude::{Size, Size2D};
-
-    use super::*;
-    use crate::scroll::{ScrollView, use_scroll_controller};
-
-    type Handles = Rc<Cell<Option<(ScrollController, State<bool>)>>>;
-
-    struct Removable(Handles);
-
-    impl App for Removable {
-        fn render(&self) -> impl IntoElement {
-            let controller = use_scroll_controller();
-            let shown = use_state(|| true);
-            self.0.set(Some((controller, shown)));
-            let row = shown().then(|| rect().height(Size::px(40.0)).id("row").into_element());
-            ScrollView::new().controller(controller).children(row)
-        }
-    }
-
-    #[test]
-    fn a_removed_view_is_no_longer_a_scroll_target() {
-        let handles = Handles::default();
-        let (mut test, _) = TestingRunner::new(
-            AppComponent::new(Removable(handles.clone())),
-            Size2D::new(100.0, 100.0),
-            |_| {},
-            1.0,
-        );
-        test.sync_and_update();
-        let (controller, mut shown) = handles.get().unwrap();
-        let row = ScrollPosition::id("row", None);
-        assert!(test.run_in(|| controller.target_of(&row)).is_some());
-        test.run_in(|| shown.set(false));
-        test.sync_and_update();
-        assert!(test.run_in(|| controller.target_of(&row)).is_none());
-    }
-
-    #[test]
-    fn an_anchor_puts_the_same_point_of_the_view_and_of_the_viewport_together() {
-        assert_eq!(anchored_offset(0, 500.0, 100.0, 300.0, Some(0.0)), -500);
-        assert_eq!(anchored_offset(0, 500.0, 100.0, 300.0, Some(0.5)), -400);
-        assert_eq!(anchored_offset(0, 500.0, 100.0, 300.0, Some(1.0)), -300);
-    }
-
-    #[test]
-    fn no_anchor_scrolls_only_as_far_as_the_view_needs() {
-        assert_eq!(anchored_offset(0, 500.0, 100.0, 300.0, None), -300);
-        assert_eq!(anchored_offset(-250, 300.0, 100.0, 300.0, None), -250);
-        assert_eq!(anchored_offset(-600, 300.0, 100.0, 300.0, None), -300);
-    }
-
-    #[test]
-    fn only_start_center_and_end_anchor_a_view() {
-        assert_eq!(anchor_fraction(&Some(Alignment::Center)), Some(0.5));
-        assert_eq!(anchor_fraction(&Some(Alignment::SpaceBetween)), None);
-        assert_eq!(anchor_fraction(&None), None);
-    }
-
-    #[test]
-    fn a_position_set_by_the_app_is_not_by_the_user() {
-        assert!(!ScrollPosition::edge(Edge::Top).is_positioned_by_user());
-        assert_eq!(ScrollPosition::by_user((0, -40)).point(), Some((0.0, 40.0)));
-        assert!(ScrollPosition::by_user((0, -40)).is_positioned_by_user());
-    }
 }

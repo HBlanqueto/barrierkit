@@ -1,7 +1,7 @@
 use ctappearance::traffic::{self, ButtonVisual, TrafficInput};
 use ctdesign::{Rgba, TITLEBAR, TRAFFIC_GLYPH_FADE_MS, TRAFFIC_RING_WIDTH, TrafficHalo};
 
-use super::{Animation, Axis, ControlStyle, StateValue};
+use crate::styles::{Animation, Axis, ControlStyle, StateValue};
 
 /// `looks` holds one `ButtonVisual` per light, in the order close, minimize, zoom.
 ///

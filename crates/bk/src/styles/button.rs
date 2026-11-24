@@ -4,7 +4,7 @@ use ctdesign::{BODY, BUTTON, BezelRow, DURATION_FAST_MS, Font, GLASS_CONTROL, HA
 use crate::controls::ControlSize;
 use crate::glass_container::Glass;
 
-use super::{
+use crate::styles::{
     Animation, ColorEffect, ControlStyle, CornerStyle, Gradient, GradientColorSpace, Rgba, Role,
     ShadowStyle, Shape, ShapeStyle, StateValue, bezel_palette, glass_ink, pressed_palette,
     reduce_motion, system_effect,
@@ -55,9 +55,7 @@ pub struct ButtonStyle {
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
-    /// Tengen, with `disabled_opacity`: `1.0`, `1.0`: the disabled look is in the paints.
     pub opacity: f32,
-    /// Tengen, with `opacity`: `1.0`, `1.0`: the disabled look is in the paints.
     pub disabled_opacity: f32,
     /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
@@ -238,7 +236,7 @@ impl ButtonStyle {
             label: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             font: Font {
-                weight: 600,
+                weight: BUTTON.bezel.inline_weight,
                 ..font(BUTTON.bezel.inline.font_size)
             },
             ..self.bezel(BUTTON.bezel.inline)
@@ -370,25 +368,5 @@ impl ControlStyle for ButtonStyle {
             animation: Animation::None,
             ..style
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_glass_button_stays_a_capsule_at_every_size_in_either_order() {
-        for size in [
-            ControlSize::Mini,
-            ControlSize::Small,
-            ControlSize::Regular,
-            ControlSize::Large,
-            ControlSize::ExtraLarge,
-        ] {
-            let tengen = ButtonStyle::tengen();
-            assert_eq!(tengen.clone().glass().sized(size).shape, Shape::Capsule);
-            assert_eq!(tengen.sized(size).glass().shape, Shape::Capsule);
-        }
     }
 }

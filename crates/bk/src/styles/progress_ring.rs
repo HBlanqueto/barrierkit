@@ -3,7 +3,9 @@ use ctdesign::{
     RING_TRACK_DARK_TINT, RING_TRACK_LIGHT,
 };
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, per_look, system_effect};
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, per_look, system_effect,
+};
 
 #[derive(Clone, Debug)]
 pub struct ProgressRingStyle {

@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{BODY, Font};
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 /// These views wrap `label()` or `rect()` and keep Freya's methods. They resolve
 /// their style when they are built, against the theme and the `.control_style`

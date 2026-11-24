@@ -1,9 +1,8 @@
-use ctappearance::Resolved;
 use ctdesign::{BUTTON, DURATION_FAST_MS, HELP_LINK};
 
-use super::{
+use crate::styles::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    pressed_palette, reduce_motion, system_effect,
+    pressed_palette, system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -51,12 +50,5 @@ impl ControlStyle for HelpLinkStyle {
                 duration_ms: DURATION_FAST_MS,
             },
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

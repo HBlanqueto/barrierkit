@@ -4,7 +4,9 @@ use ctdesign::{
     DISCLOSURE_TRIANGLE_LIGHT, Font,
 };
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, per_look, system_effect};
+use crate::styles::{
+    ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, per_look, system_effect,
+};
 
 pub(super) fn disclosure_triangle() -> StateValue<ShapeStyle> {
     StateValue::new(ShapeStyle::Color(per_look(

@@ -4,8 +4,8 @@ use ctdesign::{
     TOKEN_FILL_DARK_TINT, TOKEN_FILL_LIGHT,
 };
 
-use super::text_field::field_shape;
-use super::{
+use crate::styles::text_field::field_shape;
+use crate::styles::{
     ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     per_look, system_effect,
 };
@@ -40,11 +40,7 @@ pub struct TokenFieldStyle {
     pub text: StateValue<ShapeStyle>,
     /// Tengen: `Role(SecondaryLabel)`.
     pub placeholder: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_token`: `Color(TOKEN_FILL)` (`TOKEN_FILL_CONTRAST` under Increase
-    /// Contrast), `Accent`.
     pub token: StateValue<ShapeStyle>,
-    /// Tengen, with `token`: `Color(TOKEN_FILL)` (`TOKEN_FILL_CONTRAST` under Increase Contrast),
-    /// `Accent`.
     pub selected_token: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub token_label: StateValue<ShapeStyle>,

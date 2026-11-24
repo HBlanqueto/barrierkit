@@ -1,6 +1,6 @@
 use ctdesign::{BODY, DISCLOSURE, Font, HAIRLINE, SPACE_1};
 
-use super::{
+use crate::styles::{
     ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
 };
 
@@ -68,8 +68,8 @@ impl OutlineViewStyle {
     pub fn classic() -> Self {
         Self {
             row_separator: None,
-            lead_width: 15.0,
-            spacing: 3.0,
+            lead_width: DISCLOSURE.classic_lead,
+            spacing: DISCLOSURE.classic_label_gap,
             icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             selected_icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
                 .focused(ShapeStyle::Role(Role::OnSelectedContent)),

@@ -1,7 +1,7 @@
 use ctdesign::{HAIRLINE, IMAGE_WELL};
 
-use super::button::rounded;
-use super::{
+use crate::styles::button::rounded;
+use crate::styles::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
 

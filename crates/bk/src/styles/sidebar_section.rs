@@ -1,9 +1,6 @@
-use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SIDEBAR, SPRING_SHEET_MS};
 
-use super::{
-    Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, reduce_motion, system_effect,
-};
+use crate::styles::{Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct SidebarSectionStyle {
@@ -15,9 +12,7 @@ pub struct SidebarSectionStyle {
     pub padding_x: f32,
     /// Tengen: `chevron`.
     pub chevron_size: f32,
-    /// Tengen, with `chevron`: `title`, `chevron`: `Color` of the section ink.
     pub title: StateValue<ShapeStyle>,
-    /// Tengen, with `title`: `title`, `chevron`: `Color` of the section ink.
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `system_effect`.
     pub effect: ColorEffect,
@@ -48,12 +43,5 @@ impl ControlStyle for SidebarSectionStyle {
                 bounce: 0.0,
             },
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

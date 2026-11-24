@@ -1,12 +1,12 @@
-use ctappearance::{ColorScheme, Resolved, palette};
+use ctappearance::{ColorScheme, palette};
 use ctdesign::{DURATION_BASE, Font, HAIRLINE, SHADOW, SHADOW_DARK, TITLEBAR, TITLEBAR_RAIL};
 
-use super::button::rounded;
-use super::{
-    Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    reduce_motion, system_effect,
-};
 use crate::chrome::{RailStyle, RestingEdge, Reveal, TitlebarLayout};
+use crate::styles::button::rounded;
+use crate::styles::{
+    Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    system_effect,
+};
 use crate::theme::{SurfaceKind, surface_background};
 
 /// `WindowChrome::new(child).style(..)` takes the layout and the look of the
@@ -27,23 +27,10 @@ pub struct WindowChromeStyle {
     pub resting_edge: RestingEdge,
     /// Tengen: `TITLEBAR_RAIL.width`, at least `TITLEBAR_RAIL.actions_width` with rail items.
     pub rail_width: f32,
-    /// Tengen, with `rail_padding_bottom`, `rail_spacing`: `TITLEBAR_RAIL.padding_top`,
-    /// `TITLEBAR_RAIL.padding_bottom`, `TITLEBAR.buttons.spacing`; the unified column takes the
-    /// last two.
     pub rail_padding_top: f32,
-    /// Tengen, with `rail_padding_top`, `rail_spacing`: `TITLEBAR_RAIL.padding_top`,
-    /// `TITLEBAR_RAIL.padding_bottom`, `TITLEBAR.buttons.spacing`; the unified column takes the
-    /// last two.
     pub rail_padding_bottom: f32,
-    /// Tengen, with `rail_padding_top`, `rail_padding_bottom`: `TITLEBAR_RAIL.padding_top`,
-    /// `TITLEBAR_RAIL.padding_bottom`, `TITLEBAR.buttons.spacing`; the unified column takes the
-    /// last two.
     pub rail_spacing: f32,
-    /// Tengen, with `pill_padding`: `TITLEBAR_RAIL.pill_inset`, `(pill_padding_x,
-    /// pill_padding_y)` of the `Popup` pill.
     pub pill_inset: f32,
-    /// Tengen, with `pill_inset`: `TITLEBAR_RAIL.pill_inset`, `(pill_padding_x,
-    /// pill_padding_y)` of the `Popup` pill.
     pub pill_padding: (f32, f32),
     /// Tengen: `RoundedRectangle { radius: TITLEBAR_RAIL.pill_radius, style: Circular }`.
     pub pill_shape: Shape,
@@ -129,12 +116,5 @@ impl ControlStyle for WindowChromeStyle {
                 duration_ms: DURATION_BASE,
             },
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

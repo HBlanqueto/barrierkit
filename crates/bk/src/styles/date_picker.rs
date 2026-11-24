@@ -8,9 +8,9 @@ use ctdesign::{
     DATE_PICKER, Font, HAIRLINE, HEADLINE, LIST_GROUP, MENU_POPOVER, STEPPER,
 };
 
-use super::button::rounded;
-use super::text_field::field_shape;
-use super::{
+use crate::styles::button::rounded;
+use crate::styles::text_field::field_shape;
+use crate::styles::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, StepperStyle,
     per_look, system_effect,
 };
@@ -52,9 +52,6 @@ pub struct DatePickerStyle {
     /// Tengen: `(DATE_PICKER.title_inset, DATE_PICKER.title_lift)`: the space before the month and
     /// year, and how far it sits above the center of the header.
     pub title_offset: (f32, f32),
-    /// Tengen: `(DATE_PICKER.nav_width, DATE_PICKER.nav_height)`, the triangles of the month
-    /// arrows.
-    pub nav_size: (f32, f32),
     /// Tengen: `DATE_PICKER.dot_size`, the circle that goes to today.
     pub dot_size: f32,
     /// Tengen: `(DATE_PICKER.nav_pitch, DATE_PICKER.nav_inset)`: the distance between the centers
@@ -75,38 +72,16 @@ pub struct DatePickerStyle {
     pub calendar_edge: StateValue<ShapeStyle>,
     /// Tengen: `Color(CALENDAR.separator)`, the line under the weekdays.
     pub calendar_separator: StateValue<ShapeStyle>,
-    /// Tengen, with `segment_shape`, `day_shape`: `RoundedRectangle` of `TEXT_FIELD.radius`,
-    /// `DATE_PICKER.segment_radius` and `DATE_PICKER.day_radius`, all `Circular`.
     pub shape: Shape,
-    /// Tengen, with `shape`, `day_shape`: `RoundedRectangle` of `TEXT_FIELD.radius`,
-    /// `DATE_PICKER.segment_radius` and `DATE_PICKER.day_radius`, all `Circular`.
     pub segment_shape: Shape,
-    /// Tengen, with `shape`, `segment_shape`: `RoundedRectangle` of `TEXT_FIELD.radius`,
-    /// `DATE_PICKER.segment_radius` and `DATE_PICKER.day_radius`, all `Circular`.
     pub day_shape: Shape,
-    /// Tengen, with `text`, `separator`: `Color(DATE_FIELD)` (`DATE_FIELD_CONTRAST` under
-    /// Increase Contrast), `Role(Label)`, `Role(Label)` the `/` and `:`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `separator`: `Color(DATE_FIELD)` (`DATE_FIELD_CONTRAST` under
-    /// Increase Contrast), `Role(Label)`, `Role(Label)` the `/` and `:`.
     pub text: StateValue<ShapeStyle>,
-    /// Tengen, with `background`, `text`: `Color(DATE_FIELD)` (`DATE_FIELD_CONTRAST` under
-    /// Increase Contrast), `Role(Label)`, `Role(Label)` the `/` and `:`.
     pub separator: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_text`: `Accent`, `Role(OnAccent)`: the chosen part while the
-    /// field has focus.
     pub selected_segment: StateValue<ShapeStyle>,
-    /// Tengen, with `selected_segment`: `Accent`, `Role(OnAccent)`: the chosen part while the
-    /// field has focus.
     pub selected_text: StateValue<ShapeStyle>,
-    /// Tengen, with `chevron`, `weekday`: `Role(Label)` the month, `Role(SecondaryLabel)`,
-    /// `Role(SecondaryLabel)`.
     pub title: StateValue<ShapeStyle>,
-    /// Tengen, with `title`, `weekday`: `Role(Label)` the month, `Role(SecondaryLabel)`,
-    /// `Role(SecondaryLabel)`.
     pub chevron: StateValue<ShapeStyle>,
-    /// Tengen, with `title`, `chevron`: `Role(Label)` the month, `Role(SecondaryLabel)`,
-    /// `Role(SecondaryLabel)`.
     pub weekday: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub day: StateValue<ShapeStyle>,
@@ -121,18 +96,10 @@ pub struct DatePickerStyle {
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
-    /// Tengen, with `effect`: `1.0`, `system_effect`, for the field.
     pub opacity: f32,
-    /// Tengen, with `opacity`: `1.0`, `system_effect`, for the field.
     pub effect: ColorEffect,
-    /// Tengen, with `title_font`, `day_font`: `BODY`, `HEADLINE`, `CAPTION` for the days and
-    /// weekdays.
     pub font: Font,
-    /// Tengen, with `font`, `day_font`: `BODY`, `HEADLINE`, `CAPTION` for the days and
-    /// weekdays.
     pub title_font: Font,
-    /// Tengen, with `font`, `title_font`: `BODY`, `HEADLINE`, `CAPTION` at the weight of `BODY` for the
-    /// days.
     pub day_font: Font,
     /// Tengen: `CAPTION` at `DATE_PICKER.weekday_font_size` and the weight of `HEADLINE`, for the
     /// weekdays.
@@ -149,12 +116,13 @@ impl DatePickerStyle {
     }
 
     pub(crate) fn sized(self, size: ControlSize) -> Self {
-        let row = match size {
-            ControlSize::Mini => DATE_PICKER.mini,
-            ControlSize::Small => DATE_PICKER.small,
-            ControlSize::Regular => return self,
-            ControlSize::Large => DATE_PICKER.large,
-            ControlSize::ExtraLarge => DATE_PICKER.xl,
+        let Some(row) = size.row([
+            DATE_PICKER.mini,
+            DATE_PICKER.small,
+            DATE_PICKER.large,
+            DATE_PICKER.xl,
+        ]) else {
+            return self;
         };
         Self {
             height: row.height,
@@ -218,7 +186,6 @@ impl ControlStyle for DatePickerStyle {
             column_width: DATE_PICKER.column_width,
             grid_inset: (DATE_PICKER.grid_left, DATE_PICKER.grid_gap),
             title_offset: (DATE_PICKER.title_inset, DATE_PICKER.title_lift),
-            nav_size: (DATE_PICKER.nav_width, DATE_PICKER.nav_height),
             dot_size: DATE_PICKER.dot_size,
             nav_spacing: (DATE_PICKER.nav_pitch, DATE_PICKER.nav_inset),
             selected_size: (DATE_PICKER.selected_width, DATE_PICKER.selected_height),

@@ -1,8 +1,8 @@
 use ctappearance::Resolved;
 use ctdesign::{BACKDROP, DURATION_SLOW_MS};
 
-use super::{Animation, ControlStyle, reduce_motion};
 use crate::animation::ease_in_out;
+use crate::styles::{Animation, ControlStyle, reduce_motion};
 
 /// The colors of a `Backdrop` come from its source: they are content. The
 /// palette it gives its content has no style.

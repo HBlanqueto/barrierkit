@@ -172,6 +172,7 @@
   --bk-button-popup-xl-pulldown-drop: 0.9;
   --bk-button-popup-xl-label-lift: 0.5;
   --bk-button-bezel-disabled-opacity: 0.5;
+  --bk-button-bezel-inline-weight: 600;
   --bk-button-bezel-small-square-height: 21;
   --bk-button-bezel-small-square-padding-x: 3.35;
   --bk-button-bezel-small-square-radius: 0;
@@ -295,8 +296,6 @@
   --bk-date-picker-title-inset: 3;
   --bk-date-picker-title-lift: 1;
   --bk-date-picker-weekday-font-size: 10;
-  --bk-date-picker-nav-width: 6;
-  --bk-date-picker-nav-height: 7;
   --bk-date-picker-dot-size: 7;
   --bk-date-picker-nav-pitch: 14.5;
   --bk-date-picker-nav-inset: 2.1;
@@ -347,6 +346,8 @@
   --bk-disclosure-inset: 10;
   --bk-disclosure-lead: 16;
   --bk-disclosure-label-gap: 5;
+  --bk-disclosure-classic-lead: 15;
+  --bk-disclosure-classic-label-gap: 3;
   --bk-disclosure-separator-margin: 6;
   --bk-disclosure-list-chevron: 11.2;
   --bk-disclosure-list-chevron-stroke: 1.4;
@@ -936,6 +937,9 @@
   --bk-tab-view-pill-ring-2: 0.17;
   --bk-tab-view-pill-ring-3: 0.2;
   --bk-tab-view-pill-highlight-depth: 0.25;
+  --bk-tab-view-pill-soft-mix: 0.25;
+  --bk-tab-view-pill-soft-stop: 0.4;
+  --bk-tab-view-page-inset: 3;
   --bk-tab-view-box-radius: 5;
   --bk-tab-view-box-inset-x: 7;
   --bk-tab-view-box-inset-far: 10;
@@ -1018,6 +1022,7 @@
   --bk-split-view-grip-line-inset: 18;
   --bk-split-view-key-step: 10;
   --bk-list-section-header-height: 28;
+  --bk-list-section-header-weight: 600;
   --bk-list-section-gap: 20;
   --bk-list-group-radius: 12.5;
   --bk-list-group-row-min-height: 36;

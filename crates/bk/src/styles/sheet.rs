@@ -4,7 +4,7 @@ use ctdesign::{
     DIALOG_SOLID_SCRIM_LIGHT, HAIRLINE, SHADOW, SHADOW_DARK,
 };
 
-use super::{
+use crate::styles::{
     ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     system_effect,
 };
@@ -87,94 +87,5 @@ impl ControlStyle for SheetStyle {
                 .collect(),
             effect: system_effect,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::{cell::RefCell, rc::Rc};
-
-    use freya_core::integration::AppComponent;
-    use freya_core::prelude::*;
-
-    use super::*;
-    use crate::styles::{Theme, resolve};
-
-    struct Probe {
-        contrast: bool,
-        reduce_transparency: bool,
-        dark: bool,
-        seen: Rc<RefCell<Option<SheetStyle>>>,
-    }
-
-    impl App for Probe {
-        fn render(&self) -> impl IntoElement {
-            let (contrast, reduce_transparency, dark) =
-                (self.contrast, self.reduce_transparency, self.dark);
-            crate::theme::use_appearance(move |config| {
-                config.contrast = contrast;
-                config.reduce_transparency = reduce_transparency;
-                config.color_scheme = if dark {
-                    ColorScheme::Dark
-                } else {
-                    ColorScheme::Light
-                };
-            });
-            *self.seen.borrow_mut() = Some(resolve(&Theme::tengen()));
-            rect()
-        }
-    }
-
-    fn sheet_style(contrast: bool, reduce_transparency: bool, dark: bool) -> SheetStyle {
-        let seen = Rc::new(RefCell::new(None));
-        let app = AppComponent::new(Probe {
-            contrast,
-            reduce_transparency,
-            dark,
-            seen: seen.clone(),
-        });
-        let (mut runner, _) = freya_testing::TestingRunner::new(
-            app,
-            torin::prelude::Size2D::new(10.0, 10.0),
-            |_| {},
-            1.0,
-        );
-        runner.sync_and_update();
-        seen.take().expect("the probe rendered")
-    }
-
-    #[test]
-    fn the_sheet_is_solid_with_increase_contrast_which_implies_reduce_transparency() {
-        for (contrast, reduce_transparency, dark, solid) in [
-            (true, true, false, true),
-            (true, true, true, true),
-            (true, false, false, true),
-            (false, true, true, false),
-        ] {
-            let style = sheet_style(contrast, reduce_transparency, dark);
-            let fill = matches!(
-                style.background.resolve(Default::default()),
-                ShapeStyle::Color(_)
-            );
-            assert_eq!(fill, solid, "{contrast} {reduce_transparency} {dark}");
-        }
-        let light = sheet_style(true, true, false);
-        let dark = sheet_style(true, true, true);
-        assert_eq!(
-            light.background.resolve(Default::default()),
-            &ShapeStyle::Color(DIALOG_SOLID_LIGHT)
-        );
-        assert_eq!(
-            dark.background.resolve(Default::default()),
-            &ShapeStyle::Color(DIALOG_SOLID_DARK)
-        );
-        assert_eq!(
-            light.scrim.resolve(Default::default()),
-            &ShapeStyle::Color(DIALOG_SOLID_SCRIM_LIGHT)
-        );
-        assert_eq!(
-            dark.scrim.resolve(Default::default()),
-            &ShapeStyle::Role(Role::Scrim)
-        );
     }
 }

@@ -333,6 +333,20 @@ pub enum ControlSize {
     ExtraLarge,
 }
 
+impl ControlSize {
+    /// The row of `[mini, small, large, xl]` for this size; `None` at `Regular`, which is the
+    /// component's own fields.
+    pub fn row<T>(self, [mini, small, large, xl]: [T; 4]) -> Option<T> {
+        match self {
+            Self::Mini => Some(mini),
+            Self::Small => Some(small),
+            Self::Regular => None,
+            Self::Large => Some(large),
+            Self::ExtraLarge => Some(xl),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SliderMetrics {
     pub height: f32,
@@ -555,6 +569,7 @@ pub struct BezelRow {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BezelMetrics {
     pub disabled_opacity: f32,
+    pub inline_weight: u16,
     pub small_square: BezelRow,
     pub textured_rounded: BezelRow,
     pub textured_square: BezelRow,
@@ -942,8 +957,6 @@ pub struct DatePickerMetrics {
     pub title_inset: f32,
     pub title_lift: f32,
     pub weekday_font_size: u32,
-    pub nav_width: f32,
-    pub nav_height: f32,
     pub dot_size: f32,
     pub nav_pitch: f32,
     pub nav_inset: f32,
@@ -1028,6 +1041,8 @@ pub struct DisclosureMetrics {
     pub inset: f32,
     pub lead: f32,
     pub label_gap: f32,
+    pub classic_lead: f32,
+    pub classic_label_gap: f32,
     pub separator_margin: f32,
     pub list_chevron: f32,
     pub list_chevron_stroke: f32,
@@ -1318,6 +1333,7 @@ pub const SCROLL_SETTLED_SPEED: f32 = 0.002;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ListSectionMetrics {
     pub header_height: f32,
+    pub header_weight: u16,
     pub gap: f32,
 }
 
@@ -1453,6 +1469,9 @@ pub struct TabViewMetrics {
     pub pill_highlight: [Rgba; 4],
     pub pill_ring: [f32; 4],
     pub pill_highlight_depth: f32,
+    pub pill_soft_mix: f32,
+    pub pill_soft_stop: f32,
+    pub page_inset: f32,
     pub box_radius: f32,
     pub box_inset_x: f32,
     pub box_inset_far: f32,

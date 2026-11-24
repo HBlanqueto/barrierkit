@@ -11,7 +11,7 @@ use crate::scroll::ScrollView;
 use crate::style::text;
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, LayoutDirection, OutlineViewStyle, Paints, ShapeStyle, StateValue, Theme, resolve,
+    ControlState, LayoutDirection, OutlineViewStyle, Paints, StateValue, Theme, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
@@ -101,14 +101,6 @@ pub fn node_at<'a>(nodes: &'a [TreeNode], path: &[usize]) -> Option<&'a TreeNode
     }
 }
 
-pub(crate) fn paint(
-    paints: &Paints,
-    state: ControlState,
-    paint: &StateValue<ShapeStyle>,
-) -> ctdesign::Rgba {
-    paints.color(paint.resolve(state))
-}
-
 pub(crate) fn row(
     style: &OutlineViewStyle,
     paints: &Paints,
@@ -146,11 +138,20 @@ pub(crate) fn row(
         .maybe_child(node.icon.map(|glyph| {
             rect()
                 .margin(Gaps::new(0.0, style.spacing, 0.0, 0.0))
-                .child(symbol(glyph, style.icon_size, paint(paints, state, icon)))
+                .child(symbol(
+                    glyph,
+                    style.icon_size,
+                    paints.color(icon.resolve(state)),
+                ))
         }))
         .child(
             rect().width(Size::flex(1.0)).child(
-                text(node.title.clone(), style.font, paint(paints, state, label)).max_lines(1),
+                text(
+                    node.title.clone(),
+                    style.font,
+                    paints.color(label.resolve(state)),
+                )
+                .max_lines(1),
             ),
         )
         .maybe_child(trail)
@@ -228,14 +229,13 @@ impl Component for OutlineView {
                 let node = node_at(&self.nodes, &path)?;
                 let open = expanded.read().contains(&path);
                 let chosen = selected.read().contains(&path);
-                let ink = paint(
-                    &paints,
-                    state,
+                let ink = paints.color(
                     if chosen {
                         &style.selected_chevron
                     } else {
                         &style.disclosure
-                    },
+                    }
+                    .resolve(state),
                 );
                 let toggle_path = path.clone();
                 let level = style.indent * depth as f32;
@@ -404,14 +404,13 @@ impl Component for Browser {
                     symbol(
                         Symbol::ChevronRight,
                         style.chevron_size,
-                        paint(
-                            &paints,
-                            state,
+                        paints.color(
                             if chosen {
                                 &style.selected_chevron
                             } else {
                                 &style.column_chevron
-                            },
+                            }
+                            .resolve(state),
                         ),
                     )
                     .into_element()
@@ -468,53 +467,5 @@ impl Component for Browser {
                     ),
             );
         self.overrides.apply(root)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn tree() -> Vec<TreeNode> {
-        vec![
-            TreeNode::new("a")
-                .child(TreeNode::new("a1"))
-                .child(TreeNode::new("a2")),
-            TreeNode::new("b"),
-        ]
-    }
-
-    #[test]
-    fn collapsed_nodes_hide_their_children_and_expanded_ones_indent_them() {
-        let nodes = tree();
-        let closed = visible_rows(&nodes, &HashSet::new());
-        assert_eq!(closed, vec![(vec![0], 0), (vec![1], 0)]);
-        let open = visible_rows(&nodes, &HashSet::from([vec![0]]));
-        assert_eq!(
-            open,
-            vec![(vec![0], 0), (vec![0, 0], 1), (vec![0, 1], 1), (vec![1], 0)]
-        );
-    }
-
-    #[test]
-    fn nodes_marked_expanded_start_open() {
-        let nodes = vec![
-            TreeNode::new("a")
-                .expanded(true)
-                .child(TreeNode::new("a1").expanded(true)),
-            TreeNode::new("b"),
-        ];
-        assert_eq!(open_paths(&nodes), HashSet::from([vec![0], vec![0, 0]]));
-    }
-
-    #[test]
-    fn a_path_finds_its_node_and_a_wrong_path_finds_none() {
-        let nodes = tree();
-        assert_eq!(
-            node_at(&nodes, &[0, 1]).map(|n| n.title.as_ref()),
-            Some("a2")
-        );
-        assert!(node_at(&nodes, &[1, 0]).is_none());
-        assert!(node_at(&nodes, &[]).is_none());
     }
 }

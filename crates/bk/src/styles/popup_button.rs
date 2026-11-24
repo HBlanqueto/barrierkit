@@ -1,7 +1,7 @@
 use ctdesign::{BODY, BUTTON, ControlSize, Font, LIST_GROUP, SYMBOL};
 
-use super::button::sized_shape;
-use super::{
+use crate::styles::button::sized_shape;
+use crate::styles::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
     system_effect,
 };
@@ -10,11 +10,7 @@ use super::{
 /// (`docs/barrierkit/07-menus-and-popovers.md`).
 #[derive(Clone, Debug)]
 pub struct PopUpButtonStyle {
-    /// Tengen, with `gap`: `BUTTON.height`, `BUTTON.popup.regular.gap` between the
-    /// icon, the label and the indicator.
     pub height: f32,
-    /// Tengen, with `height`: `BUTTON.height`, `BUTTON.popup.regular.gap` between the
-    /// icon, the label and the indicator.
     pub gap: f32,
     /// Tengen: `BUTTON.padding_x`, before the icon or the label. After the indicator the padding
     /// is `(height - indicator_size) / 2`, so the indicator sits as far from the end as from

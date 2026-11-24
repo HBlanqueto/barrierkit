@@ -3,7 +3,7 @@ use ctdesign::{BAR_TRACK_DARK, BAR_TRACK_DARK_TINT, BAR_TRACK_LIGHT, ControlSize
 
 use crate::animation::ease_in_out;
 
-use super::{
+use crate::styles::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     per_scheme, reduce_motion, system_effect,
 };

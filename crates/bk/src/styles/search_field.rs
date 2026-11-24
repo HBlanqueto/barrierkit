@@ -3,7 +3,7 @@ use ctdesign::{
     SEARCH_FIELD, SETTINGS, TEXT_FIELD,
 };
 
-use super::{
+use crate::styles::{
     ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, per_scheme, system_effect,
 };
 
@@ -33,9 +33,7 @@ pub struct SearchFieldStyle {
     pub text: StateValue<ShapeStyle>,
     /// Tengen: `Role(SecondaryLabel)`.
     pub placeholder: StateValue<ShapeStyle>,
-    /// Tengen, with `clear_icon`: `Role(SecondaryLabel)` magnifying glass and clear button.
     pub icon: StateValue<ShapeStyle>,
-    /// Tengen, with `icon`: `Role(TextBackground)`, the cross cut out of the clear button's disc.
     pub clear_icon: StateValue<ShapeStyle>,
     /// Tengen: `SETTINGS.search_clear`, the diameter of the clear button's disc, and
     /// `SETTINGS.search_clear_glyph` and `SETTINGS.search_clear_glyph_stroke`, the size and line
@@ -56,12 +54,13 @@ pub struct SearchFieldStyle {
 
 impl SearchFieldStyle {
     pub(crate) fn sized(self, size: ControlSize) -> Self {
-        let row = match size {
-            ControlSize::Mini => SEARCH_FIELD.mini,
-            ControlSize::Small => SEARCH_FIELD.small,
-            ControlSize::Regular => return self,
-            ControlSize::Large => SEARCH_FIELD.large,
-            ControlSize::ExtraLarge => SEARCH_FIELD.xl,
+        let Some(row) = size.row([
+            SEARCH_FIELD.mini,
+            SEARCH_FIELD.small,
+            SEARCH_FIELD.large,
+            SEARCH_FIELD.xl,
+        ]) else {
+            return self;
         };
         Self {
             height: row.height,

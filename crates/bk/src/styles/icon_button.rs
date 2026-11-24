@@ -3,10 +3,10 @@ use ctdesign::{
     BUTTON, DURATION_FAST_MS, HAIRLINE, ICON_BUTTON, SYMBOL, TOOLBAR_ITEM_HIGHLIGHT, TOOLGROUP,
 };
 
-use super::button::rounded;
-use super::{
+use crate::styles::button::rounded;
+use crate::styles::{
     Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    pressed_palette, reduce_motion, show_borders, system_effect,
+    pressed_palette, show_borders, system_effect,
 };
 
 /// States: pressed, focused, disabled; hovered in a toolbar on native glass. `ToolbarOverflow` is an
@@ -128,11 +128,7 @@ impl ControlStyle for IconButtonStyle {
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
-        let style = reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        });
-        show_borders(style, appearance, |style| Self {
+        show_borders(self, appearance, |style| Self {
             border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             ..style
         })

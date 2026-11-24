@@ -1,6 +1,6 @@
 use ctdesign::{FULLSCREEN_GLASS, FullscreenGlassMetrics};
 
-use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct TopGlassStyle {

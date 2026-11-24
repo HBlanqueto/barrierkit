@@ -4,7 +4,7 @@ use ctdesign::{
     CONTENT_UNAVAILABLE_ICON_LINE, CONTENT_UNAVAILABLE_TITLE, Font,
 };
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct ContentUnavailableViewStyle {

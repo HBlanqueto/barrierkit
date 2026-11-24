@@ -294,7 +294,19 @@ impl Component for SplitView {
                 .child(self.sidebar.clone())
         };
 
-        let mut root = rect()
+        let lead = if overlay { 0.0 } else { container * shown };
+        let trail = if native_panes && self.inspector.is_some() {
+            style.inspector_width * inspector_shown
+        } else {
+            0.0
+        };
+        let line = || {
+            rect()
+                .width(Size::px(style.inspector_line.1))
+                .height(Size::fill())
+                .background(paints.fill(&StateValue::new(style.inspector_line.0.clone())))
+        };
+        let root = rect()
             .expanded()
             .direction(Direction::Horizontal)
             .cursor((*dragging.read() || *content_dragging.read()).then_some(CursorIcon::ColResize))
@@ -303,7 +315,7 @@ impl Component for SplitView {
                 window_width.set_if_modified(event.area.size.width);
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
-                let edge = event.global_location().x as f32 + style.grip_width / 2.0;
+                let edge = event.element_location().x as f32 + style.grip_width / 2.0;
                 if *dragging.read() {
                     resize_to(edge);
                 }
@@ -324,160 +336,145 @@ impl Component for SplitView {
                 } else if event.key == Key::Named(NamedKey::Escape) {
                     control.dismiss();
                 }
-            });
-
-        let lead = if overlay { 0.0 } else { container * shown };
-        let trail = if native_panes && self.inspector.is_some() {
-            style.inspector_width * inspector_shown
-        } else {
-            0.0
-        };
-        if let Some(extension) = self
-            .extension
-            .as_ref()
-            .filter(|_| lead > 0.0 || trail > 0.0)
-        {
-            let detail = *detail_area.read();
-            let detail_width = detail.width().max(1.0);
-            let laid_out = |left: f32| {
+            })
+            .maybe_child(
+                self.extension
+                    .as_ref()
+                    .filter(|_| lead > 0.0 || trail > 0.0)
+                    .map(|extension| {
+                        let detail = *detail_area.read();
+                        let detail_width = detail.width().max(1.0);
+                        let laid_out = |left: f32| {
+                            rect()
+                                .position(Position::new_absolute().left(left).top(0.0))
+                                .width(Size::px(detail_width))
+                                .height(Size::fill())
+                                .child(extension.clone())
+                        };
+                        let stretched =
+                            |left: f32, width: f32, column: f32, origin: TransformOrigin| {
+                                rect()
+                                    .position(Position::new_absolute().left(left).top(0.0))
+                                    .width(Size::px(1.0))
+                                    .height(Size::fill())
+                                    .overflow(Overflow::Clip)
+                                    .scale((width, 1.0))
+                                    .transform_origin(origin)
+                                    .child(laid_out(-column))
+                            };
+                        rect()
+                            .position(Position::new_absolute().left(0.0).top(0.0))
+                            .width(if native_panes {
+                                Size::fill()
+                            } else {
+                                Size::px(lead)
+                            })
+                            .height(Size::percent(100.0))
+                            .overflow(Overflow::Clip)
+                            .maybe_child((lead > 0.0).then(|| {
+                                stretched(lead - 1.0, lead, 0.0, TransformOrigin::right())
+                            }))
+                            .maybe_child((trail > 0.0).then(|| {
+                                stretched(
+                                    detail.max_x(),
+                                    trail,
+                                    detail_width - 1.0,
+                                    TransformOrigin::left(),
+                                )
+                            }))
+                    }),
+            )
+            .maybe_child((!overlay && shown > 0.0).then(|| {
                 rect()
-                    .position(Position::new_absolute().left(left).top(0.0))
-                    .width(Size::px(detail_width))
+                    .width(Size::px(container * shown))
                     .height(Size::fill())
-                    .child(extension.clone())
-            };
-            let stretched = |left: f32, width: f32, column: f32, origin: TransformOrigin| {
-                rect()
-                    .position(Position::new_absolute().left(left).top(0.0))
-                    .width(Size::px(1.0))
-                    .height(Size::fill())
-                    .overflow(Overflow::Clip)
-                    .scale((width, 1.0))
-                    .transform_origin(origin)
-                    .child(laid_out(-column))
-            };
-            root = root.child(
-                rect()
-                    .position(Position::new_absolute().left(0.0).top(0.0))
-                    .width(if native_panes {
-                        Size::fill()
-                    } else {
-                        Size::px(lead)
-                    })
-                    .height(Size::percent(100.0))
-                    .overflow(Overflow::Clip)
-                    .maybe_child(
-                        (lead > 0.0)
-                            .then(|| stretched(lead - 1.0, lead, 0.0, TransformOrigin::right())),
-                    )
-                    .maybe_child((trail > 0.0).then(|| {
-                        stretched(
-                            detail.max_x(),
-                            trail,
-                            detail_width - 1.0,
-                            TransformOrigin::left(),
-                        )
-                    })),
-            );
-        }
-        if !overlay && shown > 0.0 {
-            root =
-                root.child(
-                    rect()
-                        .width(Size::px(container * shown))
-                        .height(Size::fill())
-                        .maybe(shown < 1.0, |el| el.overflow(Overflow::Clip))
-                        .offset_x(container * (shown - 1.0))
-                        .child(sidebar().maybe_child((self.resizable && shown >= 1.0).then(
-                            || ColumnGrip {
+                    .maybe(shown < 1.0, |el| el.overflow(Overflow::Clip))
+                    .offset_x(container * (shown - 1.0))
+                    .child(
+                        sidebar().maybe_child((self.resizable && shown >= 1.0).then(|| {
+                            ColumnGrip {
                                 edge: container,
                                 width: *sidebar_width.read(),
                                 dragging,
                                 resize: Callback::new(resize_to),
                                 style: self.style.clone(),
-                            },
-                        ))),
-                );
-        }
-        let line = || {
-            rect()
-                .width(Size::px(style.inspector_line.1))
-                .height(Size::fill())
-                .background(paints.fill(&StateValue::new(style.inspector_line.0.clone())))
-        };
-        if let Some(content) = &self.content {
-            root = root
-                .child(
-                    rect()
-                        .width(Size::px(content_column))
-                        .height(Size::fill())
-                        .child(content.clone())
-                        .maybe_child(self.resizable.then(|| ColumnGrip {
-                            edge: content_column,
-                            width: content_column,
-                            dragging: content_dragging,
-                            resize: Callback::new(move |width: f32| {
-                                content_width.set(width.clamp(min_width, max_width))
-                            }),
-                            style: self.style.clone(),
+                            }
                         })),
-                )
-                .child(line());
-        }
-        root = root.child(
-            rect()
-                .width(Size::flex(1.0))
-                .height(Size::fill())
-                .on_sized(move |event: Event<SizedEventData>| {
-                    detail_area.set_if_modified(event.area)
-                })
-                .child(self.detail.clone()),
-        );
-        if let Some((inspector, _)) = self.inspector.as_ref().filter(|_| inspector_shown > 0.0) {
-            root = root.maybe_child((!native_panes).then(line)).child(
-                rect()
-                    .width(Size::px(style.inspector_width * inspector_shown))
-                    .height(Size::fill())
-                    .overflow(Overflow::Clip)
-                    .on_sized(move |event: Event<SizedEventData>| {
-                        inspector_area.set_if_modified(event.area)
-                    })
-                    .maybe_child(native_panes.then(Declared::pane))
-                    .child(
-                        rect()
-                            .width(Size::px(style.inspector_width))
-                            .height(Size::fill())
-                            .child(inspector.clone()),
                     )
-                    .maybe_child(native_panes.then(|| {
-                        line()
-                            .height(Size::percent(100.0))
-                            .position(Position::new_absolute().left(0.0).top(0.0))
-                    })),
-            );
-        }
-        if overlay && shown > 0.0 {
-            root = root
-                .child(
-                    rect()
-                        .position(Position::new_absolute().left(0.0).top(0.0))
-                        .width(Size::fill())
-                        .height(Size::percent(100.0))
-                        .layer(Layer::Overlay)
-                        .opacity(shown)
-                        .background(paints.fill(&style.scrim))
-                        .on_press(move |_| control.dismiss()),
-                )
-                .child(
-                    sidebar()
-                        .position(
-                            Position::new_absolute()
-                                .left(-container * (1.0 - shown))
-                                .top(0.0),
-                        )
-                        .layer(Layer::Overlay),
-                );
-        }
+            }))
+            .maybe_child(self.content.as_ref().map(|content| {
+                rect()
+                    .width(Size::px(content_column))
+                    .height(Size::fill())
+                    .child(content.clone())
+                    .maybe_child(self.resizable.then(|| ColumnGrip {
+                        edge: content_column,
+                        width: content_column,
+                        dragging: content_dragging,
+                        resize: Callback::new(move |width: f32| {
+                            content_width.set(width.clamp(min_width, max_width))
+                        }),
+                        style: self.style.clone(),
+                    }))
+            }))
+            .maybe_child(self.content.is_some().then(line))
+            .child(
+                rect()
+                    .width(Size::flex(1.0))
+                    .height(Size::fill())
+                    .on_sized(move |event: Event<SizedEventData>| {
+                        detail_area.set_if_modified(event.area)
+                    })
+                    .child(self.detail.clone()),
+            )
+            .maybe_child(
+                (!native_panes && self.inspector.is_some() && inspector_shown > 0.0).then(line),
+            )
+            .maybe_child(
+                self.inspector
+                    .as_ref()
+                    .filter(|_| inspector_shown > 0.0)
+                    .map(|(inspector, _)| {
+                        rect()
+                            .width(Size::px(style.inspector_width * inspector_shown))
+                            .height(Size::fill())
+                            .overflow(Overflow::Clip)
+                            .on_sized(move |event: Event<SizedEventData>| {
+                                inspector_area.set_if_modified(event.area)
+                            })
+                            .maybe_child(native_panes.then(Declared::pane))
+                            .child(
+                                rect()
+                                    .width(Size::px(style.inspector_width))
+                                    .height(Size::fill())
+                                    .child(inspector.clone()),
+                            )
+                            .maybe_child(native_panes.then(|| {
+                                line()
+                                    .height(Size::percent(100.0))
+                                    .position(Position::new_absolute().left(0.0).top(0.0))
+                            }))
+                    }),
+            )
+            .maybe_child((overlay && shown > 0.0).then(|| {
+                rect()
+                    .position(Position::new_absolute().left(0.0).top(0.0))
+                    .width(Size::fill())
+                    .height(Size::percent(100.0))
+                    .layer(Layer::Overlay)
+                    .opacity(shown)
+                    .background(paints.fill(&style.scrim))
+                    .on_press(move |_| control.dismiss())
+            }))
+            .maybe_child((overlay && shown > 0.0).then(|| {
+                sidebar()
+                    .position(
+                        Position::new_absolute()
+                            .left(-container * (1.0 - shown))
+                            .top(0.0),
+                    )
+                    .layer(Layer::Overlay)
+            }));
         self.overrides.apply(root.content(Content::flex()))
     }
 }

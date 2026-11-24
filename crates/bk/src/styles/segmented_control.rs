@@ -1,8 +1,8 @@
 use ctdesign::{BODY, ControlSize, Font, GLASS_CONTROL, SEGMENTED};
 
-use super::button::continuous_rounded;
-use super::button::sized_shape;
-use super::{
+use crate::styles::button::continuous_rounded;
+use crate::styles::button::sized_shape;
+use crate::styles::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     disabled_palette, glass_hover, glass_ink, per_scheme, system_effect,
 };
@@ -25,19 +25,11 @@ pub struct SegmentedControlStyle {
     pub divider_height: f32,
     /// Tengen: `Role(SegmentDivider)`.
     pub divider: StateValue<ShapeStyle>,
-    /// Tengen, with `segment_shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub shape: Shape,
-    /// Tengen, with `shape`: `RoundedRectangle` of `SEGMENTED.radius` and of
-    /// `SEGMENTED.segment_radius`, both `Continuous`.
     pub segment_shape: Shape,
     /// Tengen: `Role(ControlBackground)`, behind the segments.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen, with `selected`: `Clear` for a segment that is not chosen,
-    /// `Role(ToggleAccent)` for the chosen one.
     pub segment: StateValue<ShapeStyle>,
-    /// Tengen, with `segment`: `Clear` for a segment that is not chosen,
-    /// `Role(ToggleAccent)` for the chosen one.
     pub selected: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`.
     pub label: StateValue<ShapeStyle>,

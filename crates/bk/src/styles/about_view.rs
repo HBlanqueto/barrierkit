@@ -1,6 +1,6 @@
 use ctdesign::{BODY, CAPTION, DIALOG_PADDING, Font, SPACE_1, SPACE_3, TITLE};
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct AboutViewStyle {

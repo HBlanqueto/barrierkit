@@ -1,6 +1,6 @@
 use ctdesign::{BODY, Font};
 
-use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
 
 /// States: hovered, pressed, focused.
 #[derive(Clone, Debug)]

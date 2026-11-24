@@ -5,7 +5,7 @@ use ctdesign::{
     RELEVANCY_TRACK_DARK_TINT, RELEVANCY_TRACK_LIGHT,
 };
 
-use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, per_look, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, per_look, system_effect};
 
 /// States: `RatingIndicator` is hovered, pressed and focused; the others only
 /// `normal`. The ring and the marker of a `Gauge` take one color each, like the

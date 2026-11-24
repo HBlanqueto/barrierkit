@@ -650,7 +650,6 @@ SplitPanes::new("Panes", Direction::Horizontal)
 | `.pane(view)` | — | Adds a pane |
 | `.ratios(Vec<f32>)` | equal | The share of each pane. A list of the wrong length means equal shares |
 | `.on_ratios(callback)` | none | Receives the new shares on every pointer move of a drag |
-| `.divider(Rgba)` | `Palette::separator` | Divider color, an instance override of the style's `divider` |
 | `.style(f)` | Tengen | A `SplitPanesStyle`: divider width and paint ([Styles and themes](../../crates/bk/src/styles/split_panes.rs)) |
 
 The ratios are controlled: store what `on_ratios` reports and pass it back, or

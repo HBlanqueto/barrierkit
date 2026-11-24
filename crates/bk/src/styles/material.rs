@@ -1,6 +1,6 @@
 use ctdesign::{HAIRLINE, MEDIA};
 
-use super::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
 
 /// States: only `normal`. Without compositor glass, or when the user reduces transparency,
 /// the material and the top glass become their `tint`, opaque, and the glass container its

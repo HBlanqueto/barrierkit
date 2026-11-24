@@ -3,7 +3,7 @@ use ctdesign::{HAIRLINE, TOOLGROUP};
 
 use crate::titlebar::WindowToolbarStyle;
 
-use super::{
+use crate::styles::{
     Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
     show_borders, system_effect,
 };

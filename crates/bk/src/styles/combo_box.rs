@@ -1,7 +1,7 @@
 use ctdesign::{BODY, COMBO_BOX, ControlSize, Font, TEXT_FIELD};
 
-use super::button::continuous_rounded;
-use super::{
+use crate::styles::button::continuous_rounded;
+use crate::styles::{
     ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
 
@@ -18,11 +18,7 @@ pub struct ComboBoxStyle {
     pub font: Font,
     /// Tengen: `(COMBO_BOX.button_width, COMBO_BOX.button_height)`.
     pub button_size: (f32, f32),
-    /// Tengen, with `text_gap`: `COMBO_BOX.button_inset_x` from the trailing edge,
-    /// `COMBO_BOX.text_gap` between the text and the button.
     pub button_inset: f32,
-    /// Tengen, with `button_inset`: `COMBO_BOX.button_inset_x` from the trailing edge,
-    /// `COMBO_BOX.text_gap` between the text and the button.
     pub text_gap: f32,
     /// Tengen: `COMBO_BOX.chevron`.
     pub chevron_size: f32,
@@ -38,20 +34,19 @@ pub struct ComboBoxStyle {
     pub button_border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub button_shadows: Vec<ShadowStyle>,
-    /// Tengen, with `effect`: `1.0`, `system_effect`, for the button.
     pub opacity: f32,
-    /// Tengen, with `opacity`: `1.0`, `system_effect`, for the button.
     pub effect: ColorEffect,
 }
 
 impl ComboBoxStyle {
     pub(crate) fn sized(self, size: ControlSize) -> Self {
-        let row = match size {
-            ControlSize::Mini => COMBO_BOX.mini,
-            ControlSize::Small => COMBO_BOX.small,
-            ControlSize::Regular => return self,
-            ControlSize::Large => COMBO_BOX.large,
-            ControlSize::ExtraLarge => COMBO_BOX.xl,
+        let Some(row) = size.row([
+            COMBO_BOX.mini,
+            COMBO_BOX.small,
+            COMBO_BOX.large,
+            COMBO_BOX.xl,
+        ]) else {
+            return self;
         };
         Self {
             height: row.height,

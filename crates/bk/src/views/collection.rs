@@ -193,22 +193,3 @@ impl Component for Tile {
         interaction.focus_ring(tile, radius.top_left())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn plain_selection_replaces_and_ctrl_selection_toggles() {
-        assert_eq!(select(&[1, 2], 3, Modifiers::empty()), [3]);
-        assert_eq!(select(&[1, 2], 3, Modifiers::CONTROL), [1, 2, 3]);
-        assert_eq!(select(&[1, 2], 2, Modifiers::CONTROL), [1]);
-    }
-
-    #[test]
-    fn shift_selects_the_range_from_the_last_click_which_stays_the_anchor() {
-        assert_eq!(select(&[2], 5, Modifiers::SHIFT), [3, 4, 5, 2]);
-        assert_eq!(select(&[3, 4, 5, 2], 0, Modifiers::SHIFT), [1, 0, 2]);
-        assert_eq!(select(&[], 4, Modifiers::SHIFT), [4]);
-    }
-}

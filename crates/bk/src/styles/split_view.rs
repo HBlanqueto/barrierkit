@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SPLIT_VIEW, ease_in_ease_out};
 
-use super::{
+use crate::styles::{
     Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
     system_effect,
 };
@@ -17,15 +17,8 @@ use super::{
 pub struct SplitViewStyle {
     /// Tengen: `SPLIT_VIEW.inspector`.
     pub inspector_width: f32,
-    /// Tengen, with `grip_line_width`, `grip_line_inset`: `SPLIT_VIEW.grip`, the area that
-    /// resizes; `SPLIT_VIEW.grip_line`, `SPLIT_VIEW.grip_line_inset` from the top and the
-    /// bottom.
     pub grip_width: f32,
-    /// Tengen, with `grip_width`, `grip_line_inset`: `SPLIT_VIEW.grip`, the area that resizes;
-    /// `SPLIT_VIEW.grip_line`, `SPLIT_VIEW.grip_line_inset` from the top and the bottom.
     pub grip_line_width: f32,
-    /// Tengen, with `grip_width`, `grip_line_width`: `SPLIT_VIEW.grip`, the area that resizes;
-    /// `SPLIT_VIEW.grip_line`, `SPLIT_VIEW.grip_line_inset` from the top and the bottom.
     pub grip_line_inset: f32,
     /// Tengen: `Capsule`.
     pub grip_shape: Shape,

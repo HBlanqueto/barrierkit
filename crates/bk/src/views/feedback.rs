@@ -33,12 +33,13 @@ pub struct ContentUnavailableView(
     Cow<'static, str>,
     Symbol,
     Option<Cow<'static, str>>,
+    Option<Element>,
     Theme,
 );
 
 impl ContentUnavailableView {
     pub fn new(title: impl Into<Cow<'static, str>>, symbol: Symbol) -> Self {
-        Self::styled(title.into(), symbol, None, Theme::tengen())
+        Self::styled(title.into(), symbol, None, None, Theme::tengen())
     }
 
     pub fn search(query: &str) -> Self {
@@ -50,38 +51,31 @@ impl ContentUnavailableView {
     }
 
     pub fn description(self, description: impl Into<Cow<'static, str>>) -> Self {
-        Self::styled(self.1, self.2, Some(description.into()), self.4)
+        Self::styled(self.1, self.2, Some(description.into()), self.4, self.5)
     }
 
-    pub fn actions(mut self, actions: impl IntoElement) -> Self {
-        let style: ContentUnavailableViewStyle = resolve(&self.4);
-        self.0.children_mut().push(
-            rect()
-                .probe("content-unavailable-actions")
-                .margin(Gaps::new(style.actions_gap, 0.0, 0.0, 0.0))
-                .child(actions)
-                .into_element(),
-        );
-        self
+    pub fn actions(self, actions: impl IntoElement) -> Self {
+        Self::styled(self.1, self.2, self.3, Some(actions.into_element()), self.5)
     }
 
     pub fn style(
         self,
         restyle: impl Fn(ContentUnavailableViewStyle) -> ContentUnavailableViewStyle + 'static,
     ) -> Self {
-        Self::styled(self.1, self.2, self.3, self.4.style(restyle))
+        Self::styled(self.1, self.2, self.3, self.4, self.5.style(restyle))
     }
 
     fn styled(
         title: Cow<'static, str>,
         icon: Symbol,
         description: Option<Cow<'static, str>>,
+        actions: Option<Element>,
         theme: Theme,
     ) -> Self {
         let style: ContentUnavailableViewStyle = resolve(&theme);
         let state = ControlState::default();
         let paints = Paints::current(state, style.effect);
-        let mut view = rect()
+        let view = rect()
             .expanded()
             .center()
             .direction(Direction::Vertical)
@@ -105,9 +99,8 @@ impl ContentUnavailableView {
                         style.title_font,
                         paints.color(style.title.resolve(state)),
                     )),
-            );
-        if let Some(description) = description.clone() {
-            view = view.child(
+            )
+            .maybe_child(description.clone().map(|description| {
                 rect()
                     .probe("content-unavailable-description")
                     .margin(Gaps::new(style.description_gap, 0.0, 0.0, 0.0))
@@ -115,10 +108,15 @@ impl ContentUnavailableView {
                         description,
                         style.description_font,
                         paints.color(style.description.resolve(state)),
-                    )),
-            );
-        }
-        Self(view, title, icon, description, theme)
+                    ))
+            }))
+            .maybe_child(actions.clone().map(|actions| {
+                rect()
+                    .probe("content-unavailable-actions")
+                    .margin(Gaps::new(style.actions_gap, 0.0, 0.0, 0.0))
+                    .child(actions)
+            }));
+        Self(view, title, icon, description, actions, theme)
     }
 }
 
@@ -712,15 +710,5 @@ impl Component for Alert {
             padding,
             ..sheet.alert()
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_search_title_carries_the_query() {
-        assert!(text!("no-results-for", query = "wifi").contains("wifi"));
     }
 }

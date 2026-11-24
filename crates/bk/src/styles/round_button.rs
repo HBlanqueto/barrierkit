@@ -1,9 +1,7 @@
-use ctappearance::Resolved;
 use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, MEDIA};
 
-use super::{
-    Animation, ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue,
-    reduce_motion, system_effect,
+use crate::styles::{
+    Animation, ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
 };
 
 #[derive(Clone, Debug)]
@@ -56,12 +54,5 @@ impl ControlStyle for RoundButtonStyle {
                 duration_ms: DURATION_FAST_MS,
             },
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

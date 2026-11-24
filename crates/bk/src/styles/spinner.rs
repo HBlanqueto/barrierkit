@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{ControlSize, PROGRESS, SYMBOL};
 
-use super::{
+use crate::styles::{
     Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, reduce_motion,
     system_effect,
 };

@@ -876,7 +876,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::ButtonMetrics` | struct | — | — | — | Push button sizes, radius, font and pressed scale; one `ButtonSize` per size and the pop-up rows; `size(ControlSize)` picks a row | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::BezelRow`, `BezelMetrics` | struct | — | — | — | Height, padding, radius and label size of one button bezel, and the five of them (`BUTTON.bezel`) | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::BezelPalette`, `BEZEL`, `BEZEL_CONTRAST` | struct, constant | — | — | — | Fills, borders and pressed fills of the small square, textured and inline bezels per look | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | — | `Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`; the key of every `size(ControlSize)` lookup | [4](04-appearance-and-tokens.md#control-metrics) |
+| `ctdesign::ControlSize` | enum | `ControlSize` | `NSControl.ControlSize` | — | `Mini`, `Small`, `Regular`, `Large`, `ExtraLarge`; the key of every `size(ControlSize)` lookup; `row([mini, small, large, xl])` picks a row, `None` at `Regular` | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::ButtonSize` | struct | — | — | — | Height, padding, font size and radius of a push button, pop-up or segmented control at one size | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::PopupSize`, `PopupSizes` | struct | — | — | — | Arrow glyph, indicator box, trailing padding, gap and pull-down glyph of a pop-up at one size, and the five of them | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::CheckboxSize` | struct | — | — | — | Box, radius, mark, label gap, label font and radio dot of a checkbox or radio at one size | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -1429,6 +1429,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `sidebar::SidebarControl::content` | method | — | — | — | Width of the content column that sits left of the detail | [10](10-sidebar.md#content-column) |
 | `sidebar::SymbolTile` | struct | — | — | — | The colored square tile with a white symbol; `.rim(color)` adds a border | [10](10-sidebar.md#symboltile) |
 | `views::split::SplitView` | struct | `NavigationSplitView` | `NSSplitViewController` | `UISplitViewController` | Sidebar, optional content column, detail and optional inspector; resizes, hides and collapses the sidebar | [10](10-sidebar.md#splitview) |
+| `views::split::SplitView::sidebar_visible`, `sidebar_width`, `sidebar_range`, `resizable`, `narrow_sidebar`, `on_layout`, `inspector`, `background_extension` | method | `NavigationSplitView(columnVisibility:)`, `navigationSplitViewColumnWidth(min:ideal:max:)`, `inspector(isPresented:content:)`, `backgroundExtensionEffect()` | `NSSplitViewItem.isCollapsed`, `minimumThickness`, `maximumThickness`, `canCollapse` | `UISplitViewController.preferredPrimaryColumnWidth` | Whether the sidebar starts shown, its width and range, whether it resizes, what happens in a narrow window, the callback with its layout, the inspector column and the view mirrored under the sidebar and inspector | [10](10-sidebar.md) |
 | `views::split::SplitView::content` | method | `NavigationSplitView(sidebar:content:detail:)` | `≈ NSSplitViewController.addSplitViewItem(_:)` | `≈ UISplitViewController.setViewController(_:for:)` | The column between the sidebar and the detail | [10](10-sidebar.md#content-column) |
 | `views::split::SidebarLayout` | struct | — | — | — | Sidebar width and visibility reported by `on_layout`, serializable | [10](10-sidebar.md#sidebarlayout) |
 | `views::split::NarrowSidebar` | enum | — | — | — | Where the sidebar opens in narrow windows: `Overlay` or `Push` | [10](10-sidebar.md#narrow-windows) |
@@ -1441,9 +1442,13 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `layout::Spacer` | struct | `Spacer` | ≈ `NSLayoutGuide` | ≈ `UILayoutGuide` | Takes the space the other children of its stack leave; `.min_length` | [11](11-views.md#spacer) |
 | `layout::Frame` | struct | `frame(width:height:alignment:)` | — | `NSLayoutConstraint` | A view with its own size and the alignment of its content; `view.frame()` returns it | [11](11-views.md#frame) |
+| `layout::Frame::alignment` | method | `frame(alignment:)` | — | — | Where the content sits inside the frame | [11](11-views.md#frame) |
 | `layout::Grid` | struct | `Grid` | `NSGridView` | — | Rows of cells whose columns line up | [11](11-views.md#grid-and-gridrow) |
+| `layout::Grid::row`, `child`, `alignment`, `horizontal_spacing`, `vertical_spacing` | method | `Grid(alignment:horizontalSpacing:verticalSpacing:)` | `NSGridView.addRow(with:)`, `rowSpacing`, `columnSpacing` | — | Adds a `GridRow` or a view that spans the row, and sets the cell alignment and the gaps between columns and rows | [11](11-views.md#grid-and-gridrow) |
 | `layout::GridRow` | struct | `GridRow` | `NSGridRow` | — | The cells of one row of a `Grid` | [11](11-views.md#grid-and-gridrow) |
+| `layout::GridRow::alignment` | method | `GridRow(alignment:)` | `NSGridRow.yPlacement` | — | The alignment of the cells of one row | [11](11-views.md#grid-and-gridrow) |
 | `layout::GridCell` | struct | — | `NSGridCell` | — | A view with a column span or a column alignment, returned by the two grid modifiers | [11](11-views.md#grid-and-gridrow) |
+| `layout::GridCell::grid_cell_columns`, `grid_column_alignment` | method | `gridCellColumns(_:)`, `gridColumnAlignment(_:)` | `NSGridCell.xPlacement`, `NSGridView.mergeCells(inHorizontalRange:verticalRange:)` | — | The columns a cell spans, and the horizontal alignment of its column | [11](11-views.md#grid-and-gridrow) |
 | `layout::GridModifiers` | trait | `View` modifiers | — | — | `grid_cell_columns` (`.gridCellColumns(_:)`, ≈ `NSGridCell.mergeCells`) and `grid_column_alignment` (`.gridColumnAlignment(_:)`, ≈ `NSGridColumn.xPlacement`) | [11](11-views.md#grid-and-gridrow) |
 | `layout::ContentAlignment` | struct | `Alignment` | — | `UIStackView.Alignment` | Where content sits in its space on both axes; nine constants from `TOP_LEADING` to `BOTTOM_TRAILING`. SwiftUI's name is taken by torin's `Alignment` | [11](11-views.md#frame) |
 | `layout::HorizontalAlignment` | enum | `HorizontalAlignment` | `NSLayoutConstraint.Attribute` (`leading`, `centerX`, `trailing`) | `UIStackView.Alignment` | `Leading`, `Center` or `Trailing`; the left or right edge by the layout direction | [11](11-views.md#frame) |
@@ -1455,6 +1460,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `layout::LayoutContainer` | struct | a `Layout` called as a view | — | — | The view of a `Layout`: `LayoutContainer::with_layout(layout).child(..)` | [11](11-views.md#custom-layout) |
 | `layout::Placement` | struct | `ProposedViewSize` result of `sizeThatFits` plus `place(at:)` | — | — | The size of a container and the origin of each subview in it | [11](11-views.md#custom-layout) |
 | `layout::ViewThatFits` | struct | `ViewThatFits` | — | — | Shows the first candidate whose stated extent fits the width or height offered, the last when none does | [11](11-views.md#viewthatfits) |
+| `layout::ViewThatFits::candidate` | method | the content of `ViewThatFits` | — | — | Adds a view with the extent it needs, tried in order | [11](11-views.md#viewthatfits) |
 | `modifiers::EnvironmentModifiers::layout_direction` | method | `.environment(\.layoutDirection, _)` | `NSView.userInterfaceLayoutDirection` | `UIView.semanticContentAttribute` | Sets the layout direction of a view: mirrors the stacks, frames, grids, ZStacks and texts already built in it and sets it for everything built below, controls included | [11](11-views.md#right-to-left) |
 
 ## Forms and groups
@@ -1462,10 +1468,13 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `views::form::Form` | struct | `Form` | — | `UITableView` | Settings layout: sections of rows in rounded cards | [11](11-views.md#form) |
+| `views::form::Form::section`, `highlighted` | method | the content of `Form` | — | — | Adds a `Section`; highlights the row with a title, as a settings search does | [11](11-views.md#form) |
 | `views::form::Section` | struct | `Section` | — | `UITableView` | One form card with optional title and footer | [11](11-views.md#section) |
+| `views::form::Section::titled`, `row`, `footer` | method | `Section(_:)`, `Section(footer:)` | — | `UITableView` section header and footer | A section with a title, a row added to it, and the text below the card | [11](11-views.md#section) |
 | `views::form::Section::header` | method | `Section(content:header:)` | — | `UITableView` | A view in place of a form card's title | [11](11-views.md#section) |
 | `views::form::Section::illustration` | method | — | — | — | A full-width view at the top of a form card | [11](11-views.md#section) |
 | `views::form::Row` | struct | `LabeledContent` | — | `UIListContentConfiguration` | A form row: control, value, navigation or destructive | [11](11-views.md#row) |
+| `views::form::Row::value`, `navigation`, `destructive`, `control`, `detail`, `keywords` | fn, method | `LabeledContent(_:value:)`, `NavigationLink`, `Button(role: .destructive)` | — | `UIListContentConfiguration` | A row that shows a value, opens a page or runs a destructive action; the control after its title, the second line under it, and the words a settings search matches | [11](11-views.md#form) |
 | `views::form::Row::page` | function | ≈ `NavigationLink(value:)` | — | ≈ `UINavigationController.pushViewController(_:animated:)` | A row that opens a page of a `SettingsWindow` | [11](11-views.md#row) |
 | `views::form::Row::button` | function | `Button` in a `Form` | — | `UIButton`, `UITableView` | A row with a bordered button at the start | [11](11-views.md#row) |
 | `views::form::Row::toggle` | function | `Toggle` in a `Form` | — | `UISwitch`, `UITableView` | A row with a switch on the right | [11](11-views.md#row) |
@@ -1474,16 +1483,20 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::form::Row::hover_control` | method | ≈ `.onHover` | — | ≈ `UIHoverGestureRecognizer` | A control shown only while the pointer is over the row | [11](11-views.md#row) |
 | `views::form::Row::stacked` | method | ≈ `.pickerStyle(.radioGroup)` under its label | — | ≈ `UISegmentedControl` | The control goes under the title at any width | [11](11-views.md#row) |
 | `views::group::GroupBox` | struct | `GroupBox` | `NSBox` | — | A rounded box with an optional label that groups controls | [11](11-views.md#groupbox) |
+| `views::group::GroupBox::child` | method | the content of `GroupBox` | `NSBox.contentView` | — | Adds a view inside the box | [11](11-views.md#groupbox) |
 | `views::group::DisclosureGroup` | struct | `DisclosureGroup` | — | `UICellAccessory.OutlineDisclosure` | A chevron header that shows or hides its indented children | [11](11-views.md#disclosuregroup) |
+| `views::group::DisclosureGroup::expanded`, `child` | method | `DisclosureGroup(isExpanded:)` | — | — | Whether the group starts open, and a view in its indented content | [11](11-views.md#disclosuregroup) |
 
 ## Data views
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `views::list::List` | struct | `List` | `NSTableView` without header | `UITableView` | One column of rows, text or views, with separators and selection; `inset`, `plain` and `bordered` styles | [11](11-views.md#list) |
+| `views::list::List::selected`, `on_select`, `style` | method | `List(selection:)`, `listStyle(_:)` | `NSTableView.selectedRowIndexes` | `UITableView.indexPathsForSelectedRows` | The selected rows, the callback that receives a new selection, and the `TableStyle` of one list | [11](11-views.md#list) |
 | `views::list::List::row` | method | `ForEach` in a `List` | `NSTableView.view(atColumn:row:makeIfNecessary:)` | `UITableView.cellForRow(at:)` | Draws every row as a view built from the row index | [11](11-views.md#views-in-rows-and-cells) |
 | `views::list::List::section` | method | `Section` in a `List` | group rows of `NSTableView` | `UITableView` | A header over a group of rows | [11](11-views.md#list) |
 | `views::table::Table` | struct | `Table` | `NSTableView` | ≈ `UITableView` | Rows of text or views in sortable, resizable, hideable columns with multiple selection | [11](11-views.md#table) |
+| `views::table::Table::rows`, `selected`, `on_select`, `sort`, `on_sort` | method | `Table(_:selection:sortOrder:)` | `NSTableView.selectedRowIndexes`, `sortDescriptors` | `UITableView.indexPathsForSelectedRows` | The text of the rows, the selected rows and the callback for a new selection, the column sorted and the callback when a header is clicked | [11](11-views.md#table) |
 | `views::table::Table::cell` | method | `TableColumn(_:content:)` | `NSTableView.viewFor(tableColumn:row:)` | ≈ `UITableView.cellForRow(at:)` | Draws the cell of a column as a view built from the row index | [11](11-views.md#views-in-rows-and-cells) |
 | `views::table::Table::icons` | method | `Label` in a `TableColumn` | `NSTableCellView.imageView` | `UITableViewCell.imageView` | One symbol per row before the title of the first column | [11](11-views.md#table) |
 | `views::table::ListRowModifiers` | trait | `View` modifiers | — | — | The `list_row_*` methods of `List` and `Table`; each takes a closure of the row index | [11](11-views.md#list-row-modifiers) |
@@ -1498,9 +1511,12 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::table::shown_columns` | fn | — | — | — | Column indices not hidden | [11](11-views.md#table-helpers) |
 | `views::table::toggle_column` | fn | — | — | — | Hides or shows a column, keeping at least one visible | [11](11-views.md#table-helpers) |
 | `views::collection::CollectionView` | struct | ≈ `LazyVGrid` | `NSCollectionView` | `UICollectionView` | A wrapping grid of icon tiles with names and multiple selection | [11](11-views.md#collectionview) |
+| `views::collection::CollectionView::item`, `selected`, `on_select` | method | `ForEach` in a `LazyVGrid`, `List(selection:)` | `NSCollectionView.selectionIndexPaths` | `UICollectionView.indexPathsForSelectedItems` | Adds a tile with an icon and a name; the selected indexes, and the callback that receives a new selection | [11](11-views.md#collectionview) |
 | `views::collection::select` | fn | — | — | — | Click selection rule: plain, Ctrl/Super toggle, Shift range | [11](11-views.md#select) |
 | `views::tree::TreeNode` | struct | — | ≈ `NSTreeNode` | — | A node with title, optional icon and children | [11](11-views.md#treenode) |
+| `views::tree::TreeNode::icon`, `child` | method | the children of `OutlineGroup` | `NSTreeNode.children` | — | The symbol before the title, and a node added under this one | [11](11-views.md#treenode) |
 | `views::tree::OutlineView` | struct | `OutlineGroup` | `NSOutlineView` | ≈ `UICollectionView` | A tree as indented rows with disclosure chevrons | [11](11-views.md#outlineview) |
+| `views::tree::OutlineView::on_select`, `views::tree::Browser::on_select` | method | `List(selection:)` | `NSOutlineView.selectedRowIndexes`, `NSBrowser.selectionIndexPaths` | — | Receives the selected nodes as paths of child indexes | [11](11-views.md#outlineview) |
 | `views::tree::OutlineView::selected` | method | `List(selection:)` | `NSOutlineView.selectRowIndexes(_:byExtendingSelection:)` | `UICollectionView.selectItem(at:animated:scrollPosition:)` | The selection the view starts with, as paths | [11](11-views.md#outlineview) |
 | `views::tree::TreeNode::expanded` | method | `DisclosureGroup(isExpanded:)` | `NSOutlineView.expandItem(_:)` | `UICollectionViewDiffableDataSource.apply` | A node that starts open | [11](11-views.md#treenode) |
 | `views::tree::open_paths` | fn | — | — | — | The paths of the nodes marked expanded | [11](11-views.md#tree-helpers) |
@@ -1513,9 +1529,12 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `views::tabs::TabView` | struct | `TabView` | `NSTabView` | ≈ `UITabBarController` | Pages chosen from a strip of tabs on the top, bottom or left of a box, or icon-over-title tabs | [11](11-views.md#tabview) |
+| `views::tabs::TabView::tab`, `selected`, `on_change` | method | `Tab(_:systemImage:)`, `TabView(selection:)` | `NSTabView.addTabViewItem(_:)`, `selectTabViewItem(at:)` | `UITabBarController.selectedIndex` | Adds a tab with a symbol, a title and its page; the selected tab and the callback when another is chosen | [11](11-views.md#tabview) |
 | `views::tabs::TabView::size` | method | `controlSize(_:)` | `NSTabView.controlSize` | — | Small and mini strips | [11](11-views.md#tabview) |
 | `views::split_panes::SplitPanes` | struct | `HSplitView`, `VSplitView` | `NSSplitView` | ≈ `UISplitViewController` | Panes in a row or column with draggable dividers; controlled ratios | [11](11-views.md#splitpanes) |
+| `views::split_panes::SplitPanes::pane`, `ratios`, `on_ratios` | method | the content of `HSplitView` | `NSSplitView.addArrangedSubview(_:)`, `setPosition(_:ofDividerAt:)` | — | Adds a pane; the share of each pane and the callback that receives new shares during a drag | [11](11-views.md#splitpanes) |
 | `views::text_view::TextView` | struct | ≈ `TextEditor` | `NSTextView` | `UITextView` | Frameless multi-line editable text without scrolling | [11](11-views.md#textview) |
+| `views::text_view::TextView::on_change`, `on_focus_change`, `auto_focus`, `cursor`, `width`, `height` | method | `TextEditor(text:)`, `focused(_:)` | `NSTextView.delegate`, `insertionPointColor` | `UITextView.delegate` | The callbacks for new text and for focus, focus on mount, the caret color and the size | [11](11-views.md#textview) |
 | `views::text_view::KeyPress` | struct | `KeyPress` | ≈ `NSEvent` | ≈ `UIEvent` | Key, modifiers and caret position passed to `TextView::on_key` | [11](11-views.md#keypress) |
 
 ## Feedback
@@ -1525,7 +1544,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `views::feedback::ContentUnavailableView` | struct | `ContentUnavailableView` | — | `UIContentUnavailableConfiguration` | A faint symbol over a line of text for an empty view; it fills its space and centers its content | [11](11-views.md#contentunavailableview) |
 | `views::feedback::Sheet` | struct | `.sheet(isPresented:onDismiss:content:)` | `NSWindow.beginSheet(_:completionHandler:)` | `UISheetPresentationController` | A modal child window centered on its window (`xdg-dialog-v1`); the parent takes no clicks and cannot close while it shows | [11](11-views.md#sheet) |
 | `views::feedback::Alert` | struct | `.alert(_:isPresented:actions:message:)` | `NSAlert` | `UIAlertController` | A sheet with title, message, two buttons and optional suppression checkbox | [11](11-views.md#alert) |
+| `views::feedback::Alert::confirm`, `cancel`, `suppression` | method | the buttons of `.alert`, `dialogSuppressionToggle(isSuppressed:)` | `NSAlert.addButton(withTitle:)`, `showsSuppressionButton` | `UIAlertAction` | The label and callback of each button; the checkbox that stores "do not show again" in a `State<bool>` | [11](11-views.md#alert) |
 | `views::feedback::SheetButtons` | struct | ≈ `ToolbarItem(placement: .confirmationAction)` | — | ≈ `UIBarButtonItem` | Cancel and default buttons at the bottom of a sheet, with an optional view at the left | [11](11-views.md#sheetbuttons) |
+| `views::feedback::SheetButtons::confirm_disabled`, `leading` | method | `.disabled(_:)` on the confirmation item | — | — | Disables the default button; puts a view at the leading end of the button row | [11](11-views.md#sheetbuttons) |
 | `views::feedback::SheetButtons::large` | method | ≈ `.controlSize(.large)` | `NSControl.controlSize` | — | Large buttons of `DIALOG_BUTTON_WIDTH` | [11](11-views.md#sheetbuttons) |
 | `views::feedback::SheetButtons::equal_width` | method | — | — | — | The two buttons split the row evenly, as in an alert | [11](11-views.md#sheetbuttons) |
 
@@ -1534,6 +1555,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `views::navigation::History` | struct | — | — | — | A back-and-forward list of pages | [11](11-views.md#history) |
+| `views::navigation::History::push`, `back`, `forward`, `current`, `can_go_back`, `can_go_forward` | method | — | ≈ `WKBackForwardList` | — | Adds a page after the current one and drops the pages ahead of it; moves back and forward; the current page and whether a move is possible | [11](11-views.md#history) |
 | `views::navigation::NavigationButtons` | struct | — | — | — | Back and forward buttons in a tool group, with Alt+arrow shortcuts | [11](11-views.md#navigationbuttons) |
 | `modifiers::ViewModifiers::sheet` | method | `sheet(isPresented:content:)` | ≈ `NSViewController.presentAsSheet(_:)` | ≈ `UIViewController.present(_:animated:)` | Shows a `Sheet` while a `State<bool>` is true | [11](11-views.md#sheet) |
 | `modifiers::ViewModifiers::alert` | method | `alert(_:isPresented:actions:message:)` | ≈ `NSAlert.beginSheetModal(for:)` | ≈ `UIViewController.present(_:animated:)` | Shows an `Alert` while a `State<bool>` is true; any button, Enter or Escape writes `false` | [11](11-views.md#sheet) |
@@ -1547,6 +1569,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::NAVIGATION_PARALLAX`, `NAVIGATION_DIM` | constant | — | — | ≈ `UINavigationController` push | How far the page below leaves (0.3 of the width) and how dark it gets (0.13) | [4](04-appearance-and-tokens.md#motion) |
 | `views::navigation::GO_BACK`, `views::navigation::GO_FORWARD` | constant | — | — | — | The Back (Alt+←) and Forward (Alt+→) actions | [11](11-views.md#go_back-and-go_forward) |
 | `views::search::SearchIndex` | struct | — | — | — | Entries searched by title and keywords, ignoring case and accents | [11](11-views.md#searchindex) |
+| `views::search::SearchIndex::add`, `search` | method | — | — | — | Adds an entry with a key, a title and keywords; the entries that match a query | [11](11-views.md#searchindex) |
 | `views::search::Entry` | struct | — | — | — | One search entry: key, title and keywords | [11](11-views.md#entry) |
 | `views::search::fold` | fn | — | — | — | Lowercases text and removes accents for matching | [11](11-views.md#search-helpers) |
 | `views::search::word_start` | fn | — | — | — | Whether the query starts a word other than the first | [11](11-views.md#search-helpers) |

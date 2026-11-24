@@ -1,6 +1,6 @@
 use ctdesign::{BODY, SYMBOL};
 
-use super::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
 
 #[derive(Clone, Debug)]
 pub struct ImageStyle {

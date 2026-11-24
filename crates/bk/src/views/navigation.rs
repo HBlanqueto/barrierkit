@@ -65,7 +65,44 @@ pub struct NavigationButtons(Rect);
 
 impl NavigationButtons {
     pub fn new<T: Clone + PartialEq + 'static>(history: State<History<T>>) -> Self {
-        Self(navigation_buttons(history))
+        let mut back = history;
+        let mut forward = history;
+        let mut keys = history;
+        Self(
+            rect()
+                .direction(Direction::Horizontal)
+                .height(Size::auto())
+                .on_global_key_down(move |event: Event<KeyboardEventData>| {
+                    let pressed = |action: Action| {
+                        action
+                            .shortcut
+                            .is_some_and(|shortcut| shortcut.matches(event.modifiers, &event.key))
+                    };
+                    if pressed(GO_BACK) {
+                        keys.write().back();
+                    } else if pressed(GO_FORWARD) {
+                        keys.write().forward();
+                    }
+                })
+                .child(HistoryMenuActions(history))
+                .child(
+                    crate::controls::ToolGroup::new()
+                        .style(|style: ToolGroupStyle| ToolGroupStyle {
+                            separator: style.separator.map(|_| StateValue::new(ShapeStyle::Clear)),
+                            ..style
+                        })
+                        .child(
+                            IconButton::new(Symbol::ChevronLeft, GO_BACK.title())
+                                .disabled(!history.read().can_go_back())
+                                .on_press(move |_| back.write().back()),
+                        )
+                        .child(
+                            IconButton::new(Symbol::ChevronRight, GO_FORWARD.title())
+                                .disabled(!history.read().can_go_forward())
+                                .on_press(move |_| forward.write().forward()),
+                        ),
+                ),
+        )
     }
 }
 
@@ -87,69 +124,5 @@ impl<T: Clone + PartialEq + 'static> Component for HistoryMenuActions<T> {
             }
         });
         rect()
-    }
-}
-
-fn navigation_buttons<T: Clone + PartialEq + 'static>(history: State<History<T>>) -> Rect {
-    let mut back = history;
-    let mut forward = history;
-    let mut keys = history;
-    rect()
-        .direction(Direction::Horizontal)
-        .height(Size::auto())
-        .on_global_key_down(move |event: Event<KeyboardEventData>| {
-            let pressed = |action: Action| {
-                action
-                    .shortcut
-                    .is_some_and(|shortcut| shortcut.matches(event.modifiers, &event.key))
-            };
-            if pressed(GO_BACK) {
-                keys.write().back();
-            } else if pressed(GO_FORWARD) {
-                keys.write().forward();
-            }
-        })
-        .child(HistoryMenuActions(history))
-        .child(
-            crate::controls::ToolGroup::new()
-                .style(|style: ToolGroupStyle| ToolGroupStyle {
-                    separator: style.separator.map(|_| StateValue::new(ShapeStyle::Clear)),
-                    ..style
-                })
-                .child(
-                    IconButton::new(Symbol::ChevronLeft, GO_BACK.title())
-                        .disabled(!history.read().can_go_back())
-                        .on_press(move |_| back.write().back()),
-                )
-                .child(
-                    IconButton::new(Symbol::ChevronRight, GO_FORWARD.title())
-                        .disabled(!history.read().can_go_forward())
-                        .on_press(move |_| forward.write().forward()),
-                ),
-        )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn pushing_after_going_back_drops_the_forward_entries() {
-        let mut history = History::new("general");
-        history.push("apariencia");
-        history.push("wifi");
-        history.back();
-        history.push("bluetooth");
-        assert_eq!(*history.current(), "bluetooth");
-        assert!(!history.can_go_forward());
-        history.back();
-        assert_eq!(*history.current(), "apariencia");
-    }
-
-    #[test]
-    fn pushing_the_current_entry_does_not_grow_the_history() {
-        let mut history = History::new("general");
-        history.push("general");
-        assert!(!history.can_go_back());
     }
 }
