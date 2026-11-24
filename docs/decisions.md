@@ -503,7 +503,7 @@ Code: `crates/bk/src/scroll/position.rs`, `crates/bk/src/scroll.rs`, `crates/bk/
 ## 0118 — On macOS AppKit composes every blur and glass, and SwiftUI is the reference
 Date: 2026-11-23
 Decision:
-- On macOS the kit draws no blur or glass of its own. Each declaration that [ADR 0091](decisions.md) sends to Malaysia as a request becomes the native view that composes the same effect in WindowServer: an `NSVisualEffectView` for a material, an `NSGlassEffectView` (in an `NSGlassEffectContainerView` when shapes merge) for Liquid Glass, an `NSSplitViewItem` for the sidebar and inspector panes, an `NSPopover` for a popover, and AppKit's own window background. [Backdrops and media](barrierkit/15-backdrops-and-media.md#on-macos) lists each one.
+- On macOS the kit draws no blur or glass of its own. Each declaration that [ADR 0091](decisions.md) sends to Malaysia as a request becomes the native view that composes the same effect in WindowServer: an `NSVisualEffectView` for a material, an `NSGlassEffectView` (in an `NSGlassEffectContainerView` when shapes merge) for Liquid Glass, an `NSSplitViewItem` for the sidebar and inspector panes, an `NSPopover` for a popover, AppKit's own window background, and AppKit's own title bar under a bar that no scroll view reaches. [Backdrops and media](barrierkit/15-backdrops-and-media.md#on-macos) lists each one.
 - The kit's Metal layer draws the content and the ink over the glass: text, symbols, and the selection, hover and pressed colors. Those colors are measured against a SwiftUI twin on the same macOS, in light and dark.
 - SwiftUI on the running macOS is the reference. Each piece is compared with its SwiftUI twin at the same frame. What no public AppKit API reproduces is recorded as a ceiling, not imitated with a shader.
 - The kit calls AppKit from Rust through `objc2` and holds no Swift code. Interactive glass (`effectIsInteractive`) needs macOS 27. Before macOS 26 there is no `NSGlassEffectView`, and the controls paint their own fill.
@@ -512,7 +512,6 @@ Why: the kit gives apps the look and behavior of their desktop, as SwiftUI does 
 Rejected: Freya or Skia shaders for the system's materials (a second implementation that drifts from the system); Swift or SwiftUI code inside the kit (a second language and build step for what AppKit already gives). Swift is to be considered again only for an effect that exists only in SwiftUI, such as `glassEffectID`, `glassEffectUnion` and `glassEffectTransition`.
 Pending: the ceilings measured on 2026-11-23:
 - a held knob's lens fills with the track;
-- with no scroll view under the bar, AppKit's titlebar material and separator, which the kit does not draw (the toolbar glass then reads 7 levels darker in dark; with a `ScrollView` under the bar every toolbar piece is within 0 to 2 levels);
 - the scroll edge under the bar over kit content;
 - the glass morph transitions.
 

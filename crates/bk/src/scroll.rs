@@ -839,12 +839,21 @@ impl Component for ScrollView {
             self.on_geometry_change.clone(),
             self.on_phase_change.clone(),
         );
+        let frames = try_consume_root_context::<crate::titlebar::ScrollFrames>();
+        use_drop(move || {
+            if let Some(frames) = frames {
+                frames.forget(viewport);
+            }
+        });
         let reserved = bars.reserved;
         let root = rect()
             .width(self.width.clone())
             .height(self.height.clone())
             .on_sized(move |event: Event<SizedEventData>| {
-                viewport.set_if_modified(size(event.area))
+                viewport.set_if_modified(size(event.area));
+                if let Some(frames) = frames {
+                    frames.report(viewport, event.area);
+                }
             })
             .child(
                 rect()

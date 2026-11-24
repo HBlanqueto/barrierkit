@@ -977,29 +977,35 @@ regular size (60 x 24), a capsule from large. The kit gives each the same native
 
 Probes: `~/src/probes/glassbtn` (`glassbtn.swift` and the kit twin `glassbtn_twin`, an uncommitted example; `cap.sh` launches at a
 fixed frame with `RESONANCE_APPEARANCE`, captures rest, hover and press; `ab.py` prints the A/B below; `crops` makes zoomed sheets;
-`EXTRA="--env GLASSBTN_SCROLL=1"` puts the SwiftUI content in a `ScrollView` under the bar).
+`EXTRA="--env GLASSBTN_SCROLL=1"` puts the content of both twins in a `ScrollView` under the bar; `ab2.py` prints the bar and its
+separator too; `checks.sh` drags the window by the bar and enters and leaves full screen; `pop.sh` opens a menu from the bar).
 
-Body of each piece, SwiftUI with no scroll view under the bar against the kit, largest channel difference:
+With no scroll view under the bar AppKit draws its title bar background (`NSTitlebarBackgroundView`: a blurred backdrop of the
+window with a colour matrix at 82 %, a 30-gray fill with a 5 % wallpaper tint, and a 1 px separator at y 52). The band reads 41 in
+dark where the window reads 33, and the toolbar glass over it 69. No public `NSVisualEffectView` material gives it (`titlebar`
+reads 57 and 245, `sidebar` 41 and 226; probe `~/src/probes/tbmat`), so the kit lets AppKit draw its own title bar there and puts
+its bar row above it in a titlebar accessory ([15](../barrierkit/15-backdrops-and-media.md#on-macos)). Over a `ScrollView` the band
+is the window's 33, no separator, and the kit keeps its transparent title bar.
 
-| Piece | Rest (light, dark) | Hover | Press |
-|---|---|---|---|
-| `.glass` over the window, large `.glass` | 0, 0 | 0, 1 | 6, 6 |
-| `.glass` over orange | 0, 0 | 6, 20 | 18, 23 |
-| `.glassProminent`, both backgrounds | 0, 0 | 0, 0 | 21, 22 |
-| Toolbar segmented glass and thumb | 0, 7 | 0, 6 | 21, 12 |
-| Toolbar prominent circle | 0, 1 | 0, 13 | 15, 22 |
-| Toolbar search capsule | 0, 7 | 0, 7 | 1, 9 |
+Body of each piece, SwiftUI against the kit, largest channel difference (light, dark):
+
+| Piece | Rest, no scroll view | Rest, over a `ScrollView` | Hover | Press |
+|---|---|---|---|---|
+| Bar, separator | 0, 0 | 0, 1 | | |
+| `.glass` over the window, large `.glass` | 0, 0 | 0, 0 | 0, 1 | 6, 5 |
+| `.glass` over orange | 0, 0 | | 6, 20 | 18, 23 |
+| `.glassProminent`, both backgrounds | 0, 0 | 0, 0 | 0, 0 | 21, 22 |
+| Toolbar segmented glass and thumb | 0, 0 | 1, 2 | 0, 0 | 21, 17 |
+| Toolbar prominent circle | 0, 0 | 0, 0 | 0, 12 | 15, 21 |
+| Toolbar search capsule | 0, 0 | 0, 0 | 0, 0 | 1, 1 |
+
+The window moves by the same amount when dragged by the bar in SwiftUI and in both kit cases, full screen gives the same bar in both
+kit cases and the window's title bar comes back after it, and a menu opened from the bar sits at the same place in both.
 
 What remains different:
 
-1. **The title bar with no scroll view under it.** Then AppKit draws its titlebar background (`NSTitlebarBackgroundView`: a blurred
-   backdrop of the window with a colour matrix at 82 %, a 30-gray fill with a 5 % wallpaper tint, and a 1 px separator at y 52,
-   white 7 % in dark, about black 10 % in light). The band reads 41 in dark where the window reads 33, and the toolbar glass over it
-   69. The kit does not draw that material or separator yet: its bar takes the look SwiftUI has over a `ScrollView`, where the band
-   is the window's 33 and the glass 62. With the content in a `ScrollView`, every toolbar piece is within 0 to 2 levels of the kit
-   at rest in both schemes (bar 1 and 0, segment glass 1 and 1, thumb 2 and 1, prominent circle 0 and 0, search capsule 0 and 0,
-   dark and light). The 7 levels in dark in the table come from that material, not from the glass. The veils over the glass match
-   in both cases: thumb +20 (SwiftUI) and +21 (kit).
+1. **Which scroll view counts.** SwiftUI decides per column of a split view; the kit keeps the transparent title bar when any
+   `ScrollView` reaches the bar's bottom, and draws AppKit's only for a unified bar with no sidebar.
 2. **Hover over a saturated background.** SwiftUI adds a fixed amount (+20 dark, -10 light on every channel); the kit's veil is an
    alpha blend (`GLASS_CONTROL.hover_*`), equal over neutral glass and short over orange.
 3. **Press.** SwiftUI draws its own glow on content buttons and a clear lens over a held segment, larger than the capsule; AppKit's

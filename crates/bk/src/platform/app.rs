@@ -193,6 +193,9 @@ impl AppInstance {
         runner.provide_root_context(|| ticker);
         let animation_clock = runner.provide_root_context(AnimationClock::new);
         runner.provide_root_context(AssetCacher::create);
+        let scroll_frames =
+            runner.run_in(|| crate::titlebar::ScrollFrames(State::create(Vec::new())));
+        runner.provide_root_context(move || scroll_frames);
 
         let mut tree = Tree::default();
 

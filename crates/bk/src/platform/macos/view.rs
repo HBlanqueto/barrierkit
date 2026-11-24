@@ -777,6 +777,7 @@ pub(super) struct BarIvars {
     id: u64,
     container_height: Cell<f64>,
     row_top: f64,
+    windowed: bool,
 }
 
 define_class!(
@@ -788,9 +789,58 @@ define_class!(
     pub(super) struct BarView;
 
     impl BarView {
+        // Over a window's own title bar the row's glass takes its press, and every other event goes to the kit's view, as it does without the bar.
+        #[unsafe(method(hitTest:))]
+        fn hit_test(&self, point: NSPoint) -> *mut NSView {
+            // SAFETY: NSView's own hit test, on a live view.
+            let hit: *mut NSView = unsafe { msg_send![super(self), hitTest: point] };
+            if !self.ivars().windowed || hit.is_null() {
+                return hit;
+            }
+            if !std::ptr::eq(hit, std::ptr::from_ref::<NSView>(self).cast_mut()) {
+                return hit;
+            }
+            match kit_view(self) {
+                Some(view) => Retained::autorelease_return(Retained::into_super(view)),
+                None => hit,
+            }
+        }
+
         #[unsafe(method(mouseDown:))]
         fn mouse_down(&self, event: &NSEvent) {
             self.send(input::mouse(MouseEventName::MouseDown, event, self.position(event)));
+        }
+
+        // An opaque title bar keeps the content view's tracking area from seeing the pointer over the row, so the row tracks it itself.
+        #[unsafe(method(updateTrackingAreas))]
+        fn update_tracking_areas(&self) {
+            // SAFETY: calls NSView's own implementation, which takes no arguments.
+            let _: () = unsafe { msg_send![super(self), updateTrackingAreas] };
+            for area in self.trackingAreas().iter() {
+                self.removeTrackingArea(&area);
+            }
+            if !self.ivars().windowed {
+                return;
+            }
+            let options = NSTrackingAreaOptions::MouseMoved
+                | NSTrackingAreaOptions::ActiveInKeyWindow
+                | NSTrackingAreaOptions::InVisibleRect;
+            // SAFETY: a fresh NSTrackingArea, with valid options and this view as its owner.
+            let area = unsafe {
+                NSTrackingArea::initWithRect_options_owner_userInfo(
+                    NSTrackingArea::alloc(),
+                    NSRect::ZERO,
+                    options,
+                    Some(self),
+                    None,
+                )
+            };
+            self.addTrackingArea(&area);
+        }
+
+        #[unsafe(method(mouseMoved:))]
+        fn mouse_moved(&self, event: &NSEvent) {
+            self.send(input::moved(self.position(event)));
         }
 
         #[unsafe(method(mouseUp:))]
@@ -820,6 +870,14 @@ define_class!(
         fn superview_moved(&self, _: &NSNotification) {
             self.align(self.ivars().container_height.get());
         }
+
+        // AppKit sizes the accessory after it is added, so its bounds follow its height.
+        #[unsafe(method(setFrameSize:))]
+        fn set_frame_size(&self, size: NSSize) {
+            // SAFETY: NSView's own setter, on a live view.
+            let _: () = unsafe { msg_send![super(self), setFrameSize: size] };
+            self.align(self.ivars().container_height.get());
+        }
     }
 );
 
@@ -829,11 +887,13 @@ impl BarView {
         id: u64,
         width: f64,
         (row_top, row_height): (f32, f32),
+        windowed: bool,
     ) -> Retained<Self> {
         let this = Self::alloc(mtm).set_ivars(BarIvars {
             id,
             container_height: Cell::new(0.0),
             row_top: f64::from(row_top),
+            windowed,
         });
         let frame = NSRect::new(
             NSPoint::new(0.0, 0.0),

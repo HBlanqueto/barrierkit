@@ -59,7 +59,7 @@ bar: traffic lights, a left zone, the title and a right zone.
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
 | `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high, the title at the start), the compact one (centered title) or the expanded one (a title row over the toolbar row), as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
-| `.hairline(bool)` | `false` | The line under the bar of the sidebar layout. macOS draws none under a unified toolbar at rest; `true` draws `TitlebarStyle::line()`, as `NSTitlebarSeparatorStyle.line` does |
+| `.hairline(bool)` | `false` | The line under the bar of the sidebar layout. macOS draws none under a unified toolbar at rest over a scroll view; on macOS 26 and later, over content that does not scroll, AppKit's own title bar draws its separator ([15](15-backdrops-and-media.md#on-macos)); `true` draws `TitlebarStyle::line()`, as `NSTitlebarSeparatorStyle.line` does |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
 
 Behavior:

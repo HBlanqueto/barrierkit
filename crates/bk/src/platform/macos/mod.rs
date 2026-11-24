@@ -139,12 +139,14 @@ struct Wanted {
     requests: Requests,
     native: Option<Backing>,
     glasses: Vec<PlacedGlass>,
+    titlebar: bool,
 }
 
-// The title bar row AppKit carries down with the menu bar in full screen, as a titlebar accessory.
+// The title bar row as a titlebar accessory: carried down with the menu bar in full screen, or over AppKit's own title bar in a window.
 struct Bar {
     accessory: Retained<NSTitlebarAccessoryViewController>,
     view: Retained<BarView>,
+    windowed: bool,
     revealed: bool,
     row: (f32, f32),
     // How far down the bar reaches, and the soft edge it leaves over the sidebar there, as SwiftUI's scroll pocket.
@@ -283,6 +285,62 @@ impl ChromeLayer {
 }
 
 impl Window {
+    fn new_bar(&self, mtm: MainThreadMarker, windowed: bool) -> Option<Bar> {
+        self.window.toolbar()?;
+        // Beside the lights an `.expanded` window gives an accessory only 32 high, so its toolbar row rides as a row of its own below AppKit's strip.
+        let expanded = self.window.toolbarStyle() == NSWindowToolbarStyle::Expanded;
+        let row = crate::titlebar::bar_row(expanded);
+        let width = self.window.screen()?.frame().size.width;
+        let view = BarView::new(mtm, self.id, width, row, windowed);
+        let accessory = NSTitlebarAccessoryViewController::new(mtm);
+        accessory.setView(&view);
+        accessory.setLayoutAttribute(if expanded {
+            NSLayoutAttribute::Bottom
+        } else {
+            NSLayoutAttribute::Left
+        });
+        Some(Bar {
+            accessory,
+            view,
+            windowed,
+            revealed: windowed,
+            row,
+            depth: 0.0,
+            pocket: None,
+        })
+    }
+
+    // Over content that does not scroll under the bar AppKit draws its title bar, and the kit's row rides above it in an accessory.
+    fn show_system_bar(&mut self, mtm: MainThreadMarker, shown: bool) {
+        let windowed = self.bar.as_ref().map(|bar| bar.windowed);
+        let full_screen = self
+            .window
+            .styleMask()
+            .contains(NSWindowStyleMask::FullScreen);
+        if shown && windowed.is_none() && !full_screen {
+            let Some(bar) = self.new_bar(mtm, true) else {
+                return;
+            };
+            self.window
+                .addTitlebarAccessoryViewController(&bar.accessory);
+            self.window.setTitlebarAppearsTransparent(false);
+            self.window
+                .setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::Line);
+            self.bar = Some(bar);
+        } else if !shown && windowed == Some(true) {
+            self.hide_system_bar();
+        }
+    }
+
+    fn hide_system_bar(&mut self) {
+        if let Some(bar) = self.bar.take_if(|bar| bar.windowed) {
+            bar.accessory.removeFromParentViewController();
+            self.window.setTitlebarAppearsTransparent(true);
+            self.window
+                .setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
+        }
+    }
+
     fn place_bar(&self) {
         let (Some(bar), Some(container)) = (&self.bar, &self.container) else {
             return;
@@ -926,26 +984,11 @@ impl Runtime {
     )> {
         let mtm = self.mtm;
         let window = self.window(id)?;
-        window.window.toolbar()?;
-        // Beside the lights an `.expanded` window gives an accessory only 32 high, so its toolbar row rides as a row of its own below AppKit's strip.
-        let expanded = window.window.toolbarStyle() == NSWindowToolbarStyle::Expanded;
-        let row = crate::titlebar::bar_row(expanded);
-        let view = BarView::new(mtm, id, window.window.screen()?.frame().size.width, row);
-        let accessory = NSTitlebarAccessoryViewController::new(mtm);
-        accessory.setView(&view);
-        accessory.setLayoutAttribute(if expanded {
-            NSLayoutAttribute::Bottom
-        } else {
-            NSLayoutAttribute::Left
-        });
-        window.bar = Some(Bar {
-            accessory: accessory.clone(),
-            view,
-            revealed: false,
-            row,
-            depth: 0.0,
-            pocket: None,
-        });
+        // The window's own title bar gives way to the full-screen one.
+        window.hide_system_bar();
+        let bar = window.new_bar(mtm, false)?;
+        let accessory = bar.accessory.clone();
+        window.bar = Some(bar);
         Some((window.window.clone(), accessory))
     }
 
@@ -1206,8 +1249,12 @@ impl Runtime {
                 native: chrome.effects.iter().find_map(|(effect, _)| match effect {
                     Declared::Material { material, .. } => Some(Backing::Visual(*material)),
                     Declared::Glass { .. } => Some(Backing::Glass),
-                    Declared::ScrollEdge { .. } | Declared::Pane => None,
+                    Declared::ScrollEdge { .. } | Declared::Pane | Declared::Titlebar => None,
                 }),
+                titlebar: chrome
+                    .effects
+                    .iter()
+                    .any(|(effect, _)| *effect == Declared::Titlebar),
             })
             .collect();
         if wanted
@@ -1322,6 +1369,8 @@ impl Runtime {
                 effects,
             });
         }
+        let system_bar = window.chromes.iter().any(|chrome| chrome.wanted.titlebar);
+        window.show_system_bar(mtm, system_bar);
         window.place_bar();
         window.needs_redraw = true;
     }

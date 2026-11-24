@@ -341,6 +341,23 @@ impl Component for Titlebar {
                 .into_element(),
             None => bar,
         };
+        // Over content that does not scroll under it, AppKit draws its own title bar beneath the row, as under SwiftUI's toolbar.
+        let system_bar = unified
+            && !overlaid
+            && !sidebar
+            && !status.fullscreen
+            && *style.background.resolve(state) == ShapeStyle::WindowBackground
+            && crate::glass::native_glass()
+            && !scroll_under(height);
+        let bar = if system_bar {
+            rect()
+                .width(Size::fill())
+                .child(crate::platform::backdrop::Declared::titlebar(height))
+                .child(bar)
+                .into_element()
+        } else {
+            bar
+        };
         place_overlaid(
             crate::chrome::revealable_bar(bar, height),
             height,
@@ -348,6 +365,45 @@ impl Component for Titlebar {
             overlaid,
         )
     }
+}
+
+// A scroll view's own state of its viewport names it among the window's scroll views.
+type ScrollKey = State<(f32, f32)>;
+
+// The frames of a window's scroll views, so that the bar knows whether one reaches up to it.
+#[derive(Clone, Copy)]
+pub(crate) struct ScrollFrames(pub(crate) State<Vec<(ScrollKey, torin::prelude::Area)>>);
+
+impl ScrollFrames {
+    pub(crate) fn report(mut self, key: ScrollKey, area: torin::prelude::Area) {
+        let known = self
+            .0
+            .peek()
+            .iter()
+            .find(|(other, _)| *other == key)
+            .map(|(_, area)| *area);
+        if known != Some(area) {
+            let mut frames = self.0.write();
+            frames.retain(|(other, _)| *other != key);
+            frames.push((key, area));
+        }
+    }
+
+    pub(crate) fn forget(mut self, key: ScrollKey) {
+        if let Some(mut frames) = self.0.try_write() {
+            frames.retain(|(other, _)| *other != key);
+        }
+    }
+}
+
+fn scroll_under(bar_height: f32) -> bool {
+    try_consume_root_context::<ScrollFrames>().is_some_and(|frames| {
+        frames
+            .0
+            .read()
+            .iter()
+            .any(|(_, area)| area.min_y() <= bar_height + 1.0 && area.max_y() > bar_height)
+    })
 }
 
 struct ToolbarSlots {

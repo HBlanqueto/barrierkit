@@ -59,7 +59,8 @@ pub struct TitlebarStyle {
     /// title row of `WindowToolbarStyle::Expanded`; over a `Backdrop` `Role(TertiaryLabel)`,
     /// focused `Role(SecondaryLabel)`.
     pub row_title: StateValue<ShapeStyle>,
-    /// Tengen: `None`, as macOS draws no separator under a unified toolbar at rest.
+    /// Tengen: `None`, as macOS draws no separator under a unified toolbar at rest over a scroll
+    /// view; over content that does not scroll, AppKit's own title bar draws it on macOS.
     /// `NSTitlebarSeparatorStyle.line` is `Some(TitlebarStyle::line())`.
     pub hairline: Option<(ShapeStyle, f32)>,
     /// Tengen: `system_effect`.
