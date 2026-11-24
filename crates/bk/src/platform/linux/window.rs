@@ -177,7 +177,7 @@ impl Runtime {
         let saved: SavedSize = if utility {
             SavedSize::default()
         } else {
-            crate::app::load_restoration(&state)
+            crate::app::read_toml(&crate::app::defaults::restoration_file(&app_id, &state))
         };
         if saved.width > 0 && saved.height > 0 {
             options.size = within(
@@ -536,8 +536,8 @@ impl Runtime {
         {
             let mut status = context.controls.status;
             let shown = *status.peek();
-            let state = context.state.clone();
-            let previous: SavedSize = crate::app::load_restoration(&state);
+            let state = crate::app::defaults::restoration_file(&context.app_id, &context.state);
+            let previous: SavedSize = crate::app::read_toml(&state);
             let saved = match (shown.maximized, shown.fullscreen) {
                 (_, true) => None,
                 (true, false) => Some(SavedSize {
@@ -551,7 +551,7 @@ impl Runtime {
                 }),
             };
             if let Some(saved) = saved
-                && let Err(error) = crate::app::save_restoration(&state, &saved)
+                && let Err(error) = crate::app::write_toml(&state, &saved)
             {
                 tracing::warn!(%error, "bk: window size not saved");
             }

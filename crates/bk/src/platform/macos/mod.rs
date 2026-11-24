@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::os::fd::AsRawFd;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -55,6 +56,15 @@ use crate::platform::macos::blur::PlacedGlass;
 
 // The system delivers the momentum of a trackpad fling as scroll events.
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
+
+pub(crate) fn app_folders(app_id: &str) -> (PathBuf, PathBuf) {
+    let folder = std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_default()
+        .join("Library/Application Support")
+        .join(app_id);
+    (folder.clone(), folder)
+}
 // CoreText sets each face's optical size and `trak` tracking from the point size.
 pub(crate) const OPTICAL_SIZING: bool = true;
 pub(crate) const MOST_CHROMES: usize = 8;

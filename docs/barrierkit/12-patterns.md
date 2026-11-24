@@ -87,8 +87,8 @@ The app only declares the panes. System Settings is built with it.
 3. Choosing a pane pushes it on the [`History`](11-views.md#history); the bar
    shows its title, the toggle and [`NavigationButtons`](11-views.md#navigationbuttons).
 4. With `.restoration(app_id)`, every change is written to
-   `<app_id>.state` in the data directory (`~/.local/share/malaysia/`, or
-   `MALAYSIA_DATA_DIR`).
+   `<app_id>.state` in the app's state folder
+   ([Settings and restoration](13-app.md#settings-and-restoration)).
 
 ### `Pane`
 
@@ -181,13 +181,12 @@ pieces let the user choose it.
 ### `LanguagePicker`
 
 A pop-up button with "Automatic", "Español" and "English". It reads and writes
-the `language` key of a `.domain` file in the config directory
-(`~/.config/malaysia/`, or `MALAYSIA_CONFIG_DIR`). "Automatic" removes the key.
+the `language` key of a `.domain` file. "Automatic" removes the key.
 
 | Constructor | File |
 |---|---|
-| `LanguagePicker::app(domain)` | `<domain>.domain`: the language of one app |
-| `LanguagePicker::system()` | `language.domain`: the language of every app |
+| `LanguagePicker::app(domain)` | `<domain>.domain` in the app's settings folder ([13](13-app.md#settings-and-restoration)): the language of one app |
+| `LanguagePicker::system()` | `language.domain` in the desktop's config folder (`~/.config/malaysia/`, or `MALAYSIA_CONFIG_DIR`): the language of every app |
 
 ### Style
 

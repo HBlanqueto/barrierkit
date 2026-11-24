@@ -2,7 +2,7 @@ use std::ffi::{OsStr, OsString};
 use std::io;
 use std::os::fd::AsFd;
 use std::os::unix::ffi::OsStrExt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use nix::sys::inotify::{AddWatchFlags, InitFlags, Inotify, InotifyEvent, WatchDescriptor};
 
@@ -30,6 +30,7 @@ pub struct AppearanceWatch {
     data_dir: PathBuf,
     config: WatchDescriptor,
     data: WatchDescriptor,
+    app_folders: Vec<(WatchDescriptor, PathBuf)>,
 }
 
 impl AppearanceWatch {
@@ -50,7 +51,18 @@ impl AppearanceWatch {
             data_dir,
             config,
             data,
+            app_folders: Vec::new(),
         })
+    }
+
+    pub fn watch_app_folder(&mut self, folder: &Path) -> io::Result<()> {
+        if folder == self.config_dir || self.app_folders.iter().any(|(_, dir)| dir == folder) {
+            return Ok(());
+        }
+        create_private_dir(folder)?;
+        let watch = self.inotify.add_watch(folder, Self::flags())?;
+        self.app_folders.push((watch, folder.to_owned()));
+        Ok(())
     }
 
     fn flags() -> AddWatchFlags {
@@ -90,10 +102,17 @@ impl AppearanceWatch {
 
     // inotify(7): a deleted directory loses its watch and a moved one keeps watching the old inode.
     fn rewatch(&mut self, lost: WatchDescriptor) -> io::Result<()> {
+        let app_folders = self
+            .app_folders
+            .iter_mut()
+            .map(|(watch, dir)| (watch, &*dir));
         for (watch, dir) in [
             (&mut self.config, &self.config_dir),
             (&mut self.data, &self.data_dir),
-        ] {
+        ]
+        .into_iter()
+        .chain(app_folders)
+        {
             if *watch == lost {
                 let _ = self.inotify.rm_watch(lost);
                 create_private_dir(dir)?;
@@ -127,11 +146,12 @@ impl AppearanceWatch {
             event.wd == self.config,
             event.wd == self.data,
         );
+        let in_app_folder = self.app_folders.iter().any(|(watch, _)| *watch == event.wd);
         let kind = match name {
             b"appearance.domain" if in_config => AppearanceEvent::Appearance,
             b"wallpaper-selection.state" if in_data => AppearanceEvent::WallpaperSelection,
             b"wallpaper.state" if in_data => AppearanceEvent::Wallpaper,
-            _ if in_config && name.ends_with(b".domain") => {
+            _ if (in_config || in_app_folder) && name.ends_with(b".domain") => {
                 AppearanceEvent::Defaults(Some(OsStr::from_bytes(name).to_owned()))
             }
             _ => return,

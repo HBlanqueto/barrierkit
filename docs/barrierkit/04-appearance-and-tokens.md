@@ -786,7 +786,7 @@ what changed as `AppearanceEvent`s:
 | `Appearance` | `appearance.domain` |
 | `Wallpaper` | `wallpaper.state` |
 | `WallpaperSelection` | `wallpaper-selection.state` in the data directory |
-| `Defaults(name)` | any other `.domain` in the config folder; `name` is its file name, `None` after a lost event |
+| `Defaults(name)` | any other `.domain` in the config folder or in a folder added with `watch_app_folder(path)`; `name` is its file name, `None` after a lost event |
 
 If a watched folder is deleted or moved, `drain()` creates it again and watches it again.
 

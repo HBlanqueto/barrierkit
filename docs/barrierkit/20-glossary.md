@@ -691,6 +691,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::load_appearance` | fn | — | — | — | Reads the appearance file, or the default on any error | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::write_appearance` | fn | — | — | — | Writes the config atomically, keeping other keys and comments | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::replace_file` | fn | — | — | — | Replaces a file atomically with new text | [4](04-appearance-and-tokens.md#reading-and-writing) |
+| `ctappearance::create_private_dir` | fn | — | — | — | Creates a folder and its parents with permission 0700 | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_dominant` | fn | — | — | — | Reads the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::write_wallpaper_state` | fn | — | — | — | Writes or removes the wallpaper's dominant color and grid | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::WallpaperState` | struct | — | — | — | Contents of `wallpaper.state`: `dominant`, `grid`, `grids` per desktop, `outputs`, `shown` and `shuffled_at` | [4](04-appearance-and-tokens.md#reading-and-writing) |
@@ -729,7 +730,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::xdg::cache_home` | fn | — | — | — | `$XDG_CACHE_HOME` or `~/.cache` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::tinting::WallpaperGrid` | struct | — | — | — | Average colors of the wallpaper; `from_rgba8`, `behind(output, window)` | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
 | `ctappearance::tinting::WallpaperGrid::across` | method | — | — | — | The average colors of the wallpaper across a window, column by column | [4](04-appearance-and-tokens.md#wallpaper-behind-a-window) |
-| `ctappearance::watch::AppearanceWatch` | struct | — | — | — | inotify watch on the config and data folders; `drain()` | [4](04-appearance-and-tokens.md#watching) |
+| `ctappearance::watch::AppearanceWatch` | struct | — | — | — | inotify watch on the config and data folders; `watch_app_folder(path)`, `drain()` | [4](04-appearance-and-tokens.md#watching) |
 | `ctappearance::watch::AppearanceEvent` | enum | — | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults(Option<OsString>)`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
 
 ## Appearance resolution

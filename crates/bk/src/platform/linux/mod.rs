@@ -28,6 +28,8 @@ mod vulkan;
 mod window;
 mod window_style;
 
+use std::path::PathBuf;
+
 pub use sctk::reexports::client::backend::ObjectId;
 
 pub(crate) fn blocking_session_bus() -> zbus::Result<zbus::blocking::Connection> {
@@ -38,6 +40,16 @@ pub(crate) const SYSTEM_MOMENTUM: bool = false;
 pub(crate) const OPTICAL_SIZING: bool = false;
 // Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own (docs/barrierkit/15-backdrops-and-media.md#glass-on-any-view).
 pub(crate) const MOST_CHROMES: usize = 3;
+
+pub(crate) fn app_folders(app_id: &str) -> (PathBuf, PathBuf) {
+    let folder = |home: Option<PathBuf>, fallback: &str| {
+        home.unwrap_or_else(|| PathBuf::from(fallback)).join(app_id)
+    };
+    (
+        folder(ctappearance::xdg::config_home(), ".config"),
+        folder(ctappearance::xdg::data_home(), ".local/share"),
+    )
+}
 
 #[cfg(feature = "a11y")]
 pub(super) use atspi::Bridge;

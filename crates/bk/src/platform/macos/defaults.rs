@@ -6,7 +6,7 @@ use crate::{app::DefaultsRevision, platform::timer::TimerQueue};
 
 const POLL: Duration = Duration::from_secs(1);
 
-// shortcut: polls the config directory each second; FSEvents would wake only on a change.
+// shortcut: polls the settings folders each second; FSEvents would wake only on a change.
 pub(super) fn watch(timers: TimerQueue, revision: State<u64>, seen: HashMap<OsString, SystemTime>) {
     let queue = timers.clone();
     let poll = move || {
@@ -27,8 +27,9 @@ pub(super) fn watch(timers: TimerQueue, revision: State<u64>, seen: HashMap<OsSt
 }
 
 pub(super) fn stamps() -> HashMap<OsString, SystemTime> {
-    std::fs::read_dir(ctappearance::config_dir())
-        .into_iter()
+    std::iter::once(ctappearance::config_dir())
+        .chain(crate::app::watched_folders())
+        .filter_map(|folder| std::fs::read_dir(folder).ok())
         .flatten()
         .flatten()
         .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "domain"))

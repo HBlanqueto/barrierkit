@@ -222,6 +222,7 @@ impl Runtime {
         let signal = event_loop.get_signal();
         on_signal(&mut self, signal.clone());
         let ran = event_loop.run(None, &mut self, |runtime| {
+            runtime.watch_app_folders();
             if runtime.needs_exit {
                 signal.stop();
             } else if runtime.graphics.lost.get() {
@@ -241,6 +242,21 @@ impl Runtime {
             return Err(RunError::DeviceLost);
         }
         Ok(())
+    }
+
+    fn watch_app_folders(&mut self) {
+        let Some(watch) = self
+            .appearance_watch
+            .as_mut()
+            .filter(|_| crate::app::defaults::folder_added())
+        else {
+            return;
+        };
+        for folder in crate::app::watched_folders() {
+            if let Err(error) = watch.watch_app_folder(&folder) {
+                tracing::warn!(path = %folder.display(), %error, "watching the app's settings folder");
+            }
+        }
     }
 
     fn recover_graphics(&mut self) -> bool {

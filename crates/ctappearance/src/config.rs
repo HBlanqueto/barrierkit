@@ -644,7 +644,7 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> io::Result<()
 }
 
 // XDG Base Directory Specification: a missing directory is created with permission 0700.
-pub(crate) fn create_private_dir(dir: &Path) -> io::Result<()> {
+pub fn create_private_dir(dir: &Path) -> io::Result<()> {
     std::os::unix::fs::DirBuilderExt::mode(std::fs::DirBuilder::new().recursive(true), 0o700)
         .create(dir)
 }

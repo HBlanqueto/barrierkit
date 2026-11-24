@@ -78,7 +78,7 @@ text is read. The first source that gives a value wins:
 
 | Order | Source | Written by |
 |---|---|---|
-| 1 | `language` in `<name>.domain` in the config dir | The app's language picker |
+| 1 | `language` in `<name>.domain` in the app's settings folder ([13](13-app.md#settings-and-restoration)) | The app's language picker |
 | 2 | `language` in `language.domain` in the config dir | The system language picker (Settings) |
 | 3 | `LANGUAGE`, then the first of `LC_ALL`, `LC_MESSAGES`, `LANG` | The session |
 | 4 | `fallback_language` of `i18n.toml` (`en`) | The app |

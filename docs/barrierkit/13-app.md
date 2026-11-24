@@ -305,10 +305,10 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 
 | Function | File |
 |---|---|
-| `load_defaults::<T>(app_id)`, `save_defaults(app_id, &value)` | `~/.config/malaysia/<app_id>.domain` |
+| `load_defaults::<T>(app_id)`, `save_defaults(app_id, &value)` | `<app_id>.domain` in the app's settings folder |
 | `use_defaults::<T>(app_id)` | The same; returns a `Memo<T>` that reloads when the file changes |
 | `update_defaults::<T>(app_id, \|value\| ..)` | The same; loads the file, runs the closure on the value and saves it |
-| `load_restoration::<T>(app_id)`, `save_restoration(app_id, &value)` | `~/.local/share/malaysia/<app_id>.state` |
+| `load_restoration::<T>(app_id)`, `save_restoration(app_id, &value)` | `<app_id>.state` in the app's state folder |
 | `read_toml::<T>(path)`, `write_toml(path, &value)` | Any path; the base of the others |
 | `use_watched(load)` | Runs `load` again when a settings file changes; returns a `Memo` |
 
@@ -316,12 +316,26 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 - Reading a file that does not parse logs a warning, copies it to `<file>.bak`
   and gives `T::default()`.
 - Writing creates the folder, writes `<file>.tmp` and renames it over the file.
-- `MALAYSIA_CONFIG_DIR` and `MALAYSIA_DATA_DIR` replace the two folders.
-  Without them they are `malaysia/` under the XDG config and data homes.
+- Each app has its own folders, named by its `app_id`, like macOS's
+  `~/Library/Preferences/<bundle id>.plist`, so an app built on the kit never
+  writes into Malaysia's folder:
+
+  | System | Settings | State |
+  |---|---|---|
+  | Linux | `$XDG_CONFIG_HOME/<app_id>/` (`~/.config/<app_id>/`) | `$XDG_DATA_HOME/<app_id>/` (`~/.local/share/<app_id>/`) |
+  | macOS | `~/Library/Application Support/<app_id>/` | The same |
+
+  A shell component follows the same rule; to keep a file in the desktop's
+  folder it calls `read_toml` and `write_toml` with that path.
+
+- A file saved before in the desktop's folder (`config_dir()`, `data_dir()`)
+  moves to the app's folder the first time it is read. If the move fails, the
+  kit keeps reading the old file.
 - `use_defaults` reloads when its own `<app_id>.domain` changes and when
   `wallpaper.state` changes. `use_watched` cannot know which file `load` reads,
-  so it reloads when any `.domain` file in the config folder changes, except
-  `appearance.domain`. An app that calls only `use_defaults` ignores the
+  so it reloads when any `.domain` file changes in the desktop's config folder
+  or in a folder that `use_defaults` watches, except `appearance.domain`.
+  An app that calls only `use_defaults` ignores the
   settings other apps save. On macOS the kit looks for changed `.domain`
   files once a second.
 
