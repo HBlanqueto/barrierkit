@@ -95,9 +95,10 @@ define_class!(
             for area in self.trackingAreas().iter() {
                 self.removeTrackingArea(&area);
             }
+            // AppKit's toolbar items light under the pointer in an inactive window too, as SwiftUI's.
             let options = NSTrackingAreaOptions::MouseMoved
                 | NSTrackingAreaOptions::MouseEnteredAndExited
-                | NSTrackingAreaOptions::ActiveInKeyWindow
+                | NSTrackingAreaOptions::ActiveAlways
                 | NSTrackingAreaOptions::InVisibleRect;
             // SAFETY: a fresh NSTrackingArea, with valid options and this view as its owner.
             let area = unsafe {
@@ -823,7 +824,7 @@ define_class!(
                 return;
             }
             let options = NSTrackingAreaOptions::MouseMoved
-                | NSTrackingAreaOptions::ActiveInKeyWindow
+                | NSTrackingAreaOptions::ActiveAlways
                 | NSTrackingAreaOptions::InVisibleRect;
             // SAFETY: a fresh NSTrackingArea, with valid options and this view as its owner.
             let area = unsafe {

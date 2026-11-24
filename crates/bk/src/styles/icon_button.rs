@@ -28,7 +28,8 @@ pub struct IconButtonStyle {
     /// Tengen: `Clear`, pressed `Color(PressedPalette.bezel)`, disabled `Clear`.
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Role(Label)`, disabled `Role(TertiaryLabel)`; in a toolbar of an inactive window
-    /// `Role(TertiaryLabel)`, as AppKit dims toolbar items.
+    /// `Role(TertiaryLabel)`, hovered `Role(Label)`, as AppKit dims toolbar items and lights the one
+    /// under the pointer.
     pub icon: StateValue<ShapeStyle>,
     /// Tengen: `None`.
     pub border: Option<(ShapeStyle, f32)>,
@@ -110,6 +111,7 @@ impl ControlStyle for IconButtonStyle {
             } else {
                 Role::Label
             }))
+            .hovered(ShapeStyle::Role(Role::Label))
             .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             border: None,
             shadows: Vec::new(),

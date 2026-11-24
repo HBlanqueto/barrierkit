@@ -322,6 +322,8 @@ Module `compact`.
   AppKit draws toolbar symbols at ([sizes](../research/macos-control-metrics.md#toolbar-items-and-navigation-buttons)).
   In an inactive window a toolbar symbol takes `Role(TertiaryLabel)`, as AppKit dims toolbar
   items (Dark, measured 2026-11-23: ink 0.29 over the platter, `tertiaryLabelColor` is 0.25).
+  Under the pointer it takes `Role(Label)` and the hover circle, as AppKit lights the item even
+  in an inactive window; the window takes the pointer while it is not key.
 - `Stepper` shows the value and, 8 to its right, the arrows: 20 × 24, up above down
   (`STEPPER`). ↑ and ↓ also step. An arrow is dimmed at its limit.
 - `ToggleGroup` is a row of independent toggles on one background, for text formatting.
