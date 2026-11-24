@@ -66,7 +66,7 @@ pub async fn notify(id: &str, title: &str, body: &str) {
     }
 }
 
-async fn choose(
+pub(super) async fn choose(
     method: &str,
     title: &str,
     options: HashMap<&str, Value<'_>>,

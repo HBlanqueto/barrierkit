@@ -25,7 +25,7 @@ use std::{
 };
 
 use ctappearance::{
-    Resolved, load_appearance, load_dominant, resolve,
+    Resolved, load_dominant, resolve,
     watch::{AppearanceEvent, AppearanceWatch},
 };
 use freya_core::integration::{GlobalContexts, Platform, UserEvent, WritableUtils};
@@ -459,12 +459,12 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
         .handle()
         .insert_source(scheme_source, |_, _, shell: &mut Runtime| restyle(shell))
         .map_err(|_| RunError::EventLoop("inserting the color scheme source"))?;
-    system::observe_scheme(scheme_ping);
+    system::observe_settings(scheme_ping);
     Ok(())
 }
 
 fn restyle(shell: &mut Runtime) {
-    let resolved = resolve(&load_appearance(), load_dominant());
+    let resolved = resolve(&system::appearance(), load_dominant());
     if *shell.resolved.peek() != resolved {
         shell.resolved.set(resolved);
         for context in shell
@@ -494,8 +494,8 @@ impl Runtime {
             calloop::ping::make_ping().map_err(|_| RunError::EventLoop("calloop ping failed"))?;
         let (wake_ping, wake_source) = calloop::ping::make_ping()
             .map_err(|_| RunError::EventLoop("calloop wake ping failed"))?;
-        system::read_scheme();
-        let resolved = State::create_global(resolve(&load_appearance(), load_dominant()));
+        system::read_settings();
+        let resolved = State::create_global(resolve(&system::appearance(), load_dominant()));
         let appmenu_manager = globals
             .bind::<OrgKdeKwinAppmenuManager, _, _>(&qh, 1..=1, ())
             .ok();

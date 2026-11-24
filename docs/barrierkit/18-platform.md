@@ -370,7 +370,7 @@ call 25 s, as libdbus and GDBus do.
 ## Who provides what on each platform
 
 `platform/mod.rs` imports `linux` or `macos` as `sys` and re-exports the
-same names from either: `appearance`, `clipboard`, `instance`, `keychain`,
+same names from either: `app_folders`, `appearance`, `clipboard`, `instance`, `keychain`,
 `notifications`, `panels`, `pasteboard`, `ObjectId`, `MOST_CHROMES`,
 `OPTICAL_SIZING` and `SYSTEM_MOMENTUM`; `run_window` and `Bridge` are reached
 through `sys`. Each name has one signature and two
@@ -401,12 +401,12 @@ app calls, who answers on macOS, who answers on Linux.
 | Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
 | Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, and the app menu event of `infinity_window_manager_v1` | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
-| File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal: no parent window, no filters, no start folder (`linux/panels.rs`, `linux/portal.rs`) | both, Linux partial |
+| File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal with the extensions as `filters` and the start folder as `current_folder`; no parent window, which needs `xdg-foreign` (`linux/panels.rs`, `linux/portal.rs`) | both, Linux partial |
 | Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | The close request and `WindowControls::close()` are vetoed; the kit's `Alert` in a sheet window asks with the same buttons; quit closes the first edited window first; `org.freedesktop.Application.Open` hands each URI to `on_open_url`. No dirty dot (`linux/panels.rs`, `linux/window.rs`) | both |
 | Notifications | `UserNotifications` (`macos/notifications.rs`) | `org.freedesktop.Notifications` and the portal (`linux/notifications.rs`) | both |
 | Secrets | Keychain (`security-framework`, `macos/keychain.rs`) | Secret Service (`linux/keychain.rs`) | both |
 | Single instance | `macos/instance.rs` | `org.freedesktop.Application` (`linux/instance.rs`) | both |
-| Appearance | `NSWorkspace` accessibility notifications (`system.rs`) | `.domain` files watched with inotify, and `org.freedesktop.appearance` | both |
+| Appearance | `NSWorkspace` accessibility notifications (`system.rs`) | `.domain` files watched with inotify, and `org.freedesktop.appearance`: `color-scheme`, and `contrast` and `reduced-motion` added to the file's, without the `shell` feature (`linux/system.rs`) | both |
 
 What the [gap document](../research/swiftui-api-gap.md#what-an-app-author-still-needs)
 left out of the current round, by who would answer it:
@@ -426,6 +426,8 @@ How to keep it true:
 2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 9 cannot send `set_backdrop` ([ADR 0091](../decisions.md)).
 3. A function that needs a new request goes into `infinity-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
 4. `cfg(target_os)` stays in `platform/` ([AGENTS.md](../../AGENTS.md)): `platform/macos/` and `platform/linux/` hold what one system uses, and `platform/` holds what both use. The matrix names the file.
+
+To check each row on a Linux machine after changes made on a Mac, follow [Linux verification](linux-verification.md).
 
 ## Errors
 
