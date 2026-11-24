@@ -20,7 +20,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 use crate::ProbeExt;
 use crate::app::DefaultsRevision;
 use crate::platform::{Bar, DecorationResponse, WindowControls, WindowStatus};
-use crate::style::text_style;
+use crate::style::{text_style, with_font};
 use crate::styles::{
     ControlState, Paints, ShapeStyle, SidebarStyle, StateValue, Theme, TitlebarStyle,
     TrafficLightsStyle, resolve,
@@ -290,15 +290,18 @@ impl Component for Titlebar {
         } else {
             style.title_font
         };
-        let title_label = label()
-            .text(title)
-            .with(|el| text_style(el, title_font))
-            .color(theme::color(title_color))
-            .max_lines(1)
-            .text_overflow(TextOverflow::Ellipsis)
-            .map(self.probe, |label, id| {
-                label.a11y_builder(move |node| node.set_author_id(id))
-            });
+        let title_label = if unified {
+            with_font(label(), title_font)
+        } else {
+            text_style(label(), title_font)
+        }
+        .text(title)
+        .color(theme::color(title_color))
+        .max_lines(1)
+        .text_overflow(TextOverflow::Ellipsis)
+        .map(self.probe, |label, id| {
+            label.a11y_builder(move |node| node.set_author_id(id))
+        });
         let title_label = if status.fullscreen && status.decoration == DecorationResponse::Hybrid {
             rect()
                 .child(crate::platform::backdrop::Declared::layer())
@@ -886,12 +889,25 @@ pub(crate) fn sidebar_toggle_placement(occupied: f32, content: f32) -> (f32, f32
     let lights: TrafficLightsStyle = resolve(&Theme::tengen());
     let platter = TOOLGROUP.height as f32;
     let padding_x = style.sidebar_padding_x;
-    let hidden_x = sidebar.lights_position.0 + lights.length() + TITLEBAR_TOOLBAR_START.unified;
+    let fullscreen = try_consume_root_context::<WindowControls>()
+        .is_some_and(|controls| controls.status.read().fullscreen);
+    let start = if fullscreen {
+        SIDEBAR.toggle_start_fullscreen
+    } else {
+        TITLEBAR_TOOLBAR_START.unified
+    };
+    let hidden_x = sidebar.lights_position.0 + lights.length() + start;
     let docked_x = occupied - platter - SIDEBAR.toggle_inset;
+    // AppKit docks the toggle at the sidebar's end only once that leaves it `toggle_dock` past its place after the lights.
+    let toggle_x = if docked_x >= hidden_x + SIDEBAR.toggle_dock {
+        docked_x
+    } else {
+        hidden_x
+    };
     let zone_x = (occupied + content + padding_x).max(hidden_x);
     (
-        docked_x.max(hidden_x) - zone_x,
-        (hidden_x + platter - docked_x).clamp(0.0, platter),
+        toggle_x - zone_x,
+        (toggle_x + platter - zone_x).clamp(0.0, platter),
     )
 }
 

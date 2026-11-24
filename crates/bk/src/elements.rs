@@ -12,12 +12,13 @@ use torin::prelude::{Alignment, Direction, Size};
 use crate::controls::Checkbox;
 use crate::rich_text::styled_spans;
 use crate::style::Palette;
-use crate::style::with_font;
+use crate::style::with_pitch;
 use crate::styled_text::{Inline, Piece, explicit, layered};
 use crate::styles::{
     ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve,
 };
 use crate::symbol::{Image, Symbol};
+use crate::titlebar::Titlebar;
 use crate::views::list::ListRow;
 
 macro_rules! forward_element {
@@ -279,8 +280,8 @@ impl Text {
 
     pub fn font(mut self, font: Font) -> Self {
         let font = font.scaled(crate::theme::resolved().text_size);
-        self.3.line_height = font.line_height as f32 / font.size as f32;
-        Self(with_font(self.0, font), self.1, self.2, self.3)
+        self.3.line_height = font.line_pitch as f32 / font.size as f32;
+        Self(with_pitch(self.0, font), self.1, self.2, self.3)
     }
 
     pub fn line_limit(mut self, lines: usize) -> Self {
@@ -330,10 +331,10 @@ impl Text {
         let style: TextStyle = resolve(&theme);
         let paints = Paints::current(ControlState::default());
         let inline = Inline {
-            line_height: style.font.line_height as f32 / style.font.size as f32,
+            line_height: style.font.line_pitch as f32 / style.font.size as f32,
             ..Inline::default()
         };
-        let view = with_font(label().text(content.clone()), style.font)
+        let view = with_pitch(label().text(content.clone()), style.font)
             .max_lines(None)
             .color(paints.fill(&style.foreground));
         Self(view, content, theme, inline)
@@ -467,7 +468,13 @@ impl VStack {
     }
 
     pub fn child<C: IntoElement + 'static>(self, child: C) -> Self {
-        self.push(Neighbor::of::<C>(), child.into_element())
+        let column = self.push(Neighbor::of::<C>(), child.into_element());
+        // SwiftUI's toolbar is not in the stack, so the view under a `Titlebar` gets no gap.
+        if TypeId::of::<C>() == TypeId::of::<Titlebar>() {
+            Self(column.0, None, column.2, column.3)
+        } else {
+            column
+        }
     }
 
     pub fn maybe_child<C: IntoElement + 'static>(self, child: Option<C>) -> Self {

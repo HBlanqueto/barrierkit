@@ -250,9 +250,9 @@ optional content column and a detail column.
 |---|---|---|
 | `SplitView::new(sidebar, detail)` | — | Both panes |
 | `.content(view)` | none | A column between the sidebar and the detail: see [Content column](#content-column) |
-| `.sidebar_width(f32)` | `SIDEBAR.width` (220) | Width on the first render, clamped to the range |
+| `.sidebar_width(f32)` | `SPLIT_VIEW.sidebar_width` (144, SwiftUI's on macOS 27.2) | Width on the first render, clamped to the range |
 | `.sidebar_visible(bool)` | `true` | Visibility on the first render |
-| `.sidebar_range(min, max)` | `SPLIT_VIEW.sidebar_min`, `.sidebar_max` (180, 320) | Width limits. A new range clamps the current width |
+| `.sidebar_range(min, max)` | `SPLIT_VIEW.sidebar_min` (140) and no maximum, as SwiftUI's | Width limits. A new range clamps the current width |
 | `.resizable(bool)` | `true` | With `false` there is no grip: the width is fixed |
 | `.narrow_sidebar(NarrowSidebar)` | `Push` | Where the sidebar opens in a narrow window: see [Narrow windows](#narrow-windows) |
 | `.inspector(view, presented)` | none | See [Inspector](#inspector) |
@@ -289,10 +289,12 @@ zone by itself; `.left(view)` replaces it. It takes `IconButtonStyle`.
 
 While the sidebar is docked the button leaves the bar and sits inside the
 sidebar, at its right end, `SIDEBAR.toggle_inset` (7) from the edge, as in
-SwiftUI's `NavigationSplitView`; the title then starts 20 from the edge. When
-the sidebar hides, the button slides to its place in the bar,
-`TITLEBAR_TOOLBAR_START.unified` (16) after the traffic lights, where SwiftUI
-puts it, and takes its width there. Floating over the content in a
+SwiftUI's `NavigationSplitView`; the title then starts 20 from the edge. Its
+place after the traffic lights is `TITLEBAR_TOOLBAR_START.unified` (16) after
+them, `SIDEBAR.toggle_start_fullscreen` (12) in AppKit's full-screen strip. It
+docks only once the sidebar's end leaves it `SIDEBAR.toggle_dock` (9) past that
+place, so a sidebar narrower than 149 keeps it after the lights, as SwiftUI's.
+When the sidebar hides, the button slides there and takes its width. Floating over the content in a
 narrow window, the sidebar does not move it.
 
 `TOGGLE_SIDEBAR` is the [`Action`](13-app.md) with the id `toggle-sidebar` and
@@ -332,10 +334,8 @@ hid by itself in a narrow window counts as visible.
 [`three_columns.rs`](../../agents/recipes/three_columns.rs). A three-column
 app needs it, and SwiftUI's split view takes one.
 
-- It starts as wide as the sidebar (`.sidebar_width`, else `SIDEBAR.width`)
-  and has the sidebar's grip, keys and limits
-  (`.sidebar_range`, `.resizable`): there is no token for this column, so it
-  reuses the sidebar's. A 1 px separator, the inspector's, divides it from the
+- It starts `SPLIT_VIEW.content_width` (200) wide, as SwiftUI's, and has the
+  sidebar's grip, keys and limits (`.sidebar_range`, `.resizable`). A 1 px separator, the inspector's, divides it from the
   detail.
 - It does not hide: the sidebar toggle and a narrow window hide the sidebar
   only, as SwiftUI's `doubleColumn` does. Its width is not reported by

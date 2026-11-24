@@ -109,10 +109,13 @@ const POCKET_OVERRUN: f64 = 10.0;
 const POCKET_MASK_ROWS: usize = 128;
 const POCKET_VEIL_START: f64 = 0.5;
 const POCKET_VEIL: f64 = 0.85;
+// Under an `OnHover` bar SwiftUI lays the window color over the detail at this alpha, edge to edge: white reads 130/255 there (macOS 27.2).
+const DETAIL_VEIL: f64 = 0.56;
 
 pub(super) struct Pocket {
     pub(super) capture: Retained<NSView>,
     pub(super) view: Retained<NSView>,
+    tint: Retained<CALayer>,
 }
 
 impl Pocket {
@@ -142,6 +145,7 @@ impl Pocket {
         }
         veil.addSublayer(&gradient);
         let blur = backdrop(None)?;
+        let tint = CALayer::new();
         let host = |layers: &[&CALayer]| {
             let view = NSView::new(mtm);
             view.setWantsLayer(true);
@@ -152,8 +156,31 @@ impl Pocket {
         };
         Some(Self {
             capture: host(&[&captured])?,
-            view: host(&[&blur, &veil])?,
+            view: host(&[&blur, &veil, &tint])?,
+            tint,
         })
+    }
+
+    // Veils the detail from `left` to the right end with the window color, or nothing.
+    pub(super) fn set_tint(&self, tint: Option<(f64, Rgba)>) {
+        CATransaction::begin();
+        CATransaction::setDisableActions(true);
+        self.tint.setHidden(tint.is_none());
+        if let Some((left, color)) = tint {
+            let size = self.view.frame().size;
+            self.tint.setFrame(NSRect::new(
+                NSPoint::new(left, 0.0),
+                NSSize::new((size.width - left).max(0.0), size.height),
+            ));
+            let color = NSColor::colorWithSRGBRed_green_blue_alpha(
+                f64::from(color.r),
+                f64::from(color.g),
+                f64::from(color.b),
+                DETAIL_VEIL,
+            );
+            self.tint.setBackgroundColor(Some(&color.CGColor()));
+        }
+        CATransaction::commit();
     }
 
     pub(super) fn remove(&self) {
@@ -188,8 +215,7 @@ impl Pocket {
                 // SAFETY: a CAFilter is what a layer's filters hold.
                 unsafe { layer.setFilters(Some(&NSArray::from_slice(&[&*blur]))) };
             }
-            if let Some(gradient) = layers
-                .lastObject()
+            if let Some(gradient) = Some(layers.objectAtIndex(1))
                 .as_deref()
                 .and_then(first_sublayer)
                 .and_then(|layer| layer.downcast::<CAGradientLayer>().ok())

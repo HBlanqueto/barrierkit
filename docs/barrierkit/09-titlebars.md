@@ -226,10 +226,10 @@ public setting clears, so the kit's own row cannot show through it:
 In full screen there is no bar at rest: the content and the sidebar's rows
 start at the top. At the top edge the row comes down with the menu bar, in the
 same places as SwiftUI's, over the content, which does not move; the scroll
-pocket then spans the window, so the row sits on blurred content, and a press
-in it leaves no stale frame. Windowed it changes nothing. Not matched:
-SwiftUI also lightens that band (55/57/63 against the kit's 32/32/38 over Dark
-text, macOS 27.2).
+pocket then spans the window, so the row sits on blurred content, and over the
+detail it lays the window color at 0.56 alpha with a hard edge, as SwiftUI's
+(white reads 130/255 there on macOS 27.2). A press in the row leaves no stale
+frame. Windowed it changes nothing.
 
 ## Traffic lights
 

@@ -656,8 +656,9 @@
       "pane-min": 60
     },
     "split-view": {
-      "sidebar-min": 180,
-      "sidebar-max": 320,
+      "sidebar-width": 144,
+      "content-width": 200,
+      "sidebar-min": 140,
       "collapse-below": 760,
       "inspector": 270,
       "grip": 8,
@@ -832,6 +833,8 @@
         "traffic-x": 19,
         "traffic-y": 19,
         "toggle-inset": 7,
+        "toggle-dock": 9,
+        "toggle-start-fullscreen": 12,
         "line": "separator",
         "glass": {
           "chroma": { "light": 0.22, "dark": 0.05 },

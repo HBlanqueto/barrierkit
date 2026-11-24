@@ -35,6 +35,7 @@
   --bk-font-styles-display-family: sans;
   --bk-font-styles-display-size: 26;
   --bk-font-styles-display-line-height: 31;
+  --bk-font-styles-display-line-pitch: 32;
   --bk-font-styles-display-weight: 400;
   --bk-font-styles-title-1-family: sans;
   --bk-font-styles-title-1-size: 22;
@@ -43,6 +44,7 @@
   --bk-font-styles-title-2-family: sans;
   --bk-font-styles-title-2-size: 17;
   --bk-font-styles-title-2-line-height: 21;
+  --bk-font-styles-title-2-line-pitch: 22;
   --bk-font-styles-title-2-weight: 400;
   --bk-font-styles-headline-family: sans;
   --bk-font-styles-headline-size: 13;
@@ -62,7 +64,7 @@
   --bk-font-styles-caption-weight: 500;
   --bk-font-styles-toolbar-title-family: sans;
   --bk-font-styles-toolbar-title-size: 15;
-  --bk-font-styles-toolbar-title-line-height: 19;
+  --bk-font-styles-toolbar-title-line-height: 16;
   --bk-font-styles-toolbar-title-weight: 600;
   --bk-font-styles-about-name-family: sans;
   --bk-font-styles-about-name-size: 22;
@@ -71,6 +73,7 @@
   --bk-font-styles-title-3-family: sans;
   --bk-font-styles-title-3-size: 15;
   --bk-font-styles-title-3-line-height: 19;
+  --bk-font-styles-title-3-line-pitch: 20;
   --bk-font-styles-title-3-weight: 400;
   --bk-font-styles-subheadline-family: sans;
   --bk-font-styles-subheadline-size: 11;
@@ -1019,8 +1022,9 @@
   --bk-split-panes-divider: 1;
   --bk-split-panes-grab: 5;
   --bk-split-panes-pane-min: 60;
-  --bk-split-view-sidebar-min: 180;
-  --bk-split-view-sidebar-max: 320;
+  --bk-split-view-sidebar-width: 144;
+  --bk-split-view-content-width: 200;
+  --bk-split-view-sidebar-min: 140;
   --bk-split-view-collapse-below: 760;
   --bk-split-view-inspector: 270;
   --bk-split-view-grip: 8;
@@ -1269,6 +1273,8 @@
   --bk-window-sidebar-traffic-x: 19;
   --bk-window-sidebar-traffic-y: 19;
   --bk-window-sidebar-toggle-inset: 7;
+  --bk-window-sidebar-toggle-dock: 9;
+  --bk-window-sidebar-toggle-start-fullscreen: 12;
   --bk-window-sidebar-line: var(--bk-separator);
   --bk-window-sidebar-glass-chroma-light: 0.22;
   --bk-window-sidebar-glass-chroma-dark: 0.05;
@@ -5510,7 +5516,7 @@
     --bk-sidebar-selected-ink-inactive: #808080;
     --bk-sidebar-bg-inactive: #252525;
     --bk-ink-strong: #ffffffd8;
-    --bk-sidebar-ink: #ffffffd8;
+    --bk-sidebar-ink: #ffffffff;
     --bk-ink-muted: #ffffff8c;
     --bk-ink-faint: #ffffff3f;
     --bk-accent: #007aff;
@@ -5775,7 +5781,7 @@
   --bk-sidebar-selected-ink-inactive: #808080;
   --bk-sidebar-bg-inactive: #252525;
   --bk-ink-strong: #ffffffd8;
-  --bk-sidebar-ink: #ffffffd8;
+  --bk-sidebar-ink: #ffffffff;
   --bk-ink-muted: #ffffff8c;
   --bk-ink-faint: #ffffff3f;
   --bk-accent: #007aff;

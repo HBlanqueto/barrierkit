@@ -902,24 +902,27 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 
 | Constant | Size / line height | Weight | SwiftUI |
 |---|---|---|---|
-| `LARGE_TITLE` | 26 / 31 | 400 | `Font.TextStyle.largeTitle` |
+| `LARGE_TITLE` | 26 / 31, pitch 32 | 400 | `Font.TextStyle.largeTitle` |
 | `TITLE` | 22 / 26 | 400 | `.title` |
-| `TITLE_2` | 17 / 21 | 400 | `.title2` |
+| `TITLE_2` | 17 / 21, pitch 22 | 400 | `.title2` |
 | `HEADLINE` | 13 / 16 | 700 | `.headline` |
 | `BODY` | 13 / 16 | 400 | `.body` |
 | `CALLOUT` | 12 / 15 | 400 | `.callout` |
 | `CAPTION` | 11 / 14 | 500 | the kit's own, between `.subheadline` and `.caption` |
-| `TITLE_3` | 15 / 19 | 400 | `.title3` |
+| `TITLE_3` | 15 / 19, pitch 20 | 400 | `.title3` |
 | `SUBHEADLINE` | 11 / 14 | 400 | `.subheadline` |
 | `FOOTNOTE` | 10 / 13 | 400 | `.footnote` and `.caption` |
 | `CAPTION_2` | 10 / 13 | 500 | `.caption2` |
 | `MONO` | 13 / 16 | 400 | `Font.monospaced()` |
-| `TOOLBAR_TITLE` | 15 / 19 | 600 | the window title in a unified toolbar |
+| `TOOLBAR_TITLE` | 15 / 16 | 600 | the window title in a unified toolbar; the line is what centers its glyphs where AppKit draws them (ink rows 19–31 in a 52 px bar) |
 | `ABOUT_NAME` | 22 / 26 | 650 | the app name of `AboutView` |
 
 The line is the height of a SwiftUI `Text` on macOS 27.2 (`fittingSize`):
 13 pt is 16 high, 12 pt 15, 15 pt 19, 17 pt 21, 26 pt 31, 22 pt 26, 11 pt 14 and 10 pt 13. Sizes and
 weights are `NSFont.preferredFont(forTextStyle:)` on macOS 27.2. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
+A wrapped `Text` advances each line by the style's `line_pitch`: a point more than
+the line in `.largeTitle`, `.title2` and `.title3`, as SwiftUI's (five lines of
+`.title3` are 99 high), while one line keeps the line height.
 
 All use Adwaita Sans, the sans of GNOME, so `bk` text matches GTK; `MONO`
 uses Geist Mono. `SANS_FAMILIES` is the fallback list (Adwaita Sans, Inter,

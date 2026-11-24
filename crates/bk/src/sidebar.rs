@@ -14,7 +14,7 @@ use crate::focus::{FocusState, Focused, use_focus_state};
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::WindowControls;
 use crate::scroll::ScrollView;
-use crate::style::{Palette, text, text_style};
+use crate::style::{Palette, text, text_style, with_font};
 use crate::styles::Painted;
 use crate::styles::{
     ControlState, LayoutDirection, Paints, ShapeStyle, SidebarAccountStyle, SidebarItemStyle,
@@ -584,9 +584,8 @@ impl Component for SidebarItem {
                 }
             }))
             .child(
-                label()
+                with_font(label(), font)
                     .text(self.label.clone())
-                    .with(|el| text_style(el, font))
                     .color(theme::color(paints.color(ink.resolve(state))))
                     .max_lines(1),
             )

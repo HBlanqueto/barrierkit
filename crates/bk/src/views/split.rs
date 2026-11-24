@@ -1,6 +1,6 @@
 use freya_animation::prelude::use_animation_transition;
 
-use ctdesign::{SIDEBAR, SPLIT_VIEW, TOOLGROUP};
+use ctdesign::{SPLIT_VIEW, TOOLGROUP};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Area, Content, Direction, Gaps, Position, Size};
@@ -101,7 +101,7 @@ impl SplitView {
             extension: None,
             sidebar_visible: true,
             sidebar_width: None,
-            sidebar_range: (SPLIT_VIEW.sidebar_min, SPLIT_VIEW.sidebar_max),
+            sidebar_range: (SPLIT_VIEW.sidebar_min, f32::INFINITY),
             resizable: true,
             narrow_sidebar: NarrowSidebar::Push,
             on_layout: None,
@@ -193,11 +193,11 @@ impl Component for SplitView {
         let (min_width, max_width) = self.sidebar_range;
         let initial_width = self
             .sidebar_width
-            .unwrap_or(SIDEBAR.width as f32)
+            .unwrap_or(SPLIT_VIEW.sidebar_width)
             .clamp(min_width, max_width);
         let mut sidebar_width = use_state(|| initial_width);
         let mut dragging = use_state(|| false);
-        let mut content_width = use_state(|| initial_width);
+        let mut content_width = use_state(|| SPLIT_VIEW.content_width.clamp(min_width, max_width));
         let mut content_dragging = use_state(|| false);
         let mut visible = use_state(|| self.sidebar_visible);
         let mut auto_hidden = use_state(|| false);

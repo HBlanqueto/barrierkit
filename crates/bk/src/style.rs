@@ -8,6 +8,7 @@ use freya_engine::prelude::{
 };
 
 use crate::{fonts::optical, theme::color};
+use torin::prelude::Gaps;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Palette {
@@ -114,6 +115,14 @@ pub fn text(content: impl Into<Cow<'static, str>>, face: Font, ink: Rgba) -> Lab
 
 pub(crate) fn with_font(label: Label, face: Font) -> Label {
     text_style(label, face).line_height(face.line_height as f32 / face.size as f32)
+}
+
+// SwiftUI advances a wrapped line by the pitch and keeps a single line its height; Skia puts the extra above the glyphs, so the text gives it back at the top.
+pub(crate) fn with_pitch(label: Label, face: Font) -> Label {
+    let trim = face.line_height as f32 - face.line_pitch as f32;
+    text_style(label, face)
+        .line_height(face.line_pitch as f32 / face.size as f32)
+        .margin(Gaps::new(trim, 0.0, 0.0, 0.0))
 }
 
 pub(crate) fn text_style<T: TextStyleExt>(element: T, face: Font) -> T {

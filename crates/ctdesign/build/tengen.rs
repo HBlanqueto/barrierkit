@@ -108,8 +108,12 @@ impl Tengen {
         .next()
         .unwrap_or_default();
         let int = |key: &str| self.number(&format!("{style}.{key}")) as i64;
+        let pitch = self
+            .find(&format!("{style}.line-pitch"))
+            .and_then(Value::as_f64)
+            .map_or(int("line-height"), |pitch| pitch as i64);
         format!(
-            "Font {{ family: {family:?}, size: {}, line_height: {}, weight: {} }}",
+            "Font {{ family: {family:?}, size: {}, line_height: {}, line_pitch: {pitch}, weight: {} }}",
             int("size"),
             int("line-height"),
             int("weight")

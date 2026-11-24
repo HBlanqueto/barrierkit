@@ -521,6 +521,14 @@ impl Window {
         if pocket.view.frame() != frame {
             pocket.set_frame(frame);
         }
+        let (sidebar_left, sidebar_width) = *controls.sidebar_span.peek();
+        pocket.set_tint(controls.toolbar_on_hover.then(|| {
+            let window = crate::theme::surface_background(
+                &crate::theme::resolved(),
+                crate::theme::SurfaceKind::Toplevel,
+            );
+            (f64::from(sidebar_left + sidebar_width - left), window)
+        }));
     }
 }
 

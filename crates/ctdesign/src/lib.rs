@@ -51,6 +51,8 @@ pub struct Font {
     pub family: &'static str,
     pub size: u32,
     pub line_height: u32,
+    // How far a wrapped line advances; SwiftUI's is a point past the line height in the larger titles.
+    pub line_pitch: u32,
     pub weight: u16,
 }
 
@@ -60,6 +62,7 @@ impl Font {
         Self {
             size: scale(self.size),
             line_height: scale(self.line_height),
+            line_pitch: scale(self.line_pitch),
             ..self
         }
     }
@@ -1294,8 +1297,9 @@ pub struct ListGroupMetrics {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SplitViewMetrics {
+    pub sidebar_width: f32,
+    pub content_width: f32,
     pub sidebar_min: f32,
-    pub sidebar_max: f32,
     pub collapse_below: f32,
     pub inspector: f32,
     pub grip: f32,
@@ -1469,6 +1473,8 @@ pub struct SidebarMetrics {
     pub traffic_x: u32,
     pub traffic_y: u32,
     pub toggle_inset: f32,
+    pub toggle_dock: f32,
+    pub toggle_start_fullscreen: f32,
     pub item_height: u32,
     pub item_radius: u32,
     pub item_padding_x: u32,
