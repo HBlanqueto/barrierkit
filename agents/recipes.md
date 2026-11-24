@@ -358,7 +358,8 @@ The program is [`recipes/tasks_list.rs`](recipes/tasks_list.rs).
 
 1. A `Titlebar` with items is the unified toolbar: 52 high, the lights at their
    place and the title at the start. `.toolbar_style(WindowToolbarStyle::UnifiedCompact)`
-   gives the compact bar with a centered title, and `Expanded` a title row over the toolbar row.
+   gives the 40 high compact bar, its title also at the start, and `Expanded` a title row over the
+   toolbar row ([recipe 50](#50-every-swiftui-window-design)).
 2. A `ToolGroup` of two items is a 76 wide capsule and one item is a 38 circle;
    no divider, as in SwiftUI.
 

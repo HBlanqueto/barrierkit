@@ -91,7 +91,7 @@ The column of navigation rows. Its children scroll in a
 |---|---|---|
 | `Sidebar::new()` | — | An empty sidebar |
 | `.child(view)`, `.children(views)` | — | Adds rows: items, sections, an account or any view |
-| `.traffic_lights(bool)` | `false` | Draws the window's traffic lights in the sidebar's top corner. Where they go with each titlebar layout is in [9](09-titlebars.md) |
+| `.traffic_lights(bool)` | `false` | Holds the window's traffic lights in the sidebar's top corner: AppKit's own in a `HiddenTitleBar` window, the kit's on Linux ([9](09-titlebars.md#window-designs)) |
 | `.style(f)` | Tengen | A `SidebarStyle` ([Style](#style)) |
 | `.key(key)` | none | Diff key, as on any Freya element |
 

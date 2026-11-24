@@ -100,7 +100,7 @@ fn main() -> Result<(), RunError> {
 | `Application::scene(scene)` | Declares another [scene](08-windows.md#scenes): `WindowGroup`, `Window` or `Settings` |
 | `Application::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting of the scene declared last: size, limits, menu, full-screen bar |
 | `Application::commands(commands)` | Gives every window the [standard menus](13-app.md#standard-menus) |
-| `Application::run()` | Draws the window background (`Palette::current().window_background`), a [`Titlebar`](09-titlebars.md) with the title, centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>`; `RunError::NoWindow` when only `Settings` is declared |
+| `Application::run()` | Draws the window background (`Palette::current().window_background`), the title bar (AppKit's own on macOS, a kit [`Titlebar`](09-titlebars.md) on Linux), centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>`; `RunError::NoWindow` when only `Settings` is declared |
 
 A window that draws its own title bar (a sidebar, toolbar items) sets
 `.options(|window| window.window_style(WindowStyle::HiddenTitleBar))` and gets
