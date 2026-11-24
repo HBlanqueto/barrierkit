@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("profile")
+    Application::new("com.example.profile")
         .window("Profile", || {
             VStack::new()
                 .cross_align(Alignment::Start)

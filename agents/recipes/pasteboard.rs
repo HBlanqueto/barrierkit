@@ -22,7 +22,7 @@ fn describe(payload: Option<DragPayload>) -> String {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("pasteboard")
+    Application::new("com.example.pasteboard")
         .window("Pasteboard", || {
             let mut found = use_state(|| "Nothing pasted yet".to_owned());
             let drag = use_drag_source();

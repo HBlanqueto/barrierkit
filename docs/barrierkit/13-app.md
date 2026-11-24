@@ -27,7 +27,7 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
    already has Undo and Redo; put yours after them:
 
    ```rust
-   Application::new("counter")
+   Application::new("com.example.counter")
        .window("Counter", counter)
        .commands(Commands::new().group(CommandGroup::after(
            CommandGroupPlacement::UndoRedo,
@@ -71,8 +71,8 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
        step: i32,
    }
 
-   let settings = use_defaults::<Settings>("counter");
-   save_defaults("counter", &Settings { step: 2 })?;
+   let settings = use_defaults::<Settings>("com.example.counter");
+   save_defaults("com.example.counter", &Settings { step: 2 })?;
    ```
 
 7. Optional: make the app single instance with `launch` before `run()`
@@ -380,7 +380,7 @@ let instance = match launch("io.github.hblanqueto.malaysia.notes") {
 ```
 
 1. `launch` exports `org.freedesktop.Application` at the path made from
-   `app_id` (`/io/github/hblanqueto/malaysia/notes`) and asks for the bus name
+   `app_id` (`/com/example/notes`) and asks for the bus name
    `app_id`.
 2. If the name is free, it returns `Launch::Primary(Instance)`.
 3. If another process owns it, `launch` calls `Activate` on it with its
@@ -409,7 +409,7 @@ covers a bare binary and `open -n`. There is no `ActivateAction` on macOS. `Open
 ```rust
 let icon = StatusItem::new("mail", "Mail", "mail-unread")
     .items(vec![MenuItem::action("new", tr!("new-message"))]);
-Application::new("mail")
+Application::new("com.example.mail")
     .window("Mail", inbox)
     .options(|window| window.status_item(icon))
     .run()

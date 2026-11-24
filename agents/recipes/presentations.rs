@@ -2,7 +2,7 @@ use bk::prelude::*;
 use bk::views::feedback::Alert;
 
 fn main() -> Result<(), RunError> {
-    Application::new("presentations")
+    Application::new("com.example.presentations")
         .window("Presentations", || {
             let mut deleting = use_state(|| false);
             let mut showing_info = use_state(|| false);

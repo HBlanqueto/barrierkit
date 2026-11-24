@@ -20,7 +20,7 @@ fn bands() -> Element {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("photos")
+    Application::new("com.example.photos")
         .window("Photos", || {
             let mut inspector = use_state(|| true);
             let detail = ZStack::new()

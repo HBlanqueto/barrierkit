@@ -18,7 +18,7 @@ const FRUITS: [Fruit; 2] = [
 ];
 
 fn main() -> Result<(), RunError> {
-    Application::new("lists")
+    Application::new("com.example.lists")
         .window("Lists", || {
             VStack::new()
                 .children(FRUITS.into_iter().map(|fruit| {

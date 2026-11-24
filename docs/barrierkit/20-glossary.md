@@ -63,6 +63,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `chrome::TitlebarLayout` (`Top`, `Rail`), `chrome::RailStyle`, `WindowChrome::rail_top`, `rail_bottom`, `WindowChromeStyle::{layout, rail_style, rail_width, rail_padding_top, rail_padding_bottom, rail_spacing, rail_background, drawer_background, title, rail_line, title_angle, title_font}`, `TrafficLights::vertical`, `TrafficLightsStyle::axis`, `SidebarStyle::animation` | Gone: the vertical title bar had no SwiftUI design and no app | 2026-11-23 |
 | `ctdesign::TITLEBAR_RAIL`, `TitlebarRailMetrics` | `TITLEBAR_REVEAL`, `TitlebarRevealMetrics`, without the rail fields | 2026-11-23 |
 | `platform::FullscreenBar` (`Solid`, `Glass`, `ProgressiveGlass`), `WindowOptions::fullscreen_bar`, `fullscreen_push`, `WindowControls::fullscreen_bar`, `fullscreen_push`, `FullscreenBarStyle::glass`, `ctdesign::FULLSCREEN_BAND` | Gone: focus mode draws one opaque band, and the window's design decides the bar | 2026-11-23 |
+| `Application::new(name)`, `WindowOptions::new(title, app_name)`, `WindowOptions::app_id(id)`, `titlebar::app_id`, `ctdesign::NATIVE_APP_ID_PREFIX` | `Application::new(id)`, `WindowOptions::new(title, app_id)` with a reverse-DNS id the app chooses; no prefix of Malaysia | 2026-11-24 |
 | `ButtonStyle::Secondary` | `ButtonStyle::tengen()`, the default (SwiftUI `.bordered`) | 2026-11-07 |
 | `ButtonStyle::Primary` | `ButtonStyle::bordered_prominent` | 2026-11-07 |
 | `ButtonStyle::Glass` | `ButtonStyle::glass` | 2026-11-07 |
@@ -998,7 +999,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::WINDOW_EXPAND_MIN_MS`, `WINDOW_EXPAND_MAX_MS` | constant | — | — | — | Compositor: shortest and longest time a window takes to maximize or restore: 300, 560 ms | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `DIALOG_SOLID_LIGHT`, `DIALOG_SOLID_DARK`, `DIALOG_SOLID_SCRIM_LIGHT`, `DIALOG_ALERT_STACK_SPACING`, `DIALOG_ALERT_HELP_SIZE`, `DIALOG_ALERT_HELP_INSET`, `DIALOG_ALERT_BADGE`, `DIALOG_ALERT_CAUTION`, `DIALOG_ALERT_CAUTION_SIZE`, `DIALOG_ALERT_CAUTION_AT`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | — | Dialog and pop-up corners, dialog padding, alert width, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE`, `MENUBAR_LAYER_NAMESPACE`, `DOCK_LAYER_NAMESPACE`, `WALLPAPER_LAYER_NAMESPACE` | constant | — | — | — | App id prefix of kit apps; layer namespaces of shell alerts, notifications, the menu bar, the Dock and the wallpaper | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE`, `MENUBAR_LAYER_NAMESPACE`, `DOCK_LAYER_NAMESPACE`, `WALLPAPER_LAYER_NAMESPACE` | constant | — | — | — | Layer namespaces of shell alerts, notifications, the menu bar, the Dock and the wallpaper | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM`, `TITLEBAR_TOOLBAR_START`, `TITLEBAR_FULLSCREEN_START`, `TITLEBAR_SYSTEM_VEIL`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_REVEAL` | constant | — | — | — | Titlebar sizes, lights, double click and the reveal of a hidden bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `GLASS_MASK`, `HUD_BACKGROUND` | constant | — | — | — | Where the content starts under the focus-mode bar, the `TopGlass` band, its mask, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TRAFFIC_LIGHTS_{LIGHT,DARK,DARK_TINT}`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_GLYPHS`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_MARGIN`, `TRAFFIC_PRESS`, `TRAFFIC_GLYPH_FADE_MS`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | — | Traffic-light looks, glyphs, ring, margin, press and the shifts that derive tinted tones | [4](04-appearance-and-tokens.md#traffic-lights) |
@@ -1350,7 +1351,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `platform::run_window` | fn | `≈ App` | `≈ NSApplicationMain(_:_:)` | `UIApplicationMain` | Opens a window with a root view and runs the event loop | [8](08-windows.md#running-a-window) |
 | `platform::WindowOptions::theme` | method | ≈ `.environment(_:_:)` on the window | ≈ `NSAppearanceCustomization.appearance` | ≈ `UIView.overrideUserInterfaceStyle` | Gives one window its `Theme` | [8](08-windows.md#window-options) |
-| `platform::WindowOptions` | struct | `≈ Window` | — | `UIWindowScene` | Title, name, app id, size, limits, menu and full-screen options of a window | [8](08-windows.md#window-options) |
+| `platform::WindowOptions` | struct | `≈ Window` | — | `UIWindowScene` | Title, app id and its name, size, limits, menu and full-screen options of a window | [8](08-windows.md#window-options) |
 | `platform::WindowControls` | struct | — | `≈ NSWindow` | `UIWindow` | Window state and commands: close, minimize, zoom, full screen, move, resize | [8](08-windows.md#window-controls) |
 | `platform::WindowControls::make_key_and_order_front` | method | — | `NSWindow.makeKeyAndOrderFront(_:)` | `UIWindow.makeKeyAndVisible()` | Brings the window to the front with the keyboard, using the last press | [8](08-windows.md#window-controls) |
 | `platform::WindowStatus` | struct | — | — | — | Configure state: activated, maximized, fullscreen, decoration, fixed | [8](08-windows.md#window-state) |
@@ -1414,7 +1415,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | — | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::use_window_drag` | fn | — | `≈ NSWindow.performDrag(with:)` | — | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::sidebar_bar_height` | fn | — | — | — | Height of the title bar row beside a sidebar | [9](09-titlebars.md#helpers) |
-| `titlebar::app_id` | fn | — | — | — | Default Wayland app id for an app name | [9](09-titlebars.md#helpers) |
 | `chrome::WindowChrome` | struct | — | — | — | Wraps the window and decides when its bar shows | [9](09-titlebars.md#window-chrome) |
 | `chrome::Reveal` | enum | — | — | — | When the bar shows: `Always`, `Drawer`, `Push`, `Corner`, `Popup` | [9](09-titlebars.md#window-chrome) |
 | `chrome::RestingEdge` | enum | — | — | — | What a hidden bar leaves: `None`, `Line`, `Accent` | [9](09-titlebars.md#window-chrome) |
@@ -1598,7 +1598,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
-| `app::Application` | struct | `App` | `NSApplication` | `UIApplication` | The app; its name gives the `app_id` and saved window size. `.window`, `.scene`, `.options`, `.commands`, `.run` | [2](02-first-app.md#what-application-does-for-you) |
+| `app::Application` | struct | `App` | `NSApplication` | `UIApplication` | The app; its reverse-DNS id (≈ `CFBundleIdentifier`) is the `app_id`, the settings folder and the saved window size. `.window`, `.scene`, `.options`, `.commands`, `.run` | [2](02-first-app.md#what-application-does-for-you) |
 | `app::Scene` | struct | `Scene` | — | `UIScene` | A declared scene, what `Application::scene` takes; `WindowGroup`, `Window` and `Settings` convert into it | [8](08-windows.md#scenes) |
 | `app::WindowGroup` | struct | `WindowGroup` | — | `UIWindowScene` | Windows that share their content, one per `open`; `for_value` gives one per value | [8](08-windows.md#scenes) |
 | `app::Window` | struct | `Window` | `NSWindow` | `UIWindow` | One window with an id; opening it again fronts it | [8](08-windows.md#scenes) |

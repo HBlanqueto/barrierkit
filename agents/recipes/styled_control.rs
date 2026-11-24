@@ -2,7 +2,7 @@ use bk::level::LevelSlider;
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("mixer")
+    Application::new("com.example.mixer")
         .theme(
             Theme::tengen()
                 .style(|s: SliderStyle| SliderStyle {

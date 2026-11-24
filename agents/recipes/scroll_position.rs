@@ -5,7 +5,7 @@ use ctdesign::SPRING_SHEET_MS;
 const ROWS: usize = 100;
 
 fn main() -> Result<(), RunError> {
-    Application::new("scroll-position")
+    Application::new("com.example.scroll-position")
         .window("Scroll position", || {
             let scroll = use_scroll_controller();
             let mut position = use_state(ScrollPosition::default);

@@ -12,7 +12,7 @@ impl Component for NameField {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("binding")
+    Application::new("com.example.binding")
         .window("Binding", || {
             let name = use_state(String::new);
             VStack::new()

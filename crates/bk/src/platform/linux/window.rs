@@ -142,9 +142,7 @@ impl Runtime {
         let window = xdg_shell.create_window(surface.clone(), WindowDecorations::RequestClient, qh);
         let app_id = match &parent {
             Some((_, app_id)) => app_id.clone(),
-            None => options.app_id.clone().unwrap_or_else(|| {
-                format!("{}{}", ctdesign::NATIVE_APP_ID_PREFIX, options.app_name)
-            }),
+            None => options.app_id.clone(),
         };
         let utility = parent.is_some();
         // A sheet is not a panel: it takes the keyboard and deactivates its parent, like AppKit.

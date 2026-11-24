@@ -39,7 +39,7 @@ impl Component for AddButton {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("observable")
+    Application::new("com.example.observable")
         .window("Observable", || {
             let counter = Counter::new();
             use_provide_context(|| counter);

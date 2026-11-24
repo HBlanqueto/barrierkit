@@ -8,7 +8,7 @@ use torin::prelude::Gaps;
 const NOTES: [&str; 3] = ["Groceries", "Trip to Lisbon", "Ideas"];
 
 fn main() -> Result<(), RunError> {
-    Application::new("notes")
+    Application::new("com.example.notes")
         .window("Notes", || {
             let mut note = use_state(|| 0);
             let content = rect()

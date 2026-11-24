@@ -37,8 +37,8 @@ Rejected: a kit from `otto-kit`; Skia on EGL/GLES.
 Code: `crates/bk/src/platform/linux/vulkan.rs`, `scripts/check-client-only-deps.sh`, [Platform](barrierkit/18-platform.md)
 
 ## 0035 — Own app identification and CSD
-Decision: a window's `app_id` is `ctdesign::NATIVE_APP_ID_PREFIX` plus the app name, unless `WindowOptions::app_id` sets another. Every window requests client-side decoration; if the compositor answers server-side, the kit turns off its edge resizing.
-Why: the prefix lets the compositor tell kit windows from the rest and leave their chrome to the kit.
+Decision: a window's `app_id` is the reverse-DNS id the app passes to `Application::new` or `WindowOptions::new`; the kit adds no prefix. Every window requests client-side decoration; if the compositor answers server-side, the kit turns off its edge resizing.
+Why: an app built on the kit is not Malaysia's, so its id, settings folder and bus name are its own (2026-11-24).
 Code: `crates/bk/src/platform/window.rs`
 
 ## 0039 — Infinity v1

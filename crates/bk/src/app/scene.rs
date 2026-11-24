@@ -4,20 +4,21 @@ use std::borrow::Cow;
 
 use crate::app::commands::Commands;
 use crate::app::windows::{MAIN_WINDOW, Scene, Scenes, WindowGroup};
-use crate::platform::{RunError, WindowOptions, open_utility_window, run_window};
+use crate::platform::{RunError, WindowOptions, app_name, open_utility_window, run_window};
 use crate::styles::Theme;
 
 pub struct Application {
-    name: String,
+    id: String,
     theme: Theme,
     scenes: Vec<Scene>,
     commands: Option<Commands>,
 }
 
 impl Application {
-    pub fn new(name: impl Into<String>) -> Self {
+    /// `id` is reverse DNS, like a bundle identifier: `com.example.notes`.
+    pub fn new(id: impl Into<String>) -> Self {
         Self {
-            name: name.into(),
+            id: id.into(),
             theme: Theme::tengen(),
             scenes: Vec::new(),
             commands: Some(Commands::new()),
@@ -42,7 +43,8 @@ impl Application {
 
     pub fn scene(mut self, scene: impl Into<Scene>) -> Self {
         let mut scene = scene.into();
-        scene.options.app_name = self.name.clone();
+        scene.options.app_id = self.id.clone();
+        scene.options.app_name = app_name(&self.id).to_owned();
         scene.options.theme = self.theme.clone();
         self.scenes.push(scene);
         self
@@ -67,7 +69,8 @@ impl Application {
     }
 
     pub(crate) fn launch(self) -> Result<(WindowOptions, AppComponent), RunError> {
-        let (scenes, launch) = Scenes::new(self.name, self.scenes, self.commands);
+        let (scenes, launch) =
+            Scenes::new(app_name(&self.id).to_owned(), self.scenes, self.commands);
         Ok(scenes.window(launch.ok_or(RunError::NoWindow)?, None))
     }
 }
@@ -80,11 +83,11 @@ pub struct UtilityWindow {
 impl UtilityWindow {
     pub fn new<E: IntoElement>(
         title: impl Into<Cow<'static, str>>,
-        name: impl Into<String>,
+        app_id: impl Into<String>,
         content: impl Fn() -> E + 'static,
     ) -> Self {
         Self {
-            options: WindowOptions::new(title, name),
+            options: WindowOptions::new(title, app_id),
             content: AppComponent::from(content),
         }
     }

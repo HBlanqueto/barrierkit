@@ -7,7 +7,7 @@ const FIELDS: [(&str, &str); 3] = [
 ];
 
 fn main() -> Result<(), RunError> {
-    Application::new("layout-grid")
+    Application::new("com.example.layout-grid")
         .window("Layout grid", || {
             let grid = FIELDS.iter().fold(
                 Grid::new().alignment(ContentAlignment::LEADING),

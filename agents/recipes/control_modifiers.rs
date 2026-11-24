@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("modifiers")
+    Application::new("com.example.modifiers")
         .window("Modifiers", || {
             HStack::new()
                 .padding(SPACE_4)

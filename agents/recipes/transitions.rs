@@ -3,7 +3,7 @@ use bk::prelude::*;
 use ctdesign::SPRING_SHEET_MS;
 
 fn main() -> Result<(), RunError> {
-    Application::new("transitions")
+    Application::new("com.example.transitions")
         .window("Transitions", || {
             let mut shown = use_state(|| false);
             let mut count = use_state(|| 0u32);

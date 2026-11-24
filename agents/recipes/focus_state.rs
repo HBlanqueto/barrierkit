@@ -7,7 +7,7 @@ enum Field {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("focus")
+    Application::new("com.example.focus")
         .window("Focus", || {
             let focus = use_focus_state::<Field>();
             let name = use_state(String::new);

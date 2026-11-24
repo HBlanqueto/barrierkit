@@ -13,7 +13,7 @@ use ctdesign::{
     ButtonKind, TITLEBAR_DOUBLE_CLICK, TITLEBAR_EXPANDED_TITLE_GAP, TITLEBAR_EXPANDED_TITLE_HEIGHT,
     TITLEBAR_EXPANDED_TOOLBAR_BOTTOM, TITLEBAR_FULLSCREEN_START, TITLEBAR_TOOLBAR_START,
 };
-use ctdesign::{NATIVE_APP_ID_PREFIX, SIDEBAR, TOOLGROUP};
+use ctdesign::{SIDEBAR, TOOLGROUP};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
@@ -994,8 +994,4 @@ fn run_action(controls: &WindowControls, action: TitlebarAction) {
         TitlebarAction::Focus => controls.toggle_fullscreen(),
         TitlebarAction::None => {}
     }
-}
-
-pub fn app_id(app_name: &str) -> String {
-    format!("{NATIVE_APP_ID_PREFIX}{app_name}")
 }

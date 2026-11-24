@@ -3,7 +3,7 @@ use bk::prelude::*;
 use bk::views::navigation::{History, NavigationButtons};
 
 fn main() -> Result<(), RunError> {
-    Application::new("mail")
+    Application::new("com.example.mail")
         .window("Mail", || {
             let mut history = use_state(|| History::new("Inbox"));
             let page = *history.read().current();

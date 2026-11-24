@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("form")
+    Application::new("com.example.form")
         .window("Form", || {
             let name = use_state(String::new);
             let mut subscribed = use_state(|| false);

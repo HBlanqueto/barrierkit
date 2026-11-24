@@ -56,7 +56,7 @@ fn main() -> Result<(), RunError> {
                         ),
                 )
         },
-        WindowOptions::new("Full screen", "full-screen")
+        WindowOptions::new("Full screen", "com.example.full-screen")
             .size((520, 320))
             .window_style(style),
     )

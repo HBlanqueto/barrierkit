@@ -28,7 +28,7 @@ impl Component for Hello {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("hello")
+    Application::new("com.example.hello")
         .window("Hello", || {
             Backdrop::new(BackdropSource::Colors(BACKDROP_SCENES.dusk), Hello)
         })

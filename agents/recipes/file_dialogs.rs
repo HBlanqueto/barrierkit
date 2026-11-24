@@ -30,7 +30,7 @@ impl Component for Pictures {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("file-dialogs")
+    Application::new("com.example.file-dialogs")
         .window("Pictures", || {
             Pictures.file_dialog_default_directory(std::env::temp_dir())
         })

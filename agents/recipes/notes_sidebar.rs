@@ -47,7 +47,7 @@ fn main() -> Result<(), RunError> {
             )
             .sidebar_width(220.0)
         },
-        WindowOptions::new("Notes", "notes")
+        WindowOptions::new("Notes", "com.example.notes")
             .size((760, 480))
             .window_style(style),
     )

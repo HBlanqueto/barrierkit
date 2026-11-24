@@ -21,7 +21,7 @@ impl Component for SaveBar {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("callback")
+    Application::new("com.example.callback")
         .window("Callback", || {
             let mut saves = use_state(|| 0);
             VStack::new()

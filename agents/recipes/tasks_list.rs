@@ -10,7 +10,7 @@ const TASKS: [(&str, Symbol); 4] = [
 ];
 
 fn main() -> Result<(), RunError> {
-    Application::new("tasks")
+    Application::new("com.example.tasks")
         .window("Tasks", || {
             rect()
                 .expanded()

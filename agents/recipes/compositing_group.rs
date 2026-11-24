@@ -23,7 +23,7 @@ fn overlapping() -> impl IntoElement {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("compositing_group")
+    Application::new("com.example.compositing_group")
         .window("Compositing group", || {
             let mut scrolled = use_state(|| false);
             let progress = use_animated(f32::from(u8::from(*scrolled.read())), Animation::None);

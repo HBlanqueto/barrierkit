@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("styles")
+    Application::new("com.example.styles")
         .window("Styles", || {
             let mut on = use_state(|| true);
             let mut busy = use_state(|| false);

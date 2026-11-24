@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("sizes")
+    Application::new("com.example.sizes")
         .window("Sizes", || {
             [
                 ControlSize::Mini,

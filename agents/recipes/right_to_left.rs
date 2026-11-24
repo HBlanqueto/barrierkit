@@ -28,7 +28,7 @@ fn panel(title: &'static str) -> impl IntoElement {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("right-to-left")
+    Application::new("com.example.right-to-left")
         .window("Right to left", || {
             HStack::new()
                 .padding(SPACE_4)

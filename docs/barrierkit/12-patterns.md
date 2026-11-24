@@ -43,7 +43,7 @@ search and saved state.
    the user left it:
 
    ```rust
-   SettingsWindow::new().restoration("notes").group(group)
+   SettingsWindow::new().restoration("com.example.notes").group(group)
    ```
 
 5. Run it as its own window with `run_window` ([`recipes/settings_window.rs`](../../agents/recipes/settings_window.rs)): it draws its own sidebar and
@@ -52,8 +52,8 @@ search and saved state.
 
    ```rust
    run_window(
-       move || SettingsWindow::new().restoration("notes").group(group.clone()),
-       WindowOptions::new("Settings", "notes")
+       move || SettingsWindow::new().restoration("com.example.notes").group(group.clone()),
+       WindowOptions::new("Settings", "com.example.notes")
            .size((SETTINGS.window_width, SETTINGS.window_height)),
    )
    ```
@@ -205,7 +205,7 @@ control:
 | `system_language_row()` | none |
 
 ```rust
-Section::titled("Language").row(app_language_row("notes"))
+Section::titled("Language").row(app_language_row("com.example.notes"))
 ```
 
 ### `write_language`

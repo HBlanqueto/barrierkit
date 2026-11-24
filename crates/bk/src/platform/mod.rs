@@ -66,7 +66,7 @@ pub use window::{
     DecorationResponse, PanelBehavior, WindowControls, WindowEdge, WindowOptions, WindowStatus,
     WindowStyle, WindowToolbarFullScreenVisibility, run_window,
 };
-pub(crate) use window::{open_utility_window, window_activated};
+pub(crate) use window::{app_name, open_utility_window, window_activated};
 pub(crate) use window_style::Knob;
 pub use window_style::{Bar, PopoverShape};
 

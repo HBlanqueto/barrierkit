@@ -36,7 +36,7 @@ fn main() -> Result<(), RunError> {
         "on-hover" => WindowToolbarFullScreenVisibility::OnHover,
         _ => WindowToolbarFullScreenVisibility::Automatic,
     };
-    Application::new("window_designs")
+    Application::new("com.example.window_designs")
         .window("Hello", move || {
             rect()
                 .expanded()

@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("accessibility")
+    Application::new("com.example.accessibility")
         .window("Accessibility", || {
             let mut tasks = use_state(|| 0);
             let note = use_state(String::new);

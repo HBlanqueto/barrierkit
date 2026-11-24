@@ -22,10 +22,10 @@ fn main() -> Result<(), RunError> {
     run_window(
         move || {
             SettingsWindow::new()
-                .restoration("notes")
+                .restoration("com.example.notes")
                 .group(group.clone())
         },
-        WindowOptions::new("Settings", "notes")
+        WindowOptions::new("Settings", "com.example.notes")
             .size((SETTINGS.window_width, SETTINGS.window_height)),
     )
 }

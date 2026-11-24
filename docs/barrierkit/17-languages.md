@@ -7,7 +7,7 @@ covers the `i18n` module, the `localize!` and `tr!` macros and how the
 language is chosen. The language picker widgets are in
 [12. Patterns](12-patterns.md). Date and number formats are not covered.
 **Reader:** whoever adds or changes visible text in a BarrierKit app.
-**Input:** an app that starts with `Application::new(name)`
+**Input:** an app that starts with `Application::new(id)`
 ([2. First app](02-first-app.md)). **Output:** every visible text comes from
 `i18n/<language>/<package>.ftl`; English fills in any missing message.
 
@@ -47,14 +47,14 @@ language is chosen. The language picker widgets are in
    ```
 
 5. Choose the language on the first line of `main`, before any `tr!`. Use the
-   same name as `Application::new` and `load_defaults`:
+   same id as `Application::new` and `load_defaults`:
 
    ```rust
-   bk::i18n::use_app_language("notes");
-   Application::new("notes").window("Notes", content).run()
+   bk::i18n::use_app_language("com.example.notes");
+   Application::new("com.example.notes").window("Notes", content).run()
    ```
 
-6. Put `app_language_row("notes")` in the app's preferences
+6. Put `app_language_row("com.example.notes")` in the app's preferences
    ([12. Patterns](12-patterns.md)).
 7. Read every visible text through `tr!`:
 
@@ -130,8 +130,8 @@ second is owned. Neither is leaked again.
 keeps it for the process. Only the first call counts. Without a call, the
 app starts at step 2 of the order above.
 
-The `domain` is the app's name: `Application::new(name)`, `load_defaults(name)`
-([13. App](13-app.md#settings-and-restoration)) and `use_app_language(name)` take the same string.
+The `domain` is the app's id: `Application::new(id)`, `load_defaults(id)`
+([13. App](13-app.md#settings-and-restoration)) and `use_app_language(id)` take the same string.
 Otherwise the picker writes one file and the app reads another.
 
 ## `i18n::intern`

@@ -30,6 +30,6 @@ fn main() -> Result<(), RunError> {
                         .then(|| Sheet::new(rect().width(Size::px(390.0)).height(Size::px(240.0)))),
                 )
         },
-        WindowOptions::new("popups", "popups").size((480, 400)),
+        WindowOptions::new("popups", "com.example.popups").size((480, 400)),
     )
 }

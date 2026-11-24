@@ -1221,7 +1221,6 @@ background, for `reduce_transparency`.
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners |
 | `PANEL_GLOW_DEPTH` | `f32` | The compositor: depth in points of the `PanelLine::glow` |
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`WindowChromeStyle`), the compositor |
-| `NATIVE_APP_ID_PREFIX` | `&str` | `io.github.hblanqueto.malaysia.`: app ids of the kit's apps (`platform`, `titlebar`) |
 | `ALERT_LAYER_NAMESPACE` | `&str` | `malaysia-dialog`: layer-shell namespace of shell alerts |
 | `NOTIFICATIONS_LAYER_NAMESPACE` | `&str` | `malaysia-notifications`: layer-shell namespace of banners and Notification Center |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic` |

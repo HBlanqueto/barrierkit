@@ -22,7 +22,7 @@ window state.
    put a `Titlebar` at the top of the root view:
 
    ```rust
-   Application::new("notes")
+   Application::new("com.example.notes")
        .window(tr!("notes"), || {
            rect()
                .expanded()
@@ -457,7 +457,6 @@ The state comes from [`WindowStatus`](08-windows.md#window-state).
 
 | Function | Returns |
 |---|---|
-| `titlebar::app_id(app_name)` | The default `app_id`: `io.github.hblanqueto.malaysia.<app_name>` |
 | `titlebar::sidebar_bar_height()` | Height of the title bar row beside a sidebar |
 | `titlebar::use_window_drag(fixed)` | The move and double-click handler of the title bar ([Traffic lights](#traffic-lights)) |
 

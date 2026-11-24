@@ -5,7 +5,7 @@ use ctdesign::SPRING_SHEET_MS;
 const DETAILS_HEIGHT: f32 = 60.0;
 
 fn main() -> Result<(), RunError> {
-    Application::new("details")
+    Application::new("com.example.details")
         .window("Details", || {
             let mut expanded = use_state(|| false);
             let progress = use_animated(f32::from(u8::from(*expanded.read())), Animation::None);

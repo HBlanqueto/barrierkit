@@ -44,6 +44,6 @@ fn main() -> Result<(), RunError> {
                         .child(Text::new("Material")),
                 )
         },
-        WindowOptions::new("Glass window", "glass-window"),
+        WindowOptions::new("Glass window", "com.example.glass-window"),
     )
 }

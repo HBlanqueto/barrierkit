@@ -52,6 +52,10 @@ impl WindowStyle {
     }
 }
 
+pub(crate) fn app_name(app_id: &str) -> &str {
+    app_id.rsplit_once('.').map_or(app_id, |(_, name)| name)
+}
+
 // The limits count the content below the bar drawn inside the window, as SwiftUI's `frame(minHeight:)` sits under the toolbar (docs/barrierkit/08-windows.md#window-options).
 pub(crate) fn below_bar(limit: Option<(u32, u32)>, bar: u32) -> Option<(u32, u32)> {
     limit.map(|(width, height)| (width, if height == 0 { 0 } else { height + bar }))
@@ -61,7 +65,7 @@ pub(crate) fn below_bar(limit: Option<(u32, u32)>, bar: u32) -> Option<(u32, u32
 pub struct WindowOptions {
     pub title: Cow<'static, str>,
     pub app_name: String,
-    pub app_id: Option<String>,
+    pub app_id: String,
     pub size: (u32, u32),
     pub min_size: Option<(u32, u32)>,
     pub max_size: Option<(u32, u32)>,
@@ -96,11 +100,13 @@ impl WindowOptions {
         self.min_size.is_some() && self.min_size == self.max_size
     }
 
-    pub fn new(title: impl Into<Cow<'static, str>>, app_name: impl Into<String>) -> Self {
+    /// `app_id` is reverse DNS (`com.example.notes`); its last part is the name the menus show.
+    pub fn new(title: impl Into<Cow<'static, str>>, app_id: impl Into<String>) -> Self {
+        let app_id = app_id.into();
         Self {
             title: title.into(),
-            app_name: app_name.into(),
-            app_id: None,
+            app_name: app_name(&app_id).to_owned(),
+            app_id,
             size: ctdesign::WINDOW_DEFAULT_SIZE,
             min_size: None,
             max_size: None,
@@ -114,11 +120,6 @@ impl WindowOptions {
             window_style: WindowStyle::TitleBar,
             window_toolbar_full_screen_visibility: WindowToolbarFullScreenVisibility::Automatic,
         }
-    }
-
-    pub fn app_id(mut self, app_id: impl Into<String>) -> Self {
-        self.app_id = Some(app_id.into());
-        self
     }
 
     pub fn theme(mut self, theme: crate::styles::Theme) -> Self {

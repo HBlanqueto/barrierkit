@@ -12,7 +12,7 @@ const MAIL: [(&str, &str, &str); 3] = [
 const SERVICES: [&str; 3] = ["Backups", "Sync", "Sharing"];
 
 fn main() -> Result<(), RunError> {
-    Application::new("list-rows")
+    Application::new("com.example.list-rows")
         .window("List rows", || {
             let mut selected = use_state(Vec::<usize>::new);
             let mut enabled = use_state(|| vec![true, false, true]);

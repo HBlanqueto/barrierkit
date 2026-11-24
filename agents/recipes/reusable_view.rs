@@ -12,7 +12,7 @@ impl Component for Greeting {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("greeting")
+    Application::new("com.example.greeting")
         .window("Greeting", || {
             VStack::new()
                 .child(Greeting { name: "Ana" })

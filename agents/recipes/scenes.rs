@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("scenes")
+    Application::new("com.example.scenes")
         .window("Notes", || {
             let open = use_open_window();
             let open_note = open.clone();

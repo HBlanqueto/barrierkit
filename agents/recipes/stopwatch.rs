@@ -6,7 +6,7 @@ use bk::prelude::*;
 const TICK: Duration = Duration::from_millis(10);
 
 fn main() -> Result<(), RunError> {
-    Application::new("stopwatch")
+    Application::new("com.example.stopwatch")
         .window("Stopwatch", || {
             let mut started = use_state(|| None::<Instant>);
             let mut stored = use_state(|| Duration::ZERO);

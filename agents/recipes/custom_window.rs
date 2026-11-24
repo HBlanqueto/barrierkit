@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("notes")
+    Application::new("com.example.notes")
         .window("Notes", || {
             rect()
                 .expanded()

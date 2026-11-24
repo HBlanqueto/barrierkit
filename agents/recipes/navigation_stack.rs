@@ -35,7 +35,7 @@ impl Component for Detail {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("navigation_stack")
+    Application::new("com.example.navigation_stack")
         .window("Navigation stack", || {
             let path = use_state(NavigationPath::<Route>::new);
             NavigationStack::new(path, Home, |route| match route {

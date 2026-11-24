@@ -32,7 +32,7 @@ not needed.
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("hello")
+    Application::new("com.example.hello")
         .window("Hello", || {
             Text::new("Hello, world").font(TITLE).padding(40.)
         })
@@ -41,7 +41,7 @@ fn main() -> Result<(), RunError> {
 ```
 
 1. `use bk::prelude::*;` brings every name the program uses.
-2. `Application::new("hello")` creates the app. `"hello"` is its short name.
+2. `Application::new("com.example.hello")` creates the app. `"com.example.hello"` is its id; the menus show its last part, `hello`.
 3. `.window("Hello", || …)` adds the window. The closure is the view.
 4. `Text::new(…).font(TITLE).padding(40.)` is the view: a title-sized text
    with 40 px of space around it.
@@ -55,7 +55,7 @@ The SwiftUI and AppKit name of each piece is in the [glossary](20-glossary.md).
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("counter")
+    Application::new("com.example.counter")
         .window("Counter", || {
             let mut count = use_state(|| 0);
             VStack::new()
@@ -94,7 +94,7 @@ fn main() -> Result<(), RunError> {
 
 | Item | What it does |
 |---|---|
-| `Application::new(name)` | Creates the app. `name` is short, lowercase and stable: it becomes the `app_id`, the settings domain and the key of the saved window size |
+| `Application::new(id)` | Creates the app. `id` is reverse DNS and stable, like a bundle identifier (`com.example.notes`): it is the `app_id`, the settings domain and the folder of the saved window size. Its last part is the name the menus show |
 | `Application::theme(theme)` | Gives every window the [`Theme`](../../agents/styles.md#levels); without it, `Theme::tengen()` |
 | `Application::window(title, content)` | Declares the window that opens at launch, a `WindowGroup` with the id `MAIN_WINDOW`. `content` is a closure that returns the view; hooks go at its top |
 | `Application::scene(scene)` | Declares another [scene](08-windows.md#scenes): `WindowGroup`, `Window` or `Settings` |

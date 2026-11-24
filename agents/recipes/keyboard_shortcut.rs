@@ -2,7 +2,7 @@ use bk::app::{Shortcut, ShortcutKey};
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("shortcut")
+    Application::new("com.example.shortcut")
         .window("Shortcut", || {
             let mut count = use_state(|| 0);
             VStack::new()

@@ -52,7 +52,7 @@ fn toolbar(width: f32) -> impl IntoElement {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("layout-layers")
+    Application::new("com.example.layout-layers")
         .window("Layout layers", || {
             let badge = rect()
                 .width(Size::px(10.0))

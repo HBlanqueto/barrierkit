@@ -23,7 +23,7 @@ impl Component for NameField {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("components")
+    Application::new("com.example.components")
         .window("Components", || {
             let name = use_state(|| "Ana".to_string());
             VStack::new()

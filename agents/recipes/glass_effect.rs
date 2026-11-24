@@ -46,7 +46,7 @@ fn main() -> Result<(), RunError> {
                 .child(badge(170.0, 30.0, Glass::REGULAR, Shape::Circle, "OK"))
                 .child(badge(30.0, 240.0, Glass::REGULAR, Shape::Capsule, "Fourth"))
         },
-        WindowOptions::new("Glass effect", "glass-effect")
+        WindowOptions::new("Glass effect", "com.example.glass-effect")
             .size((460, 300))
             .window_style(WindowStyle::Plain),
     )

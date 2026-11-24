@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("text-runs")
+    Application::new("com.example.text-runs")
         .window("Rich text", || {
             VStack::new()
                 .padding(SPACE_4)

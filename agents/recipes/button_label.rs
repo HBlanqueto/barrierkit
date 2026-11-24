@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("button-label")
+    Application::new("com.example.button-label")
         .window("Button label", || {
             HStack::new()
                 .padding(SPACE_4)

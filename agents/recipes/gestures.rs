@@ -2,7 +2,7 @@ use bk::gesture::{Attachable, DragGesture, LongPressGesture, TapGesture, use_ges
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("gestures")
+    Application::new("com.example.gestures")
         .window("Gestures", || {
             let mut taps = use_state(|| 0);
             let mut held = use_state(|| false);

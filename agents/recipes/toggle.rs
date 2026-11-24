@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("network")
+    Application::new("com.example.network")
         .window("Network", || {
             let mut wifi = use_state(|| true);
             VStack::new()

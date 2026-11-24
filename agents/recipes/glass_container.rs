@@ -43,7 +43,7 @@ fn main() -> Result<(), RunError> {
                 .child(pair(40.0, false))
                 .child(pair(140.0, true))
         },
-        WindowOptions::new("Glass container", "glass-container")
+        WindowOptions::new("Glass container", "com.example.glass-container")
             .size((460, 300))
             .window_style(WindowStyle::Plain),
     )

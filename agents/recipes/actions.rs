@@ -9,7 +9,7 @@ fn add_title() -> &'static str {
 const ADD: Action = Action::new("add", add_title).shortcut(Shortcut::ctrl(ShortcutKey::Char('k')));
 
 fn main() -> Result<(), RunError> {
-    Application::new("actions")
+    Application::new("com.example.actions")
         .window("Actions", || {
             let count = use_state(|| 0);
             use_menu_action(move |id| {

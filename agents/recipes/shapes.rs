@@ -31,7 +31,7 @@ fn row(views: Vec<Element>) -> HStack {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("shapes")
+    Application::new("com.example.shapes")
         .window("Shapes", || {
             VStack::new()
                 .padding(SPACE_4)

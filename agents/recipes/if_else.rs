@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("conditions")
+    Application::new("com.example.conditions")
         .window("Conditions", || {
             let mut signed_in = use_state(|| false);
             let status = if *signed_in.read() {

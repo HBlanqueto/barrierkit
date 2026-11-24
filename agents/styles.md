@@ -47,7 +47,7 @@ Later levels win, field by field.
 | Order | Level | Code |
 |---|---|---|
 | 1 | Tengen (default) | `SliderStyle::tengen()` |
-| 2 | Theme | `Application::new("app").theme(Theme::tengen().style(\|s: SliderStyle\| …))`, or `WindowOptions::theme` for `run_window` |
+| 2 | Theme | `Application::new("com.example.app").theme(Theme::tengen().style(\|s: SliderStyle\| …))`, or `WindowOptions::theme` for `run_window` |
 | 3 | Container | `VStack::new().child(..).control_style(\|s: SliderStyle\| …)` (outermost first) |
 | 4 | Instance | `Slider::new("Volume").style(\|s\| …)` |
 | 5 | Accessibility | applied by the kit, always |

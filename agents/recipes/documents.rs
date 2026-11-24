@@ -42,7 +42,7 @@ impl Component for Notes {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("documents")
+    Application::new("com.example.documents")
         .window("Notes", || Notes)
         .options(|window| window.size((420, 300)))
         .run()

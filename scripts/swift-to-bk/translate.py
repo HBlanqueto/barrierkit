@@ -928,7 +928,7 @@ def translate(path, name=None, title=None, root=None):
     app_name = name or kebab(root_name)
     options = f'\n.options(|window| window.size(({size[0]}, {size[1]})))' if size else ''
     body = '\n'.join(lines)
-    parts.append(f'fn main() -> Result<(), RunError> {{\n    Application::new({rust_str(app_name)})\n'
+    parts.append(f'fn main() -> Result<(), RunError> {{\n    Application::new({rust_str("com.example." + app_name)})\n'
                  f'        .window({rust_str(window_title)}, || {{\n{body}\n}}){options}\n        .run()\n}}\n')
     source = '\n'.join(parts)
     source = rustfmt(source)

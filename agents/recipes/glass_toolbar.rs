@@ -50,7 +50,7 @@ fn main() -> Result<(), RunError> {
                         ),
                 )
         },
-        WindowOptions::new("Glass", "glass")
+        WindowOptions::new("Glass", "com.example.glass")
             .size((760, 480))
             .window_style(WindowStyle::HiddenTitleBar),
     )

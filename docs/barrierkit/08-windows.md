@@ -24,7 +24,7 @@ Wayland protocols) is in [18. Platform](18-platform.md).
 2. Describe the window with `WindowOptions` in `.options(..)`:
 
    ```rust
-   Application::new("notes")
+   Application::new("com.example.notes")
        .window(tr!("notes"), || {
            rect()
                .expanded()
@@ -77,13 +77,12 @@ panics where there is none (a popup, a test without a runner);
 
 ## Window options
 
-`WindowOptions::new(title, app_name)` starts with the defaults below; each
+`WindowOptions::new(title, app_id)` starts with the defaults below; each
 method changes one field (the fields are also public).
 
 | Method | Default | Effect |
 |---|---|---|
-| `new(title, app_name)` | — | Visible title and short, stable name |
-| `.app_id(id)` | `io.github.hblanqueto.malaysia.<app_name>` | The Wayland `app_id`. [`titlebar::app_id(name)`](09-titlebars.md#helpers) builds the default |
+| `new(title, app_id)` | — | Visible title and the reverse-DNS `app_id` (`com.example.notes`); `app_name` is its last part |
 | `.size((width, height))` | `WINDOW_DEFAULT_SIZE` (640 × 420) | Initial size of the whole window, AppKit's title bar included, as SwiftUI's `defaultSize`. A size saved on close wins, clamped to the limits |
 | `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits of the content below the window's bar, as SwiftUI's `.frame(minWidth:minHeight:)`: the window adds 52 for `HiddenTitleBar`, the native bar for `TitleBar` (40 on Linux) and 0 for `Plain`, so the window stops where its SwiftUI twin does. Equal limits make the window fixed-size (`WindowStatus::fixed`); a 0 in the maximum leaves that dimension unbounded |
 | `.menu(MainMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
@@ -187,7 +186,7 @@ top edge. The kit hides its lights in full screen, so the app offers a way out
 that calls `toggle_fullscreen()`.
 
 ```rust
-WindowOptions::new("Notes", "notes").window_style(WindowStyle::Plain)
+WindowOptions::new("Notes", "com.example.notes").window_style(WindowStyle::Plain)
 ```
 
 The program is [`recipes/notes_sidebar.rs`](../../agents/recipes/notes_sidebar.rs).
@@ -292,13 +291,13 @@ A utility window is a floating panel, like SwiftUI's `UtilityWindow` or an
 inspector. `app::UtilityWindow` is in the prelude:
 
 ```rust
-UtilityWindow::new(tr!("inspector"), "notes", || Inspector)
+UtilityWindow::new(tr!("inspector"), "com.example.notes", || Inspector)
     .options(|window| window.size((260, 360)))
     .open();
 ```
 
-`UtilityWindow::new(title, name, content)` builds the `WindowOptions` from
-`title` and `name`, as `WindowOptions::new` does. `content` is a closure that
+`UtilityWindow::new(title, app_id, content)` builds the `WindowOptions` from
+`title` and `app_id`, as `WindowOptions::new` does. `content` is a closure that
 returns the view. `.options(|window| ..)` changes those options. Unlike
 `Application::window` ([13](13-app.md)), it adds no title bar and no
 background: `content` draws its own `Titlebar` if it wants one.

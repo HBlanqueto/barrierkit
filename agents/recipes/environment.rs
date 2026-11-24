@@ -16,7 +16,7 @@ impl Component for Profile {
 }
 
 fn main() -> Result<(), RunError> {
-    Application::new("environment")
+    Application::new("com.example.environment")
         .window("Environment", || {
             let mut ana = use_state(|| true);
             let account = Account {

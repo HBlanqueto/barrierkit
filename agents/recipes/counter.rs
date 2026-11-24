@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("counter")
+    Application::new("com.example.counter")
         .window("Counter", || {
             let mut count = use_state(|| 0);
             VStack::new()

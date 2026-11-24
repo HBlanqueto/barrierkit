@@ -1,7 +1,7 @@
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {
-    Application::new("disabled")
+    Application::new("com.example.disabled")
         .window("Disabled", || {
             let name = use_state(String::new);
             let mut saving = use_state(|| false);

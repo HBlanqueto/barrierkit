@@ -2011,7 +2011,6 @@ pub struct ToolgroupPalette {
     pub rim: Rgba,
 }
 
-pub const NATIVE_APP_ID_PREFIX: &str = "io.github.hblanqueto.malaysia.";
 pub const ALERT_LAYER_NAMESPACE: &str = "malaysia-dialog";
 pub const NOTIFICATIONS_LAYER_NAMESPACE: &str = "malaysia-notifications";
 pub const MENUBAR_LAYER_NAMESPACE: &str = "malaysia-menubar";
