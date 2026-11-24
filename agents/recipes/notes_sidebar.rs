@@ -1,8 +1,5 @@
-use bk::compact::IconButton;
 use bk::prelude::*;
-use bk::sidebar::{Sidebar, SidebarItem};
 use bk::views::feedback::ContentUnavailableView;
-use bk::views::split::SplitView;
 
 fn main() -> Result<(), RunError> {
     let style = match std::env::args().nth(1).as_deref() {

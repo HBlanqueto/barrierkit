@@ -1,4 +1,3 @@
-use bk::compact::IconButton;
 use bk::prelude::*;
 
 fn main() -> Result<(), RunError> {

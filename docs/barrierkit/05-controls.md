@@ -378,7 +378,7 @@ MenuButton::new("Sort", items).style(|s| MenuButtonStyle { shape: Shape::Capsule
 | Item | Module | Build | Behavior |
 |---|---|---|---|
 | `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)`, `.style(\|s\| ..)` | Puts each child in a 34.5 × 38 slot (36 × 24 in the compact bar, 38 × 28 in the expanded one) on a capsule background; only the compact bar draws separators, 1 × 14 |
-| `ToolbarSearch` | `compact` | `ToolbarSearch::new(value, placeholder)`, `.collapsed(bool)`, `.style(\|s\| ..)` | A 180 wide `SearchField` (`TOOLBAR_SEARCH_WIDTH`). Collapsed, it shows a magnifying-glass `IconButton` until pressed or while the text is not empty |
+| `ToolbarSearch` | `compact` | `ToolbarSearch::new(value, placeholder)`, `.collapsed(bool)`, `.style(\|s\| ..)` | A 325 wide `SearchField` (`TOOLBAR_SEARCH_WIDTH`, SwiftUI `.searchable` on macOS 27.2). Collapsed, it shows a magnifying-glass `IconButton` until pressed or while the text is not empty |
 | `ToolbarOverflow` | `compact` | `ToolbarOverflow::new(items)`, `.on_activate(\|id: String\| ..)`, `.style(\|s\| ..)` | A `»` `IconButton` that opens the items as a menu |
 
 Where they sit in the title bar is in [9](09-titlebars.md).

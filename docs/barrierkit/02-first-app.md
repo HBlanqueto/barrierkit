@@ -151,6 +151,7 @@ The stacks have no style of their own: their methods and the
 |---|---|
 | The kit: app and windows | `Application`, `Scene`, `WindowGroup`, `Window`, `Settings`, `UtilityWindow`, `Commands`, `CommandGroup`, `CommandGroupPlacement`, `OpenWindowAction`, `DismissWindowAction`, `use_open_window`, `use_dismiss_window`, `use_app_storage`, `Document`, `OpenedUrl`, `use_document`, `FileDialog`, `ContentType`, `run_window`, `WindowOptions`, `WindowStyle`, `WindowToolbarFullScreenVisibility`, `RunError`, `Titlebar`, `WindowToolbarStyle`, `ToolbarItem`, `ToolbarItemPlacement`, `ToolbarSpacer` |
 | The kit: views | `Text`, `Label`, `VStack`, `HStack`, `Divider`, `Image`, `Symbol`, `ImageScale`, `SymbolRenderingMode`, `SymbolWeight`, `IconStyle`, `TemplateRenderingMode`, `Rectangle`, `RoundedRectangle`, `Capsule`, `Circle`, `Ellipse`, `Path`, and the [`controls`](05-controls.md) module: `Button`, `ButtonRole`, `ControlSize`, `Checkbox`, `Switch`, `Slider`, `CircularSlider`, `SegmentedControl`, `TextField`, `SecureField`, `SearchField`, `ToolGroup`, `ScrollView` and its `ScrollPosition`, `ScrollController`, `use_scroll_controller`… |
+| The kit: app views | `SplitView`, `Sidebar`, `SidebarItem`, `List`, `Form`, `Section`, `Row`, `TabView`, `TextEditor`, `ProgressView`, `PopUpButton`, `IconButton`, `ToolbarSearch`, `with_animation`, `use_animated`, `use_timeline` |
 | The kit: layout | `Spacer`, `Frame`, `ZStack`, `ZStackLayout`, `Grid`, `GridRow`, `GridCell`, `Layout`, `LayoutContainer`, `Placement`, `ViewThatFits`, `ContentAlignment`, `HorizontalAlignment`, `VerticalAlignment` |
 | The kit: modifiers | [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) (`.help`, `.context_menu`, `.sheet`, `.alert`, `.popover`, `.on_hover`…), [`StyleModifiers`](../../agents/styles.md#levels) (`.control_style`, `.control_size`, `.frame`, `.glass_effect`, `.content_transition`), [`EnvironmentModifiers`](16-swiftui-to-the-kit.md#environment) (`.disabled`, `.environment`, `.layout_direction`, `.keyboard_shortcut`, `.focused`, `.default_focus`…), `GridModifiers`, `OverlayModifiers`, `ShapeModifiers`, `AccessibilityModifiers` with `AccessibilityTraits` and `AccessibilityChildBehavior` |
 | The kit: state and style | `use_environment`, `use_is_enabled`, `FocusState`, `use_focus_state`, `Transition`, `ContentTransition`, `Presence`, `Glass`, `Palette`, `text`, `color` and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
@@ -159,6 +160,6 @@ The stacks have no style of their own: their methods and the
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `CAPTION_2`, `FOOTNOTE`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `SUBHEADLINE`, `TITLE`, `TITLE_2`, `TITLE_3`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
 
 Everything else is imported from its module, for example
-`bk::views::form::Form` ([3](03-layers.md)).
+`bk::views::table::Table` ([3](03-layers.md)).
 
 Next: [3. Layers](03-layers.md).

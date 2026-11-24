@@ -1,8 +1,4 @@
-use bk::compact::IconButton;
 use bk::prelude::*;
-use bk::sidebar::{Sidebar, SidebarItem};
-use bk::titlebar::sidebar_bar_height;
-use bk::views::split::SplitView;
 use torin::prelude::Gaps;
 
 const NOTES: [&str; 3] = ["Groceries", "Trip to Lisbon", "Ideas"];
@@ -15,7 +11,7 @@ fn main() -> Result<(), RunError> {
             let content = rect()
                 .expanded()
                 .direction(Direction::Vertical)
-                .padding(Gaps::new(sidebar_bar_height(), 12.0, 0.0, 12.0))
+                .padding(Gaps::new(0.0, 12.0, 0.0, 12.0))
                 .children(NOTES.iter().enumerate().map(|(index, title)| {
                     rect()
                         .width(Size::fill())

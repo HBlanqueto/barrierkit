@@ -1,6 +1,4 @@
-use bk::compact::IconButton;
 use bk::prelude::*;
-use bk::views::list::List;
 
 const TASKS: [(&str, Symbol); 4] = [
     ("Buy milk", Symbol::House),

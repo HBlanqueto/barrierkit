@@ -102,8 +102,9 @@ Text::new("Name").frame().width(Size::px(100.0)).alignment(ContentAlignment::TRA
 ```
 
 `frame(maxWidth: .infinity)` is `.width(Size::fill())` in a column. In a row
-`Size::fill()` overflows the siblings after it: give the `HStack`
-`.content(Content::flex())` and the frame `.width(Size::flex(1.0))`.
+`Size::fill()` overflows the siblings after it: give the frame
+`.width(Size::flex(1.0))`. An `HStack` or `VStack` with a child sized
+`Size::flex` shares its space as with a `Spacer`, with no `Content` to set.
 
 ### `Grid` and `GridRow`
 
@@ -418,9 +419,12 @@ The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-tab
    same pixels as the text it replaces.
 4. In a sectioned list the index counts across the sections, as `.selection`
    does. Selection stays by index.
-5. Rows keep the height of the style, `TableStyle::row_height`, so set it for a
-   taller row. A row that takes the height of its content is not available:
-   Freya's `VirtualScrollView` needs the height before it builds the row.
+5. A `Table` keeps the height of the style, `TableStyle::row_height`, so set it
+   for a taller row. A `List` measures its first row's view and gives every row
+   that height plus a single line's padding, as SwiftUI does (24 for one line,
+   40 for two, 56 for three on macOS 27.2). Rows of different heights are not
+   available: Freya's `VirtualScrollView` needs one height before it builds the
+   rows.
 6. A press on a view reaches the row and selects it. A control stops it:
 
 ```rust

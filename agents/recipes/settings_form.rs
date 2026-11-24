@@ -1,5 +1,4 @@
 use bk::prelude::*;
-use bk::views::form::{Form, Row, Section};
 
 fn main() -> Result<(), RunError> {
     Application::new("com.example.settings-sample")

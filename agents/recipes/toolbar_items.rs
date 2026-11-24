@@ -1,4 +1,3 @@
-use bk::compact::IconButton;
 use bk::prelude::*;
 use bk::views::navigation::{History, NavigationButtons};
 

@@ -1,6 +1,5 @@
 use bk::adornments::{Avatar, Badge};
 use bk::prelude::*;
-use bk::views::list::List;
 use bk::views::table::{ListRowModifiers, Table, Visibility};
 use ctdesign::SETTINGS;
 

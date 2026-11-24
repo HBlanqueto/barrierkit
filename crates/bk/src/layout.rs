@@ -205,7 +205,7 @@ impl ElementExt for Spacer {
     }
 }
 
-// A stack with a Spacer shares its space with flex and fills its axis, and the Spacer takes that axis (docs/barrierkit/11-views.md#layout).
+// A stack with a Spacer shares its space with flex and fills its axis, and the Spacer takes that axis; a child sized `Size::flex` makes it share too (docs/barrierkit/11-views.md#layout).
 pub(crate) fn resolve_spacers(mut element: Element) -> Element {
     let Element::Element {
         element: node,
@@ -221,6 +221,7 @@ pub(crate) fn resolve_spacers(mut element: Element) -> Element {
     let axis = stack.layout.direction;
     let mut flex_stack = stack.clone();
     let mut has_spacer = false;
+    let mut has_flex = false;
     for child in elements.iter_mut() {
         let Element::Element { element: inner, .. } = child else {
             continue;
@@ -231,9 +232,19 @@ pub(crate) fn resolve_spacers(mut element: Element) -> Element {
                 ..*spacer
             });
             has_spacer = true;
+        } else {
+            let layout = inner.layout();
+            let along = match axis {
+                Direction::Horizontal => &layout.width,
+                Direction::Vertical => &layout.height,
+            };
+            has_flex |= matches!(along, Size::Flex(_));
         }
     }
-    if has_spacer {
+    if has_flex && !has_spacer && flex_stack.layout.content == Content::Normal {
+        flex_stack.layout.content = Content::Flex;
+        *node = Rc::new(flex_stack);
+    } else if has_spacer {
         if flex_stack.layout.content == Content::Normal {
             flex_stack.layout.content = Content::Flex;
         }

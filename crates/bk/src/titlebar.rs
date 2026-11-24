@@ -412,6 +412,10 @@ impl Component for Titlebar {
         } else {
             bar
         };
+        if let Some(controls) = &controls {
+            let mut taken = controls.titlebar_height;
+            taken.set_if_modified(if overlaid || on_hover { 0.0 } else { height });
+        }
         place_overlaid(
             crate::chrome::revealable_bar(bar, height),
             height,
@@ -833,10 +837,6 @@ fn place_overlaid(
     controls: Option<&WindowControls>,
     overlaid: bool,
 ) -> Element {
-    if let Some(controls) = controls {
-        let mut reported = controls.overlay_titlebar_height;
-        reported.set_if_modified(if overlaid { height } else { 0.0 });
-    }
     let Some(controls) = controls.filter(|_| overlaid) else {
         return bar;
     };

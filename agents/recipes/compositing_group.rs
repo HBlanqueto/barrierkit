@@ -1,4 +1,3 @@
-use bk::animation::{use_animated, with_animation};
 use bk::group::{CompositingGroup, GroupEffect, ShaderEffect};
 use bk::prelude::*;
 use ctdesign::{ACCENT_SWATCHES, SPRING_SHEET_MS};

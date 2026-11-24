@@ -1,6 +1,5 @@
 use std::time::{Duration, Instant};
 
-use bk::app::use_timeline;
 use bk::prelude::*;
 
 const TICK: Duration = Duration::from_millis(10);

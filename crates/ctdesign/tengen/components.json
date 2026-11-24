@@ -65,7 +65,7 @@
       "toolbar-icon": 21,
       "toolbar-stroke": 1.3
     },
-    "toolbar-search-width": 180,
+    "toolbar-search-width": 325,
     "gauge": {
       "size": 44,
       "stroke": 4,
@@ -2293,6 +2293,10 @@
       "icon-height": 16.5,
       "icon-frame": 1.25,
       "gap": 6
+    },
+    "system-colors": {
+      "light": ["#ff383c", "#ff8d28", "#ffcc00", "#34c759", "#00c8b3", "#00c3d0", "#00c0e8", "#0088ff", "#6155f5", "#cb30e0", "#ff2d55", "#ac7f5e", "#8e8e93"],
+      "dark": ["#ff4245", "#ff9230", "#ffd600", "#30d158", "#00dac3", "#00d2e0", "#3cd3fe", "#0091ff", "#6d7cff", "#db34f2", "#ff375f", "#b78a66", "#98989d"]
     },
     "stack": {
       "column-gaps": [

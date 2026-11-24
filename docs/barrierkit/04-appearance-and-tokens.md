@@ -377,6 +377,7 @@ An app picks a variant, or changes the style of a control that takes one
 
 | I want… | Like this | Where |
 |---|---|---|
+| A system color that follows light and dark (SwiftUI's `.red`) | `.fill(ShapeStyle::System(SystemColor::Red))`, `.foreground_style(ShapeStyle::System(SystemColor::Blue))` | [Styles and themes](../../agents/styles.md#value-types) |
 | A control in another color | `.tint(Tint::Color(ACCENT_SWATCHES[4].1))` on `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `RadioGroup`, `ProgressView` | [5](05-controls.md) |
 | A control filled with the backdrop gradient | `.tint(Tint::Backdrop)` inside a `Backdrop` | [15](15-backdrops-and-media.md) |
 | Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop`; it holds only while the user's accent is automatic | [15](15-backdrops-and-media.md) |

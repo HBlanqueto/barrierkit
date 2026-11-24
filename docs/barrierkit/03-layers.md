@@ -15,7 +15,7 @@ its import and its layer.
 1. Try the prelude first: `use bk::prelude::*;` brings the names in
    [The prelude](#the-prelude).
 2. For any other name, find its module in [Modules by layer](#modules-by-layer)
-   and import it by path, for example `use bk::views::form::Form;`.
+   and import it by path, for example `use bk::views::table::Table;`.
    The [glossary](20-glossary.md) lists every public name with its module.
 3. To add a component, put it in the lowest layer that has everything it needs.
    It may use only the layers below it ([Rules](#rules)).

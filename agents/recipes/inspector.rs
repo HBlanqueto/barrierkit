@@ -1,7 +1,4 @@
-use bk::compact::IconButton;
 use bk::prelude::*;
-use bk::sidebar::{Sidebar, SidebarItem};
-use bk::views::split::SplitView;
 
 fn band(color: (u8, u8, u8)) -> Rect {
     rect()

@@ -12,7 +12,7 @@ use ctdesign::{
     DISABLED_CONTRAST_DARK_TINT, DISABLED_CONTRAST_LIGHT, DISABLED_DARK, DISABLED_DARK_TINT,
     DISABLED_LIGHT, DisabledPalette, GLASS_CONTROL, LIST_GROUP, MATERIAL, MaterialThickness,
     PRESSED_CONTRAST_DARK, PRESSED_CONTRAST_DARK_TINT, PRESSED_CONTRAST_LIGHT, PRESSED_DARK,
-    PRESSED_DARK_TINT, PRESSED_LIGHT, PressedPalette,
+    PRESSED_DARK_TINT, PRESSED_LIGHT, PressedPalette, SYSTEM_COLORS, SYSTEM_COLORS_DARK,
 };
 use freya_core::prelude::*;
 
@@ -188,7 +188,25 @@ pub enum ShapeStyle {
     Backdrop,
     Material(Thickness),
     WindowBackground,
+    System(SystemColor),
     Clear,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SystemColor {
+    Red,
+    Orange,
+    Yellow,
+    Green,
+    Mint,
+    Teal,
+    Cyan,
+    Blue,
+    Indigo,
+    Purple,
+    Pink,
+    Brown,
+    Gray,
 }
 
 impl From<Tint> for ShapeStyle {
@@ -726,6 +744,9 @@ impl Paints {
                 .map_or(self.palette.accent, |backdrop| backdrop.highlights()[0]),
             ShapeStyle::Material(thickness) => thickness.material(self.glass, self.opaque).0,
             ShapeStyle::WindowBackground => self.window,
+            ShapeStyle::System(system) => {
+                [SYSTEM_COLORS, SYSTEM_COLORS_DARK][appearance_index() % 2][*system as usize]
+            }
             ShapeStyle::Clear => Rgba::TRANSPARENT,
         }
     }

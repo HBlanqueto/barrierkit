@@ -12,6 +12,7 @@ use crate::compact::IconButton;
 use crate::controls::ToolGroup;
 use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::i18n::text;
+use crate::platform::WindowControls;
 use crate::platform::backdrop::Declared;
 use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::styles::Painted;
@@ -181,6 +182,8 @@ impl Component for SplitView {
         let inspector_shown =
             crate::animation::use_animated(f32::from(u8::from(*presented.read())), style.animation);
         let native_panes = crate::glass_panel::native_pane_glass();
+        let bar_height = try_consume_root_context::<WindowControls>()
+            .map_or(0.0, |controls| *controls.titlebar_height.read());
         let mut inspector_area = use_state(Area::default);
         let mut detail_area = use_state(Area::default);
         crate::glass_panel::use_publish_inspector(
@@ -399,6 +402,7 @@ impl Component for SplitView {
                 rect()
                     .width(Size::px(content_column))
                     .height(Size::fill())
+                    .padding(Gaps::new(bar_height, 0.0, 0.0, 0.0))
                     .child(content.clone())
                     .maybe_child(self.resizable.then(|| ColumnGrip {
                         edge: content_column,
@@ -440,6 +444,7 @@ impl Component for SplitView {
                                 rect()
                                     .width(Size::px(style.inspector_width))
                                     .height(Size::fill())
+                                    .padding(Gaps::new(bar_height, 0.0, 0.0, 0.0))
                                     .child(inspector.clone()),
                             )
                             .maybe_child(native_panes.then(|| {

@@ -62,6 +62,10 @@ pub(crate) fn over_backdrop(surface: SidebarSurface) -> SidebarSurface {
 #[derive(Clone, PartialEq)]
 struct InSidebar;
 
+// AppKit's sidebar is not first responder until it is clicked or focused, so its selection starts gray.
+#[derive(Clone, Copy)]
+struct Engaged(State<bool>);
+
 fn unemphasized(s: SidebarItemStyle) -> SidebarItemStyle {
     SidebarItemStyle {
         selected_background: StateValue::new(ShapeStyle::Color(item_palette(false).selected_bg)),
@@ -333,6 +337,8 @@ impl Component for Sidebar {
 
         let focus = use_focus_state::<InSidebar>();
         use_provide_context(move || focus);
+        let engaged = use_state(|| false);
+        use_provide_context(move || Engaged(engaged));
         let mut panel_area = use_state(Area::default);
         let native_pane = crate::glass_panel::native_pane_glass();
         crate::glass_panel::use_publish(glass, 0.0, *panel_area.read(), native_pane);
@@ -475,8 +481,13 @@ impl Component for SidebarItem {
 
     fn render(&self) -> impl IntoElement {
         let style: SidebarItemStyle = resolve(&self.style);
-        let focus_elsewhere = try_consume_context::<FocusState<InSidebar>>()
-            .is_some_and(|inside| inside.get().is_none() && !ACCESSIBILITY_ROOT_ID.is_focused());
+        let engaged = try_consume_context::<Engaged>();
+        let focus_elsewhere =
+            try_consume_context::<FocusState<InSidebar>>().is_some_and(|inside| {
+                inside.get().is_none()
+                    && (!engaged.is_some_and(|Engaged(engaged)| *engaged.read())
+                        || !ACCESSIBILITY_ROOT_ID.is_focused())
+            });
         let style = if focus_elsewhere {
             unemphasized(style)
         } else {
@@ -526,6 +537,9 @@ impl Component for SidebarItem {
             .map(self.on_select.clone(), |el, callback| {
                 let control = sidebar_control();
                 el.on_press(move |_| {
+                    if let Some(Engaged(mut engaged)) = engaged {
+                        engaged.set_if_modified(true);
+                    }
                     callback.call(());
                     if let Some(control) = control {
                         control.dismiss();

@@ -212,7 +212,7 @@ pub struct WindowControls {
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
     pub desktop: State<Option<u32>>,
-    pub(crate) overlay_titlebar_height: State<f32>,
+    pub(crate) titlebar_height: State<f32>,
     // Where the sidebar spans the window, left and width: on macOS the full-screen bar leaves a soft edge over it.
     pub(crate) sidebar_span: State<(f32, f32)>,
     pub hud: bool,
@@ -260,7 +260,7 @@ impl WindowControls {
             focus_overlay: false,
             focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
             desktop: State::create_global(None),
-            overlay_titlebar_height: State::create_global(0.0),
+            titlebar_height: State::create_global(0.0),
             sidebar_span: State::create_global((0.0, 0.0)),
             hud: options.hud,
             panel,

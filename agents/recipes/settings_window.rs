@@ -1,6 +1,5 @@
 use bk::patterns::settings::{Pane, PaneGroup, SettingsWindow};
 use bk::prelude::*;
-use bk::views::form::{Form, Row, Section};
 use ctdesign::{ACCENT_SWATCHES, SETTINGS};
 
 fn main() -> Result<(), RunError> {

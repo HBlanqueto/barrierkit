@@ -648,6 +648,8 @@ fn emit_specials(out: &mut String, tengen: &Tengen) {
     ));
     for (constant, path) in [
         ("MULTICOLOR", "components.settings.multicolor"),
+        ("SYSTEM_COLORS", "components.system-colors.light"),
+        ("SYSTEM_COLORS_DARK", "components.system-colors.dark"),
         (
             "LEVEL_INDICATOR_COLORS",
             "components.level-indicator.colors",

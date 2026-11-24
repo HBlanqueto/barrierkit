@@ -86,25 +86,32 @@ impl ListRowModifiers for List {
 impl Component for List {
     fn render(&self) -> impl IntoElement {
         use_hook(|| provide_context(ListRow));
+        let content_height = use_state(|| 0.0);
+        let row = self
+            .row
+            .clone()
+            .map(|row| measured_row(row, content_height));
+        let theme = self.row_theme(*content_height.read());
         if !self.sections.is_empty() {
-            return self.overrides.delegate(self.sectioned()).into_element();
+            return self
+                .overrides
+                .delegate(self.sectioned(row, theme))
+                .into_element();
         }
         let mut table = Table::new(self.label.clone(), vec![""])
             .rows(self.rows.iter().map(|row| vec![row.clone()]).collect())
             .scroll_bar(self.scroll_bar)
             .map(self.selection, Table::selection)
-            .map(self.row.clone(), |table, row| {
+            .map(row, |table, row| {
                 table.cell(0, move |index| row.call(index))
             });
         table.list_rows = self.list_rows.clone();
-        self.overrides
-            .delegate(table.themed(self.row_theme()))
-            .into_element()
+        self.overrides.delegate(table.themed(theme)).into_element()
     }
 }
 
 impl List {
-    fn row_theme(&self) -> Theme {
+    fn row_theme(&self, content_height: f32) -> Theme {
         let label_rows = self.label_rows;
         self.style
             .clone()
@@ -117,15 +124,20 @@ impl List {
                     ),
                     ..style
                 },
-                false => style,
+                false => TableStyle {
+                    row_height: style
+                        .row_height
+                        .max(content_height + style.row_height - style.font.line_height as f32),
+                    ..style
+                },
             })
     }
 
-    fn sectioned(&self) -> ScrollView {
-        let style: TableStyle = resolve(&self.row_theme());
+    fn sectioned(&self, row: Option<Callback<usize, Element>>, row_theme: Theme) -> ScrollView {
+        let style: TableStyle = resolve(&row_theme);
         let paints = Paints::current(ControlState::default());
         let header_ink = paints.color(&ShapeStyle::Role(Role::SecondaryLabel));
-        let theme = self.row_theme().style(|style: TableStyle| TableStyle {
+        let theme = row_theme.style(|style: TableStyle| TableStyle {
             body_inset: 0.0,
             ..style
         });
@@ -141,7 +153,7 @@ impl List {
                     .rows(rows.iter().map(|row| vec![row.clone()]).collect())
                     .scroll_bar(false)
                     .map(self.selection, Table::selection)
-                    .map(self.row.clone(), |table, row| {
+                    .map(row.clone(), |table, row| {
                         table.cell(0, move |local| row.call(local + offset))
                     });
                 table.list_rows = self.list_rows.shifted(offset);
@@ -188,4 +200,22 @@ impl List {
             .scroll_bar(self.scroll_bar)
             .children(sections)
     }
+}
+
+// The first row's view sets every row's height: a SwiftUI row is its content plus a single line's padding.
+fn measured_row(
+    row: Callback<usize, Element>,
+    mut content_height: State<f32>,
+) -> Callback<usize, Element> {
+    Callback::new(move |index| {
+        rect()
+            .width(Size::fill())
+            .map((index == 0).then_some(()), |cell, ()| {
+                cell.on_sized(move |event: Event<SizedEventData>| {
+                    content_height.set_if_modified(event.area.height())
+                })
+            })
+            .child(row.call(index))
+            .into_element()
+    })
 }

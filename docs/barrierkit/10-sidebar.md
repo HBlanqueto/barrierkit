@@ -167,7 +167,7 @@ A row with an optional symbol and a one-line label.
 | `.symbol(Symbol)` | none | A bare glyph before the label: the accent, the selected ink on the selected row, as a SwiftUI `Label` in a sidebar `List` |
 | `.symbol_tile(Symbol, tint)` | none | A [`SymbolTile`](#symboltile) of color `tint` before the label, as System Settings draws it |
 | `.tag(State<T>, value)` | not selected | Draws the row as selected while the `State` holds `value`; a press stores `value` in it (SwiftUI `List(selection:)` with `.tag`) |
-| `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent. Inside a `Sidebar` it turns gray on its own while the keyboard focus is outside the sidebar, as in AppKit |
+| `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent. Inside a `Sidebar` it turns gray on its own until the sidebar is clicked or focused, and while the keyboard focus is outside it, as in AppKit |
 | `.style(f)` | Tengen | A `SidebarItemStyle` ([Style](#style)) |
 | `.key(key)` | none | Diff key |
 
