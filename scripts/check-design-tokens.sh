@@ -39,7 +39,7 @@ fi
 
 # Timeouts of the platform layer, the animation engine and the shader clock are not UI durations.
 if matches=$(production crates/bk/src |
-    grep -vE '^crates/bk/src/(platform/|shell/|session_bus\.rs|animation\.rs|group\.rs)' |
+    grep -vE '^crates/bk/src/(platform/|session_bus\.rs|animation\.rs|group\.rs)' |
     grep -E 'Duration::from_(millis|secs|micros)\([[:space:]]*[0-9]|\.time\([[:space:]]*[0-9]'); then
     report "durations must live in ctdesign" "$matches"
 fi

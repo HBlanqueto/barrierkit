@@ -9,9 +9,9 @@ pub const STATUS_ITEM_ACTIVATE: &str = "status-item.activate";
 
 pub type Pixmaps = Vec<(i32, i32, Vec<u8>)>;
 
-pub(crate) const ITEM_PATH: &str = "/StatusNotifierItem";
-pub(crate) const WATCHER: &str = "org.kde.StatusNotifierWatcher";
-pub(crate) const WATCHER_PATH: &str = "/StatusNotifierWatcher";
+pub const ITEM_PATH: &str = "/StatusNotifierItem";
+pub const WATCHER: &str = "org.kde.StatusNotifierWatcher";
+pub const WATCHER_PATH: &str = "/StatusNotifierWatcher";
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct StatusItem {

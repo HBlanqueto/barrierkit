@@ -6,8 +6,9 @@ use infinity_protocol::client::session::infinity_session_v1::infinity_session_v1
 };
 use sctk::reexports::client::{Connection, Dispatch, QueueHandle};
 
-use crate::platform::runtime::Runtime;
-use crate::shell::ShellState;
+use bk::extension::Runtime;
+
+use crate::{Shell, ShellState};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum ScreenLock {
@@ -20,12 +21,12 @@ pub fn use_screen_lock() -> State<ScreenLock> {
     freya_core::prelude::consume_root_context()
 }
 
-impl Dispatch<InfinitySessionV1, ()> for Runtime {
+impl Dispatch<InfinitySessionV1, Shell> for Runtime {
     fn event(
         runtime: &mut Self,
         _: &InfinitySessionV1,
         event: infinity_session_v1::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {

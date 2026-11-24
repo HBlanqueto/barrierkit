@@ -16,6 +16,7 @@ use sctk::{
 use crate::platform::{
     ObjectId, RunError,
     app::{AppInstance, InstanceRole},
+    linux::window_style::wire,
     runtime::{Connected, Runtime, WindowContext},
     surface::{SurfaceRole, SurfaceWindow},
     timer::WakeHandle,
@@ -377,7 +378,7 @@ impl Runtime {
                             WindowCommand::SetTitle(title) => window.set_title(title),
                             WindowCommand::Bar(bar) => {
                                 if let Some(style) = &self.window_style {
-                                    style.set_bar(window.wl_surface(), bar);
+                                    style.set_bar(window.wl_surface(), wire(bar as u32));
                                 }
                             }
                             WindowCommand::Close

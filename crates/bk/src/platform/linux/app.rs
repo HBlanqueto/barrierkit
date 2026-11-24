@@ -1,7 +1,7 @@
 use crate::platform::{app::Host, runtime::Runtime};
 
 impl Runtime {
-    pub(crate) fn host(&self) -> Host {
+    pub fn host(&self) -> Host {
         Host {
             resolved: self.resolved,
             ping: self.ping.clone(),

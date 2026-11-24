@@ -1,6 +1,6 @@
 [package]
 name = "ctdesign"
-description = "Design tokens and shared visual decisions for Malaysia."
+description = "The kit's design tokens."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

@@ -22,7 +22,7 @@ violations=$(jq -r '
     (reach("bk")[] | select(. == "winit") | "bk pulls \(.)"),
     ($name[] | select(test("^(tokio|gtk|glutin|tray-icon|freya|freya-winit|laye-rs|otto-.+)$"))
       | "the workspace pulls \(.)"),
-    (("ctdesign", "ctappearance", "infinity-protocol") as $crate
+    (("ctdesign", "ctappearance", "ctshell", "infinity-protocol") as $crate
       | reach($crate)[] | select(startswith("freya") or contains("skia"))
       | "\($crate) pulls \(.)")
   ] | unique[]

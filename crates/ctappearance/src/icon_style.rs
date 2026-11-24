@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::backdrop::Oklab;
 
-pub(crate) fn luma(color: [f32; 3]) -> f32 {
+pub fn luma(color: [f32; 3]) -> f32 {
     color
         .iter()
         .zip(Rgba::LUMA)

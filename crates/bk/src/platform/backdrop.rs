@@ -336,10 +336,7 @@ impl Requests {
         for (effect, area) in &chrome.effects {
             match *effect {
                 Effect::ScrollEdge { edge, style } if requests.scroll_edge.is_none() => {
-                    let depth = match edge {
-                        Edge::Leading | Edge::Trailing => ceil(area.max_x(), scale) - x,
-                        _ => ceil(area.max_y(), scale) - y,
-                    };
+                    let depth = ceil(area.max_y(), scale) - y;
                     requests.scroll_edge = Some(ScrollEdge {
                         edge,
                         style,

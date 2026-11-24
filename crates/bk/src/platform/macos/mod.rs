@@ -56,6 +56,7 @@ use crate::platform::macos::blur::PlacedGlass;
 
 // The system delivers the momentum of a trackpad fling as scroll events.
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
+pub(crate) const NATIVE_LIGHTS: bool = true;
 
 // (top, height) of the row that rides in AppKit's bar: down with the menu bar in full screen, or over its title bar in the window.
 pub(crate) fn bar_row(expanded: bool, windowed: bool) -> (f32, f32) {
@@ -699,7 +700,11 @@ impl Runtime {
             popup_commands: Rc::new(RefCell::new(Vec::new())),
             popup_next_id: Rc::new(Cell::new(1)),
             last_input_serial: Rc::new(Cell::new(0)),
-            resolved: State::create_global(resolve(&system::appearance(), load_dominant())),
+            resolved: State::create_global(resolve(
+                &system::appearance(),
+                load_dominant(),
+                NATIVE_LIGHTS,
+            )),
             defaults_revision: State::create_global(0),
             clipboard,
             primary: Clipboard::primary(),
@@ -710,7 +715,7 @@ impl Runtime {
 
     // The window and every popup follow the settings the system changed.
     fn refresh_appearance(&mut self) {
-        let resolved = resolve(&system::appearance(), load_dominant());
+        let resolved = resolve(&system::appearance(), load_dominant(), NATIVE_LIGHTS);
         let mut own = self.resolved;
         own.set_if_modified(resolved);
         for window in &mut self.windows {

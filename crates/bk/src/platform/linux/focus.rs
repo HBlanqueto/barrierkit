@@ -34,7 +34,7 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         };
         if let infinity_focus_surface_v1::Event::Glass { luma } = event {
             let mut glass_luma = state.surfaces[index].app.glass_luma;
-            let luma = Some(luma as f32 / infinity_protocol::THOUSANDTHS);
+            let luma = Some(luma as f32 / ctdesign::THOUSANDTHS);
             if *glass_luma.peek() != luma {
                 glass_luma.set(luma);
                 state.request_redraw_all = true;

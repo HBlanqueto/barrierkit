@@ -36,18 +36,18 @@ use super::{
 };
 use crate::platform::{app::AppInstance, backdrop::Pass, glass::Rects, linux::popup::PopupInfo};
 
-pub(crate) struct SurfaceWindow {
-    pub(crate) surface: WlSurface,
-    pub(crate) role: SurfaceRole,
+pub struct SurfaceWindow {
+    pub surface: WlSurface,
+    pub role: SurfaceRole,
     pub(crate) popup: Option<PopupInfo>,
     pub(crate) shared: Rc<GraphicsShared>,
     pub(crate) graphics: Option<Graphics>,
     pub(crate) app: AppInstance,
-    pub(crate) logical_size: (u32, u32),
+    pub logical_size: (u32, u32),
     pub(crate) buffer_size: (u32, u32),
-    pub(crate) scale: f64,
-    pub(crate) output: Option<ObjectId>,
-    pub(crate) needs_redraw: bool,
+    pub scale: f64,
+    pub output: Option<ObjectId>,
+    pub needs_redraw: bool,
     pub(crate) frame_pending: bool,
     pub(crate) pending_motion: Option<PlatformEvent>,
     pub(crate) draw_count: u64,
@@ -69,7 +69,7 @@ pub(crate) struct SurfaceWindow {
 }
 
 #[cfg(feature = "shell")]
-pub(crate) trait ExtensionRole: Debug {
+pub trait ExtensionRole: Debug {
     fn as_any(&self) -> &dyn std::any::Any;
 
     fn parent_popup(&self, _popup: &XdgPopup) -> bool {
@@ -78,7 +78,7 @@ pub(crate) trait ExtensionRole: Debug {
 }
 
 #[derive(Debug)]
-pub(crate) enum SurfaceRole {
+pub enum SurfaceRole {
     #[cfg(feature = "shell")]
     Extension(Box<dyn ExtensionRole>),
     Window(Window),
@@ -94,7 +94,7 @@ impl SurfaceRole {
         }
     }
 
-    pub(crate) fn as_extension_role<T: 'static>(&self) -> Option<&T> {
+    pub fn as_extension_role<T: 'static>(&self) -> Option<&T> {
         match self {
             SurfaceRole::Extension(role) => role.as_any().downcast_ref::<T>(),
             _ => None,
@@ -137,7 +137,7 @@ impl SurfaceWindow {
         }
     }
 
-    pub(crate) fn draw_after_configure(
+    pub fn draw_after_configure(
         &mut self,
         compositor: &CompositorState,
         qh: &QueueHandle<Runtime>,
@@ -156,7 +156,7 @@ impl SurfaceWindow {
         }
     }
 
-    pub(crate) fn configure(&mut self, size: (u32, u32), scale: f64) {
+    pub fn configure(&mut self, size: (u32, u32), scale: f64) {
         if size.0 == 0 || size.1 == 0 {
             return;
         }
@@ -384,7 +384,7 @@ impl Drop for SurfaceWindow {
 }
 
 impl Runtime {
-    pub(crate) fn surface_window(
+    pub fn surface_window(
         &self,
         surface: WlSurface,
         role: SurfaceRole,

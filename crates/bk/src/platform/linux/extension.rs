@@ -1,37 +1,43 @@
+use std::any::Any;
+
 use freya_core::integration::Runner;
 use sctk::reexports::client::{
     QueueHandle,
+    backend::ObjectId,
     protocol::{wl_output::WlOutput, wl_seat::WlSeat},
 };
 
-use super::runtime::Runtime;
+#[cfg(feature = "shell")]
+pub use crate::platform::linux::glass::packed;
+use crate::platform::linux::runtime::Runtime;
 
-pub(crate) struct Extension {
+pub struct Extension {
     #[cfg(feature = "shell")]
-    pub(crate) state: Box<dyn std::any::Any>,
-    pub(crate) hooks: ExtensionHooks,
+    pub state: Box<dyn Any>,
+    pub hooks: ExtensionHooks,
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct ExtensionHooks {
-    pub(crate) provide_contexts: fn(&Runtime, &mut Runner),
-    pub(crate) new_seat: fn(&mut Runtime, &WlSeat),
-    pub(crate) new_output: fn(&mut Runtime, &QueueHandle<Runtime>, &WlOutput),
-    pub(crate) poll: fn(&mut Runtime),
+pub struct ExtensionHooks {
+    pub provide_contexts: fn(&Runtime, &mut Runner),
+    pub new_seat: fn(&mut Runtime, &WlSeat),
+    pub new_output: fn(&mut Runtime, &QueueHandle<Runtime>, &WlOutput),
+    pub poll: fn(&mut Runtime),
+    pub kit_event: fn(&mut Runtime, &ObjectId, Box<dyn Any>),
 }
 
 impl Runtime {
     #[cfg(feature = "shell")]
-    pub(crate) fn extension<T: 'static>(&self) -> Option<&T> {
+    pub fn extension<T: 'static>(&self) -> Option<&T> {
         self.extension.as_ref()?.state.downcast_ref::<T>()
     }
 
     #[cfg(feature = "shell")]
-    pub(crate) fn extension_mut<T: 'static>(&mut self) -> Option<&mut T> {
+    pub fn extension_mut<T: 'static>(&mut self) -> Option<&mut T> {
         self.extension.as_mut()?.state.downcast_mut::<T>()
     }
 
-    pub(crate) fn provide_extension_contexts(&self, runner: &mut Runner) {
+    pub fn provide_extension_contexts(&self, runner: &mut Runner) {
         if let Some(hooks) = self.extension_hooks() {
             (hooks.provide_contexts)(self, runner);
         }

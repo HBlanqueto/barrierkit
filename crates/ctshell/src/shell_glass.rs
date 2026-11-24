@@ -1,4 +1,6 @@
-use ctdesign::{Rgba, SHELL_GLASS_CHROMA_KNOTS, SHELL_GLASS_LEVELS, ShellGlass};
+use ctdesign::Rgba;
+
+use crate::design::{SHELL_GLASS_CHROMA_KNOTS, SHELL_GLASS_LEVELS, ShellGlass};
 
 fn linear(knots: &[f32], values: &[f32], at: f32) -> f32 {
     let last = knots.len() - 1;

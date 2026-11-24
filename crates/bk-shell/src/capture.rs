@@ -20,8 +20,9 @@ use sctk::reexports::protocols::ext::image_copy_capture::v1::client::{
 };
 use sctk::shm::{Shm, raw::RawPool};
 
-use crate::platform::runtime::Runtime;
-use crate::shell::ShellState;
+use bk::extension::{KitSender, Runtime};
+
+use crate::{Shell, ShellState};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WindowImage {
@@ -36,7 +37,7 @@ pub struct CaptureWindow {
 }
 
 pub fn capture_window(window: u64, done: impl Fn(Option<WindowImage>) + 'static) {
-    crate::platform::KitSender::get().send(CaptureWindow {
+    KitSender::get().send(CaptureWindow {
         window,
         done: Rc::new(done),
     });
@@ -76,83 +77,81 @@ impl Capture {
     pub(crate) fn bind(globals: &GlobalList, qh: &QueueHandle<Runtime>) -> Option<Self> {
         Some(Self {
             _list: globals.bind(qh, 1..=1, Listing).ok()?,
-            sources: globals.bind(qh, 1..=1, ()).ok()?,
-            copy: globals.bind(qh, 1..=1, ()).ok()?,
-            shm: Shm::from(globals.bind::<wl_shm::WlShm, _, _>(qh, 1..=1, ()).ok()?),
+            sources: globals.bind(qh, 1..=1, Shell).ok()?,
+            copy: globals.bind(qh, 1..=1, Shell).ok()?,
+            shm: Shm::from(globals.bind::<wl_shm::WlShm, _, _>(qh, 1..=1, Shell).ok()?),
             listed: Vec::new(),
             pending: Vec::new(),
         })
     }
 }
 
-impl Runtime {
-    pub(crate) fn capture_window(&mut self, request: CaptureWindow) {
-        let qh = self.qh.clone();
-        let Some(shell) = self.extension_mut::<ShellState>() else {
+pub(crate) fn capture(rt: &mut Runtime, request: CaptureWindow) {
+    let qh = rt.qh.clone();
+    let Some(shell) = rt.extension_mut::<ShellState>() else {
+        return (request.done)(None);
+    };
+    let handle = {
+        let entries = shell.toplevels.entries.borrow();
+        let Some(entry) = entries.iter().find(|entry| entry.info.id == request.window) else {
             return (request.done)(None);
         };
-        let handle = {
-            let entries = shell.toplevels.entries.borrow();
-            let Some(entry) = entries.iter().find(|entry| entry.info.id == request.window) else {
-                return (request.done)(None);
-            };
-            entry.list.clone().or_else(|| {
-                shell.capture.as_ref().and_then(|capture| {
-                    let mut matches = capture.listed.iter().filter(|listed| {
-                        listed.app_id == entry.info.app_id && listed.title == entry.info.title
-                    });
-                    // Two windows with one app id and title cannot be told apart: capture neither.
-                    match (matches.next(), matches.next()) {
-                        (Some(listed), None) => Some(listed.handle.clone()),
-                        _ => None,
-                    }
-                })
+        entry.list.clone().or_else(|| {
+            shell.capture.as_ref().and_then(|capture| {
+                let mut matches = capture.listed.iter().filter(|listed| {
+                    listed.app_id == entry.info.app_id && listed.title == entry.info.title
+                });
+                // Two windows with one app id and title cannot be told apart: capture neither.
+                match (matches.next(), matches.next()) {
+                    (Some(listed), None) => Some(listed.handle.clone()),
+                    _ => None,
+                }
             })
-        };
-        let (Some(handle), Some(capture)) = (handle, shell.capture.as_mut()) else {
-            return (request.done)(None);
-        };
-        let source = capture.sources.create_source(&handle, &qh, ());
-        let session = capture
-            .copy
-            .create_session(&source, Options::empty(), &qh, ());
-        capture.pending.push(Pending {
-            session,
-            source,
-            size: None,
-            format: None,
-            frame: None,
-            done: request.done,
-        });
-    }
+        })
+    };
+    let (Some(handle), Some(capture)) = (handle, shell.capture.as_mut()) else {
+        return (request.done)(None);
+    };
+    let source = capture.sources.create_source(&handle, &qh, Shell);
+    let session = capture
+        .copy
+        .create_session(&source, Options::empty(), &qh, Shell);
+    capture.pending.push(Pending {
+        session,
+        source,
+        size: None,
+        format: None,
+        frame: None,
+        done: request.done,
+    });
+}
 
-    fn finish_capture(&mut self, index: usize, image: Option<WindowImage>) {
-        let Some(capture) = self
-            .extension_mut::<ShellState>()
-            .and_then(|shell| shell.capture.as_mut())
-        else {
-            return;
-        };
-        let pending = capture.pending.remove(index);
-        if let Some((frame, _, buffer)) = &pending.frame {
-            frame.destroy();
-            buffer.destroy();
-        }
-        pending.session.destroy();
-        pending.source.destroy();
-        (pending.done)(image);
-        self.request_redraw_all = true;
-        self.ping.ping();
+fn finish_capture(rt: &mut Runtime, index: usize, image: Option<WindowImage>) {
+    let Some(capture) = rt
+        .extension_mut::<ShellState>()
+        .and_then(|shell| shell.capture.as_mut())
+    else {
+        return;
+    };
+    let pending = capture.pending.remove(index);
+    if let Some((frame, _, buffer)) = &pending.frame {
+        frame.destroy();
+        buffer.destroy();
     }
+    pending.session.destroy();
+    pending.source.destroy();
+    (pending.done)(image);
+    rt.request_redraw_all = true;
+    rt.ping.ping();
+}
 
-    fn capture_index(&self, matches: impl Fn(&Pending) -> bool) -> Option<usize> {
-        self.extension::<ShellState>()?
-            .capture
-            .as_ref()?
-            .pending
-            .iter()
-            .position(matches)
-    }
+fn capture_index(rt: &Runtime, matches: impl Fn(&Pending) -> bool) -> Option<usize> {
+    rt.extension::<ShellState>()?
+        .capture
+        .as_ref()?
+        .pending
+        .iter()
+        .position(matches)
 }
 
 // ext-image-copy-capture-v1: the session sends the buffer constraints, then `done`; the
@@ -182,7 +181,7 @@ fn start_frame(capture: &mut Capture, index: usize, qh: &QueueHandle<Runtime>) -
         CaptureBuffer,
         qh,
     );
-    let frame = pending.session.create_frame(qh, ());
+    let frame = pending.session.create_frame(qh, Shell);
     frame.attach_buffer(&buffer);
     frame.damage_buffer(0, 0, width as i32, height as i32);
     frame.capture();
@@ -216,16 +215,16 @@ fn read_image(pending: &mut Pending) -> Option<WindowImage> {
     })
 }
 
-impl Dispatch<ExtImageCopyCaptureSessionV1, (), Runtime> for Runtime {
+impl Dispatch<ExtImageCopyCaptureSessionV1, Shell, Runtime> for Runtime {
     fn event(
         state: &mut Self,
         session: &ExtImageCopyCaptureSessionV1,
         event: SessionEvent,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         qh: &QueueHandle<Self>,
     ) {
-        let Some(index) = state.capture_index(|pending| pending.session == *session) else {
+        let Some(index) = capture_index(state, |pending| pending.session == *session) else {
             return;
         };
         let started = {
@@ -261,21 +260,21 @@ impl Dispatch<ExtImageCopyCaptureSessionV1, (), Runtime> for Runtime {
             }
         };
         if !started {
-            state.finish_capture(index, None);
+            finish_capture(state, index, None);
         }
     }
 }
 
-impl Dispatch<ExtImageCopyCaptureFrameV1, (), Runtime> for Runtime {
+impl Dispatch<ExtImageCopyCaptureFrameV1, Shell, Runtime> for Runtime {
     fn event(
         state: &mut Self,
         frame: &ExtImageCopyCaptureFrameV1,
         event: FrameEvent,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
-        let Some(index) = state.capture_index(|pending| {
+        let Some(index) = capture_index(state, |pending| {
             pending
                 .frame
                 .as_ref()
@@ -291,7 +290,7 @@ impl Dispatch<ExtImageCopyCaptureFrameV1, (), Runtime> for Runtime {
             FrameEvent::Failed { .. } => None,
             _ => return,
         };
-        state.finish_capture(index, image);
+        finish_capture(state, index, image);
     }
 }
 
@@ -356,48 +355,48 @@ impl Dispatch<ExtForeignToplevelHandleV1, Listing, Runtime> for Runtime {
     }
 }
 
-impl Dispatch<ExtForeignToplevelImageCaptureSourceManagerV1, (), Runtime> for Runtime {
+impl Dispatch<ExtForeignToplevelImageCaptureSourceManagerV1, Shell, Runtime> for Runtime {
     fn event(
         _: &mut Self,
         _: &ExtForeignToplevelImageCaptureSourceManagerV1,
         _: <ExtForeignToplevelImageCaptureSourceManagerV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
     }
 }
 
-impl Dispatch<ExtImageCaptureSourceV1, (), Runtime> for Runtime {
+impl Dispatch<ExtImageCaptureSourceV1, Shell, Runtime> for Runtime {
     fn event(
         _: &mut Self,
         _: &ExtImageCaptureSourceV1,
         _: <ExtImageCaptureSourceV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
     }
 }
 
-impl Dispatch<ExtImageCopyCaptureManagerV1, (), Runtime> for Runtime {
+impl Dispatch<ExtImageCopyCaptureManagerV1, Shell, Runtime> for Runtime {
     fn event(
         _: &mut Self,
         _: &ExtImageCopyCaptureManagerV1,
         _: <ExtImageCopyCaptureManagerV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
     }
 }
 
-impl Dispatch<wl_shm::WlShm, (), Runtime> for Runtime {
+impl Dispatch<wl_shm::WlShm, Shell, Runtime> for Runtime {
     fn event(
         _: &mut Self,
         _: &wl_shm::WlShm,
         _: wl_shm::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {

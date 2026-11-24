@@ -37,7 +37,6 @@ its import and its layer.
 │ Layer 0 · Platform    run_window, popups, input,       │
 │                       timers, portal, Vulkan, Metal    │
 └───────────────────────────────────────────────────────┘
-        shell (feature `shell`): layer-shell, lock, toplevels, tray
 ```
 
 ## Modules by layer
@@ -52,7 +51,6 @@ modules (not `pub`) are in the last column; an app cannot import them.
 | 2 · Views | `views` (`collection`, `feedback`, `form`, `group`, `list`, `navigation`, `navigation_stack`, `search`, `split`, `split_panes`, `table`, `tabs`, `text_view`, `toolbar`, `tree`) and `font_panel` | — |
 | 3 · Patterns | `patterns` (`about`, `language`, `settings`) | `patterns::search_popover` |
 | App | `app` and `prelude` | — |
-| Shell | `shell`, only with the `shell` feature | — |
 
 Four items live at the crate root: `register_font`, `init_tracing` and
 `ProbeExt` ([4](04-appearance-and-tokens.md#helpers)), and `WindowGlass`
@@ -82,8 +80,8 @@ other token comes from `ctdesign`, which the app then adds as a dependency.
 5. An app may use any layer. A settings app uses layer 3; a player composes
    layer 2; a special view draws with Freya's `rect` and `label` and the
    `Palette`.
-6. Only `malaysia-shell` enables the `shell` feature. Other apps do not see the
-   module.
+6. Shell surfaces are not part of the kit: they live in
+   [`bk-shell`](../shell/README.md).
 
 ## What every component does
 

@@ -3,8 +3,12 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle, globals:
 use crate::platform::{PanelBehavior, runtime::Runtime};
 
 pub(crate) use infinity_protocol::client::style::infinity_window_style_v1::infinity_window_style_v1::{
-    BlendingMode, InfinityWindowStyleV1, Panel,
+    BlendingMode, InfinityWindowStyleV1, Material, Panel,
 };
+
+pub(crate) fn wire<T: TryFrom<u32, Error = ()>>(value: u32) -> T {
+    T::try_from(value).expect("crate::platform::window_style declares the protocol's values")
+}
 
 impl PanelBehavior {
     pub(super) fn flags(self) -> Panel {

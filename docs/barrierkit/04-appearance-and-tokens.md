@@ -7,7 +7,9 @@ covers `style`, `theme`, `symbol`, fonts, the whole of `ctdesign` and the
 whole of `ctappearance`. Backdrops and their tints are in
 [15](15-backdrops-and-media.md); traffic lights as a control in
 [9](09-titlebars.md); the language of the text in [17](17-languages.md); how
-`build.rs` reads the JSON in [Tengen](tengen.md).
+`build.rs` reads the JSON in [Tengen](tengen.md). The desktop's own settings
+(wallpaper, menu bar, Dock, notifications), glass and tokens are in
+[ctshell](../shell/ctshell.md).
 **Reader:** anyone who designs an app or a component.
 **Input:** an app from [2](02-first-app.md). **Output:** a view that uses only
 tokens and the palette, and follows the user's appearance.
@@ -347,8 +349,6 @@ Linux keeps the face as it is.
 |---|---|
 | `resolved() -> Resolved` | The resolved appearance of this point of the tree: the one `use_appearance` provides, otherwise the window's, otherwise it reads the files. |
 | `use_appearance(adjust)` | Hook. Changes the appearance for this component and its children: `adjust` edits a copy of the user's `AppearanceConfig`. It follows later changes of the user's appearance. |
-| `use_shell_theme()` | Hook. Gives Freya's own components a theme built from the resolved shell colors, and updates it when the appearance changes. |
-| `for_scheme(dark) -> Theme` | Freya theme for the default light or dark appearance. |
 | `surface_background(resolved, kind) -> Rgba` | Background of a surface: the window color for `SurfaceKind::Toplevel`; the bar color for `SurfaceKind::LayerShell`, tinted when the tint covers the desktop. |
 | `menu_palette(resolved, kind) -> MenuPalette` | Menu colors over that surface. A tinted surface lifts the menu background and recomputes its separator. |
 | `popover_palette(resolved, kind) -> MenuPalette` | `menu_palette` with the metrics of a pop-up menu (`MENU_POPOVER`). |
@@ -515,71 +515,15 @@ Notes on the values:
 | `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. A file that does not parse is first copied to `.state.bak`; one that cannot be read is left alone and the call fails. |
 | `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
 
-### The wallpaper files
-
-Malaysia's wallpaper lives in three files. System Settings writes the first two
-and `malaysia-wallpaper` reads them and writes the third.
-
-| File | Functions | Contents |
-|---|---|---|
-| `data_dir()/wallpaper-selection.state` | `wallpaper_selection_path`, `read_wallpaper_selection`, `write_wallpaper_selection` | `WallpaperSelection`: what each desktop shows and how |
-| `config_dir()/wallpaper.domain` | `wallpaper_config_path`, `read_wallpaper_config`, `write_wallpaper_config` | `WallpaperConfig`: the user's collections |
-| `data_dir()/wallpaper.state` | `wallpaper_state_path`, `load_wallpaper_state`, `write_wallpaper_state` | `WallpaperState`: dominant color, tint grids, outputs and the shuffle |
-
-Every map of the selection is keyed by `desktop_key`: a desktop number from 1,
-or `ALL_DESKTOPS` (`"default"`) for every desktop. A desktop without its own key
-shows the shared one with its scale, crop, appearance and pause. Crops can also be
-keyed `"<desktop>/<output>"`, which wins over the desktop's own.
-
-| Field | Holds |
-|---|---|
-| `desktops` | A `WallpaperSource` as text: `builtin`, a `file://` URI, `shuffle:colors` or `shuffle:collection:<name>`. No shared key shows the built-in wallpaper. |
-| `scale`, `scales` | `WallpaperScale` of the shared wallpaper and of each desktop's own: `Fill`, `Fit`, `Stretch`, `Center` or `Custom`. |
-| `crop` | `[x, y, width, height]`, fractions of the image. With `Custom` it covers the screen like `Fill`. |
-| `appearance` | `WallpaperAppearance` (`Light` or `Dark`): the still a dynamic wallpaper keeps instead of following the system appearance or the time. |
-| `paused` | Desktop keys whose animated wallpaper stands still. |
-| `shuffle` | `WallpaperShuffle`: `Login`, `Hourly` or `Daily`. |
-
-Edit it through its methods so the keys stay consistent: `set_source`,
-`make_own`, `set_scale`, `set_crop`, `set_appearance` and `set_paused` write;
-`source`, `scale_for`, `crop_for`, `appearance_for` and `paused_for` read with the fallbacks above.
-`set_source(None, _)` sets the wallpaper of every desktop: it drops each
-desktop's own choices. `replace_source(old, new)` rewrites only the desktops
-that show `old`; with `None` they lose that wallpaper. `make_own(desktop)` gives a desktop a copy of the shared
-choices, and `show_on_all_desktops(desktop)` makes a desktop's choices the
-shared ones, like macOS «Show on all Spaces».
-
-```toml
-scale = "custom"
-shuffle = "daily"
-
-[desktops]
-default = "file:///run/current-system/sw/share/wallpapers/bandura.jpg"
-2 = "shuffle:collection:Viajes"
-
-[crop]
-default = [0.2, 0.15, 0.55, 0.62]
-"default/HDMI-A-1" = [0.3, 0.1, 0.5, 0.62]
-```
-
-`WallpaperKind::of` and `wallpapers_in` decide which files count as
-wallpapers: PNG, JPEG, HEIC and HEIF images, MP4, MOV, WebM and MKV videos, and
-GLSL shaders (`.frag`, `.glsl`). `system_wallpapers_dir` is the first
-`$XDG_DATA_DIRS/wallpapers` and `custom_colors_dir` holds the user's own colors.
-`wallpaper_colors` lists the colors: the system's `solid-colors`, then the
-user's.
-
-Previews follow the [thumbnail spec](https://specifications.freedesktop.org/thumbnail-spec/latest/):
-`thumbnail_path` is the x-large PNG named by the MD5 of `file_uri` (escaped as
-GLib does), valid while `thumbnail_is_fresh`. `thumbnail_image_size` reads the
-size of the original image from its `Thumb::Image::Width` and `Height`. `frame_path` holds the light and the
-dark still of a dynamic wallpaper; System Settings treats a HEIC with both as
-dynamic.
+The wallpaper each desktop shows and the user's collections are in
+[ctshell](../shell/ctshell.md#the-wallpaper-files).
 
 ### Resolution
 
-`resolve(&config, dominant) -> Resolved` turns the config and the wallpaper's
-dominant color into colors. `palette(scheme)` returns the base
+`resolve(&config, dominant, native_lights) -> Resolved` turns the config and
+the wallpaper's dominant color into colors. `native_lights` is true where the
+system draws its own traffic lights: each backend passes its `NATIVE_LIGHTS`,
+true on macOS, where only the graphite accent changes them. `palette(scheme)` returns the base
 `ctdesign::Palette` of a scheme (`LIGHT`, `DARK` or `DARK_TINT`).
 `palette_in(scheme, contrast)` adds the scheme's `ContrastPalette` with
 Increase Contrast; `Resolved::palette()` is that of a resolved appearance.
@@ -597,7 +541,6 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `focus_ring` | `NSColor.keyboardFocusIndicatorColor`: translucent, opaque with `contrast`. A color macOS has no name for moves until it reaches 3:1 on the window with `contrast` (rule 7). |
 | `link` | The accent moved until it reaches 4.5:1 on the window and on content. |
 | `window_tint` | Tint color and amount, or `None`: the accent, or the wallpaper after `behind_window`. |
-| `bar_tint` | Tint of the menu bar and the Dock with the `bars` part: the accent tint, or the dominant color by `wallpaper_tinting`. |
 | `wallpaper_tinting` | `backdrop::WallpaperTinting` of the wallpaper behind a window (`chroma` and `lift`), or `None` when it is off. `Resolved::behind_window(color)` tints the `tint_parts` with that color (rule 4). |
 | `tint_parts` | Copy of the config. |
 | `traffic_lights` | The `TrafficLooks` of the user's `traffic_lights` style, in this scheme and contrast. On macOS the style is `standard`, or `accent` with the graphite accent. |
@@ -606,14 +549,14 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `show_borders`, `differentiate_without_color`, `menu_bar_size`, `icon_style` | Copies of the config. |
 | `icon_dark`, `icon_tint` | `IconStyle::dark` for `icon_tone` and the scheme, and `icon_color` or the accent. |
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
-| `shell` | `ShellPalette`: menu bar and Dock colors. |
-| `dock` | `DockSurface` of the Dock: its glass, outline, rim and tone (`DOCK_TONE_LIGHT` or `DOCK_TONE_DARK`) by scheme. With transparency reduced, the scheme's solid and no tone. |
-| `menu_glass` | `DockSurface` of the menus: the `_LIGHT` veil, lift and cap of `MENU_GLASS_*` in the light scheme, the `_DARK` ones in dark and dark tint. Transparency does not change its veil or tone. |
-| `notification_glass` | `DockSurface` of the notifications: the tone and blur of `menu_glass` in the Dock's frame, with the menus' dark veil in dark and `NOTIFICATION_GLASS_VEIL_LIGHT` in light. With transparency reduced, `dock`. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
 | `sidebar` | `SidebarSurface`: `bg`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([Glass](10-sidebar.md#glass)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `toolbar`, `toolbar_line`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted except `toolbar_line` and `control`. `line` is the separator color. |
+
+The menu bar, Dock, menu-glass and notification fields (`bar_tint`, `shell`,
+`dock`, `menu_glass`, `notification_glass`) are in
+[ctshell](../shell/ctshell.md#the-shell-colors-of-resolved).
 
 The rules `resolve` applies:
 
@@ -722,57 +665,15 @@ top clockwise.
 
 ### Glass over a backdrop
 
-`ctappearance::menu::panel_over(&surface, behind)` returns the colour a
-`DockSurface` shows over `behind`, as the compositor's shader computes it. The
-Dock, the menus and the notifications share it:
-
-1. The veil mixes over the backdrop at its alpha.
-2. The tone adds `lift` to the lightness of the result, in OKLab.
-3. A soft minimum keeps that lightness under `cap`.
-4. The backdrop's hue comes back, saturated by `chroma` and scaled down by the
-   lightness the cap removed.
-
-A surface without a tone is its veil alone: the Dock with transparency reduced.
-
-Each surface takes its numbers from the scheme:
-
-| Surface | Light | Dark and dark tint |
-|---|---|---|
-| `menu_glass` | `MENU_GLASS_VEIL_LIGHT`, `MENU_GLASS_LIFT_LIGHT`, `MENU_GLASS_CAP_LIGHT` | `MENU_GLASS_VEIL_DARK`, `MENU_GLASS_LIFT_DARK`, `MENU_GLASS_CAP_DARK` |
-| `notification_glass` | `NOTIFICATION_GLASS_VEIL_LIGHT` with the light lift and cap of the menus | the dark veil, lift and cap of the menus |
-| `dock` | the theme's `DOCK_GLASS` with `DOCK_TONE_LIGHT` | the theme's `DOCK_GLASS` with `DOCK_TONE_DARK` |
-
-`MENU_GLASS_CHROMA` and `MENU_GLASS_SPREAD` are the same in every scheme. With
-transparency reduced the Dock is the scheme's solid (`DOCK_GLASS_SOLID`) over
-any backdrop and the notifications take it; the menu glass keeps its veil and
-tone.
+The compositor draws the glass of the menus, the Dock and the notifications;
+the colour it shows over a backdrop is in
+[ctshell](../shell/ctshell.md#glass-over-a-backdrop).
 
 `menu::panel_luma(panel)` is the luma of the panel and
 `menu::dark_ink_over(luma)` says whether its ink is dark: above
 `MENU_DARK_INK_ABOVE` (0.4) it is, below it the ink is light. A light panel
 over black has luma 0.48 and takes dark ink; a dark one has 0.17 and takes
 light ink.
-
-### Shell glass
-
-`ctdesign::ShellGlass` is the glass of one desktop surface in one scheme, as macOS 27.2.1 composes it, and
-`ctappearance::shell_glass` is its reference function ([the measurements](../research/macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)). The tokens are
-`components.shell-glass.<surface>.<scheme>`; today `menu` (also the banner), `spotlight`, `apps`, `notification-card`, `control-center`,
-`control-center-panel` and `dock` (glass), and `spaces-bar` (a `MaterialLook`: use `ctappearance::material::over`), dark only. Light, Reduce
-Transparency and Increase Contrast have no token: they were not measured.
-A veil and a cap per surface miss the menu and the Dock by over 6 levels; this pipeline misses by 1.7 at most.
-
-1. The backdrop is blurred by `sigma` px, plus `halo_weight` of a wide `halo_sigma` px blur when the weight is not 0
-   (the compositor can get the same sigma from a Gaussian on a downsampled backdrop, or from a Dual Kawase of
-   `kawase_sigma(passes, offset)`).
-2. `over(glass, blurred)` takes the blurred pixel in the display's device values, the bytes the compositor writes on the measured
-   panel, and returns `tone(Y) + chroma(Y) (c - Y)` per channel: `Y` is its Rec. 709 luma, `tone` the 12-point gray response
-   (`SHELL_GLASS_LEVELS`), `chroma` the gain of the colour difference at five luma knots (`SHELL_GLASS_CHROMA_KNOTS`). It does not clamp.
-
-The menu bar needs no token: it is identical to the backdrop. `MENU_GLASS_*`, `DOCK_TONE_*`, `DOCK_GLASS_*` and
-`NOTIFICATION_GLASS_VEIL_LIGHT` were fitted to the shifted numbers of
-[section 9.1](../research/macos-blur.md#91-2026-11-21-mid-tones-read-with-sample-were-too-light) and are superseded by `SHELL_GLASS_*`;
-they stay until malaysia moves.
 
 ### Wallpaper behind a window
 
@@ -814,31 +715,6 @@ The kit's runner adds the settings folder of each app ([13](13-app.md#settings-a
 `AppearanceEvent::restyles()` is true for `Appearance` and `Wallpaper`. The kit's runner already
 uses it; an app needs it only with its own event loop.
 
-### Menu bar
-
-`menubar::MenubarConfig` is `menubar.domain`: `app_menus` (default `true`)
-shows the active app's own menus. Malaysia's compositor and menu bar both read
-it. `show_wifi`, `show_bluetooth`, `show_battery`, `show_battery_percentage`
-and `show_vpn` (all `true`) choose the status menus of the bar; System
-Settings writes them. `show_printer` (`true`) shows a printer while a print job
-is queued, on the bar and on the lock screen.
-
-`style` is a `MenubarStyle`: `solid` (Classic), `translucent` or `floating` (default: a clear bar, with only the open title pill blurred).
-`menubar::classic_bar(theme_bar, reduce_transparency)` returns the fill of the Classic
-bar: the theme's `shell-bar` at `MENUBAR_CLASSIC_ALPHA`, or opaque with
-reduced transparency.
-`bar_height` is a `MenubarHeight`: `slim` (default, `MENUBAR_HEIGHT`) or
-`wide` (`MENUBAR_HEIGHT_WIDE`). `MenubarConfig::height()` returns the height
-in logical pixels; the bar and the lock screen both use it. An unknown value
-falls back to the default. `menubar::colors_over(wallpaper)` returns the
-`MenubarColors` of a translucent or floating bar over that wallpaper color:
-`ink`, `glass` and `selection`, the translucent pill behind an open menu
-title. It takes the `MENUBAR_OVER_LIGHT_*` set when the wallpaper, darkened by the
-glass, is brighter than `MENUBAR_DARK_INK_ABOVE` (relative luminance) and
-`MENUBAR_OVER_DARK_*` otherwise, whatever the color scheme.
-`WallpaperGrid::across` returns the wallpaper color along the bar, blurred
-horizontally by `MENUBAR_TINT_SPREAD` of the bar width.
-
 ### Window behavior
 
 `window::read_window_behavior()` reads `config_dir()/window.domain` into a
@@ -858,36 +734,6 @@ never enters focus mode. The titlebar uses them ([9](09-titlebars.md)).
 `double_click_titlebar` in that file and keeps the compositor's other keys.
 System Settings uses it.
 
-### Dock
-
-`dock::DockConfig` is `dock.domain`. Its keys are those of
-`defaults write com.apple.dock`, except `show-downloads`: macOS keeps the
-Downloads folder in `persistent-others`, and the Dock turns this key off when
-the folder is dragged out.
-
-| Key | Type | Default |
-|---|---|---|
-| `autohide` | bool | `false` |
-| `orientation` | `DockOrientation`: `left`, `bottom`, `right` | `bottom` |
-| `magnification` | bool | `false` |
-| `tilesize` | integer | `DOCK_TILESIZE` |
-| `largesize` | integer | `DOCK_LARGESIZE` |
-| `mineffect` | `MinimizeEffect`: `genie`, `scale`, `suck` | `genie` |
-| `show-process-indicators` | bool | `true` |
-| `static-only` | bool | `false` |
-| `minimize-to-application` | bool | `false` |
-| `show-recents` | bool | `true` |
-| `show-downloads` | bool | `true` |
-| `launchanim` | bool | `true` |
-| `autohide-delay` | seconds | `0.0` |
-| `autohide-time-modifier` | factor | `1.0` |
-
-`DockConfig::tilesize()` clamps `tilesize` to `DOCK_TILESIZE_MIN` and
-`DOCK_TILESIZE_MAX`. `largesize()` is the magnified size: at least
-`DOCK_MAGNIFY_MIN` times `tilesize()`, so icons still grow at the largest size,
-and equal to `tilesize()` without magnification. An unknown orientation or
-effect falls back to the default.
-
 ### Traffic-light geometry
 
 `ctappearance::traffic` holds the geometry and look of the close, minimize and
@@ -897,14 +743,12 @@ zoom lights, shared by the kit and the compositor:
 |---|---|
 | `inset(bar_height)` | Distance of the lights from the left edge of a bar: `TITLEBAR.buttons.inset` (9) in the 32 px bar and `inset_compact` (12) in the `TITLEBAR_CLIENT_HEIGHT` (40) bar, as measured on macOS. The lights stay centred vertically: 9 and 13 from the top. |
 | `button_rect(index) -> (x, y, size)` | Rectangle of light `index` in a server-side titlebar. |
-| `group_rect() -> (x, y, width, height)` | Rectangle of the three lights. |
 | `hit(point) -> Option<ButtonKind>` | The light under a point. |
 | `TrafficInput` | `focused`, `group_hovered`, `pressed`, `zoom_supported`, `fullscreen` (minimize is disabled). |
 | `visual(looks, input) -> [ButtonVisual; 3]` | The fill and ring stops, the glyph color, the scale and the dodge of each light for that input. |
 | `ButtonVisual` | `fill` (4 stops, top to bottom), `ring` (3 stops), `glyph` (`None` without hover), `scale` and `dodge` (1.0 and 0.0 unless pressed). |
 | `looks(style, standard, accent, dominant) -> TrafficLooks` | The `standard` look as it is, or recolored with the tone that `accent` or `wallpaper` gives. |
 | `Glyph` | `Close`, `Minimize`, `ZoomEnter`, `ZoomExit` (full screen) and `Plus`; `Glyph::of(index, fixed_width, fullscreen)` picks the one of a light. |
-| `glyph_svg(glyph, color)` | SVG of a glyph, 14 pt. |
 | `rounded(triangle) -> [Corner; 3]` | The corners of a zoom triangle rounded on `TRAFFIC_GLYPHS.zoom_corner`. |
 | `TrafficPointer` | Pointer state machine: `on_motion`, `on_group_enter`, `on_button_enter`, `on_leave_button`, `on_press`, `on_release` (returns the clicked light), `on_leave`, `hovered`, `pressed_visual`. |
 
@@ -1139,50 +983,10 @@ wider blur.
 
 `ctappearance::material::looks(material, scheme)` returns the set of a
 `material::Material` (dark tint takes the dark one). `over(&look, backdrop)`
-is the colour a look shows over one blurred backdrop pixel and `blur_region(line,
-sigma)` the Gaussian over one line of a region that sees only itself: the
-weights are renormalised at the border, so nothing outside the region reaches
-the pixels inside. The values are numbers of the macOS 27.2.1 stack, measured at
+is the colour a look shows over one blurred backdrop pixel. The values are numbers of the macOS 27.2.1 stack, measured at
 scale 1 and in the display's device space; the compositor applies them in its
 own output space ([research](../research/macos-materials.md#10-materials-in-windows-measured-2026-11-22)).
 The render server's layer stack is the only source of these numbers: one veil and one cap per surface cannot tell the saturation, the cap and the floor apart.
-
-### Liquid Glass
-
-`LIQUID_GLASS_<STYLE>_<SCHEME>` (`REGULAR` or `CLEAR`, `LIGHT` or `DARK`) are
-`GlassSet`s of `components.liquid-glass`. A `GlassSet` has the looks `active`
-(a key window or a non-activating panel), `inactive` (a non-key window),
-`reduced` (Reduce Transparency), `increased_contrast` and `reduced_contrast`
-(both), the `rim` tables and the `scale` rules. A `GlassLook` is:
-
-| Field | Unit | Meaning |
-|---|---|---|
-| `blur` | half-resolution texels | Gaussian sigma; 2 x `blur` x the share, in pixels, capped by `LIQUID_GLASS_BLUR_CAP` |
-| `blur_opacity`, `blur_distance` | share, px | the share of `blur` at each distance (negative inside) |
-| `white`, `black` | 0..1.5 | output for a white and a black input |
-| `saturation`, `max_luma` | factor | saturation about the luma; the tone is scaled by `1 - (1 - max_luma) x luma` |
-| `fill` | RGBA | mixed over the tone by its alpha |
-| `refraction` | px | `[amount, height]` of the lens |
-| `tone_delta` | levels of 255 | nine-point correction of the blur fill |
-
-`ctappearance::liquid_glass::looks(glass, scheme)` returns the set;
-`adapted(look, &set.scale, shorter)` applies the size rules to the active look.
-`face`, `blur_sigma`, `lens_offset`, `rim_levels` and `smooth_union` are the
-stages and `render(set, tint, amount, state, &backdrop, &shape)` the CPU reference over an
-`Image`. Values are device values at scale 1 as macOS 27.2.1 draws them; the
-compositor applies them in its own output space
-([research](../research/macos-liquid-glass.md#6-the-model)). The layer tree names each part, which one veil and one cap cannot: the lens, the blur profile, the state and the size.
-
-`LIQUID_GLASS_TINT_<STYLE>_<SCHEME>` are the `GlassTint` of the Appearance › Liquid
-Glass slider (`AppearanceConfig::liquid_glass_tint`, 0 to 1): `blur`, `blur_fill_opacity`,
-`fill_rgb`, `fill_alpha` and `max_luma` are knots at 0, 0.5 and 1, `read_halvings` the
-positions at which the read through the backdrop halves its resolution, and
-`tone_shift_t25` to `_t100` nine-point shifts of `tone_delta`.
-`liquid_glass::tint(glass, scheme)` returns it and
-`tinted(&set, &tint, amount, shorter)` the active look at that position, with the
-blur fill (`Tinted`); `render(set, tint, amount, state, &backdrop, &shape)` takes both.
-The slider is a function of one number, so a compositor can apply it to every glass it draws. At 0 the look is the unchanged one
-([research](../research/macos-liquid-glass.md#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)).
 
 ### Colors
 
@@ -1208,7 +1012,7 @@ The slider is a function of one number, so a compositor can apply it to every gl
 | `MULTICOLOR` | `[Rgba; 25]` | The stops of the Multicolor swatch, from the top clockwise, measured on System Settings; the last is the first. |
 | `LEVEL_INDICATOR_COLORS`, `LEVEL_INDICATOR_COLORS_DARK`, `LEVEL_INDICATOR_COLORS_CONTRAST`, `LEVEL_INDICATOR_COLORS_CONTRAST_DARK` | `[Rgba; 3]` | Normal, warning and critical colors of a level indicator, in light, dark and Increase Contrast. |
 | `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |
-| `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `use_shell_theme`. |
+| `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `bk_shell::use_shell_theme` ([bk-shell](../shell/bk-shell.md#shell-theme)). |
 | `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
 | `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Sidebar background, measured on macOS 27: `#ededed` in light and `#262626` in dark; the `_OPAQUE` ones are the same with Reduce Transparency on: `#f7f7f7` in light and `#141414` in dark. |
 | `TOOLBAR_BG_LIGHT`, `TOOLBAR_BG_DARK`, `TOOLBAR_BG_DARK_TINT` | `Rgba` | Background of the unified title bar beside a sidebar (`Surfaces::toolbar`): `#ffffff` in light and `#262626` in dark. |
@@ -1231,19 +1035,16 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 |---|---|---|
 | `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | `(u32, u32)` | 480 × 360, which an app passes to `.min_size(Some(..))`, and 640 × 420, the default `WindowOptions::size` ([8](08-windows.md)) |
 | `WINDOW_CORNER` | `WindowCorner` | `style::panel_edges` (`expansion`), the compositor |
-| `CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_POPOVER`, `CORNER_MENU`, `CORNER_TOOLTIP`, `CORNER_NOTIFICATION`, `CORNER_NOTIFICATION_CENTER`, `CORNER_CONTROL_CENTER_MODULE`, `CORNER_SPOTLIGHT` | `CornerShape` | The kit (`CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_MENU`, `CORNER_TOOLTIP`), the compositor and the shell: the measured radius and curve of each element |
+| `CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_POPOVER`, `CORNER_MENU`, `CORNER_TOOLTIP` | `CornerShape` | The kit (`CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_MENU`, `CORNER_TOOLTIP`) and the compositor: the measured radius and curve of each element |
 | `CORNER_CONTROLS` | `CornerControls` | The radii of the controls by size, read from the API |
 | `CORNER_SMOOTHING`, `CORNER_CONCENTRIC_REGION` | `f32` | `style::continuous` and `ctappearance::corner::concentric`: the smoothing of the continuous curve (0.745) and the width of the concentric region as a share of the container's radius (1.0) |
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
 | `WINDOW_CLIENT_RESIZE` | `WindowResize` | The compositor: the resize band around a window that decorates itself |
-| `WINDOW_EXPAND_MIN_MS`, `WINDOW_EXPAND_MAX_MS` | `u64` | The compositor: how long a window takes to maximize or restore, from the shortest move (300 ms) to one across the whole workspace (560 ms) |
 | `DIALOG` | `WindowStyle` | No reader in the kit |
 | `DIALOG_PADDING`, `DIALOG_ALERT_*`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `DIALOG_SOLID_*` | `f32`, `u32`, `Rgba`, `[f32; 2]` | `views::feedback`, `styles` (`AlertStyle`, `SheetStyle`, `AboutViewStyle`) |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
 | `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`WindowChromeStyle`), the compositor |
-| `ALERT_LAYER_NAMESPACE` | `&str` | `malaysia-dialog`: layer-shell namespace of shell alerts |
-| `NOTIFICATIONS_LAYER_NAMESPACE` | `&str` | `malaysia-notifications`: layer-shell namespace of banners and Notification Center |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`), `chrome` ([9](09-titlebars.md)) |
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
@@ -1254,7 +1055,6 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
 | `TITLEBAR_REVEAL` | `TitlebarRevealMetrics` | `chrome`, `styles` (`WindowChromeStyle`): the pill, reveal zone and corner, and resting edges of a hidden bar ([9](09-titlebars.md#window-chrome)) |
 | `FULLSCREEN_BAR`, `FULLSCREEN_GLASS` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform` (`FULLSCREEN_BAR`), `styles` (`TopGlassStyle`) |
-| `GLASS_MASK` | `Rgba` | Base color of the mask that fades glass bars |
 | `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
 
 ### Traffic lights
@@ -1308,7 +1108,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 
 | Constant | Type | Read by |
 |---|---|---|
-| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read the per-scheme ones with `glass_chroma`, `glass_lightness`, `glass_rim_lift`, `glass_blur_passes`, `glass_edge` and `glass_shadow` ([Glass](10-sidebar.md#glass)). Values chosen by the owner on the sidebar mockup |
+| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read `chroma` per scheme with `glass_chroma`, and the others with `ctshell::resolve` ([ctshell](../shell/ctshell.md#panel-glass-per-scheme), [Glass](10-sidebar.md#glass)). Values chosen by the owner on the sidebar mockup |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` and `item_selected_weight` (both 400) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `compact`, `titlebar`, `views::split`, `styles` (`ToolGroupStyle`) |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |
@@ -1329,53 +1129,24 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `MEDIA` | `MediaMetrics` | `media`, `styles`; `button_font_weight` is the weight of the `MediaButton` label |
 | `BACKDROP` | `BackdropMetrics` | `backdrop`, `ctappearance::backdrop`, `styles` (`BackdropStyle`) |
 | `BACKDROP_SCENES` | `BackdropScenes` | Preset gradient `dusk` (recipe `titlebar_over_gradient`) |
+| `LABEL_ICON_WIDTH`, `LABEL_ICON_HEIGHT`, `LABEL_ICON_FRAME`, `LABEL_GAP` | `f32` | `Label`: the box of its symbol (16 × 16.5), the kit's symbol frame per point of the font (1.25) and the gap before the title (6), as SwiftUI lays out `Label("Doc", systemImage:)` |
+| `CONTENT_UNAVAILABLE_ICON`, `CONTENT_UNAVAILABLE_ICON_LINE`, `CONTENT_UNAVAILABLE_ICON_GAP`, `CONTENT_UNAVAILABLE_TITLE`, `CONTENT_UNAVAILABLE_DESCRIPTION`, `CONTENT_UNAVAILABLE_DESCRIPTION_GAP`, `CONTENT_UNAVAILABLE_ACTIONS_GAP` | `f32`, `Font` | `ContentUnavailableView`: the symbol frame (45, the kit's frame for SF's 36 pt) and its 44 high line, the gaps above the title, the description and the actions (20, 6, 19) and the two fonts, as SwiftUI lays them out |
 
 ### Shell
 
-`malaysia-shell` reads these; the kit does not, except `MENUBAR_HEIGHT` for the
-focus-mode bar.
+The kit reads these shell values: `ctappearance` puts the glass in `Resolved`,
+and the popover shapes and `pop_up_menu` draw the Dock's label and menu. The
+shell's own tokens are in [`ctshell::design`](../shell/ctshell.md#tokens-ctshelldesign).
 
 | Constants | What they size |
 |---|---|
-| `MENUBAR_HEIGHT`, `MENUBAR_HEIGHT_WIDE`, `MENUBAR_TINT_SPREAD`, `MENUBAR_DARK_INK_ABOVE`, `MENUBAR_CLASSIC_ALPHA`, `MENUBAR_OVER_LIGHT_INK`, `MENUBAR_OVER_LIGHT_GLASS`, `MENUBAR_OVER_LIGHT_SELECTION`, `MENUBAR_OVER_DARK_INK`, `MENUBAR_OVER_DARK_GLASS`, `MENUBAR_OVER_DARK_SELECTION`, `MENUBAR_FONT_SIZE`, `MENUBAR_APP_NAME_WEIGHT`, `MENUBAR_MARGIN`, `MENUBAR_MARGIN_RIGHT`, `MENUBAR_FADED_ALPHA`, `MENUBAR_TITLE_PADDING_X`, `MENUBAR_TEXT_LIFT`, `MENUBAR_TITLE_MAX_WIDTH`, `MENUBAR_SYSTEM_MENU_MIN_WIDTH`, `MENUBAR_TITLE_BLEED` | The menu bar |
-| `FOCUS_BAR_BACKGROUND`, `FOCUS_BAR_TEXT` | The menu bar in focus mode |
+| `MENUBAR_HEIGHT`, `MENUBAR_TINT_SPREAD` | The menu bar: its slim height, which the focus-mode bar takes, and the share of its width over which `WallpaperGrid::across` blurs the wallpaper |
 | `MENU_GLASS_VEIL_LIGHT`, `MENU_GLASS_VEIL_DARK`, `MENU_GLASS_LIFT_LIGHT`, `MENU_GLASS_LIFT_DARK`, `MENU_GLASS_CAP_LIGHT`, `MENU_GLASS_CAP_DARK`, `MENU_GLASS_CHROMA`, `MENU_GLASS_SPREAD`, `NOTIFICATION_GLASS_VEIL_LIGHT`, `MENU_DARK_INK_ABOVE` | The glass of the menus and notifications and the luma above which a panel takes dark ink; `ctappearance` reads them into `Resolved` ([Glass over a backdrop](#glass-over-a-backdrop)) |
-| `DOCK_TILESIZE`, `DOCK_TILESIZE_MIN`, `DOCK_TILESIZE_MAX`, `DOCK_LARGESIZE` | Dock icon sizes: default, 16 and 128 px, and the default magnified size |
-| `DOCK_EDGE_MARGIN`, `DOCK_SIDE_MARGIN`, `DOCK_PADDING`, `DOCK_PADDING_SCALE`, `DOCK_SLOT_GAP`, `DOCK_VERTICAL_PADDING`, `DOCK_RADIUS` | Dock bar: gap to the screen edge, side margin as a share of the screen, horizontal padding = `DOCK_PADDING` + `DOCK_PADDING_SCALE` × size, the gap between icon slots in pixels, vertical padding as a share of the tile, and corner radius as a share of its thickness |
-| `DOCK_SEPARATOR`, `DOCK_SEPARATOR_LENGTH`, `DOCK_MAGNIFY_RADIUS`, `DOCK_MAGNIFY_MIN`, `DOCK_MAGNIFY_MS` | Separator slot and line as shares of the size; magnification reach in icons, the least it grows as a multiple of the size, and its fade |
-| `DOCK_DOT`, `DOCK_DOT_MIN`, `DOCK_DOT_MAX`, `DOCK_PROGRESS_HEIGHT`, `DOCK_WINDOW_FRAME`, `DOCK_WINDOW_ICON`, `DOCK_WINDOW_BADGE` | Open-app dot, progress bar, the frame and icon of a minimized window before its picture arrives, and the app icon on the picture |
-| `DOCK_ICON_BODY`, `DOCK_RIM_LIGHT`, `DOCK_RIM_DARK`, `DOCK_DIVIDER_LIGHT`, `DOCK_DIVIDER_DARK`, `DOCK_RIM_CORNER_LIGHT`, `DOCK_RIM_CORNER_DARK`, `DOCK_RIM_SIDE_LIGHT`, `DOCK_RIM_SIDE_DARK`, `DOCK_LENS_LIGHT`, `DOCK_LENS_DARK`, `DOCK_RIM_GLOW`, `DOCK_RIM_GLOW_LIGHT`, `DOCK_TONE_LIGHT`, `DOCK_TONE_DARK`, `DOCK_LAYER_NAMESPACE` | The share of a slot an icon's body takes (macOS's 824 on 1024), the Dock's frame (the luminance of the rim as `[lift, share]` of the glass's, light and dark; how far a divider moves the glass's luminance; how the frame turns from rim to outline around a corner as `[decay, outline from, outline to]` in degrees; how much of the rim along the top and bottom stays on the left and right sides (`0.0` to `1.0`; the translucent Dock only, never the menus or the solid Dock); how the glass bends the backdrop along the frame's normal as `[depth, strength, split, blur]`, light and dark; the glow inside the rim pixel by pixel as shares of it, with its own steps for the translucent light Dock; and, for the translucent Dock, `DockTone`: the glass and outline taken from the colour behind the glass, its lightness bent down to `cap`, while the rim keeps that colour's hue, scaling it per channel by at most `gain` and making up the rest of its light in white), and the Dock's layer-shell namespace |
-| `DOCK_BOUNCE_MS`, `DOCK_BOUNCE_HEIGHT`, `DOCK_LAUNCH_TIMEOUT_MS`, `DOCK_HIDE_MS`, `DOCK_REVEAL_STRIP`, `DOCK_RECENTS`, `DOCK_MINIMIZE_MS`, `DOCK_SLOT_MS`, `DOCK_MINIMIZE_HANDOFF_MS` | Launch bounce, automatic hiding, the number of recent apps, the minimize effect, how long a slot takes to open or close (a minimized window's, the gap of a dragged icon, and the flight back to its slot of one dropped away from the Dock), and how long the compositor keeps drawing the finished thumbnail while the Dock's tile takes over |
-| `DOCK_LABEL_GAP`, `DOCK_LABEL_FONT_SIZE`, `DOCK_LABEL_PADDING_X`, `DOCK_LABEL_PADDING_Y`, `DOCK_LABEL_RADIUS` | The name label over the icon under the pointer |
+| `DOCK_RIM_LIGHT`, `DOCK_RIM_DARK`, `DOCK_DIVIDER_LIGHT`, `DOCK_DIVIDER_DARK`, `DOCK_RIM_CORNER_LIGHT`, `DOCK_RIM_CORNER_DARK`, `DOCK_RIM_SIDE_LIGHT`, `DOCK_RIM_SIDE_DARK`, `DOCK_LENS_LIGHT`, `DOCK_LENS_DARK`, `DOCK_RIM_GLOW`, `DOCK_RIM_GLOW_LIGHT`, `DOCK_TONE_LIGHT`, `DOCK_TONE_DARK` | The Dock's frame (the luminance of the rim as `[lift, share]` of the glass's, light and dark; how far a divider moves the glass's luminance; how the frame turns from rim to outline around a corner as `[decay, outline from, outline to]` in degrees; how much of the rim along the top and bottom stays on the left and right sides (`0.0` to `1.0`; the translucent Dock only, never the menus or the solid Dock); how the glass bends the backdrop along the frame's normal as `[depth, strength, split, blur]`, light and dark; the glow inside the rim pixel by pixel as shares of it, with its own steps for the translucent light Dock; and, for the translucent Dock, `DockTone`: the glass and outline taken from the colour behind the glass, its lightness bent down to `cap`, while the rim keeps that colour's hue, scaling it per channel by at most `gain` and making up the rest of its light in white) |
+| `DOCK_LABEL_RADIUS` | The corner of the name label over a Dock icon |
 | `DOCK_LABEL_ARROW_WIDTH`, `DOCK_LABEL_ARROW_HEIGHT`, `DOCK_LABEL_ARROW_TIP_RADIUS`, `DOCK_LABEL_ARROW_FILLET` | The arrow of that label, a popover with the `Label` shape |
-| `DOCK_MENU_GAP`, `DOCK_MENU_PADDING`, `DOCK_MENU_ITEM_PADDING_X`, `DOCK_MENU_SEPARATOR_MARGIN`, `DOCK_MENU_MIN_WIDTH` | An icon's menu: tip to icon, row metrics and width ([`pop_up_menu`](07-menus-and-popovers.md#pop_up_menu)) |
+| `DOCK_MENU_PADDING`, `DOCK_MENU_ITEM_PADDING_X`, `DOCK_MENU_SEPARATOR_MARGIN`, `DOCK_MENU_MIN_WIDTH` | An icon's menu: row metrics and width ([`pop_up_menu`](07-menus-and-popovers.md#pop_up_menu)) |
 | `DOCK_MENU_ARROW_INSET`, `DOCK_MENU_ARROW_TIP_RADIUS`, `DOCK_MENU_ARROW_FILLET` | Its arrow: distance from the corner, tip and fillet of the `Menu` shape |
-| `NOTIFICATION_WIDTH`, `NOTIFICATION_RADIUS`, `NOTIFICATION_PADDING`, `NOTIFICATION_GAP`, `NOTIFICATION_MARGIN`, `NOTIFICATION_ICON_SIZE`, `NOTIFICATION_TEXT_GAP`, `NOTIFICATION_CLOSE_SIZE`, `NOTIFICATION_TITLE_FONT`, `NOTIFICATION_SHADOW`, `NOTIFICATION_SHADOW_BLUR`, `NOTIFICATION_VEIL_SPREAD`, `NOTIFICATION_EMPTY_TOP`, `NOTIFICATION_EMPTY_GAP`, `NOTIFICATION_STACK_PEEK`, `NOTIFICATION_STACK_INSET`, `NOTIFICATION_BODY_LINES`, `NOTIFICATION_MAX_BANNERS`, `NOTIFICATION_BANNER_MS`, `NOTIFICATION_SLIDE_IN_MS`, `NOTIFICATION_SLIDE_OUT_MS`, `NOTIFICATION_SLIDE_BOUNCE`, `NOTIFICATION_EDGE`, `NOTIFICATION_SWIPE`, `LIVE_ACTIVITY_WIDTH`, `LIVE_ACTIVITY_HEIGHT`, `LIVE_ACTIVITY_RADIUS`, `LIVE_ACTIVITY_GAP`, `LIVE_ACTIVITY_ENDED_MS` | Notification banners, Notification Center and the Live Activities of the menu bar (ADR 0068 in malaysia; the banner width, radius and right inset are measured on Tahoe, the Live Activity size is measured on Apple's WWDC25 video) |
-| `LAUNCHER_WIDTH`, `LAUNCHER_HEIGHT`, `LAUNCHER_PADDING`, `LAUNCHER_SEARCH_HEIGHT`, `LAUNCHER_RESULT_HEIGHT`, `LAUNCHER_RESULT_GAP`, `LAUNCHER_RESULT_RADIUS`, `LAUNCHER_ICON_SIZE`, `LAUNCHER_MAX_RESULTS`, `LAUNCHER_CORNER_RADIUS`, `LAUNCHER_FONT_SIZE`, `LAUNCHER_SUBTITLE_FONT_SIZE`, `LAUNCHER_SCALE_FROM`, `LAUNCHER_OPEN_MS`, `LAUNCHER_CLOSE_MS` | The launcher |
-| `LOCK_CLOCK_FONT_SIZE`, `LOCK_DATE_FONT_SIZE`, `LOCK_TOP_PERCENT`, `LOCK_BOTTOM_MARGIN`, `LOCK_SPACING`, `LOCK_AVATAR_SIZE`, `LOCK_KEYBOARD_WIDTH`, `LOCK_FIELD_HEIGHT`, `LOCK_FIELD_WIDTH`, `LOCK_MASK_FONT_SIZE`, `LOCK_INK`, `LOCK_FIELD_FILL`, `LOCK_AVATAR_FILL`, `LOCK_FIELD_ERROR`, `LOCK_FIELD_INK` | The lock screen over the wallpaper (Malaysia ADR 0074) |
-| `LOCK_FADE_MS`, `LOCK_SETTLE_MS`, `LOCK_RISE_MS`, `LOCK_RISE_OFFSET`, `LOCK_LOGIN_MS` | The transition from the desktop to the lock screen: the fade, the menu bar closing up, the clock rising and the login appearing |
-| `ABOUT_WIDTH`, `ABOUT_HEIGHT`, `ABOUT_DRAWING_TOP`, `ABOUT_DRAWING_WIDTH`, `ABOUT_DRAWING_HEIGHT`, `ABOUT_TITLE_GAP`, `ABOUT_TITLE_SIZE`, `ABOUT_SPECS_GAP`, `ABOUT_SPEC_ROW_GAP`, `ABOUT_COLUMN_GAP`, `ABOUT_VALUE_WIDTH`, `ABOUT_BUTTON_GAP`, `ABOUT_FOOTER_BOTTOM` | The «About this computer» window |
-| `ABOUT_APP_WIDTH`, `ABOUT_APP_HEIGHT`, `ABOUT_APP_ICON` | The «About ‹app›» window and its icon |
-| `CONFIRM_WIDTH`, `CONFIRM_HEIGHT`, `CONFIRM_ICON`, `CONFIRM_GLYPH` | The restart, shut down and log out confirmation: its size, and its round icon and glyph |
-| `FORCE_QUIT_WIDTH`, `FORCE_QUIT_HEIGHT`, `FORCE_QUIT_ROW_HEIGHT`, `FORCE_QUIT_ICON` | The «Force Quit» window, its rows and their app icons |
-| `LABEL_ICON_WIDTH`, `LABEL_ICON_HEIGHT`, `LABEL_ICON_FRAME`, `LABEL_GAP` | `Label`: the box of its symbol (16 × 16.5), the kit's symbol frame per point of the font (1.25) and the gap before the title (6), as SwiftUI lays out `Label("Doc", systemImage:)` |
-| `CONTENT_UNAVAILABLE_ICON`, `CONTENT_UNAVAILABLE_ICON_LINE`, `CONTENT_UNAVAILABLE_ICON_GAP`, `CONTENT_UNAVAILABLE_TITLE`, `CONTENT_UNAVAILABLE_DESCRIPTION`, `CONTENT_UNAVAILABLE_DESCRIPTION_GAP`, `CONTENT_UNAVAILABLE_ACTIONS_GAP` | `ContentUnavailableView`: the symbol frame (45, the kit's frame for SF's 36 pt) and its 44 high line, the gaps above the title, the description and the actions (20, 6, 19) and the two fonts, as SwiftUI lays them out |
-| `MENUBAR_BATTERY_ICON`, `MENUBAR_BATTERY_LOW`, `MENUBAR_BATTERY_TRACK`, `MENUBAR_BATTERY_BODY_WIDTH`, `MENUBAR_BATTERY_BODY_HEIGHT`, `MENUBAR_BATTERY_DIGIT_PITCH`, `MENUBAR_BATTERY_DIGIT_HEIGHT`, `MENUBAR_BATTERY_HUNDRED_HEIGHT`, `MENUBAR_BATTERY_HUNDRED_GAP`, `MENUBAR_BATTERY_BOLT_GAP`, `MENUBAR_BATTERY_LEVEL_MIN` | The battery in the menu bar, drawn as on macOS 27 with the percentage inside: its size, the percentage from which it turns red, the opacity of the ink in its empty part, and the metrics of the digits, the hundred mark and the bolt knocked out of its body |
-
-### Compositor
-
-`malaysia-compositor` reads these:
-
-| Constants | What they are |
-|---|---|
-| `CURSOR_SHAKE_SCALE`, `CURSOR_SHAKE_GROW_MS`, `CURSOR_SHAKE_SHRINK_MS`, `CURSOR_SHAKE_TICK_MS` | The cursor that grows when the pointer is shaken |
-| `CURSOR_SHAKE_MIN_DX`, `CURSOR_SHAKE_MIN_SWING`, `CURSOR_SHAKE_MAX_SWING_MS`, `CURSOR_SHAKE_MAX_TOTAL_MS`, `CURSOR_SHAKE_REVERSALS`, `CURSOR_SHAKE_ACTIVE_MS` | What counts as a shake: the shortest step and swing in points, the longest swing and whole gesture, the reversals it takes, and how long after one the cursor stays large |
-| `BACKGROUND_BLUR_PASSES`, `BACKGROUND_BLUR_OFFSET` | The compositor's dual Kawase blur behind surfaces: halvings and sample spread (malaysia ADR 0071) |
-| `SCREENSHOT_DIM`, `SCREENSHOT_IDLE_DIM`, `SCREENSHOT_BORDER`, `SCREENSHOT_BORDER_WIDTH` | The screenshot selection overlay |
-| `SPACE_GAP`, `SPACE_GAP_COLOR`, `SPACE_SLIDE_MS`, `SPACE_SLIDE_EASE` | The gap and slide between Spaces |
-| `TILE_MARGIN`, `TILE_GAP` | Margins of tiled windows |
-| `DESKTOP_CLEAR` | The color behind everything |
-| `WALLPAPER_FPS`, `WALLPAPER_THUMBNAIL`, `WALLPAPER_FRAME` | Wallpaper: frames per second of animated wallpapers, size of a thumbnail (the spec's x-large) and of a still of a dynamic image |
 
 ## Helpers
 

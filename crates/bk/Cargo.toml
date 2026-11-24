@@ -1,6 +1,6 @@
 [package]
 name = "bk"
-description = "BarrierKit (≈ AppKit): the toolkit for the shell and Malaysia's own apps (glossary, ADR 0034)."
+description = "BarrierKit (≈ AppKit): the toolkit for apps."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -34,7 +34,6 @@ tracing-tracy = { workspace = true, optional = true }
 ctdesign.workspace = true
 ctappearance.workspace = true
 zeroize.workspace = true
-infinity-protocol = { workspace = true, features = ["client"] }
 zbus.workspace = true
 i18n-embed.workspace = true
 i18n-embed-fl.workspace = true
@@ -45,6 +44,7 @@ async-io.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 freya-engine = { workspace = true, features = ["vulkan"] }
+infinity-protocol = { workspace = true, features = ["client"] }
 accesskit_unix = { workspace = true, optional = true }
 sctk.workspace = true
 wayland-client = { workspace = true, features = ["system"] }

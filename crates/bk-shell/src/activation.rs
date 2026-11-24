@@ -11,8 +11,9 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use crate::platform::runtime::Runtime;
-use crate::shell::ShellState;
+use bk::extension::Runtime;
+
+use crate::{Shell, ShellState};
 
 pub(crate) type ActivationCallback = Box<dyn Fn(Option<String>)>;
 
@@ -51,7 +52,7 @@ impl ShellState {
                 callback(None);
                 continue;
             }
-            let token = global.get_activation_token(qh, ());
+            let token = global.get_activation_token(qh, Shell);
             token.set_serial(serial, seat);
             token.set_surface(window);
             token.commit();
@@ -60,12 +61,12 @@ impl ShellState {
     }
 }
 
-impl Dispatch<XdgActivationTokenV1, ()> for Runtime {
+impl Dispatch<XdgActivationTokenV1, Shell> for Runtime {
     fn event(
         state: &mut Self,
         proxy: &XdgActivationTokenV1,
         event: xdg_activation_token_v1::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {

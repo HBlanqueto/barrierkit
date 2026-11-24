@@ -45,8 +45,8 @@ version.
   an app needs more (`ctdesign` tokens, `freya-animation`, `freya-clipboard`).
 - **Model:** declarative. A view is a function of the state; when the state
   changes, the kit calls it again and applies the difference.
-- **Features:** an app enables none: `shell` is for `malaysia-shell` and
-  `tracy` is for profiling
+- **Features:** an app enables none but `tracy`, for profiling; shell
+  components use `bk-shell` ([the shell docs](../docs/shell/README.md))
   ([chapter 1](../docs/barrierkit/01-what-is-barrierkit.md#the-crates)).
 - **Shape of every app:** `use bk::prelude::*;`, then
   `Application::new(id).window(title, || view).run()`, with a reverse-DNS `id` (`com.example.notes`), in `main`. The program

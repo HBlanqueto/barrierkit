@@ -13,7 +13,16 @@ pub mod i18n;
 pub mod platform;
 
 #[cfg(feature = "shell")]
-pub mod shell;
+#[doc(hidden)]
+pub mod extension {
+    pub use crate::platform::{
+        app::{AppInstance, InstanceRole, KitSender},
+        extension::{Extension, ExtensionHooks, packed},
+        runtime::{Connected, Runtime},
+        surface::{ExtensionRole, SurfaceRole},
+    };
+    pub use crate::session_bus::{connection, export};
+}
 
 pub mod password;
 

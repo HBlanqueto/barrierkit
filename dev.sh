@@ -39,12 +39,14 @@ check() {
     require cargo-fmt
     require cargo-clippy
     if [ "$(uname -s)" = Darwin ]; then
-        # The shell feature does not build on macOS. Window and popup commands carry fields and the D-Bus menu
-        # exporter (main_menu) has items that only the Linux backend reads.
+        # bk-shell and the shell feature do not build on macOS. Window and popup commands carry fields and the
+        # D-Bus menu exporter (main_menu) has items that only the Linux backend reads.
         features=bk/tracy
+        exclude='--exclude bk-shell'
         allow='-A dead_code'
     else
         features=bk/shell,bk/tracy
+        exclude=
         allow=
     fi
     cargo fmt --all -- --check
@@ -55,7 +57,7 @@ check() {
     {
         cargo clippy --locked -p bk --lib -- -D warnings $allow
         cargo clippy --locked -p bk --lib --no-default-features -- -D warnings $allow
-        cargo clippy --locked --workspace --lib --examples --features "$features" -- -D warnings $allow
+        cargo clippy --locked --workspace $exclude --lib --examples --features "$features" -- -D warnings $allow
     }
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"

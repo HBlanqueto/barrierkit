@@ -1,9 +1,9 @@
-use ctdesign::{
-    DOCK_LARGESIZE, DOCK_MAGNIFY_MIN, DOCK_TILESIZE, DOCK_TILESIZE_MAX, DOCK_TILESIZE_MIN,
-};
+use ctappearance::lenient;
 use serde::{Deserialize, Serialize};
 
-use crate::config::lenient;
+use crate::design::{
+    DOCK_LARGESIZE, DOCK_MAGNIFY_MIN, DOCK_TILESIZE, DOCK_TILESIZE_MAX, DOCK_TILESIZE_MIN,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]

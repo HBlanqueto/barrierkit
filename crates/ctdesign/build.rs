@@ -6,9 +6,13 @@ use serde_json::Value;
 #[path = "build/tengen.rs"]
 mod tengen;
 
-use tengen::{Look, THEMES, Tengen, families, float, parse_color, rgba};
+use tengen::{Look, Tengen, entries, families, float, parse_color, rgba};
 
-const SOURCES: [&str; 3] = ["tengen/tokens.json", "tengen/components.json", "src/lib.rs"];
+const THEMES: [(&str, &str); 3] = [
+    ("LIGHT", "light"),
+    ("DARK", "dark"),
+    ("DARK_TINT", "dark-tint"),
+];
 
 const CONSTANTS: &str = r"
 TITLEBAR_CLIENT_HEIGHT u32 size.titlebar-h
@@ -30,16 +34,10 @@ CORNER_ALERT CornerShape components.corner.alert
 CORNER_POPOVER CornerShape components.corner.popover
 CORNER_MENU CornerShape components.corner.menu
 CORNER_TOOLTIP CornerShape components.corner.tooltip
-CORNER_NOTIFICATION CornerShape components.corner.notification
-CORNER_NOTIFICATION_CENTER CornerShape components.corner.notification-center
-CORNER_CONTROL_CENTER_MODULE CornerShape components.corner.control-center-module
-CORNER_SPOTLIGHT CornerShape components.corner.spotlight
 CORNER_CONTROLS CornerControls components.corner.controls
 WINDOW_RESIZE WindowResize components.window edge=resize-edge corner=resize-corner
 WINDOW_CLIENT_RESIZE WindowResize components.window edge=client-resize-edge
     corner=client-resize-corner
-WINDOW_EXPAND_MIN_MS u64 components.window.expand-min-ms
-WINDOW_EXPAND_MAX_MS u64 components.window.expand-max-ms
 DIALOG WindowStyle components.dialog corner_radius=radius superellipse_exponent=components.window.corner.exponent
 DIALOG_PADDING f32 components.dialog.padding
 DIALOG_ALERT_WIDTH f32 components.dialog.alert-width
@@ -164,17 +162,6 @@ MATERIAL_UNDER_WINDOW_BACKGROUND_LIGHT MaterialSet components.material.visual-ef
 MATERIAL_UNDER_WINDOW_BACKGROUND_DARK MaterialSet components.material.visual-effect.under-window-background.dark
 MATERIAL_UNDER_PAGE_BACKGROUND_LIGHT MaterialSet components.material.visual-effect.under-page-background.light
 MATERIAL_UNDER_PAGE_BACKGROUND_DARK MaterialSet components.material.visual-effect.under-page-background.dark
-LIQUID_GLASS_REGULAR_LIGHT GlassSet components.liquid-glass.regular.light
-LIQUID_GLASS_REGULAR_DARK GlassSet components.liquid-glass.regular.dark
-LIQUID_GLASS_CLEAR_LIGHT GlassSet components.liquid-glass.clear.light
-LIQUID_GLASS_CLEAR_DARK GlassSet components.liquid-glass.clear.dark
-LIQUID_GLASS_LENS GlassLens components.liquid-glass.lens
-LIQUID_GLASS_BLUR_CAP f32 components.liquid-glass.blur-cap
-LIQUID_GLASS_UNION f32 components.liquid-glass.union
-LIQUID_GLASS_TINT_REGULAR_LIGHT GlassTint components.liquid-glass.tint.regular.light
-LIQUID_GLASS_TINT_REGULAR_DARK GlassTint components.liquid-glass.tint.regular.dark
-LIQUID_GLASS_TINT_CLEAR_LIGHT GlassTint components.liquid-glass.tint.clear.light
-LIQUID_GLASS_TINT_CLEAR_DARK GlassTint components.liquid-glass.tint.clear.dark
 MATERIAL_ULTRA_THIN_LIGHT MaterialSet components.material.swiftui.ultra-thin.light
 MATERIAL_ULTRA_THIN_DARK MaterialSet components.material.swiftui.ultra-thin.dark
 MATERIAL_THIN_LIGHT MaterialSet components.material.swiftui.thin.light
@@ -293,67 +280,7 @@ SPRING_ALERT_MS u64 spring.alert-duration
 SPRING_PUSH_MS u64 spring.push-duration
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
-MENUBAR_HEIGHT_WIDE i32 components.shell.menubar.height-wide
 MENUBAR_TINT_SPREAD f32 components.shell.menubar.tint-spread
-MENUBAR_DARK_INK_ABOVE f32 components.shell.menubar.dark-ink-above
-MENUBAR_CLASSIC_ALPHA f32 components.shell.menubar.classic-alpha
-MENUBAR_OVER_LIGHT_INK Rgba components.shell.menubar.over-light.ink
-MENUBAR_OVER_LIGHT_GLASS Rgba components.shell.menubar.over-light.glass
-MENUBAR_OVER_LIGHT_SELECTION Rgba components.shell.menubar.over-light.selection
-MENUBAR_OVER_DARK_INK Rgba components.shell.menubar.over-dark.ink
-MENUBAR_OVER_DARK_GLASS Rgba components.shell.menubar.over-dark.glass
-MENUBAR_OVER_DARK_SELECTION Rgba components.shell.menubar.over-dark.selection
-MENUBAR_FONT_SIZE f32 components.shell.menubar.font-size
-MENUBAR_FONT_SIZE_LARGE f32 components.shell.menubar.font-size-large
-MENUBAR_APP_NAME_WEIGHT i32 components.shell.menubar.app-name.weight
-MENUBAR_MARGIN i32 components.shell.menubar.margin
-MENUBAR_MARGIN_RIGHT i32 components.shell.menubar.margin-right
-MENUBAR_FADED_ALPHA f32 components.shell.menubar.faded-alpha
-MENUBAR_TITLE_PADDING_X f32 components.shell.menubar.title-padding-x
-MENUBAR_TEXT_LIFT f32 components.shell.menubar.text-lift
-MENUBAR_TITLE_MAX_WIDTH f32 components.shell.menubar.title-max-width
-MENUBAR_SYSTEM_MENU_MIN_WIDTH f32 components.shell.menubar.system-menu-min-width
-MENUBAR_TITLE_BLEED f32 components.shell.menubar.title-open.bleed
-MENUBAR_BATTERY_LOW f64 components.shell.menubar.battery.low
-MENUBAR_BATTERY_TRACK f32 components.shell.menubar.battery.track
-MENUBAR_BATTERY_BODY_WIDTH f32 components.shell.menubar.battery.body-width
-MENUBAR_BATTERY_BODY_HEIGHT f32 components.shell.menubar.battery.body-height
-MENUBAR_BATTERY_DIGIT_PITCH f32 components.shell.menubar.battery.digit-pitch
-MENUBAR_BATTERY_DIGIT_HEIGHT f32 components.shell.menubar.battery.digit-height
-MENUBAR_BATTERY_HUNDRED_HEIGHT f32 components.shell.menubar.battery.hundred-height
-MENUBAR_BATTERY_HUNDRED_GAP f32 components.shell.menubar.battery.hundred-gap
-MENUBAR_BATTERY_BOLT_GAP f32 components.shell.menubar.battery.bolt-gap
-MENUBAR_BATTERY_LEVEL_MIN f32 components.shell.menubar.battery.level-min
-DOCK_TILESIZE i32 components.shell.dock.tilesize
-DOCK_TILESIZE_MIN i32 components.shell.dock.tilesize-min
-DOCK_TILESIZE_MAX i32 components.shell.dock.tilesize-max
-DOCK_LARGESIZE i32 components.shell.dock.largesize
-DOCK_EDGE_MARGIN f32 components.shell.dock.edge-margin
-DOCK_SIDE_MARGIN f32 components.shell.dock.side-margin
-DOCK_PADDING f32 components.shell.dock.padding
-DOCK_PADDING_SCALE f32 components.shell.dock.padding-scale
-DOCK_SLOT_GAP f32 components.shell.dock.slot-gap
-DOCK_VERTICAL_PADDING f32 components.shell.dock.vertical-padding
-DOCK_SEPARATOR f32 components.shell.dock.separator
-DOCK_SEPARATOR_LENGTH f32 components.shell.dock.separator-length
-DOCK_RADIUS f32 components.shell.dock.radius
-DOCK_MAGNIFY_RADIUS f32 components.shell.dock.magnify-radius
-DOCK_MAGNIFY_MIN f32 components.shell.dock.magnify-min
-DOCK_MAGNIFY_MS u64 components.shell.dock.magnify-ms
-DOCK_DOT f32 components.shell.dock.dot
-DOCK_DOT_MIN f32 components.shell.dock.dot-min
-DOCK_DOT_MAX f32 components.shell.dock.dot-max
-DOCK_PROGRESS_HEIGHT f32 components.shell.dock.progress-height
-DOCK_BOUNCE_MS u64 components.shell.dock.bounce-ms
-DOCK_BOUNCE_HEIGHT f32 components.shell.dock.bounce-height
-DOCK_LAUNCH_TIMEOUT_MS u64 components.shell.dock.launch-timeout-ms
-DOCK_HIDE_MS u64 components.shell.dock.hide-ms
-DOCK_MINIMIZE_MS u64 components.shell.dock.minimize-ms
-DOCK_SLOT_MS u64 components.shell.dock.slot-ms
-DOCK_MINIMIZE_HANDOFF_MS u64 components.shell.dock.minimize-handoff-ms
-DOCK_REVEAL_STRIP i32 components.shell.dock.reveal-strip
-DOCK_RECENTS usize components.shell.dock.recents
-DOCK_ICON_BODY f32 components.shell.dock.icon-body
 DOCK_RIM_LIGHT [f32;2] components.shell.dock.rim-light
 DOCK_RIM_DARK [f32;2] components.shell.dock.rim-dark
 DOCK_DIVIDER_LIGHT f32 components.shell.dock.divider-light
@@ -368,19 +295,11 @@ DOCK_RIM_GLOW [f32;6] components.shell.dock.rim-glow
 DOCK_RIM_GLOW_LIGHT [f32;6] components.shell.dock.rim-glow-light
 DOCK_TONE_LIGHT DockTone components.shell.dock.tone-light
 DOCK_TONE_DARK DockTone components.shell.dock.tone-dark
-DOCK_WINDOW_FRAME f32 components.shell.dock.window-frame
-DOCK_WINDOW_ICON f32 components.shell.dock.window-icon
-DOCK_WINDOW_BADGE f32 components.shell.dock.window-badge
-DOCK_LABEL_GAP f32 components.shell.dock.label-gap
-DOCK_LABEL_FONT_SIZE f32 components.shell.dock.label-font-size
-DOCK_LABEL_PADDING_X f32 components.shell.dock.label-padding-x
-DOCK_LABEL_PADDING_Y f32 components.shell.dock.label-padding-y
 DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius
 DOCK_LABEL_ARROW_WIDTH f32 components.shell.dock.label-arrow-width
 DOCK_LABEL_ARROW_HEIGHT f32 components.shell.dock.label-arrow-height
 DOCK_LABEL_ARROW_TIP_RADIUS f32 components.shell.dock.label-arrow-tip-radius
 DOCK_LABEL_ARROW_FILLET f32 components.shell.dock.label-arrow-fillet
-DOCK_MENU_GAP f32 components.shell.dock.menu-gap
 DOCK_MENU_PADDING f32 components.shell.dock.menu-padding
 DOCK_MENU_ITEM_PADDING_X f32 components.shell.dock.menu-item-padding-x
 DOCK_MENU_SEPARATOR_MARGIN f32 components.shell.dock.menu-separator-margin
@@ -388,95 +307,7 @@ DOCK_MENU_MIN_WIDTH f32 components.shell.dock.menu-min-width
 DOCK_MENU_ARROW_INSET f32 components.shell.dock.menu-arrow-inset
 DOCK_MENU_ARROW_TIP_RADIUS f32 components.shell.dock.menu-arrow-tip-radius
 DOCK_MENU_ARROW_FILLET f32 components.shell.dock.menu-arrow-fillet
-ABOUT_WIDTH u32 components.shell.about.width
-ABOUT_HEIGHT u32 components.shell.about.height
-ABOUT_DRAWING_TOP f32 components.shell.about.drawing-top
-ABOUT_DRAWING_WIDTH f32 components.shell.about.drawing-width
-ABOUT_DRAWING_HEIGHT f32 components.shell.about.drawing-height
-ABOUT_TITLE_GAP f32 components.shell.about.title-gap
-ABOUT_TITLE_SIZE f32 components.shell.about.title-size
-ABOUT_SPECS_GAP f32 components.shell.about.specs-gap
-ABOUT_BUTTON_GAP f32 components.shell.about.button-gap
-ABOUT_COLUMN_GAP f32 components.shell.about.column-gap
-ABOUT_VALUE_WIDTH f32 components.shell.about.value-width
-ABOUT_SPEC_ROW_GAP f32 components.shell.about.row-gap
-ABOUT_FOOTER_BOTTOM f32 components.shell.about.footer-bottom
-ABOUT_APP_WIDTH u32 components.shell.about-app.width
-ABOUT_APP_HEIGHT u32 components.shell.about-app.height
-ABOUT_APP_ICON f32 components.shell.about-app.icon
-CONFIRM_WIDTH u32 components.shell.confirm.width
-CONFIRM_HEIGHT u32 components.shell.confirm.height
-CONFIRM_ICON f32 components.shell.confirm.icon
-CONFIRM_GLYPH f32 components.shell.confirm.glyph
-FORCE_QUIT_WIDTH u32 components.shell.force-quit.width
-FORCE_QUIT_HEIGHT u32 components.shell.force-quit.height
-FORCE_QUIT_ROW_HEIGHT f32 components.shell.force-quit.row-height
-FORCE_QUIT_ICON f32 components.shell.force-quit.icon
-LOCK_CLOCK_FONT_SIZE f32 components.shell.lock.clock-font-size
-LOCK_DATE_FONT_SIZE f32 components.shell.lock.date-font-size
-LOCK_TOP_PERCENT f32 components.shell.lock.top-percent
-LOCK_BOTTOM_MARGIN f32 components.shell.lock.bottom-margin
-LOCK_SPACING f32 components.shell.lock.spacing
-LOCK_AVATAR_SIZE f32 components.shell.lock.avatar-size
-LOCK_KEYBOARD_WIDTH f32 components.shell.lock.keyboard-width
-LOCK_FIELD_HEIGHT f32 components.shell.lock.field-height
-LOCK_FIELD_WIDTH f32 components.shell.lock.field-width
-LOCK_MASK_FONT_SIZE f32 components.shell.lock.mask-font-size
-LOCK_INK Rgba components.shell.lock.ink
-LOCK_FIELD_FILL Rgba components.shell.lock.field-fill
-LOCK_AVATAR_FILL Rgba components.shell.lock.avatar-fill
-LOCK_FIELD_ERROR Rgba components.shell.lock.field-error
-LOCK_FIELD_INK Rgba components.shell.lock.field-ink
-LOCK_FADE_MS u64 components.shell.lock.fade
-LOCK_SETTLE_MS u64 components.shell.lock.settle
-LOCK_RISE_MS u64 components.shell.lock.rise
-LOCK_RISE_OFFSET f32 components.shell.lock.rise-offset
-LOCK_LOGIN_MS u64 components.shell.lock.login
-NOTIFICATION_WIDTH i32 components.shell.notifications.width
-NOTIFICATION_RADIUS f32 components.shell.notifications.radius
-NOTIFICATION_PADDING f32 components.shell.notifications.padding
-NOTIFICATION_GAP f32 components.shell.notifications.gap
-NOTIFICATION_MARGIN i32 components.shell.notifications.margin
-NOTIFICATION_ICON_SIZE f32 components.shell.notifications.icon-size
-NOTIFICATION_TEXT_GAP f32 components.shell.notifications.text-gap
-NOTIFICATION_CLOSE_SIZE f32 components.shell.notifications.close-size
-NOTIFICATION_TITLE_FONT Font components.shell.notifications.title-font
-NOTIFICATION_SHADOW Rgba components.shell.notifications.shadow
-NOTIFICATION_SHADOW_BLUR f32 components.shell.notifications.shadow-blur
 NOTIFICATION_GLASS_VEIL_LIGHT Rgba components.shell.notifications.glass-veil-light
-NOTIFICATION_VEIL_SPREAD f32 components.shell.notifications.veil-spread
-NOTIFICATION_EMPTY_TOP f32 components.shell.notifications.empty-top
-NOTIFICATION_EMPTY_GAP f32 components.shell.notifications.empty-gap
-NOTIFICATION_STACK_PEEK f32 components.shell.notifications.stack-peek
-NOTIFICATION_STACK_INSET f32 components.shell.notifications.stack-inset
-NOTIFICATION_BODY_LINES usize components.shell.notifications.body-lines
-NOTIFICATION_MAX_BANNERS usize components.shell.notifications.max-banners
-NOTIFICATION_BANNER_MS u64 components.shell.notifications.banner-duration
-NOTIFICATION_SLIDE_IN_MS u64 components.shell.notifications.slide-in-duration
-NOTIFICATION_SLIDE_OUT_MS u64 components.shell.notifications.slide-out-duration
-NOTIFICATION_SLIDE_BOUNCE f32 components.shell.notifications.slide-bounce
-NOTIFICATION_EDGE f64 components.shell.notifications.edge
-NOTIFICATION_SWIPE f64 components.shell.notifications.swipe
-LIVE_ACTIVITY_WIDTH u32 components.shell.live-activity.width
-LIVE_ACTIVITY_HEIGHT u32 components.shell.live-activity.height
-LIVE_ACTIVITY_RADIUS f32 components.shell.live-activity.radius
-LIVE_ACTIVITY_GAP i32 components.shell.live-activity.gap
-LIVE_ACTIVITY_ENDED_MS u64 components.shell.live-activity.ended-duration
-LAUNCHER_WIDTH i32 components.shell.launcher.width
-LAUNCHER_HEIGHT i32 components.shell.launcher.height
-LAUNCHER_PADDING i32 components.shell.launcher.padding
-LAUNCHER_SEARCH_HEIGHT i32 components.shell.launcher.search-height
-LAUNCHER_RESULT_HEIGHT i32 components.shell.launcher.result-height
-LAUNCHER_RESULT_GAP i32 components.shell.launcher.result-gap
-LAUNCHER_ICON_SIZE i32 components.shell.launcher.icon-size
-LAUNCHER_MAX_RESULTS i32 components.shell.launcher.max-results
-LAUNCHER_CORNER_RADIUS f32 components.shell.launcher.corner-radius
-LAUNCHER_FONT_SIZE f32 components.shell.launcher.font-size
-LAUNCHER_SUBTITLE_FONT_SIZE f32 components.shell.launcher.subtitle-font-size
-LAUNCHER_SCALE_FROM f32 components.shell.launcher.scale-from
-LAUNCHER_RESULT_RADIUS f32 components.shell.launcher.result-radius
-LAUNCHER_OPEN_MS u64 components.shell.launcher.open-duration
-LAUNCHER_CLOSE_MS u64 components.shell.launcher.close-duration
 SETTINGS SettingsMetrics components.settings account_name_font=account.name
     account_detail_font=account.detail card_caption_font=card.caption
 HAIRLINE f32 components.hairline
@@ -493,23 +324,6 @@ CONTENT_UNAVAILABLE_DESCRIPTION Font components.content-unavailable.description
 CONTENT_UNAVAILABLE_DESCRIPTION_GAP f32 components.content-unavailable.description-gap
 CONTENT_UNAVAILABLE_ACTIONS_GAP f32 components.content-unavailable.actions-gap
 DOMINANT_MIN_CHROMA f32 appearance.dominant.min-chroma
-CURSOR_SHAKE_SCALE f32 components.cursor-shake.scale
-CURSOR_SHAKE_GROW_MS u64 components.cursor-shake.grow-ms
-CURSOR_SHAKE_SHRINK_MS u64 components.cursor-shake.shrink-ms
-CURSOR_SHAKE_TICK_MS u64 components.cursor-shake.tick-ms
-CURSOR_SHAKE_MIN_DX f64 components.cursor-shake.min-dx
-CURSOR_SHAKE_MIN_SWING f64 components.cursor-shake.min-swing
-CURSOR_SHAKE_MAX_SWING_MS u64 components.cursor-shake.max-swing-ms
-CURSOR_SHAKE_MAX_TOTAL_MS u64 components.cursor-shake.max-total-ms
-CURSOR_SHAKE_REVERSALS u32 components.cursor-shake.reversals
-CURSOR_SHAKE_ACTIVE_MS u64 components.cursor-shake.active-ms
-BACKGROUND_BLUR_PASSES u32 components.background-blur.passes
-BACKGROUND_BLUR_OFFSET f32 components.background-blur.offset
-SCREENSHOT_BORDER_WIDTH i32 components.screenshot.border-width
-SPACE_GAP i32 components.spaces.gap
-SPACE_SLIDE_MS u64 components.spaces.slide-ms
-TILE_MARGIN i32 components.tile.margin
-TILE_GAP i32 components.tile.gap
 TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
 TITLEBAR_SYSTEM_VEIL Rgba components.window.titlebar.system-veil
 TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
@@ -529,32 +343,9 @@ MENU_SEARCH_CLEAR_GLYPH f32 components.shell.menu.search.clear-glyph
 MENU_SEARCH_PADDING_X f32 components.shell.menu.search.padding-x
 MENU_SEARCH_CLEAR_MIX f32 components.shell.menu.search.clear-mix
 MENU_HELP_ICON f32 components.shell.menu.help-icon
-SHELL_GLASS_LEVELS [f32;12] components.shell-glass.levels
-SHELL_GLASS_CHROMA_KNOTS [f32;5] components.shell-glass.chroma-knots
-SHELL_GLASS_MENU_DARK ShellGlass components.shell-glass.menu.dark
-SHELL_GLASS_SPOTLIGHT_DARK ShellGlass components.shell-glass.spotlight.dark
-SHELL_GLASS_APPS_DARK ShellGlass components.shell-glass.apps.dark
-SHELL_GLASS_NOTIFICATION_CARD_DARK ShellGlass components.shell-glass.notification-card.dark
-SHELL_GLASS_CONTROL_CENTER_DARK ShellGlass components.shell-glass.control-center.dark
-SHELL_GLASS_CONTROL_CENTER_PANEL_DARK ShellGlass components.shell-glass.control-center-panel.dark
-SHELL_GLASS_DOCK_DARK ShellGlass components.shell-glass.dock.dark
-SHELL_GLASS_SPACES_BAR_DARK MaterialLook components.shell-glass.spaces-bar.dark
-GLASS_MASK Rgba components.glass-mask
 HUD_BACKGROUND Rgba components.hud.background
-SCREENSHOT_DIM Rgba components.screenshot.dim
-SCREENSHOT_IDLE_DIM Rgba components.screenshot.idle-dim
-SCREENSHOT_BORDER Rgba components.screenshot.border
-SPACE_GAP_COLOR Rgba components.spaces.gap-color
-FOCUS_BAR_BACKGROUND Rgba components.spaces.focus-bar
-FOCUS_BAR_TEXT Rgba components.spaces.focus-bar-text
-DESKTOP_CLEAR Rgba components.desktop-clear
-WALLPAPER_FPS u32 components.wallpaper.fps
-WALLPAPER_THUMBNAIL u32 components.wallpaper.thumbnail
-WALLPAPER_FRAME u32 components.wallpaper.frame
-SPACE_SLIDE_EASE [f32;4] components.spaces.slide-ease
 DOMINANT_LIGHTNESS [f32;2] appearance.dominant.lightness
 MENU_SEARCH_ICON [f32;2] components.shell.menu.search.icon
-MENUBAR_BATTERY_ICON [f32;2] components.shell.menubar.battery.icon
 ";
 
 const THEMED: &str = r"
@@ -625,34 +416,13 @@ const OPAQUE: [&str; 3] = ["SHELL", "SIDEBAR", "TOOLGROUP_BG"];
 
 fn main() {
     let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
-    let read = |source: &str| {
-        let path = manifest.join(source);
-        println!("cargo:rerun-if-changed={}", path.display());
-        fs::read_to_string(&path)
-            .unwrap_or_else(|error| panic!("ctdesign: cannot read {}: {error}", path.display()))
-    };
-    let json = |source: &str| match serde_json::from_str(&read(source)) {
-        Ok(Value::Object(object)) => object,
-        _ => panic!("ctdesign: {source} is not a JSON object"),
-    };
-    let mut root = json(SOURCES[0]);
-    root.extend(json(SOURCES[1]));
-    let tengen = Tengen {
-        root: Value::Object(root),
-        structs: read(SOURCES[2]),
-    };
+    let tengen = Tengen::load(&manifest, &[manifest.join("src/lib.rs")]);
 
     let mut out = String::from(
         "// @generated by build.rs from tengen/tokens.json and tengen/components.json.\n\
          // Do not edit: change the JSON in crates/ctdesign/tengen and rebuild.\n\n",
     );
-    let default = Look {
-        theme: tengen.string("default-theme"),
-        opaque: false,
-    };
-    for entry in entries(CONSTANTS) {
-        out.push_str(&tengen.constant(entry[0], entry[1], entry[2], &entry[3..], default));
-    }
+    out.push_str(&tengen.constants(CONSTANTS));
     for entry in entries(THEMED) {
         for (suffix, theme) in THEMES {
             let name = format!("{}_{suffix}", entry[0]);
@@ -684,20 +454,6 @@ fn main() {
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
     fs::write(out_dir.join("tengen.rs"), out).expect("write tengen.rs");
-}
-
-fn entries(table: &str) -> Vec<Vec<&str>> {
-    let mut entries: Vec<Vec<&str>> = Vec::new();
-    for line in table.lines().filter(|line| !line.is_empty()) {
-        if !line.starts_with(' ') {
-            entries.push(Vec::new());
-        }
-        entries
-            .last_mut()
-            .expect("ctdesign: table starts indented")
-            .extend(line.split_whitespace());
-    }
-    entries
 }
 
 fn emit_titlebar(out: &mut String, tengen: &Tengen) {

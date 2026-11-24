@@ -1,5 +1,4 @@
-pub const THOUSANDTHS: f32 = 1000.0;
-
+#[cfg(any(feature = "client", feature = "server"))]
 macro_rules! protocol {
     ($module:ident, $wayland:ident, $generate:ident, $file:literal) => {
         pub mod __interfaces {
@@ -16,13 +15,16 @@ macro_rules! protocol {
     };
 }
 
+#[cfg(any(feature = "client", feature = "server"))]
 macro_rules! side {
     ($side:ident, $wayland:ident, $generate:ident) => {
+        #[cfg(feature = "shell")]
         pub mod __interfaces {
             use wayland_protocols_wlr::foreign_toplevel::v1::$side::__interfaces::*;
             wayland_scanner::generate_interfaces!("protocols/infinity-window-manager-v1.xml");
         }
 
+        #[cfg(feature = "shell")]
         pub mod infinity_window_manager_v1 {
             use super::__interfaces::*;
             use wayland_protocols_wlr::foreign_toplevel::v1::$side::*;
@@ -39,6 +41,7 @@ macro_rules! side {
             );
         }
 
+        #[cfg(feature = "shell")]
         pub mod session {
             pub mod __interfaces {
                 wayland_scanner::generate_interfaces!("protocols/infinity-session-v1.xml");

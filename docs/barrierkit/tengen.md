@@ -3,7 +3,7 @@
 **Goal:** change or add a design value of Tengen, the desktop's visual
 language, and know which `ctdesign` constant carries it.
 **Scope:** from the JSON files in `crates/ctdesign/tengen/` to the Rust
-constants that `bk` and Malaysia (compositor, shell, portal) read,
+constants of `ctdesign` that `bk` and Malaysia read,
 and how `ctappearance` combines them with the user's appearance. Using the
 constants in an app is in
 [4. Appearance and tokens](04-appearance-and-tokens.md).
@@ -41,6 +41,8 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
 2. Add a line to the `CONSTANTS` table in `crates/ctdesign/build.rs`:
    `NAME type path`, for example `SPACE_4 f32 space.4`. For a value that
    changes per theme, use the `THEMED` table and write `{theme}` in the path.
+   A value only the desktop reads goes in the table of `crates/ctshell/build.rs`
+   instead ([ctshell](../shell/ctshell.md#tokens-ctshelldesign)).
 3. If the type is a new struct, declare it in `src/lib.rs`, one `pub field:
    Type,` per line. Each field reads the key with its name in kebab case
    under the path (`hide_delay` → `hide-delay`); an underscore may also open
@@ -86,13 +88,14 @@ each.
 | Durations | `duration.fast` 120, `base` 250, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |
 | Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.unfocused` (blur 0.45, offset 0.4, opacity 0.55) | `SHADOW`, `SHADOW_DARK` |
 | Controls | `components.<control>` | `BUTTON`, `SWITCH`, `SLIDER`, `TEXT_FIELD`… |
-| Shell | `components.shell`: `menubar`, `dock`, `about`, `lock`, `launcher`, `menu` | `MENUBAR_*`, `DOCK_*`, `ABOUT_*`, `LOCK_*`, `LAUNCHER_*`, `MENU_*`, `SHELL_*` |
+| Shell | `components.shell` | What the kit reads: `MENUBAR_HEIGHT`, `MENUBAR_TINT_SPREAD`, the Dock's frame, label and menu, `MENU_*`, `SHELL_*`; the rest is in [`ctshell::design`](../shell/ctshell.md#tokens-ctshelldesign) |
 | Appearance factors | `appearance`: `dominant`, `tint-strength`, `modes`, `layer-factors`, `wallpaper-tinting`, `contrast`, `accessibility` | `DOMINANT_*`, `TINT_STRENGTH`, `WINDOW_TINT_*`, `ACCENT_CHROMA_GAIN`, `LAYER_FACTOR_*`, `WALLPAPER_TINTING*`, `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST`, `TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` |
 
 ## Appearance and wallpaper
 
 `ctappearance` turns the constants into the resolved appearance with
-`resolve(&load_appearance(), load_dominant())`.
+`resolve(&load_appearance(), load_dominant(), native_lights)`
+([4](04-appearance-and-tokens.md#resolution)).
 
 1. `appearance.color_scheme` picks the theme, unless the system's light or
    dark wins ([4](04-appearance-and-tokens.md#the-systems-light-or-dark)).
@@ -127,7 +130,7 @@ On Linux the kit, the compositor and the portal watch `appearance.domain` and
 | A hex colour (`0xRRGGBB`, `"#RRGGBB"`), `Rgba::rgb8(…)` / `Rgba::rgba8(…)` or Freya's `Color::from_rgb(…)` with numbers, or an `r:`, `g:` or `b:` field set to a fraction | Colours live in `ctdesign` |
 | A local `[u8; 4]` | Convert with `Rgba::to_rgba8` |
 | `corner_radius(…)` or `CornerRadius::new(…)` with a number other than 0 | Radii live in `ctdesign` |
-| `Duration::from_millis/secs/micros(…)` or `.time(…)` with a number in `crates/bk/src`, except `platform/`, `shell/`, `session_bus.rs`, `animation.rs` and `group.rs` | Durations live in `ctdesign` |
+| `Duration::from_millis/secs/micros(…)` or `.time(…)` with a number in `crates/bk/src`, except `platform/`, `session_bus.rs`, `animation.rs` and `group.rs` | Durations live in `ctdesign` |
 | `const NAME: i32/u32/f32 = <number>` in `password.rs`, `controls/`, `theme.rs` | Measurements live in `ctdesign` |
 
 ## Related

@@ -36,7 +36,7 @@ use std::{
 use torin::prelude::Size2D;
 
 use super::{
-    KitSender, ObjectId, Sent,
+    ObjectId, Sent,
     calloop::ping::Ping,
     popup::{PopupCommand, PopupHandle, PopupId, Popups},
     timer::{PingWake, TimerQueue, Timers, Wake},
@@ -45,10 +45,25 @@ use super::{
 
 const MAX_SETTLE_PASSES: usize = 4;
 
+#[derive(Clone)]
+pub struct KitSender(pub(crate) std::rc::Rc<dyn Fn(Sent)>);
+
+impl KitSender {
+    // Without the kit's runner (freya-testing) these events have nowhere to go.
+    pub fn get() -> Self {
+        freya_core::prelude::try_consume_root_context()
+            .unwrap_or_else(|| Self(std::rc::Rc::new(|_| {})))
+    }
+
+    pub fn send(&self, event: impl std::any::Any) {
+        (self.0)(Sent::Kit(Box::new(event)));
+    }
+}
+
 static NEXT_WINDOW_ID: AtomicU64 = AtomicU64::new(0);
 
 // What an instance reads from the runner that owns it, so each backend fills one and the driver knows none.
-pub(crate) struct Host {
+pub struct Host {
     pub(crate) resolved: State<Resolved>,
     pub(crate) ping: Ping,
     pub(crate) queue: Rc<RefCell<Vec<(ObjectId, Sent)>>>,
@@ -69,7 +84,7 @@ pub(crate) struct Host {
     pub(crate) knobs: bool,
 }
 
-pub(crate) struct AppInstance {
+pub struct AppInstance {
     pub(crate) runner: Runner,
     pub(crate) tree: Tree,
     nodes_state: NodesState<NodeId>,
@@ -106,7 +121,7 @@ pub(crate) struct AppInstance {
     ime_area: Option<(i32, i32, i32, i32)>,
 }
 
-pub(crate) enum InstanceRole {
+pub enum InstanceRole {
     Window {
         controls: Box<WindowControls>,
         menu: Option<crate::main_menu::MenuHandle>,
@@ -122,7 +137,7 @@ pub(crate) enum InstanceRole {
 }
 
 impl AppInstance {
-    pub(crate) fn new(
+    pub fn new(
         host: &Host,
         owner: ObjectId,
         app: AppComponent,

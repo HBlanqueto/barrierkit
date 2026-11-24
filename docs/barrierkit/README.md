@@ -40,7 +40,7 @@ answers it.
 | 15 | [Backdrops and media](15-backdrops-and-media.md) | Tinted backdrops, glass groups and artwork |
 | 16 | [SwiftUI to the kit](16-swiftui-to-the-kit.md) | How do I write `@AppStorage`, `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, actions and effects? |
 | 17 | [Languages](17-languages.md) | How do I translate an app and how is the language chosen? |
-| 18 | [Platform](18-platform.md) | macOS and Wayland runners, Wayland protocols, the shell feature |
+| 18 | [Platform](18-platform.md) | macOS and Wayland runners, Wayland protocols, desktop services |
 | 19 | [Profiling](19-profiling.md) | Where does each frame's time go? |
 | 20 | [Glossary](20-glossary.md) | What is the BarrierKit name of a SwiftUI or AppKit concept? |
 
@@ -54,6 +54,7 @@ answers it.
 | How do I change how a control looks? | [`agents/styles.md`](../../agents/styles.md) |
 | Where does an app store its data? | [13](13-app.md#settings-and-restoration): in its own folder, named by its id |
 | How do I add a component to the kit? | [3, What every component does](03-layers.md#what-every-component-does) and [`AGENTS.md`](../../AGENTS.md) |
+| How do I write a desktop shell component? | [The shell docs](../shell/README.md) |
 | How do I check a change? | `./dev.sh check`; on Linux inside `nix develop` ([on macOS](18-platform.md#build-and-check-on-macos)); its steps are `check()` in [`dev.sh`](../../dev.sh) |
 
 ## Single sources

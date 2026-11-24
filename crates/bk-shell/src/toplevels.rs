@@ -21,9 +21,12 @@ use sctk::reexports::{
 };
 use std::{cell::RefCell, rc::Rc};
 
-use crate::platform::{MainMenuAddress, runtime::Runtime};
-use crate::shell::InfinityWindowManagerV1;
-use crate::shell::{GtkMenusAddress, ShellState};
+use bk::{
+    extension::{KitSender, Runtime},
+    platform::MainMenuAddress,
+};
+
+use crate::{GtkMenusAddress, InfinityWindowManagerV1, Shell, ShellState};
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ToplevelInfo {
@@ -188,42 +191,44 @@ pub struct MinimizeTarget {
 }
 
 pub fn set_minimize_target(target: MinimizeTarget) {
-    crate::platform::KitSender::get().send(target);
+    KitSender::get().send(target);
 }
 
-impl Runtime {
-    // zwlr_foreign_toplevel_handle_v1.set_rectangle: the rectangle is relative to the calling surface.
-    pub(crate) fn apply_minimize_target(&mut self, surface_id: &ObjectId, target: MinimizeTarget) {
-        let Some(index) = self.surface_index_by_id(surface_id) else {
-            return;
-        };
-        let surface = self.surfaces[index].surface.clone();
-        let Some(shell) = self.extension::<ShellState>() else {
-            return;
-        };
-        let (x, y, width, height) = target.rect;
-        shell.toplevels.with_handle(target.window, |mgmt| {
-            mgmt.set_rectangle(&surface, x, y, width, height)
-        });
-    }
+// zwlr_foreign_toplevel_handle_v1.set_rectangle: the rectangle is relative to the calling surface.
+pub(crate) fn apply_minimize_target(
+    rt: &mut Runtime,
+    surface_id: &ObjectId,
+    target: MinimizeTarget,
+) {
+    let Some(index) = rt.surface_index_by_id(surface_id) else {
+        return;
+    };
+    let surface = rt.surfaces[index].surface.clone();
+    let Some(shell) = rt.extension::<ShellState>() else {
+        return;
+    };
+    let (x, y, width, height) = target.rect;
+    shell.toplevels.with_handle(target.window, |mgmt| {
+        mgmt.set_rectangle(&surface, x, y, width, height)
+    });
+}
 
-    pub(super) fn sync_toplevels(&mut self) {
-        let toplevels = &self
-            .extension::<ShellState>()
-            .expect("sync_toplevels called without ShellState")
-            .toplevels;
-        let infos: Vec<ToplevelInfo> = toplevels
-            .entries
-            .borrow()
-            .iter()
-            .map(|entry| entry.info.clone())
-            .collect();
-        let mut list = toplevels.list;
-        if *list.peek() != infos {
-            list.set(infos);
-            self.request_redraw_all = true;
-            self.ping.ping();
-        }
+pub(crate) fn sync_toplevels(rt: &mut Runtime) {
+    let toplevels = &rt
+        .extension::<ShellState>()
+        .expect("sync_toplevels called without ShellState")
+        .toplevels;
+    let infos: Vec<ToplevelInfo> = toplevels
+        .entries
+        .borrow()
+        .iter()
+        .map(|entry| entry.info.clone())
+        .collect();
+    let mut list = toplevels.list;
+    if *list.peek() != infos {
+        list.set(infos);
+        rt.request_redraw_all = true;
+        rt.ping.ping();
     }
 }
 
@@ -245,12 +250,12 @@ impl ShellState {
     }
 }
 
-impl Dispatch<ExtForeignToplevelListV1, (), Runtime> for Runtime {
+impl Dispatch<ExtForeignToplevelListV1, Shell, Runtime> for Runtime {
     fn event(
         state: &mut Self,
         _: &ExtForeignToplevelListV1,
         event: <ExtForeignToplevelListV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
@@ -260,20 +265,20 @@ impl Dispatch<ExtForeignToplevelListV1, (), Runtime> for Runtime {
                 .expect("ext_foreign_toplevel_list event without ShellState")
                 .push_toplevel(Some(toplevel), None);
         }
-        state.sync_toplevels();
+        sync_toplevels(state);
     }
 
     event_created_child!(Runtime, ExtForeignToplevelListV1, [
-        sctk::reexports::protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::EVT_TOPLEVEL_OPCODE => (ExtForeignToplevelHandleV1, ())
+        sctk::reexports::protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::EVT_TOPLEVEL_OPCODE => (ExtForeignToplevelHandleV1, Shell)
     ]);
 }
 
-impl Dispatch<ExtForeignToplevelHandleV1, (), Runtime> for Runtime {
+impl Dispatch<ExtForeignToplevelHandleV1, Shell, Runtime> for Runtime {
     fn event(
         state: &mut Self,
         handle: &ExtForeignToplevelHandleV1,
         event: <ExtForeignToplevelHandleV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
@@ -298,16 +303,16 @@ impl Dispatch<ExtForeignToplevelHandleV1, (), Runtime> for Runtime {
                 _ => {}
             }
         }
-        state.sync_toplevels();
+        sync_toplevels(state);
     }
 }
 
-impl Dispatch<ZwlrForeignToplevelManagerV1, (), Runtime> for Runtime {
+impl Dispatch<ZwlrForeignToplevelManagerV1, Shell, Runtime> for Runtime {
     fn event(
         state: &mut Self,
         _: &ZwlrForeignToplevelManagerV1,
         event: <ZwlrForeignToplevelManagerV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
@@ -317,20 +322,20 @@ impl Dispatch<ZwlrForeignToplevelManagerV1, (), Runtime> for Runtime {
                 .expect("zwlr_foreign_toplevel_manager event without ShellState")
                 .push_toplevel(None, Some(toplevel));
         }
-        state.sync_toplevels();
+        sync_toplevels(state);
     }
 
     event_created_child!(Runtime, ZwlrForeignToplevelManagerV1, [
-        sctk::reexports::protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::EVT_TOPLEVEL_OPCODE => (ZwlrForeignToplevelHandleV1, ())
+        sctk::reexports::protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::EVT_TOPLEVEL_OPCODE => (ZwlrForeignToplevelHandleV1, Shell)
     ]);
 }
 
-impl Dispatch<ZwlrForeignToplevelHandleV1, (), Runtime> for Runtime {
+impl Dispatch<ZwlrForeignToplevelHandleV1, Shell, Runtime> for Runtime {
     fn event(
         state: &mut Self,
         handle: &ZwlrForeignToplevelHandleV1,
         event: <ZwlrForeignToplevelHandleV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
@@ -364,7 +369,7 @@ impl Dispatch<ZwlrForeignToplevelHandleV1, (), Runtime> for Runtime {
                 _ => {}
             }
         }
-        state.sync_toplevels();
+        sync_toplevels(state);
     }
 }
 

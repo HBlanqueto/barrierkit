@@ -17,6 +17,7 @@ use std::{cell::Cell, rc::Rc};
 use crate::platform::{
     ObjectId,
     app::{AppInstance, InstanceRole},
+    linux::window_style::wire,
     popup::{
         PopupAnchor, PopupCommand, PopupConstraintAdjustment, PopupGravity, PopupId, PopupSpec,
     },
@@ -252,7 +253,7 @@ impl Runtime {
             return;
         };
         if style.version() >= 7 {
-            style.set_popover_shape(&window.surface, shape);
+            style.set_popover_shape(&window.surface, wire(shape as u32));
         } else if style.version() >= 2 && shape == PopoverShape::Popover {
             style.set_popover(&window.surface);
         }

@@ -76,7 +76,7 @@ pub(crate) fn use_publish(
             rects: vec![rounded(area)],
             base: argb(glass.base),
             solid: argb(glass.solid),
-            chroma: (glass.chroma * infinity_protocol::THOUSANDTHS).round() as u32,
+            chroma: (glass.chroma * ctdesign::THOUSANDTHS).round() as u32,
             inspector: None,
             contents_above,
         });

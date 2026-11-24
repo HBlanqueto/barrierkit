@@ -4,8 +4,10 @@
 resolver = "3"
 members = [
     "crates/bk",
+    "crates/bk-shell",
     "crates/ctdesign",
     "crates/ctappearance",
+    "crates/ctshell",
     "crates/infinity-protocol",
 ]
 

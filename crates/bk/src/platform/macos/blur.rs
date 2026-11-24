@@ -82,24 +82,17 @@ pub(super) fn effect(
 pub(super) fn edge_points(edge: Edge) -> ((f64, f64), (f64, f64)) {
     match edge {
         Edge::Top => ((0.5, 1.0), (0.5, 0.0)),
-        Edge::Bottom => ((0.5, 0.0), (0.5, 1.0)),
-        Edge::Leading => ((0.0, 0.5), (1.0, 0.5)),
-        _ => ((1.0, 0.5), (0.0, 0.5)),
     }
 }
 
 pub(super) fn edge_rect(
     edge: Edge,
     (x, y): (i32, i32),
-    (width, height): (u32, u32),
+    (width, _): (u32, u32),
     depth: u32,
 ) -> (i32, i32, i32, i32) {
-    let (width, height, depth) = (width as i32, height as i32, depth as i32);
     match edge {
-        Edge::Top => (x, y, width, depth),
-        Edge::Bottom => (x, y + height - depth, width, depth),
-        Edge::Leading => (x, y, depth, height),
-        _ => (x + width - depth, y, depth, height),
+        Edge::Top => (x, y, width as i32, depth as i32),
     }
 }
 

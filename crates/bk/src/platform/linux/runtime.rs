@@ -6,7 +6,7 @@ use super::{
     vulkan::{GraphicsShared, IDLE_RESOURCE_RELEASE},
 };
 use crate::platform::{
-    EditShortcut, ObjectId, RunError, Sent,
+    EditShortcut, NATIVE_LIGHTS, ObjectId, RunError, Sent,
     linux::seat::{RepeatState, cursor_shape_from_icon},
     main_menu_export::MainMenuAddress,
     popup::PopupCommand,
@@ -67,21 +67,21 @@ use wayland_protocols::wp::text_input::zv3::client::zwp_text_input_manager_v3::Z
 use wayland_protocols::wp::viewporter::client::wp_viewporter::WpViewporter;
 use wayland_protocols_plasma::appmenu::client::org_kde_kwin_appmenu_manager::OrgKdeKwinAppmenuManager;
 
-pub(crate) struct Connected {
-    pub(crate) conn: Connection,
-    pub(crate) event_queue: sctk::reexports::client::EventQueue<Runtime>,
-    pub(crate) runtime: Runtime,
+pub struct Connected {
+    pub conn: Connection,
+    pub event_queue: sctk::reexports::client::EventQueue<Runtime>,
+    pub runtime: Runtime,
     #[cfg(feature = "shell")]
-    pub(crate) globals: sctk::reexports::client::globals::GlobalList,
+    pub globals: sctk::reexports::client::globals::GlobalList,
 }
 
-pub(crate) struct Runtime {
+pub struct Runtime {
     pub(crate) registry: RegistryState,
-    pub(crate) compositor: CompositorState,
+    pub compositor: CompositorState,
     pub(crate) subcompositor: Option<Rc<SubcompositorState>>,
-    pub(crate) output: OutputState,
+    pub output: OutputState,
     pub(crate) xdg_shell: Option<XdgShell>,
-    pub(crate) surfaces: Vec<SurfaceWindow>,
+    pub surfaces: Vec<SurfaceWindow>,
     pub(crate) graphics: Rc<GraphicsShared>,
     // SAFETY: this pointer is the live wl_display of the connection that owns this Runtime;
     // it must outlive every surface and every GraphicsShared recreated from it.
@@ -99,28 +99,28 @@ pub(crate) struct Runtime {
     pub(crate) modifiers: SctkModifiers,
     pub(crate) keyboard_layouts: Vec<String>,
     pub(crate) keyboard_layout_index: u32,
-    pub(crate) keyboard_layout: Option<freya_core::prelude::State<Option<String>>>,
-    pub(crate) needs_exit: bool,
+    pub keyboard_layout: Option<freya_core::prelude::State<Option<String>>>,
+    pub needs_exit: bool,
     pub(crate) recover_failed: bool,
-    pub(crate) request_redraw_all: bool,
+    pub request_redraw_all: bool,
     pub(crate) queue: Rc<RefCell<Vec<(ObjectId, crate::platform::Sent)>>>,
-    pub(crate) ping: Ping,
+    pub ping: Ping,
     pub(crate) ping_source: Option<PingSource>,
     pub(crate) wake: Wake,
     pub(crate) wake_source: Option<PingSource>,
-    pub(crate) qh: QueueHandle<Runtime>,
-    pub(crate) extension: Option<Extension>,
+    pub qh: QueueHandle<Runtime>,
+    pub extension: Option<Extension>,
     pub(crate) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
     pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
     pub(crate) dialog_manager:
         Option<wayland_protocols::xdg::dialog::v1::client::xdg_wm_dialog_v1::XdgWmDialogV1>,
-    pub(crate) window_style: Option<crate::platform::linux::window_style::InfinityWindowStyleV1>,
+    pub window_style: Option<crate::platform::linux::window_style::InfinityWindowStyleV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) timers: TimerQueue,
-    pub(crate) seat_handle: Option<wl_seat::WlSeat>,
-    pub(crate) last_input_serial: Rc<Cell<u32>>,
-    pub(crate) last_input_surface: Option<WlSurface>,
+    pub seat_handle: Option<wl_seat::WlSeat>,
+    pub last_input_serial: Rc<Cell<u32>>,
+    pub last_input_surface: Option<WlSurface>,
     pub(crate) last_pointer_serial: Cell<u32>,
     pub(crate) resize_hover: Option<crate::platform::WindowEdge>,
     pub(crate) pointer_pressed: bool,
@@ -138,7 +138,7 @@ pub(crate) struct Runtime {
     pub(crate) primary: Clipboard,
     pub(crate) primary_device: Option<super::primary::PrimaryDevice>,
     pub(crate) ime: super::ime::Ime,
-    pub(crate) activation: Option<XdgActivationV1>,
+    pub activation: Option<XdgActivationV1>,
     pub(crate) defaults_revision: State<u64>,
     pub(crate) clipboard_device: Option<ClipboardDevice>,
     pub(crate) drag_target: Option<(ObjectId, CursorPoint)>,
@@ -207,7 +207,7 @@ impl WindowContext {
 }
 
 impl Runtime {
-    pub(crate) fn run(
+    pub fn run(
         mut self,
         conn: Connection,
         event_queue: sctk::reexports::client::EventQueue<Self>,
@@ -318,51 +318,14 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
                             shell.create_window(open.app, open.options, Some(&surface_id));
                         }
                     }
-                    #[cfg(feature = "shell")]
-                    Sent::Kit(event) if event.is::<crate::shell::CardFrames>() => {
-                        if let Ok(frames) = event.downcast::<crate::shell::CardFrames>() {
-                            shell.apply_card_frames(&surface_id, *frames);
-                        }
-                    }
-                    #[cfg(feature = "shell")]
-                    Sent::Kit(event) if event.is::<crate::shell::PlateFrames>() => {
-                        if let Ok(frames) = event.downcast::<crate::shell::PlateFrames>() {
-                            shell.apply_plate_frames(&surface_id, *frames);
-                        }
-                    }
-                    #[cfg(feature = "shell")]
-                    Sent::Kit(event) if event.is::<crate::shell::BlurRegion>() => {
-                        if let Ok(region) = event.downcast::<crate::shell::BlurRegion>() {
-                            shell.apply_blur_region(&surface_id, *region);
-                        }
-                    }
-                    #[cfg(feature = "shell")]
-                    Sent::Kit(event) if event.is::<crate::shell::CaptureWindow>() => {
-                        if let Ok(request) = event.downcast::<crate::shell::CaptureWindow>() {
-                            shell.capture_window(*request);
-                        }
-                    }
-                    #[cfg(feature = "shell")]
-                    Sent::Kit(event) if event.is::<crate::shell::MinimizeTarget>() => {
-                        if let Ok(target) = event.downcast::<crate::shell::MinimizeTarget>() {
-                            shell.apply_minimize_target(&surface_id, *target);
-                        }
-                    }
-                    #[cfg(feature = "shell")]
-                    Sent::Kit(event) if event.is::<crate::shell::InputRegion>() => {
-                        if let Ok(region) = event.downcast::<crate::shell::InputRegion>() {
-                            shell.apply_input_region(&surface_id, *region);
-                        }
-                    }
-                    #[cfg(feature = "shell")]
-                    Sent::Kit(event) if event.is::<crate::shell::LayerGeometry>() => {
-                        if let Ok(geometry) = event.downcast::<crate::shell::LayerGeometry>() {
-                            shell.apply_layer_geometry(&surface_id, *geometry);
-                        }
-                    }
                     Sent::Kit(event) if event.is::<crate::drag::StartDrag>() => {
                         if let Ok(drag) = event.downcast::<crate::drag::StartDrag>() {
                             shell.start_drag(&surface_id, drag.0);
+                        }
+                    }
+                    Sent::Kit(event) if !event.is::<EditShortcut>() => {
+                        if let Some(hooks) = shell.extension_hooks() {
+                            (hooks.kit_event)(shell, &surface_id, event);
                         }
                     }
                     Sent::Kit(event) => {
@@ -464,7 +427,7 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
 }
 
 fn restyle(shell: &mut Runtime) {
-    let resolved = resolve(&system::appearance(), load_dominant());
+    let resolved = resolve(&system::appearance(), load_dominant(), NATIVE_LIGHTS);
     if *shell.resolved.peek() != resolved {
         shell.resolved.set(resolved);
         for context in shell
@@ -480,7 +443,7 @@ fn restyle(shell: &mut Runtime) {
 }
 
 impl Runtime {
-    pub(crate) fn connect() -> Result<Connected, RunError> {
+    pub fn connect() -> Result<Connected, RunError> {
         let conn = Connection::connect_to_env().map_err(|_| RunError::NoDisplay)?;
         let (globals, event_queue) = registry_queue_init::<Runtime>(&conn)?;
         let qh = event_queue.handle();
@@ -495,7 +458,11 @@ impl Runtime {
         let (wake_ping, wake_source) = calloop::ping::make_ping()
             .map_err(|_| RunError::EventLoop("calloop wake ping failed"))?;
         system::read_settings();
-        let resolved = State::create_global(resolve(&system::appearance(), load_dominant()));
+        let resolved = State::create_global(resolve(
+            &system::appearance(),
+            load_dominant(),
+            NATIVE_LIGHTS,
+        ));
         let appmenu_manager = globals
             .bind::<OrgKdeKwinAppmenuManager, _, _>(&qh, 1..=1, ())
             .ok();
@@ -649,11 +616,11 @@ impl Runtime {
         stepped
     }
 
-    pub(crate) fn surface_for(&self, surface: &WlSurface) -> Option<usize> {
+    pub fn surface_for(&self, surface: &WlSurface) -> Option<usize> {
         self.surfaces.iter().position(|s| s.surface == *surface)
     }
 
-    pub(crate) fn surface_index_by_id(&self, surface_id: &ObjectId) -> Option<usize> {
+    pub fn surface_index_by_id(&self, surface_id: &ObjectId) -> Option<usize> {
         self.surfaces
             .iter()
             .position(|s| s.surface.id() == *surface_id)

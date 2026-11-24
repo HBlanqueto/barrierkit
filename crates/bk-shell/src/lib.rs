@@ -7,6 +7,7 @@ mod lock;
 mod menus;
 mod screen_lock;
 mod status_items;
+mod theme;
 mod toplevels;
 
 pub use activation::Activation;
@@ -24,45 +25,48 @@ pub use lock::{SessionUnlock, run_lock};
 pub use menus::GtkMenusAddress;
 pub use screen_lock::{ScreenLock, use_screen_lock};
 pub use status_items::{Pixmap, StatusHost, TrayItem, use_status_items};
+pub use theme::{for_scheme, use_shell_theme};
 pub use toplevels::{FocusBar, MinimizeTarget, ToplevelInfo, Toplevels, set_minimize_target};
 
+use std::{any::Any, cell::RefCell, collections::HashMap, rc::Rc};
+
+use bk::extension::{Extension, ExtensionHooks, Runtime};
 use freya_core::{
     integration::{AppComponent, Runner},
     prelude::State,
 };
-
 use infinity_protocol::client::session::infinity_session_v1::infinity_session_v1::InfinitySessionV1;
-use sctk::{
-    reexports::{
-        client::{
-            QueueHandle,
-            backend::ObjectId,
-            globals::GlobalList,
-            protocol::{wl_output::WlOutput, wl_seat::WlSeat},
-        },
-        protocols::ext::foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::ExtForeignToplevelListV1,
-        protocols_wlr::foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::ZwlrForeignToplevelManagerV1,
+use sctk::reexports::{
+    client::{
+        QueueHandle,
+        backend::ObjectId,
+        globals::GlobalList,
+        protocol::{wl_output::WlOutput, wl_seat::WlSeat},
     },
-    session_lock::{SessionLock, SessionLockState},
-    shell::wlr_layer::LayerShell,
+    protocols::ext::{
+        foreign_toplevel_list::v1::client::ext_foreign_toplevel_list_v1::ExtForeignToplevelListV1,
+        session_lock::v1::client::ext_session_lock_manager_v1::ExtSessionLockManagerV1,
+    },
+    protocols_wlr::{
+        foreign_toplevel::v1::client::zwlr_foreign_toplevel_manager_v1::ZwlrForeignToplevelManagerV1,
+        layer_shell::v1::client::zwlr_layer_shell_v1::ZwlrLayerShellV1,
+    },
 };
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use wayland_protocols::ext::background_effect::v1::client::{
     ext_background_effect_manager_v1::ExtBackgroundEffectManagerV1,
     ext_background_effect_surface_v1::ExtBackgroundEffectSurfaceV1,
 };
 
-use crate::platform::{
-    extension::{Extension, ExtensionHooks},
-    runtime::Runtime,
-};
-use activation::ActivationCallback;
+use crate::{activation::ActivationCallback, lock::Lock};
+
+// The orphan rule: a Dispatch impl for bk's Runtime needs a local type among its parameters.
+pub(crate) struct Shell;
 
 pub(crate) struct ShellState {
     pub(crate) app: AppComponent,
-    pub(crate) layer_shell: Option<LayerShell>,
-    pub(crate) session_lock: SessionLockState,
-    pub(crate) active_lock: Option<SessionLock>,
+    pub(crate) layer_shell: Option<ZwlrLayerShellV1>,
+    pub(crate) session_lock: Option<ExtSessionLockManagerV1>,
+    pub(crate) active_lock: Option<Lock>,
     pub(crate) session_unlock: Option<SessionUnlock>,
     pub(crate) _foreign_list: Option<ExtForeignToplevelListV1>,
     pub(crate) _foreign_mgmt: Option<ZwlrForeignToplevelManagerV1>,
@@ -85,7 +89,7 @@ impl ShellState {
         qh: &QueueHandle<Runtime>,
     ) {
         let foreign_mgmt = globals
-            .bind::<ZwlrForeignToplevelManagerV1, _, _>(qh, 3..=3, ())
+            .bind::<ZwlrForeignToplevelManagerV1, _, _>(qh, 3..=3, Shell)
             .ok();
         let foreign_list = if foreign_mgmt.is_some() {
             None
@@ -94,11 +98,11 @@ impl ShellState {
                 "zwlr_foreign_toplevel_manager_v1 unavailable; using ext_foreign_toplevel_list_v1"
             );
             globals
-                .bind::<ExtForeignToplevelListV1, _, _>(qh, 1..=1, ())
+                .bind::<ExtForeignToplevelListV1, _, _>(qh, 1..=1, Shell)
                 .ok()
         };
         let infinity = globals
-            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=8, ())
+            .bind::<InfinityWindowManagerV1, _, _>(qh, 1..=8, Shell)
             .ok();
         if infinity.is_none() {
             tracing::info!("infinity_window_manager_v1 unavailable; continuing without it");
@@ -113,8 +117,8 @@ impl ShellState {
         };
         let shell = Self {
             app,
-            layer_shell: LayerShell::bind(globals, qh).ok(),
-            session_lock: SessionLockState::new(globals, qh),
+            layer_shell: globals.bind(qh, 1..=4, Shell).ok(),
+            session_lock: globals.bind(qh, 1..=1, Shell).ok(),
             active_lock: None,
             session_unlock: None,
             _foreign_list: foreign_list,
@@ -127,9 +131,11 @@ impl ShellState {
             },
             activation_callbacks: HashMap::new(),
             screen_lock: State::create_global(ScreenLock::default()),
-            _session: globals.bind::<InfinitySessionV1, _, _>(qh, 1..=1, ()).ok(),
+            _session: globals
+                .bind::<InfinitySessionV1, _, _>(qh, 1..=1, Shell)
+                .ok(),
             background_effect: globals
-                .bind::<ExtBackgroundEffectManagerV1, _, _>(qh, 1..=1, ())
+                .bind::<ExtBackgroundEffectManagerV1, _, _>(qh, 1..=1, Shell)
                 .ok(),
             background_effects: HashMap::new(),
             capture: capture::Capture::bind(globals, qh),
@@ -142,6 +148,7 @@ impl ShellState {
                 new_seat: Self::new_seat,
                 new_output: Self::new_output,
                 poll: Self::poll,
+                kit_event: Self::kit_event,
             },
         });
     }
@@ -170,7 +177,7 @@ impl ShellState {
     }
 
     fn new_output(rt: &mut Runtime, qh: &QueueHandle<Runtime>, output: &WlOutput) {
-        rt.create_lock_surface(qh, output);
+        lock::create_lock_surface(rt, qh, output);
     }
 
     fn poll(rt: &mut Runtime) {
@@ -185,6 +192,48 @@ impl ShellState {
         let qh = rt.qh.clone();
         if let Some(shell) = rt.extension_mut::<ShellState>() {
             shell.poll_activation(global.as_ref(), seat.as_ref(), window.as_ref(), serial, &qh);
+        }
+    }
+
+    fn kit_event(rt: &mut Runtime, surface: &ObjectId, event: Box<dyn Any>) {
+        let Err(event) = event
+            .downcast::<CardFrames>()
+            .map(|frames| layer::apply_card_frames(rt, surface, *frames))
+        else {
+            return;
+        };
+        let Err(event) = event
+            .downcast::<PlateFrames>()
+            .map(|frames| layer::apply_plate_frames(rt, surface, *frames))
+        else {
+            return;
+        };
+        let Err(event) = event
+            .downcast::<BlurRegion>()
+            .map(|region| blur_region::apply_blur_region(rt, surface, *region))
+        else {
+            return;
+        };
+        let Err(event) = event
+            .downcast::<CaptureWindow>()
+            .map(|request| capture::capture(rt, *request))
+        else {
+            return;
+        };
+        let Err(event) = event
+            .downcast::<MinimizeTarget>()
+            .map(|target| toplevels::apply_minimize_target(rt, surface, *target))
+        else {
+            return;
+        };
+        let Err(event) = event
+            .downcast::<InputRegion>()
+            .map(|region| layer::apply_input_region(rt, surface, *region))
+        else {
+            return;
+        };
+        if let Ok(geometry) = event.downcast::<LayerGeometry>() {
+            layer::apply_layer_geometry(rt, surface, *geometry);
         }
     }
 }

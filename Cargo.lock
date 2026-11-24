@@ -396,6 +396,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bk-shell"
+version = "0.1.0"
+dependencies = [
+ "async-io",
+ "bk",
+ "ctappearance",
+ "ctdesign",
+ "freya-components",
+ "freya-core",
+ "futures-channel",
+ "futures-util",
+ "infinity-protocol",
+ "serde",
+ "smithay-client-toolkit",
+ "tracing",
+ "wayland-protocols",
+ "zbus",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -636,7 +656,6 @@ version = "0.1.0"
 dependencies = [
  "ctdesign",
  "libc",
- "md-5",
  "nix",
  "serde",
  "toml 1.1.8+spec-1.1.0",
@@ -649,6 +668,18 @@ name = "ctdesign"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+]
+
+[[package]]
+name = "ctshell"
+version = "0.1.0"
+dependencies = [
+ "ctappearance",
+ "ctdesign",
+ "md-5",
+ "serde",
+ "serde_json",
+ "toml 1.1.8+spec-1.1.0",
 ]
 
 [[package]]

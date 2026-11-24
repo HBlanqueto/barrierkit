@@ -29,7 +29,7 @@ Decision:
 - `bk` uses Freya's core crates pinned `=0.5.3`: `freya-core`, `freya-components` (no default features), `freya-edit`, `freya-animation`, `freya-engine`, `freya-clipboard`, `torin`, `ragnarok`.
 - Never `freya`, `freya-winit` or any `otto-*` crate.
 - Its own Wayland runner on smithay-client-toolkit and `calloop`.
-- Skia runs only in clients. `ctdesign`, `ctappearance` and `infinity-protocol` pull no Freya or Skia, so the compositor never links them.
+- Skia runs only in clients. `ctdesign`, `ctappearance`, `ctshell` and `infinity-protocol` pull no Freya or Skia, so the compositor never links them.
 - The runner draws with Vulkan through `ash`, with no GL fallback. `freya-engine` builds Skia with only `vulkan`.
 - One shared device and `DirectContext`, one swapchain per surface, `MAILBOX` when offered, else `FIFO`.
 Why: winit would own the Wayland connection, and Freya's Vulkan driver lives in `freya-winit`. Frame callbacks already pace redraws, so `FIFO` would throttle twice.
@@ -42,18 +42,18 @@ Why: an app built on the kit is not Malaysia's, so its id, settings folder and b
 Code: `crates/bk/src/platform/window.rs`
 
 ## 0039 — Infinity v1
-Decision: `infinity_window_manager_v1` is a private Wayland protocol for the shell's window management. `infinity-protocol` generates the client side (feature `client`, used by `bk`) and the server side (feature `server`, used by the compositor). `bk` binds it only with the `shell` feature; the compositor decides which clients may bind it.
+Decision: `infinity_window_manager_v1` is a private Wayland protocol for the shell's window management. `infinity-protocol` generates the client side (feature `client`, with `shell` for this protocol) and the server side (feature `server`, used by the compositor). Only `bk-shell` binds it; the compositor decides which clients may bind it.
 Why: the standard protocols do not cover what the Dock and the menu bar need from the compositor.
-Code: `crates/infinity-protocol/protocols/`, `crates/bk/src/shell/infinity.rs`, [Wayland protocols](barrierkit/18-platform.md#wayland-protocols)
+Code: `crates/infinity-protocol/protocols/`, `crates/bk-shell/src/infinity.rs`, [Globals](shell/bk-shell.md#globals)
 
 ## 0047 — BarrierKit in layers
-Decision: `bk` is one crate in four layers (platform, primitives, views, patterns) plus a cross-cutting `app`. A layer uses only the layers below it, and patterns compose only the public API of views. Code only `malaysia-shell` uses lives in `src/shell/`, behind the `shell` feature.
+Decision: `bk` is one crate in four layers (platform, primitives, views, patterns) plus a cross-cutting `app`. A layer uses only the layers below it, and patterns compose only the public API of views. Code only Malaysia's shell uses lives in `crates/bk-shell`, which reaches the runner through `bk`'s hidden `shell` feature.
 Why: the kit must build any desktop app, like AppKit or libadwaita, without each app rebuilding sidebars, search fields and controls.
 Pending: nothing is built until an app needs it. Partial damage waits for Freya: 0.5.3 repaints the whole tree every frame.
 Code: `crates/bk/src/lib.rs`, [Layers](barrierkit/03-layers.md)
 
 ## 0048 — BarrierKit in its own repository
-Decision: `bk`, `ctdesign`, `ctappearance` and `infinity-protocol` live in `github.com/HBlanqueto/barrierkit`. malaysia pins all four by one git `rev` in `Cargo.toml` and takes barrierkit as a flake input, reusing its prebuilt Skia. `./dev.sh kit-local` in malaysia tests a local checkout before publishing.
+Decision: `bk`, `bk-shell`, `ctdesign`, `ctappearance`, `ctshell` and `infinity-protocol` live in `github.com/HBlanqueto/barrierkit`. malaysia pins them by one git `rev` in `Cargo.toml` and takes barrierkit as a flake input, reusing its prebuilt Skia. `./dev.sh kit-local` in malaysia tests a local checkout before publishing.
 Why: the toolkit carries its style and its reading of the appearance; keeping them in malaysia would make the two repos depend on each other.
 Code: `flake.nix`
 

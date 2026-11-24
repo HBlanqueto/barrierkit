@@ -1,8 +1,9 @@
 use freya_core::prelude::WritableUtils;
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
-use crate::platform::{MainMenuAddress, runtime::Runtime};
-use crate::shell::{FocusBar, GtkMenusAddress, ShellState};
+use bk::{extension::Runtime, platform::MainMenuAddress};
+
+use crate::{FocusBar, GtkMenusAddress, Shell, ShellState, toplevels::sync_toplevels};
 
 use infinity_protocol::client::infinity_window_manager_v1::infinity_window_manager_v1::{
     Event, FocusBar as WireFocusBar,
@@ -11,12 +12,12 @@ pub use infinity_protocol::client::infinity_window_manager_v1::infinity_window_m
     InfinityWindowManagerV1, Layout, PairLayout,
 };
 
-impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
+impl Dispatch<InfinityWindowManagerV1, Shell> for Runtime {
     fn event(
         state: &mut Self,
         _: &InfinityWindowManagerV1,
         event: <InfinityWindowManagerV1 as Proxy>::Event,
-        _: &(),
+        _: &Shell,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
@@ -91,6 +92,6 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
             state.request_redraw_all = true;
             state.ping.ping();
         }
-        state.sync_toplevels();
+        sync_toplevels(state);
     }
 }

@@ -16,14 +16,15 @@ pub(crate) mod timer;
 mod window;
 mod window_style;
 
+pub(crate) use app::KitSender;
 #[cfg(all(feature = "shell", target_os = "linux"))]
 pub(crate) use linux::extension;
 #[cfg(target_os = "linux")]
 pub(crate) use linux::{runtime, surface};
 pub use sys::ObjectId;
 pub(crate) use sys::{
-    MOST_CHROMES, OPTICAL_SIZING, SYSTEM_MOMENTUM, app_folders, appearance, clipboard, instance,
-    keychain, notifications, panels, pasteboard,
+    MOST_CHROMES, NATIVE_LIGHTS, OPTICAL_SIZING, SYSTEM_MOMENTUM, app_folders, appearance,
+    clipboard, instance, keychain, notifications, panels, pasteboard,
 };
 
 #[cfg(target_os = "macos")]
@@ -43,21 +44,6 @@ pub(crate) enum Sent {
     Kit(Box<dyn std::any::Any>),
 }
 
-#[derive(Clone)]
-pub(crate) struct KitSender(pub(crate) std::rc::Rc<dyn Fn(Sent)>);
-
-impl KitSender {
-    // Without the kit's runner (freya-testing) these events have nowhere to go.
-    pub(crate) fn get() -> Self {
-        freya_core::prelude::try_consume_root_context()
-            .unwrap_or_else(|| Self(std::rc::Rc::new(|_| {})))
-    }
-
-    pub(crate) fn send(&self, event: impl std::any::Any) {
-        (self.0)(Sent::Kit(Box::new(event)));
-    }
-}
-
 pub(crate) struct EditShortcut {
     pub(crate) field: freya_core::prelude::AccessibilityId,
     pub(crate) key: String,
@@ -71,8 +57,6 @@ pub(crate) use window_style::Knob;
 pub use window_style::{Bar, PopoverShape};
 
 pub(crate) use glass::{GlassOutbox, GlassPanels, GlassSupport, KnobOutbox, KnobSupport, Knobs};
-#[cfg(all(feature = "shell", target_os = "linux"))]
-pub(crate) use linux::packed;
 pub(crate) use popup::anchor_rect;
 #[derive(Debug, thiserror::Error)]
 pub enum RunError {

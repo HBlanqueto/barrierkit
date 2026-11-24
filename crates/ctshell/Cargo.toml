@@ -1,0 +1,18 @@
+[package]
+name = "ctshell"
+description = "The desktop's settings and tokens (no Freya)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+ctappearance.workspace = true
+ctdesign.workspace = true
+md-5.workspace = true
+serde.workspace = true
+toml.workspace = true
+
+[build-dependencies]
+serde_json = "1"

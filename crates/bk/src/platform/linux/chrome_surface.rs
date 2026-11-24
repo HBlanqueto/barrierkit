@@ -22,7 +22,7 @@ use crate::platform::{
     backdrop::{Chrome, Placement, Requests},
     linux::{
         glass::packed,
-        window_style::{BlendingMode, InfinityWindowStyleV1},
+        window_style::{BlendingMode, InfinityWindowStyleV1, wire},
     },
 };
 
@@ -139,7 +139,7 @@ fn send_requests(
         style.set_backdrop(
             surface,
             BlendingMode::WithinWindow,
-            material,
+            wire(material as u32),
             new.backdrop.radius,
             packed(&new.backdrop.rects),
         );
@@ -148,7 +148,12 @@ fn send_requests(
         && let Some(edge) = new.scroll_edge.or(old.scroll_edge)
     {
         let depth = new.scroll_edge.map_or(0, |edge| edge.depth);
-        style.set_scroll_edge(surface, edge.edge, edge.style, depth);
+        style.set_scroll_edge(
+            surface,
+            wire(edge.edge as u32),
+            wire(edge.style as u32),
+            depth,
+        );
     }
 }
 

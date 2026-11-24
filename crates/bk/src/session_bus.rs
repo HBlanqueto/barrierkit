@@ -6,7 +6,8 @@ const METHOD_TIMEOUT: Duration = Duration::from_secs(25);
 
 static SESSION: OnceLock<zbus::Connection> = OnceLock::new();
 
-pub(crate) async fn connection() -> zbus::Result<zbus::Connection> {
+/// The process's shared session-bus connection, opened on first use.
+pub async fn connection() -> zbus::Result<zbus::Connection> {
     if let Some(connection) = SESSION.get() {
         return Ok(connection.clone());
     }
@@ -21,7 +22,8 @@ pub(crate) async fn private_connection() -> zbus::Result<zbus::Connection> {
         .await
 }
 
-pub(crate) async fn export<I: zbus::object_server::Interface>(
+/// Serves `interface` at `path`; false, with a warning, when the path is taken or the bus refuses.
+pub async fn export<I: zbus::object_server::Interface>(
     connection: &zbus::Connection,
     path: &str,
     interface: I,

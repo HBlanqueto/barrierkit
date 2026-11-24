@@ -40,7 +40,7 @@ impl ColorScheme {
         matches!(self, Self::Dark | Self::DarkTint)
     }
 
-    pub(crate) fn pick<T>(self, [light, dark, dark_tint]: [T; 3]) -> T {
+    pub fn pick<T>(self, [light, dark, dark_tint]: [T; 3]) -> T {
         match self {
             Self::Light => light,
             Self::Dark => dark,
@@ -120,7 +120,8 @@ impl Default for TintParts {
     }
 }
 
-pub(crate) fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+/// Deserializes a value, or its default with a warning when it is invalid.
+pub fn lenient<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
     D: Deserializer<'de>,
     T: DeserializeOwned + Default,
@@ -800,10 +801,8 @@ fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub(crate) fn write_toml<T: Serialize + DeserializeOwned>(
-    path: &Path,
-    value: &T,
-) -> io::Result<()> {
+/// Replaces `path` with `value` as TOML; a file there that does not parse is kept as `<name>.bak`.
+pub fn write_toml<T: Serialize + DeserializeOwned>(path: &Path, value: &T) -> io::Result<()> {
     keep_unparsed::<T>(path)?;
     replace_file(
         path,

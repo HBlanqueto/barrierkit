@@ -1,12 +1,13 @@
-use ctdesign::{
+use ctappearance::{ColorScheme, icon_style::luma};
+use ctdesign::Rgba;
+
+use crate::design::{
     GlassLens, GlassLook, GlassRim, GlassScale, GlassSet, GlassTint, LIQUID_GLASS_BLUR_CAP,
     LIQUID_GLASS_CLEAR_DARK, LIQUID_GLASS_CLEAR_LIGHT, LIQUID_GLASS_LENS,
     LIQUID_GLASS_REGULAR_DARK, LIQUID_GLASS_REGULAR_LIGHT, LIQUID_GLASS_TINT_CLEAR_DARK,
     LIQUID_GLASS_TINT_CLEAR_LIGHT, LIQUID_GLASS_TINT_REGULAR_DARK, LIQUID_GLASS_TINT_REGULAR_LIGHT,
-    LIQUID_GLASS_UNION, RIM_BINS, Rgba,
+    LIQUID_GLASS_UNION, RIM_BINS,
 };
-
-use crate::{ColorScheme, icon_style::luma};
 
 const SIGMA_LEVELS: [f32; 13] = [
     0.0, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 10.0, 13.0, 16.0, 20.0, 24.0, 28.0,

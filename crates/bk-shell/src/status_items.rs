@@ -10,10 +10,14 @@ use zbus::object_server::SignalEmitter;
 use zbus::proxy::CacheProperties;
 use zbus::zvariant::{OwnedObjectPath, OwnedValue};
 
-use crate::main_menu::layout::{DbusMenuLayout, LayoutItem};
-use crate::menu::{CheckState, MenuItem};
-use crate::shell::WindowImage;
-use crate::status_item::{ITEM_PATH, Pixmaps, WATCHER, WATCHER_PATH};
+use bk::{
+    extension::{connection, export},
+    main_menu::layout::{DbusMenuLayout, LayoutItem},
+    menu::{CheckState, MenuItem},
+    status_item::{ITEM_PATH, Pixmaps, WATCHER, WATCHER_PATH},
+};
+
+use crate::WindowImage;
 
 const ITEM: &str = "org.kde.StatusNotifierItem";
 const DBUSMENU: &str = "com.canonical.dbusmenu";
@@ -430,7 +434,7 @@ async fn own_watcher(
         hosts: Vec::new(),
         events: events.clone(),
     };
-    if !crate::session_bus::export(connection, WATCHER_PATH, watcher).await {
+    if !export(connection, WATCHER_PATH, watcher).await {
         return None;
     }
     let reply = connection
@@ -607,7 +611,7 @@ async fn run(
     updates: UnboundedSender<Vec<TrayItem>>,
     mut stopped: futures_channel::oneshot::Receiver<()>,
 ) {
-    let connection = match crate::session_bus::connection().await {
+    let connection = match connection().await {
         Ok(connection) => connection,
         Err(error) => {
             tracing::warn!(%error, "BarrierKit: no session bus; no status items");

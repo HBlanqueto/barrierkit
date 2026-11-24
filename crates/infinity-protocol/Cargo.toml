@@ -1,6 +1,6 @@
 [package]
 name = "infinity-protocol"
-description = "Private Infinity window-management protocol shared between Malaysia and BarrierKit."
+description = "The window protocol between apps and the compositor."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,8 +8,9 @@ license.workspace = true
 repository.workspace = true
 
 [features]
-client = ["dep:wayland-client", "wayland-protocols-wlr/client"]
-server = ["dep:wayland-server", "wayland-protocols-wlr/server"]
+client = ["dep:wayland-client", "wayland-protocols-wlr?/client"]
+server = ["dep:wayland-server", "wayland-protocols-wlr?/server"]
+shell = ["dep:wayland-protocols-wlr"]
 
 [dependencies]
 wayland-scanner.workspace = true

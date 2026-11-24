@@ -1,11 +1,12 @@
-use ctdesign::{
-    MENUBAR_CLASSIC_ALPHA, MENUBAR_DARK_INK_ABOVE, MENUBAR_HEIGHT, MENUBAR_HEIGHT_WIDE,
-    MENUBAR_OVER_DARK_GLASS, MENUBAR_OVER_DARK_INK, MENUBAR_OVER_DARK_SELECTION,
-    MENUBAR_OVER_LIGHT_GLASS, MENUBAR_OVER_LIGHT_INK, MENUBAR_OVER_LIGHT_SELECTION, Rgba,
-};
+use ctappearance::lenient;
+use ctdesign::{MENUBAR_HEIGHT, Rgba};
 use serde::{Deserialize, Serialize};
 
-use crate::config::lenient;
+use crate::design::{
+    MENUBAR_CLASSIC_ALPHA, MENUBAR_DARK_INK_ABOVE, MENUBAR_HEIGHT_WIDE, MENUBAR_OVER_DARK_GLASS,
+    MENUBAR_OVER_DARK_INK, MENUBAR_OVER_DARK_SELECTION, MENUBAR_OVER_LIGHT_GLASS,
+    MENUBAR_OVER_LIGHT_INK, MENUBAR_OVER_LIGHT_SELECTION,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]

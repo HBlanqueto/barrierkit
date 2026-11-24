@@ -1,8 +1,7 @@
 use std::collections::BTreeMap;
 
+use ctappearance::lenient;
 use serde::{Deserialize, Serialize};
-
-use crate::config::lenient;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]

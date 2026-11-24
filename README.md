@@ -43,6 +43,7 @@ nix develop
 - `ctdesign` — Tengen, the design tokens, as typed Rust constants.
 - `ctappearance` — resolves the appearance settings and the wallpaper into a palette.
 - `infinity-protocol` — the private Wayland protocol shared with Malaysia.
+- `bk-shell` and `ctshell` — the desktop shell's components and the desktop's settings and tokens, for Malaysia ([the shell docs](docs/shell/README.md)).
 
 ## Documentation
 

@@ -1,10 +1,7 @@
-use serde_json::Value;
+use std::fs;
+use std::path::{Path, PathBuf};
 
-pub(super) const THEMES: [(&str, &str); 3] = [
-    ("LIGHT", "light"),
-    ("DARK", "dark"),
-    ("DARK_TINT", "dark-tint"),
-];
+use serde_json::Value;
 
 #[derive(Clone, Copy)]
 pub(super) struct Look<'a> {
@@ -26,6 +23,30 @@ pub(super) struct Tengen {
 }
 
 impl Tengen {
+    pub(super) fn load(design: &Path, structs: &[PathBuf]) -> Self {
+        let json = |source: &str| match serde_json::from_str(&read(&design.join(source))) {
+            Ok(Value::Object(object)) => object,
+            _ => panic!("ctdesign: {source} is not a JSON object"),
+        };
+        let mut root = json("tengen/tokens.json");
+        root.extend(json("tengen/components.json"));
+        Tengen {
+            root: Value::Object(root),
+            structs: structs.iter().map(|path| read(path)).collect(),
+        }
+    }
+
+    pub(super) fn constants(&self, table: &str) -> String {
+        let default = Look {
+            theme: self.string("default-theme"),
+            opaque: false,
+        };
+        entries(table)
+            .iter()
+            .map(|entry| self.constant(entry[0], entry[1], entry[2], &entry[3..], default))
+            .collect()
+    }
+
     // Dark Tint is dark with a few colors of its own: a key it leaves out is dark's.
     pub(super) fn find(&self, path: &str) -> Option<&Value> {
         let lookup = |path: &str| {
@@ -225,6 +246,26 @@ impl Tengen {
             .collect();
         format!("&[{}]", items.join(", "))
     }
+}
+
+fn read(path: &Path) -> String {
+    println!("cargo:rerun-if-changed={}", path.display());
+    fs::read_to_string(path)
+        .unwrap_or_else(|error| panic!("ctdesign: cannot read {}: {error}", path.display()))
+}
+
+pub(super) fn entries(table: &str) -> Vec<Vec<&str>> {
+    let mut entries: Vec<Vec<&str>> = Vec::new();
+    for line in table.lines().filter(|line| !line.is_empty()) {
+        if !line.starts_with(' ') {
+            entries.push(Vec::new());
+        }
+        entries
+            .last_mut()
+            .expect("ctdesign: table starts indented")
+            .extend(line.split_whitespace());
+    }
+    entries
 }
 
 pub(super) fn families(stack: &str) -> impl Iterator<Item = &str> {

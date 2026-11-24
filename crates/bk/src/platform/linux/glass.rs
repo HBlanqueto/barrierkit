@@ -1,12 +1,14 @@
 use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
 
 use crate::platform::glass::GlassPanels;
-use crate::platform::linux::window_style::{BlendingMode, InfinityWindowStyleV1, offers_backdrop};
+use crate::platform::linux::window_style::{
+    BlendingMode, InfinityWindowStyleV1, Material, offers_backdrop, wire,
+};
 use crate::platform::runtime::Runtime;
 use crate::platform::surface::SurfaceWindow;
-use crate::platform::window_style::WireMaterial;
 
-pub(crate) fn packed(rects: &[(i32, i32, i32, i32)]) -> Vec<u8> {
+/// The protocol's rect array: each `(x, y, width, height)` as four native-endian `i32`s.
+pub fn packed(rects: &[(i32, i32, i32, i32)]) -> Vec<u8> {
     rects
         .iter()
         .flat_map(|&(x, y, width, height)| [x, y, width, height])
@@ -50,7 +52,7 @@ fn send_panels(
         style.set_backdrop(
             surface,
             BlendingMode::BehindWindow,
-            WireMaterial::Sidebar,
+            Material::Sidebar,
             panels.radius,
             packed(&panels.rects),
         );
@@ -81,6 +83,11 @@ impl SurfaceWindow {
         let (Some(knobs), Some(style)) = (self.app.knobs.take(), &self.glass_style) else {
             return;
         };
-        style.set_knobs(&self.surface, knobs.kind, knobs.tint, packed(&knobs.rects));
+        style.set_knobs(
+            &self.surface,
+            wire(knobs.kind as u32),
+            knobs.tint,
+            packed(&knobs.rects),
+        );
     }
 }

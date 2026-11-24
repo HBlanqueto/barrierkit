@@ -1,18 +1,15 @@
 use crate::platform::backdrop::SystemWindowBackground;
-use crate::platform::{Popups, appearance};
+use crate::platform::{NATIVE_LIGHTS, Popups, appearance};
 use ctappearance::menu::{MenuInk, ink_over};
 use ctappearance::{AppearanceConfig, ColorScheme, Resolved, load_dominant, resolve};
 use ctdesign::{
     BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, MenuPalette, Rgba, SHELL_DARK_OPAQUE,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
 };
-use freya_components::theming::component_themes::{ColorsSheet, Theme};
-use freya_components::theming::hooks::use_init_theme;
-use freya_components::theming::themes::{dark_theme, light_theme};
 use freya_core::current_context::CurrentContext;
 use freya_core::prelude::{
     Color, State, WritableUtils, provide_context, try_consume_context, try_consume_root_context,
-    use_hook, use_memo, use_side_effect,
+    use_hook, use_memo,
 };
 
 pub fn color(c: Rgba) -> Color {
@@ -85,7 +82,7 @@ pub fn resolved() -> Resolved {
     {
         *state.read()
     } else {
-        resolve(&appearance(), load_dominant())
+        resolve(&appearance(), load_dominant(), NATIVE_LIGHTS)
     }
 }
 
@@ -97,7 +94,7 @@ pub fn use_appearance(adjust: impl Fn(&mut AppearanceConfig) + 'static) {
         }
         let mut config = appearance();
         adjust(&mut config);
-        resolve(&config, load_dominant())
+        resolve(&config, load_dominant(), NATIVE_LIGHTS)
     });
     let mut scoped = use_hook(|| {
         let scoped = State::create(*adjusted.read());
@@ -105,71 +102,6 @@ pub fn use_appearance(adjust: impl Fn(&mut AppearanceConfig) + 'static) {
         scoped
     });
     scoped.set_if_modified(*adjusted.read());
-}
-
-pub fn for_scheme(dark: bool) -> Theme {
-    let appearance = AppearanceConfig {
-        color_scheme: if dark {
-            ColorScheme::Dark
-        } else {
-            ColorScheme::Light
-        },
-        ..Default::default()
-    };
-    shell_theme(&resolve(&appearance, None))
-}
-
-pub fn use_shell_theme() {
-    let mut theme = use_init_theme(|| shell_theme(&resolved()));
-    let root = try_consume_root_context::<State<Resolved>>();
-    use_side_effect(move || {
-        if let Some(root) = root {
-            theme.set(shell_theme(&root.read()));
-        }
-    });
-}
-
-fn shell_theme(resolved: &Resolved) -> Theme {
-    let dark = matches!(resolved.scheme, ColorScheme::Dark | ColorScheme::DarkTint);
-    let shell = resolved.shell;
-    let ink = ctappearance::palette(resolved.scheme);
-    let border = if dark { shell.tile } else { shell.bar };
-    let accent = shell.tile_active;
-    let mut theme = if dark { dark_theme() } else { light_theme() };
-    theme.name = "tengen-shell";
-    theme.colors = ColorsSheet {
-        primary: color(accent),
-        secondary: color(accent),
-        tertiary: color(accent),
-        success: color(accent),
-        warning: color(accent),
-        error: color(ink.danger),
-        info: color(accent),
-        background: color(shell.bar),
-        surface_primary: color(shell.tile),
-        surface_secondary: color(shell.tile),
-        surface_tertiary: color(shell.bar),
-        surface_inverse: color(shell.text),
-        surface_inverse_secondary: color(shell.text),
-        surface_inverse_tertiary: color(shell.text),
-        border: color(border),
-        border_focus: color(accent),
-        border_disabled: color(border),
-        text_primary: color(shell.text),
-        text_secondary: color(ink.ink_muted),
-        text_placeholder: color(ink.ink_faint),
-        text_inverse: color(shell.bar),
-        text_highlight: color(resolved.accent_colors.selected_text),
-        focus: color(accent),
-        active: color(accent),
-        disabled: color(border),
-        overlay: color(shell.bar),
-        shadow: color(Rgba {
-            a: ctdesign::THEME_SHADOW_OPACITY,
-            ..shell.text
-        }),
-    };
-    theme
 }
 
 fn neutral_background(scheme: ColorScheme, kind: SurfaceKind) -> Rgba {

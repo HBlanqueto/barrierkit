@@ -22,7 +22,7 @@ with.
 ## In one sentence
 
 BarrierKit is to Malaysia what AppKit is to macOS and GTK with libadwaita is to
-GNOME: the toolkit for the shell and for Malaysia's own apps. An app asks the
+GNOME: the toolkit for its apps. An app asks the
 kit for a button or a sidebar; it does not draw one. So every app looks and
 behaves the same.
 
@@ -49,22 +49,24 @@ shape ([ADR 0061](../decisions.md)). The
 ## The crates
 
 The [`barrierkit`](https://github.com/HBlanqueto/barrierkit) repository is a
-Cargo workspace with four library crates. They need Rust 1.98 (edition 2024).
+Cargo workspace with six library crates. They need Rust 1.98 (edition 2024).
 
 | Crate | What it is | Who depends on it |
 |---|---|---|
-| `bk` | **BarrierKit**, the kit: Wayland and macOS runners, style, controls, views, patterns and app services. | Apps and the shell. |
-| `ctdesign` | **CTDesign** (CT = Curse Techniques): **Tengen**, the design system. `build.rs` turns `tengen/tokens.json` and `tengen/components.json` into Rust constants ([4](04-appearance-and-tokens.md#tokens-ctdesign)). | The kit, the compositor, the shell and the portal. |
-| `ctappearance` | **CTAppearance**: reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-ctappearance)). | The kit, the compositor, the shell and the portal. |
+| `bk` | **BarrierKit**, the kit: Wayland and macOS runners, style, controls, views, patterns and app services. | Apps. |
+| `ctdesign` | **CTDesign** (CT = Curse Techniques): **Tengen**, the design system. `build.rs` turns `tengen/tokens.json` and `tengen/components.json` into Rust constants ([4](04-appearance-and-tokens.md#tokens-ctdesign)). | The kit and the desktop. |
+| `ctappearance` | **CTAppearance**: reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-ctappearance)). | The kit and the desktop. |
 | `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor ([18](18-platform.md)). | The kit and the compositor. |
+| `bk-shell` | The desktop shell's components on the kit: desktop, see [docs/shell](../shell/README.md). | Malaysia's shell. |
+| `ctshell` | The desktop's settings and tokens, without Freya: desktop, see [docs/shell](../shell/README.md). | Malaysia. |
 
-`bk` has three Cargo features. Only `a11y` is on by default; an app lists the
-others it needs: `bk = { …, features = ["shell"] }`.
+`bk` has two Cargo features for apps. Only `a11y` is on by default; an app
+lists the other when it needs it: `bk = { …, features = ["tracy"] }`. A third,
+`shell`, exists only for [`bk-shell`](../shell/bk-shell.md#how-it-joins-the-runner).
 
 | Feature | Default | What it adds |
 |---|---|---|
 | `a11y` | on | Publishes each window's accessibility tree: over AT-SPI with `accesskit_unix` on Linux, to AppKit with `accesskit_macos` on macOS ([18](18-platform.md#accessibility)). |
-| `shell` | off | The `shell` module: layer-shell surfaces, the lock screen, the list of toplevels and the status tray host ([18](18-platform.md)). Only `malaysia-shell` enables it. |
 | `tracy` | off | Sends the traces of `init_tracing` to Tracy ([19](19-profiling.md)). |
 
 ### On top of Freya
