@@ -1,7 +1,11 @@
 use std::borrow::Cow;
 
-use ctdesign::{CORNER_SMOOTHING, Font, Rgba, WINDOW_CORNER};
+use ctdesign::{CORNER_SMOOTHING, Font, PanelLine, Rgba, WINDOW_CORNER};
 use freya_core::prelude::*;
+use freya_engine::prelude::{
+    Color4f, Colors, Gradient, Interpolation, Paint, PaintStyle, PathBuilder, RRect,
+    Rect as SkRect, Shader, TileMode, shaders,
+};
 
 use crate::{fonts::optical, theme::color};
 
@@ -146,9 +150,7 @@ pub(crate) fn concentric(outer: CornerRadius, inset: f32) -> CornerRadius {
     .with_smoothing(outer.smoothing())
 }
 
-/// A card filled with `fill` and framed like a panel window: in dark the glass inner line
-/// (brighter on the top and bottom edges, with a faint inward glow), otherwise the window inner
-/// line, and the window outer line. Same colours as the compositor's panel frames (malaysia ADR 0068).
+/// A card framed with the compositor's panel lines (malaysia ADR 0068).
 pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
     let palette = ctappearance::palette(crate::theme::resolved().scheme);
     let corner = continuous_corner(radius);
@@ -183,8 +185,7 @@ fn outer_line(body: Rect, corner: CornerRadius, outer: Rgba, pixel: f32) -> Rect
         .child(body)
 }
 
-fn glass_line(context: &mut FillRenderContext, line: ctdesign::PanelLine, corner: CornerRadius) {
-    use freya_engine::prelude::Rect as SkRect;
+fn glass_line(context: &mut FillRenderContext, line: PanelLine, corner: CornerRadius) {
     let RenderTarget::Background { canvas, .. } = &context.target else {
         return;
     };
@@ -221,12 +222,7 @@ fn glass_line(context: &mut FillRenderContext, line: ctdesign::PanelLine, corner
     stroke_edge(context, corner, paint);
 }
 
-fn stroke_edge(
-    context: &FillRenderContext,
-    corner: CornerRadius,
-    mut paint: freya_engine::prelude::Paint,
-) {
-    use freya_engine::prelude::{PaintStyle, PathBuilder, RRect, Rect as SkRect};
+fn stroke_edge(context: &FillRenderContext, corner: CornerRadius, mut paint: Paint) {
     let RenderTarget::Background { canvas, .. } = &context.target else {
         return;
     };
@@ -247,29 +243,14 @@ fn stroke_edge(
     canvas.draw_path(&outline.detach(), &paint);
 }
 
-fn vertical(height: f32, stops: &[(f32, Rgba)]) -> freya_engine::prelude::Paint {
-    let mut paint = freya_engine::prelude::Paint::default();
+fn vertical(height: f32, stops: &[(f32, Rgba)]) -> Paint {
+    let mut paint = Paint::default();
     paint.set_dither(true);
     paint.set_shader(linear((0.0, 0.0), (0.0, height), stops));
     paint
 }
 
-pub(crate) fn linear(
-    from: (f32, f32),
-    to: (f32, f32),
-    stops: &[(f32, Rgba)],
-) -> Option<freya_engine::prelude::Shader> {
-    use freya_engine::prelude::shaders;
-    gradient(stops, |gradient| {
-        shaders::linear_gradient((from, to), gradient, None)
-    })
-}
-
-fn gradient(
-    stops: &[(f32, Rgba)],
-    shader: impl FnOnce(&freya_engine::prelude::Gradient) -> Option<freya_engine::prelude::Shader>,
-) -> Option<freya_engine::prelude::Shader> {
-    use freya_engine::prelude::{Color4f, Colors, Gradient, Interpolation, TileMode};
+pub(crate) fn linear(from: (f32, f32), to: (f32, f32), stops: &[(f32, Rgba)]) -> Option<Shader> {
     let (colors, offsets): (Vec<Color4f>, Vec<f32>) = stops
         .iter()
         .map(|&(offset, c)| (Color4f::new(c.r, c.g, c.b, c.a), offset))
@@ -278,5 +259,5 @@ fn gradient(
         Colors::new(&colors, Some(&offsets), TileMode::Clamp, None),
         Interpolation::default(),
     );
-    shader(&gradient)
+    shaders::linear_gradient((from, to), &gradient, None)
 }

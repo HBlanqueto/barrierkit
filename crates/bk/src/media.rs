@@ -10,13 +10,14 @@ use freya_core::elements::image::ImageHandle;
 use freya_core::prelude::*;
 use torin::prelude::{Direction, Gaps, Size};
 
-use crate::animation::use_animated;
 use crate::controls::{dimmed, shadowed};
 pub use crate::glass::{Material, TopGlass};
 use crate::interaction::{control_state, use_interaction};
+use crate::level::use_pressed_scale;
 use crate::style::{Palette, text_style};
-use crate::styles::Painted;
-use crate::styles::{LayoutDirection, MediaButtonStyle, Paints, RoundButtonStyle, Theme, resolve};
+use crate::styles::{
+    LayoutDirection, MediaButtonStyle, Painted, Paints, RoundButtonStyle, Theme, resolve,
+};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 
@@ -104,14 +105,7 @@ impl Component for MediaButton {
         let interaction = use_interaction();
         let state = control_state(interaction, false);
         let paints = Paints::current(state, style.effect);
-        let scale = use_animated(
-            if interaction.pressed() {
-                style.pressed_scale
-            } else {
-                1.0
-            },
-            style.animation,
-        );
+        let scale = use_pressed_scale(interaction.pressed(), style.pressed_scale, style.animation);
         let on_press = self.on_press.clone();
         let radius =
             style
@@ -205,14 +199,7 @@ impl Component for RoundButton {
         let interaction = use_interaction();
         let state = control_state(interaction, false);
         let paints = Paints::current(state, style.effect);
-        let scale = use_animated(
-            if interaction.pressed() {
-                style.pressed_scale
-            } else {
-                1.0
-            },
-            style.animation,
-        );
+        let scale = use_pressed_scale(interaction.pressed(), style.pressed_scale, style.animation);
         let on_press = self.on_press.clone();
         let (fill, ink) = if self.selected {
             (&style.selected, &style.selected_icon)

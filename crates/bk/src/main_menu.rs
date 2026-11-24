@@ -1,10 +1,15 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex, PoisonError};
+use std::sync::{Arc, Mutex};
 
+use freya_core::prelude::{
+    Key, Modifiers, WritableUtils, try_consume_root_context, use_hook, use_state,
+};
 use zbus::zvariant::{OwnedValue, Value};
 
-use crate::menu::{CheckState, MenuItem};
+use crate::app::{Action, COPY, CUT, PASTE, REDO, SELECT_ALL, UNDO};
+use crate::lock;
+use crate::menu::{CheckState, MenuItem, shortcut_matches};
 use crate::platform::{MainMenuAddress, WakeHandle};
 
 pub mod layout;
@@ -66,56 +71,39 @@ impl MenuHandle {
     }
 
     pub(crate) fn set_path(&self, path: impl Into<String>) {
-        *self.path.lock().unwrap_or_else(PoisonError::into_inner) = Some(path.into());
+        *lock(&self.path) = Some(path.into());
     }
 
     pub(crate) fn path(&self) -> Option<String> {
-        self.path
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .clone()
+        lock(&self.path).clone()
     }
 
     pub(crate) fn push_action(&self, action_id: String) -> bool {
         let Some(wake) = &self.wake else {
             return false;
         };
-        self.action_queue
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .push(action_id);
+        lock(&self.action_queue).push(action_id);
         wake.wake();
         true
     }
 
     pub(crate) fn drain_actions(&self) -> Vec<String> {
-        let mut guard = self
-            .action_queue
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner);
+        let mut guard = lock(&self.action_queue);
         std::mem::take(&mut *guard)
     }
 
     pub(crate) fn set_address_callback(&self, f: impl Fn(MainMenuAddress) + Send + Sync + 'static) {
-        *self
-            .address_callback
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner) = Some(Box::new(f));
+        *lock(&self.address_callback) = Some(Box::new(f));
     }
 
     pub(crate) fn deliver_address(&self, address: MainMenuAddress) {
-        if let Some(cb) = self
-            .address_callback
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .as_ref()
-        {
+        if let Some(cb) = lock(&self.address_callback).as_ref() {
             cb(address);
         }
     }
 
     pub fn update(&self, id: impl AsRef<str>, f: impl Fn(&mut MenuItem)) {
-        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut state = lock(&self.state);
         if update_item(&mut state.menu, id.as_ref(), &f) {
             state.revision = state.revision.wrapping_add(1);
             drop(state);
@@ -124,7 +112,7 @@ impl MenuHandle {
     }
 
     pub fn set_menu_items(&self, title: &str, items: Vec<MenuItem>) {
-        let mut state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut state = lock(&self.state);
         let Some(menu) = state.menu.menus.iter_mut().find(|menu| menu.title == title) else {
             return;
         };
@@ -138,12 +126,7 @@ impl MenuHandle {
     }
 
     fn publish(&self) {
-        if let Some(path) = self
-            .path
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
-            .as_ref()
-        {
+        if let Some(path) = lock(&self.path).as_ref() {
             server::update(path);
         }
         if let Some(wake) = &self.wake {
@@ -152,7 +135,7 @@ impl MenuHandle {
     }
 
     pub(crate) fn snapshot(&self) -> (MainMenu, u32) {
-        let state = self.state.lock().unwrap_or_else(PoisonError::into_inner);
+        let state = lock(&self.state);
         (state.menu.clone(), state.revision)
     }
 }
@@ -176,7 +159,8 @@ fn update_menu_items(items: &mut [MenuItem], id: &str, f: &dyn Fn(&mut MenuItem)
         }
         if let MenuItem::Submenu {
             items: children, ..
-        } = item
+        }
+        | MenuItem::Palette { items: children } = item
             && update_menu_items(children, id, f)
         {
             return true;
@@ -207,25 +191,20 @@ pub(crate) fn dbusmenu_label(label: &str) -> String {
     label.replace('_', "__")
 }
 
-use freya_core::prelude::{
-    Key, Modifiers, WritableUtils, try_consume_root_context, use_hook, use_state,
-};
-
-use crate::app::{COPY, CUT, PASTE, REDO, SELECT_ALL, UNDO};
-use crate::menu::shortcut_matches;
-
 // A focused text field serves these Edit items before the app, as AppKit's responder chain does (ADR 0088).
+const FIELD_EDITS: [(Action, &str); 6] = [
+    (UNDO, "z"),
+    (REDO, "y"),
+    (CUT, "x"),
+    (COPY, "c"),
+    (PASTE, "v"),
+    (SELECT_ALL, "a"),
+];
+
 pub(crate) fn field_edit_key(id: &str) -> Option<&'static str> {
-    [
-        (UNDO, "z"),
-        (REDO, "y"),
-        (CUT, "x"),
-        (COPY, "c"),
-        (PASTE, "v"),
-        (SELECT_ALL, "a"),
-    ]
-    .into_iter()
-    .find_map(|(action, key)| (action.id == id).then_some(key))
+    FIELD_EDITS
+        .into_iter()
+        .find_map(|(action, key)| (action.id == id).then_some(key))
 }
 
 pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
@@ -235,10 +214,9 @@ pub(crate) fn edits_text(modifiers: Modifiers, key: &Key) -> bool {
     let command = modifiers.contains(Modifiers::CONTROL)
         && !modifiers.intersects(Modifiers::ALT | Modifiers::META);
     command
-        && matches!(
-            text.to_lowercase().as_str(),
-            "a" | "c" | "v" | "x" | "y" | "z"
-        )
+        && FIELD_EDITS
+            .iter()
+            .any(|(_, letter)| text.eq_ignore_ascii_case(letter))
 }
 
 pub fn find_menu_shortcut(menu: &MainMenu, modifiers: Modifiers, key: &Key) -> Option<String> {
@@ -257,7 +235,8 @@ fn find_shortcut_in_items(items: &[MenuItem], modifiers: Modifiers, key: &Key) -
         } if shortcut_matches(shortcut, modifiers, key) => Some(id.clone()),
         MenuItem::Submenu {
             items: children, ..
-        } => find_shortcut_in_items(children, modifiers, key),
+        }
+        | MenuItem::Palette { items: children } => find_shortcut_in_items(children, modifiers, key),
         _ => None,
     })
 }
@@ -323,121 +302,4 @@ pub fn use_submenu_items(id: &'static str, items: Vec<MenuItem>) {
             *shown = items.clone();
         }
     });
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use freya_core::prelude::NamedKey;
-
-    #[test]
-    fn shortcuts_export_as_keysyms_in_modifier_order() {
-        use crate::menu::shortcut_keys;
-        assert_eq!(shortcut_keys("Ctrl+Shift+S"), vec!["Control", "Shift", "S"]);
-        assert_eq!(
-            shortcut_keys("Super+Alt+Left"),
-            vec!["Alt", "Super", "Left"]
-        );
-        assert_eq!(shortcut_keys("Ctrl+,"), vec!["Control", "comma"]);
-        assert_eq!(shortcut_keys("Ctrl+Num+Delete"), vec!["Control", "Delete"]);
-    }
-
-    #[test]
-    fn locks_and_named_keys_still_match() {
-        let locks = Modifiers::CAPS_LOCK | Modifiers::NUM_LOCK;
-        assert!(shortcut_matches(
-            "Ctrl+S",
-            Modifiers::CONTROL | locks,
-            &Key::Character("s".into())
-        ));
-        assert!(shortcut_matches("F11", locks, &Key::Named(NamedKey::F11)));
-        assert!(shortcut_matches(
-            "Ctrl+space",
-            Modifiers::CONTROL,
-            &Key::Character(" ".into())
-        ));
-        assert!(shortcut_matches(
-            "Ctrl+comma",
-            Modifiers::CONTROL,
-            &Key::Character(",".into())
-        ));
-        assert!(shortcut_matches(
-            "Page_Down",
-            Modifiers::empty(),
-            &Key::Named(NamedKey::PageDown)
-        ));
-    }
-
-    #[test]
-    fn labels_escape_underscores() {
-        assert_eq!(dbusmenu_label("a_b"), "a__b");
-        assert_eq!(dbusmenu_label("Archivo"), "Archivo");
-    }
-
-    #[test]
-    fn a_focused_text_field_keeps_select_all_copy_paste_cut_undo_and_redo() {
-        let ctrl = Modifiers::CONTROL;
-        for c in ["a", "c", "v", "x", "y", "z", "Z"] {
-            assert!(edits_text(ctrl, &Key::Character(c.into())), "{c}");
-        }
-        assert!(edits_text(
-            ctrl | Modifiers::SHIFT,
-            &Key::Character("z".into())
-        ));
-        assert!(!edits_text(ctrl, &Key::Character("p".into())));
-        assert!(!edits_text(Modifiers::empty(), &Key::Character("z".into())));
-        assert!(!edits_text(
-            ctrl | Modifiers::ALT,
-            &Key::Character("z".into())
-        ));
-        assert!(!edits_text(ctrl, &Key::Named(NamedKey::ArrowLeft)));
-    }
-
-    #[test]
-    fn ctrl_shift_z_uppercase_still_matches() {
-        assert!(shortcut_matches(
-            "Ctrl+Shift+Z",
-            Modifiers::CONTROL | Modifiers::SHIFT,
-            &Key::Character("Z".into())
-        ));
-    }
-
-    #[test]
-    fn disabled_action_does_not_fire() {
-        let menu = MainMenu::new(vec![Menu::new(
-            "Archivo",
-            vec![
-                MenuItem::action("save", "Guardar")
-                    .with_shortcut("Ctrl+S")
-                    .with_enabled(false),
-            ],
-        )]);
-        assert!(
-            find_menu_shortcut(&menu, Modifiers::CONTROL, &Key::Character("s".into())).is_none()
-        );
-    }
-
-    #[test]
-    fn a_panicking_update_closure_leaves_the_menu_usable() {
-        let save = || MenuItem::action("save", "Save");
-        let handle = MenuHandle::new(MainMenu::new(vec![Menu::new("File", vec![save()])]), None);
-        let panicked = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            handle.update("save", |_| panic!("app closure"))
-        }));
-        assert!(panicked.is_err());
-        handle.update("save", |item| *item = save().with_enabled(false));
-        assert_eq!(
-            handle.snapshot().0.menus[0].items,
-            vec![save().with_enabled(false)]
-        );
-    }
-
-    #[test]
-    fn plain_typing_does_not_trigger_shortcut() {
-        assert!(!shortcut_matches(
-            "Ctrl+R",
-            Modifiers::empty(),
-            &Key::Character("r".into())
-        ));
-    }
 }

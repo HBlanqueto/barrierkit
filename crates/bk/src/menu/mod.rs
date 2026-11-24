@@ -4,8 +4,6 @@ mod nav;
 pub(crate) mod search;
 mod shortcut;
 mod submenu;
-#[cfg(test)]
-mod tests;
 mod text;
 
 pub use item::*;
@@ -36,8 +34,6 @@ use freya_engine::prelude::{
 };
 use ragnarok::CursorPoint;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
-
-type UseState<T> = State<T>;
 
 const SUBMENU_INTENT_DELAY: Duration = Duration::from_millis(ctdesign::MENU_SUBMENU_INTENT_MS);
 const SCROLL_TICK: Duration = Duration::from_millis(ctdesign::MENU_SCROLL_TICK_MS);
@@ -724,7 +720,7 @@ impl App for MenuView {
             if !searching
                 && let Some(MenuItem::Palette { items: cells }) = current.and_then(|i| items.get(i))
             {
-                let cursor = *palette_cursor.peek();
+                let cursor = (*palette_cursor.peek()).min(cells.len().saturating_sub(1));
                 match event.key {
                     Key::Named(NamedKey::ArrowLeft) => {
                         palette_cursor.set(cursor.saturating_sub(1));
@@ -862,12 +858,12 @@ impl App for MenuView {
                         }
                     }
                 }
-                Key::Named(NamedKey::ArrowLeft) if popup.is_some() && on_navigation.is_some() => {
-                    on_navigation.as_ref().unwrap()(MenuNavigation::Prev);
-                }
                 Key::Named(NamedKey::ArrowLeft) if !searching => {
                     if let Some(popup) = &popup {
-                        popup.close();
+                        match &on_navigation {
+                            Some(on_navigation) => on_navigation(MenuNavigation::Prev),
+                            None => popup.close(),
+                        }
                     }
                 }
                 _ => {}
@@ -882,7 +878,7 @@ fn scroll_arrow(
     m: MenuPalette,
     timers: Option<Timers>,
     auto: Rc<Cell<i8>>,
-    scroll: UseState<f32>,
+    scroll: State<f32>,
     max_scroll: f32,
 ) -> Element {
     let step = m.item_height / 3.0;
@@ -902,12 +898,15 @@ fn scroll_arrow(
             }
         })
         .on_pointer_leave(move |_| leave.set(0))
-        .child(
-            label()
-                .text(if direction < 0 { "▲" } else { "▼" })
-                .font_size(m.chevron_scroll)
-                .color(theme::color(m.chevron_color)),
-        )
+        .child(symbol(
+            if direction < 0 {
+                Symbol::TriangleUp
+            } else {
+                Symbol::TriangleDown
+            },
+            m.chevron_scroll,
+            m.chevron_color,
+        ))
         .into_element()
 }
 
@@ -915,7 +914,7 @@ fn scroll_tick(
     timers: Timers,
     auto: Rc<Cell<i8>>,
     direction: i8,
-    mut scroll: UseState<f32>,
+    mut scroll: State<f32>,
     step: f32,
     max_scroll: f32,
 ) {

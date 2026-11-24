@@ -73,6 +73,9 @@ pub enum Symbol {
     ChevronDown,
     TriangleLeft,
     TriangleRight,
+    TriangleUp,
+    TriangleDown,
+    DiamondFill,
     Dot,
     CircleHalf,
     Play,
@@ -317,6 +320,9 @@ impl Symbol {
             }
             Self::TriangleLeft => "M11 4.5v7L5 8z",
             Self::TriangleRight => "M5 4.5v7l6-3.5z",
+            Self::TriangleUp => "M4.5 11h7L8 5z",
+            Self::TriangleDown => "M4.5 5h7L8 11z",
+            Self::DiamondFill => "M8 3.5l4.5 4.5L8 12.5L3.5 8z",
             Self::Dot => "M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 1 0 0-7z",
             Self::Pause => {
                 "M4.13 3.96A1 1 0 0 1 5.13 2.96L5.97 2.96A1 1 0 0 1 6.97 3.96L6.97 12.16A1 1 0 0 1 5.97 13.16L5.13 13.16A1 1 0 0 1 4.13 12.16ZM8.77 3.96A1 1 0 0 1 9.77 2.96L10.6 2.96A1 1 0 0 1 11.6 3.96L11.6 12.16A1 1 0 0 1 10.6 13.16L9.77 13.16A1 1 0 0 1 8.77 12.16Z"
@@ -633,6 +639,9 @@ impl Symbol {
                 | Self::StarFill
                 | Self::TriangleLeft
                 | Self::TriangleRight
+                | Self::TriangleUp
+                | Self::TriangleDown
+                | Self::DiamondFill
                 | Self::Dot
                 | Self::Forward
                 | Self::Backward
@@ -899,11 +908,9 @@ impl From<Image> for Element {
         let paints = Paints::current(ControlState::default(), style.effect);
         let color = paints.color(style.foreground.resolve(ControlState::default()));
         let side = Size::px(style.size);
-        let (width, height) = image
-            .frame
-            .map_or((side.clone(), side.clone()), |(width, height)| {
-                (Size::px(width), Size::px(height))
-            });
+        let (width, height) = image.frame.map_or((side.clone(), side), |(width, height)| {
+            (Size::px(width), Size::px(height))
+        });
         let icon_style = image.icon_style;
         let raster_size = image.raster_size;
         let plated = image.plated;
@@ -951,10 +958,10 @@ impl From<Image> for Element {
                 };
                 match cached_image(&source, raster_size.unwrap_or(style.size), treatment) {
                     Some(handle) => freya_core::elements::image::image(handle)
-                        .width(side.clone())
-                        .height(side)
+                        .width(width)
+                        .height(height)
                         .into_element(),
-                    None => rect().width(side.clone()).height(side).into_element(),
+                    None => rect().width(width).height(height).into_element(),
                 }
             }
         }

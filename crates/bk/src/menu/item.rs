@@ -142,9 +142,9 @@ pub(super) struct RowCtx {
     pub(super) text_inset: f32,
     pub(super) icon_column: f32,
     pub(super) size: (f32, f32),
-    pub(super) query: UseState<String>,
-    pub(super) selected: UseState<bool>,
-    pub(super) result_focused: UseState<Option<usize>>,
+    pub(super) query: State<String>,
+    pub(super) selected: State<bool>,
+    pub(super) result_focused: State<Option<usize>>,
     pub(super) menu_search_icon: Option<&'static str>,
     pub(super) help_search_icon: Option<&'static str>,
     pub(super) on_activate: Rc<dyn Fn(String)>,
@@ -153,7 +153,7 @@ pub(super) struct RowCtx {
     pub(super) on_row_move: Rc<dyn Fn(usize, CursorPoint)>,
     pub(super) on_row_click: Rc<dyn Fn(usize)>,
     pub(super) show_mnemonic: bool,
-    pub(super) palette_cursor: UseState<usize>,
+    pub(super) palette_cursor: State<usize>,
 }
 
 impl RowCtx {
@@ -392,7 +392,8 @@ fn palette_row(ctx: &RowCtx, items: &[MenuItem], index: usize, is_focused: bool)
         else {
             return rect().into_element();
         };
-        let highlighted = is_focused && *enabled && *cursor.read() == position;
+        let highlighted =
+            is_focused && *enabled && (*cursor.read()).min(items.len() - 1) == position;
         let fg = row_fg(*enabled, highlighted, m.fg, m);
         rect()
             .a11y_role(AccessibilityRole::MenuItem)
@@ -507,13 +508,11 @@ fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
                 m.shortcut_color
                     .mix(m.search_bg, ctdesign::MENU_SEARCH_CLEAR_MIX),
             ))
-            .child(
-                label()
-                    .text("×")
-                    .font_size(ctdesign::MENU_SEARCH_CLEAR_GLYPH)
-                    .color(theme::color(m.fg))
-                    .max_lines(1),
-            )
+            .child(symbol(
+                Symbol::XMark,
+                ctdesign::MENU_SEARCH_CLEAR_GLYPH,
+                m.fg,
+            ))
             .on_mouse_down(move |_: Event<MouseEventData>| {
                 query.set(String::new());
                 selected.set(false);
@@ -690,13 +689,10 @@ pub(super) fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> El
                     .background(theme::color(color)),
             )
             .into_element(),
-        CheckState::Minimized => label()
-            .text("◆")
-            .font_size(m.mark_check)
-            .color(theme::color(color))
+        CheckState::Minimized => rect()
             .width(Size::px(m.leading_width))
-            .text_align(TextAlign::Center)
-            .max_lines(1)
+            .center()
+            .child(symbol(Symbol::DiamondFill, m.mark_check, color))
             .into_element(),
         CheckState::Radio(true) => rect()
             .width(Size::px(m.leading_width))

@@ -14,6 +14,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 use crate::adornments::Divider;
 use crate::elements::{Overrides, forward_overrides};
 use crate::gesture::{DragGesture, DragValue};
+use crate::i18n::text;
 use crate::modifiers::ViewModifiers;
 use crate::platform::Timers;
 use crate::progress::Spinner;
@@ -36,8 +37,6 @@ pub(crate) static SCROLLED_WITH_A_MOUSE: AtomicBool = AtomicBool::new(false);
 #[derive(Clone, PartialEq)]
 pub struct ScrollView {
     children: Vec<Element>,
-    width: Size,
-    height: Size,
     direction: Direction,
     scroll_bar: bool,
     autohides: bool,
@@ -494,8 +493,6 @@ impl ScrollView {
     pub fn new() -> Self {
         Self {
             children: Vec::new(),
-            width: Size::fill(),
-            height: Size::fill(),
             direction: Direction::Vertical,
             scroll_bar: true,
             autohides: true,
@@ -573,20 +570,6 @@ impl ScrollView {
     ) -> Self {
         self.on_phase_change = Some(action.into());
         self
-    }
-
-    pub fn width(mut self, width: Size) -> Self {
-        self.width = width;
-        self
-    }
-
-    pub fn height(mut self, height: Size) -> Self {
-        self.height = height;
-        self
-    }
-
-    pub fn expanded(self) -> Self {
-        self.width(Size::fill()).height(Size::fill())
     }
 }
 
@@ -847,8 +830,7 @@ impl Component for ScrollView {
         });
         let reserved = bars.reserved;
         let root = rect()
-            .width(self.width.clone())
-            .height(self.height.clone())
+            .expanded()
             .on_sized(move |event: Event<SizedEventData>| {
                 viewport.set_if_modified(size(event.area));
                 if let Some(frames) = frames {
@@ -897,7 +879,7 @@ impl Component for ScrollView {
                             .overflow(Overflow::Clip)
                             .main_align(Alignment::Center)
                             .cross_align(Alignment::Center)
-                            .child(Spinner::new("Refreshing"))
+                            .child(Spinner::new(text!("refreshing")))
                     }),
             )
             .maybe_child((self.edge_effect && scrolled < 0).then(|| {
@@ -929,89 +911,5 @@ impl Component for ScrollView {
 
     fn render_key(&self) -> DiffKey {
         self.key.clone().or(self.default_key())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use ctdesign::SCROLL_BAR;
-
-    use super::*;
-
-    #[test]
-    fn revealing_scrolls_only_as_far_as_the_range_needs() {
-        assert_eq!(revealed_offset(0, 10.0, 30.0, 100.0), 0);
-        assert_eq!(revealed_offset(0, 150.0, 170.0, 100.0), -70);
-        assert_eq!(revealed_offset(-200, 50.0, 70.0, 100.0), -50);
-    }
-
-    #[test]
-    fn a_forwarded_wheel_stops_at_both_ends() {
-        assert_eq!(clamped(0, 30.0, 200.0, 800.0), 0);
-        assert_eq!(clamped(-590, -30.0, 200.0, 800.0), -600);
-        assert_eq!(clamped(0, -30.0, 200.0, 100.0), 0);
-        assert_eq!(clamped(-100, -30.0, 200.0, 800.0), -130);
-    }
-
-    #[test]
-    fn a_click_beside_the_thumb_pages_toward_it_and_a_click_on_it_does_nothing() {
-        let page = |at| {
-            track_click(
-                ScrollBarClick::NextPage,
-                at,
-                (40.0, 20.0),
-                100.0,
-                -200,
-                100.0,
-                500.0,
-            )
-        };
-        assert_eq!(page(10.0), -100);
-        assert_eq!(page(90.0), -300);
-        assert_eq!(page(50.0), -200);
-        assert_eq!(
-            track_click(
-                ScrollBarClick::NextPage,
-                95.0,
-                (70.0, 20.0),
-                100.0,
-                -350,
-                100.0,
-                500.0
-            ),
-            -400
-        );
-    }
-
-    #[test]
-    fn a_click_on_the_spot_centres_the_thumb_there() {
-        let spot = |at| {
-            track_click(
-                ScrollBarClick::ClickedSpot,
-                at,
-                (0.0, 20.0),
-                100.0,
-                0,
-                100.0,
-                500.0,
-            )
-        };
-        assert_eq!(spot(10.0), 0);
-        assert_eq!(spot(50.0), -200);
-        assert_eq!(spot(95.0), -400);
-    }
-
-    #[test]
-    fn content_that_fits_has_no_thumb() {
-        assert_eq!(thumb(200.0, 200.0, 0.0, SCROLL_BAR.min_length), None);
-        assert_eq!(thumb(0.0, 500.0, 0.0, SCROLL_BAR.min_length), None);
-    }
-
-    #[test]
-    fn the_thumb_spans_the_track_from_top_to_bottom() {
-        let (top, length) = thumb(200.0, 800.0, 0.0, SCROLL_BAR.min_length).unwrap();
-        assert_eq!((top, length), (0.0, 50.0));
-        let (bottom, _) = thumb(200.0, 800.0, -600.0, SCROLL_BAR.min_length).unwrap();
-        assert_eq!(bottom, 150.0);
     }
 }

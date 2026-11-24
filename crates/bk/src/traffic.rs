@@ -5,10 +5,11 @@ use freya_core::prelude::*;
 use torin::prelude::{Direction, Position, Size};
 
 use crate::ProbeExt;
+use crate::animation::{effective, use_animated, use_reduced_motion};
 use crate::controls::dimmed;
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
-use crate::styles::{Animation, Axis, ControlState, Theme, TrafficLightsStyle, resolve};
+use crate::styles::{Axis, ControlState, Theme, TrafficLightsStyle, resolve};
 use crate::traffic_raster::{Layers, light};
 
 #[derive(PartialEq)]
@@ -176,13 +177,8 @@ impl Component for TrafficLights {
                 fullscreen: self.fullscreen,
             }
         });
-        let animation = if *crate::animation::use_reduced_motion().read() {
-            Animation::None
-        } else {
-            style.animation
-        };
-        let exit_mix =
-            crate::animation::use_animated(f32::from(u8::from(input.fullscreen)), animation);
+        let animation = effective(style.animation, *use_reduced_motion().read());
+        let exit_mix = use_animated(f32::from(u8::from(input.fullscreen)), animation);
         let zoom_shown = input.zoom_supported || self.fixed_width;
         let close_blocked = crate::views::feedback::OpenSheets::any();
         let close_only = self.close_only;

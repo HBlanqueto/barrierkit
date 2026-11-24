@@ -295,7 +295,7 @@ title bars use the same functions. What each value does here:
 | `none` | Nothing | Nothing |
 
 A double click is two presses within `TITLEBAR_DOUBLE_CLICK.interval_ms`
-(400 ms) and `slop` (4 px). `window_drag_handler(fixed)` is the press handler
+(400 ms) and `slop` (4 px). `use_window_drag(fixed)` is the press handler
 that moves the window or runs the double-click action; put it on your own
 draggable areas.
 
@@ -525,6 +525,6 @@ strip at the top (30 px) is the compositor bar, added to the image.
 |---|---|
 | `titlebar::app_id(app_name)` | The default `app_id`: `io.github.hblanqueto.malaysia.<app_name>` |
 | `titlebar::sidebar_bar_height()` | Height of the title bar row beside a sidebar |
-| `titlebar::window_drag_handler(fixed)` | The move and double-click handler of the title bar ([Traffic lights](#traffic-lights)) |
+| `titlebar::use_window_drag(fixed)` | The move and double-click handler of the title bar ([Traffic lights](#traffic-lights)) |
 
 Next: [10. Sidebar and split view](10-sidebar.md).

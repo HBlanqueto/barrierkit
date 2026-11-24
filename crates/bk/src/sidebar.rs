@@ -24,7 +24,7 @@ use crate::styles::{
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol, tile_symbol};
 use crate::theme;
-use crate::titlebar::window_drag_handler;
+use crate::titlebar::use_window_drag;
 use crate::traffic::TrafficLights;
 use freya_core::{accessibility::tree::ACCESSIBILITY_ROOT_ID, prelude::try_consume_root_context};
 
@@ -259,17 +259,6 @@ impl Sidebar {
         }
     }
 
-    pub fn child(mut self, child: impl IntoElement) -> Self {
-        self.children.push(child.into_element());
-        self
-    }
-
-    pub fn children(mut self, children: impl IntoIterator<Item = impl IntoElement>) -> Self {
-        self.children
-            .extend(children.into_iter().map(IntoElement::into_element));
-        self
-    }
-
     pub fn traffic_lights(mut self, show: bool) -> Self {
         self.traffic_lights = show;
         self
@@ -278,6 +267,12 @@ impl Sidebar {
     pub fn style(mut self, restyle: impl Fn(SidebarStyle) -> SidebarStyle + 'static) -> Self {
         self.style = self.style.style(restyle);
         self
+    }
+}
+
+impl ChildrenExt for Sidebar {
+    fn children_mut(&mut self) -> &mut Vec<Element> {
+        &mut self.children
     }
 }
 
@@ -359,7 +354,7 @@ impl Component for Sidebar {
             .as_ref()
             .map(|controls| (*controls.status.read(), controls.fixed))
             .unwrap_or_default();
-        let drag = window_drag_handler(fixed);
+        let drag = use_window_drag(fixed);
 
         let lights_column = chrome.unified(true) && self.traffic_lights;
         let reserved = if lights_column {
@@ -408,16 +403,20 @@ impl Component for Sidebar {
                 ScrollView::new().children(self.children.iter().cloned()),
             ));
 
-        let mut root = rect()
+        let sidebar_shown = sidebar_control().is_none_or(|control| control.settled());
+        let floating_lights = !lights_column
+            && self.traffic_lights
+            && lights_shown
+            && draws_lights
+            && sidebar_shown
+            && chrome.layout == TitlebarLayout::Top;
+        let root = rect()
             .expanded()
             .child(sidebar_body)
-            .maybe_child(native_pane.then(crate::platform::backdrop::Declared::pane));
-
-        let sidebar_shown = sidebar_control().is_none_or(|control| control.settled());
-        if lights_column {
-            let items = crate::chrome::rail_items();
-            let position = Position::new_absolute().top(0.0);
-            root = root.child(
+            .maybe_child(native_pane.then(crate::platform::backdrop::Declared::pane))
+            .maybe_child(lights_column.then(|| {
+                let items = crate::chrome::rail_items();
+                let position = Position::new_absolute().top(0.0);
                 rect()
                     .position(position.left(0.0))
                     .width(Size::px(chrome.rail_width))
@@ -445,15 +444,9 @@ impl Component for Sidebar {
                     }))
                     .maybe_child(items.top)
                     .child(rect().height(Size::flex(1.0)))
-                    .maybe_child(items.bottom),
-            );
-        } else if self.traffic_lights
-            && lights_shown
-            && draws_lights
-            && sidebar_shown
-            && chrome.layout == TitlebarLayout::Top
-        {
-            root = root.child(
+                    .maybe_child(items.bottom)
+            }))
+            .maybe_child(floating_lights.then(|| {
                 rect()
                     .position(
                         Position::new_absolute()
@@ -467,9 +460,8 @@ impl Component for Sidebar {
                     .height(Size::px(lights.diameter))
                     .probe("sidebar-traffic-lights")
                     .opacity(lights_opacity)
-                    .child(TrafficLights::for_window(status.activated, fixed)),
-            );
-        }
+                    .child(TrafficLights::for_window(status.activated, fixed))
+            }));
 
         self.overrides.apply(root.map(self.probe, ProbeExt::probe))
     }
@@ -584,7 +576,7 @@ impl Component for SidebarItem {
                 .shape
                 .corner_radius(style.height, style.height, LayoutDirection::LeftToRight);
 
-        let mut row = interaction
+        let row = interaction
             .attach(rect(), true)
             .width(Size::fill())
             .height(Size::px(style.height))
@@ -616,26 +608,26 @@ impl Component for SidebarItem {
                         control.dismiss();
                     }
                 })
-            });
-
-        if let Some((glyph, tint)) = self.symbol {
-            row = match tint {
-                Some(tint) => {
-                    let border = style.selected_tile_border.clone().filter(|_| self.selected);
-                    row.child(SymbolTile::new(glyph, tint).map(border, |tile, border| {
-                        tile.style(move |s| SymbolTileStyle {
-                            border: Some(border.clone()),
-                            ..s
-                        })
-                    }))
-                }
-                None => {
-                    let ink = if self.selected {
-                        &style.selected_symbol
-                    } else {
-                        &style.symbol
-                    };
-                    row.child(
+            })
+            .maybe_child(self.symbol.map(|(glyph, tint)| -> Element {
+                match tint {
+                    Some(tint) => {
+                        let border = style.selected_tile_border.clone().filter(|_| self.selected);
+                        SymbolTile::new(glyph, tint)
+                            .map(border, |tile, border| {
+                                tile.style(move |s| SymbolTileStyle {
+                                    border: Some(border.clone()),
+                                    ..s
+                                })
+                            })
+                            .into_element()
+                    }
+                    None => {
+                        let ink = if self.selected {
+                            &style.selected_symbol
+                        } else {
+                            &style.symbol
+                        };
                         rect()
                             .width(Size::px(SIDEBAR.app_icon as f32))
                             .height(Size::px(SIDEBAR.app_icon as f32))
@@ -645,21 +637,19 @@ impl Component for SidebarItem {
                                 style.symbol_size,
                                 style.symbol_stroke,
                                 paints.color(ink.resolve(state)),
-                            )),
-                    )
+                            ))
+                            .into_element()
+                    }
                 }
-            };
-        }
-
-        row = row.child(
-            label()
-                .text(self.label.clone())
-                .with(|el| text_style(el, font))
-                .color(theme::color(paints.color(ink.resolve(state))))
-                .max_lines(1),
-        );
-
-        row = row.map(self.probe, ProbeExt::probe);
+            }))
+            .child(
+                label()
+                    .text(self.label.clone())
+                    .with(|el| text_style(el, font))
+                    .color(theme::color(paints.color(ink.resolve(state))))
+                    .max_lines(1),
+            )
+            .map(self.probe, ProbeExt::probe);
         self.overrides
             .apply(interaction.focus_ring(row, corner_radius.top_left()))
     }
@@ -692,16 +682,11 @@ impl SidebarSection {
         self.style = self.style.style(restyle);
         self
     }
+}
 
-    pub fn child(mut self, child: impl IntoElement) -> Self {
-        self.children.push(child.into_element());
-        self
-    }
-
-    pub fn children(mut self, children: impl IntoIterator<Item = impl IntoElement>) -> Self {
-        self.children
-            .extend(children.into_iter().map(IntoElement::into_element));
-        self
+impl ChildrenExt for SidebarSection {
+    fn children_mut(&mut self) -> &mut Vec<Element> {
+        &mut self.children
     }
 }
 

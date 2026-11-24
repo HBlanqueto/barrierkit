@@ -147,6 +147,7 @@ pub mod main_menu;
 pub mod sidebar;
 
 use std::rc::Rc;
+use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use freya_core::element::ElementExt;
 use freya_core::prelude::{AccessibilityExt, Rect};
@@ -171,4 +172,8 @@ pub(crate) fn style_diff<T: PartialEq + 'static>(
         Some(_) => DiffModifies::STYLE,
         None => DiffModifies::all(),
     }
+}
+
+pub(crate) fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
+    mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }

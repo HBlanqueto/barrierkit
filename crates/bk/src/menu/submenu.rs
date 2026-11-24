@@ -70,15 +70,7 @@ impl SubmenuCtx {
     fn child_view(&self, items: Vec<MenuItem>) -> MenuView {
         let on_activate = self.on_activate.clone();
         let on_dismiss_all = self.on_dismiss_all.clone();
-        let on_dismiss_for_action = on_dismiss_all.clone();
-        let view = MenuView::new(
-            items,
-            move |id| {
-                on_activate(id);
-                on_dismiss_for_action();
-            },
-            move || on_dismiss_all(),
-        );
+        let view = MenuView::new(items, move |id| on_activate(id), move || on_dismiss_all());
         self.palette_source.inherit(view)
     }
 }

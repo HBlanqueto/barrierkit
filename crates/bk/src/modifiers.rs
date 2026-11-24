@@ -11,10 +11,10 @@ use crate::focus::{DefaultFocus, FocusState, Focused};
 use crate::glass_container::{Glass, GlassContainer};
 use crate::layout::{Frame, LayoutDirectionScope};
 use crate::menu::MenuItem;
-use crate::styles::Painted;
+use crate::shapes::UNBOUNDED;
 use crate::styles::{
-    ControlState, ControlStyle, GlassContainerStyle, LayoutDirection, Paints, ShadowStyle, Shape,
-    ShapeStyle, StateValue, StyleScope, Theme, system_effect,
+    ControlState, ControlStyle, GlassContainerStyle, LayoutDirection, Painted, Paints, ShadowStyle,
+    Shape, ShapeStyle, StateValue, StyleScope, Theme, system_effect,
 };
 use crate::transition::{ContentTransition, ContentTransitioned};
 use crate::views::feedback::Alert;
@@ -181,7 +181,7 @@ pub trait StyleModifiers: IntoElement + Sized {
 
     /// Glass behind the view in `shape`; an uneven shape takes its largest corner as one radius. Reduce Transparency makes a regular glass the toolbar's plain fill, as SwiftUI's is.
     fn glass_effect(self, glass: Glass, shape: Shape) -> impl IntoElement {
-        let corners = shape.corner_radius(16_384.0, 16_384.0, LayoutDirection::LeftToRight);
+        let corners = shape.corner_radius(UNBOUNDED, UNBOUNDED, LayoutDirection::LeftToRight);
         let radius = corners
             .top_left()
             .max(corners.top_right())

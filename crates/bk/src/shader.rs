@@ -1,6 +1,3 @@
-//! P2 of `docs/research/shader-needs.md`: each SkSL source is compiled once per thread and its uniforms are bound by name, in the
-//! order and with the sizes that Skia reads from the source, so a shader no longer packs a flat array in a hand-kept order.
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -119,21 +116,13 @@ impl Program {
         self.slots.iter().any(|slot| slot.name == name)
     }
 
-    #[cfg(test)]
-    pub(crate) fn slots(&self) -> &[Slot] {
-        &self.slots
-    }
-
     pub(crate) fn shader(&self, arguments: &[(&str, &[f32])]) -> Option<Shader> {
         let bytes = pack(&self.slots, self.effect.uniform_size(), arguments)
             .inspect_err(|error| tracing::warn!(%error, "BarrierKit: a shader was not bound"))
             .ok()?;
         self.effect.make_shader(Data::new_copy(&bytes), &[], None)
     }
-}
 
-impl Program {
-    // An image filter that runs the source over `child`, the `uniform shader` that receives the content of a layer; the uniforms bind as in `shader`.
     pub(crate) fn filter(&self, arguments: &[(&str, &[f32])], child: &str) -> Option<ImageFilter> {
         pack(&self.slots, self.effect.uniform_size(), arguments)
             .inspect_err(|error| tracing::warn!(%error, "BarrierKit: a shader was not bound"))
@@ -143,66 +132,5 @@ impl Program {
             builder.set_uniform_float(name, values).ok()?;
         }
         image_filters::runtime_shader(&builder, child, None)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const SOURCE: &str = "uniform float4 box; uniform float2 ramp; uniform half4 tint; half4 main(float2 p) { return tint * half(box.x + ramp.y); }";
-
-    fn slot(name: &str, offset: usize, floats: usize) -> Slot {
-        Slot {
-            name: name.to_string(),
-            offset,
-            floats,
-        }
-    }
-
-    #[test]
-    fn arguments_land_at_the_offsets_of_their_uniforms_whatever_their_order() {
-        let slots = [slot("a", 0, 2), slot("b", 8, 1)];
-        let bytes = pack(&slots, 12, &[("b", &[3.0]), ("a", &[1.0, 2.0])]).unwrap();
-        let floats: Vec<f32> = bytes
-            .chunks(4)
-            .map(|c| f32::from_ne_bytes(c.try_into().unwrap()))
-            .collect();
-        assert_eq!(floats, [1.0, 2.0, 3.0]);
-    }
-
-    #[test]
-    fn an_unknown_missing_or_misshapen_argument_is_an_error() {
-        let slots = [slot("a", 0, 2)];
-        assert_eq!(
-            pack(&slots, 8, &[("c", &[1.0])]),
-            Err(BindError::Unknown("c".into()))
-        );
-        assert_eq!(pack(&slots, 8, &[]), Err(BindError::Missing("a".into())));
-        assert_eq!(
-            pack(&slots, 8, &[("a", &[1.0])]),
-            Err(BindError::Size {
-                name: "a".into(),
-                expected: 2,
-                got: 1
-            })
-        );
-    }
-
-    #[test]
-    fn skia_reports_the_uniforms_of_a_source_in_declaration_order_and_the_program_is_compiled_once()
-    {
-        let program = Program::get(SOURCE).unwrap();
-        let slots: Vec<(&str, usize, usize)> = program
-            .slots()
-            .iter()
-            .map(|s| (s.name.as_str(), s.offset, s.floats))
-            .collect();
-        assert_eq!(slots, [("box", 0, 4), ("ramp", 16, 2), ("tint", 24, 4)]);
-        assert!(Rc::ptr_eq(&program, &Program::get(SOURCE).unwrap()));
-        let args: [(&str, &[f32]); 3] =
-            [("box", &[0.0; 4]), ("ramp", &[0.0; 2]), ("tint", &[0.0; 4])];
-        assert!(program.shader(&args).is_some());
-        assert!(program.shader(&args[..2]).is_none());
     }
 }

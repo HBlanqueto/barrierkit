@@ -7,6 +7,7 @@ search = Search
 menu-items = Menu Items
 help-topics = Help Topics
 loading = Loading…
+refreshing = Refreshing…
 no-items = No Items
 clear-search = Clear search
 decrease = Decrease

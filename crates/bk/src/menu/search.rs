@@ -7,16 +7,20 @@ pub fn fold(text: &str) -> String {
         match c {
             '\u{300}'..='\u{36f}' => {}
             'ß' => folded.push_str("ss"),
-            'á' | 'à' | 'ä' | 'â' | 'ã' | 'å' => folded.push('a'),
-            'é' | 'è' | 'ë' | 'ê' => folded.push('e'),
+            'á' | 'à' | 'ä' | 'â' | 'ã' | 'å' | 'ą' => folded.push('a'),
+            'é' | 'è' | 'ë' | 'ê' | 'ě' | 'ę' => folded.push('e'),
             'í' | 'ì' | 'ï' | 'î' => folded.push('i'),
             'ó' | 'ò' | 'ö' | 'ô' | 'õ' | 'ø' => folded.push('o'),
-            'ú' | 'ù' | 'ü' | 'û' => folded.push('u'),
-            'ñ' => folded.push('n'),
-            'ç' => folded.push('c'),
-            'š' => folded.push('s'),
-            'ř' => folded.push('r'),
-            'ł' => folded.push('l'),
+            'ú' | 'ù' | 'ü' | 'û' | 'ů' => folded.push('u'),
+            'ý' | 'ÿ' => folded.push('y'),
+            'ñ' | 'ń' | 'ň' => folded.push('n'),
+            'ç' | 'č' | 'ć' => folded.push('c'),
+            'š' | 'ś' => folded.push('s'),
+            'ž' | 'ź' | 'ż' => folded.push('z'),
+            'ř' | 'ŕ' => folded.push('r'),
+            'ł' | 'ľ' | 'ĺ' => folded.push('l'),
+            'ď' => folded.push('d'),
+            'ť' => folded.push('t'),
             other => folded.push(other),
         }
     }
@@ -77,16 +81,14 @@ pub(super) fn search_result_lists(
     help_search: Option<&[SearchableEntry]>,
     query: &str,
 ) -> Option<(Vec<SearchableEntry>, Vec<SearchableEntry>)> {
-    let searchable = searchable?;
     if query.is_empty() {
         return None;
     }
-    Some((
-        filter_search_results(query, searchable),
-        help_search
-            .map(|list| filter_search_results(query, list))
-            .unwrap_or_default(),
-    ))
+    let results = |list: Option<&[SearchableEntry]>| {
+        list.map(|list| filter_search_results(query, list))
+            .unwrap_or_default()
+    };
+    Some((results(searchable), results(help_search)))
 }
 
 pub(super) fn visible_items(
@@ -96,63 +98,57 @@ pub(super) fn visible_items(
     menu_scroll: usize,
     help_scroll: usize,
 ) -> Vec<MenuItem> {
-    let mut out = Vec::new();
-    let mut saw_search = false;
-    for item in items {
-        if matches!(item, MenuItem::SearchField { .. }) {
-            out.push(item.clone());
-            saw_search = true;
-        }
-    }
-    if !saw_search {
-        out.push(MenuItem::SearchField {
-            placeholder: text!("search").into(),
-        });
-    }
+    let is_field = |item: &&MenuItem| matches!(item, MenuItem::SearchField { .. });
+    let placeholder = (!items.iter().any(|item| is_field(&item))).then(|| MenuItem::SearchField {
+        placeholder: text!("search").into(),
+    });
+    items
+        .iter()
+        .filter(is_field)
+        .cloned()
+        .chain(placeholder)
+        .chain(result_section(
+            menu_results,
+            text!("menu-items"),
+            SearchSource::Menu,
+            menu_scroll,
+            MenuView::MAX_MENU_ROWS,
+        ))
+        .chain(result_section(
+            help_results,
+            text!("help-topics"),
+            SearchSource::Help,
+            help_scroll,
+            MenuView::MAX_HELP_ROWS,
+        ))
+        .chain([MenuItem::Separator])
+        .chain(items.iter().filter(|item| !is_field(item)).cloned())
+        .collect()
+}
 
-    if !menu_results.is_empty() {
-        out.push(MenuItem::Header {
-            label: text!("menu-items").into(),
-            count: Some(menu_results.len()),
-        });
-        for entry in menu_results
-            .iter()
-            .skip(menu_scroll)
-            .take(MenuView::MAX_MENU_ROWS)
-        {
-            out.push(MenuItem::SearchResult {
+fn result_section<'a>(
+    results: &'a [SearchableEntry],
+    label: &'static str,
+    source: SearchSource,
+    scroll: usize,
+    rows: usize,
+) -> impl Iterator<Item = MenuItem> + 'a {
+    let header = (!results.is_empty()).then(|| MenuItem::Header {
+        label: label.into(),
+        count: Some(results.len()),
+    });
+    header
+        .into_iter()
+        .chain(results.iter().skip(scroll).take(rows).map(move |entry| {
+            MenuItem::SearchResult {
                 item: Box::new(entry.item.clone()),
-                source: SearchSource::Menu,
-                location: entry.location.clone(),
-            });
-        }
-    }
-
-    if !help_results.is_empty() {
-        out.push(MenuItem::Header {
-            label: text!("help-topics").into(),
-            count: Some(help_results.len()),
-        });
-        for entry in help_results
-            .iter()
-            .skip(help_scroll)
-            .take(MenuView::MAX_HELP_ROWS)
-        {
-            out.push(MenuItem::SearchResult {
-                item: Box::new(entry.item.clone()),
-                source: SearchSource::Help,
-                location: None,
-            });
-        }
-    }
-
-    out.push(MenuItem::Separator);
-    for item in items {
-        if !matches!(item, MenuItem::SearchField { .. }) {
-            out.push(item.clone());
-        }
-    }
-    out
+                source,
+                location: entry
+                    .location
+                    .clone()
+                    .filter(|_| source == SearchSource::Menu),
+            }
+        }))
 }
 
 pub(super) fn find_result_section(

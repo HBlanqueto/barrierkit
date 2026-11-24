@@ -200,7 +200,7 @@ impl Component for Titlebar {
             (None, None) => (WindowStatus::default(), Cow::default(), false),
         };
         let title = self.title.clone().unwrap_or(title);
-        let drag = window_drag_handler(fixed);
+        let drag = use_window_drag(fixed);
         if status.decoration == DecorationResponse::Server {
             return rect()
                 .width(Size::fill())
@@ -367,10 +367,8 @@ impl Component for Titlebar {
     }
 }
 
-// A scroll view's own state of its viewport names it among the window's scroll views.
 type ScrollKey = State<(f32, f32)>;
 
-// The frames of a window's scroll views, so that the bar knows whether one reaches up to it.
 #[derive(Clone, Copy)]
 pub(crate) struct ScrollFrames(pub(crate) State<Vec<(ScrollKey, torin::prelude::Area)>>);
 
@@ -794,7 +792,7 @@ pub fn sidebar_bar_height() -> f32 {
     style.sidebar_height
 }
 
-// What the system carries down with the menu bar in full screen: the title bar row, or the toolbar row under an expanded bar's title row. Top and height.
+// (top, height) of the row that comes down with the menu bar in full screen.
 pub(crate) fn bar_row(expanded: bool) -> (f32, f32) {
     if expanded {
         (
@@ -850,7 +848,7 @@ impl TrafficLights {
     }
 }
 
-pub fn window_drag_handler(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clone {
+pub fn use_window_drag(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clone {
     let last_click = use_hook(|| Rc::new(Cell::new(None::<(Instant, (f64, f64))>)));
     let fixed_cell = use_hook(|| Rc::new(Cell::new(fixed)));
     fixed_cell.set(fixed);

@@ -7,6 +7,7 @@ search = Buscar
 menu-items = Ítems del menú
 help-topics = Temas de ayuda
 loading = Cargando…
+refreshing = Actualizando…
 no-items = Sin elementos
 clear-search = Borrar búsqueda
 decrease = Menos

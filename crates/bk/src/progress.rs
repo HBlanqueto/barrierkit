@@ -5,14 +5,13 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Position, Size};
 
-use crate::animation::Clock;
+use crate::animation::{Clock, effective};
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_overrides};
-use crate::styles::Painted;
 use crate::styles::{
-    Animation, ControlState, LayoutDirection, Paints, ProgressRingStyle, ProgressViewStyle,
-    SpinnerStyle, StateValue, Theme, resolve,
+    Animation, ControlState, LayoutDirection, Painted, Paints, ProgressRingStyle,
+    ProgressViewStyle, SpinnerStyle, StateValue, Theme, resolve,
 };
 use crate::theme::color;
 
@@ -87,11 +86,7 @@ impl Component for ProgressView {
     fn render(&self) -> impl IntoElement {
         let style: ProgressViewStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default(), style.effect);
-        let animation = if self.value.is_some() {
-            Animation::None
-        } else {
-            style.animation
-        };
+        let animation = effective(style.animation, self.value.is_some());
         let sweep = use_running(animation, false);
         let (start, length) = match self.value {
             Some(value) => (0.0, value),

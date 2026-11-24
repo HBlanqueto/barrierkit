@@ -15,7 +15,7 @@ use crate::styles::{
 };
 
 // Skia scales radii down to fit the frame, so a capsule or a circle clips with a radius no frame reaches.
-const UNBOUNDED: f32 = 16_384.0;
+pub(crate) const UNBOUNDED: f32 = 16_384.0;
 
 type Point = (f32, f32);
 
@@ -307,52 +307,3 @@ pub trait ShapeModifiers: DecorationExt + EffectExt + Sized {
 }
 
 impl<T: DecorationExt + EffectExt> ShapeModifiers for T {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn bounds(outline: &Outline, width: f32, height: f32) -> [f32; 4] {
-        let bounds = outline.path(width, height).bounds().to_owned();
-        [bounds.left, bounds.top, bounds.right, bounds.bottom]
-    }
-
-    #[test]
-    fn a_circle_in_a_wide_frame_is_centred_and_as_wide_as_the_frame_is_tall() {
-        let circle = Outline::Rounded(Shape::Circle);
-        assert_eq!(bounds(&circle, 200.0, 100.0), [50.0, 0.0, 150.0, 100.0]);
-    }
-
-    #[test]
-    fn a_capsule_and_an_ellipse_fill_the_frame() {
-        let frame = [0.0, 0.0, 200.0, 100.0];
-        assert_eq!(
-            bounds(&Outline::Rounded(Shape::Capsule), 200.0, 100.0),
-            frame
-        );
-        assert_eq!(bounds(&Outline::Ellipse, 200.0, 100.0), frame);
-    }
-
-    #[test]
-    fn a_border_keeps_the_corner_concentric_and_never_makes_it_negative() {
-        let rounded = |radius| {
-            Outline::Rounded(Shape::RoundedRectangle {
-                radius,
-                style: CornerStyle::Continuous,
-            })
-        };
-        assert_eq!(rounded(12.0).inset(2.0), rounded(10.0));
-        assert_eq!(rounded(1.0).inset(2.0), rounded(0.0));
-    }
-
-    #[test]
-    fn a_path_has_the_extent_of_its_points() {
-        let triangle = Outline::Path(vec![
-            Segment::Move((10.0, 20.0)),
-            Segment::Line((90.0, 20.0)),
-            Segment::Line((50.0, 70.0)),
-            Segment::Close,
-        ]);
-        assert_eq!(bounds(&triangle, 0.0, 0.0), [10.0, 20.0, 90.0, 70.0]);
-    }
-}

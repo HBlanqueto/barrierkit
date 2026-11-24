@@ -96,6 +96,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `ctdesign::TrafficRim`, `Palette::traffic_lights_inactive`, `Palette::traffic_rim`, `TRAFFIC_RIM_WIDTH`, `TRAFFIC_PRESSED_DARKEN`, `TRAFFIC_GLYPH_STANDARD`, `TRAFFIC_GLYPH_ON_DARK`, `TRAFFIC_GLYPH_ON_LIGHT`, `Button::color`, `TrafficGlyphs::box_size`, the tokens `traffic-close`, `traffic-min`, `traffic-zoom`, `traffic-inactive`, `traffic-rim`, `traffic-rim-inactive` | `ctdesign::TrafficLooks`, `TRAFFIC_LIGHTS_*`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_PRESS`; the themes' `traffic-lights` and `traffic-lights-contrast` | 2026-11-20 |
 | `styles::TrafficLightsStyle { fills, rims, glyphs, rim_width, glyph_size, shape, effect }` | `styles::TrafficLightsStyle { looks, ring_width, halo, backdrop }` | 2026-11-20 |
 | `app::Scene` (one window; `.options`, `.run`), returned by `Application::window` | `Application::window` returns `Application`, which has `.options` and `.run`; `app::Scene` is now what `Application::scene` takes | 2026-11-21 |
+| `titlebar::window_drag_handler` | `titlebar::use_window_drag` (a hook) | 2026-11-23 |
 
 ## How to read the tables
 
@@ -429,6 +430,21 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `patterns::settings::SettingsWindow::style` | method | — | — | — | Changes the style of one preferences window | [Styles](../../crates/bk/src/styles/settings_window.rs) |
 | `patterns::about::AboutView::style` | method | — | — | — | Changes the style of one About view | [Styles](../../crates/bk/src/styles/settings_window.rs) |
 | `menu::MenuView::style` | method | — | — | — | Changes the style of one menu and its submenus | [7](07-menus-and-popovers.md#style) |
+| `menu::MenuView::with_surface` | method | — | — | — | Takes its live palette from a `SurfaceKind` | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::MenuView::with_fixed_palette` | method | — | — | — | Draws with one `MenuPalette` that does not follow the appearance | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::MenuView::with_popover_metrics` | method | — | — | — | Uses the paddings of a menu inside a popover | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::MenuView::with_popup_spec` | method | — | — | — | Where the menu opens its submenus | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::MenuView::with_searchable` | method | — | `≈ NSUserInterfaceItemSearching` | — | Adds a search field that finds these entries | [7](07-menus-and-popovers.md#search) |
+| `menu::MenuView::with_help_topics` | method | — | `NSApplication.registerUserInterfaceItemSearchHandler(_:)` | — | Adds these entries as Help Topics results of the search | [7](07-menus-and-popovers.md#search) |
+| `menu::MenuView::with_search_icons` | method | — | — | — | The SVG icons of menu and help results | [7](07-menus-and-popovers.md#search) |
+| `menu::MenuView::with_reveal_roots` | method | — | — | — | The top menus a found item is revealed in | [7](07-menus-and-popovers.md#search) |
+| `menu::MenuView::with_focused_index` | method | — | `NSMenu.highlightedItem` | — | The row highlighted when the menu opens | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::MenuView::with_items_source` | method | — | `NSMenuDelegate.menuNeedsUpdate(_:)` | — | Reads the items from a closure on every render | [7](07-menus-and-popovers.md#helpers) |
+| `menu::MenuView::with_open_submenu` | method | — | `NSMenuDelegate.menuWillOpen(_:)` | — | Calls the closure with the id of a submenu as it opens | [7](07-menus-and-popovers.md#submenus) |
+| `menu::MenuView::with_submenu_source` | method | — | `NSMenuDelegate.menuNeedsUpdate(_:)` | — | Loads a lazy submenu's items by id | [7](07-menus-and-popovers.md#submenus) |
+| `menu::MenuView::with_query_state` | method | — | — | — | Keeps the search text across rebuilds of the menu | [7](07-menus-and-popovers.md#search) |
+| `menu::MenuView::with_navigation` | method | — | — | — | Calls the closure when ← or → asks for the neighbouring menu | [7](07-menus-and-popovers.md#menu-view) |
+| `menu::MenuView::preferred_size` | fn | — | `NSMenu.size` | — | The width and height the items take | [7](07-menus-and-popovers.md#menu-view) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | ≈ `UIWindow.overrideUserInterfaceStyle` | Gives the app its `Theme` | [Styles](../../agents/styles.md#levels) |
 
 ## Symbols and fonts
@@ -453,6 +469,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `symbol::Image::glass_plate` | fn | — | — | — | In the clear icon style, draws only the logo: the compositor draws the plate as glass | [4](04-appearance-and-tokens.md#app-icons) |
 | `symbol::Image::raster_size` | fn | — | — | — | Rasterizes the image once at this size and lets the GPU scale it, for an icon whose size changes every frame | [4](04-appearance-and-tokens.md#app-icons) |
 | `symbol::Image::frame` | fn | `.frame(width:height:)` | — | `NSLayoutConstraint` | Sizes an image that keeps its own colors as a rectangle, not a square | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
+| `symbol::Image::system` | fn | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | `UIImage(systemName:)` | An image view of a kit `Symbol` | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Image::rendering_mode` | method | `.renderingMode(_:)` | `NSImage.isTemplate` | `UIImage.withRenderingMode(_:)` | `Template` draws the image in its foreground color; `Original` keeps its own colors | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
+| `symbol::Image::size` | method | `.font(.system(size:))` on a symbol | `NSImage.SymbolConfiguration(pointSize:weight:)` | `UIImage.SymbolConfiguration(pointSize:)` | The side of the image in points | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Image::color` | method | `.foregroundStyle(_:)` | `NSImage.SymbolConfiguration(hierarchicalColor:)` | `UIImage.withTintColor(_:)` | The color of a symbol or template image | [4](04-appearance-and-tokens.md#symbols) |
 | `ctappearance::icon_plate::Logo`, `Lobe` | struct | — | — | — | A bright or dark icon and the color lobe its plate takes the hue from; `Logo::from_colors` | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::Plate`, `plate` | struct, fn | — | — | — | Plate gradient, rim and glass flag for an icon, an `IconStyle`, whether it is dark and a tint | [4](04-appearance-and-tokens.md#app-icons) |
 | `ctappearance::icon_plate::logo_matrix` | fn | — | — | — | Color matrix for the icon on its plate; `None` keeps its colors | [4](04-appearance-and-tokens.md#app-icons) |
@@ -478,6 +498,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ChevronDown` | `chevron.down` | before 2026-11-20 |
 | `TriangleLeft` | `arrowtriangle.left.fill` ≈ | before 2026-11-20 |
 | `TriangleRight` | `arrowtriangle.right.fill` ≈ | before 2026-11-20 |
+| `TriangleUp` | `arrowtriangle.up.fill` ≈ | 2026-11-23 |
+| `TriangleDown` | `arrowtriangle.down.fill` ≈ | 2026-11-23 |
+| `DiamondFill` | `diamond.fill` | 2026-11-23 |
 | `Dot` | `circle.fill` ≈ | before 2026-11-20 |
 | `CircleHalf` | `circle.lefthalf.filled` | before 2026-11-20 |
 | `Play` | `play.fill` | before 2026-11-20; redrawn 2026-11-22 |
@@ -1097,6 +1120,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `controls::ScrollController::content_offset` | method | `ScrollGeometry.contentOffset` | `≈ NSClipView.bounds.origin` | `UIScrollView.contentOffset` | The offset of the content, positive when scrolled | [5](05-controls.md#scroll-position) |
 | `controls::ScrollController::geometry` | method | `ScrollGeometry` | — | — | The offset and the sizes of content and viewport now | [5](05-controls.md#scroll-position) |
 | `controls::ScrollController::phase` | method | `ScrollPhase` | — | `UIScrollView.isTracking`, `isDragging`, `isDecelerating` | The phase of the scroll now | [5](05-controls.md#scroll-position) |
+| `controls::ScrollController::scroll_to_x` | method | `ScrollViewProxy.scrollTo(_:anchor:)` | `≈ NSClipView.scroll(to:)` | `UIScrollView.setContentOffset(_:animated:)` | Jumps the content to a horizontal offset; false if the view cannot scroll | [5](05-controls.md#scrolling) |
+| `controls::ScrollController::reveal_y` | method | `ScrollViewProxy.scrollTo(_:anchor:)` | `NSView.scrollToVisible(_:)` | `UIScrollView.scrollRectToVisible(_:animated:)` | Scrolls the least that shows the span from `top` to `bottom` of the content | [5](05-controls.md#scrolling) |
+| `controls::ScrollController::scroll_by_wheel` | method | — | `NSScrollView.scrollWheel(with:)` | — | Scrolls by a wheel event caught outside the view | [5](05-controls.md#scrolling) |
 | `controls::ScrollPosition` | struct | `ScrollPosition` | — | — | Where a `ScrollView` is or should go: a point, an edge or a view by id | [5](05-controls.md#scroll-position) |
 | `controls::ScrollPosition::at` | fn | `ScrollPosition(x:y:)` | — | — | A point of the content | [5](05-controls.md#scroll-position) |
 | `controls::ScrollPosition::edge` | fn | `ScrollPosition(edge:)` | — | — | An edge of the content | [5](05-controls.md#scroll-position) |
@@ -1108,6 +1134,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `controls::ScrollView::scroll_position` | method | `.scrollPosition(_:anchor:)` | — | — | Binds a `State<ScrollPosition>`: the view scrolls to what the app sets and writes the user's scroll back | [5](05-controls.md#scroll-position) |
 | `controls::ScrollView::on_scroll_geometry_change` | method | `.onScrollGeometryChange(for:of:action:)` | — | `UIScrollViewDelegate.scrollViewDidScroll(_:)` | Calls the action with the `ScrollGeometry` when it changes | [5](05-controls.md#scroll-position) |
 | `controls::ScrollView::on_scroll_phase_change` | method | `.onScrollPhaseChange(_:)` | — | `UIScrollViewDelegate.scrollViewWillBeginDragging(_:)` | Calls the action with the old and the new `ScrollPhase` | [5](05-controls.md#scroll-position) |
+| `controls::ScrollView::direction` | method | `ScrollView(_:)` axes | `NSScrollView.hasHorizontalScroller` | `UIScrollView.alwaysBounceHorizontal` | Scrolls along `Direction::Vertical` (the default) or `Horizontal` | [5](05-controls.md#scrolling) |
+| `controls::ScrollView::scroll_bar` | method | `.scrollIndicators(_:)` | `NSScrollView.hasVerticalScroller` | `UIScrollView.showsVerticalScrollIndicator` | Shows or hides the scroll bar | [5](05-controls.md#scrolling) |
+| `controls::ScrollView::edge_effect` | method | `.scrollEdgeEffectStyle(_:for:)` | `≈ NSScrollPocket` | `≈ UIScrollEdgeEffect` | Fades the content under an edge it is scrolled past | [5](05-controls.md#scrolling) |
+| `controls::ScrollView::top_line` | method | — | `NSTitlebarSeparatorStyle.line` | — | Draws a separator along the top edge | [5](05-controls.md#scrolling) |
+| `controls::ScrollView::controller` | method | `ScrollViewReader` | — | — | Scrolls with a `ScrollController` made by `use_scroll_controller` | [5](05-controls.md#scrolling) |
 | `controls::IdentityModifiers::id` | method | `.id(_:)` | — | — | Names a view so that `ScrollPosition::id` finds it inside a `ScrollView` | [5](05-controls.md#scroll-position) |
 | `drag::DragSource` | struct | `≈ .draggable(_:)` | `NSDraggingSource` | ≈ `UIDragInteractionDelegate` | Starts a drag to another app past a threshold | [5](05-controls.md#drag-source) |
 | `drag::use_drag_source` | fn | `≈ .draggable(_:)` | — | `UIDragInteraction` | Creates a `DragSource` | [5](05-controls.md#drag-source) |
@@ -1182,6 +1213,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `rule_editor::Rule` | struct | — | — | — | One condition: field, operator and value | [6](06-text-and-editing.md#rule-editor) |
 | `rule_editor::Criterion` | enum | — | — | — | `Rule(Rule)` or a nested `Group` | [6](06-text-and-editing.md#rule-editor) |
 | `rule_editor::Predicate` | struct | — | — | — | All or any of its criteria; evaluates an item | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Rule::matches` | method | — | `NSPredicate.evaluate(with:)` | — | Whether a field value meets the rule | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Predicate::evaluate` | method | — | `NSPredicate.evaluate(with:)` | — | Whether an item, read field by field, meets the predicate | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Predicate::rule` | method | — | — | — | The rule with this id, at any depth | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Predicate::remove` | method | — | `NSRuleEditor.removeRow(at:)` | — | Removes the criterion with this id | [6](06-text-and-editing.md#rule-editor) |
+| `rule_editor::Predicate::insert_after` | method | — | `NSRuleEditor.insertRow(at:with:asSubrowOfRow:animate:)` | — | Inserts a new rule, or a group when `compound`, after this id | [6](06-text-and-editing.md#rule-editor) |
 
 ## Menus
 
@@ -1191,6 +1227,19 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `menu::MenuItem` | enum | — | `NSMenuItem` | `UIAction` | A menu row: `Action`, `Submenu`, `Header`, `Separator`, `Palette`, `SearchField`, `SearchResult` | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::CheckState` | enum | — | `≈ NSControl.StateValue` | — | Mark of an action: `None`, `Checkbox(bool)`, `Radio(bool)`, `Mixed` (a dash, dbusmenu `toggle-state` -1), `Minimized` (the Dock's diamond) | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuIcon` | enum | — | `≈ NSMenuItem.image` | — | Row icon: `Svg`, `Image` (encoded bytes, 64 KiB max) or `Swatch` color circle | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::action` | fn | `Button` | `NSMenuItem(title:action:keyEquivalent:)` | `UIAction(title:handler:)` | An enabled action row with an id and a label | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::submenu` | fn | `Menu` | `NSMenuItem.submenu` | `UIMenu(children:)` | A row that opens these items | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::header` | fn | `Section(header:)` | `NSMenuItem.sectionHeader(title:)` | `UIMenu(title:options: .displayInline)` | A section title row | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::palette` | fn | `ControlGroup` | `NSMenu.palette(images:titles:)` | `UIMenu.Options.displayAsPalette` | A row of icon cells, each an action | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::placeholder` | fn | — | — | — | A disabled row that only shows a label | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::with_id` | method | — | `NSMenuItem.identifier` | `UIMenu.identifier` | The id of a submenu | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::with_shortcut` | method | `.keyboardShortcut(_:modifiers:)` | `NSMenuItem.keyEquivalent` | `UIKeyCommand` | The shortcut of an action, as text such as `"Ctrl+S"` | [7](07-menus-and-popovers.md#shortcuts) |
+| `menu::MenuItem::with_enabled` | method | `.disabled(_:)` | `NSMenuItem.isEnabled` | `UIMenuElement.Attributes.disabled` | Enables or disables an action or a submenu | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::with_check` | method | `Toggle` | `NSMenuItem.state` | `UIMenuElement.State` | The `CheckState` mark of an action | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::with_icon` | method | `Label` | `NSMenuItem.image` | `UIAction.image` | The icon of an action or a submenu | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem::with_badge` | method | `.badge(_:)` | `NSMenuItem.badge` | — | A badge text at the end of an action | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuIcon::svg` | fn | — | — | — | An icon from SVG text | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuIcon::image` | fn | — | `NSImage(data:)` | — | An icon from encoded image bytes; `None` over 64 KiB | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuNavigation` | enum | — | — | — | `Prev` or `Next`: ← or → asks the menu bar for a neighbouring menu | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::ItemsSource` | type | — | — | — | Closure that returns a menu's items on every render | [7](07-menus-and-popovers.md#helpers) |
 | `menu::SubmenuSource` | type | — | `≈ NSMenuDelegate.menuNeedsUpdate(_:)` | — | Closure that returns a lazy submenu's items by id, once loaded | [7](07-menus-and-popovers.md#submenus) |
@@ -1323,7 +1372,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `traffic::TrafficLights` | struct | — | `≈ NSWindow.standardWindowButton(_:)` | — | Close, minimize and zoom buttons | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::fullscreen` | method | — | `≈ NSWindow.styleMask.fullScreen` | — | Minimize disabled and the exit glyph on zoom, for a full-screen window | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | — | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
-| `titlebar::window_drag_handler` | fn | — | `≈ NSWindow.performDrag(with:)` | — | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
+| `titlebar::use_window_drag` | fn | — | `≈ NSWindow.performDrag(with:)` | — | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::sidebar_bar_height` | fn | — | — | — | Height of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |
 | `titlebar::app_id` | fn | — | — | — | Default Wayland app id for an app name | [9](09-titlebars.md#helpers) |
 | `chrome::WindowChrome` | struct | — | — | — | Wraps the window and places lights, title and rail items | [9](09-titlebars.md#window-chrome) |
@@ -1528,6 +1577,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `main_menu::MainMenu` | struct | — | `NSApplication.mainMenu` | — | The window's menu bar menu, published over dbusmenu | [13](13-app.md#menu-bar-menu) |
 | `main_menu::Menu` | struct | `CommandMenu` | `NSMenu` | `UIMenu` | One top-level menu: a title and its items | [13](13-app.md#menu-bar-menu) |
 | `main_menu::MenuHandle` | struct | — | ≈ `NSMenu` | ≈ `UIMenu` | Live handle to the window's menu: `update`, `set_menu_items` | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::MenuHandle::update` | method | — | `NSMenuItem` properties | `UIMenuBuilder.replace(menu:with:)` | Changes the item with this id and republishes the menu | [13](13-app.md#changing-the-menu-live) |
+| `main_menu::MenuHandle::set_menu_items` | method | — | `NSMenu.items` | `UIMenuBuilder.replaceChildren(ofMenu:from:)` | Replaces the items of the top menu with this title | [13](13-app.md#changing-the-menu-live) |
 | `main_menu::use_menu_enabled` | fn | `.disabled(_:)` | `NSMenuItemValidation` | `UIControl.isEnabled` | Hook that enables or disables a menu item when the value changes | [13](13-app.md#changing-the-menu-live) |
 | `main_menu::use_menu_label` | fn | — | `NSMenuItem.title` | — | Hook that changes a menu item's label | [13](13-app.md#changing-the-menu-live) |
 | `main_menu::use_menu_checked` | fn | — | `NSMenuItem.state` | — | Hook that sets a menu item's checkbox | [13](13-app.md#changing-the-menu-live) |
@@ -1597,8 +1648,10 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `animation::with_animation` | fn | `withAnimation(_:_:)` | ≈ `NSAnimationContext.runAnimationGroup(_:)` | ≈ `UIView.animate(withDuration:animations:)` | Tags the changes of its closure with an `Animation`; the outermost call of a turn wins; `Animation::None` is `withAnimation(nil)` | [14](14-animations.md#implicit-animation) |
 | `animation::use_animated` | fn | ≈ `View.animation(_:value:)` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | Hook returning a value that follows its target with the animation of a transaction or its default; a change midway keeps the velocity | [14](14-animations.md#implicit-animation) |
 | `transition::Transition` | struct | `AnyTransition` | — | — | How a view looks when it is gone, on the way in and on the way out; `OPACITY`, `SCALE` and `IDENTITY`, built with `scale`, `offset`, `move_edge`, `combined` and `asymmetric` | [14](14-animations.md#transitions) |
+| `transition::Transition::combined` | method | `AnyTransition.combined(with:)` | — | — | Both transitions at once | [14](14-animations.md#transitions) |
 | `transition::Transition::move_edge` | fn | `.move(edge:)` | — | — | Starts or ends one of the view's own widths or heights beyond an edge | [14](14-animations.md#transitions) |
 | `transition::Presence` | struct | ≈ `if` with `.transition(_:)` | — | — | Holds a view that comes and goes: `Some` shows it, `None` removes it after its transition; `.transition(t)` | [14](14-animations.md#transitions) |
+| `transition::Presence::transition` | method | `.transition(_:)` | — | — | How the view comes and goes | [14](14-animations.md#transitions) |
 | `transition::ContentTransition` | enum | `ContentTransition` | — | ≈ `UIView.transition(with:)` | How a changed view replaces the old one: `Identity` or `Opacity` | [14](14-animations.md#transitions) |
 | `modifiers::StyleModifiers::content_transition` | method | `.contentTransition(_:)` | — | — | Crossfades the view when it changes inside `with_animation` | [14](14-animations.md#transitions) |
 | `animation::use_reduced_motion` | fn | `EnvironmentValues.accessibilityReduceMotion` | `NSWorkspace.accessibilityDisplayShouldReduceMotion` | `UIAccessibility.isReduceMotionEnabled` | Hook returning the live reduced motion preference | [14](14-animations.md#reduced-motion) |

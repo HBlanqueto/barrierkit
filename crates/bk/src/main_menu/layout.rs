@@ -3,7 +3,8 @@ use std::sync::{Arc, Mutex, MutexGuard};
 
 use zbus::zvariant::OwnedValue;
 
-use crate::main_menu::{IdMap, MainMenu, check_state, dbusmenu_label, owned};
+use crate::lock;
+use crate::main_menu::{IdMap, MainMenu, MenuHandle, check_state, dbusmenu_label, owned};
 use crate::menu::{MenuItem, shortcut_keys};
 
 pub type LayoutItem = (i32, HashMap<String, OwnedValue>, Vec<OwnedValue>);
@@ -15,12 +16,12 @@ pub(crate) type Properties = (i32, HashMap<String, OwnedValue>);
 pub(crate) type RemovedProperties = (i32, Vec<String>);
 
 pub(crate) struct RegisteredMenu {
-    pub(crate) handle: crate::main_menu::MenuHandle,
+    pub(crate) handle: MenuHandle,
     pub(crate) last_layout: Mutex<Option<LayoutSnapshot>>,
 }
 
 impl RegisteredMenu {
-    pub(crate) fn new(handle: crate::main_menu::MenuHandle) -> Arc<Self> {
+    pub(crate) fn new(handle: MenuHandle) -> Arc<Self> {
         Arc::new(Self {
             handle,
             last_layout: Mutex::new(None),
@@ -28,7 +29,7 @@ impl RegisteredMenu {
     }
 
     pub(crate) fn layout(&self) -> MutexGuard<'_, Option<LayoutSnapshot>> {
-        self.last_layout.lock().expect("layout lock poisoned")
+        lock(&self.last_layout)
     }
 }
 
@@ -205,22 +206,25 @@ pub(crate) fn diff_layout(registered: &RegisteredMenu, new: LayoutSnapshot) -> U
     }) else {
         return Update::Layout;
     };
-    let mut updated = Vec::new();
-    let mut removed = Vec::new();
-    for (id, node) in &new.nodes {
-        let old_properties = &old.nodes[id].properties;
-        if *old_properties != node.properties {
-            updated.push((*id, node.properties.clone()));
-        }
-        let gone: Vec<String> = old_properties
-            .keys()
-            .filter(|key| !node.properties.contains_key(*key))
-            .cloned()
-            .collect();
-        if !gone.is_empty() {
-            removed.push((*id, gone));
-        }
-    }
+    let updated: Vec<Properties> = new
+        .nodes
+        .iter()
+        .filter(|(id, node)| old.nodes[*id].properties != node.properties)
+        .map(|(id, node)| (*id, node.properties.clone()))
+        .collect();
+    let removed = new
+        .nodes
+        .iter()
+        .filter_map(|(id, node)| {
+            let gone: Vec<String> = old.nodes[id]
+                .properties
+                .keys()
+                .filter(|key| !node.properties.contains_key(*key))
+                .cloned()
+                .collect();
+            (!gone.is_empty()).then_some((*id, gone))
+        })
+        .collect();
     if updated.is_empty() {
         Update::None
     } else {

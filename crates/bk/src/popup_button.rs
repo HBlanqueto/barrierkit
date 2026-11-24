@@ -317,11 +317,7 @@ pub(crate) fn open_popover_menu(
     );
 }
 
-/// AppKit: `NSMenu.popUp(positioning:at:in:)`. Opens `items` beside `rect`, in surface
-/// coordinates, toward `side`, as the Dock opens an icon's menu: its arrow sits in the corner
-/// where the menu starts and points at the centre of that edge of `rect`, and the menu grows
-/// to the right (down beside a side Dock). `on_close` runs when the menu closes, chosen or
-/// dismissed.
+/// A Dock-style menu beside `rect` (surface coordinates) toward `side`; `on_close` runs however it closes.
 pub fn pop_up_menu(
     items: Vec<MenuItem>,
     rect: (i32, i32, u32, u32),
@@ -442,8 +438,7 @@ fn arrow_offset(side: PopupAnchor, arrow: bool) -> (i32, i32) {
     }
 }
 
-/// The band the compositor draws a popover's arrow in, on the edge of a popup that opens
-/// toward `side` of its anchor.
+/// The edge band that holds the arrow of a popup opening toward `side`.
 pub fn arrow_band(side: PopupAnchor, height: f32) -> Gaps {
     match side {
         PopupAnchor::Top => Gaps::new(0.0, 0.0, height, 0.0),

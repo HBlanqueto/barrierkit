@@ -16,7 +16,7 @@ use crate::styles::{
     ShapeStyle, StateValue, Theme, TrafficLightsStyle, WindowChromeStyle, resolve,
     use_provide_theme,
 };
-use crate::titlebar::window_drag_handler;
+use crate::titlebar::use_window_drag;
 use crate::traffic::TrafficLights;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -573,7 +573,7 @@ impl Component for RotatedTitle {
                 let size = event.area.size;
                 area.set_if_modified((size.width, size.height));
             })
-            .on_mouse_down(window_drag_handler(self.fixed))
+            .on_mouse_down(use_window_drag(self.fixed))
             .child(
                 rect()
                     .position(
