@@ -44,7 +44,7 @@ pub async fn open_files(title: &str, multiple: bool, directory: bool) -> Option<
         .title(title)
         .allows_multiple_selection(multiple)
         .allowed_content_types(kinds);
-    Some(run(dialog, None).await)
+    Some(run(dialog, None).await).filter(|paths| !paths.is_empty())
 }
 
 pub async fn save_file(title: &str, current_name: &str) -> Option<PathBuf> {

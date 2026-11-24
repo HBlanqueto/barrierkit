@@ -18,6 +18,7 @@ use crate::notifications::{Notification, WAITING, lock, take};
 
 // customDismissAction reports only an explicit dismissal, not an ignored banner (https://developer.apple.com/documentation/usernotifications/unnotificationdismissactionidentifier), so the oldest callbacks give way.
 const WAITING_LIMIT: usize = 32;
+const POSTED: &str = "barrierkit.post.";
 
 static NEXT: AtomicU32 = AtomicU32::new(0);
 static READY: Once = Once::new();
@@ -71,7 +72,7 @@ fn push_bounded<T>(waiting: &mut Vec<T>, entry: T) {
 }
 
 fn id_of(identifier: &str) -> Option<u32> {
-    identifier.parse().ok()
+    identifier.strip_prefix(POSTED)?.parse().ok()
 }
 
 // A bare binary has no bundle identifier, and UNUserNotificationCenter raises an exception without one.
@@ -84,7 +85,7 @@ pub fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 
     if bundled() {
         push_bounded(&mut lock(&WAITING), (id, Box::new(clicked)));
     }
-    deliver(id.to_string(), notice.summary, notice.body);
+    deliver(format!("{POSTED}{id}"), notice.summary, notice.body);
 }
 
 // `sound` is the name of an NSSound system sound, such as `Glass`.

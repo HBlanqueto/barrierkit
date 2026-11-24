@@ -113,7 +113,11 @@ impl Secrets {
         attributes: &HashMap<&str, &str>,
         secret: &[u8],
     ) -> Result<(), Error> {
-        set_generic_password(&service(attributes), label, secret).map_err(failed)
+        set_generic_password(&service(attributes), label, secret).map_err(failed)?;
+        self.search(attributes)?
+            .iter()
+            .filter(|item| item.label != label && item.attributes.len() == attributes.len())
+            .try_for_each(|item| self.delete(item))
     }
 
     pub fn set_secret(&self, item: &Item, secret: &[u8]) -> Result<(), Error> {
