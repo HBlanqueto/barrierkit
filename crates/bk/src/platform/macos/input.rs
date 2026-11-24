@@ -163,8 +163,12 @@ fn code(key_code: u16) -> Code {
 pub(super) fn key(event: &NSEvent, name: KeyboardEventName) -> PlatformEvent {
     let key_code = event.keyCode();
     let modifiers = modifiers(event.modifierFlags());
-    let characters = event
-        .characters()
+    let characters = if modifiers.intersects(Modifiers::CONTROL | Modifiers::ALT) {
+        event.charactersIgnoringModifiers()
+    } else {
+        event.characters()
+    };
+    let characters = characters
         .map(|text| text.to_string())
         .filter(|text| !text.is_empty() && !text.starts_with(char::is_control));
     let key = match (named(key_code), characters) {
@@ -178,6 +182,34 @@ pub(super) fn key(event: &NSEvent, name: KeyboardEventName) -> PlatformEvent {
         code: code(key_code),
         modifiers,
     }
+}
+
+fn modifier_key(key_code: u16, held: Modifiers) -> Option<(KeyboardEventName, NamedKey)> {
+    let (key, modifier) = match key_code {
+        54 | 55 => (NamedKey::Control, Modifiers::CONTROL),
+        59 | 62 => (NamedKey::Meta, Modifiers::META),
+        58 | 61 => (NamedKey::Alt, Modifiers::ALT),
+        56 | 60 => (NamedKey::Shift, Modifiers::SHIFT),
+        _ => return None,
+    };
+    let name = if held.contains(modifier) {
+        KeyboardEventName::KeyDown
+    } else {
+        KeyboardEventName::KeyUp
+    };
+    Some((name, key))
+}
+
+pub(super) fn modifier_changed(event: &NSEvent) -> Option<PlatformEvent> {
+    let key_code = event.keyCode();
+    let modifiers = modifiers(event.modifierFlags());
+    let (name, key) = modifier_key(key_code, modifiers)?;
+    Some(PlatformEvent::Keyboard {
+        name,
+        key: Key::Named(key),
+        code: code(key_code),
+        modifiers,
+    })
 }
 
 fn as_meta(modifiers: Modifiers) -> Modifiers {
@@ -260,5 +292,51 @@ impl AppInstance {
     pub(crate) fn trackpad(&mut self, event: crate::gesture::Trackpad) {
         self.runner.run_in(|| crate::gesture::trackpad(event));
         self.waker.wake_by_ref();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use objc2_app_kit::NSEventType;
+    use objc2_foundation::{NSPoint, NSString};
+
+    use super::*;
+
+    #[test]
+    fn command_key_goes_down_as_control_and_up_when_released() {
+        assert_eq!(
+            modifier_key(55, Modifiers::CONTROL),
+            Some((KeyboardEventName::KeyDown, NamedKey::Control))
+        );
+        assert_eq!(
+            modifier_key(55, Modifiers::empty()),
+            Some((KeyboardEventName::KeyUp, NamedKey::Control))
+        );
+        assert_eq!(
+            modifier_key(59, Modifiers::META),
+            Some((KeyboardEventName::KeyDown, NamedKey::Meta))
+        );
+        assert_eq!(modifier_key(57, Modifiers::empty()), None);
+    }
+
+    #[test]
+    fn command_option_s_reads_s_not_the_composed_character() {
+        let event = NSEvent::keyEventWithType_location_modifierFlags_timestamp_windowNumber_context_characters_charactersIgnoringModifiers_isARepeat_keyCode(
+            NSEventType::KeyDown,
+            NSPoint::ZERO,
+            NSEventModifierFlags::Command | NSEventModifierFlags::Option,
+            0.0,
+            0,
+            None,
+            &NSString::from_str("ß"),
+            &NSString::from_str("s"),
+            false,
+            1,
+        )
+        .unwrap();
+        assert!(matches!(
+            key(&event, KeyboardEventName::KeyDown),
+            PlatformEvent::Keyboard { key: Key::Character(text), .. } if text == "s"
+        ));
     }
 }

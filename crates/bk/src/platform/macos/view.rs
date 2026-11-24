@@ -244,6 +244,9 @@ define_class!(
         #[unsafe(method(flagsChanged:))]
         fn flags_changed(&self, event: &NSEvent) {
             super::super::input::store_modifier_flags(input::modifiers(event.modifierFlags()));
+            if let Some(key) = input::modifier_changed(event) {
+                self.send(key);
+            }
         }
     }
 
