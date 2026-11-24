@@ -372,7 +372,7 @@ call them on every render, in the same order.
 `main`, before `run()`:
 
 ```rust
-let instance = match launch("io.github.hblanqueto.malaysia.notes") {
+let instance = match launch("com.example.notes") {
     Ok(Launch::Forwarded) => return Ok(()),
     Ok(Launch::Primary(instance)) => Some(instance),
     Err(_) => None,
