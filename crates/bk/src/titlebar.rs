@@ -877,28 +877,8 @@ pub fn sidebar_bar_height() -> f32 {
 }
 
 // Pinned in full screen, an expanded bar is as tall as a unified one, as SwiftUI's.
-fn fullscreen_title_height() -> f32 {
+pub(crate) fn fullscreen_title_height() -> f32 {
     (ctdesign::SETTINGS.toolbar_height - ctdesign::TITLEBAR_CLIENT_HEIGHT) as f32
-}
-
-// (top, height) of the row that rides in AppKit's bar: down with the menu bar in full screen, or over its title bar in the window.
-pub(crate) fn bar_row(expanded: bool, windowed: bool) -> (f32, f32) {
-    if expanded {
-        (
-            if windowed {
-                TITLEBAR_EXPANDED_TITLE_HEIGHT
-            } else {
-                fullscreen_title_height()
-            },
-            ctdesign::TITLEBAR_CLIENT_HEIGHT as f32,
-        )
-    } else {
-        (0.0, ctdesign::SETTINGS.toolbar_height as f32)
-    }
-}
-
-pub(crate) fn in_bar_row(top: f32, height: f32, (row_top, row_height): (f32, f32)) -> bool {
-    top >= row_top && top + height <= row_top + row_height
 }
 
 // The toggle sits at the sidebar's right end while it is docked and after the traffic lights once it is not. Returns how far it moves from where the bar's left zone puts it, and the width it keeps there.

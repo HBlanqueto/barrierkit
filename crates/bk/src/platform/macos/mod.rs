@@ -57,6 +57,26 @@ use crate::platform::macos::blur::PlacedGlass;
 // The system delivers the momentum of a trackpad fling as scroll events.
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
 
+// (top, height) of the row that rides in AppKit's bar: down with the menu bar in full screen, or over its title bar in the window.
+pub(crate) fn bar_row(expanded: bool, windowed: bool) -> (f32, f32) {
+    if expanded {
+        (
+            if windowed {
+                ctdesign::TITLEBAR_EXPANDED_TITLE_HEIGHT
+            } else {
+                crate::titlebar::fullscreen_title_height()
+            },
+            ctdesign::TITLEBAR_CLIENT_HEIGHT as f32,
+        )
+    } else {
+        (0.0, ctdesign::SETTINGS.toolbar_height as f32)
+    }
+}
+
+pub(crate) fn in_bar_row(top: f32, height: f32, (row_top, row_height): (f32, f32)) -> bool {
+    top >= row_top && top + height <= row_top + row_height
+}
+
 pub(crate) fn app_folders(app_id: &str) -> (PathBuf, PathBuf) {
     let folder = std::env::var_os("HOME")
         .map(PathBuf::from)
@@ -233,7 +253,7 @@ impl ChromeLayer {
     fn in_bar_row(&self, row: (f32, f32)) -> bool {
         let (_, top) = self.wanted.placement.origin;
         let (_, strip) = self.wanted.placement.size;
-        crate::titlebar::in_bar_row(top as f32, strip as f32, row)
+        in_bar_row(top as f32, strip as f32, row)
     }
 
     fn views(&self) -> impl Iterator<Item = &NSView> {
@@ -303,7 +323,7 @@ impl Window {
         self.window.toolbar()?;
         // Beside the lights an `.expanded` window gives an accessory only 32 high, so its toolbar row rides as a row of its own below AppKit's strip.
         let expanded = self.window.toolbarStyle() == NSWindowToolbarStyle::Expanded;
-        let row = crate::titlebar::bar_row(expanded, windowed);
+        let row = bar_row(expanded, windowed);
         let width = self.window.screen()?.frame().size.width;
         let view = BarView::new(mtm, self.id, width, row, expanded, windowed);
         let accessory = NSTitlebarAccessoryViewController::new(mtm);

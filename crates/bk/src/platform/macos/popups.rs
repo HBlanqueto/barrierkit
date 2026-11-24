@@ -174,7 +174,7 @@ impl Runtime {
         let bar_drop = revealed.map_or(0.0, |bar| {
             on_screen.origin.y + on_screen.size.height - bar.view.top()
         });
-        let bar_row = revealed.map_or(crate::titlebar::bar_row(false, true), |bar| bar.row);
+        let bar_row = revealed.map_or(crate::platform::macos::bar_row(false, true), |bar| bar.row);
         let visible = window
             .screen()
             .or_else(|| NSScreen::mainScreen(self.mtm))?
@@ -216,7 +216,7 @@ impl Runtime {
 
     fn drop_of(parent: &Parent, spec: &PopupSpec) -> f64 {
         let (_, anchor_top, _, anchor_height) = spec.anchor_rect;
-        if crate::titlebar::in_bar_row(anchor_top as f32, anchor_height as f32, parent.bar_row) {
+        if crate::platform::macos::in_bar_row(anchor_top as f32, anchor_height as f32, parent.bar_row) {
             parent.bar_drop
         } else {
             0.0

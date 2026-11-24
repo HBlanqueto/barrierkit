@@ -54,7 +54,7 @@ impl Dispatch<InfinityWindowManagerV1, ()> for Runtime {
                 } => {
                     let address = (!unique_bus_name.is_empty()
                         && !(menubar_path.is_empty() && app_menu_path.is_empty()))
-                    .then(|| GtkMenusAddress {
+                    .then_some(GtkMenusAddress {
                         unique_bus_name,
                         application_id,
                         menubar_path,
