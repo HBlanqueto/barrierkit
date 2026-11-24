@@ -127,7 +127,7 @@ row.
 
 | Measure | Result |
 |---|---|
-| `Counter` ([`Counter.swift`](../../scripts/swift-to-bk/tests/counter/Counter.swift)) | the output equals [`counter.rs`](../../agents/recipes/counter.rs) except the `.options(..)` line: the recipe adds `min_size`, which has no SwiftUI source |
+| `Counter` | the output equals [`counter.rs`](../../agents/recipes/counter.rs) except the `.options(..)` line: the recipe adds `min_size`, which has no SwiftUI source |
 | Recipes | `swift_counter`, `swift_form`, `swift_lists`, `swift_components`, `swift_styles` translate with an empty report and pass `cargo build -p bk --example` on macOS arm64. They were not run in a window |
 | Incomplete input | `tests/gaps` reports 7 constructs (`ZStack`, `foregroundStyle`, `tag` three times, `Picker`, `keyboardShortcut`) and the output still compiles, because each gap becomes a `rect()` |
 | Tests | 11: the parser, the declaration names, the table (current, statuses, gap rows) and the goldens |

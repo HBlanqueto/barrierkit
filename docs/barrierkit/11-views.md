@@ -228,8 +228,6 @@ Form::new()
     .highlighted(Some("Status".into()))
 ```
 
-![Form with a control row, a value row and a navigation row](../../crates/bk/tests/golden/form-light.png)
-
 | Method | Effect |
 |---|---|
 | `Form::new()` | An empty form |
@@ -295,8 +293,6 @@ Form::new().style(FormStyle::columns).section(
 
 Long titles and details wrap without clipping the control.
 
-![Form with long texts that wrap](../../crates/bk/tests/golden/form-long-text-light.png)
-
 ### Style
 
 `Form::style` takes a `FormStyle`: the cards, the rows and their texts. The
@@ -334,8 +330,6 @@ that the user owns it.
 ### `Table`
 
 Rows of text, or of views, in columns with a header, like `NSTableView`.
-
-![Table sorted by name with one row selected](../../crates/bk/tests/golden/table-light.png)
 
 | Method | Effect |
 |---|---|
@@ -505,8 +499,6 @@ CollectionView::new("Documents")
     .on_select(move |chosen: Vec<usize>| selection.set(chosen))
 ```
 
-![Icon grid with one item selected](../../crates/bk/tests/golden/collection-light.png)
-
 | Method | Effect |
 |---|---|
 | `CollectionView::new(label)` | An empty grid; `label` names it for accessibility |
@@ -601,8 +593,6 @@ TabView::new("Preferences")
     .selected(0)
     .on_change(move |index: usize| tab.set(index))
 ```
-
-![Search and Sound tabs](../../crates/bk/tests/golden/tab-view-top-light.png)
 
 | Method | Effect |
 |---|---|
@@ -730,9 +720,8 @@ content, as SwiftUI's does; an app adds no `center()` of its own.
 | `.actions(element)` | A row under the description, such as a `Button` |
 
 Call them in this order, then `.style` first of all. Sizes, gaps and fonts are
-the `CONTENT_UNAVAILABLE_*` tokens ([4](04-appearance-and-tokens.md)); the
-test `swiftui_defaults` holds them to the frames SwiftUI reports
-(`~/src/probes/contentunavailable.swift`).
+the `CONTENT_UNAVAILABLE_*` tokens ([4](04-appearance-and-tokens.md)), the
+frames SwiftUI reports (`~/src/probes/contentunavailable.swift`).
 
 ### `Sheet`
 
@@ -784,10 +773,6 @@ Alert::new("Forget this network?", "You will have to type the password again.")
     .cancel("Cancel", move |_| close())
     .suppression(dont_ask_again)
 ```
-
-| Empty state | Alert |
-|---|---|
-| ![Empty state with a magnifying glass](../../crates/bk/tests/golden/empty-state-light.png) | ![Alert with Cancel and a primary confirm button](../../crates/bk/tests/golden/alert-light.png) |
 
 | Method | Default | Effect |
 |---|---|---|

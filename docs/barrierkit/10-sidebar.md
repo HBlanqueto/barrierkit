@@ -198,8 +198,6 @@ reports nothing; `.style(f)` takes a `SidebarAccountStyle`.
 SidebarAccount::new("JA", "Jane Appleseed", "Local account")
 ```
 
-![Account row with an avatar, the name and "Local account"](../../crates/bk/tests/golden/sidebar-account-light.png)
-
 ### `SymbolTile`
 
 `SymbolTile::new(glyph, tint)` draws the square tile of a sidebar item:

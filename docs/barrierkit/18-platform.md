@@ -294,9 +294,8 @@ The window and its popups take the system's light or dark, live ([The system's l
 
 1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
-3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (the Wayland code is unused on macOS), the scripts of `scripts/` (`shellcheck` when installed, the `scripts/swift-to-bk` tests when `swiftc` is), and `cargo test` with the `tracy` feature but not `shell`.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (the Wayland code is unused on macOS), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature but not `shell`.
 4. Optional: `./dev.sh macos-smoke` opens every recipe of `agents/recipes` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
-5. Four tests are ignored on macOS: they compare text with goldens drawn in the Linux fonts (`controls_match_their_golden_images`, `keyboard_focus_ring_matches_its_golden_image`, `menu_matches_its_golden_images`, `menu_renders_accents_and_long_shortcuts_without_wrapping`). Linux still runs them.
 
 ### Smoke test on macOS
 
@@ -377,7 +376,7 @@ same names from either: `clipboard`, `instance`, `keychain`,
 bodies. Shared code, including the shared files of `platform/`, calls
 `crate::platform::<name>` and holds no `cfg(target_os)`:
 `scripts/check-platform-cfg.sh` fails on one outside `platform/mod.rs`,
-`platform/linux/`, `platform/macos/`, `crates/bk/tests/` and
+`platform/linux/`, `platform/macos/` and
 `crates/ctappearance/`.
 
 One API in the kit, one provider per system. The names are SwiftUI's and

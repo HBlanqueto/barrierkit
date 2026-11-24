@@ -86,9 +86,6 @@ before the `Backdrop` renders, still reads the system palette.
 ✗ `Backdrop::new(source, Text::new(title))`, built in the parent's render.
 ✓ `Backdrop::new(source, Player)`, with `Player` a `Component`.
 
-![Form over a tinted backdrop, light mode](../../crates/bk/tests/golden/backdrop-light.png)
-![Form over a tinted backdrop, dark mode](../../crates/bk/tests/golden/backdrop-dark.png)
-
 `Backdrop::style(|s| ..)` changes the angles and opacity of the gradient
 layers and the fade of a new source; the fields are in
 [Styles and themes](../../crates/bk/src/styles/backdrop.rs).
@@ -178,8 +175,7 @@ because the compositor does not serve them yet: `GlassContainer` (the lens and
 the merging) and the per-control `ShapeStyle::Material(Thickness)` (a material per
 control would exceed the requesters). The sidebar is not Skia: from version 10 it is a `behind_window` request for the `sidebar`
 material, before that `set_glass`
-([18](18-platform.md#wayland-protocols)). `./dev.sh check` runs the tests of
-this path against a fake compositor; a real session needs Malaysia to serve the
+([18](18-platform.md#wayland-protocols)). A real session needs Malaysia to serve the
 requests ([18](18-platform.md#glass-over-the-windows-content)).
 
 ### On macOS

@@ -3,8 +3,7 @@
 **Goal:** let an AI agent (for example Claude, in a claude.ai artifact) draw
 an HTML page that looks like a BarrierKit app.
 **Scope:** from a description of a window to one HTML file built only from
-BarrierKit tokens. Writing the real app in Rust is in [`prompt.md`](prompt.md);
-measuring the page against the kit is in [`compare.md`](compare.md).
+BarrierKit tokens. Writing the real app in Rust is in [`prompt.md`](prompt.md).
 **Reader:** an AI agent. Read it whole before drawing.
 **Input:** a task, a SwiftUI sketch or an existing app. **Output:** one HTML
 file whose controls carry `data-bk` and whose values all come from
@@ -24,21 +23,20 @@ the kit's name.
 2. Put [`tengen.css`](tengen.css) in the page: a `<link>` inside the repo, or
    its whole text in a `<style>` in an artifact, which cannot load local files.
    Never edit its values; it is generated from `crates/ctdesign/tengen`.
-3. Load Geist from Google Fonts, the family that `--bk-font-families-sans`
-   names first.
+3. Load Inter from Google Fonts. `--bk-font-families-sans` names Adwaita
+   Sans first, which Google Fonts does not serve, and Inter second.
 4. Build each control as one element with the class `bk-<name>` and the
    attribute `data-bk="<View> <label>"`, for example
-   `<button class="bk-button" data-bk="Button Guardar">`. The attribute pairs
-   it with the kit when you measure.
+   `<button class="bk-button" data-bk="Button Guardar">`.
 5. Take every value from a variable. Numbers in `tengen.css` have no unit:
    write `calc(var(--bk-button-height) * 1px)`.
 6. Paint with the roles below, never with a color of your own.
-7. To check the page against the kit, follow [`compare.md`](compare.md).
 
 ## Roles
 
-A control's style names a `Role`; its color is one variable. Source:
-`Palette::system` in `crates/bk/src/style.rs`.
+A control's style names a `Role`; its color is one variable. Sources:
+`Role::color` in `crates/bk/src/styles.rs` and `Palette::system` in
+`crates/bk/src/style.rs`.
 
 | `Role` | Variable |
 |---|---|
@@ -51,11 +49,25 @@ A control's style names a `Role`; its color is one variable. Source:
 | `WindowBackground` | `--bk-bg-window` |
 | `ContentBackground` | `--bk-bg-surface` |
 | `ControlBackground` | `--bk-bg-control` |
+| `SystemFill` | `--bk-system-fill` |
+| `ControlBackgroundDisabled` | `--bk-bg-control-disabled` |
+| `TextBackground` | `--bk-text-background` |
 | `ControlHover` | `--bk-bg-hover` |
 | `Accent` (`ShapeStyle::Accent`) | `--bk-accent` |
 | `AccentInactive` | `--bk-accent-inactive` |
 | `OnAccent` | `--bk-on-accent` |
+| `ToggleAccent` | `--bk-accent-toggle` |
+| `RowAccent` | `--bk-accent-toggle`, lifted on a dark `Form` row |
+| `ToggleAccentDisabled` | `--bk-accent-toggle-disabled` |
+| `SelectedContent` | `--bk-selected-content` |
+| `SelectedContentInactive` | `--bk-selected-content-inactive` |
+| `OnSelectedContent` | `--bk-on-accent` |
+| `SeparatorStrong` | `--bk-separator-strong` |
+| `ComboButton` | `--bk-combo-button` |
+| `SegmentDivider` | `--bk-segment-divider` |
+| `RingAccent` | `--bk-accent-ring` |
 | `Destructive` | `--bk-danger` |
+| `DestructiveFill` | `--bk-danger` at the alpha `--bk-button-destructive-fill` |
 | `RaisedBackground` | `--bk-bg-raised` |
 | `SunkenBackground` | `--bk-bg-sunken` |
 | `Scrim` | `--bk-scrim` |
@@ -75,20 +87,10 @@ some of these colors at run time; the variables hold the untinted values.
 | `--bk-<component>-*` | `components.json` › `components` | `--bk-button-padding-x` |
 | `--bk-<component>-<list>-<i>`, `--bk-<component>-<list>-<i>-<field>` | one item of a list in `components.json`, by index | `--bk-list-group-padding-0`, `--bk-settings-accents-0-light-control` |
 
-## Example
-
-Each file of [`twins/`](twins/) draws one scene of
-`crates/bk/tests/kit/controls.rs` with the name of its golden image:
-`button`, `switch`, `slider`, `segmented-control`, `text-field`, `form` and
-`preferences` (a whole `SettingsWindow`). Start from the closest one.
-
 ## Rules
 
 1. One file. Only `tengen.css` and Google Fonts come from outside.
-2. No literal colors, sizes or fonts. A twin of a golden image has two
-   exceptions: the white page ([`compare.md`](compare.md#steps)) and the
-   layout numbers its scene in `crates/bk/tests/kit/controls.rs` writes as
-   literals, such as a stack's width.
+2. No literal colors, sizes or fonts.
 3. Every control has `class="bk-<name>"` and `data-bk="<View> <label>"`.
 4. The text is the app's text, in the app's language.
 5. Effects the browser cannot draw the same way (Skia's superellipse corners,

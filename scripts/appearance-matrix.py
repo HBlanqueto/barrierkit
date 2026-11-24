@@ -243,8 +243,6 @@ def main():
     parser.add_argument("--transparency", choices=["blur", "rt"], required=True)
     parser.add_argument("--surface", action="append")
     parser.add_argument("--keep", help="directory that keeps the captures")
-    parser.add_argument("--references", action="store_true",
-                        help="with rt: also captures the SwiftUI side of the five twins into crates/bk/tests/reference")
     parser.add_argument("--live-capture", metavar="DIR", help="the live half, before and after the user flips Reduce Transparency (see live_capture)")
     parser.add_argument("--live-compare", metavar="DIR", help="with rt: compares a fresh kit capture with the live one of DIR")
     options = parser.parse_args()
@@ -261,12 +259,6 @@ def main():
         if options.live_capture:
             live_capture(work, options.live_capture, [s for s in chosen if s.live])
             return
-        if options.references:
-            for twin in ("notes", "tasks", "form", "controls", "standalone"):
-                for scheme in ("light", "dark"):
-                    out = os.path.join(ROOT, "crates", "bk", "tests", "reference", f"swiftui-{twin}-{scheme}-rt.png")
-                    run(os.path.join(ROOT, "scripts", "twin-reference.sh"), twin, scheme, out)
-                    print(f"reference {twin} {scheme}-rt captured")
         for surface in chosen:
             for scheme in ("light", "dark"):
                 cell = f"{scheme}-{options.transparency}"

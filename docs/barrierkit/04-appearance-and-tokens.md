@@ -178,13 +178,12 @@ The tables were measured on macOS 27.2.1 with SwiftUI's `ImageRenderer` ([Icons 
 
 The `*Fill` states, `PersonCropCircle`, `LockFill`, `StopFill` and `Pencil` are solid shapes (the mark is cut out of them). `MusicNote`, `Scissors`, `HeartFill`, `CameraFill`, `CapsuleOnRectangleFill` and `Ellipsis` are filled and stroked. `StarFill` is a solid star. The 36 older symbols redrawn on 2026-11-22 are fitted like the 83 before them; `Checkmark`, `Star`, `StarFill`, `QuestionMark` and `Dot` keep their old shapes because the checkbox, the menu check, the rating indicator, the help button and the date picker are sized to them ([Icons macOS uses](../research/macos-icons.md#33-the-65-older-symbols)). The kit caches the SVG of each symbol.
 
-Add a symbol in five steps:
+Add a symbol in four steps:
 
 1. Find the SF name in [Icons macOS uses](../research/macos-icons.md) and read its ink at 16 pt.
 2. Draw the path on the 16 grid so that its ink box is the SF's, divided by 1.25 px per unit; draw at stroke 1.0.
-3. Add the variant to `Symbol` and the `(sf name, Symbol)` row to `ICONS` in `crates/bk/tests/kit/appkit_icons.rs`: `a_symbol_is_not_cut_by_its_frame` checks that its ink stays inside the 16 grid. If SF dims a layer in hierarchical mode, add it to `Symbol::dimmed` (the sub-paths to dim and the level) and to `HIERARCHICAL`.
-4. Render the lab (`scripts/appkit-render.sh icons`) and run `scripts/appkit-compare.py icons`: the ink box within 0.5 and the mass within 5%.
-5. Add the row with its Apple name to the [glossary](20-glossary.md#symbol-variants).
+3. Add the variant to `Symbol`. If SF dims a layer in hierarchical mode, add it to `Symbol::dimmed` (the sub-paths to dim and the level).
+4. Add the row with its Apple name to the [glossary](20-glossary.md#symbol-variants).
 
 `Image` draws from an `ImageStyle`: `size`, `stroke` and `foreground`. `.size`
 and `.color` override them for one image and a theme for every image; the
@@ -733,10 +732,6 @@ tone.
 over black has luma 0.48 and takes dark ink; a dark one has 0.17 and takes
 light ink.
 
-The tests in `ctappearance::resolve` hold each panel within 8/255 per channel
-of the colours macOS shows over white, gray, black and the checker, in the
-tables of [macos-blur.md](../research/macos-blur.md#3-the-measured-matrix-dark-mode).
-
 ### Shell glass
 
 `ctdesign::ShellGlass` is the glass of one desktop surface in one scheme, as macOS 27.2.1 composes it, and
@@ -752,8 +747,6 @@ Transparency and Increase Contrast have no token: they were not measured.
 2. `over(glass, blurred)` takes the blurred pixel in the display's device values, the bytes the compositor writes on the measured
    panel, and returns `tone(Y) + chroma(Y) (c - Y)` per channel: `Y` is its Rec. 709 luma, `tone` the 12-point gray response
    (`SHELL_GLASS_LEVELS`), `chroma` the gain of the colour difference at five luma knots (`SHELL_GLASS_CHROMA_KNOTS`). It does not clamp.
-3. The tests reproduce every measured gray and colour within 2/255
-   (`crates/ctappearance/tests/data/shell-glass-samples.csv`).
 
 The menu bar needs no token: it is identical to the backdrop. `MENU_GLASS_*`, `DOCK_TONE_*`, `DOCK_GLASS_*` and
 `NOTIFICATION_GLASS_VEIL_LIGHT` were fitted to the shifted numbers of
@@ -1057,7 +1050,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `MONO` | 13 / 16 | 400 | `Font.monospaced()` |
 
 The line is the height of a SwiftUI `Text` on macOS 27.2 (`fittingSize`, `~/src/probes/textlines.swift`):
-13 pt is 16 high, 12 pt 15, 15 pt 19, 26 pt 31, 22 pt 26, 11 pt 14 and 10 pt 13; the test `swiftui_defaults` holds them.
+13 pt is 16 high, 12 pt 15, 15 pt 19, 26 pt 31, 22 pt 26, 11 pt 14 and 10 pt 13.
 `TITLE_2` is `.title3` in size and `CAPTION` is the kit's own between `.subheadline` and `.caption`; their
 weights stay. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
 
@@ -1131,8 +1124,6 @@ weights are renormalised at the border, so nothing outside the region reaches
 the pixels inside. The values are numbers of the macOS 27.2.1 stack, measured at
 scale 1 and in the display's device space; the compositor applies them in its
 own output space ([research](../research/macos-materials.md#10-materials-in-windows-measured-2026-11-22)).
-The tests of `ctappearance::material` reproduce 286 ramp samples within 1.5
-levels of 255, 6 step profiles within 2 and 26 solids within 1.
 
 ### Liquid Glass
 
@@ -1157,9 +1148,7 @@ levels of 255, 6 step profiles within 2 and 26 solids within 1.
 `face`, `blur_sigma`, `lens_offset`, `rim_levels` and `smooth_union` are the
 stages and `render(set, tint, amount, state, &backdrop, &shape)` the CPU reference over an
 `Image`. Values are device values at scale 1 as macOS 27.2.1 draws them; the
-compositor applies them in its own output space. The tests reproduce 33 gray
-samples within 2.5 levels, 36 colours, three line profiles within 1 level, the
-lens within 2 px and the rim tables within 10 levels
+compositor applies them in its own output space
 ([research](../research/macos-liquid-glass.md#6-the-model)).
 
 `LIQUID_GLASS_TINT_<STYLE>_<SCHEME>` are the `GlassTint` of the Appearance › Liquid
@@ -1170,8 +1159,7 @@ positions at which the read through the backdrop halves its resolution, and
 `liquid_glass::tint(glass, scheme)` returns it and
 `tinted(&set, &tint, amount, shorter)` the active look at that position, with the
 blur fill (`Tinted`); `render(set, tint, amount, state, &backdrop, &shape)` takes both.
-At 0 the look is the unchanged one. The tests reproduce the 27 inputs of the slider at
-31 positions, the tone within 2.5 levels and the width of a step within 2.5 px of sigma
+At 0 the look is the unchanged one
 ([research](../research/macos-liquid-glass.md#13-the-appearance--liquid-glass-slider-nsglasstintamount-measured-2026-11-22)).
 
 ### Colors

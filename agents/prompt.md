@@ -127,5 +127,4 @@ version.
 | Tinted backdrops, glass, artwork | [`15-backdrops-and-media.md`](../docs/barrierkit/15-backdrops-and-media.md) |
 | Translate the app | [`17-languages.md`](../docs/barrierkit/17-languages.md) |
 | Draw the app as an HTML artifact | [`artifacts.md`](artifacts.md) |
-| Measure an artifact against what the kit draws | [`compare.md`](compare.md) |
 | Change the kit itself | [`AGENTS.md`](../AGENTS.md) and [`03-layers.md`](../docs/barrierkit/03-layers.md) |

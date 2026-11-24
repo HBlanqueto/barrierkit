@@ -78,11 +78,6 @@ Three controls keep no copy and only show what the app passes: `RatingIndicator`
   literals.
 - Most controls take `.key(..)` (Freya's `KeyExt`) to keep their state in lists.
 
-![Focus ring after Tab](../../crates/bk/tests/golden/focus-ring-light.png)
-
-Each image is a golden render from `crates/bk/tests/kit/controls.rs`, in light and
-dark (`-dark.png`).
-
 ## Modifiers on controls
 
 Every control takes Freya's container modifiers and the kit's
@@ -243,10 +238,6 @@ Button::new("Save").style(ButtonStyle::bordered_prominent)
 Button::new("Delete").disabled(true)
 ```
 
-| Light | Dark |
-|---|---|
-| ![Tengen, bordered prominent and disabled buttons](../../crates/bk/tests/golden/button-light.png) | ![The same buttons in dark](../../crates/bk/tests/golden/button-dark.png) |
-
 ### Style
 
 `Button` draws only from a `ButtonStyle`. `.style(..)` takes a preset or a
@@ -340,8 +331,6 @@ ToggleGroup::new("Format")
     .item("I", Face::Italic, "Italic", false)
     .item("U", Face::Underline, "Underline", false)
 ```
-
-![Icon button, stepper and toggle group](../../crates/bk/tests/golden/compact-light.png)
 
 ### Style
 
@@ -461,10 +450,6 @@ Switch::new("Inactive").on(true).disabled(true)
 Checkbox::new("Remember me").checked(true)
 ```
 
-| Switches | Checkbox |
-|---|---|
-| ![Off, on and inactive switches](../../crates/bk/tests/golden/switch-light.png) | ![Checked checkbox](../../crates/bk/tests/golden/checkbox-light.png) |
-
 ### Style
 
 `Switch` draws only from a `SwitchStyle` and `Checkbox` from a
@@ -530,14 +515,6 @@ PopUpButton::new("Traffic lights")
 ColorWell::accents("Accent color").multicolor("Multicolor").selected(Some(0))
 ```
 
-| Radio | Segmented |
-|---|---|
-| ![Active and inactive radio groups](../../crates/bk/tests/golden/radio-group-light.png) | ![Segmented control with the second segment chosen](../../crates/bk/tests/golden/segmented-control-light.png) |
-
-| Pop-up | Pop-up with icon | Color swatches |
-|---|---|---|
-| ![PopUpButton](../../crates/bk/tests/golden/popup-button-light.png) | ![PopUpButton with an SVG icon](../../crates/bk/tests/golden/popup-button-icon-light.png) | ![ColorWell with eight accents](../../crates/bk/tests/golden/color-well-light.png) |
-
 ### Style
 
 `SegmentedControl` draws only from a `SegmentedControlStyle`: the group, each
@@ -601,10 +578,6 @@ LevelSlider::new("Brightness").value(0.3)
 LevelSlider::new("Volume").value(0.6).style(|s| s.fat(Symbol::SpeakerWave))
 ```
 
-| Stepped | Regular and fat |
-|---|---|
-| ![Stepped slider](../../crates/bk/tests/golden/slider-light.png) | ![Regular and fat LevelSlider](../../crates/bk/tests/golden/level-slider-light.png) |
-
 ### Style
 
 `Slider` draws only from a `SliderStyle` ([ADR 0064](../decisions.md)).
@@ -655,10 +628,6 @@ let password = use_state(PasswordField::default);
 SecureField::new(password, "Password").on_submit(move |secret| sign_in(secret))
 ComboBox::new(shell, "Shell").item("zsh").item("fish")
 ```
-
-| Text and search | Password |
-|---|---|
-| ![TextField and SearchField](../../crates/bk/tests/golden/text-field-light.png) | ![SecureField](../../crates/bk/tests/golden/secure-field-light.png) |
 
 ### Style
 
@@ -830,8 +799,6 @@ ProgressRing::new("Downloading", 0.4)
 Spinner::new("Loading")
 ```
 
-![Determinate bar, indeterminate bar, ring and spinner](../../crates/bk/tests/golden/progress-light.png)
-
 ### Style
 
 `ProgressView`, `ProgressRing` and `Spinner` draw from a `ProgressViewStyle`, a
@@ -901,8 +868,6 @@ Avatar::named("Jane Appleseed").picture("/var/lib/face.png")
 Link::new("Learn more…")
 ```
 
-![Badge, divider, avatar and link](../../crates/bk/tests/golden/adornments-light.png)
-
 ### Style
 
 `Link` draws from a [`LinkStyle`](../../crates/bk/src/styles/link.rs): its paint and
@@ -970,8 +935,6 @@ measures are in [UIKit animations](../research/uikit-animations.md#6-scroll) and
 ```rust
 ScrollView::new().height(Size::px(120.0)).child(list)
 ```
-
-![ScrollView with three items](../../crates/bk/tests/golden/scroll-view-light.png)
 
 ### Scroll position
 
@@ -1108,8 +1071,7 @@ On Linux the modifiers set the same node data and AT-SPI reads it; `accessibilit
 6. Paint only with `Palette::current()` and `ctdesign` tokens ([4](04-appearance-and-tokens.md)).
    New metrics go to `ctdesign`.
 7. If the control keeps a value, follow [the controlled pattern](#the-controlled-pattern).
-8. Add its case to `tests/kit/controls.rs`, in light and dark.
-9. Inside `bk`, take the [modifiers](#modifiers-on-controls): hold
+8. Inside `bk`, take the [modifiers](#modifiers-on-controls): hold
    `overrides: Overrides` (start it with `Overrides::default()`), add
    `forward_overrides!(Pill);` and end `render` with `self.overrides.apply(root)`, where `root` is
    the outermost node. A control that renders another control ends with

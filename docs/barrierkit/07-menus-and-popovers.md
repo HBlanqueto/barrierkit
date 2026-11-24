@@ -122,7 +122,7 @@ action's `id` through `on_activate`, then calls `on_dismiss_all`.
 |---|---|
 | `.with_surface(SurfaceKind)` | Palette for a window (`Toplevel`) or a shell surface (`LayerShell`, default). `SurfaceKind` is in `bk::theme` |
 | `.with_popover_metrics()` | Uses the `MENU_POPOVER` sizes (24 px rows, 4 px padding, 180 px minimum width), the look of an app menu on macOS |
-| `.with_fixed_palette(MenuPalette)` | A fixed palette that ignores the appearance (render tests use `MENU_LIGHT` and `MENU_DARK`) |
+| `.with_fixed_palette(MenuPalette)` | A fixed palette that ignores the appearance, such as `MENU_LIGHT` or `MENU_DARK` |
 | `.with_items_source(f)` | Reads the items from `f` on every render instead of the fixed list |
 | `.with_focused_index(Some(i))` | The row focused when it opens |
 | `.with_popup_spec(spec)` | The `PopupSpec` the menu was opened with; the menu uses its anchor to place revealed menus |
@@ -151,11 +151,6 @@ The keyboard works while the menu is open:
 A menu taller than its popup shows scroll arrows at the ends. Hovering one
 scrolls a third of a row every `MENU_SCROLL_TICK_MS` (30 ms); the wheel also
 scrolls.
-
-| Light | Dark |
-|---|---|
-| ![Menu with a shortcut, checkboxes, radios, a disabled row and a submenu](../../crates/bk/tests/golden/menu-view-light.png) | ![The same menu in dark](../../crates/bk/tests/golden/menu-view-dark.png) |
-| ![Two rows with shortcuts, the second disabled](../../crates/bk/tests/golden/menu-view-accents-light.png) | ![The same rows in dark](../../crates/bk/tests/golden/menu-view-accents-dark.png) |
 
 ### Style
 

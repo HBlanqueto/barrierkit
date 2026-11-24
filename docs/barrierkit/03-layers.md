@@ -71,8 +71,7 @@ other token comes from `ctdesign`, which the app then adds as a dependency.
 3. Layer 0 has one exception: `platform` mounts the root of each window
    (`chrome::window_root`), paints its background with `theme`, and serves the
    menu bar menu and the status item (`main_menu`, `status_item`).
-4. Tests (`#[cfg(test)]`) mount whole windows and may use any layer.
-5. Layer 3 composes only the public API of layer 2. What a pattern needs is
+4. Layer 3 composes only the public API of layer 2. What a pattern needs is
    added to layer 2, so every app gets it.
 6. An app may use any layer. A settings app uses layer 3; a player composes
    layer 2; a special view draws with Freya's `rect` and `label` and the

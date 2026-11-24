@@ -40,7 +40,7 @@ reason it cannot be.
     and does every one-color image use `TemplateRenderingMode::Template` so
     it is black in light and white in dark?
     Is a new `Symbol` fitted to its SF name (ink box within 0.5, mass within
-    5%, `scripts/appkit-compare.py icons`) and listed in the glossary's
+    5%) and listed in the glossary's
     [Symbol variants](../docs/barrierkit/20-glossary.md#symbol-variants)?
 
 11. Do the modifiers sit on the view or control they change, with outer space

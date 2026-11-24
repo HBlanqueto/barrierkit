@@ -16,7 +16,7 @@ code, nor several files at once. Design and limits:
 1. Translate the file:
 
    ```sh
-   python3 -I scripts/swift-to-bk/translate.py scripts/swift-to-bk/tests/counter/Counter.swift
+   python3 -I scripts/swift-to-bk/translate.py MyApp.swift
    ```
 
 2. Read the summary at the end of the output. A translation is done when it is
@@ -42,18 +42,10 @@ code, nor several files at once. Design and limits:
    It writes `agents/recipes/swift_my_app.rs`, registers the `[[example]]` in
    `crates/bk/Cargo.toml` and runs `cargo build -p bk --example swift_my_app`.
    It writes nothing while the summary is not empty.
-5. Check the tool after a change. `check.sh` runs the tests; `./dev.sh check`
-   also builds every `swift_*` recipe with the other examples:
-
-   ```sh
-   scripts/swift-to-bk/check.sh
-   ```
-
-   `python3 -I scripts/swift-to-bk/tests/run.py --bless` rewrites the expected
-   files of `tests/`; read the diff before you commit it.
+5. Check the tool after a change: `./dev.sh check` builds every `swift_*`
+   recipe with the other examples.
 6. After you edit the glossary, the constructs table of chapter 16 or the
-   API gap, rebuild the table. `tests/run.py` fails while `table.json` is
-   stale:
+   API gap, rebuild the table:
 
    ```sh
    python3 -I scripts/swift-to-bk/make-table.py

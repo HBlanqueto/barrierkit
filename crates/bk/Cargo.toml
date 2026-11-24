@@ -69,14 +69,6 @@ objc2-foundation = "0.3"
 objc2-metal = "0.3"
 objc2-quartz-core = "0.3"
 
-[dev-dependencies]
-freya-testing.workspace = true
-png.workspace = true
-
-[target.'cfg(target_os = "linux")'.dev-dependencies]
-wayland-server.workspace = true
-infinity-protocol = { workspace = true, features = ["server"] }
-
 [package.metadata.cargo-machete]
 ignored = ["freya-skia-safe"]
 

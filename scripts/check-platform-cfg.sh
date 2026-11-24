@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 violations=$(grep -rn 'target_os' --include='*.rs' crates \
-    | grep -Ev '^crates/(bk/src/platform/(mod\.rs|linux/|macos/)|bk/tests/|ctappearance/)' || true)
+    | grep -Ev '^crates/(bk/src/platform/(mod\.rs|linux/|macos/)|ctappearance/)' || true)
 
 if [[ -n "$violations" ]]; then
     echo "target_os belongs in crates/bk/src/platform/{mod.rs,linux/,macos/}, crates/ctappearance/ and Cargo.toml:" >&2

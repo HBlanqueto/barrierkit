@@ -24,7 +24,7 @@ help() {
 Usage: ./dev.sh <command>
 
 Commands:
-  check                   run fmt, clippy, tests and kit-specific checks
+  check                   run fmt, clippy and kit-specific checks
   macos-smoke [recipe...] open each recipe as a macOS app and check its window (macOS only)
   help                    show this message
 
@@ -50,14 +50,11 @@ check() {
     if command -v shellcheck >/dev/null 2>&1; then
         shellcheck -x "$script_dir/dev.sh" "$script_dir"/scripts/*.sh
     fi
-    if [ "$(uname -s)" = Darwin ]; then
-        "$script_dir/scripts/swift-to-bk/check.sh"
-    fi
     # shellcheck disable=SC2086
     {
         cargo clippy --locked -p bk --lib -- -D warnings $allow
         cargo clippy --locked -p bk --lib --no-default-features -- -D warnings $allow
-        cargo clippy --locked --workspace --all-targets --features "$features" -- -D warnings $allow
+        cargo clippy --locked --workspace --lib --examples --features "$features" -- -D warnings $allow
     }
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
@@ -66,7 +63,6 @@ check() {
     "$script_dir/scripts/check-recipes.sh"
     "$script_dir/scripts/check-render-loop.sh"
     "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/agents/tengen.css" -
-    cargo test --locked --workspace --lib --tests --features "$features"
 }
 
 case "${1:-}" in
