@@ -6,7 +6,7 @@ language, and know which `ctdesign` constant carries it.
 constants that `bk` and Malaysia (compositor, shell, portal) read,
 and how `ctappearance` combines them with the user's appearance. Using the
 constants in an app is in
-[4. Appearance and tokens](../barrierkit/04-appearance-and-tokens.md).
+[4. Appearance and tokens](04-appearance-and-tokens.md).
 **Reader:** whoever changes a colour, a metric, a font or a design threshold.
 **Input:** `tengen/tokens.json` and `tengen/components.json`.
 **Output:** `$OUT_DIR/tengen.rs`, compile-time constants that
@@ -98,7 +98,7 @@ each.
    macOS 26 does: `WALLPAPER_TINTING` of its chroma and
    `WALLPAPER_TINTING_LIFT` of the way to `WALLPAPER_TINTING_TARGET`, times
    `tint_strength`, in the parts of `tint_parts`
-   ([4](../barrierkit/04-appearance-and-tokens.md#wallpaper-behind-a-window)).
+   ([4](04-appearance-and-tokens.md#wallpaper-behind-a-window)).
 4. The dominant colour and the wallpaper grid come from `wallpaper.state` in
    the data dir (`~/.local/share/malaysia/wallpaper.state`).
    `malaysia-wallpaper` writes it with `ctappearance::write_wallpaper_state`.
@@ -109,7 +109,7 @@ each.
 
 The kit, the compositor and the portal watch `appearance.domain` and
 `wallpaper.state` and resolve again when either changes
-([18. Platform](../barrierkit/18-platform.md#the-runner)).
+([18. Platform](18-platform.md#the-runner)).
 
 ## Checks
 

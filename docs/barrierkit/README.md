@@ -3,7 +3,7 @@
 **Goal:** find the chapter that answers a question about the kit.
 **Scope:** BarrierKit from the first window to the macOS and Wayland runners. Decisions
 are in [`docs/decisions.md`](../decisions.md); the Tengen visual language is in
-[`docs/architecture/tengen.md`](../architecture/tengen.md).
+[`tengen.md`](tengen.md).
 **Reader:** anyone who writes an app with the kit or works inside it. It
 assumes basic Rust.
 **Input:** a question. **Output:** the chapter, or the glossary row, that

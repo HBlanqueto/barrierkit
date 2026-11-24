@@ -21,7 +21,7 @@ Decision:
 - The themes are `light` (default), `dark` and `dark-tint`.
 - The kit draws the look itself; no alias keeps an old name or path.
 Why: the kit, the shell and the compositor read the same values from one place.
-Code: `crates/ctdesign/tengen/`, `crates/ctdesign/build.rs`, [Tengen](architecture/tengen.md)
+Code: `crates/ctdesign/tengen/`, `crates/ctdesign/build.rs`, [Tengen](barrierkit/tengen.md)
 
 ## 0033 · 0034 · 0056 — Render stack
 Decision:

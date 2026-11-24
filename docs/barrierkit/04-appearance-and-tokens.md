@@ -7,7 +7,7 @@ covers `style`, `theme`, `symbol`, fonts, the whole of `ctdesign` and the
 whole of `ctappearance`. Backdrops and their tints are in
 [15](15-backdrops-and-media.md); traffic lights as a control in
 [9](09-titlebars.md); the language of the text in [17](17-languages.md); how
-`build.rs` reads the JSON in [Tengen](../architecture/tengen.md).
+`build.rs` reads the JSON in [Tengen](tengen.md).
 **Reader:** anyone who designs an app or a component.
 **Input:** an app from [2](02-first-app.md). **Output:** a view that uses only
 tokens and the palette, and follows the user's appearance.
