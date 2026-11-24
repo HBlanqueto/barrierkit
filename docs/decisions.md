@@ -44,7 +44,7 @@ Code: `crates/bk/src/platform/window.rs`
 ## 0039 — Infinity v1
 Decision: `infinity_window_manager_v1` is a private Wayland protocol for the shell's window management. `infinity-protocol` generates the client side (feature `client`, with `shell` for this protocol) and the server side (feature `server`, used by the compositor). Only `bk-shell` binds it; the compositor decides which clients may bind it.
 Why: the standard protocols do not cover what the Dock and the menu bar need from the compositor.
-Code: `crates/infinity-protocol/protocols/`, `crates/bk-shell/src/infinity.rs`, [Globals](shell/bk-shell.md#globals)
+Code: `crates/infinity-protocol/protocols/`, `crates/bk-shell/src/infinity.rs`, [Globals](shell/10-run-and-debug.md#globals)
 
 ## 0047 — BarrierKit in layers
 Decision: `bk` is one crate in four layers (platform, primitives, views, patterns) plus a cross-cutting `app`. A layer uses only the layers below it, and patterns compose only the public API of views. Code only Malaysia's shell uses lives in `crates/bk-shell`, which reaches the runner through `bk`'s hidden `shell` feature.

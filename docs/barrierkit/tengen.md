@@ -42,7 +42,7 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
    `NAME type path`, for example `SPACE_4 f32 space.4`. For a value that
    changes per theme, use the `THEMED` table and write `{theme}` in the path.
    A value only the desktop reads goes in the table of `crates/ctshell/build.rs`
-   instead ([ctshell](../shell/ctshell.md#tokens-ctshelldesign)).
+   instead ([ctshell](../shell/09-shell-tokens.md)).
 3. If the type is a new struct, declare it in `src/lib.rs`, one `pub field:
    Type,` per line. Each field reads the key with its name in kebab case
    under the path (`hide_delay` → `hide-delay`); an underscore may also open
@@ -88,7 +88,7 @@ each.
 | Durations | `duration.fast` 120, `base` 250, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |
 | Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.unfocused` (blur 0.45, offset 0.4, opacity 0.55) | `SHADOW`, `SHADOW_DARK` |
 | Controls | `components.<control>` | `BUTTON`, `SWITCH`, `SLIDER`, `TEXT_FIELD`… |
-| Shell | `components.shell` | What the kit reads: `MENUBAR_HEIGHT`, `MENUBAR_TINT_SPREAD`, the Dock's frame, label and menu, `MENU_*`, `SHELL_*`; the rest is in [`ctshell::design`](../shell/ctshell.md#tokens-ctshelldesign) |
+| Shell | `components.shell` | What the kit reads: `MENUBAR_HEIGHT`, `MENUBAR_TINT_SPREAD`, the Dock's frame, label and menu, `MENU_*`, `SHELL_*`; the rest is in [`ctshell::design`](../shell/09-shell-tokens.md) |
 | Appearance factors | `appearance`: `dominant`, `tint-strength`, `modes`, `layer-factors`, `wallpaper-tinting`, `contrast`, `accessibility` | `DOMINANT_*`, `TINT_STRENGTH`, `WINDOW_TINT_*`, `ACCENT_CHROMA_GAIN`, `LAYER_FACTOR_*`, `WALLPAPER_TINTING*`, `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST`, `TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` |
 
 ## Appearance and wallpaper

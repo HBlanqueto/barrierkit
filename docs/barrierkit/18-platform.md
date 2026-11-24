@@ -27,7 +27,7 @@ other than Malaysia.
 ## The runner
 
 `run_window` and the shell's `run_layer` and `run_lock`
-([bk-shell](../shell/bk-shell.md)) share one runner
+([bk-shell](../shell/01-what-is-the-shell-kit.md)) share one runner
 (`platform::runtime::Runtime`). It does this, in order:
 
 1. Connects to `$WAYLAND_DISPLAY` with smithay-client-toolkit and binds the
@@ -123,7 +123,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
 | `infinity_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
-| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests ([bk-shell](../shell/bk-shell.md#globals)). Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
+| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests ([bk-shell](../shell/10-run-and-debug.md#globals)). Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in

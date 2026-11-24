@@ -62,7 +62,7 @@ Cargo workspace with six library crates. They need Rust 1.98 (edition 2024).
 
 `bk` has two Cargo features for apps. Only `a11y` is on by default; an app
 lists the other when it needs it: `bk = { …, features = ["tracy"] }`. A third,
-`shell`, exists only for [`bk-shell`](../shell/bk-shell.md#how-it-joins-the-runner).
+`shell`, exists only for [`bk-shell`](../shell/01-what-is-the-shell-kit.md#how-it-joins-the-runner).
 
 | Feature | Default | What it adds |
 |---|---|---|
