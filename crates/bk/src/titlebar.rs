@@ -4,7 +4,7 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
-use crate::views::split::SidebarToggle;
+use crate::views::split::{InspectorSpan, SidebarToggle};
 use crate::views::toolbar::{ToolbarContent, lay_out, row};
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
@@ -409,6 +409,17 @@ impl Component for Titlebar {
                         .width(Size::fill())
                         .child(bar),
                 )
+                .into_element()
+        } else {
+            bar
+        };
+        let inspector = try_consume_context::<InspectorSpan>().map_or(0.0, |span| *span.0.read());
+        let bar = if inspector > 0.0 {
+            rect()
+                .width(Size::fill())
+                .margin(Gaps::new(0.0, -inspector, 0.0, 0.0))
+                .layer(TITLEBAR_OVERLAY_LAYER)
+                .child(bar)
                 .into_element()
         } else {
             bar

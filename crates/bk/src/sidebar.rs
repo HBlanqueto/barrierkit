@@ -112,6 +112,7 @@ pub struct SidebarControl {
     pub(crate) content: State<f32>,
     pub(crate) settled: State<bool>,
     pub(crate) overlaid: State<bool>,
+    pub(crate) present: bool,
 }
 
 impl SidebarControl {
@@ -143,7 +144,7 @@ impl SidebarControl {
 }
 
 pub fn sidebar_control() -> Option<SidebarControl> {
-    try_consume_context()
+    try_consume_context::<SidebarControl>().filter(|control| control.present)
 }
 
 pub struct SymbolTile(Rect, Symbol, Theme);

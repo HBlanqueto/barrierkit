@@ -18,6 +18,7 @@ use crate::styles::{
 };
 use crate::transition::{ContentTransition, ContentTransitioned};
 use crate::views::feedback::Alert;
+use crate::views::split::SplitView;
 
 pub trait ViewModifiers: EventHandlersExt + Sized {
     fn context_menu(
@@ -34,6 +35,14 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
     {
         let presented = *is_presented.read();
         self.maybe_child(presented.then(|| crate::views::feedback::Sheet::new(content())))
+    }
+
+    /// SwiftUI's `.inspector(isPresented:content:)` on a view without a sidebar: a `SplitView` of the view and `content`.
+    fn inspector(self, content: impl IntoElement, presented: bool) -> SplitView
+    where
+        Self: IntoElement,
+    {
+        SplitView::without_sidebar(self).inspector(content, presented)
     }
 
     fn alert(self, is_presented: State<bool>, content: impl Fn() -> Alert) -> Self

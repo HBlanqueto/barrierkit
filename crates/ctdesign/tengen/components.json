@@ -661,6 +661,7 @@
       "sidebar-min": 140,
       "collapse-below": 760,
       "inspector": 270,
+      "inspector-form-padding": 10,
       "grip": 8,
       "grip-line": 2,
       "grip-line-inset": 18,
@@ -693,6 +694,7 @@
       "capacity-frame": 24,
       "dark-accent-lift": [18, -1, 0],
       "card": ["#f7f7f7", "#252525", "#f7f7f7", "#252525"],
+      "inspector-card": ["#f7f7f7", "#ffffff07", "#f7f7f7", "#ffffff07"],
       "separator-line": ["#0000000c", "#ffffff0c", "#00000033", "#ffffff33"],
       "padding": [
         20,

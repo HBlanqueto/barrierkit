@@ -352,7 +352,16 @@ app needs it, and SwiftUI's split view takes one.
 wide, the width of
 [`NSSplitViewItem(inspectorWithViewController:)`](https://developer.apple.com/documentation/appkit/nssplitviewitem/init(inspectorwithviewcontroller:)),
 after a 1 px separator. Changing `presented` opens or closes it over
-`DURATION_BASE`, like SwiftUI's `.inspector(isPresented:content:)`.
+`DURATION_BASE`, like SwiftUI's `.inspector(isPresented:content:)`. On a view
+with no sidebar, `.inspector(view, presented)` of `ViewModifiers` builds that
+`SplitView` itself, with no sidebar toggle in the bar.
+
+As SwiftUI's, the inspector starts below the bar, and the bar runs over it to
+the window's edge, so the trailing items sit above the inspector. A `Form` in
+it keeps `SPLIT_VIEW.inspector_form_padding` (10) to the column, its cards are
+`LIST_GROUP.inspector_card` (white at 0.027 in Dark) and its titles take the
+sidebar's ink, as over SwiftUI's inspector material (Light keeps the window's
+card; not measured).
 
 Where the sidebar is AppKit's glass (macOS 26), the inspector is too: the
 kit publishes the pane's rect, AppKit draws that split item's glass over the

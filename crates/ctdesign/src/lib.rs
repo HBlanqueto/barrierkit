@@ -1292,6 +1292,7 @@ pub struct ListGroupMetrics {
     pub capacity_frame: f32,
     pub dark_accent_lift: [f32; 3],
     pub card: [Rgba; 4],
+    pub inspector_card: [Rgba; 4],
     pub separator_line: [Rgba; 4],
 }
 
@@ -1302,6 +1303,7 @@ pub struct SplitViewMetrics {
     pub sidebar_min: f32,
     pub collapse_below: f32,
     pub inspector: f32,
+    pub inspector_form_padding: f32,
     pub grip: f32,
     pub grip_line: f32,
     pub grip_line_inset: f32,

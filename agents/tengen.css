@@ -1027,6 +1027,7 @@
   --bk-split-view-sidebar-min: 140;
   --bk-split-view-collapse-below: 760;
   --bk-split-view-inspector: 270;
+  --bk-split-view-inspector-form-padding: 10;
   --bk-split-view-grip: 8;
   --bk-split-view-grip-line: 2;
   --bk-split-view-grip-line-inset: 18;
@@ -1062,6 +1063,11 @@
   --bk-list-group-card-1: #252525;
   --bk-list-group-card-2: #f7f7f7;
   --bk-list-group-card-3: #252525;
+  --bk-list-group-inspector-card: #f7f7f7 #ffffff07 #f7f7f7 #ffffff07;
+  --bk-list-group-inspector-card-0: #f7f7f7;
+  --bk-list-group-inspector-card-1: #ffffff07;
+  --bk-list-group-inspector-card-2: #f7f7f7;
+  --bk-list-group-inspector-card-3: #ffffff07;
   --bk-list-group-separator-line: #0000000c #ffffff0c #00000033 #ffffff33;
   --bk-list-group-separator-line-0: #0000000c;
   --bk-list-group-separator-line-1: #ffffff0c;

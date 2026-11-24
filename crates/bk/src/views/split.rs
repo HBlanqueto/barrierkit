@@ -1,6 +1,6 @@
 use freya_animation::prelude::use_animation_transition;
 
-use ctdesign::{SPLIT_VIEW, TOOLGROUP};
+use ctdesign::{LIST_GROUP, SPLIT_VIEW, TOOLGROUP};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Area, Content, Direction, Gaps, Position, Size};
@@ -12,12 +12,14 @@ use crate::compact::IconButton;
 use crate::controls::ToolGroup;
 use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::i18n::text;
+use crate::modifiers::StyleModifiers;
 use crate::platform::WindowControls;
 use crate::platform::backdrop::Declared;
 use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, LayoutDirection, Paints, SplitViewStyle, StateValue, Theme, resolve,
+    ControlState, FormStyle, LayoutDirection, Paints, ShapeStyle, SplitViewStyle, StateValue,
+    StyleScope, Theme, appearance_index, resolve,
 };
 use crate::symbol::Symbol;
 use crate::titlebar::{TITLEBAR_OVERLAY_LAYER, sidebar_toggle_placement};
@@ -73,6 +75,10 @@ impl Component for SidebarToggle {
     }
 }
 
+// How wide the inspector stands right of the detail: SwiftUI's toolbar runs over it to the window's edge.
+#[derive(Clone, Copy)]
+pub(crate) struct InspectorSpan(pub(crate) State<f32>);
+
 #[derive(PartialEq)]
 pub struct SplitView {
     sidebar: Element,
@@ -81,6 +87,7 @@ pub struct SplitView {
     inspector: Option<(Element, bool)>,
     extension: Option<Element>,
     sidebar_visible: bool,
+    sidebar_present: bool,
     sidebar_width: Option<f32>,
     sidebar_range: (f32, f32),
     resizable: bool,
@@ -100,6 +107,7 @@ impl SplitView {
             inspector: None,
             extension: None,
             sidebar_visible: true,
+            sidebar_present: true,
             sidebar_width: None,
             sidebar_range: (SPLIT_VIEW.sidebar_min, f32::INFINITY),
             resizable: true,
@@ -112,6 +120,14 @@ impl SplitView {
     }
 
     /// A column between the sidebar and the detail; it resizes within `sidebar_range` and stays when the sidebar hides.
+    pub(crate) fn without_sidebar(detail: impl IntoElement) -> Self {
+        Self {
+            sidebar_visible: false,
+            sidebar_present: false,
+            ..Self::new(rect(), detail)
+        }
+    }
+
     pub fn content(mut self, content: impl IntoElement) -> Self {
         self.content = Some(content.into_element());
         self
@@ -182,6 +198,13 @@ impl Component for SplitView {
         let inspector_shown =
             crate::animation::use_animated(f32::from(u8::from(*presented.read())), style.animation);
         let native_panes = crate::glass_panel::native_pane_glass();
+        let mut inspector_span = use_state(|| 0.0f32);
+        inspector_span.set_if_modified(
+            self.inspector
+                .as_ref()
+                .map_or(0.0, |_| style.inspector_width * inspector_shown),
+        );
+        use_hook(|| provide_context(InspectorSpan(inspector_span)));
         let bar_height = try_consume_root_context::<WindowControls>()
             .map_or(0.0, |controls| *controls.titlebar_height.read());
         let mut inspector_area = use_state(Area::default);
@@ -212,6 +235,7 @@ impl Component for SplitView {
             content: content_shown,
             settled,
             overlaid,
+            present: self.sidebar_present,
         };
         use_hook(|| provide_context(control));
         use_menu_action(move |id| {
@@ -445,7 +469,7 @@ impl Component for SplitView {
                                     .width(Size::px(style.inspector_width))
                                     .height(Size::fill())
                                     .padding(Gaps::new(bar_height, 0.0, 0.0, 0.0))
-                                    .child(inspector.clone()),
+                                    .child(inspector_form(inspector.clone())),
                             )
                             .maybe_child(native_panes.then(|| {
                                 line()
@@ -541,4 +565,17 @@ impl Component for ColumnGrip {
                     .background(paints.fill(&style.grip))
             }))
     }
+}
+
+// A form in SwiftUI's inspector keeps its inset to the column, and over the column's material its cards and titles are the sidebar's.
+fn inspector_form(inspector: Element) -> StyleScope {
+    let inset = SPLIT_VIEW.inspector_form_padding;
+    let card = LIST_GROUP.inspector_card[appearance_index()];
+    let ink = crate::sidebar::item_palette(true).item_ink;
+    inspector.control_style(move |style: FormStyle| FormStyle {
+        padding: [inset; 4],
+        background: StateValue::new(ShapeStyle::Color(card)),
+        title: StateValue::new(ShapeStyle::Color(ink)),
+        ..style
+    })
 }
