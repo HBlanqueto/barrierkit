@@ -976,9 +976,10 @@ regular size (60 x 24), a capsule from large. The kit gives each the same native
 ([15](../barrierkit/15-backdrops-and-media.md#on-macos)).
 
 Probes: `~/src/probes/glassbtn` (`glassbtn.swift` and the kit twin `glassbtn_twin`, an uncommitted example; `cap.sh` launches at a
-fixed frame with `RESONANCE_APPEARANCE`, captures rest, hover and press; `ab.py` prints the A/B below; `crops` makes zoomed sheets).
+fixed frame with `RESONANCE_APPEARANCE`, captures rest, hover and press; `ab.py` prints the A/B below; `crops` makes zoomed sheets;
+`EXTRA="--env GLASSBTN_SCROLL=1"` puts the SwiftUI content in a `ScrollView` under the bar).
 
-Body of each piece, SwiftUI against the kit, largest channel difference:
+Body of each piece, SwiftUI with no scroll view under the bar against the kit, largest channel difference:
 
 | Piece | Rest (light, dark) | Hover | Press |
 |---|---|---|---|
@@ -991,8 +992,14 @@ Body of each piece, SwiftUI against the kit, largest channel difference:
 
 What remains different:
 
-1. **The bar behind the toolbar glass in dark.** SwiftUI's toolbar backdrop is 41, the kit's bar 33; the glass carries the 7 or 8
-   levels. The veils over it match: thumb +20 (SwiftUI) and +21 (kit) over the glass.
+1. **The title bar with no scroll view under it.** Then AppKit draws its titlebar background (`NSTitlebarBackgroundView`: a blurred
+   backdrop of the window with a colour matrix at 82 %, a 30-gray fill with a 5 % wallpaper tint, and a 1 px separator at y 52,
+   white 7 % in dark, about black 10 % in light). The band reads 41 in dark where the window reads 33, and the toolbar glass over it
+   69. The kit does not draw that material or separator yet: its bar takes the look SwiftUI has over a `ScrollView`, where the band
+   is the window's 33 and the glass 62. With the content in a `ScrollView`, every toolbar piece is within 0 to 2 levels of the kit
+   at rest in both schemes (bar 1 and 0, segment glass 1 and 1, thumb 2 and 1, prominent circle 0 and 0, search capsule 0 and 0,
+   dark and light). The 7 levels in dark in the table come from that material, not from the glass. The veils over the glass match
+   in both cases: thumb +20 (SwiftUI) and +21 (kit).
 2. **Hover over a saturated background.** SwiftUI adds a fixed amount (+20 dark, -10 light on every channel); the kit's veil is an
    alpha blend (`GLASS_CONTROL.hover_*`), equal over neutral glass and short over orange.
 3. **Press.** SwiftUI draws its own glow on content buttons and a clear lens over a held segment, larger than the capsule; AppKit's

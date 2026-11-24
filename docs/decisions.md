@@ -512,7 +512,7 @@ Why: the kit gives apps the look and behavior of their desktop, as SwiftUI does 
 Rejected: Freya or Skia shaders for the system's materials (a second implementation that drifts from the system); Swift or SwiftUI code inside the kit (a second language and build step for what AppKit already gives). Swift is to be considered again only for an effect that exists only in SwiftUI, such as `glassEffectID`, `glassEffectUnion` and `glassEffectTransition`.
 Pending: the ceilings measured on 2026-11-23:
 - a held knob's lens fills with the track;
-- the dark toolbar pieces are 7 levels off;
+- with no scroll view under the bar, AppKit's titlebar material and separator, which the kit does not draw (the toolbar glass then reads 7 levels darker in dark; with a `ScrollView` under the bar every toolbar piece is within 0 to 2 levels);
 - the scroll edge under the bar over kit content;
 - the glass morph transitions.
 
