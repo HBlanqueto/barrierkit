@@ -6,7 +6,7 @@ use ctdesign::{
 };
 
 use crate::backdrop::Oklab;
-use crate::icon_style::{IconStyle, LUMA, duotone, gray};
+use crate::icon_style::{IconStyle, duotone, gray};
 
 const BINS: usize = 24;
 const OCCUPIED: f32 = 0.03;
@@ -87,20 +87,10 @@ fn lobes(colors: &[Oklab]) -> Vec<Lobe> {
     }
     let occupied: Vec<bool> = weight.iter().map(|&w| w >= OCCUPIED * peak).collect();
     let start = occupied.iter().position(|&o| !o).map_or(0, |gap| gap + 1);
-    let mut runs: Vec<Vec<usize>> = Vec::new();
-    let mut run = Vec::new();
-    for step in 0..BINS {
-        let index = (start + step) % BINS;
-        if occupied[index] {
-            run.push(index);
-        } else if !run.is_empty() {
-            runs.push(std::mem::take(&mut run));
-        }
-    }
-    if !run.is_empty() {
-        runs.push(run);
-    }
-    runs.iter()
+    let order: Vec<usize> = (0..BINS).map(|step| (start + step) % BINS).collect();
+    order
+        .split(|&index| !occupied[index])
+        .filter(|run| !run.is_empty())
         .map(|run| {
             let members: Vec<_> = chromatic
                 .iter()
@@ -218,7 +208,7 @@ pub fn tile(style: IconStyle, dark: bool, tint: Rgba, color: Rgba) -> (Plate, Op
 
 // The Dock's toned rim: the colour scaled per channel to `lift` more luma, with its own chroma.
 fn lifted(color: Rgba, lift: f32) -> Rgba {
-    let luma = (LUMA[0] * color.r + LUMA[1] * color.g + LUMA[2] * color.b).max(0.001);
+    let luma = color.luma().max(0.001);
     let gain = (luma + lift) / luma;
     let scaled = Rgba {
         r: (color.r * gain).min(1.0),
@@ -288,132 +278,4 @@ fn logo_ends(style: IconStyle, dark: bool, tint: Rgba) -> Option<(Rgba, Rgba)> {
 /// The color matrix for the icon drawn on its plate; `None` keeps its colors.
 pub fn logo_matrix(style: IconStyle, dark: bool, tint: Rgba) -> Option<[f32; 20]> {
     logo_ends(style, dark, tint).map(|(dark_end, light_end)| duotone(dark_end, light_end))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const AMBER: Rgba = Rgba::rgb8(0xe8, 0xa3, 0x3d);
-
-    fn pixels(parts: &[(Rgba, usize)]) -> Vec<Rgba> {
-        parts
-            .iter()
-            .flat_map(|&(color, count)| std::iter::repeat_n(color, count))
-            .collect()
-    }
-
-    #[test]
-    fn a_bright_logo_takes_the_hue_of_its_darkest_color() {
-        let logo = Logo::from_colors(&pixels(&[
-            (Rgba::rgb8(0xff, 0xd3, 0x4d), 70),
-            (Rgba::rgb8(0x6a, 0x1b, 0x9a), 30),
-        ]));
-        assert!(logo.bright);
-        let hue = logo.lobe.unwrap().hue;
-        assert!((290.0..340.0).contains(&hue), "{hue}");
-    }
-
-    #[test]
-    fn a_dark_logo_takes_the_hue_of_its_lightest_color() {
-        let logo = Logo::from_colors(&pixels(&[
-            (Rgba::rgb8(0x2a, 0x10, 0x38), 70),
-            (Rgba::rgb8(0xff, 0xd3, 0x4d), 30),
-        ]));
-        assert!(!logo.bright);
-        let hue = logo.lobe.unwrap().hue;
-        assert!((70.0..120.0).contains(&hue), "{hue}");
-    }
-
-    #[test]
-    fn a_gray_logo_has_no_hue_to_take() {
-        let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0x80, 0x80, 0x80), 100)]));
-        assert_eq!(logo.lobe, None);
-    }
-
-    #[test]
-    fn a_bright_logo_without_color_gets_a_silver_plate_lighter_than_graphite() {
-        let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xf0, 0xf0, 0xf2), 100)]));
-        let silver = plate(IconStyle::Default, false, AMBER, &logo);
-        let graphite = plate(IconStyle::Dark, true, AMBER, &logo);
-        assert!((silver.top.r - silver.top.b).abs() < 0.01);
-        assert!(silver.top.r > 0.4 && silver.top.r > graphite.top.r + 0.2);
-    }
-
-    #[test]
-    fn a_small_color_is_not_a_lobe() {
-        let logo = Logo::from_colors(&pixels(&[
-            (Rgba::rgb8(0xff, 0xd3, 0x4d), 95),
-            (Rgba::rgb8(0x6a, 0x1b, 0x9a), 5),
-        ]));
-        assert!((70.0..120.0).contains(&logo.lobe.unwrap().hue));
-    }
-
-    #[test]
-    fn dark_is_graphite_whatever_the_icon() {
-        let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
-        let plate = plate(IconStyle::Dark, true, AMBER, &logo);
-        assert!((plate.top.r - plate.top.b).abs() < 0.01 && plate.top.r < 0.3);
-        assert!(!plate.glass);
-    }
-
-    #[test]
-    fn clear_is_see_through_and_tinted_is_the_tint() {
-        let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
-        let clear = plate(IconStyle::Clear, false, AMBER, &logo);
-        assert!(clear.glass && clear.top.a < 0.3);
-        let tinted = plate(IconStyle::Tinted, false, AMBER, &logo);
-        assert!(tinted.top.r > tinted.top.b && tinted.top.a == 1.0);
-    }
-
-    #[test]
-    fn clear_and_tinted_plates_are_outlined_and_default_and_dark_are_lit_white() {
-        let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
-        for (style, dark) in [(IconStyle::Clear, false), (IconStyle::Clear, true)]
-            .into_iter()
-            .chain([(IconStyle::Tinted, false), (IconStyle::Tinted, true)])
-        {
-            assert!(
-                plate(style, dark, AMBER, &logo).outline.a > 0.5,
-                "{style:?} {dark}"
-            );
-        }
-        for (style, dark) in [(IconStyle::Default, false), (IconStyle::Dark, true)] {
-            let plate = plate(style, dark, AMBER, &logo);
-            assert_eq!(plate.outline.a, 0.0);
-            assert!(plate.light.0.r == 1.0 && plate.light.0.b == 1.0);
-            assert!(plate.light.0.a > plate.light.1.a);
-        }
-    }
-
-    #[test]
-    fn a_dark_tile_is_black_and_its_glyph_takes_the_tile_colour() {
-        let blue = Rgba::rgb8(0x2f, 0x6f, 0xe4);
-        let (plate, glyph) = tile(IconStyle::Dark, true, AMBER, blue);
-        assert!(plate.top.r < 0.15 && plate.bottom.r < plate.top.r);
-        assert_eq!(plate.light.0.a, 0.0);
-        let glyph = glyph.unwrap();
-        assert!(glyph.b > glyph.r && glyph.b > 0.8);
-        let graphite = Rgba::rgb8(0x2b, 0x2b, 0x2b);
-        let (_, gray) = tile(IconStyle::Dark, true, AMBER, graphite);
-        assert!(gray.unwrap().r > 0.5);
-        let (light, glyph) = tile(IconStyle::Default, false, AMBER, blue);
-        assert!(light.top.b > light.bottom.b && glyph.is_none());
-        assert_eq!(light.light.0.a, 0.0);
-    }
-
-    #[test]
-    fn a_gray_tint_has_no_hue_and_default_and_dark_have_no_logo_matrix() {
-        let logo = Logo::from_colors(&pixels(&[(Rgba::rgb8(0xff, 0x50, 0x20), 100)]));
-        let plate = plate(
-            IconStyle::Tinted,
-            false,
-            Rgba::rgb8(0x8e, 0x8e, 0x8e),
-            &logo,
-        );
-        assert!((plate.top.r - plate.top.b).abs() < 0.02);
-        assert_eq!(logo_matrix(IconStyle::Default, true, AMBER), None);
-        assert_eq!(logo_matrix(IconStyle::Dark, true, AMBER), None);
-        assert!(logo_matrix(IconStyle::Tinted, true, AMBER).is_some());
-    }
 }

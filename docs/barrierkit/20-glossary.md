@@ -783,7 +783,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
-| `ctdesign::Rgba` | struct | ≈ `Color` | ≈ `NSColor` | ≈ `UIColor` | sRGB color, channels 0–1, with mixing and contrast helpers | [4](04-appearance-and-tokens.md#token-types) |
+| `ctdesign::Rgba` | struct | ≈ `Color` | ≈ `NSColor` | ≈ `UIColor` | sRGB color, channels 0–1, with mixing, luma and contrast helpers | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Font` | struct | ≈ `Font.TextStyle` | ≈ `NSFont.TextStyle` | ≈ `UIFont.TextStyle` | Type token: family, size, line height, weight | [4](04-appearance-and-tokens.md#token-types) |
 | `ctdesign::Font::scaled` | method | — | — | — | The font with size and line height times a factor | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctdesign::Palette` | struct | — | — | — | Base colors of one theme: inks, lines, accent, titlebar | [4](04-appearance-and-tokens.md#token-types) |

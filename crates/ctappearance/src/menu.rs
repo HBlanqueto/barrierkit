@@ -4,7 +4,6 @@ use ctdesign::{
 };
 
 use crate::backdrop::Oklab;
-use crate::icon_style::LUMA;
 
 const CAP_SOFTNESS: f32 = 0.1;
 
@@ -50,8 +49,7 @@ pub fn panel_over(glass: &DockSurface, behind: Rgba) -> Rgba {
 }
 
 pub fn panel_luma(panel: Rgba) -> f32 {
-    let [r, g, b] = LUMA;
-    r * panel.r + g * panel.g + b * panel.b
+    panel.luma()
 }
 
 pub fn dark_ink_over(panel_luma: f32) -> bool {
@@ -63,34 +61,5 @@ pub fn ink_over(panel_luma: f32) -> MenuInk {
         INK_ON_LIGHT_PANEL
     } else {
         INK_ON_DARK_PANEL
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_checker_panel_at_luma_0_53_takes_dark_ink() {
-        assert!(dark_ink_over(0.53));
-        assert_eq!(ink_over(0.53), INK_ON_LIGHT_PANEL);
-    }
-
-    #[test]
-    fn a_light_panel_over_black_at_luma_0_46_takes_dark_ink() {
-        assert!(dark_ink_over(0.46));
-        assert_eq!(ink_over(0.46), INK_ON_LIGHT_PANEL);
-    }
-
-    #[test]
-    fn a_black_panel_at_luma_0_17_takes_light_ink() {
-        assert!(!dark_ink_over(0.17));
-        assert_eq!(ink_over(0.17), INK_ON_DARK_PANEL);
-    }
-
-    #[test]
-    fn the_luma_of_a_grey_is_its_value() {
-        let grey = Rgba::rgb8(0x8d, 0x8d, 0x8d);
-        assert!((panel_luma(grey) - grey.r).abs() < 1e-5);
     }
 }

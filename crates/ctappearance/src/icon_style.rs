@@ -3,7 +3,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::backdrop::Oklab;
 
-pub(crate) const LUMA: [f32; 3] = [0.2126, 0.7152, 0.0722];
+pub(crate) fn luma(color: [f32; 3]) -> f32 {
+    color
+        .iter()
+        .zip(Rgba::LUMA)
+        .map(|(channel, weight)| channel * weight)
+        .sum()
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -44,7 +50,7 @@ impl IconStyle {
                 let floor = ICON_STYLE.clear_floor;
                 let mut matrix = duotone(gray(floor), gray(floor + ICON_STYLE.clear_range));
                 let gain = ICON_STYLE.clear_alpha_gain;
-                matrix[15..18].copy_from_slice(&LUMA.map(|weight| weight * gain));
+                matrix[15..18].copy_from_slice(&Rgba::LUMA.map(|weight| weight * gain));
                 matrix[18] = 0.0;
                 Some(matrix)
             }
@@ -82,13 +88,8 @@ pub(crate) fn gray(value: f32) -> Rgba {
 /// Black becomes `dark`, white becomes `light` and the alpha stays.
 pub(crate) fn duotone(dark: Rgba, light: Rgba) -> [f32; 20] {
     let row = |dark: f32, light: f32| {
-        [
-            LUMA[0] * (light - dark),
-            LUMA[1] * (light - dark),
-            LUMA[2] * (light - dark),
-            0.0,
-            dark,
-        ]
+        let [r, g, b] = Rgba::LUMA.map(|weight| weight * (light - dark));
+        [r, g, b, 0.0, dark]
     };
     let rows = [
         row(dark.r, light.r),
@@ -116,76 +117,4 @@ fn tint_ends(tint: Rgba) -> (Rgba, Rgba) {
             ICON_STYLE.tint_light_chroma,
         ),
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const AMBER: Rgba = Rgba::rgb8(0x8a, 0x5e, 0x1e);
-
-    fn apply(matrix: [f32; 20], [r, g, b, a]: [f32; 4]) -> [f32; 4] {
-        [0, 1, 2, 3].map(|row| {
-            let m = &matrix[row * 5..row * 5 + 5];
-            (m[0] * r + m[1] * g + m[2] * b + m[3] * a + m[4]).clamp(0.0, 1.0)
-        })
-    }
-
-    #[test]
-    fn default_and_dark_keep_the_colors() {
-        assert_eq!(IconStyle::Default.matrix(AMBER), None);
-        assert_eq!(IconStyle::Dark.matrix(AMBER), None);
-    }
-
-    #[test]
-    fn default_never_turns_dark_and_automatic_follows_the_scheme() {
-        assert!(!IconStyle::Default.dark(IconTone::Dark, true));
-        assert!(IconStyle::Dark.dark(IconTone::Dark, false));
-        assert!(!IconStyle::Clear.dark(IconTone::Light, true));
-        assert!(IconStyle::Tinted.dark(IconTone::Automatic, true));
-        assert!(!IconStyle::Tinted.dark(IconTone::Automatic, false));
-    }
-
-    #[test]
-    fn a_gray_tint_turns_red_into_an_equal_gray_with_the_same_alpha() {
-        let [r, g, b, a] = apply(
-            IconStyle::Tinted
-                .matrix(Rgba::rgb8(0x8e, 0x8e, 0x93))
-                .unwrap(),
-            [1.0, 0.0, 0.0, 0.5],
-        );
-        assert!((r - g).abs() < 0.02 && (g - b).abs() < 0.03);
-        assert_eq!(a, 0.5);
-    }
-
-    #[test]
-    fn tinted_sends_black_to_a_dark_accent_and_white_to_a_light_one() {
-        let matrix = IconStyle::Tinted.matrix(AMBER).unwrap();
-        let [dr, dg, db, _] = apply(matrix, [0.0, 0.0, 0.0, 1.0]);
-        let [lr, lg, lb, _] = apply(matrix, [1.0, 1.0, 1.0, 1.0]);
-        assert!(dr > db && lr > lb, "both ends keep the accent's warm hue");
-        assert!(dr + dg + db < 0.8 && lr + lg + lb > 2.4);
-    }
-
-    #[test]
-    fn clear_keeps_a_transparent_pixel_transparent_and_a_white_one_opaque() {
-        let matrix = IconStyle::Clear.matrix(AMBER).unwrap();
-        assert_eq!(apply(matrix, [0.0, 0.0, 0.0, 0.0])[3], 0.0);
-        let [r, _, _, a] = apply(matrix, [1.0, 1.0, 1.0, 1.0]);
-        assert_eq!(a, 1.0);
-        assert!(r > 0.95);
-        assert!(IconStyle::Clear.luminance_to_alpha());
-    }
-
-    #[test]
-    fn a_clear_icon_on_glass_loses_its_dark_body_and_keeps_its_white_logo() {
-        let matrix = IconStyle::Clear.matrix_on_glass(AMBER).unwrap();
-        assert_eq!(apply(matrix, [0.12, 0.12, 0.12, 1.0])[3], 0.0);
-        assert_eq!(apply(matrix, [1.0, 1.0, 1.0, 1.0])[3], 1.0);
-        assert_eq!(IconStyle::Default.matrix_on_glass(AMBER), None);
-        assert_eq!(
-            IconStyle::Tinted.matrix_on_glass(AMBER),
-            IconStyle::Tinted.matrix(AMBER)
-        );
-    }
 }

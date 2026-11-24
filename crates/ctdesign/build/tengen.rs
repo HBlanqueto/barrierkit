@@ -26,9 +26,16 @@ pub(super) struct Tengen {
 }
 
 impl Tengen {
+    // Dark Tint is dark with a few colors of its own: a key it leaves out is dark's.
     pub(super) fn find(&self, path: &str) -> Option<&Value> {
-        path.split('.')
-            .try_fold(&self.root, |value, part| value.get(part))
+        let lookup = |path: &str| {
+            path.split('.')
+                .try_fold(&self.root, |value, part| value.get(part))
+        };
+        lookup(path).or_else(|| {
+            let rest = path.strip_prefix("themes.dark-tint.")?;
+            lookup(&format!("themes.dark.{rest}"))
+        })
     }
 
     pub(super) fn get(&self, path: &str) -> &Value {

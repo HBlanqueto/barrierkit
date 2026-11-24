@@ -973,8 +973,9 @@ tokens.
 A color, size or duration never goes into `bk`. It goes into Tengen:
 
 1. Add the key: under its component in `components.json`, or as a base value
-   in `tokens.json`. A color per theme goes under `themes.light`,
-   `themes.dark` and `themes.dark-tint`.
+   in `tokens.json`. A color per theme goes under `themes.light` and
+   `themes.dark`; `themes.dark-tint` holds only the colors that differ from
+   dark.
 2. A new field of an existing struct: add `pub name: Type,` to the struct in
    `src/lib.rs`. `build.rs` finds the key by name (`_` becomes `-`, and
    prefixes match nested objects).

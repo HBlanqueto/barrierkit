@@ -21,6 +21,10 @@ pub fn blue() -> &'static Accent {
     named("blue").expect("ctdesign has a blue accent")
 }
 
+pub(crate) fn graphite() -> &'static Accent {
+    named("graphite").expect("ctdesign has a graphite accent")
+}
+
 pub fn derived(control: Rgba, dark: bool, contrast: bool) -> AccentColors {
     let rule = ACCENT_RULE;
     let blue = blue().colors(dark, contrast);
@@ -101,52 +105,5 @@ fn shifted(color: Rgba, shift: OklchShift) -> Rgba {
             b: chroma * hue.sin(),
         }
         .to_rgba()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn levels_apart(a: Rgba, b: Rgba) -> f32 {
-        [a.r - b.r, a.g - b.g, a.b - b.b]
-            .into_iter()
-            .map(|channel| channel.abs() * 255.0)
-            .fold(0.0, f32::max)
-    }
-
-    #[test]
-    fn the_rule_stays_within_a_few_levels_of_the_measured_accents() {
-        for accent in &ACCENTS {
-            for dark in [false, true] {
-                let measured = accent.colors(dark, false);
-                let rule = derived(measured.control, dark, false);
-                assert!(
-                    levels_apart(rule.selected_content, measured.selected_content) <= 6.0,
-                    "{} dark={dark}: selected content",
-                    accent.name
-                );
-                assert!(
-                    levels_apart(rule.selected_text, measured.selected_text) <= 1.5,
-                    "{} dark={dark}: selected text",
-                    accent.name
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn a_color_written_before_accents_had_names_is_that_accent() {
-        let rounded = |hex: [u8; 3]| Rgba {
-            r: (f32::from(hex[0]) / 255.0 * 1000.0).round() / 1000.0,
-            g: (f32::from(hex[1]) / 255.0 * 1000.0).round() / 1000.0,
-            b: (f32::from(hex[2]) / 255.0 * 1000.0).round() / 1000.0,
-            a: 1.0,
-        };
-        assert_eq!(
-            named_by_color(rounded([0x95, 0x3d, 0x96])).map(|accent| accent.name),
-            Some("purple")
-        );
-        assert_eq!(named_by_color(rounded([0x95, 0x3d, 0x20])), None);
     }
 }

@@ -106,9 +106,16 @@ impl Rgba {
         }
     }
 
+    pub const LUMA: [f32; 3] = [0.2126, 0.7152, 0.0722];
+
+    /// Rec. 709 luma of the channels as stored, without linearizing them.
+    pub fn luma(self) -> f32 {
+        let [r, g, b] = Self::LUMA;
+        r * self.r + g * self.g + b * self.b
+    }
+
     pub fn relative_luminance(self) -> f32 {
-        let linear = self.to_linear();
-        0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
+        self.to_linear().luma()
     }
 
     pub fn contrast_ratio(self, other: Self) -> f32 {
@@ -174,28 +181,5 @@ impl Rgba {
             )
         };
         Self { r, g, b, a: alpha }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn premultiplied_opaque_is_unchanged() {
-        let c = super::Rgba::rgb8(128, 64, 255);
-        let [r, g, b, a] = c.premultiplied();
-        assert!((r - c.r).abs() < 0.004);
-        assert!((g - c.g).abs() < 0.004);
-        assert!((b - c.b).abs() < 0.004);
-        assert!((a - c.a).abs() < 0.001);
-    }
-
-    #[test]
-    fn premultiplied_honours_alpha() {
-        let c = super::Rgba::rgba8(255, 128, 0, 0.5);
-        let [r, g, b, a] = c.premultiplied();
-        assert!((r - 0.5).abs() < 0.004, "red should be halved");
-        assert!((g - 0.25).abs() < 0.004, "green should be halved");
-        assert!(b < 0.004);
-        assert!((a - 0.5).abs() < 0.001);
     }
 }

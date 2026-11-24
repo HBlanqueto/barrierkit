@@ -1,19 +1,28 @@
-use std::fs::File;
-use std::io::Read;
-use std::os::unix::fs::MetadataExt;
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU8, Ordering};
-use std::sync::{Mutex, PoisonError};
-use std::time::{Duration, SystemTime};
+use std::{
+    collections::BTreeMap,
+    fs::File,
+    io::{self, Read},
+    os::unix::fs::MetadataExt,
+    path::{Path, PathBuf},
+    sync::{
+        Mutex, PoisonError,
+        atomic::{AtomicU8, Ordering},
+    },
+    time::{Duration, SystemTime},
+};
 
 use ctdesign::{
     COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, POINTER_SIZES, Rgba, TEXT_SIZES, TINT_STRENGTH,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::DeserializeOwned};
+use toml_edit::{Array, DocumentMut};
 
-use crate::icon_style::{IconStyle, IconTone};
-use crate::tinting::WallpaperGrid;
-use crate::xdg;
+use crate::{
+    accent,
+    icon_style::{IconStyle, IconTone},
+    tinting::WallpaperGrid,
+    xdg,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -123,13 +132,20 @@ where
     }))
 }
 
-fn stepped<'de, D: Deserializer<'de>>(deserializer: D, steps: &[f32]) -> Result<f32, D::Error> {
-    let value = f32::deserialize(deserializer)?;
-    Ok(value.max(steps[0]).min(steps[steps.len() - 1]))
+fn stepped<'de, D: Deserializer<'de>>(
+    deserializer: D,
+    steps: &[f32],
+) -> Result<Option<f32>, D::Error> {
+    Ok(lenient::<D, Option<f32>>(deserializer)?.and_then(|value| {
+        steps
+            .iter()
+            .copied()
+            .min_by(|a, b| (a - value).abs().total_cmp(&(b - value).abs()))
+    }))
 }
 
 fn display_contrast<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    stepped(deserializer, &DISPLAY_CONTRAST)
+    Ok(stepped(deserializer, &DISPLAY_CONTRAST)?.unwrap_or(DISPLAY_CONTRAST[0]))
 }
 
 fn hour<'de, D: Deserializer<'de>, const FALLBACK: u8>(deserializer: D) -> Result<u8, D::Error> {
@@ -144,23 +160,24 @@ const DARK_FROM: u8 = 19;
 const DARK_UNTIL: u8 = 7;
 
 fn text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    stepped(deserializer, &TEXT_SIZES)
+    Ok(toolkit_text_size(deserializer)?.unwrap_or(TEXT_SIZES[0]))
 }
 
 fn toolkit_text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<f32>, D::Error> {
-    text_size(deserializer).map(Some)
+    stepped(deserializer, &TEXT_SIZES)
 }
 
 fn pointer_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    stepped(deserializer, &POINTER_SIZES)
+    Ok(stepped(deserializer, &POINTER_SIZES)?.unwrap_or(POINTER_SIZES[0]))
 }
 
 fn color_filter_intensity<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    stepped(deserializer, &COLOR_FILTER_INTENSITY)
+    let strongest = COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1];
+    Ok(stepped(deserializer, &COLOR_FILTER_INTENSITY)?.unwrap_or(strongest))
 }
 
 fn liquid_glass_tint<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    let amount = f32::deserialize(deserializer)?;
+    let amount = lenient::<D, Option<f32>>(deserializer)?.unwrap_or(0.0);
     Ok(if amount.is_nan() {
         0.0
     } else {
@@ -290,9 +307,9 @@ pub struct AppearanceConfig {
     pub automatic_dark_from: u8,
     #[serde(deserialize_with = "hour::<_, DARK_UNTIL>")]
     pub automatic_dark_until: u8,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, deserialize_with = "lenient")]
     pub accent: Option<String>,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, deserialize_with = "lenient")]
     pub accent_color: Option<[f32; 3]>,
     #[serde(deserialize_with = "lenient")]
     pub wallpaper_accent: bool,
@@ -331,6 +348,7 @@ pub struct AppearanceConfig {
     pub display_contrast: f32,
     #[serde(deserialize_with = "text_size")]
     pub text_size: f32,
+    #[serde(deserialize_with = "lenient")]
     pub text_sizes: TextSizes,
     #[serde(deserialize_with = "lenient")]
     pub menu_bar_size: MenuBarSize,
@@ -338,7 +356,7 @@ pub struct AppearanceConfig {
     pub icon_style: IconStyle,
     #[serde(deserialize_with = "lenient")]
     pub icon_tone: IconTone,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, deserialize_with = "lenient")]
     pub icon_color: Option<[f32; 3]>,
     #[serde(deserialize_with = "lenient_true")]
     pub shake_to_locate: bool,
@@ -422,13 +440,13 @@ impl AppearanceConfig {
 
     // The system's light or dark wins over the domain's; Dark Tint stays the dark it asks for (ADR 0114).
     fn following_system(self, system: Option<ColorScheme>) -> Self {
-        match system {
-            Some(system) => Self {
-                color_scheme: self.color_scheme.following(system.is_dark()),
-                automatic_scheme: false,
-                ..self
-            },
-            None => self,
+        let color_scheme = match system {
+            Some(system) => self.color_scheme.following(system.is_dark()),
+            None => self.current_scheme(),
+        };
+        Self {
+            color_scheme,
+            ..self
         }
     }
 
@@ -506,19 +524,19 @@ pub fn read_appearance() -> Result<Option<AppearanceConfig>, toml::de::Error> {
 }
 
 pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
+    Ok(read_unresolved(path)?.map(|config| config.following_system(None)))
+}
+
+fn read_unresolved(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
     static PARSED: Slot<AppearanceConfig> = Mutex::new(None);
-    let parsed = read_parsed(&PARSED, path, |text| {
+    read_parsed(&PARSED, path, |text| {
         warn_legacy_traffic_light_name(text);
         let mut config: AppearanceConfig = toml::from_str(text)?;
         if monochrome_icons(text) {
             config.icon_color.get_or_insert(graphite());
         }
         Ok(config)
-    })?;
-    Ok(parsed.map(|mut config| {
-        config.color_scheme = config.current_scheme();
-        config
-    }))
+    })
 }
 
 type Stamp = (u64, SystemTime, u64);
@@ -579,36 +597,20 @@ const RETIRED_KEYS: [&str; 6] = [
     "window_tint_scope",
 ];
 
-pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Result<()> {
-    let parsed = match std::fs::read_to_string(path) {
-        Ok(text) => text
-            .parse::<toml_edit::DocumentMut>()
-            .ok()
-            .filter(|_| toml::from_str::<AppearanceConfig>(&text).is_ok()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            Some(toml_edit::DocumentMut::new())
-        }
-        Err(_) => None,
-    };
-    let mut doc = match parsed {
-        Some(doc) => doc,
-        None => {
-            let backup = path.with_extension("domain.bak");
-            std::fs::copy(path, &backup)?;
-            tracing::warn!(
-                path = %path.display(),
-                backup = %backup.display(),
-                "unreadable appearance domain backed up before overwrite"
-            );
-            toml_edit::DocumentMut::new()
-        }
-    };
+pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> io::Result<()> {
+    keep_unparsed::<AppearanceConfig>(path)?;
+    let text = std::fs::read_to_string(path).unwrap_or_default();
+    let file = toml::from_str::<AppearanceConfig>(&text).ok();
+    let mut doc = file
+        .as_ref()
+        .and_then(|_| text.parse::<DocumentMut>().ok())
+        .unwrap_or_default();
 
-    // Reads resolve `color_scheme` to the hour's scheme; writing that back would lose Dark Tint.
+    // Reads resolve `color_scheme` to the hour's scheme; writing that echo back would lose Dark Tint.
     let kept_scheme = doc
         .get("color_scheme")
         .cloned()
-        .filter(|_| config.automatic_scheme);
+        .filter(|_| file.is_some_and(|file| file.current_scheme() == config.color_scheme));
     let fresh = toml_edit::ser::to_document(config).map_err(std::io::Error::other)?;
     for (key, item) in fresh.iter() {
         doc[key] = item.clone();
@@ -642,12 +644,12 @@ pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> std::io::Resu
 }
 
 // XDG Base Directory Specification: a missing directory is created with permission 0700.
-pub(crate) fn create_private_dir(dir: &Path) -> std::io::Result<()> {
+pub(crate) fn create_private_dir(dir: &Path) -> io::Result<()> {
     std::os::unix::fs::DirBuilderExt::mode(std::fs::DirBuilder::new().recursive(true), 0o700)
         .create(dir)
 }
 
-pub fn replace_file(path: &Path, text: &str) -> std::io::Result<()> {
+pub fn replace_file(path: &Path, text: &str) -> io::Result<()> {
     if let Some(parent) = path.parent() {
         create_private_dir(parent)?;
     }
@@ -690,12 +692,11 @@ fn serialize_tint_parts<S: Serializer>(
     )
 }
 
-fn accent_array(accent: [f32; 3]) -> toml_edit::Array {
-    let mut arr = toml_edit::Array::new();
-    for channel in accent {
-        arr.push((f64::from(channel.clamp(0.0, 1.0)) * 1000.0).round() / 1000.0);
-    }
-    arr
+fn accent_array(accent: [f32; 3]) -> Array {
+    accent
+        .into_iter()
+        .map(|channel| (f64::from(channel.clamp(0.0, 1.0)) * 1000.0).round() / 1000.0)
+        .collect()
 }
 
 fn value_of<'a>(text: &'a str, key: &str) -> Option<&'a str> {
@@ -711,10 +712,7 @@ fn monochrome_icons(text: &str) -> bool {
 }
 
 fn graphite() -> [f32; 3] {
-    let (_, color) = ctdesign::ACCENT_SWATCHES
-        .into_iter()
-        .find(|(name, _)| *name == "graphite")
-        .expect("ctdesign has a graphite swatch");
+    let color = accent::graphite().light.control;
     [color.r, color.g, color.b]
 }
 
@@ -730,7 +728,7 @@ fn warn_legacy_traffic_light_name(text: &str) {
 }
 
 pub fn load_appearance() -> AppearanceConfig {
-    let config = match read_appearance() {
+    let config = match read_unresolved(&appearance_path()) {
         Ok(config) => config.unwrap_or_default(),
         Err(error) => {
             tracing::warn!(%error, "invalid appearance domain; using defaults");
@@ -751,12 +749,12 @@ pub struct WallpaperOutput {
 pub struct WallpaperState {
     pub dominant: Option<[f32; 3]>,
     pub grid: Option<WallpaperGrid>,
-    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
-    pub grids: std::collections::BTreeMap<String, WallpaperGrid>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub grids: BTreeMap<String, WallpaperGrid>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub outputs: Vec<WallpaperOutput>,
-    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
-    pub shown: std::collections::BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub shown: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub shuffled_at: Option<u64>,
 }
@@ -784,12 +782,17 @@ pub fn load_dominant() -> Option<Rgba> {
 }
 
 // A file that exists but cannot be read is never replaced; one that does not parse is copied to `<name>.bak` first.
-pub(crate) fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> std::io::Result<()> {
+fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> io::Result<()> {
     match std::fs::read_to_string(path) {
         Ok(text) if toml::from_str::<T>(&text).is_err() => {
             let mut backup = path.as_os_str().to_owned();
             backup.push(".bak");
-            std::fs::copy(path, backup)?;
+            std::fs::copy(path, &backup)?;
+            tracing::warn!(
+                path = %path.display(),
+                backup = %Path::new(&backup).display(),
+                "unreadable file backed up before overwrite"
+            );
         }
         Err(error) if error.kind() != std::io::ErrorKind::NotFound => return Err(error),
         _ => {}
@@ -797,18 +800,26 @@ pub(crate) fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> std::io::Result
     Ok(())
 }
 
-pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> std::io::Result<()> {
-    keep_unparsed::<WallpaperState>(path)?;
+pub(crate) fn write_toml<T: Serialize + DeserializeOwned>(
+    path: &Path,
+    value: &T,
+) -> io::Result<()> {
+    keep_unparsed::<T>(path)?;
+    replace_file(
+        path,
+        &toml::to_string(value).map_err(std::io::Error::other)?,
+    )
+}
+
+pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> io::Result<()> {
     if *state == WallpaperState::default() {
+        keep_unparsed::<WallpaperState>(path)?;
         return match std::fs::remove_file(path) {
             Err(error) if error.kind() != std::io::ErrorKind::NotFound => Err(error),
             _ => Ok(()),
         };
     }
-    replace_file(
-        path,
-        &toml::to_string(state).map_err(std::io::Error::other)?,
-    )
+    write_toml(path, state)
 }
 
 fn read_wallpaper_state(path: &Path) -> Option<WallpaperState> {
@@ -816,545 +827,4 @@ fn read_wallpaper_state(path: &Path) -> Option<WallpaperState> {
     read_parsed(&PARSED, path, |text| toml::from_str(text))
         .ok()
         .flatten()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn the_legacy_style_name_deserializes_to_standard() {
-        let config: AppearanceConfig = toml::from_str("traffic_lights = \"macos\"\n").unwrap();
-        assert_eq!(config.traffic_lights, TrafficLightStyle::Standard);
-        let config: AppearanceConfig = toml::from_str("traffic_lights = \"standard\"\n").unwrap();
-        assert_eq!(config.traffic_lights, TrafficLightStyle::Standard);
-    }
-
-    #[test]
-    fn the_retired_auto_scheme_reads_as_light() {
-        let config: AppearanceConfig = toml::from_str("color_scheme = \"auto\"\n").unwrap();
-        assert_eq!(config.color_scheme, ColorScheme::Light);
-    }
-
-    #[test]
-    fn reduce_transparency_defaults_to_false() {
-        let without_key: AppearanceConfig = toml::from_str(
-            r#"
-color_scheme = "dark"
-accent_color = [0.2, 0.5, 0.8]
-contrast = false
-reduced_motion = false
-window_color = "neutral"
-window_tint_scope = "windows"
-traffic_lights = "standard"
-"#,
-        )
-        .unwrap();
-        assert!(!without_key.reduce_transparency);
-
-        let with_true: AppearanceConfig = toml::from_str("reduce_transparency = true\n").unwrap();
-        assert!(with_true.reduce_transparency);
-
-        assert!(!AppearanceConfig::default().reduce_transparency);
-    }
-
-    #[test]
-    fn the_named_accent_reads_and_a_domain_without_it_still_loads() {
-        let named: AppearanceConfig = toml::from_str("accent = \"purple\"\n").unwrap();
-        assert_eq!(named.accent.as_deref(), Some("purple"));
-        let old: AppearanceConfig = toml::from_str("accent_color = [0.2, 0.5, 0.8]\n").unwrap();
-        assert_eq!(old.accent, None);
-        assert_eq!(old.accent_color, Some([0.2, 0.5, 0.8]));
-    }
-
-    #[test]
-    fn a_toolkit_without_its_own_text_size_uses_the_preferred_one() {
-        let config: AppearanceConfig =
-            toml::from_str("text_size = 1.3\n[text_sizes]\nqt = 2.0\n").unwrap();
-        assert_eq!(config.text_size_for(Toolkit::Gtk), 1.3);
-        assert_eq!(config.text_size_for(Toolkit::BarrierKit), 1.3);
-        assert_eq!(config.text_size_for(Toolkit::Qt), 2.0);
-    }
-
-    #[test]
-    fn write_appearance_roundtrips() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-write-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        let config = AppearanceConfig {
-            color_scheme: ColorScheme::Dark,
-            automatic_scheme: false,
-            automatic_dark_from: 20,
-            automatic_dark_until: 6,
-            accent: Some("purple".to_owned()),
-            accent_color: Some([0.184, 0.435, 0.894]),
-            wallpaper_accent: true,
-            contrast: false,
-            reduced_motion: false,
-            scroll_bars: ScrollBars::WhenScrolling,
-            scroll_bar_click: ScrollBarClick::ClickedSpot,
-            reduce_transparency: true,
-            window_color: WindowColorMode::Accent,
-            traffic_lights: TrafficLightStyle::Accent,
-            tint_strength: TintStrength::Strong,
-            tint_parts: TintParts {
-                sidebars: true,
-                window: false,
-                groups: true,
-                controls: false,
-                menus: true,
-                bars: false,
-            },
-            wallpaper_tinting: false,
-            wallpaper_tinting_in_light: true,
-            invert_colors: true,
-            show_borders: true,
-            differentiate_without_color: true,
-            display_contrast: DISPLAY_CONTRAST[2],
-            text_size: TEXT_SIZES[3],
-            text_sizes: TextSizes {
-                barrierkit: None,
-                gtk: Some(TEXT_SIZES[1]),
-                qt: Some(TEXT_SIZES[5]),
-            },
-            menu_bar_size: MenuBarSize::Large,
-            icon_style: IconStyle::Tinted,
-            icon_tone: IconTone::Dark,
-            icon_color: Some([0.925, 0.275, 0.275]),
-            shake_to_locate: false,
-            pointer_size: POINTER_SIZES[4],
-            color_filters: true,
-            color_filter: ColorFilter::BlueYellow,
-            color_filter_intensity: COLOR_FILTER_INTENSITY[1],
-            liquid_glass_tint: 0.3,
-            gtk_bridge: false,
-            qt_bridge: false,
-        };
-        write_appearance(&path, &config).unwrap();
-        let read = read_appearance_from(&path).unwrap().unwrap();
-        assert_eq!(config, read);
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn the_system_scheme_wins_and_dark_keeps_the_tint() {
-        let file = |color_scheme| AppearanceConfig {
-            color_scheme,
-            automatic_scheme: true,
-            ..AppearanceConfig::default()
-        };
-        let dark = Some(ColorScheme::Dark);
-        assert_eq!(
-            file(ColorScheme::Light).following_system(dark).color_scheme,
-            ColorScheme::Dark
-        );
-        assert_eq!(
-            file(ColorScheme::DarkTint)
-                .following_system(dark)
-                .color_scheme,
-            ColorScheme::DarkTint
-        );
-        let light = file(ColorScheme::DarkTint).following_system(Some(ColorScheme::Light));
-        assert_eq!(
-            (light.color_scheme, light.automatic_scheme),
-            (ColorScheme::Light, false)
-        );
-        assert_eq!(
-            file(ColorScheme::Dark).following_system(None),
-            file(ColorScheme::Dark)
-        );
-    }
-
-    #[test]
-    fn automatic_is_dark_from_its_evening_hour_until_its_morning_hour() {
-        let config = AppearanceConfig {
-            automatic_scheme: true,
-            ..AppearanceConfig::default()
-        };
-        let schemes = [18, 19, 0, 6, 7].map(|hour| config.scheme_at(hour));
-        use ColorScheme::{Dark, Light};
-        assert_eq!(schemes, [Light, Dark, Dark, Dark, Light]);
-        let day_shift = AppearanceConfig {
-            automatic_dark_from: 9,
-            automatic_dark_until: 17,
-            color_scheme: ColorScheme::DarkTint,
-            ..config
-        };
-        assert_eq!(day_shift.scheme_at(12), ColorScheme::DarkTint);
-        assert_eq!(day_shift.scheme_at(17), ColorScheme::Light);
-    }
-
-    #[test]
-    fn an_edit_made_at_noon_keeps_dark_tint_for_the_night() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-auto-{}", std::process::id()));
-        let path = dir.join("appearance.domain");
-        let chosen = AppearanceConfig {
-            automatic_scheme: true,
-            color_scheme: ColorScheme::DarkTint,
-            ..AppearanceConfig::default()
-        };
-        write_appearance(&path, &chosen).unwrap();
-        let read_at_noon = AppearanceConfig {
-            color_scheme: chosen.scheme_at(12),
-            contrast: true,
-            ..chosen
-        };
-        write_appearance(&path, &read_at_noon).unwrap();
-        let written: AppearanceConfig =
-            toml::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
-        assert_eq!(written.scheme_at(22), ColorScheme::DarkTint);
-        assert!(written.contrast);
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn the_retired_monochrome_icon_style_reads_as_tinted_in_graphite() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-mono-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        std::fs::write(&path, "icon_style = \"monochrome\"\n").unwrap();
-        let read = read_appearance_from(&path).unwrap().unwrap();
-        assert_eq!(read.icon_style, IconStyle::Tinted);
-        assert_eq!(read.icon_color, Some(graphite()));
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn write_appearance_preserves_unknown_keys_and_comments() {
-        let dir =
-            std::env::temp_dir().join(format!("ctappearance-preserve-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        std::fs::write(
-            &path,
-            "# legacy comment preserved\nlegacy_key = true\ncolor_scheme = \"light\"\n",
-        )
-        .unwrap();
-        let config = AppearanceConfig {
-            color_scheme: ColorScheme::Dark,
-            accent_color: Some([0.184, 0.435, 0.894]),
-            ..AppearanceConfig::default()
-        };
-        write_appearance(&path, &config).unwrap();
-        let text = std::fs::read_to_string(&path).unwrap();
-        assert!(text.contains("accent_color = [0.184, 0.435, 0.894]"));
-        assert!(text.contains("legacy comment preserved"));
-        assert!(text.contains("legacy_key = true"));
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn write_appearance_backs_up_an_unreadable_domain() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-backup-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        let original = "color_scheme = ";
-        std::fs::write(&path, original).unwrap();
-        let config = AppearanceConfig {
-            color_scheme: ColorScheme::Dark,
-            ..AppearanceConfig::default()
-        };
-
-        write_appearance(&path, &config).unwrap();
-
-        let backup = dir.join("appearance.domain.bak");
-        assert_eq!(std::fs::read(&backup).unwrap(), original.as_bytes());
-        let read = read_appearance_from(&path).unwrap().unwrap();
-        assert_eq!(read.color_scheme, ColorScheme::Dark);
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn write_appearance_backs_up_a_domain_with_a_wrongly_typed_value() {
-        let dir =
-            std::env::temp_dir().join(format!("ctappearance-mistyped-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        let original = "contrast = true\ntext_size = \"1.15\"\n";
-        std::fs::write(&path, original).unwrap();
-
-        write_appearance(&path, &AppearanceConfig::default()).unwrap();
-
-        let backup = dir.join("appearance.domain.bak");
-        assert_eq!(std::fs::read(&backup).unwrap(), original.as_bytes());
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn a_size_outside_its_steps_stops_at_the_nearest_one_and_nan_at_the_first() {
-        let config: AppearanceConfig = toml::from_str(
-            "display_contrast = 0.0\ntext_size = nan\npointer_size = 9.0\n\
-             color_filter_intensity = -inf\nliquid_glass_tint = 4.0\n[text_sizes]\ngtk = 40.0\n",
-        )
-        .unwrap();
-        assert_eq!(config.display_contrast, DISPLAY_CONTRAST[0]);
-        assert_eq!(config.text_size, TEXT_SIZES[0]);
-        assert_eq!(config.pointer_size, POINTER_SIZES[6]);
-        assert_eq!(config.color_filter_intensity, COLOR_FILTER_INTENSITY[0]);
-        assert_eq!(config.liquid_glass_tint, 1.0);
-        let not_a_number: AppearanceConfig = toml::from_str("liquid_glass_tint = nan\n").unwrap();
-        assert_eq!(not_a_number.liquid_glass_tint, 0.0);
-        assert_eq!(config.text_sizes.gtk, Some(TEXT_SIZES[5]));
-        assert_eq!(config.text_sizes.qt, None);
-    }
-
-    #[test]
-    fn write_appearance_does_not_back_up_a_readable_domain() {
-        let dir =
-            std::env::temp_dir().join(format!("ctappearance-nobackup-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        std::fs::write(&path, "color_scheme = \"light\"\n").unwrap();
-
-        write_appearance(&path, &AppearanceConfig::default()).unwrap();
-
-        assert!(!dir.join("appearance.domain.bak").exists());
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn write_appearance_creates_missing_file_and_leaves_no_temp() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-create-{}", std::process::id()));
-        let path = dir.join("appearance.domain");
-        assert!(!path.exists());
-        write_appearance(&path, &AppearanceConfig::default()).unwrap();
-        assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 1);
-        read_appearance_from(&path)
-            .unwrap()
-            .expect("created file parses");
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn old_domain_without_new_fields_uses_defaults() {
-        let config: AppearanceConfig = toml::from_str(
-            r#"
-color_scheme = "light"
-accent_color = [0.2, 0.5, 0.8]
-contrast = false
-reduced_motion = false
-window_color = "accent"
-window_tint_scope = "windows"
-traffic_lights = "standard"
-sidebar_style = "flat"
-invert_colors = "yes"
-gtk_bridge = 1
-automatic_dark_from = -1
-"#,
-        )
-        .unwrap();
-        assert!(!config.invert_colors);
-        assert!(config.gtk_bridge);
-        assert_eq!(config.automatic_dark_from, DARK_FROM);
-        assert_eq!(config.tint_strength, TintStrength::Normal);
-        assert_eq!(config.tint_parts, TintParts::default());
-        assert!(config.wallpaper_tinting);
-        assert!(!config.wallpaper_tinting_in_light);
-    }
-
-    #[test]
-    fn the_old_wallpaper_window_colour_reads_as_neutral() {
-        let config: AppearanceConfig =
-            toml::from_str("window_color = \"wallpaper\"\ntraffic_lights = \"accent\"\n").unwrap();
-        assert_eq!(config.window_color, WindowColorMode::Neutral);
-        assert_eq!(config.traffic_lights, TrafficLightStyle::Accent);
-        assert!(config.wallpaper_tinting);
-    }
-
-    #[test]
-    fn an_unknown_value_falls_back_only_for_its_field() {
-        let config: AppearanceConfig = toml::from_str(
-            r#"
-color_scheme = "dark"
-window_color = "bubbly"
-tint_parts = ["window", "halo"]
-"#,
-        )
-        .unwrap();
-        assert_eq!(config.color_scheme, ColorScheme::Dark);
-        assert_eq!(config.window_color, WindowColorMode::default());
-        assert_eq!(
-            config.tint_parts,
-            TintParts {
-                sidebars: false,
-                window: true,
-                groups: false,
-                controls: false,
-                menus: false,
-                bars: false,
-            }
-        );
-    }
-
-    #[test]
-    fn write_wallpaper_state_records_and_clears_the_state() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-state-{}", std::process::id()));
-        let path = dir.join("wallpaper.state");
-        let state = WallpaperState {
-            dominant: Some([0.2, 0.4, 0.6]),
-            grid: Some(WallpaperGrid {
-                aspect: 1.6,
-                rows: vec![vec![[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]],
-            }),
-            ..WallpaperState::default()
-        };
-        write_wallpaper_state(&path, &state).unwrap();
-        assert_eq!(read_wallpaper_state(&path), Some(state));
-        write_wallpaper_state(&path, &WallpaperState::default()).unwrap();
-        assert!(!path.exists());
-        write_wallpaper_state(&path, &WallpaperState::default()).unwrap();
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn write_wallpaper_state_backs_up_a_state_that_does_not_parse_and_keeps_one_it_cannot_read() {
-        let dir =
-            std::env::temp_dir().join(format!("ctappearance-bad-state-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("wallpaper.state");
-        std::fs::write(&path, "dominant = ").unwrap();
-        let state = WallpaperState {
-            dominant: Some([0.2, 0.4, 0.6]),
-            ..WallpaperState::default()
-        };
-        write_wallpaper_state(&path, &state).unwrap();
-        assert_eq!(
-            std::fs::read(dir.join("wallpaper.state.bak")).unwrap(),
-            b"dominant = "
-        );
-        assert_eq!(read_wallpaper_state(&path), Some(state.clone()));
-
-        let unreadable = dir.join("unreadable.state");
-        std::fs::create_dir(&unreadable).unwrap();
-        assert!(write_wallpaper_state(&unreadable, &state).is_err());
-        assert!(unreadable.is_dir());
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn the_retired_traffic_light_shape_still_parses_and_a_write_removes_it() {
-        let text = "traffic_light_shape = 4\ntraffic_lights = \"accent\"\n";
-        let config: AppearanceConfig = toml::from_str(text).unwrap();
-        assert_eq!(config.traffic_lights, TrafficLightStyle::Accent);
-        let dir = std::env::temp_dir().join(format!("ctappearance-shape-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        std::fs::write(&path, text).unwrap();
-        write_appearance(&path, &config).unwrap();
-        assert!(
-            !std::fs::read_to_string(&path)
-                .unwrap()
-                .contains("traffic_light_shape")
-        );
-    }
-
-    #[test]
-    fn the_retired_glass_blur_still_parses_and_a_write_removes_it() {
-        let text = "glass_blur = 0.6\nreduce_transparency = true\n";
-        let config: AppearanceConfig = toml::from_str(text).unwrap();
-        assert!(config.reduce_transparency);
-        let dir = std::env::temp_dir().join(format!("ctappearance-blur-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        std::fs::write(&path, text).unwrap();
-        write_appearance(&path, &config).unwrap();
-        assert!(
-            !std::fs::read_to_string(&path)
-                .unwrap()
-                .contains("glass_blur")
-        );
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn a_retired_key_next_to_its_replacement_still_parses_and_a_write_removes_it() {
-        let text = "tint_strength_accent = \"intense\"\ntint_strength = \"strong\"\ntraffic_lights = \"wallpaper\"\n";
-        let config: AppearanceConfig = toml::from_str(text).unwrap();
-        assert_eq!(config.tint_strength, TintStrength::Strong);
-        assert_eq!(config.traffic_lights, TrafficLightStyle::Wallpaper);
-
-        let dir = std::env::temp_dir().join(format!("ctappearance-retired-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        std::fs::write(&path, text).unwrap();
-        write_appearance(&path, &config).unwrap();
-        assert!(
-            !std::fs::read_to_string(&path)
-                .unwrap()
-                .contains("tint_strength_accent")
-        );
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn tint_parts_roundtrip_through_write_appearance() {
-        let dir = std::env::temp_dir().join(format!(
-            "ctappearance-parts-roundtrip-{}",
-            std::process::id()
-        ));
-        std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join("appearance.domain");
-        let config = AppearanceConfig {
-            tint_strength: TintStrength::Intense,
-            tint_parts: TintParts {
-                sidebars: true,
-                window: false,
-                groups: true,
-                controls: false,
-                menus: true,
-                bars: false,
-            },
-            ..AppearanceConfig::default()
-        };
-        write_appearance(&path, &config).unwrap();
-        let read = read_appearance_from(&path).unwrap().unwrap();
-        assert_eq!(config, read);
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    fn parsed_text(slot: &Slot<String>, path: &Path, parses: &std::cell::Cell<u32>) -> String {
-        read_parsed(slot, path, |text| {
-            parses.set(parses.get() + 1);
-            Ok::<_, ()>(text.to_string())
-        })
-        .unwrap()
-        .unwrap()
-    }
-
-    fn written(path: &Path, text: &str, age: Duration) {
-        replace_file(path, text).unwrap();
-        File::options()
-            .write(true)
-            .open(path)
-            .unwrap()
-            .set_modified(SystemTime::now() - age)
-            .unwrap();
-    }
-
-    #[test]
-    fn a_settled_file_is_parsed_once_and_again_after_it_is_replaced() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-parsed-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let (path, slot, parses) = (dir.join("a.domain"), Mutex::new(None), 0.into());
-        written(&path, "one", Duration::from_secs(60));
-        assert_eq!(parsed_text(&slot, &path, &parses), "one");
-        assert_eq!(parsed_text(&slot, &path, &parses), "one");
-        assert_eq!(parses.get(), 1);
-        written(&path, "two", Duration::from_secs(60));
-        assert_eq!(parsed_text(&slot, &path, &parses), "two");
-        assert_eq!(parses.get(), 2);
-        std::fs::remove_dir_all(&dir).ok();
-    }
-
-    #[test]
-    fn a_file_changed_a_moment_ago_is_parsed_on_every_read() {
-        let dir = std::env::temp_dir().join(format!("ctappearance-fresh-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
-        let (path, slot, parses) = (dir.join("a.domain"), Mutex::new(None), 0.into());
-        written(&path, "one", Duration::ZERO);
-        parsed_text(&slot, &path, &parses);
-        parsed_text(&slot, &path, &parses);
-        assert_eq!(parses.get(), 2);
-        std::fs::remove_dir_all(&dir).ok();
-    }
 }

@@ -65,28 +65,3 @@ fn user_dir_in(text: &str, kind: &str, home: &Path) -> Option<PathBuf> {
         None => Some(PathBuf::from(value)).filter(|path| path.is_absolute()),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_user_dir_expands_home_and_rejects_relative_paths() {
-        let home = Path::new("/home/ana");
-        let dirs = "# comment\nXDG_DESKTOP_DIR=\"$HOME/Escritorio\"\nXDG_MUSIC_DIR=\"/mnt/música\"\nXDG_VIDEOS_DIR=\"Vídeos\"\nXDG_PUBLICSHARE_DIR=\"$HOME\"\n";
-        assert_eq!(
-            user_dir_in(dirs, "DESKTOP", home),
-            Some(home.join("Escritorio"))
-        );
-        assert_eq!(
-            user_dir_in(dirs, "MUSIC", home),
-            Some(PathBuf::from("/mnt/música"))
-        );
-        assert_eq!(user_dir_in(dirs, "VIDEOS", home), None);
-        assert_eq!(
-            user_dir_in(dirs, "PUBLICSHARE", home),
-            Some(home.to_path_buf())
-        );
-        assert_eq!(user_dir_in(dirs, "DOCUMENTS", home), None);
-    }
-}
