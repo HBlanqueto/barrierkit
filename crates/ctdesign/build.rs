@@ -515,6 +515,7 @@ TITLEBAR_EXPANDED_TITLE_HEIGHT f32 components.window.titlebar.expanded-title.hei
 TITLEBAR_EXPANDED_TITLE_GAP f32 components.window.titlebar.expanded-title.gap
 TITLEBAR_EXPANDED_TOOLBAR_BOTTOM f32 components.window.titlebar.expanded-title.toolbar-bottom
 TITLEBAR_TOOLBAR_START TitlebarToolbarStart components.window.titlebar.toolbar-start
+TITLEBAR_FULLSCREEN_START TitlebarToolbarStart components.window.titlebar.fullscreen-start
 MENU_MARK_TEXT_GAP f32 components.shell.menu.mark.text-gap
 MENU_ICON_TEXT_GAP f32 components.shell.menu.icon.text-gap
 MENU_SUBMENU_INTENT_MS u64 components.shell.menu.submenu.intent-ms

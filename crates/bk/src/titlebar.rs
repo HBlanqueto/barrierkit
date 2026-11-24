@@ -11,7 +11,7 @@ use ctappearance::window::{
 };
 use ctdesign::{
     ButtonKind, TITLEBAR_DOUBLE_CLICK, TITLEBAR_EXPANDED_TITLE_GAP, TITLEBAR_EXPANDED_TITLE_HEIGHT,
-    TITLEBAR_EXPANDED_TOOLBAR_BOTTOM, TITLEBAR_TOOLBAR_START,
+    TITLEBAR_EXPANDED_TOOLBAR_BOTTOM, TITLEBAR_FULLSCREEN_START, TITLEBAR_TOOLBAR_START,
 };
 use ctdesign::{NATIVE_APP_ID_PREFIX, SIDEBAR, TOOLGROUP};
 use freya_core::prelude::*;
@@ -38,6 +38,7 @@ pub enum WindowToolbarStyle {
 pub struct Titlebar {
     preview: Option<Preview>,
     title: Option<Cow<'static, str>>,
+    shows_title: bool,
     sidebar: bool,
     toolbar_style: Option<WindowToolbarStyle>,
     left: Option<Element>,
@@ -66,6 +67,7 @@ impl Titlebar {
         Self {
             preview: None,
             title: None,
+            shows_title: true,
             sidebar: false,
             toolbar_style: None,
             left: None,
@@ -90,6 +92,12 @@ impl Titlebar {
 
     pub fn title(mut self, title: impl Into<Cow<'static, str>>) -> Self {
         self.title = Some(title.into());
+        self
+    }
+
+    /// SwiftUI's `showsTitle:`: without the title, the trailing items follow the traffic lights.
+    pub fn shows_title(mut self, shows_title: bool) -> Self {
+        self.shows_title = shows_title;
         self
     }
 
@@ -199,7 +207,10 @@ impl Component for Titlebar {
             ),
             (None, None) => (WindowStatus::default(), Cow::default(), false),
         };
-        let title = self.title.clone().unwrap_or(title);
+        let title = match self.shows_title {
+            true => self.title.clone().unwrap_or(title),
+            false => Cow::default(),
+        };
         let drag = use_window_drag(fixed);
         if status.decoration == DecorationResponse::Server {
             return rect()
@@ -228,7 +239,7 @@ impl Component for Titlebar {
             paints.fill(&StateValue::new(ShapeStyle::Clear))
         } else if close_only {
             paints.fill(&style.close_only_background)
-        } else if sidebar {
+        } else if sidebar && !status.fullscreen {
             paints.fill(&style.sidebar_background)
         } else {
             paints.fill(&style.background)
@@ -278,6 +289,14 @@ impl Component for Titlebar {
             .map(self.probe, |label, id| {
                 label.a11y_builder(move |node| node.set_author_id(id))
             });
+        let title_label = if status.fullscreen && status.decoration == DecorationResponse::Hybrid {
+            rect()
+                .child(crate::platform::backdrop::Declared::layer())
+                .child(title_label)
+                .into_element()
+        } else {
+            title_label.into_element()
+        };
 
         let shield = crate::views::feedback::OpenSheets::any().then(|| drag.clone());
         let native_lights = status.decoration == DecorationResponse::Hybrid
@@ -292,6 +311,7 @@ impl Component for Titlebar {
                 native_lights,
                 slots,
                 (!status.fullscreen).then_some(title_label),
+                status.fullscreen,
                 drag,
                 background,
             )
@@ -307,6 +327,7 @@ impl Component for Titlebar {
                 lights,
                 slots,
                 title_label,
+                status.fullscreen,
                 drag,
                 background,
             )
@@ -320,6 +341,7 @@ impl Component for Titlebar {
                 traffic.or(native_gap),
                 slots,
                 title_label,
+                status.fullscreen,
                 drag,
                 background,
                 close_only,
@@ -342,7 +364,9 @@ impl Component for Titlebar {
             None => bar,
         };
         // Over content that does not scroll under it, AppKit draws its own title bar beneath the row, as under SwiftUI's toolbar.
-        let system_bar = unified
+        let system_bar = !close_only
+            && !panel
+            && !expanded
             && !overlaid
             && !sidebar
             && !status.fullscreen
@@ -420,17 +444,27 @@ impl Titlebar {
     fn toolbar_slots(&self, style: &TitlebarStyle) -> ToolbarSlots {
         let gap = style.sidebar_padding_x;
         let sections = lay_out(&self.toolbar, gap);
-        ToolbarSlots {
-            navigation: row(sections.navigation, gap),
-            principal: row(sections.center, gap),
-            trailing: row(
-                self.right
-                    .iter()
-                    .cloned()
-                    .chain(sections.trailing)
-                    .collect(),
-                gap,
-            ),
+        let trailing: Vec<Element> = self
+            .right
+            .iter()
+            .cloned()
+            .chain(sections.trailing)
+            .collect();
+        if self.shows_title {
+            ToolbarSlots {
+                navigation: row(sections.navigation, gap),
+                principal: row(sections.center, gap),
+                trailing: row(trailing, gap),
+            }
+        } else {
+            ToolbarSlots {
+                navigation: row(
+                    sections.navigation.into_iter().chain(trailing).collect(),
+                    gap,
+                ),
+                principal: row(sections.center, gap),
+                trailing: None,
+            }
         }
     }
 
@@ -441,7 +475,8 @@ impl Titlebar {
         paints: &Paints,
         traffic: Lights,
         slots: ToolbarSlots,
-        title_label: Label,
+        title_label: Element,
+        fullscreen: bool,
         drag: impl Fn(Event<MouseEventData>) + 'static,
         background: Fill,
     ) -> (Element, f32) {
@@ -465,6 +500,9 @@ impl Titlebar {
         };
         let padding_left = if lights_space {
             padding_x.max(lights_end + lights_gap - occupied)
+        } else if fullscreen && occupied == 0.0 {
+            // The bar's spacing also follows the empty left slot, so the title lands at the start and an item 13 before it, as SwiftUI's.
+            TITLEBAR_FULLSCREEN_START.unified - style.sidebar_spacing
         } else {
             padding_x
         };
@@ -508,11 +546,7 @@ impl Titlebar {
             })
             .probe("titlebar-title")
             .on_mouse_down(drag)
-            .child(
-                slots
-                    .principal
-                    .unwrap_or_else(|| title_label.into_element()),
-            );
+            .child(slots.principal.unwrap_or(title_label));
 
         let root = rect()
             .width(Size::fill())
@@ -560,13 +594,18 @@ impl Titlebar {
         traffic: Option<Element>,
         native_lights: bool,
         slots: ToolbarSlots,
-        title_label: Option<Label>,
+        title_label: Option<Element>,
+        fullscreen: bool,
         drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
         background: Fill,
     ) -> (Element, f32) {
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let (lights_x, lights_y, diameter) = ctappearance::traffic::button_rect(0);
-        let title_height = TITLEBAR_EXPANDED_TITLE_HEIGHT;
+        let title_height = if fullscreen {
+            fullscreen_title_height()
+        } else {
+            TITLEBAR_EXPANDED_TITLE_HEIGHT
+        };
         let lights_center = (lights_y + diameter / 2.0) as f32;
         let title_row = rect()
             .width(Size::fill())
@@ -621,7 +660,17 @@ impl Titlebar {
             .background(background)
             .content(Content::flex())
             .child(title_row)
-            .child(toolbar_row);
+            .child(toolbar_row)
+            .child({
+                let (paint, thickness) = TitlebarStyle::line();
+                rect()
+                    .position(Position::new_absolute().top(height).left(0.0))
+                    .width(Size::percent(100.0))
+                    .height(Size::px(thickness))
+                    .background(
+                        Paints::current(ControlState::default()).fill(&StateValue::new(paint)),
+                    )
+            });
         (bar.into_element(), height)
     }
 
@@ -631,7 +680,8 @@ impl Titlebar {
         style: &TitlebarStyle,
         traffic: Option<Element>,
         slots: ToolbarSlots,
-        title_label: Label,
+        title_label: Element,
+        fullscreen: bool,
         drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
         background: Fill,
         close_only: bool,
@@ -645,18 +695,26 @@ impl Titlebar {
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
         let padding_x = if traffic.is_some() {
             ctappearance::traffic::inset(height as u32) as f32
+        } else if fullscreen {
+            TITLEBAR_FULLSCREEN_START.compact
         } else {
             style.padding_x
         };
-        let lights_gap = if self.left.is_some() || slots.navigation.is_some() {
+        // A compact bar starts its title where an item would start, as macOS 26 does; a utility panel keeps it centered.
+        let leading = !close_only;
+        let items_first = self.left.is_some() || slots.navigation.is_some();
+        let lights_gap = if leading || items_first {
             TITLEBAR_TOOLBAR_START.compact
         } else {
             0.0
         };
         let (left_width, right_width) = *content_widths.read();
-        let slot_width = lights.length().max(left_width).max(right_width);
+        let slot_width = match leading {
+            true => Size::auto(),
+            false => Size::px(lights.length().max(left_width).max(right_width)),
+        };
         let left_slot = rect()
-            .width(Size::px(slot_width))
+            .width(slot_width.clone())
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .cross_align(Alignment::Center)
@@ -681,7 +739,7 @@ impl Titlebar {
             );
 
         let right_slot = rect()
-            .width(Size::px(slot_width))
+            .width(slot_width)
             .height(Size::fill())
             .direction(Direction::Horizontal)
             .main_align(Alignment::End)
@@ -701,15 +759,25 @@ impl Titlebar {
         let title = rect()
             .width(Size::flex(1.0))
             .height(Size::fill())
-            .cross_align(style.title_alignment.clone())
+            .padding(Gaps::new(
+                0.0,
+                0.0,
+                0.0,
+                if leading && items_first {
+                    style.sidebar_spacing
+                } else {
+                    0.0
+                },
+            ))
+            .cross_align(if leading {
+                Alignment::Start
+            } else {
+                style.title_alignment.clone()
+            })
             .main_align(Alignment::Center)
             .probe("titlebar-title")
             .on_mouse_down(drag)
-            .child(
-                slots
-                    .principal
-                    .unwrap_or_else(|| title_label.into_element()),
-            );
+            .child(slots.principal.unwrap_or(title_label));
 
         let root = rect()
             .width(Size::fill())
@@ -792,11 +860,16 @@ pub fn sidebar_bar_height() -> f32 {
     style.sidebar_height
 }
 
+// Pinned in full screen, an expanded bar is as tall as a unified one, as SwiftUI's.
+fn fullscreen_title_height() -> f32 {
+    (ctdesign::SETTINGS.toolbar_height - ctdesign::TITLEBAR_CLIENT_HEIGHT) as f32
+}
+
 // (top, height) of the row that comes down with the menu bar in full screen.
 pub(crate) fn bar_row(expanded: bool) -> (f32, f32) {
     if expanded {
         (
-            TITLEBAR_EXPANDED_TITLE_HEIGHT,
+            fullscreen_title_height(),
             ctdesign::TITLEBAR_CLIENT_HEIGHT as f32,
         )
     } else {

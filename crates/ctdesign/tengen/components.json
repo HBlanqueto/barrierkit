@@ -797,6 +797,7 @@
         "title-gap": 12,
         "expanded-title": {"height": 28, "gap": 15, "toolbar-bottom": 5},
         "toolbar-start": {"unified": 16, "compact": 22, "expanded": 11},
+        "fullscreen-start": {"unified": 22, "compact": 14, "expanded": 11},
         "double-click": {
           "interval-ms": 400,
           "slop": 4

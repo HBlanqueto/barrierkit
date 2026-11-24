@@ -54,6 +54,8 @@ pub(crate) enum Effect {
     Pane,
     // The platform's own title bar lies under this strip: AppKit's titlebar material and separator.
     Titlebar,
+    // Nothing native lies under it; the layer of its own lets the title ride with the full-screen bar.
+    Layer,
 }
 
 // How a glass looks: SwiftUI's `Glass.clear` and `Glass.tint`, and how near two glasses of one container merge.
@@ -153,6 +155,13 @@ impl Declared {
         crate::glass::leaf(Self {
             effect: Effect::Titlebar,
             layout: crate::glass::layout(Size::fill(), Size::px(height), Position::new_absolute()),
+        })
+    }
+
+    pub(crate) fn layer() -> Element {
+        crate::glass::leaf(Self {
+            effect: Effect::Layer,
+            layout: crate::glass::layout(Size::px(0.0), Size::px(0.0), Position::new_absolute()),
         })
     }
 
@@ -369,7 +378,7 @@ impl Requests {
                         requests.glass_spacing = requests.glass_spacing.max(spacing);
                     }
                 }
-                Effect::ScrollEdge { .. } | Effect::Pane | Effect::Titlebar => {}
+                Effect::ScrollEdge { .. } | Effect::Pane | Effect::Titlebar | Effect::Layer => {}
             }
         }
         requests

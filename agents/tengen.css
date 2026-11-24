@@ -1229,6 +1229,9 @@
   --bk-window-titlebar-toolbar-start-unified: 16;
   --bk-window-titlebar-toolbar-start-compact: 22;
   --bk-window-titlebar-toolbar-start-expanded: 11;
+  --bk-window-titlebar-fullscreen-start-unified: 22;
+  --bk-window-titlebar-fullscreen-start-compact: 14;
+  --bk-window-titlebar-fullscreen-start-expanded: 11;
   --bk-window-titlebar-double-click-interval-ms: 400;
   --bk-window-titlebar-double-click-slop: 4;
   --bk-window-titlebar-rail-width: 30;

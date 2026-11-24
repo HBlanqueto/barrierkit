@@ -526,17 +526,26 @@ fn native(id: u64, command: Native) {
             }
         }
         Native::Title(title) => window.setTitle(&NSString::from_str(&title)),
-        // The empty toolbar of a HiddenTitleBar window centers the native lights in the kit's bar, as SwiftUI's `windowToolbarStyle` does.
-        Native::Toolbar(TitlebarBar::Unified) if window.toolbar().is_some() => {
-            window.setToolbarStyle(NSWindowToolbarStyle::Unified)
+        Native::Toolbar(bar) => {
+            let style = match bar {
+                TitlebarBar::Unified => NSWindowToolbarStyle::Unified,
+                TitlebarBar::UnifiedCompact => NSWindowToolbarStyle::UnifiedCompact,
+                TitlebarBar::Titlebar => NSWindowToolbarStyle::Expanded,
+                _ => return,
+            };
+            // A HiddenTitleBar window gets its empty toolbar with the kit's bar, so with none its lights sit at (8, 8) as under SwiftUI's `.hiddenTitleBar`.
+            if window.toolbar().is_none() && window.titlebarAppearsTransparent() {
+                let toolbar = NSToolbar::new(window.mtm());
+                // SwiftUI's toolbar shows icons only; the default leaves room for labels and makes the full-screen bar 66 high, not 52.
+                toolbar.setDisplayMode(NSToolbarDisplayMode::IconOnly);
+                window.setToolbar(Some(&toolbar));
+                window.setToolbarStyle(style);
+                with_runtime(|runtime| runtime.show_system_bar(id));
+            }
+            if window.toolbar().is_some() {
+                window.setToolbarStyle(style);
+            }
         }
-        Native::Toolbar(TitlebarBar::UnifiedCompact) if window.toolbar().is_some() => {
-            window.setToolbarStyle(NSWindowToolbarStyle::UnifiedCompact)
-        }
-        Native::Toolbar(TitlebarBar::Titlebar) if window.toolbar().is_some() => {
-            window.setToolbarStyle(NSWindowToolbarStyle::Expanded)
-        }
-        Native::Toolbar(_) => {}
         Native::Size(width, height) => {
             window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))
         }
@@ -710,9 +719,14 @@ impl Runtime {
             style = NSWindowStyleMask::Titled;
         }
         let (width, height) = options.size;
-        let frame = NSRect::new(
-            NSPoint::new(0.0, 0.0),
-            NSSize::new(f64::from(width), f64::from(height)),
+        // SwiftUI's `defaultSize` is the window's frame: under AppKit's title bar the content is shorter by the bar.
+        let frame = NSWindow::contentRectForFrameRect_styleMask(
+            NSRect::new(
+                NSPoint::new(0.0, 0.0),
+                NSSize::new(f64::from(width), f64::from(height)),
+            ),
+            style,
+            self.mtm,
         );
         let window = Retained::into_super(Toplevel::new(self.mtm, frame, style));
         // SAFETY: the runner owns the window; `setReleasedWhenClosed(false)` keeps it valid after close.
@@ -723,11 +737,6 @@ impl Runtime {
             WindowStyle::HiddenTitleBar => {
                 window.setTitlebarAppearsTransparent(true);
                 window.setTitleVisibility(NSWindowTitleVisibility::Hidden);
-                let toolbar = NSToolbar::new(self.mtm);
-                // SwiftUI's toolbar shows icons only; the default leaves room for labels and makes the full-screen bar 66 high, not 52.
-                toolbar.setDisplayMode(NSToolbarDisplayMode::IconOnly);
-                window.setToolbar(Some(&toolbar));
-                window.setToolbarStyle(NSWindowToolbarStyle::Unified);
                 window.setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
             }
             WindowStyle::Plain => {
@@ -785,8 +794,8 @@ impl Runtime {
         });
         let scale = window.backingScaleFactor();
         let physical = (
-            (f64::from(width) * scale) as u32,
-            (f64::from(height) * scale) as u32,
+            (frame.size.width * scale) as u32,
+            (frame.size.height * scale) as u32,
         );
         let host = Host {
             glass: true,
@@ -996,6 +1005,15 @@ impl Runtime {
         Some(bar.accessory)
     }
 
+    fn show_system_bar(&mut self, id: u64) {
+        let mtm = self.mtm;
+        if let Some(window) = self.window(id) {
+            let shown = window.chromes.iter().any(|chrome| chrome.wanted.titlebar);
+            window.show_system_bar(mtm, shown);
+            window.place_bar();
+        }
+    }
+
     pub(super) fn rides_beside_lights(&mut self, id: u64) -> bool {
         self.window(id)
             .and_then(|window| window.bar.as_ref())
@@ -1052,6 +1070,16 @@ impl Runtime {
         if controls.status.peek().fullscreen != fullscreen {
             let mut status = controls.status;
             status.write().fullscreen = fullscreen;
+            // AppKit's 28 px strip carries the title of an expanded bar down with the menu bar, as under SwiftUI's `.expanded`.
+            if window.window.toolbarStyle() == NSWindowToolbarStyle::Expanded
+                && window.window.titlebarAppearsTransparent()
+            {
+                window.window.setTitleVisibility(if fullscreen {
+                    NSWindowTitleVisibility::Visible
+                } else {
+                    NSWindowTitleVisibility::Hidden
+                });
+            }
             if !window
                 .window
                 .styleMask()
@@ -1231,7 +1259,10 @@ impl Runtime {
                 native: chrome.effects.iter().find_map(|(effect, _)| match effect {
                     Declared::Material { material, .. } => Some(Backing::Visual(*material)),
                     Declared::Glass { .. } => Some(Backing::Glass),
-                    Declared::ScrollEdge { .. } | Declared::Pane | Declared::Titlebar => None,
+                    Declared::ScrollEdge { .. }
+                    | Declared::Pane
+                    | Declared::Titlebar
+                    | Declared::Layer => None,
                 }),
                 titlebar: chrome
                     .effects

@@ -61,10 +61,19 @@ through every state, `greenmenu` presses the green button's menu,
 at 1x, Dark. A SwiftUI `WindowGroup` with a toolbar opened no window at launch
 from a fresh bundle; File > New Window opened it. The second pass closed the leading offset of the first toolbar item, the 28 px
 expanded items, the title-row ink and the expanded toolbar row riding with the
-menu bar. Still owed in the kit, none of them a ceiling: the unified title 2 px
-right and lower, the compact title after the items, the compact group's
-divider, the expanded title at the top edge, the expanded items' 3 to 4 px at
-the top edge, and `.windowToolbarFullScreenVisibility(.onHover)`: the ADR 0116 session's
+menu bar. A third pass (2026-11-23, `~/src/csd-test`: eight SwiftUI designs and
+their kit twins through `states.sh`) closed the compact title (now at the
+start, x 94), `showsTitle: false` (`Titlebar::shows_title`), the bare
+`.hiddenTitleBar` lights at (8, 8), AppKit's bar under the compact bar, the
+pinned 52 px expanded strip with its separator, the title riding at the top
+edge (its own layer in the unified and compact bars, AppKit's title in the
+expanded strip), the full-screen start (`TITLEBAR_FULLSCREEN_START`) and the
+frame size of a `TitleBar` window; all within 1 px of Swift. Still owed in the
+kit, none of them a ceiling: the expanded items 3 px low at the top edge, the
+expanded bar's shade (Swift's bar is AppKit's, 8 levels lighter than the
+window; the kit draws only the separator), the sidebar layout's bar (an opaque
+38 where Swift's is a tinted 40, 40, 46), and
+`.windowToolbarFullScreenVisibility(.onHover)`: the ADR 0116 session's
 attempt through the focus overlay works except that a press in the revealed
 row leaves stale frames until the row hides (cause not found), so it was not
 committed.

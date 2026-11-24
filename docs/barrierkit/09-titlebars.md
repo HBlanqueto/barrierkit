@@ -53,11 +53,12 @@ bar: traffic lights, a left zone, the title and a right zone.
 |---|---|---|
 | `Titlebar::new()` | — | A bar that reads the title and state from `WindowControls` |
 | `.title(text)` | the window title | Replaces the title shown |
+| `.shows_title(bool)` | `true` | `false` drops the title and lays the trailing items after the lights, as SwiftUI's `.unified(showsTitle: false)` and `.unifiedCompact(showsTitle: false)` |
 | `.left(view)`, `.right(view)` | empty; with a `SplitView` above, `left` is the `SidebarToggle` | Items at each side |
 | `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
-| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high, the title at the start), the compact one (centered title) or the expanded one (a title row over the toolbar row), as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
+| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high), the compact one (40 high), both with the title at the start, or the expanded one (a title row over the toolbar row), as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
 | `.hairline(bool)` | `false` | The line under the bar of the sidebar layout. macOS draws none under a unified toolbar at rest over a scroll view; on macOS 26 and later, over content that does not scroll, AppKit's own title bar draws its separator ([15](15-backdrops-and-media.md#on-macos)); `true` draws `TitlebarStyle::line()`, as `NSTitlebarSeparatorStyle.line` does |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
@@ -65,8 +66,9 @@ bar: traffic lights, a left zone, the title and a right zone.
 Behavior:
 
 - Without a sidebar and without items, or with `.toolbar_style(UnifiedCompact)`,
-  the left and right zones take the same width, so the title stays centered.
-  The title uses `TITLEBAR.font`.
+  the bar is the compact one: 40 high, the title in `TITLEBAR.font` where an
+  item would start, `TITLEBAR_TOOLBAR_START.compact` (22) after the lights, as
+  macOS 26 does. Only a `.close_only(true)` bar centers its title.
 - With items the bar is the unified one, as in SwiftUI: 52 high, the traffic
   lights at (19, 19) and the title `SETTINGS.toolbar_lights_gap` (22) after them, in
   `TITLE_2`. The first item (the sidebar toggle, a `.left` view or a
@@ -85,7 +87,16 @@ Behavior:
   the row's middle, as SwiftUI puts them. Its items are 28 high
   (`TOOLGROUP.expanded_*`). It reports `Bar::Titlebar`; a `HiddenTitleBar`
   window then gives its empty `NSToolbar` the `.expanded` style, which puts the
-  native lights at (9, 9).
+  native lights at (9, 9). AppKit draws its title row when the bar comes down
+  with the menu bar in full screen.
+- Over content that does not scroll under it, a unified or compact bar of a
+  `HiddenTitleBar` window lies on AppKit's own title bar and separator, as
+  SwiftUI's; the expanded bar draws `TitlebarStyle::line()` under itself.
+- In full screen the bar stays pinned, as SwiftUI's toolbar: without lights
+  the title and the first item start `TITLEBAR_FULLSCREEN_START` (22 unified,
+  14 compact, 11 expanded) from the edge, and the expanded bar is 52 high (a
+  12 px title row) with its separator. At the top edge the title rides with
+  the lights and the items in AppKit's strip.
 - With `.with_sidebar(true)` the title goes at the start, next to `left`, in
   `TITLE_2`, as on macOS. While the sidebar shows, the traffic lights live in
   the sidebar; they keep their place while it folds.

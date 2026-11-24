@@ -629,3 +629,20 @@ The program is [`recipes/inspector.rs`](recipes/inspector.rs).
 2. `SplitView::background_extension(view)` takes the view that lies behind the detail's leading edge, laid
    out as wide as the detail: it continues under the sidebar and, on macOS, under the inspector, through
    their glass ([10](../docs/barrierkit/10-sidebar.md#background-extension)).
+
+## 50. Every SwiftUI window design
+
+SwiftUI: `WindowGroup` with `.windowStyle(.titleBar)` or `.hiddenTitleBar`, and `.toolbar { }` with
+`.windowToolbarStyle(.unified)`, `.unified(showsTitle: false)`, `.unifiedCompact`,
+`.unifiedCompact(showsTitle: false)` or `.expanded`.
+
+The program is [`recipes/window_designs.rs`](recipes/window_designs.rs). It takes `title-bar`,
+`hidden-title-bar`, `unified`, `unified-no-title`, `compact`, `compact-no-title` or `expanded`; the
+`NavigationSplitView` design is [`notes_sidebar`](recipes/notes_sidebar.rs).
+
+1. `WindowStyle::TitleBar` is AppKit's own bar; every other design is a `HiddenTitleBar` window with
+   native lights and a `Titlebar` drawn by the kit. A `HiddenTitleBar` window with no `Titlebar` keeps
+   SwiftUI's bare strip, its lights at (8, 8).
+2. `Titlebar::toolbar_style(..)` picks the bar and `.shows_title(false)` drops the title, so the items
+   follow the lights. Windowed, in full screen and at the top edge in full screen the bar matches the
+   SwiftUI window ([9](../docs/barrierkit/09-titlebars.md)).
