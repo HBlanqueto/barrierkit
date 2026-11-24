@@ -76,8 +76,10 @@ sidebar layout's bar is the window material under white at
 `TITLEBAR_SYSTEM_VEIL` with AppKit's separator (41/40/46 against 40/40/46; none
 in Light, as Swift), and `.windowToolbarFullScreenVisibility(.onHover)` is
 `WindowToolbarFullScreenVisibility::OnHover`: AppKit's `.autoHideToolbar`, no
-kit bar at rest and the row riding at the edge, identical to Swift; a press in
-the revealed row leaves no stale frame. Nothing in rows A to C is owed.
+kit bar at rest, the sidebar's rows from the top (16 lower before
+2026-11-24) and the row riding at the edge over a window-wide scroll pocket,
+as Swift; a press in the revealed row leaves no stale frame. Swift lightens
+that band too, the kit does not ([OnHover](../barrierkit/09-titlebars.md#onhover)). Nothing in rows A to C is owed.
 Light was measured on the Swift twins only (`-light` sets `NSApp.appearance`);
 the kit follows the system and was captured in Dark.
 

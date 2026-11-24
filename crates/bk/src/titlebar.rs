@@ -202,11 +202,9 @@ impl Component for Titlebar {
         };
         let drag = use_window_drag(fixed);
         // With `OnHover` the pinned bar gives way to the content; it shows only while AppKit's bar is down, where its row rides.
-        let on_hover = status.fullscreen
-            && status.decoration == DecorationResponse::Hybrid
-            && controls
-                .as_ref()
-                .is_some_and(|controls| controls.toolbar_on_hover);
+        let on_hover = controls
+            .as_ref()
+            .is_some_and(WindowControls::toolbar_slides_over);
         let bar_down = controls
             .as_ref()
             .is_some_and(|controls| *controls.focus_bar.read());

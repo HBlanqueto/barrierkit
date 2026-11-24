@@ -315,10 +315,14 @@ impl Component for Sidebar {
             .and_then(|controls| controls.titlebar_overlay_top());
         let resting_top = style.padding_top;
         let lights_top = traffic_y + lights.diameter + style.lights_gap;
+        let slides_over = controls
+            .as_ref()
+            .is_some_and(WindowControls::toolbar_slides_over);
         let top_height = match (
             lights_shown,
             controls.as_ref().filter(|_| overlay_top.is_some()),
         ) {
+            (false, _) if slides_over => 0.0,
             (false, _) => resting_top,
             (true, None) => lights_top,
             (true, Some(controls)) => {

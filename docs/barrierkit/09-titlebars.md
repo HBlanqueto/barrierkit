@@ -223,10 +223,13 @@ public setting clears, so the kit's own row cannot show through it:
 ### `OnHover`
 
 `WindowToolbarFullScreenVisibility::OnHover` is AppKit's `.autoHideToolbar`.
-In full screen there is no bar at rest: the content starts at the top. At the
-top edge the row comes down with the menu bar, in the same places as
-SwiftUI's, and a press in it leaves no stale frame. Windowed it changes
-nothing.
+In full screen there is no bar at rest: the content and the sidebar's rows
+start at the top. At the top edge the row comes down with the menu bar, in the
+same places as SwiftUI's, over the content, which does not move; the scroll
+pocket then spans the window, so the row sits on blurred content, and a press
+in it leaves no stale frame. Windowed it changes nothing. Not matched:
+SwiftUI also lightens that band (55/57/63 against the kit's 32/32/38 over Dark
+text, macOS 27.2).
 
 ## Traffic lights
 

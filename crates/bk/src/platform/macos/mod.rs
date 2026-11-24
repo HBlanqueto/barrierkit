@@ -460,7 +460,12 @@ impl Window {
         else {
             return;
         };
-        let (left, width) = *controls.sidebar_span.peek();
+        // Under `OnHover` the bar slides over all the content, so its soft edge spans the window, as SwiftUI's.
+        let (left, width) = if controls.toolbar_on_hover {
+            (0.0, container.bounds().size.width as f32)
+        } else {
+            *controls.sidebar_span.peek()
+        };
         if width <= 0.0 || bar.depth <= 0.0 {
             if let Some(pocket) = bar.pocket.take() {
                 pocket.remove();

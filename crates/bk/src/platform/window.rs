@@ -276,12 +276,20 @@ impl WindowControls {
         let status = *self.status.read();
         match status.decoration {
             DecorationResponse::Server => false,
-            // AppKit keeps a hybrid window's toolbar row in full screen and reveals its lights there.
-            DecorationResponse::Hybrid => true,
+            // AppKit keeps a hybrid window's toolbar row in full screen and reveals its lights there, unless the row slides over the content.
+            DecorationResponse::Hybrid => !self.toolbar_slides_over(),
             DecorationResponse::Client => {
                 !status.fullscreen || *self.focus_bar_progress.read() > 0.0
             }
         }
+    }
+
+    // With `OnHover` in full screen AppKit's bar slides over the content, which keeps the whole screen.
+    pub(crate) fn toolbar_slides_over(&self) -> bool {
+        let status = *self.status.read();
+        self.toolbar_on_hover
+            && status.fullscreen
+            && status.decoration == DecorationResponse::Hybrid
     }
 
     pub(crate) fn draws_traffic_lights(&self) -> bool {
