@@ -166,10 +166,6 @@ impl TabView {
                 Gaps::new(near, side, style.strip_inset + half + 1.0, side),
                 Gaps::new(near + page_in, side + page_in, past - 2.0, side + page_in),
             ),
-            TabType::Left => (
-                Gaps::new(near, side, far, style.strip_inset + half),
-                Gaps::new(near + page_in, side + page_in, far + page_in, past - 1.0),
-            ),
             TabType::NoTabsBezelBorder => {
                 let [left, top, right, bottom] = TAB_VIEW.bezel_inset;
                 let [page_left, page_top, page_right, page_bottom] = TAB_VIEW.bezel_page_inset;
@@ -199,13 +195,12 @@ impl TabView {
             StripTab {
                 title: title.clone(),
                 active: index == current,
-                vertical: tab_type == TabType::Left,
                 on_select: choice.select(index),
                 style: self.style.clone(),
             }
             .into_element()
         });
-        let has_strip = matches!(tab_type, TabType::Top | TabType::Bottom | TabType::Left);
+        let has_strip = matches!(tab_type, TabType::Top | TabType::Bottom);
         let strip_radius = style.shape.corner_radius(
             style.strip_height,
             style.strip_height,
@@ -214,38 +209,22 @@ impl TabView {
         let strip = rect()
             .a11y_role(AccessibilityRole::TabList)
             .a11y_alt(&*self.label)
-            .direction(if tab_type == TabType::Left {
-                Direction::Vertical
-            } else {
-                Direction::Horizontal
-            })
+            .direction(Direction::Horizontal)
             .corner_radius(strip_radius)
             .painted(&paints, &style.background)
             .children(tabs);
-        let strip = match tab_type {
-            TabType::Top | TabType::Bottom => {
-                let edge = if tab_type == TabType::Top {
-                    Position::new_absolute().top(style.strip_inset).left(0.0)
-                } else {
-                    Position::new_absolute().bottom(style.strip_inset).left(0.0)
-                };
-                rect()
-                    .position(edge)
-                    .layer(2)
-                    .width(Size::percent(100.0))
-                    .direction(Direction::Horizontal)
-                    .main_align(Alignment::Center)
-                    .child(strip)
-            }
-            _ => rect()
-                .position(
-                    Position::new_absolute()
-                        .left(style.strip_inset)
-                        .top(TAB_VIEW.left_strip_top),
-                )
-                .layer(2)
-                .child(strip),
+        let edge = if tab_type == TabType::Top {
+            Position::new_absolute().top(style.strip_inset).left(0.0)
+        } else {
+            Position::new_absolute().bottom(style.strip_inset).left(0.0)
         };
+        let strip = rect()
+            .position(edge)
+            .layer(2)
+            .width(Size::percent(100.0))
+            .direction(Direction::Horizontal)
+            .main_align(Alignment::Center)
+            .child(strip);
         let fill = |padding: Gaps, child: Rect| {
             rect()
                 .position(Position::new_absolute().left(0.0).top(0.0))
@@ -333,7 +312,6 @@ impl Component for ToolbarTab {
 struct StripTab {
     title: Cow<'static, str>,
     active: bool,
-    vertical: bool,
     on_select: Callback<(), ()>,
     style: Theme,
 }
@@ -352,13 +330,7 @@ impl Component for StripTab {
             (&style.tab_background, &style.label)
         };
         let ink = paints.color(ink.resolve(state));
-        let along = measure_text(&self.title, style.font.size as f32)
-            + 2.0
-                * if self.vertical {
-                    style.tab_padding_y
-                } else {
-                    style.tab_padding_x
-                };
+        let along = measure_text(&self.title, style.font.size as f32) + 2.0 * style.tab_padding_x;
         let across = style.strip_height;
         let (inset_x, inset_y) = style.tab_inset;
         let pill_height = across - 2.0 * inset_y;
@@ -394,20 +366,10 @@ impl Component for StripTab {
             .a11y_alt(&*self.title)
             .a11y_builder(move |node| node.set_selected(active))
             .on_press(move |_| on_select.call(()));
-        let cell = if self.vertical {
-            cell.width(Size::px(across)).height(Size::px(along)).child(
-                face.position(
-                    Position::new_absolute()
-                        .left((across - along) / 2.0)
-                        .top((along - across) / 2.0),
-                )
-                .rotate(-90.0),
-            )
-        } else {
-            cell.width(Size::px(along))
-                .height(Size::px(across))
-                .child(face)
-        };
+        let cell = cell
+            .width(Size::px(along))
+            .height(Size::px(across))
+            .child(face);
         interaction.focus_ring(cell, radius.top_left())
     }
 }

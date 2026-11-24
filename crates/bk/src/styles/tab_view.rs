@@ -13,7 +13,6 @@ use crate::styles::{
 pub enum TabType {
     Top,
     Bottom,
-    Left,
     Toolbar,
     NoTabsBezelBorder,
     NoTabsLineBorder,
@@ -36,8 +35,6 @@ pub struct TabViewStyle {
     /// Tengen: `(0, 0)` with a strip of `strip_height`; `(tab_padding_top, tab_padding_bottom)`
     /// in `toolbar`.
     pub tab_padding: (f32, f32),
-    /// Tengen: `TAB_VIEW.strip_padding_y` at each end of a title along a vertical strip.
-    pub tab_padding_y: f32,
     /// Tengen: `TOOLBAR_TABS.icon`, only drawn in `toolbar`.
     pub icon_size: f32,
     /// Tengen: `TOOLBAR_TABS.icon_gap`.
@@ -71,7 +68,7 @@ pub struct TabViewStyle {
     /// Tengen: `TAB_VIEW.strip_inset`, from the edge of the view to the strip.
     pub strip_inset: f32,
     /// Tengen: `TAB_VIEW.page_gap`, from the strip to the page on a `Top` strip (`Bottom` takes
-    /// 2 less, `Left` 1 less).
+    /// 2 less).
     pub page_gap: f32,
     /// Tengen: `(TAB_VIEW.pill_inset_x, TAB_VIEW.pill_inset)`: the chosen tab inside its
     /// segment; the ring of `tab_shadows` takes 1 of the vertical inset.
@@ -189,7 +186,6 @@ impl ControlStyle for TabViewStyle {
             tab_min_width: 0.0,
             tab_padding_x: TAB_VIEW.strip_padding_x,
             tab_padding: (0.0, 0.0),
-            tab_padding_y: TAB_VIEW.strip_padding_y,
             icon_size: TOOLBAR_TABS.icon,
             icon_spacing: TOOLBAR_TABS.icon_gap,
             shape: continuous_rounded(TAB_VIEW.strip_radius),

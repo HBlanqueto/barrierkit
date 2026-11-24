@@ -614,13 +614,12 @@ It fills the space it is given.
 |---|---|---|
 | `Top` | `.topTabsBezelBorder` | The strip straddles the top edge of the bezel box (default) |
 | `Bottom` | `.bottomTabsBezelBorder` | The strip straddles the bottom edge |
-| `Left` | `.leftTabsBezelBorder` | A vertical strip on the left, titles read upward |
 | `Toolbar` | `NSTabViewController` `.toolbar` | Icon over title, as in a settings window: `TabViewStyle::toolbar()` |
 | `NoTabsBezelBorder` | `.noTabsBezelBorder` | The box without a strip |
 | `NoTabsLineBorder` | `.noTabsLineBorder` | A square 1 line, no fill |
 | `NoTabsNoBorder` | `.noTabsNoBorder` | The page alone |
 
-`TabType::Right` is not drawn. The tab view that SwiftUI hosts draws the same
+The left and right strips of `NSTabView` are not drawn. The tab view that SwiftUI hosts draws the same
 box and strip. The fields are in
 [Styles and themes](../../crates/bk/src/styles/tab_view.rs); the numbers are in
 [the measurements](../research/macos-control-metrics.md#tab-views).

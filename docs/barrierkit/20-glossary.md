@@ -58,6 +58,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `TabView` with the toolbar tabs as its only look (`TabViewStyle::tengen()`) | `TabView` draws the classic strip (`TabType::Top`); the toolbar tabs are `TabViewStyle::toolbar()` | 2026-11-20 |
 | `ctdesign::SCROLL_BAR.always_opacity`, `SCROLL_BAR.opacity` (one value) | `SCROLL_BAR.opacity` and `SCROLL_BAR.track_opacity`, four values each (light, dark, then both with Increase Contrast); `ScrollViewStyle.always_thumb_opacity` is gone | 2026-11-20 |
 | `controls::Button::style(ButtonStyle)` | `controls::Button::style(\|s\| ..)`, the closure of every control | 2026-11-07 |
+| `styles::TabType::Left`, `TabViewStyle.tab_padding_y`, `ctdesign::TAB_VIEW.strip_padding_y` and `.left_strip_top` | Removed: no app used the left strip | 2026-11-23 |
 | `ButtonStyle::Secondary` | `ButtonStyle::tengen()`, the default (SwiftUI `.bordered`) | 2026-11-07 |
 | `ButtonStyle::Primary` | `ButtonStyle::bordered_prominent` | 2026-11-07 |
 | `ButtonStyle::Glass` | `ButtonStyle::glass` | 2026-11-07 |
@@ -415,7 +416,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::TableStyle::full_width`, `plain`, `source_list` | fn | — | `NSTableView.Style.fullWidth`, `.plain`, `.sourceList` | `UITableView.Style` | The classic styles of `Table`: edge to edge rows, 17 high rows, a headerless source list | [11](11-views.md#table) |
 | `styles::TableStyle::row_size` | method | `controlSize(_:)` | `NSTableView.rowSizeStyle` | — | Font and icon of small, medium and large rows; the rows of a source list | [11](11-views.md#table) |
 | `styles::OutlineViewStyle::classic`, `full_width` | fn | — | `NSOutlineView`, `NSTableView.Style.fullWidth` | ≈ `UICollectionView`, `UITableView.Style` | Gray icons without hairlines; the same with square rows from edge to edge | [11](11-views.md#outlineview) |
-| `styles::TabType` | enum | — | `NSTabView.TabType` | — | Where the tabs are: `Top`, `Bottom`, `Left`, `Toolbar`, `NoTabsBezelBorder`, `NoTabsLineBorder`, `NoTabsNoBorder` | [11](11-views.md#tabview) |
+| `styles::TabType` | enum | — | `NSTabView.TabType` | — | Where the tabs are: `Top`, `Bottom`, `Toolbar`, `NoTabsBezelBorder`, `NoTabsLineBorder`, `NoTabsNoBorder` | [11](11-views.md#tabview) |
 | `styles::TabViewStyle::toolbar` | fn | — | `NSTabViewController.tabStyle = .toolbar` | — | The icon-over-title tabs of a settings window | [11](11-views.md#tabview) |
 | `views::collection::CollectionView::style` | method | — | — | — | Changes the style of one collection view | [Styles](../../crates/bk/src/styles/table.rs) |
 | `views::tree::OutlineView::style` | method | ≈ `listStyle(_:)` | — | ≈ `UICollectionLayoutListConfiguration.Appearance` | Changes the style of one outline view | [Styles](../../crates/bk/src/styles/table.rs) |

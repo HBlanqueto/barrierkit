@@ -10,7 +10,7 @@ the only entry point; it says which other file to read and when.
 ---
 
 You are writing a desktop app, or a change to one, with **BarrierKit**: a Rust
-toolkit for Wayland whose API follows SwiftUI. You write Rust; the reader of
+toolkit for macOS and Linux whose API follows SwiftUI. You write Rust; the reader of
 your code knows SwiftUI or AppKit. Keep every program as short as its SwiftUI
 version.
 
@@ -26,18 +26,18 @@ version.
    needs.
 4. Open the chapter of every item you use (the glossary links it) and check
    its arguments and defaults.
-5. Build and lint inside `nix develop`: `cargo build`, then
-   `cargo clippy -- -D warnings`, then `cargo fmt`.
+5. Build, lint and open the window: `cargo build`, then
+   `cargo clippy -- -D warnings`, then `cargo fmt`, then `cargo run`. On Linux,
+   run them inside `nix develop`.
 6. Go through the [checklist](checklist.md). Report what you ran and what you
-   could not run (a window needs a Wayland session to open).
+   could not run (on Linux a window needs a Wayland session to open).
 
 ## What you are working with
 
 - **Language:** Rust 2024, stable toolchain.
-- **Platform:** Linux on Wayland, drawn with Vulkan and Skia; macOS arm64
-  opens windows with the system frame, drawn with Metal and Skia ([the macOS
-  runner](../docs/barrierkit/18-platform.md#the-macos-runner)). No Windows, no
-  X11.
+- **Platform:** macOS arm64 first, drawn with Metal and Skia ([the macOS
+  runner](../docs/barrierkit/18-platform.md#the-macos-runner)); Linux on
+  Wayland, drawn with Vulkan and Skia. No Windows, no X11.
 - **Layers:** BarrierKit (`bk`) is built on Freya 0.5.3
   (`freya-core`), its layout engine Torin, and the design tokens of
   `ctdesign`. An app depends on `bk`; the prelude re-exports

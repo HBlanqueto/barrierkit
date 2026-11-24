@@ -52,10 +52,11 @@ reason it cannot be.
 
 ## Build
 
-12. Did you run, inside `nix develop`, `cargo build` and
-    `cargo clippy -- -D warnings` with no warnings?
+12. Did you run `cargo build` and `cargo clippy -- -D warnings` with no
+    warnings (on Linux, inside `nix develop`)?
 13. Did you run `cargo fmt`?
-14. If you could not open the window (no Wayland session), did you say so?
+14. Did you open the window with `cargo run`, or say why you could not (on
+    Linux, no Wayland session)?
 
 ## Changes to the kit itself
 

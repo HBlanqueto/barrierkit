@@ -901,7 +901,6 @@
   --bk-tab-view-strip-inset: 4;
   --bk-tab-view-strip-radius: 6;
   --bk-tab-view-strip-padding-x: 14.2;
-  --bk-tab-view-strip-padding-y: 5.2;
   --bk-tab-view-page-gap: 5;
   --bk-tab-view-small-strip-height: 20;
   --bk-tab-view-small-strip-inset: 2;
@@ -955,7 +954,6 @@
   --bk-tab-view-line-border-opacity-1: 0.25;
   --bk-tab-view-line-border-opacity-2: 0.5;
   --bk-tab-view-line-border-opacity-3: 0.51;
-  --bk-tab-view-left-strip-top: 10;
   --bk-tab-view-bezel-inset: 3 2 3 4;
   --bk-tab-view-bezel-inset-0: 3;
   --bk-tab-view-bezel-inset-1: 2;

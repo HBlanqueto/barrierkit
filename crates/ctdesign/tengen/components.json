@@ -589,7 +589,6 @@
       "strip-inset": 4,
       "strip-radius": 6,
       "strip-padding-x": 14.2,
-      "strip-padding-y": 5.2,
       "page-gap": 5,
       "small": {"strip-height": 20, "strip-inset": 2, "strip-radius": 5, "strip-padding-x": 12.2, "page-gap": 3},
       "mini": {"strip-height": 16, "strip-inset": 1, "strip-radius": 4, "strip-padding-x": 10.2, "page-gap": 2},
@@ -611,7 +610,6 @@
       "box-fill-opacity": 0.031,
       "box-border-opacity": [0.045, 0.124, 0.4, 0.486],
       "line-border-opacity": [0.25, 0.25, 0.5, 0.51],
-      "left-strip-top": 10,
       "bezel-inset": [3, 2, 3, 4],
       "bezel-page-inset": [10, 7, 10, 13]
     },

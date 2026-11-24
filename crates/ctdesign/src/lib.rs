@@ -1460,7 +1460,6 @@ pub struct TabViewMetrics {
     pub page_gap: f32,
     pub small: TabViewSize,
     pub mini: TabViewSize,
-    pub strip_padding_y: f32,
     pub strip_opacity: [f32; 4],
     pub pill_inset: f32,
     pub pill_inset_x: f32,
@@ -1479,7 +1478,6 @@ pub struct TabViewMetrics {
     pub box_fill_opacity: f32,
     pub box_border_opacity: [f32; 4],
     pub line_border_opacity: [f32; 4],
-    pub left_strip_top: f32,
     pub bezel_inset: [f32; 4],
     pub bezel_page_inset: [f32; 4],
 }
