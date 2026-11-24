@@ -652,3 +652,11 @@ The program is [`recipes/window_designs.rs`](recipes/window_designs.rs). It take
    SwiftUI window ([9](../docs/barrierkit/09-titlebars.md)).
 3. `WindowOptions::window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility::OnHover)`
    leaves the content alone in full screen; the bar comes down with the menu bar at the top edge.
+
+## 51. A setting that survives a relaunch
+
+SwiftUI: `@AppStorage("bold") private var bold = false` and `Toggle("Bold", isOn: $bold)`
+
+The program is [`recipes/app_storage.rs`](recipes/app_storage.rs). `use_app_storage` gives a `State`
+like `use_state`, read from the app's settings file and saved when it changes
+([13](../docs/barrierkit/13-app.md#settings-and-restoration)).

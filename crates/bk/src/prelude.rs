@@ -12,8 +12,8 @@ pub use crate::accessibility::{
 pub use crate::adornments::Divider;
 pub use crate::app::{
     Application, CommandGroup, CommandGroupPlacement, Commands, DismissWindowAction,
-    OpenWindowAction, Scene, Settings, UtilityWindow, Window, WindowGroup, use_dismiss_window,
-    use_open_window,
+    OpenWindowAction, Scene, Settings, UtilityWindow, Window, WindowGroup, use_app_storage,
+    use_dismiss_window, use_open_window,
 };
 pub use crate::controls::*;
 pub use crate::document::{Document, OpenedUrl, use_document};

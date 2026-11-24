@@ -1660,10 +1660,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
+| `app::use_app_storage` | fn | `@AppStorage` | `UserDefaults` | `UserDefaults` | Hook that gives one key of `<app_id>.domain` as a `State` and saves it when it changes | [13](13-app.md#settings-and-restoration) |
 | `app::load_defaults` | fn | — | `UserDefaults` | `UserDefaults` | Reads the app's settings from `<app_id>.domain` | [13](13-app.md#settings-and-restoration) |
 | `app::save_defaults` | fn | — | `UserDefaults` | `UserDefaults` | Writes the app's settings to `<app_id>.domain` atomically | [13](13-app.md#settings-and-restoration) |
-| `app::update_defaults` | fn | ≈ `@AppStorage` | `UserDefaults` | `UserDefaults` | Loads the app's settings, changes them in a closure and saves them | [13](13-app.md#settings-and-restoration) |
-| `app::use_defaults` | fn | `AppStorage` | — | `UserDefaults` | Hook that reads the settings and reloads them when the file changes | [13](13-app.md#settings-and-restoration) |
+| `app::update_defaults` | fn | — | `UserDefaults` | `UserDefaults` | Loads the app's settings, changes them in a closure and saves them | [13](13-app.md#settings-and-restoration) |
+| `app::use_defaults` | fn | — | `NSUserDefaultsController` | — | Hook that reads the settings and reloads them when the file changes | [13](13-app.md#settings-and-restoration) |
 | `app::use_published` | fn | ≈ `onReceive(_:perform:)` | — | — | Hook that shows in a `State` the last value another thread sent | [13](13-app.md#updates-from-another-thread) |
 | `app::Publisher` | struct | ≈ `PassthroughSubject` | — | — | The handle `use_published` gives to the thread; `send` hands a value over | [13](13-app.md#updates-from-another-thread) |
 | `app::use_wake` | fn | — | ≈ `NSView.needsDisplay` | — | Hook that renders the component again each time a `WakeHandle` wakes | [13](13-app.md#updates-from-another-thread) |

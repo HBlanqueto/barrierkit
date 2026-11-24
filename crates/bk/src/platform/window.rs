@@ -422,5 +422,6 @@ pub(crate) fn open_utility_window(app: AppComponent, options: WindowOptions) {
 }
 
 pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Result<(), RunError> {
+    crate::app::record_app_id(&options.app_id);
     super::sys::run_window(app.into(), options)
 }

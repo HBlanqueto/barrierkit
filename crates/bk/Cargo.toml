@@ -74,6 +74,10 @@ name = "actions"
 path = "../../agents/recipes/actions.rs"
 
 [[example]]
+name = "app_storage"
+path = "../../agents/recipes/app_storage.rs"
+
+[[example]]
 name = "binding"
 path = "../../agents/recipes/binding.rs"
 

@@ -1,5 +1,5 @@
 [
-{"chapter": "[13](13-app.md#settings-and-restoration)", "kit": "app::update_defaults", "origin": "glossary", "status": "partial", "swift": "@AppStorage"},
+{"kit": "let bold = use_app_storage(\"bold\", false); a State saved in the app's settings", "origin": "chapter 16", "recipe": "app_storage.rs", "status": "mapped", "swift": "@AppStorage"},
 {"kit": "a State<T> field of the component", "lowered": true, "origin": "rule", "recipe": "binding.rs", "status": "partial", "swift": "@Binding"},
 {"kit": ".environment(value) above, use_environment::<T>() below", "origin": "chapter 16", "recipe": "environment.rs", "status": "mapped", "swift": "@Environment"},
 {"kit": "use_focus_state::<T>(), .focused(state, value), state.set(Some(value)), .default_focus(state, value)", "origin": "chapter 16", "recipe": "focus_state.rs", "status": "mapped", "swift": "@FocusState"},
@@ -58,7 +58,7 @@
 {"blocker": "none for opacity/move/offset/scale/push/slide; Freya for `blurReplace`", "chapter": "[14](14-animations.md#transitions)", "gap": "swiftui-api-gap.md §8.2 types, absent", "kit": "transition::Transition", "origin": "glossary", "size": "M", "status": "mapped", "swift": "AnyTransition"},
 {"gap": "swiftui-api-gap.md §3.2 types, implemented", "origin": "gap", "status": "mapped", "swift": "AnyView"},
 {"blocker": "none", "chapter": "[8](08-windows.md#running-a-window)", "gap": "swiftui-api-gap.md §5.2 types, partial", "kit": "platform::run_window", "origin": "glossary", "size": "M", "status": "partial", "swift": "App"},
-{"blocker": "compositor (malaysia must implement the protocol)", "chapter": "[13](13-app.md#settings-and-restoration)", "gap": "swiftui-api-gap.md §5.2 types, partial", "kit": "app::use_defaults", "origin": "glossary", "size": "M", "status": "mapped", "swift": "AppStorage"},
+{"blocker": "compositor (malaysia must implement the protocol)", "gap": "swiftui-api-gap.md §5.2 types, partial", "origin": "gap", "size": "M", "status": "partial", "swift": "AppStorage"},
 {"blocker": "measurement (no probe of the macOS 27.1 behavior or limits)", "gap": "swiftui-api-gap.md §3.2 types, absent", "origin": "gap", "size": "M", "status": "missing", "swift": "ArrangementView"},
 {"gap": "swiftui-api-gap.md §3.2 types, absent", "origin": "gap", "status": "missing", "swift": "ArrangementViewStyle"},
 {"gap": "swiftui-api-gap.md §3.2 static style members, absent", "origin": "gap", "status": "missing", "swift": "ArrangementViewStyle.automatic"},

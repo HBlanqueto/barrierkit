@@ -22,6 +22,7 @@ know the kit's shape.
 | Swift | Kit | Recipe |
 |---|---|---|
 | `@State var count = 0` | `let mut count = use_state(\|\| 0)`; `count.read()`, `count.set(v)`, `*count.write() += 1` | [`counter.rs`](../../agents/recipes/counter.rs) |
+| `@AppStorage("bold") var bold = false` | `let bold = use_app_storage("bold", false)`; a `State` saved in the app's settings | [`app_storage.rs`](../../agents/recipes/app_storage.rs) |
 | `@Binding`, `$text` on a text field | pass the `State<String>`; the field edits it | [`binding.rs`](../../agents/recipes/binding.rs) |
 | `@Binding`, `$on` on any other control | pass the value and handle the change | [`toggle.rs`](../../agents/recipes/toggle.rs) |
 | `@Environment`, `.environment(_:_:)` | `.environment(value)` above, `use_environment::<T>()` below | [`environment.rs`](../../agents/recipes/environment.rs) |

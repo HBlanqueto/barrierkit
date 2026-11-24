@@ -33,7 +33,8 @@ reason it cannot be.
    render, never inside a condition, a loop or an iterator closure?
 7. Are there no comments besides `// SAFETY:` and one-line invariants?
 8. Is the `Application` name the same one passed to `use_app_language` and
-   `load_defaults`?
+   `load_defaults`? Is a single setting a `use_app_storage` key rather than a
+   struct saved by hand?
 9. Does every change to a control's look go through its style
    ([`styles.md`](styles.md)), with overrides that name only what changes and
    end in `..s`?

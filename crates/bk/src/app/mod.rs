@@ -18,10 +18,12 @@ pub use commands::{
     NEW_WINDOW, PASTE, QUIT, SELECT_ALL, SETTINGS, TOGGLE_FULL_SCREEN, USE_SELECTION_FOR_FIND,
     ZOOM,
 };
-pub(crate) use defaults::{DefaultsRevision, domain, try_read_toml, watched_folders};
+pub(crate) use defaults::{
+    DefaultsRevision, domain, record_app_id, try_read_toml, watched_folders,
+};
 pub use defaults::{
     load_defaults, load_restoration, read_toml, save_defaults, save_restoration, update_defaults,
-    use_defaults, use_watched, write_toml,
+    use_app_storage, use_defaults, use_watched, write_toml,
 };
 pub use published::{Publisher, use_published, use_wake};
 pub use scene::{Application, UtilityWindow};

@@ -63,16 +63,12 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
    use_menu_enabled(RESET.id, *count.read() != 0);
    ```
 
-6. Read the settings with `use_defaults` and write them with `save_defaults`:
+6. Keep a setting with `use_app_storage`. It gives a `State` that saves
+   itself:
 
    ```rust
-   #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
-   struct Settings {
-       step: i32,
-   }
-
-   let settings = use_defaults::<Settings>("com.example.counter");
-   save_defaults("com.example.counter", &Settings { step: 2 })?;
+   let mut step = use_app_storage("step", 1);
+   step.set(2);
    ```
 
 7. Optional: make the app single instance with `launch` before `run()`
@@ -305,6 +301,7 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 
 | Function | File |
 |---|---|
+| `use_app_storage(key, default)` | `key` of `<app_id>.domain`; returns a `State<T>` that saves the key when the value changes |
 | `load_defaults::<T>(app_id)`, `save_defaults(app_id, &value)` | `<app_id>.domain` in the app's settings folder |
 | `use_defaults::<T>(app_id)` | The same; returns a `Memo<T>` that reloads when the file changes |
 | `update_defaults::<T>(app_id, \|value\| ..)` | The same; loads the file, runs the closure on the value and saves it |
@@ -312,6 +309,12 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 | `read_toml::<T>(path)`, `write_toml(path, &value)` | Any path; the base of the others |
 | `use_watched(load)` | Runs `load` again when a settings file changes; returns a `Memo` |
 
+- `use_app_storage` is SwiftUI's `@AppStorage`: one key, read once when the
+  view appears and written only when the value changes, keeping the other keys
+  of the file. It uses the id of the running app (`Application::new` or
+  `run_window`); before an app runs, as in a test, the value lives in memory
+  only. It does not reload when another process changes the file
+  ([`recipes/app_storage.rs`](../../agents/recipes/app_storage.rs)).
 - Reading a missing file gives `T::default()`.
 - Reading a file that does not parse logs a warning, copies it to `<file>.bak`
   and gives `T::default()`.

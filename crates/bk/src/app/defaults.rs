@@ -1,7 +1,7 @@
 use std::io;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Mutex, OnceLock};
 
 use freya_core::prelude::*;
 use serde::Serialize;
@@ -15,6 +15,7 @@ pub(crate) struct DefaultsRevision(pub(crate) State<u64>);
 static WATCHED_DOMAINS: Mutex<Vec<PathBuf>> = Mutex::new(Vec::new());
 static WATCHES_EVERY_DOMAIN: AtomicBool = AtomicBool::new(false);
 static FOLDER_ADDED: AtomicBool = AtomicBool::new(false);
+static APP_ID: OnceLock<String> = OnceLock::new();
 
 impl DefaultsRevision {
     // window.domain is read by the title bar, not by a hook.
@@ -37,6 +38,50 @@ pub(crate) fn watched_folders() -> Vec<PathBuf> {
 
 pub(crate) fn folder_added() -> bool {
     FOLDER_ADDED.swap(false, Ordering::Relaxed)
+}
+
+pub(crate) fn record_app_id(app_id: &str) {
+    APP_ID.get_or_init(|| app_id.to_owned());
+}
+
+/// SwiftUI's `@AppStorage`: `key` of the app's `<app_id>.domain`, saved when it changes. Before the app runs (a test) it lives in memory only.
+pub fn use_app_storage<T>(key: &'static str, default: T) -> State<T>
+where
+    T: Serialize + DeserializeOwned + Clone + PartialEq + 'static,
+{
+    let path = use_hook(|| APP_ID.get().map(|app_id| domain(app_id)));
+    let value = use_state(|| {
+        path.as_deref()
+            .and_then(|path| stored(path, key))
+            .unwrap_or(default)
+    });
+    let mut saved = None;
+    use_side_effect(move || {
+        let current = value.read().clone();
+        if saved
+            .replace(current.clone())
+            .is_none_or(|saved| saved == current)
+        {
+            return;
+        }
+        if let Some(path) = &path
+            && let Err(error) = store(path, key, &current)
+        {
+            tracing::warn!(path = %path.display(), %error, key, "saving a setting");
+        }
+    });
+    value
+}
+
+fn stored<T: DeserializeOwned>(path: &Path, key: &str) -> Option<T> {
+    read_toml::<toml::Table>(path).remove(key)?.try_into().ok()
+}
+
+fn store<T: Serialize>(path: &Path, key: &str, value: &T) -> io::Result<()> {
+    let value = toml::Value::try_from(value).map_err(io::Error::other)?;
+    update_file(path, |table: &mut toml::Table| {
+        table.insert(key.to_owned(), value);
+    })
 }
 
 pub fn use_defaults<T>(app_id: &'static str) -> Memo<T>
@@ -143,7 +188,13 @@ pub fn update_defaults<T: DeserializeOwned + Default + Serialize>(
     app_id: &str,
     change: impl FnOnce(&mut T),
 ) -> io::Result<()> {
-    let path = domain(app_id);
+    update_file(&domain(app_id), change)
+}
+
+fn update_file<T: DeserializeOwned + Default + Serialize>(
+    path: &Path,
+    change: impl FnOnce(&mut T),
+) -> io::Result<()> {
     // The lock keeps two processes from reading the same file and each saving over the other's change. Without a
     // directory there is no file to race for.
     let mut lock = path.as_os_str().to_owned();
@@ -152,9 +203,9 @@ pub fn update_defaults<T: DeserializeOwned + Default + Serialize>(
     if let Some(lock) = &lock {
         lock.lock()?;
     }
-    let mut value = try_read_toml(&path)?;
+    let mut value = try_read_toml(path)?;
     change(&mut value);
-    write_toml(&path, &value)
+    write_toml(path, &value)
 }
 
 pub fn load_restoration<T: DeserializeOwned + Default>(app_id: &str) -> T {
@@ -188,6 +239,20 @@ mod tests {
             moved(&shared, &shared, "notes.domain"),
             shared.join("notes.domain")
         );
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn storing_one_key_keeps_the_others() {
+        let root = std::env::temp_dir().join(format!("bk-store-{}", std::process::id()));
+        let path = root.join("hello.domain");
+        std::fs::create_dir_all(&root).unwrap();
+        std::fs::write(&path, "italic = true\nname = \"Ana\"\n").unwrap();
+
+        store(&path, "bold", &true).unwrap();
+        assert_eq!(stored::<bool>(&path, "bold"), Some(true));
+        assert_eq!(stored::<bool>(&path, "italic"), Some(true));
+        assert_eq!(stored::<String>(&path, "name").as_deref(), Some("Ana"));
         std::fs::remove_dir_all(root).unwrap();
     }
 }
