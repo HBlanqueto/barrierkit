@@ -2,6 +2,13 @@ use super::*;
 
 pub const MNEMONIC_MARK: char = '\u{2063}';
 
+// shortcut: cleared whole when full; a menu needs a few hundred widths, raise it if long menus thrash.
+const REMEMBERED_WIDTHS: usize = 1024;
+
+thread_local! {
+    static WIDTHS: RefCell<HashMap<(String, u32, FontWeight), f32>> = RefCell::new(HashMap::new());
+}
+
 pub fn strip_mnemonic(label: &str) -> String {
     label.replace(MNEMONIC_MARK, "")
 }
@@ -46,7 +53,27 @@ pub fn measure_text_weight(text: &str, size: f32, weight: FontWeight) -> f32 {
     if text.is_empty() {
         return 0.0;
     }
-    laid_out(text, size, weight, f32::MAX).max_intrinsic_width()
+    WIDTHS.with(|widths| {
+        let key = (text.to_owned(), size.to_bits(), weight);
+        remembered(&mut widths.borrow_mut(), key, || {
+            laid_out(text, size, weight, f32::MAX).max_intrinsic_width()
+        })
+    })
+}
+
+pub(crate) fn forget_widths() {
+    WIDTHS.with(|widths| widths.borrow_mut().clear());
+}
+
+fn remembered(
+    widths: &mut HashMap<(String, u32, FontWeight), f32>,
+    key: (String, u32, FontWeight),
+    measure: impl FnOnce() -> f32,
+) -> f32 {
+    if widths.len() >= REMEMBERED_WIDTHS && !widths.contains_key(&key) {
+        widths.clear();
+    }
+    *widths.entry(key).or_insert_with(measure)
 }
 
 pub fn measure_wrapped(text: &str, size: f32, weight: FontWeight, width: f32) -> (f32, usize) {
@@ -93,4 +120,21 @@ pub(super) fn truncate_middle(text: &str, max_width: f32, font_size: f32) -> Str
         }
     }
     shortened(fits)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn remembered_widths_measure_each_text_once_and_stay_bounded() {
+        let key = |text: usize| (text.to_string(), 13f32.to_bits(), FontWeight::NORMAL);
+        let mut widths = HashMap::new();
+        for text in 0..REMEMBERED_WIDTHS {
+            remembered(&mut widths, key(text), || 1.0);
+        }
+        assert_eq!(remembered(&mut widths, key(0), || 2.0), 1.0);
+        assert_eq!(remembered(&mut widths, key(REMEMBERED_WIDTHS), || 3.0), 3.0);
+        assert_eq!(widths.len(), 1);
+    }
 }

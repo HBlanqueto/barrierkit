@@ -15,7 +15,7 @@ thread_local! {
     static OWN: RefCell<Option<TypefaceFontProvider>> = const { RefCell::new(None) };
     static OPTICAL_FACES: RefCell<TypefaceFontProvider> = RefCell::new(TypefaceFontProvider::new());
     // shortcut: one entry per (family, size), never evicted; fine for the type scale, bound it if apps animate font sizes.
-    static OPTICAL: RefCell<HashMap<(String, u32), Optical>> = RefCell::new(HashMap::new());
+    static OPTICAL: RefCell<HashMap<String, HashMap<u32, Optical>>> = RefCell::new(HashMap::new());
 }
 
 fn with_fonts<T>(f: impl FnOnce(&FontCollection, &FontMgr) -> T) -> T {
@@ -55,6 +55,7 @@ pub fn register_font(bytes: &[u8]) -> bool {
         });
     });
     OPTICAL.with(|optical| optical.borrow_mut().clear());
+    crate::menu::forget_widths();
     OPTICAL_FACES.with(|provider| *provider.borrow_mut() = TypefaceFontProvider::new());
     true
 }
@@ -101,11 +102,19 @@ pub(crate) fn optical(family: &str, size: f32) -> Optical {
         return (family.to_owned().into(), None);
     }
     OPTICAL.with(|optical| {
+        let mut optical = optical.borrow_mut();
+        if let Some(found) = optical
+            .get(family)
+            .and_then(|sizes| sizes.get(&size.to_bits()))
+        {
+            return found.clone();
+        }
+        let found = at_size(family, size);
         optical
-            .borrow_mut()
-            .entry((family.to_owned(), size.to_bits()))
-            .or_insert_with(|| at_size(family, size))
-            .clone()
+            .entry(family.to_owned())
+            .or_default()
+            .insert(size.to_bits(), found.clone());
+        found
     })
 }
 

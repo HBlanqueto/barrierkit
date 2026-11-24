@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use freya_core::prelude::*;
@@ -89,6 +89,11 @@ pub fn open_paths(nodes: &[TreeNode]) -> HashSet<Vec<usize>> {
     let mut open = HashSet::new();
     walk(nodes, &[], &mut open);
     open
+}
+
+fn selection_mask(paths: &[Vec<usize>], selection: &[Vec<usize>]) -> Vec<bool> {
+    let selected: HashSet<&Vec<usize>> = selection.iter().collect();
+    paths.iter().map(|path| selected.contains(path)).collect()
 }
 
 pub fn node_at<'a>(nodes: &'a [TreeNode], path: &[usize]) -> Option<&'a TreeNode> {
@@ -216,13 +221,14 @@ impl Component for OutlineView {
         let rows = visible_rows(&self.nodes, &expanded.read());
         let paths: Rc<Vec<Vec<usize>>> =
             Rc::new(rows.iter().map(|(path, _)| path.clone()).collect());
+        let mask = selection_mask(&paths, &selected.read());
         let items = rows
             .into_iter()
             .enumerate()
             .filter_map(|(row_index, (path, depth))| {
                 let node = node_at(&self.nodes, &path)?;
                 let open = expanded.read().contains(&path);
-                let chosen = selected.read().contains(&path);
+                let chosen = mask[row_index];
                 let ink = paints.color(
                     if chosen {
                         &style.selected_chevron
@@ -268,9 +274,7 @@ impl Component for OutlineView {
                 let paths = paths.clone();
                 let divided = !chosen
                     && path[0] + 1 < self.nodes.len()
-                    && paths
-                        .get(row_index + 1)
-                        .is_some_and(|next| !selected.read().contains(next));
+                    && mask.get(row_index + 1).is_some_and(|&next| !next);
                 let title_start = level
                     + style.lead_width
                     + node.icon.map_or(0.0, |_| style.icon_size + style.spacing);
@@ -283,10 +287,12 @@ impl Component for OutlineView {
                             row(&style, &paints, state, node, chosen, Some(chevron), None)
                                 .a11y_builder(move |a11y| a11y.set_expanded(open))
                                 .on_press(move |_| {
+                                    let row_of: HashMap<&Vec<usize>, usize> =
+                                        paths.iter().zip(0..).collect();
                                     let current: Vec<usize> = selected
                                         .peek()
                                         .iter()
-                                        .filter_map(|path| paths.iter().position(|row| row == path))
+                                        .filter_map(|path| row_of.get(path).copied())
                                         .collect();
                                     let next: Vec<Vec<usize>> =
                                         select(&current, row_index, *held.peek())
@@ -452,5 +458,17 @@ impl Component for Browser {
                     ),
             );
         self.overrides.apply(root)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn selection_mask_marks_shown_rows_whose_path_is_selected() {
+        let paths = [vec![0], vec![0, 0], vec![1]];
+        let selection = [vec![1], vec![0, 0], vec![2, 3]];
+        assert_eq!(selection_mask(&paths, &selection), [false, true, true]);
     }
 }

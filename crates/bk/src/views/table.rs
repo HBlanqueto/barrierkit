@@ -1,7 +1,9 @@
 use ctdesign::{Font, HAIRLINE, Rgba, TABLE};
-use freya_components::scrollviews::VirtualScrollView;
+use freya_components::scrollviews::{ScrollController as Inner, VirtualItem, VirtualScrollView};
 use freya_core::prelude::*;
 use std::borrow::Cow;
+use std::collections::HashSet;
+use std::rc::Rc;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::context_menu::context_menu;
@@ -74,16 +76,16 @@ pub trait ListRowModifiers: Sized {
     }
 }
 
-#[derive(PartialEq)]
 pub struct Table {
     label: Cow<'static, str>,
     columns: Vec<Cow<'static, str>>,
-    rows: Vec<Vec<String>>,
+    rows: Rc<Vec<Vec<String>>>,
     cells: Vec<(usize, Callback<usize, Element>)>,
     pub(crate) list_rows: ListRows,
     sort_order: Option<State<Option<SortOrder>>>,
     selection: Option<State<Vec<usize>>>,
     pub(crate) offset: usize,
+    pub(crate) scrolled_outside: bool,
     icons: Vec<Symbol>,
     scroll_bar: bool,
     style: Theme,
@@ -98,12 +100,13 @@ impl Table {
         Self {
             label: label.into(),
             columns: columns.into_iter().map(Into::into).collect(),
-            rows: Vec::new(),
+            rows: Rc::default(),
             cells: Vec::new(),
             list_rows: ListRows::default(),
             sort_order: None,
             selection: None,
             offset: 0,
+            scrolled_outside: false,
             icons: Vec::new(),
             scroll_bar: true,
             style: Theme::tengen(),
@@ -122,7 +125,7 @@ impl Table {
     }
 
     pub fn rows(mut self, rows: Vec<Vec<String>>) -> Self {
-        self.rows = rows;
+        self.rows = Rc::new(rows);
         self
     }
 
@@ -154,6 +157,13 @@ impl Table {
     pub fn scroll_bar(mut self, shown: bool) -> Self {
         self.scroll_bar = shown;
         self
+    }
+}
+
+// Freya compares a child with itself when only its container re-renders, and a Callback is never equal.
+impl PartialEq for Table {
+    fn eq(&self, other: &Self) -> bool {
+        std::ptr::eq(self, other)
     }
 }
 
@@ -265,14 +275,15 @@ impl Component for Table {
         let column_shift = style.column_shift;
         let sort = self.sort_order.and_then(|order| *order.read());
         let offset = self.offset;
-        let selected: Vec<usize> = self.selection.map_or_else(Vec::new, |selection| {
+        let selected: Rc<Vec<usize>> = Rc::new(self.selection.map_or_else(Vec::new, |selection| {
             selection
                 .read()
                 .iter()
                 .filter_map(|row| row.checked_sub(offset))
                 .filter(|row| *row < self.rows.len())
                 .collect()
-        });
+        }));
+        let chosen: HashSet<usize> = selected.iter().copied().collect();
         let on_select = self.selection.map(|mut selection| {
             Callback::new(move |rows: Vec<usize>| {
                 selection.set(rows.into_iter().map(|row| row + offset).collect())
@@ -458,7 +469,7 @@ impl Component for Table {
         let data = (
             self.rows.clone(),
             self.cells.clone(),
-            selected.clone(),
+            (selected.clone(), chosen),
             on_select.clone(),
             looks,
             metrics,
@@ -500,13 +511,14 @@ impl Component for Table {
             })
             .collect::<Vec<_>>();
         let row_elastic = elastic.clone();
-        let body = VirtualScrollView::new_with_data(
+        let body = rows_view(
+            self.scrolled_outside,
             data,
             move |item,
                   (
                 rows,
                 views,
-                selected,
+                (selected, chosen),
                 on_select,
                 looks,
                 metrics,
@@ -529,7 +541,7 @@ impl Component for Table {
                 let padding_x = row_insets
                     .as_ref()
                     .map_or(*padding_x, |insets| insets.call(index));
-                let selected_row = selected.contains(&index);
+                let selected_row = chosen.contains(&index);
                 let look = if selected_row {
                     &looks[2]
                 } else {
@@ -590,7 +602,7 @@ impl Component for Table {
                 let divided = shown
                     && !selected_row
                     && index + 1 < rows.len()
-                    && !selected.contains(&(index + 1));
+                    && !chosen.contains(&(index + 1));
                 let row_fill = row_background
                     .as_ref()
                     .filter(|_| !selected_row)
@@ -623,11 +635,9 @@ impl Component for Table {
                     })
                     .into_element()
             },
-        )
-        .show_scrollbar(false)
-        .scroll_controller(controller.raw())
-        .length(self.rows.len())
-        .item_size(style.row_height);
+            controller.raw(),
+            (self.rows.len(), style.row_height),
+        );
 
         let rows = self.rows.len();
         let table = track_modifiers(interaction.attach(rect(), true), held)
@@ -686,6 +696,32 @@ impl Component for Table {
             );
         self.overrides.apply(interaction.inner_focus_ring(table))
     }
+}
+
+// A VirtualScrollView rebuilds its items whenever an outer scroll moves it, so rows scrolled outside sit in a column.
+fn rows_view<D: PartialEq + 'static>(
+    scrolled_outside: bool,
+    data: D,
+    build: impl Fn(VirtualItem, &D) -> Element + 'static,
+    controller: Inner,
+    (length, row_height): (usize, f32),
+) -> Element {
+    if scrolled_outside {
+        let rows = (0..length).map(|index| {
+            let item = VirtualItem {
+                index,
+                size: row_height,
+            };
+            build(item, &data)
+        });
+        return rect().expanded().children(rows).into_element();
+    }
+    VirtualScrollView::new_with_data(data, build)
+        .show_scrollbar(false)
+        .scroll_controller(controller)
+        .length(length)
+        .item_size(row_height)
+        .into_element()
 }
 
 fn cursor_row(selected: &[usize], clicked: Option<usize>) -> Option<usize> {

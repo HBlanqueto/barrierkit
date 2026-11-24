@@ -408,7 +408,7 @@ The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-tab
 1. The closure takes the row index and returns any view. The app keeps its data
    (an `Rc`, or a `Copy` struct of `State`s) and the closure reads the row from
    it. It is a closure, not a view, so the table runs it in the row's scope and
-   only for the visible rows.
+   only for the visible rows; a sectioned list runs it for every row.
 2. The strings of `rows` give the row count. The string of a view cell stays its
    accessible name ([Common rules](05-controls.md#common-rules)). A column without `.cell`
    draws its string, so a table can mix text and views.

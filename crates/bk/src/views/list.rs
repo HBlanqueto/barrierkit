@@ -146,6 +146,7 @@ impl List {
                     });
                 table.list_rows = self.list_rows.shifted(offset);
                 table.offset = offset;
+                table.scrolled_outside = true;
                 let top = if index == 0 {
                     style.body_inset
                 } else {

@@ -1,5 +1,6 @@
 use freya_core::prelude::*;
 use std::borrow::Cow;
+use std::collections::HashSet;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::elements::{Overrides, forward_overrides};
@@ -75,9 +76,13 @@ impl Component for CollectionView {
     fn render(&self) -> impl IntoElement {
         let style: CollectionViewStyle = resolve(&self.style);
         let held = use_held_modifiers();
+        let chosen: HashSet<usize> = self
+            .selection
+            .map(|selected| selected.read().iter().copied().collect())
+            .unwrap_or_default();
         let tiles = self.items.iter().enumerate().map(|(index, (icon, name))| {
             let selection = self.selection;
-            let is_selected = selection.is_some_and(|selected| selected.read().contains(&index));
+            let is_selected = chosen.contains(&index);
             Tile {
                 icon: icon.clone(),
                 name: name.clone(),
