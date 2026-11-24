@@ -1,4 +1,4 @@
-use ctdesign::{BODY, CAPTION, DIALOG_PADDING, Font, SPACE_1, SPACE_3, TITLE};
+use ctdesign::{ABOUT_NAME, BODY, CAPTION, DIALOG_PADDING, Font, SPACE_1, SPACE_3};
 
 use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
@@ -16,7 +16,7 @@ pub struct AboutViewStyle {
     pub version: StateValue<ShapeStyle>,
     /// Tengen: `Role(TertiaryLabel)`.
     pub copyright: StateValue<ShapeStyle>,
-    /// Tengen: `TITLE`.
+    /// Tengen: `ABOUT_NAME`.
     pub name_font: Font,
     /// Tengen: `BODY`.
     pub version_font: Font,
@@ -33,7 +33,7 @@ impl ControlStyle for AboutViewStyle {
             name: StateValue::new(ShapeStyle::Role(Role::Label)),
             version: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             copyright: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
-            name_font: TITLE,
+            name_font: ABOUT_NAME,
             version_font: BODY,
             copyright_font: CAPTION,
         }

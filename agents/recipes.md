@@ -634,11 +634,11 @@ The program is [`recipes/inspector.rs`](recipes/inspector.rs).
 
 SwiftUI: `WindowGroup` with `.windowStyle(.titleBar)` or `.hiddenTitleBar`, and `.toolbar { }` with
 `.windowToolbarStyle(.unified)`, `.unified(showsTitle: false)`, `.unifiedCompact`,
-`.unifiedCompact(showsTitle: false)` or `.expanded`.
+`.unifiedCompact(showsTitle: false)` or `.expanded`, and `.windowToolbarFullScreenVisibility(.onHover)`.
 
 The program is [`recipes/window_designs.rs`](recipes/window_designs.rs). It takes `title-bar`,
-`hidden-title-bar`, `unified`, `unified-no-title`, `compact`, `compact-no-title` or `expanded`; the
-`NavigationSplitView` design is [`notes_sidebar`](recipes/notes_sidebar.rs).
+`hidden-title-bar`, `unified`, `unified-no-title`, `compact`, `compact-no-title`, `expanded` or
+`on-hover`; the `NavigationSplitView` design is [`notes_sidebar`](recipes/notes_sidebar.rs).
 
 1. `WindowStyle::TitleBar` is AppKit's own bar; every other design is a `HiddenTitleBar` window with
    native lights and a `Titlebar` drawn by the kit. A `HiddenTitleBar` window with no `Titlebar` keeps
@@ -646,3 +646,5 @@ The program is [`recipes/window_designs.rs`](recipes/window_designs.rs). It take
 2. `Titlebar::toolbar_style(..)` picks the bar and `.shows_title(false)` drops the title, so the items
    follow the lights. Windowed, in full screen and at the top edge in full screen the bar matches the
    SwiftUI window ([9](../docs/barrierkit/09-titlebars.md)).
+3. `WindowOptions::window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility::OnHover)`
+   leaves the content alone in full screen; the bar comes down with the menu bar at the top edge.

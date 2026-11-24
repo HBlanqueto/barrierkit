@@ -96,7 +96,13 @@ Behavior:
   the title and the first item start `TITLEBAR_FULLSCREEN_START` (22 unified,
   14 compact, 11 expanded) from the edge, and the expanded bar is 52 high (a
   12 px title row) with its separator. At the top edge the title rides with
-  the lights and the items in AppKit's strip.
+  the lights and the items in AppKit's strip. With
+  `WindowToolbarFullScreenVisibility::OnHover` the bar is not pinned: the
+  content starts at the top and the bar shows only in that strip
+  ([8](08-windows.md#window-options)).
+- Beside a sidebar, over the platform's window material, the bar is that
+  material under `TITLEBAR_SYSTEM_VEIL`, with AppKit's separator
+  unless a scroll view of the detail reaches under it.
 - With `.with_sidebar(true)` the title goes at the start, next to `left`, in
   `TITLE_2`, as on macOS. While the sidebar shows, the traffic lights live in
   the sidebar; they keep their place while it folds.

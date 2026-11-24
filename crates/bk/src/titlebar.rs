@@ -212,7 +212,16 @@ impl Component for Titlebar {
             false => Cow::default(),
         };
         let drag = use_window_drag(fixed);
-        if status.decoration == DecorationResponse::Server {
+        // With `OnHover` the pinned bar gives way to the content; it shows only while AppKit's bar is down, where its row rides.
+        let on_hover = status.fullscreen
+            && status.decoration == DecorationResponse::Hybrid
+            && controls
+                .as_ref()
+                .is_some_and(|controls| controls.toolbar_on_hover);
+        let bar_down = controls
+            .as_ref()
+            .is_some_and(|controls| *controls.focus_bar.read());
+        if status.decoration == DecorationResponse::Server || (on_hover && !bar_down) {
             return rect()
                 .width(Size::fill())
                 .height(Size::px(0.0))
@@ -230,12 +239,26 @@ impl Component for Titlebar {
         let style: TitlebarStyle = resolve(&self.style);
         let control = crate::sidebar::sidebar_control();
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
+        // Beside a sidebar, over content that does not scroll under it, AppKit's bar draws its separator, as SwiftUI's.
+        let style = TitlebarStyle {
+            hairline: style.hairline.clone().or_else(|| {
+                (sidebar
+                    && !status.fullscreen
+                    && crate::theme::window_material_here()
+                    && !scroll_under(
+                        style.sidebar_height,
+                        control.map_or(0.0, |control| control.occupied()),
+                    ))
+                .then(TitlebarStyle::line)
+            }),
+            ..style
+        };
         let state = ControlState {
             focused: status.activated,
             ..ControlState::default()
         };
         let paints = Paints::current(state);
-        let background = if overlaid {
+        let background = if overlaid || on_hover {
             paints.fill(&StateValue::new(ShapeStyle::Clear))
         } else if close_only {
             paints.fill(&style.close_only_background)
@@ -304,14 +327,27 @@ impl Component for Titlebar {
                 || controls
                     .as_ref()
                     .is_some_and(|controls| *controls.focus_bar.read()));
+        let system_bar = |height: f32| {
+            !close_only
+                && !panel
+                && !overlaid
+                && !sidebar
+                && !status.fullscreen
+                && *style.background.resolve(state) == ShapeStyle::WindowBackground
+                && crate::glass::native_glass()
+                && !scroll_under(height, 0.0)
+        };
+        // On AppKit's own bar, AppKit draws the expanded title row, as SwiftUI's.
+        let system_title = system_bar(TITLEBAR_EXPANDED_TITLE_HEIGHT + style.height);
         let (bar, height) = if expanded && !close_only {
             self.expanded_bar(
                 &style,
                 traffic,
                 native_lights,
                 slots,
-                (!status.fullscreen).then_some(title_label),
+                (!status.fullscreen && !system_title).then_some(title_label),
                 status.fullscreen,
+                system_title,
                 drag,
                 background,
             )
@@ -364,20 +400,25 @@ impl Component for Titlebar {
             None => bar,
         };
         // Over content that does not scroll under it, AppKit draws its own title bar beneath the row, as under SwiftUI's toolbar.
-        let system_bar = !close_only
-            && !panel
-            && !expanded
-            && !overlaid
-            && !sidebar
-            && !status.fullscreen
-            && *style.background.resolve(state) == ShapeStyle::WindowBackground
-            && crate::glass::native_glass()
-            && !scroll_under(height);
-        let bar = if system_bar {
+        let bar = if system_bar(height) && !expanded {
             rect()
                 .width(Size::fill())
                 .child(crate::platform::backdrop::Declared::titlebar(height))
                 .child(bar)
+                .into_element()
+        } else {
+            bar
+        };
+        let bar = if on_hover {
+            rect()
+                .width(Size::fill())
+                .height(Size::px(0.0))
+                .child(
+                    rect()
+                        .position(Position::new_absolute().top(0.0).left(0.0))
+                        .width(Size::fill())
+                        .child(bar),
+                )
                 .into_element()
         } else {
             bar
@@ -418,13 +459,12 @@ impl ScrollFrames {
     }
 }
 
-fn scroll_under(bar_height: f32) -> bool {
+// Whether a scroll view right of `left` reaches under the bar.
+fn scroll_under(bar_height: f32, left: f32) -> bool {
     try_consume_root_context::<ScrollFrames>().is_some_and(|frames| {
-        frames
-            .0
-            .read()
-            .iter()
-            .any(|(_, area)| area.min_y() <= bar_height + 1.0 && area.max_y() > bar_height)
+        frames.0.read().iter().any(|(_, area)| {
+            area.min_x() >= left && area.min_y() <= bar_height + 1.0 && area.max_y() > bar_height
+        })
     })
 }
 
@@ -596,6 +636,7 @@ impl Titlebar {
         slots: ToolbarSlots,
         title_label: Option<Element>,
         fullscreen: bool,
+        system_bar: bool,
         drag: impl Fn(Event<MouseEventData>) + Clone + 'static,
         background: Fill,
     ) -> (Element, f32) {
@@ -641,6 +682,10 @@ impl Titlebar {
             ))
             .spacing(style.sidebar_spacing)
             .probe("titlebar-left-slot")
+            // Only the toolbar row lies on AppKit's bar, so it rides over it while AppKit draws the title row.
+            .maybe_child(
+                system_bar.then(|| crate::platform::backdrop::Declared::titlebar(style.height)),
+            )
             .maybe_child(self.left.clone())
             .maybe_child(slots.navigation)
             .maybe_child(slots.trailing)
@@ -661,7 +706,7 @@ impl Titlebar {
             .content(Content::flex())
             .child(title_row)
             .child(toolbar_row)
-            .child({
+            .maybe_child(fullscreen.then(|| {
                 let (paint, thickness) = TitlebarStyle::line();
                 rect()
                     .position(Position::new_absolute().top(height).left(0.0))
@@ -670,7 +715,7 @@ impl Titlebar {
                     .background(
                         Paints::current(ControlState::default()).fill(&StateValue::new(paint)),
                     )
-            });
+            }));
         (bar.into_element(), height)
     }
 
@@ -865,11 +910,15 @@ fn fullscreen_title_height() -> f32 {
     (ctdesign::SETTINGS.toolbar_height - ctdesign::TITLEBAR_CLIENT_HEIGHT) as f32
 }
 
-// (top, height) of the row that comes down with the menu bar in full screen.
-pub(crate) fn bar_row(expanded: bool) -> (f32, f32) {
+// (top, height) of the row that rides in AppKit's bar: down with the menu bar in full screen, or over its title bar in the window.
+pub(crate) fn bar_row(expanded: bool, windowed: bool) -> (f32, f32) {
     if expanded {
         (
-            fullscreen_title_height(),
+            if windowed {
+                TITLEBAR_EXPANDED_TITLE_HEIGHT
+            } else {
+                fullscreen_title_height()
+            },
             ctdesign::TITLEBAR_CLIENT_HEIGHT as f32,
         )
     } else {

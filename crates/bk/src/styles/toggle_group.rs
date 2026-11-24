@@ -1,4 +1,4 @@
-use ctdesign::{BODY, Font, ICON_BUTTON, LARGE_TITLE, SEGMENTED};
+use ctdesign::{BODY, Font, HEADLINE, ICON_BUTTON, SEGMENTED};
 
 use crate::styles::button::continuous_rounded;
 use crate::styles::{Axis, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
@@ -57,7 +57,7 @@ impl ControlStyle for ToggleGroupStyle {
                 ..BODY
             },
             bold_font: Font {
-                weight: LARGE_TITLE.weight,
+                weight: HEADLINE.weight,
                 ..BODY
             },
         }

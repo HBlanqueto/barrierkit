@@ -174,7 +174,7 @@ impl Runtime {
         let bar_drop = revealed.map_or(0.0, |bar| {
             on_screen.origin.y + on_screen.size.height - bar.view.top()
         });
-        let bar_row = revealed.map_or(crate::titlebar::bar_row(false), |bar| bar.row);
+        let bar_row = revealed.map_or(crate::titlebar::bar_row(false, true), |bar| bar.row);
         let visible = window
             .screen()
             .or_else(|| NSScreen::mainScreen(self.mtm))?

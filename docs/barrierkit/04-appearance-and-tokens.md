@@ -1037,9 +1037,9 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 
 | Constant | Size / line height | Weight | SwiftUI |
 |---|---|---|---|
-| `LARGE_TITLE` | 26 / 31 | 700 | `Font.TextStyle.largeTitle` |
-| `TITLE` | 22 / 26 | 650 | `.title` |
-| `TITLE_2` | 15 / 19 | 600 | `.title2` |
+| `LARGE_TITLE` | 26 / 31 | 400 | `Font.TextStyle.largeTitle` |
+| `TITLE` | 22 / 26 | 400 | `.title` |
+| `TITLE_2` | 17 / 21 | 400 | `.title2` |
 | `HEADLINE` | 13 / 16 | 700 | `.headline` |
 | `BODY` | 13 / 16 | 400 | `.body` |
 | `CALLOUT` | 12 / 15 | 400 | `.callout` |
@@ -1049,11 +1049,13 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `FOOTNOTE` | 10 / 13 | 400 | `.footnote` and `.caption` |
 | `CAPTION_2` | 10 / 13 | 500 | `.caption2` |
 | `MONO` | 13 / 16 | 400 | `Font.monospaced()` |
+| `TOOLBAR_TITLE` | 15 / 19 | 600 | the window title in a unified toolbar |
+| `ABOUT_NAME` | 22 / 26 | 650 | the app name of `AboutView` |
 
 The line is the height of a SwiftUI `Text` on macOS 27.2 (`fittingSize`, `~/src/probes/textlines.swift`):
-13 pt is 16 high, 12 pt 15, 15 pt 19, 26 pt 31, 22 pt 26, 11 pt 14 and 10 pt 13.
-`TITLE_2` is `.title3` in size and `CAPTION` is the kit's own between `.subheadline` and `.caption`; their
-weights stay. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
+13 pt is 16 high, 12 pt 15, 15 pt 19, 17 pt 21, 26 pt 31, 22 pt 26, 11 pt 14 and 10 pt 13. Sizes and
+weights are `NSFont.preferredFont(forTextStyle:)` on macOS 27.2; `CAPTION` is the kit's own between
+`.subheadline` and `.caption`. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
 
 All use Adwaita Sans, the sans of GNOME, so `bk` text matches GTK; `MONO`
 uses Geist Mono. `SANS_FAMILIES` is the fallback list (Adwaita Sans, Inter,
@@ -1225,6 +1227,7 @@ background, for `reduce_transparency`.
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
 | `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` | `f32` | The expanded `Titlebar` (SwiftUI `.expanded`): a 28 high title row with the title 15 after the lights, and a toolbar row whose items sit 5 above its middle ([9](09-titlebars.md)) |
 | `TITLEBAR_TOOLBAR_START` | `TitlebarToolbarStart` | Where the first toolbar item starts: 16 (unified) and 22 (compact) after the lights, 11 from the edge of the expanded toolbar row ([9](09-titlebars.md)) |
+| `TITLEBAR_SYSTEM_VEIL` | `Rgba` | White at 9/255: what AppKit's title bar lays over the window material, 8 levels in Dark and none in Light ([9](09-titlebars.md)) |
 | `TITLEBAR_FULLSCREEN_START` | `TitlebarToolbarStart` | Where the title or the first item starts in full screen, with no lights: 22 (unified), 14 (compact), 11 (expanded) from the edge ([9](09-titlebars.md)) |
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
 | `TITLEBAR_RAIL` | `TitlebarRailMetrics` | `chrome`, `styles` (`WindowChromeStyle`); `title_angle` (−90) turns the rail title |

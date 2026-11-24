@@ -28,7 +28,9 @@ pub use crate::layout::{
     ZStackLayout,
 };
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
-pub use crate::platform::{RunError, WindowOptions, WindowStyle, run_window};
+pub use crate::platform::{
+    RunError, WindowOptions, WindowStyle, WindowToolbarFullScreenVisibility, run_window,
+};
 pub use crate::shapes::{
     Capsule, Circle, Ellipse, Path, Rectangle, RoundedRectangle, ShapeModifiers,
 };

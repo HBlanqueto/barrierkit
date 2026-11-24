@@ -544,7 +544,11 @@ define_class!(
             proposed: NSApplicationPresentationOptions,
         ) -> NSApplicationPresentationOptions {
             if window.styleMask().contains(NSWindowStyleMask::Titled) {
-                return proposed;
+                // SwiftUI's `.windowToolbarFullScreenVisibility(.onHover)` is AppKit's `.autoHideToolbar`.
+                return match with_runtime(|runtime| runtime.toolbar_on_hover(self.ivars().id)) {
+                    Some(true) => proposed | NSApplicationPresentationOptions::AutoHideToolbar,
+                    _ => proposed,
+                };
             }
             NSApplicationPresentationOptions::FullScreen
                 | NSApplicationPresentationOptions::HideMenuBar
@@ -778,6 +782,8 @@ pub(super) struct BarIvars {
     id: u64,
     container_height: Cell<f64>,
     row_top: f64,
+    row_height: f64,
+    below_strip: bool,
     windowed: bool,
 }
 
@@ -888,12 +894,15 @@ impl BarView {
         id: u64,
         width: f64,
         (row_top, row_height): (f32, f32),
+        below_strip: bool,
         windowed: bool,
     ) -> Retained<Self> {
         let this = Self::alloc(mtm).set_ivars(BarIvars {
             id,
             container_height: Cell::new(0.0),
             row_top: f64::from(row_top),
+            row_height: f64::from(row_height),
+            below_strip,
             windowed,
         });
         let frame = NSRect::new(
@@ -910,8 +919,20 @@ impl BarView {
         let left = self.convertRect_toView(self.bounds(), None).origin.x;
         self.setBoundsOrigin(NSPoint::new(
             left,
-            container_height - self.ivars().row_top - self.frame().size.height,
+            container_height - self.shown_top() - self.frame().size.height,
         ));
+    }
+
+    // Below AppKit's strip the accessory is 36 high, and SwiftUI centers the 40 px toolbar row in it.
+    fn shown_top(&self) -> f64 {
+        let ivars = self.ivars();
+        let spare = ivars.row_height - self.frame().size.height;
+        ivars.row_top
+            + if ivars.below_strip {
+                (spare / 2.0).max(0.0)
+            } else {
+                0.0
+            }
     }
 
     // Where the container's top would be on screen if it rode with this row.
@@ -919,7 +940,7 @@ impl BarView {
         let frame = self.convertRect_toView(self.bounds(), None);
         self.window().map_or(0.0, |window| {
             let frame = window.convertRectToScreen(frame);
-            frame.origin.y + frame.size.height + self.ivars().row_top
+            frame.origin.y + frame.size.height + self.shown_top()
         })
     }
 

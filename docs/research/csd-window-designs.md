@@ -68,15 +68,16 @@ start, x 94), `showsTitle: false` (`Titlebar::shows_title`), the bare
 pinned 52 px expanded strip with its separator, the title riding at the top
 edge (its own layer in the unified and compact bars, AppKit's title in the
 expanded strip), the full-screen start (`TITLEBAR_FULLSCREEN_START`) and the
-frame size of a `TitleBar` window; all within 1 px of Swift. Still owed in the
-kit, none of them a ceiling: the expanded items 3 px low at the top edge, the
-expanded bar's shade (Swift's bar is AppKit's, 8 levels lighter than the
-window; the kit draws only the separator), the sidebar layout's bar (an opaque
-38 where Swift's is a tinted 40, 40, 46), and
-`.windowToolbarFullScreenVisibility(.onHover)`: the ADR 0116 session's
-attempt through the focus overlay works except that a press in the revealed
-row leaves stale frames until the row hides (cause not found), so it was not
-committed.
+frame size of a `TitleBar` window; all within 1 px of Swift. A fourth pass closed
+the rest: the expanded row rides centered in AppKit's 36 px bottom accessory
+(1 px from Swift), the windowed expanded bar lies on AppKit's bar with AppKit's
+title row and its empty toolbar hidden (68 px, 41/40/46 against 40/40/45), the
+sidebar layout's bar is the window material under white at
+`TITLEBAR_SYSTEM_VEIL` with AppKit's separator (41/40/46 against 40/40/46; none
+in Light, as Swift), and `.windowToolbarFullScreenVisibility(.onHover)` is
+`WindowToolbarFullScreenVisibility::OnHover`: AppKit's `.autoHideToolbar`, no
+kit bar at rest and the row riding at the edge, identical to Swift; a press in
+the revealed row leaves no stale frame. Nothing in rows A to C is owed.
 Light was measured on the Swift twins only (`-light` sets `NSApp.appearance`);
 the kit follows the system and was captured in Dark.
 

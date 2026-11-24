@@ -293,9 +293,9 @@ impl Window {
         self.window.toolbar()?;
         // Beside the lights an `.expanded` window gives an accessory only 32 high, so its toolbar row rides as a row of its own below AppKit's strip.
         let expanded = self.window.toolbarStyle() == NSWindowToolbarStyle::Expanded;
-        let row = crate::titlebar::bar_row(expanded);
+        let row = crate::titlebar::bar_row(expanded, windowed);
         let width = self.window.screen()?.frame().size.width;
-        let view = BarView::new(mtm, self.id, width, row, windowed);
+        let view = BarView::new(mtm, self.id, width, row, expanded, windowed);
         let accessory = NSTitlebarAccessoryViewController::new(mtm);
         accessory.setView(&view);
         accessory.setLayoutAttribute(if expanded {
@@ -331,6 +331,7 @@ impl Window {
             self.window
                 .setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::Line);
             self.bar = Some(bar);
+            self.show_expanded_title(true);
         } else if !shown && windowed == Some(true) {
             self.hide_system_bar();
         }
@@ -342,7 +343,23 @@ impl Window {
             self.window.setTitlebarAppearsTransparent(true);
             self.window
                 .setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
+            self.show_expanded_title(false);
         }
+    }
+
+    // Over AppKit's title bar an expanded bar's title row is AppKit's strip, as SwiftUI's: its title shown, the empty toolbar that would make it 12 taller hidden.
+    fn show_expanded_title(&self, shown: bool) {
+        if self.window.toolbarStyle() != NSWindowToolbarStyle::Expanded {
+            return;
+        }
+        if let Some(toolbar) = self.window.toolbar() {
+            toolbar.setVisible(!shown);
+        }
+        self.window.setTitleVisibility(if shown {
+            NSWindowTitleVisibility::Visible
+        } else {
+            NSWindowTitleVisibility::Hidden
+        });
     }
 
     fn place_bar(&self) {
@@ -1049,6 +1066,12 @@ impl Runtime {
         window.place_bar();
         self.poll_all();
         self.redraw_all();
+    }
+
+    pub(super) fn toolbar_on_hover(&mut self, id: u64) -> bool {
+        self.window(id)
+            .and_then(|window| window.controls.as_ref())
+            .is_some_and(|controls| controls.toolbar_on_hover)
     }
 
     pub(super) fn toolbar(&mut self, id: u64) -> Option<Retained<NSToolbar>> {

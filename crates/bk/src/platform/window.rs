@@ -33,6 +33,14 @@ pub enum DecorationResponse {
     Hybrid,
 }
 
+/// SwiftUI's `WindowToolbarFullScreenVisibility`: whether the bar stays pinned in full screen or comes down with the menu bar.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WindowToolbarFullScreenVisibility {
+    #[default]
+    Automatic,
+    OnHover,
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum WindowStyle {
     #[default]
@@ -75,6 +83,7 @@ pub struct WindowOptions {
     pub theme: crate::styles::Theme,
     pub scene: Option<&'static str>,
     pub window_style: WindowStyle,
+    pub window_toolbar_full_screen_visibility: WindowToolbarFullScreenVisibility,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -115,6 +124,7 @@ impl WindowOptions {
             theme: crate::styles::Theme::tengen(),
             scene: None,
             window_style: WindowStyle::TitleBar,
+            window_toolbar_full_screen_visibility: WindowToolbarFullScreenVisibility::Automatic,
         }
     }
 
@@ -130,6 +140,14 @@ impl WindowOptions {
 
     pub fn window_style(mut self, window_style: WindowStyle) -> Self {
         self.window_style = window_style;
+        self
+    }
+
+    pub fn window_toolbar_full_screen_visibility(
+        mut self,
+        visibility: WindowToolbarFullScreenVisibility,
+    ) -> Self {
+        self.window_toolbar_full_screen_visibility = visibility;
         self
     }
 
@@ -222,6 +240,7 @@ pub struct WindowControls {
     pub(crate) sidebar_span: State<(f32, f32)>,
     pub hud: bool,
     pub panel: bool,
+    pub toolbar_on_hover: bool,
     pub ime_preedit: State<String>,
     pub(crate) primary: Clipboard,
     pub(crate) clipboard: Clipboard,
@@ -270,6 +289,8 @@ impl WindowControls {
             sidebar_span: State::create_global((0.0, 0.0)),
             hud: options.hud,
             panel,
+            toolbar_on_hover: options.window_toolbar_full_screen_visibility
+                == WindowToolbarFullScreenVisibility::OnHover,
             ime_preedit: State::create_global(String::new()),
             primary,
             clipboard,

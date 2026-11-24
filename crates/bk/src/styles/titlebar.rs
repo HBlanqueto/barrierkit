@@ -1,7 +1,7 @@
 use ctappearance::palette;
 use ctdesign::{
-    FocusPair, Font, HAIRLINE, SETTINGS, TITLE_2, TITLEBAR, TITLEBAR_CLIENT_HEIGHT,
-    TITLEBAR_PADDING_X,
+    FocusPair, Font, HAIRLINE, SETTINGS, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TITLEBAR_PADDING_X,
+    TITLEBAR_SYSTEM_VEIL, TOOLBAR_TITLE,
 };
 use torin::prelude::Alignment;
 
@@ -47,7 +47,8 @@ pub struct TitlebarStyle {
     /// Tengen: `WindowBackground`, focused or not, like a unified AppKit toolbar; `Clear` over
     /// a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Color` of the toolbar surface while the sidebar shows; `Clear` over a
+    /// Tengen: `Color` of the toolbar surface while the sidebar shows; over the platform's window
+    /// material, `TITLEBAR_SYSTEM_VEIL`, as AppKit's title bar lifts it; `Clear` over a
     /// `Backdrop`.
     pub sidebar_background: StateValue<ShapeStyle>,
     /// Tengen: `Clear`.
@@ -67,7 +68,7 @@ pub struct TitlebarStyle {
     pub title_alignment: Alignment,
     /// Tengen: `Start`, next to the left zone.
     pub sidebar_title_alignment: Alignment,
-    /// Tengen: `TITLEBAR.font`, `TITLE_2`.
+    /// Tengen: `TITLEBAR.font`, `TOOLBAR_TITLE`.
     pub title_font: Font,
     /// Tengen: one line, so `line_height` has no effect.
     pub sidebar_title_font: Font,
@@ -125,7 +126,11 @@ impl ControlStyle for TitlebarStyle {
             lights_spacing: SETTINGS.toolbar_lights_gap as f32,
             sidebar_spacing: SETTINGS.toolbar_gap as f32,
             background: StateValue::new(active),
-            sidebar_background: StateValue::new(surface(resolved.surfaces.toolbar)),
+            sidebar_background: StateValue::new(if crate::theme::window_material_here() {
+                surface(TITLEBAR_SYSTEM_VEIL)
+            } else {
+                surface(resolved.surfaces.toolbar)
+            }),
             close_only_background: StateValue::new(ShapeStyle::Clear),
             title,
             row_title,
@@ -133,7 +138,7 @@ impl ControlStyle for TitlebarStyle {
             title_alignment: Alignment::Center,
             sidebar_title_alignment: Alignment::Start,
             title_font: TITLEBAR.font,
-            sidebar_title_font: TITLE_2,
+            sidebar_title_font: TOOLBAR_TITLE,
         }
     }
 }

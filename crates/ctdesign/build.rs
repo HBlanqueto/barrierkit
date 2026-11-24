@@ -244,6 +244,8 @@ HEADLINE Font font.styles.headline
 CALLOUT Font font.styles.callout
 CAPTION Font font.styles.caption
 TITLE_3 Font font.styles.title-3
+TOOLBAR_TITLE Font font.styles.toolbar-title
+ABOUT_NAME Font font.styles.about-name
 SUBHEADLINE Font font.styles.subheadline
 FOOTNOTE Font font.styles.footnote
 CAPTION_2 Font font.styles.caption-2
@@ -510,6 +512,7 @@ SPACE_SLIDE_MS u64 components.spaces.slide-ms
 TILE_MARGIN i32 components.tile.margin
 TILE_GAP i32 components.tile.gap
 TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
+TITLEBAR_SYSTEM_VEIL Rgba components.window.titlebar.system-veil
 TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
 TITLEBAR_EXPANDED_TITLE_HEIGHT f32 components.window.titlebar.expanded-title.height
 TITLEBAR_EXPANDED_TITLE_GAP f32 components.window.titlebar.expanded-title.gap

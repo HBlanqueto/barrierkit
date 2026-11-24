@@ -32,6 +32,10 @@ fn main() -> Result<(), RunError> {
             true,
         ),
     };
+    let visibility = match design.as_str() {
+        "on-hover" => WindowToolbarFullScreenVisibility::OnHover,
+        _ => WindowToolbarFullScreenVisibility::Automatic,
+    };
     Application::new("window_designs")
         .window("Hello", move || {
             rect()
@@ -52,6 +56,11 @@ fn main() -> Result<(), RunError> {
                         .child(Text::new("Hello, World").font(TITLE)),
                 )
         })
-        .options(move |window| window.size((480, 300)).window_style(style))
+        .options(move |window| {
+            window
+                .size((480, 300))
+                .window_style(style)
+                .window_toolbar_full_screen_visibility(visibility)
+        })
         .run()
 }
