@@ -310,7 +310,9 @@ impl ButtonStyle {
         if self.shape == Shape::Circle {
             return self;
         }
-        let row = BUTTON.size(size);
+        let Some(row) = size.row([BUTTON.mini, BUTTON.small, BUTTON.large, BUTTON.xl]) else {
+            return self;
+        };
         let shape = if self.shape == Shape::Capsule {
             Shape::Capsule
         } else {
@@ -364,5 +366,22 @@ impl ControlStyle for ButtonStyle {
             animation: Animation::None,
             ..style
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn regular_size_keeps_the_glass_toolbar_height() {
+        let glass = ButtonStyle {
+            height: GLASS_CONTROL.height,
+            ..ButtonStyle::tengen()
+        };
+        assert_eq!(
+            glass.sized(ControlSize::Regular).height,
+            GLASS_CONTROL.height
+        );
     }
 }
