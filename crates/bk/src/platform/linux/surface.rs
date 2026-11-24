@@ -308,7 +308,7 @@ impl SurfaceWindow {
         }
         self.draw_count += 1;
         #[cfg(feature = "tracy")]
-        crate::logging::frame_mark();
+        frame_mark();
         let swap_us = swap_start.elapsed().as_micros() as u64;
         tracing::debug!(
             target: "bk::resize",
@@ -581,5 +581,12 @@ impl Dispatch<WpViewport, ObjectId, Runtime> for Runtime {
         _: &Connection,
         _: &QueueHandle<Runtime>,
     ) {
+    }
+}
+
+#[cfg(feature = "tracy")]
+fn frame_mark() {
+    if let Some(client) = tracing_tracy::client::Client::running() {
+        client.frame_mark();
     }
 }

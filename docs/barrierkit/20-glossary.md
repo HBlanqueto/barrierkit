@@ -1350,10 +1350,13 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `platform::Timers` | struct | — | — | — | Runs callbacks on the UI thread after a delay or on wake | [8](08-windows.md#timers) |
-| `platform::Timers::every` | method | ≈ `Timer.scheduledTimer(repeats: true)` | `Timer.scheduledTimer(withTimeInterval:repeats:)` | ≈ `Timer.scheduledTimer(withTimeInterval:repeats:block:)` | Calls a callback at a fixed interval, for as long as the app runs | [8](08-windows.md#timers) |
+| `platform::Timers::every` | method | ≈ `Timer.scheduledTimer(repeats: true)` | `Timer.scheduledTimer(withTimeInterval:repeats:)` | ≈ `Timer.scheduledTimer(withTimeInterval:repeats:block:)` | Calls a callback at a fixed interval until its `Timer` is invalidated | [8](08-windows.md#timers) |
 | `platform::Timers::every_minute` | method | ≈ `TimelineView(.everyMinute)` | — | ≈ `CADisplayLink` | Calls a callback at the start of each minute of the clock | [8](08-windows.md#timers) |
 | `app::use_timeline` | fn | ≈ `TimelineView(.periodic(from:by:))` | — | ≈ `CADisplayLink` | Hook that renders the component every interval while it is active | [8](08-windows.md#timers) |
 | `platform::WakeHandle` | struct | — | — | — | `Send` handle another thread uses to run wake callbacks | [8](08-windows.md#timers) |
+| `platform::WakeHandle::invalidate` | method | — | ≈ `Timer.invalidate()` | — | Unregisters the `wakeup` callback the handle came from | [8](08-windows.md#timers) |
+| `platform::Timer` | struct | ≈ `Timer` | `Timer` | `Timer` | A repeating callback that `every` and `every_minute` return | [8](08-windows.md#timers) |
+| `platform::Timer::invalidate` | method | ≈ `Timer.invalidate()` | `Timer.invalidate()` | `Timer.invalidate()` | Stops the repeating callback | [8](08-windows.md#timers) |
 | `platform::modifier_flags` | fn | — | `NSEvent.modifierFlags` | — | Modifier keys held now, for a pointer handler | [8](08-windows.md#input-helpers) |
 | `platform::inserts_text` | fn | — | — | — | Whether a key press types text: no Control, Alt or Super | [8](08-windows.md#input-helpers) |
 

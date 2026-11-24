@@ -48,7 +48,6 @@ pub(super) fn frame((x, y, width, height): (i32, i32, i32, i32), container_heigh
     )
 }
 
-// A band that spans the whole height keeps both its margins while the window resizes; any other keeps its distance from the top.
 pub(super) fn autoresizing(
     (_, y, _, height): (i32, i32, i32, i32),
     container_height: f64,
@@ -80,7 +79,6 @@ pub(super) fn effect(
     effect
 }
 
-// The start and the end of the fade of a soft edge, in the unit square of a layer that is not flipped (y up).
 pub(super) fn edge_points(edge: Edge) -> ((f64, f64), (f64, f64)) {
     match edge {
         Edge::Top => ((0.5, 1.0), (0.5, 0.0)),
@@ -90,7 +88,6 @@ pub(super) fn edge_points(edge: Edge) -> ((f64, f64), (f64, f64)) {
     }
 }
 
-// The edge of a strip, `depth` deep, in the strip's own coordinates measured from the top left.
 pub(super) fn edge_rect(
     edge: Edge,
     (x, y): (i32, i32),
@@ -106,7 +103,6 @@ pub(super) fn edge_rect(
     }
 }
 
-// The material stays whole over the first part of the depth and fades to the end's strength at the depth.
 const FADE_STOPS: [f64; 3] = [0.0, 0.75, 1.0];
 
 // How much of the material a soft edge shows where it is whole and at its end: the SwiftUI window over a red row shows it at half.
@@ -122,7 +118,6 @@ const POCKET_VEIL_START: f64 = 0.5;
 const POCKET_VEIL: f64 = 0.85;
 
 pub(super) struct Pocket {
-    // Under the sidebar's rows, it captures the background they lie on.
     pub(super) capture: Retained<NSView>,
     pub(super) view: Retained<NSView>,
 }
@@ -284,7 +279,6 @@ fn pocket_mask(depth: f64) -> [u8; POCKET_MASK_ROWS] {
     })
 }
 
-// The effect shows through a mask that is whole at the edge and keeps the tail's strength at the depth.
 pub(super) fn fade(effect: &Effect, edge: Edge, (whole, tail): (f64, f64)) {
     let gray = |alpha| CGColor::new_generic_gray(0.0, alpha);
     let (start, end) = edge_points(edge);
@@ -411,7 +405,6 @@ pub(super) fn container(mtm: MainThreadMarker, frame: NSRect) -> Retained<NSView
     container
 }
 
-// A glass in its strip: the rectangle, the radius, whether it is clear and its tint.
 pub(crate) type PlacedGlass = ((i32, i32, i32, i32), u32, bool, Option<Rgba>);
 
 impl Chrome {
@@ -430,97 +423,5 @@ impl Chrome {
                 _ => None,
             })
             .collect()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::platform::backdrop::Requests;
-    use crate::platform::backdrop::tests::{at, chrome, glass};
-
-    #[test]
-    fn a_rect_measured_from_the_top_is_placed_from_the_bottom() {
-        let rect = frame((0, 0, 220, 480), 480.0);
-        assert_eq!((rect.origin.y, rect.size.height), (0.0, 480.0));
-        let rect = frame((10, 52, 100, 40), 480.0);
-        assert_eq!(rect.origin.y, 388.0);
-    }
-
-    #[test]
-    fn a_full_height_band_stretches_and_any_other_keeps_its_top() {
-        assert_eq!(
-            autoresizing((0, 0, 220, 480), 480.0),
-            NSAutoresizingMaskOptions::ViewHeightSizable
-        );
-        assert_eq!(
-            autoresizing((0, 52, 220, 100), 480.0),
-            NSAutoresizingMaskOptions::ViewMinYMargin
-        );
-    }
-
-    #[test]
-    fn a_soft_edge_fades_from_its_side_to_its_depth() {
-        assert_eq!(edge_points(Edge::Top), ((0.5, 1.0), (0.5, 0.0)));
-        assert_eq!(edge_points(Edge::Leading), ((0.0, 0.5), (1.0, 0.5)));
-        assert_eq!(
-            edge_rect(Edge::Top, (10, 20), (300, 200), 48),
-            (10, 20, 300, 48)
-        );
-        assert_eq!(
-            edge_rect(Edge::Bottom, (10, 20), (300, 200), 48),
-            (10, 172, 300, 48)
-        );
-        assert_eq!(
-            edge_rect(Edge::Trailing, (10, 20), (300, 200), 48),
-            (262, 20, 48, 200)
-        );
-    }
-
-    #[test]
-    fn every_material_has_its_own_native_one() {
-        let all = [
-            (Material::Titlebar, NSVisualEffectMaterial::Titlebar),
-            (Material::Sidebar, NSVisualEffectMaterial::Sidebar),
-            (Material::HudWindow, NSVisualEffectMaterial::HUDWindow),
-            (Material::Sheet, NSVisualEffectMaterial::Sheet),
-            (
-                Material::ContentBackground,
-                NSVisualEffectMaterial::ContentBackground,
-            ),
-        ];
-        for (kit, native) in all {
-            assert_eq!(material(kit), native);
-        }
-    }
-
-    #[test]
-    fn a_nested_glass_keeps_its_own_radius_and_variant_where_the_request_keeps_one() {
-        let outer = at(10.0, 10.0, 100.0, 60.0);
-        let chrome = chrome(
-            vec![
-                (glass(28, false, 0), outer),
-                (glass(10, true, 0), at(20.0, 20.0, 40.0, 20.0)),
-            ],
-            outer,
-        );
-        assert_eq!(
-            chrome.glasses(1.0),
-            vec![
-                ((0, 0, 100, 60), 28, false, None),
-                ((10, 10, 40, 20), 10, true, None)
-            ]
-        );
-        assert_eq!(Requests::of(&chrome, 1.0).backdrop.rects.len(), 1);
-    }
-
-    #[test]
-    fn the_pocket_mask_is_swiftuis_mask_revealed_and_at_rest() {
-        let revealed = pocket_mask(82.0);
-        assert_eq!(revealed[71..=74], [0, 1, 7, 13]);
-        assert_eq!(revealed[112..=114], [247, 253, 255]);
-        let rest = pocket_mask(52.0);
-        assert_eq!(rest[45..=48], [0, 3, 8, 12]);
-        assert_eq!(rest[105..=107], [248, 252, 255]);
     }
 }

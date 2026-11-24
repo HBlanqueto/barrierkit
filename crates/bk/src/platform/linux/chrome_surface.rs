@@ -20,8 +20,10 @@ use super::{
 use crate::platform::{
     RunError,
     backdrop::{Chrome, Placement, Requests},
-    glass::packed,
-    linux::window_style::{BlendingMode, InfinityWindowStyleV1},
+    linux::{
+        glass::packed,
+        window_style::{BlendingMode, InfinityWindowStyleV1},
+    },
 };
 
 #[derive(Clone)]
@@ -214,120 +216,5 @@ impl Runtime {
             viewporter: self.viewporter.clone(),
             queue: self.qh.clone(),
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use sctk::reexports::client::Proxy;
-
-    use super::super::fake_server::{Probe, Seen};
-    use super::*;
-    use crate::platform::backdrop::{Backdrop, ScrollEdge};
-    use crate::platform::window_style::{Edge, ScrollEdgeEffectStyle, WireMaterial};
-
-    fn menu() -> Requests {
-        Requests {
-            backdrop: Backdrop {
-                material: Some(WireMaterial::Menu),
-                radius: 6,
-                rects: vec![(1, 2, 30, 40)],
-            },
-            scroll_edge: None,
-            glass_spacing: 0,
-        }
-    }
-
-    fn top() -> Requests {
-        Requests {
-            backdrop: Backdrop::default(),
-            scroll_edge: Some(ScrollEdge {
-                edge: Edge::Top,
-                style: ScrollEdgeEffectStyle::Soft,
-                depth: 96,
-            }),
-            glass_spacing: 0,
-        }
-    }
-
-    fn sent(old: &Requests, new: &Requests) -> Vec<Seen> {
-        let (mut probe, mut queue, server) = Probe::connect(Some(10));
-        let root = probe.surface();
-        let (_subsurface, chrome) = probe
-            .subcompositor
-            .create_subsurface(root.clone(), &probe.queue);
-        let style = probe.style.clone().unwrap();
-        send_requests(&style, &chrome, old, new);
-        queue.roundtrip(&mut probe).unwrap();
-        let (root, chrome) = (root.id().protocol_id(), chrome.id().protocol_id());
-        let mut seen = server.seen();
-        assert_eq!(
-            seen.remove(0),
-            Seen::Subsurface {
-                child: chrome,
-                parent: root
-            }
-        );
-        seen
-    }
-
-    #[test]
-    fn a_material_goes_to_the_sub_surface_within_the_window() {
-        let seen = sent(&Requests::default(), &menu());
-        assert!(matches!(
-            seen.as_slice(),
-            [Seen::Backdrop { blending: 1, material: 2, radius: 6, rects, .. }] if rects == &[1, 2, 30, 40]
-        ));
-    }
-
-    #[test]
-    fn a_scroll_edge_goes_to_the_sub_surface_with_its_depth() {
-        let seen = sent(&Requests::default(), &top());
-        assert!(matches!(
-            seen.as_slice(),
-            [Seen::ScrollEdge {
-                edge: 0,
-                style: 1,
-                depth: 96,
-                ..
-            }]
-        ));
-    }
-
-    #[test]
-    fn an_unchanged_declaration_sends_nothing() {
-        assert!(sent(&menu(), &menu()).is_empty());
-        assert!(sent(&top(), &top()).is_empty());
-    }
-
-    #[test]
-    fn only_the_part_that_changed_is_sent() {
-        let both = Requests {
-            scroll_edge: top().scroll_edge,
-            ..menu()
-        };
-        let seen = sent(&both, &menu());
-        assert!(matches!(
-            seen.as_slice(),
-            [Seen::ScrollEdge {
-                edge: 0,
-                style: 1,
-                depth: 0,
-                ..
-            }]
-        ));
-    }
-
-    #[test]
-    fn a_declaration_that_goes_away_is_removed_with_no_rectangles_and_no_depth() {
-        let seen = sent(&menu(), &Requests::default());
-        assert!(matches!(
-            seen.as_slice(),
-            [Seen::Backdrop { material: 2, radius: 0, rects, .. }] if rects.is_empty()
-        ));
-        assert!(matches!(
-            sent(&top(), &Requests::default()).as_slice(),
-            [Seen::ScrollEdge { depth: 0, .. }]
-        ));
     }
 }

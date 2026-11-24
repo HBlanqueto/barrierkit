@@ -21,10 +21,6 @@ pub(crate) async fn private_connection() -> zbus::Result<zbus::Connection> {
         .await
 }
 
-pub(crate) fn blocking() -> zbus::Result<zbus::blocking::Connection> {
-    async_io::block_on(connection()).map(Into::into)
-}
-
 pub(crate) async fn export<I: zbus::object_server::Interface>(
     connection: &zbus::Connection,
     path: &str,

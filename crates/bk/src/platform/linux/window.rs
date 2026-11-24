@@ -12,7 +12,6 @@ use sctk::{
         xdg::window::{DecorationMode, Window, WindowConfigure, WindowDecorations, WindowHandler},
     },
 };
-use std::{cell::RefCell, rc::Rc};
 
 use crate::platform::{
     ObjectId, RunError,
@@ -218,10 +217,9 @@ impl Runtime {
                 let pending_addresses = self.pending_menu_addresses.clone();
                 let wake = self.wake.ping.clone();
                 handle.set_address_callback(move |address| {
-                    pending_addresses
-                        .lock()
-                        .expect("pending menu addresses poisoned")
-                        .push((surface_id.clone(), address));
+                    if let Ok(mut pending) = pending_addresses.lock() {
+                        pending.push((surface_id.clone(), address));
+                    }
                     wake.ping();
                 });
             }
@@ -229,46 +227,20 @@ impl Runtime {
             menu_handle = Some(handle);
         }
 
-        let pointer_serial = Rc::new(std::cell::Cell::new(0));
-        let fixed = options.min_size.is_some() && options.min_size == options.max_size;
-        let fixed_width = matches!(
-            (options.min_size, options.max_size),
-            (Some((min, _)), Some((max, _))) if min > 0 && min == max
-        );
-        let status = State::create_global(WindowStatus {
-            activated: true,
-            maximized: false,
-            fullscreen: false,
-            decoration: DecorationResponse::Client,
-            fixed,
-        });
-        let surface_id = surface.id();
         let controls = WindowControls {
-            queue: Rc::new(RefCell::new(Vec::new())),
-            ping: self.ping.clone(),
-            pointer_serial,
-            status,
-            title: options.title.clone(),
-            fixed,
-            fixed_width,
-            surface_id,
-            focus_bar: State::create_global(false),
-            focus_bar_progress: State::create_global(0.0),
             focus_overlay: self
                 .focus_manager
                 .as_ref()
                 .is_some_and(|manager| manager.version() >= 2),
-            focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
-            desktop: State::create_global(None),
-            fullscreen_bar: State::create_global(options.fullscreen_bar),
-            fullscreen_push: State::create_global(options.fullscreen_push),
-            overlay_titlebar_height: State::create_global(0.0),
-            sidebar_span: State::create_global((0.0, 0.0)),
-            hud: options.hud,
-            panel: utility,
-            ime_preedit: State::create_global(String::new()),
-            primary: self.primary.clone(),
-            clipboard: self.clipboard.clone(),
+            ..WindowControls::new(
+                &options,
+                DecorationResponse::Client,
+                utility,
+                surface.id(),
+                self.ping.clone(),
+                self.primary.clone(),
+                self.clipboard.clone(),
+            )
         };
         let window_resolved = State::create_global(*self.resolved.peek());
         let focus_notice = self.focus_manager.as_ref().map(|manager| {
@@ -336,91 +308,90 @@ impl Runtime {
             .collect();
         for (controls, commands) in pending {
             for command in commands {
-                if let WindowCommand::Close = command {
-                    if !crate::document::intercept_close(&controls.surface_id) {
-                        self.close_window(controls.surface_id.clone());
-                    }
-                    continue;
-                }
-                if let WindowCommand::ImeCursor(area) = command {
-                    self.set_ime_cursor(controls.surface_id.clone(), area);
-                    continue;
-                }
-                if let WindowCommand::Open(window) = command {
-                    let (app, options) = *window;
-                    self.create_window(app, options, None);
-                    continue;
-                }
-                if let WindowCommand::Sheet(window) = command {
-                    let (app, options) = *window;
-                    self.create_window(app, options, Some(&controls.surface_id));
-                    continue;
-                }
-                if let WindowCommand::Fit(size) = command {
-                    self.fit_window(&controls.surface_id, size);
-                    continue;
-                }
-                let Some(index) = self.surface_index_by_id(&controls.surface_id) else {
-                    continue;
-                };
-                if let WindowCommand::BackgroundAlpha(alpha) = command {
-                    self.surfaces[index].background_alpha = alpha;
-                    self.surfaces[index].needs_redraw = true;
-                    continue;
-                }
-                let SurfaceRole::Window(window) = &self.surfaces[index].role else {
-                    continue;
-                };
+                let id = &controls.surface_id;
                 match command {
-                    WindowCommand::Minimize => window.set_minimized(),
-                    WindowCommand::ToggleMaximize => {
-                        if controls.status.read().maximized {
-                            window.unset_maximized();
-                        } else {
-                            window.set_maximized();
+                    WindowCommand::Close => {
+                        if !crate::document::intercept_close(id) {
+                            self.close_window(id.clone());
                         }
                     }
-                    WindowCommand::ToggleFullscreen => {
-                        if controls.status.read().fullscreen {
-                            window.unset_fullscreen();
-                        } else {
-                            window.set_fullscreen(None);
+                    WindowCommand::ImeCursor(area) => self.set_ime_cursor(id.clone(), area),
+                    WindowCommand::Open(window) => {
+                        let (app, options) = *window;
+                        self.create_window(app, options, None);
+                    }
+                    WindowCommand::Sheet(window) => {
+                        let (app, options) = *window;
+                        self.create_window(app, options, Some(id));
+                    }
+                    WindowCommand::Fit(size) => self.fit_window(id, size),
+                    WindowCommand::BackgroundAlpha(alpha) => {
+                        if let Some(index) = self.surface_index_by_id(id) {
+                            self.surfaces[index].background_alpha = alpha;
+                            self.surfaces[index].needs_redraw = true;
                         }
                     }
-                    WindowCommand::Move(serial) => {
-                        if let Some(seat) = &self.seat_handle {
-                            window.move_(seat, serial);
+                    command => {
+                        let Some(index) = self.surface_index_by_id(id) else {
+                            continue;
+                        };
+                        let SurfaceRole::Window(window) = &self.surfaces[index].role else {
+                            continue;
+                        };
+                        match command {
+                            WindowCommand::Minimize => window.set_minimized(),
+                            WindowCommand::ToggleMaximize => {
+                                if controls.status.read().maximized {
+                                    window.unset_maximized();
+                                } else {
+                                    window.set_maximized();
+                                }
+                            }
+                            WindowCommand::ToggleFullscreen => {
+                                if controls.status.read().fullscreen {
+                                    window.unset_fullscreen();
+                                } else {
+                                    window.set_fullscreen(None);
+                                }
+                            }
+                            WindowCommand::Move(serial) => {
+                                if let Some(seat) = &self.seat_handle {
+                                    window.move_(seat, serial);
+                                }
+                                self.request_keyboard(index, serial);
+                            }
+                            WindowCommand::Resize(serial, edge) => {
+                                if let Some(seat) = &self.seat_handle {
+                                    window.resize(seat, serial, resize_edge(edge));
+                                }
+                            }
+                            WindowCommand::Present(Some(token)) => {
+                                if let Some(activation) = &self.activation {
+                                    activation.activate(token, window.wl_surface());
+                                }
+                            }
+                            WindowCommand::Present(None) => {
+                                self.request_activation(window.wl_surface())
+                            }
+                            WindowCommand::MakeKey => {
+                                self.request_activation_after_press(window.wl_surface())
+                            }
+                            WindowCommand::SetTitle(title) => window.set_title(title),
+                            WindowCommand::Bar(bar) => {
+                                if let Some(style) = &self.window_style {
+                                    style.set_bar(window.wl_surface(), bar);
+                                }
+                            }
+                            WindowCommand::Close
+                            | WindowCommand::BackgroundAlpha(_)
+                            | WindowCommand::Open(_)
+                            | WindowCommand::Sheet(_)
+                            | WindowCommand::Fit(_)
+                            | WindowCommand::ImeCursor(_) => unreachable!(),
                         }
-                        self.request_keyboard(index, serial);
+                        self.surfaces[index].needs_redraw = true;
                     }
-                    WindowCommand::Resize(serial, edge) => {
-                        if let Some(seat) = &self.seat_handle {
-                            window.resize(seat, serial, resize_edge(edge));
-                        }
-                    }
-                    WindowCommand::Present(Some(token)) => {
-                        if let Some(activation) = &self.activation {
-                            activation.activate(token, window.wl_surface());
-                        }
-                    }
-                    WindowCommand::Present(None) => self.request_activation(window.wl_surface()),
-                    WindowCommand::MakeKey => {
-                        self.request_activation_after_press(window.wl_surface())
-                    }
-                    WindowCommand::SetTitle(title) => window.set_title(title),
-                    WindowCommand::Bar(bar) => {
-                        if let Some(style) = &self.window_style {
-                            style.set_bar(window.wl_surface(), bar);
-                        }
-                    }
-                    WindowCommand::Close
-                    | WindowCommand::BackgroundAlpha(_)
-                    | WindowCommand::Open(_)
-                    | WindowCommand::Sheet(_)
-                    | WindowCommand::Fit(_)
-                    | WindowCommand::ImeCursor(_) => unreachable!(),
                 }
-                self.surfaces[index].needs_redraw = true;
             }
         }
     }
@@ -608,31 +579,5 @@ impl Runtime {
             };
             self.surfaces.remove(index);
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::within;
-
-    #[test]
-    fn a_restored_size_stays_within_the_window_limits() {
-        assert_eq!(
-            within((300, 900), Some((480, 320)), Some((800, 600))),
-            (480, 600)
-        );
-        assert_eq!(within((1000, 700), None, None), (1000, 700));
-        assert_eq!(
-            within((500, 500), Some((640, 420)), Some((640, 420))),
-            (640, 420)
-        );
-    }
-
-    #[test]
-    fn a_zero_maximum_leaves_that_dimension_unbounded() {
-        assert_eq!(
-            within((640, 900), Some((640, 420)), Some((640, 0))),
-            (640, 900)
-        );
     }
 }

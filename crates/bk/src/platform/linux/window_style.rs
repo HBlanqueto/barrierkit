@@ -1,10 +1,23 @@
 use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle, globals::GlobalList};
 
-use crate::platform::runtime::Runtime;
+use crate::platform::{PanelBehavior, runtime::Runtime};
 
 pub(crate) use infinity_protocol::client::style::infinity_window_style_v1::infinity_window_style_v1::{
-    BlendingMode, InfinityWindowStyleV1,
+    BlendingMode, InfinityWindowStyleV1, Panel,
 };
+
+impl PanelBehavior {
+    pub(super) fn flags(self) -> Panel {
+        [
+            (self.hides_on_deactivate, Panel::HidesOnDeactivate),
+            (self.floating, Panel::Floating),
+            (self.key_only_if_needed, Panel::KeyOnlyIfNeeded),
+        ]
+        .into_iter()
+        .filter(|(on, _)| *on)
+        .fold(Panel::empty(), |flags, (_, flag)| flags | flag)
+    }
+}
 
 pub(crate) const BACKDROP_VERSION: u32 = 10;
 

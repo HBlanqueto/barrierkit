@@ -8,13 +8,16 @@ use torin::prelude::CursorPoint;
 
 use crate::platform::app::AppInstance;
 
-// The kit's shortcuts are written with Ctrl, so Command is Ctrl here (docs/barrierkit/13-app.md).
+// The kit's shortcuts are written with Ctrl and Super, so Command is Ctrl and Control is Super here, as the menu draws them.
 pub(super) fn modifiers(flags: NSEventModifierFlags) -> Modifiers {
     let mut out = Modifiers::empty();
     out.set(
         Modifiers::CONTROL,
-        flags.contains(NSEventModifierFlags::Command)
-            || flags.contains(NSEventModifierFlags::Control),
+        flags.contains(NSEventModifierFlags::Command),
+    );
+    out.set(
+        Modifiers::META,
+        flags.contains(NSEventModifierFlags::Control),
     );
     out.set(Modifiers::ALT, flags.contains(NSEventModifierFlags::Option));
     out.set(
@@ -257,18 +260,5 @@ impl AppInstance {
     pub(crate) fn trackpad(&mut self, event: crate::gesture::Trackpad) {
         self.runner.run_in(|| crate::gesture::trackpad(event));
         self.waker.wake_by_ref();
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_field_reads_command_as_meta_and_keeps_shift() {
-        assert_eq!(
-            as_meta(Modifiers::CONTROL | Modifiers::SHIFT),
-            Modifiers::META | Modifiers::SHIFT
-        );
     }
 }

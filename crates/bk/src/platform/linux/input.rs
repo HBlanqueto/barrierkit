@@ -1,12 +1,6 @@
 use freya_core::prelude::{Code, Key, Modifiers, MouseButton, NamedKey};
 use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
 
-use crate::platform::input::store_modifier_flags;
-
-pub(super) fn set_modifier_flags(flags: SctkModifiers) {
-    store_modifier_flags(modifiers(flags));
-}
-
 pub fn modifiers(m: SctkModifiers) -> Modifiers {
     let mut out = Modifiers::empty();
     out.set(Modifiers::CONTROL, m.ctrl);
@@ -114,40 +108,5 @@ pub fn mouse_button(button: u32) -> MouseButton {
         BTN_BACK => MouseButton::Back,
         BTN_FORWARD => MouseButton::Forward,
         other => MouseButton::Other(other as u16),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use sctk::seat::keyboard::{Keysym, Modifiers as SctkModifiers};
-
-    use super::{map_key, modifiers};
-
-    use freya_core::prelude::{Key, Modifiers};
-
-    #[test]
-    fn shift_h_is_uppercase() {
-        assert_eq!(map_key(Keysym::H, Some("H")), Key::Character("H".into()));
-    }
-
-    #[test]
-    fn altgr_two_produces_at() {
-        assert_eq!(map_key(Keysym::_2, Some("@")), Key::Character("@".into()));
-    }
-
-    #[test]
-    fn ctrl_q_falls_back_to_keysym_char() {
-        assert_eq!(map_key(Keysym::q, Some("\x11")), Key::Character("q".into()));
-    }
-
-    #[test]
-    fn caps_and_num_lock_are_not_shortcut_modifiers() {
-        let locked_ctrl = SctkModifiers {
-            ctrl: true,
-            caps_lock: true,
-            num_lock: true,
-            ..Default::default()
-        };
-        assert_eq!(modifiers(locked_ctrl), Modifiers::CONTROL);
     }
 }

@@ -321,7 +321,8 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
   `wallpaper.state` changes. `use_watched` cannot know which file `load` reads,
   so it reloads when any `.domain` file in the config folder changes, except
   `appearance.domain`. An app that calls only `use_defaults` ignores the
-  settings other apps save.
+  settings other apps save. On macOS the kit looks for changed `.domain`
+  files once a second.
 
 The window size and the maximized state are saved and restored by the kit
 ([8. Windows](08-windows.md)).
@@ -454,7 +455,8 @@ without a bundle identifier (a bare binary from `cargo run`) cannot post: `post`
 warning and does nothing, so run the app from an `.app` bundle.
 
 `play_event_sound(name)` plays a sound from the freedesktop sound theme
-(`"message-new-email"`) with `canberra-gtk-play`.
+(`"message-new-email"`) with `canberra-gtk-play`. On macOS it plays the system
+`NSSound` of that name (`"Glass"`).
 
 ## Secrets
 

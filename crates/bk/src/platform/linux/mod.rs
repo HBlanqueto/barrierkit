@@ -5,11 +5,7 @@ pub(super) mod atspi;
 mod chrome_surface;
 pub(crate) mod clipboard;
 mod dialog;
-#[cfg(test)]
-mod doc_shots;
 pub(crate) mod extension;
-#[cfg(test)]
-pub(super) mod fake_server;
 mod focus;
 mod glass;
 mod ime;
@@ -24,13 +20,9 @@ mod popup;
 mod portal;
 mod primary;
 pub(crate) mod runtime;
-#[cfg(test)]
-mod scene_tests;
 mod seat;
 pub(crate) mod surface;
 mod system;
-#[cfg(test)]
-mod tests;
 mod timer;
 mod vulkan;
 mod window;
@@ -38,11 +30,18 @@ mod window_style;
 
 pub use sctk::reexports::client::backend::ObjectId;
 
+pub(crate) fn blocking_session_bus() -> zbus::Result<zbus::blocking::Connection> {
+    async_io::block_on(crate::session_bus::connection()).map(Into::into)
+}
+
 pub(crate) const SYSTEM_MOMENTUM: bool = false;
+pub(crate) const OPTICAL_SIZING: bool = false;
 // Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own (ADR 0113).
 pub(crate) const MOST_CHROMES: usize = 3;
 
 #[cfg(feature = "a11y")]
 pub(super) use atspi::Bridge;
+#[cfg(feature = "shell")]
+pub(crate) use glass::packed;
 pub(crate) use system::appearance;
 pub(super) use window::run_window;

@@ -8,12 +8,10 @@ use crate::platform::runtime::Runtime;
 
 impl Runtime {
     pub(super) fn process_pending_menu_addresses(&mut self) {
-        let pending = std::mem::take(
-            &mut *self
-                .pending_menu_addresses
-                .lock()
-                .expect("pending menu addresses poisoned"),
-        );
+        let Ok(mut pending) = self.pending_menu_addresses.lock() else {
+            return;
+        };
+        let pending = std::mem::take(&mut *pending);
         for (surface_id, address) in pending {
             let Some(index) = self.surface_index_by_id(&surface_id) else {
                 continue;

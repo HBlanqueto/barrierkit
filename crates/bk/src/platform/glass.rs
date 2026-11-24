@@ -5,14 +5,6 @@ use super::window_style::Knob;
 
 pub(crate) type Rects = Vec<(i32, i32, i32, i32)>;
 
-pub(crate) fn packed(rects: &[(i32, i32, i32, i32)]) -> Vec<u8> {
-    rects
-        .iter()
-        .flat_map(|&(x, y, width, height)| [x, y, width, height])
-        .flat_map(i32::to_ne_bytes)
-        .collect()
-}
-
 #[derive(Clone, Copy)]
 pub(crate) struct GlassSupport(pub(crate) bool);
 

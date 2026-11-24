@@ -12,10 +12,3 @@ pub fn init_tracing() {
     let registry = registry.with(tracing_tracy::TracyLayer::default());
     registry.init();
 }
-
-#[cfg(feature = "tracy")]
-pub(crate) fn frame_mark() {
-    if let Some(client) = tracing_tracy::client::Client::running() {
-        client.frame_mark();
-    }
-}

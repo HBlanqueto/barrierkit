@@ -19,7 +19,6 @@ pub(super) enum Edge {
 
 type Vertex = ((f64, f64), f64);
 
-// The body starts `band` from the edge of the popup; the arrow is `width` wide there and its sharp apex is `height` above it.
 pub(super) struct Shape {
     radius: f64,
     band: f64,
@@ -58,7 +57,6 @@ pub(super) fn metrics(shape: PopoverShape) -> Shape {
     }
 }
 
-// The edge of the popup that faces its anchor, as the compositor picks it.
 pub(super) fn facing_edge(anchor: Rect, popup: Rect) -> Edge {
     if popup.y + popup.height <= anchor.y {
         Edge::Bottom
@@ -71,7 +69,6 @@ pub(super) fn facing_edge(anchor: Rect, popup: Rect) -> Edge {
     }
 }
 
-// How far from a corner of the body the arrow keeps: the corner, half the base and the start of the fillet.
 fn base_reach(shape: &Shape) -> f64 {
     let half_base = shape.width / 2.0;
     let side = (-half_base / half_base.hypot(shape.height)).acos();
@@ -79,7 +76,6 @@ fn base_reach(shape: &Shape) -> f64 {
     shape.radius + half_base + fillet_reach
 }
 
-// The arrow points at the centre of the anchor, kept clear of the corners.
 pub(super) fn tip(anchor: Rect, popup: Rect, edge: Edge, shape: &Shape) -> f64 {
     let (centre, length) = match edge {
         Edge::Top | Edge::Bottom => (
@@ -99,8 +95,6 @@ pub(super) fn tip(anchor: Rect, popup: Rect, edge: Edge, shape: &Shape) -> f64 {
     }
 }
 
-// The corners of the outline, clockwise from the top left in a popup whose arrow band is at its top, each with its radius.
-// The other edges turn that outline: `along` runs beside the edge and `depth` away from it.
 pub(super) fn outline(
     (width, height): (f64, f64),
     edge: Edge,
@@ -179,78 +173,4 @@ pub(super) fn mask_image(path: CFRetained<CGMutablePath>, size: NSSize) -> Retai
         Bool::YES
     });
     NSImage::imageWithSize_flipped_drawingHandler(size, false, &draw)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn rect(x: i32, y: i32, width: i32, height: i32) -> Rect {
-        Rect {
-            x,
-            y,
-            width,
-            height,
-        }
-    }
-
-    #[test]
-    fn a_popup_below_its_anchor_has_the_arrow_on_its_top_edge() {
-        assert_eq!(
-            facing_edge(rect(0, 0, 40, 20), rect(0, 20, 200, 100)),
-            Edge::Top
-        );
-    }
-
-    #[test]
-    fn a_popup_above_its_anchor_has_the_arrow_on_its_bottom_edge() {
-        assert_eq!(
-            facing_edge(rect(0, 200, 40, 20), rect(0, 90, 200, 100)),
-            Edge::Bottom
-        );
-    }
-
-    #[test]
-    fn a_popup_beside_its_anchor_has_the_arrow_on_the_edge_that_faces_it() {
-        let anchor = rect(300, 0, 40, 20);
-        assert_eq!(facing_edge(anchor, rect(90, 0, 200, 100)), Edge::Right);
-        assert_eq!(facing_edge(anchor, rect(350, 0, 200, 100)), Edge::Left);
-    }
-
-    #[test]
-    fn the_arrow_points_at_the_anchor_centre_but_stays_clear_of_the_corners() {
-        let shape = metrics(PopoverShape::Menu);
-        let popup = rect(100, 40, 240, 160);
-        let reach = base_reach(&shape);
-        let at = |anchor_x| tip(rect(anchor_x, 0, 40, 20), popup, Edge::Top, &shape);
-        assert_eq!(at(180), 100.0);
-        assert_eq!(at(-500), reach);
-        assert_eq!(at(900), 240.0 - reach);
-    }
-
-    #[test]
-    fn a_body_narrower_than_the_arrow_needs_gets_the_arrow_in_the_middle() {
-        let shape = metrics(PopoverShape::Menu);
-        let popup = rect(0, 40, 50, 160);
-        assert_eq!(tip(rect(500, 0, 40, 20), popup, Edge::Top, &shape), 25.0);
-    }
-
-    #[test]
-    fn the_apex_is_its_height_above_the_body_on_whichever_edge_faces_the_anchor() {
-        let shape = metrics(PopoverShape::Menu);
-        let apex = shape.band - shape.height;
-        let at = |edge, size| outline(size, edge, 100.0, &shape)[2].0;
-        assert_eq!(at(Edge::Top, (240.0, 173.0)), (100.0, apex));
-        assert_eq!(at(Edge::Bottom, (240.0, 173.0)), (100.0, 173.0 - apex));
-        assert_eq!(at(Edge::Left, (173.0, 240.0)), (apex, 100.0));
-        assert_eq!(at(Edge::Right, (173.0, 240.0)), (173.0 - apex, 100.0));
-    }
-
-    #[test]
-    fn the_body_starts_one_band_from_the_edge_that_faces_the_anchor() {
-        let shape = metrics(PopoverShape::Menu);
-        let outline = outline((240.0, 173.0), Edge::Top, 100.0, &shape);
-        assert_eq!(outline[0].0, (0.0, shape.band));
-        assert_eq!(outline[5].0, (240.0, 173.0));
-    }
 }

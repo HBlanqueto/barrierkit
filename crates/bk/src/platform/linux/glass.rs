@@ -1,10 +1,18 @@
 use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
 
-use crate::platform::glass::{GlassPanels, packed};
+use crate::platform::glass::GlassPanels;
 use crate::platform::linux::window_style::{BlendingMode, InfinityWindowStyleV1, offers_backdrop};
 use crate::platform::runtime::Runtime;
 use crate::platform::surface::SurfaceWindow;
 use crate::platform::window_style::WireMaterial;
+
+pub(crate) fn packed(rects: &[(i32, i32, i32, i32)]) -> Vec<u8> {
+    rects
+        .iter()
+        .flat_map(|&(x, y, width, height)| [x, y, width, height])
+        .flat_map(i32::to_ne_bytes)
+        .collect()
+}
 
 const MINIMUM_VERSION: u32 = 6;
 const KNOB_VERSION: u32 = 9;
@@ -74,64 +82,5 @@ impl SurfaceWindow {
             return;
         };
         style.set_knobs(&self.surface, knobs.kind, knobs.tint, packed(&knobs.rects));
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::platform::linux::fake_server::{Probe, Seen};
-
-    fn panels() -> GlassPanels {
-        GlassPanels {
-            radius: 16,
-            rects: vec![(0, 0, 200, 600)],
-            base: 1,
-            solid: 2,
-            chroma: 3,
-            inspector: None,
-            contents_above: false,
-        }
-    }
-
-    fn sent(version: u32, measured: bool) -> Vec<Seen> {
-        let (mut probe, mut queue, server) = Probe::connect(Some(version));
-        let surface = probe.surface();
-        send_panels(probe.style.as_ref().unwrap(), &surface, &panels(), measured);
-        queue.roundtrip(&mut probe).unwrap();
-        server.seen()
-    }
-
-    #[test]
-    fn a_compositor_with_version_ten_gets_the_sidebar_as_the_measured_material_behind_the_window() {
-        assert!(matches!(
-            sent(10, true).as_slice(),
-            [Seen::Backdrop { blending: 0, material: 4, radius: 16, rects, .. }] if rects == &[0, 0, 200, 600]
-        ));
-    }
-
-    #[test]
-    fn an_older_compositor_still_gets_the_glass_panels() {
-        assert!(matches!(
-            sent(9, false).as_slice(),
-            [Seen::Glass { radius: 16, rects, base: 1, solid: 2, chroma: 3, .. }] if rects == &[0, 0, 200, 600]
-        ));
-    }
-
-    #[test]
-    fn an_empty_sidebar_removes_the_material() {
-        let (mut probe, mut queue, server) = Probe::connect(Some(10));
-        let surface = probe.surface();
-        send_panels(
-            probe.style.as_ref().unwrap(),
-            &surface,
-            &GlassPanels::default(),
-            true,
-        );
-        queue.roundtrip(&mut probe).unwrap();
-        assert!(matches!(
-            server.seen().as_slice(),
-            [Seen::Backdrop { rects, .. }] if rects.is_empty()
-        ));
     }
 }

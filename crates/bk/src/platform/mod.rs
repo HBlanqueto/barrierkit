@@ -22,8 +22,8 @@ pub(crate) use linux::extension;
 pub(crate) use linux::{runtime, surface};
 pub use sys::ObjectId;
 pub(crate) use sys::{
-    MOST_CHROMES, SYSTEM_MOMENTUM, appearance, clipboard, instance, keychain, notifications,
-    panels, pasteboard,
+    MOST_CHROMES, OPTICAL_SIZING, SYSTEM_MOMENTUM, appearance, clipboard, instance, keychain,
+    notifications, panels, pasteboard,
 };
 
 #[cfg(target_os = "macos")]
@@ -31,15 +31,12 @@ pub(crate) use ::calloop;
 #[cfg(target_os = "linux")]
 pub(crate) use sctk::reexports::calloop;
 
-// CoreText sets each face's optical size and `trak` tracking from the point size; Linux keeps the face as it is.
-pub(crate) const OPTICAL_SIZING: bool = cfg!(target_os = "macos");
-
 pub use input::{inserts_text, modifier_flags};
 pub use main_menu_export::MainMenuAddress;
 pub use popup::{
     PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupHandle, PopupId, PopupSpec, Popups,
 };
-pub use timer::{Timers, WakeHandle};
+pub use timer::{Timer, Timers, WakeHandle};
 
 pub(crate) enum Sent {
     User(freya_core::integration::UserEvent),
@@ -73,11 +70,9 @@ pub(crate) use window::{open_utility_window, window_activated};
 pub(crate) use window_style::Knob;
 pub use window_style::{Bar, PopoverShape};
 
-#[cfg(feature = "shell")]
-pub(crate) use glass::packed;
 pub(crate) use glass::{GlassOutbox, GlassPanels, GlassSupport, KnobOutbox, KnobSupport, Knobs};
-#[cfg(test)]
-pub(crate) use popup::PopupCommand;
+#[cfg(all(feature = "shell", target_os = "linux"))]
+pub(crate) use linux::packed;
 pub(crate) use popup::anchor_rect;
 #[derive(Debug, thiserror::Error)]
 pub enum RunError {

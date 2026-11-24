@@ -47,7 +47,7 @@ use super::clipboard::Clipboard;
 use super::popup::PopupCommand;
 use super::timer::{Wake, WakeQueue};
 use super::window::{
-    OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle, below_bar,
+    OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStyle, below_bar,
 };
 use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
 use super::{EditShortcut, RunError, Sent, calloop::ping::Ping};
@@ -55,6 +55,8 @@ use crate::platform::macos::blur::PlacedGlass;
 
 // The system delivers the momentum of a trackpad fling as scroll events.
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
+// CoreText sets each face's optical size and `trak` tracking from the point size.
+pub(crate) const OPTICAL_SIZING: bool = true;
 pub(crate) const MOST_CHROMES: usize = 8;
 
 #[cfg(feature = "a11y")]
@@ -82,6 +84,7 @@ pub(super) mod accessibility;
 mod arrow;
 mod blur;
 pub(crate) mod clipboard;
+mod defaults;
 mod delegate;
 mod frame;
 mod input;
@@ -697,17 +700,12 @@ impl Runtime {
         let utility = parent.is_some();
         let id = self.next_window;
         self.next_window += 1;
-        let fixed = options.min_size.is_some() && options.min_size == options.max_size;
-        let fixed_width = matches!(
-            (options.min_size, options.max_size),
-            (Some((min, _)), Some((max, _))) if min > 0 && min == max
-        );
         let window_style = if utility {
             WindowStyle::TitleBar
         } else {
             options.window_style
         };
-        let (mut style, decoration) = frame::frame(window_style, !fixed);
+        let (mut style, decoration) = frame::frame(window_style, !options.fixed());
         if sheet {
             style = NSWindowStyleMask::Titled;
         }
@@ -768,37 +766,15 @@ impl Runtime {
         window.setExcludedFromWindowsMenu(true);
         window.center();
 
-        let status = State::create_global(WindowStatus {
-            activated: true,
-            maximized: false,
-            fullscreen: false,
+        let controls = WindowControls::new(
+            &options,
             decoration,
-            fixed,
-        });
-        let controls = WindowControls {
-            queue: Rc::new(RefCell::new(Vec::new())),
-            ping: self.ping.clone(),
-            pointer_serial: Rc::new(Cell::new(0)),
-            status,
-            title: options.title.clone(),
-            fixed,
-            fixed_width,
-            surface_id: ObjectId::from_raw(id),
-            focus_bar: State::create_global(false),
-            focus_bar_progress: State::create_global(0.0),
-            focus_overlay: false,
-            focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
-            desktop: State::create_global(None),
-            fullscreen_bar: State::create_global(options.fullscreen_bar),
-            fullscreen_push: State::create_global(options.fullscreen_push),
-            overlay_titlebar_height: State::create_global(0.0),
-            sidebar_span: State::create_global((0.0, 0.0)),
-            hud: options.hud,
-            panel: utility,
-            ime_preedit: State::create_global(String::new()),
-            primary: self.primary.clone(),
-            clipboard: self.clipboard.clone(),
-        };
+            utility,
+            ObjectId::from_raw(id),
+            self.ping.clone(),
+            self.primary.clone(),
+            self.clipboard.clone(),
+        );
         let menu = options.menu.clone().map(|menu| {
             crate::main_menu::MenuHandle::new(
                 menu,
@@ -1583,7 +1559,7 @@ fn fire(id: u64) {
 }
 
 fn woken() {
-    let Some(callbacks) = with_runtime(|runtime| runtime.wake.callbacks.borrow().clone()) else {
+    let Some(callbacks) = with_runtime(|runtime| runtime.wake.live_callbacks()) else {
         return;
     };
     for callback in callbacks {
@@ -1680,6 +1656,11 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
         callbacks: WakeQueue::default(),
     };
     let runtime = Runtime::new(mtm, ping.clone(), wake)?;
+    defaults::watch(
+        runtime.timers.clone(),
+        runtime.defaults_revision,
+        defaults::stamps(),
+    );
     RUNTIME.with(|cell| *cell.borrow_mut() = Some(runtime));
     system::observe(&NSApplication::sharedApplication(mtm));
     serve_loop(event_loop)?;

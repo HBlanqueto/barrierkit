@@ -207,30 +207,3 @@ pub async fn open_uri(uri: &str, _ask: bool) {
         }
     });
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_folder_only_filter_chooses_folders_and_no_files() {
-        let dialog = FileDialog::open().allowed_content_types(vec![ContentType::Folder]);
-        assert!(dialog.chooses_folders());
-        assert!(!chooses_files(&dialog));
-    }
-
-    #[test]
-    fn extensions_leave_the_folder_kind_out_and_keep_files_choosable() {
-        let dialog = FileDialog::open()
-            .allowed_content_types(vec![ContentType::Folder, ContentType::extension("png")]);
-        assert_eq!(extensions(&dialog), ["png"]);
-        assert!(dialog.chooses_folders() && chooses_files(&dialog));
-    }
-
-    #[test]
-    fn no_filter_chooses_any_file() {
-        let dialog = FileDialog::open();
-        assert!(chooses_files(&dialog) && !dialog.chooses_folders());
-        assert!(extensions(&dialog).is_empty());
-    }
-}

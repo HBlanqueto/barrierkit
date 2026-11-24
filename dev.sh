@@ -39,7 +39,8 @@ check() {
     require cargo-fmt
     require cargo-clippy
     if [ "$(uname -s)" = Darwin ]; then
-        # The Wayland code is unused on macOS and the shell feature does not build there.
+        # The shell feature does not build on macOS. Window and popup commands carry fields and the D-Bus menu
+        # exporter (main_menu) has items that only the Linux backend reads.
         features=bk/tracy
         allow='-A dead_code'
     else

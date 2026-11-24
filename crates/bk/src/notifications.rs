@@ -1,8 +1,6 @@
-use std::process::Command;
 use std::sync::Mutex;
-use std::thread;
 
-pub use crate::platform::notifications::post;
+pub use crate::platform::notifications::{play_event_sound, post};
 
 type Clicked = Box<dyn FnOnce(Option<String>) + Send>;
 
@@ -14,19 +12,6 @@ pub struct Notification {
     pub summary: String,
     pub body: String,
     pub action: String,
-}
-
-// `sound` is a name from the freedesktop sound naming specification.
-pub fn play_event_sound(sound: &str) {
-    match Command::new("canberra-gtk-play")
-        .args(["--id", sound])
-        .spawn()
-    {
-        Ok(mut child) => {
-            thread::spawn(move || child.wait());
-        }
-        Err(error) => tracing::warn!(%error, "could not run canberra-gtk-play"),
-    }
 }
 
 pub(crate) fn take<T>(pending: &Mutex<Vec<(u32, T)>>, id: u32) -> Option<T> {

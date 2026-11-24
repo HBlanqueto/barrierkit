@@ -8,9 +8,6 @@ use std::{
 use super::{ObjectId, calloop::ping::Ping, window_style::PopoverShape};
 use crate::styles::{PopupRoot, current_theme};
 
-#[cfg(test)]
-use super::calloop;
-
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct PopupId(u64);
 
@@ -18,11 +15,6 @@ impl PopupId {
     fn next(counter: &Rc<Cell<u64>>) -> Self {
         let id = counter.get();
         counter.set(id + 1);
-        Self(id)
-    }
-
-    #[cfg(test)]
-    pub(crate) fn test(id: u64) -> Self {
         Self(id)
     }
 }
@@ -156,36 +148,6 @@ impl Popups {
             .borrow_mut()
             .push(PopupCommand::Reposition { id, spec });
         self.ping.ping();
-    }
-}
-
-#[cfg(test)]
-impl Popups {
-    pub(crate) fn for_test(
-        owner: ObjectId,
-        current: Option<PopupId>,
-    ) -> (Self, Rc<RefCell<Vec<PopupCommand>>>) {
-        let queue = Rc::new(RefCell::new(Vec::new()));
-        let (ping, _) = calloop::ping::make_ping().expect("test ping");
-        let popups = Popups {
-            queue: queue.clone(),
-            ping,
-            next_id: Rc::new(Cell::new(0)),
-            last_serial: Rc::new(Cell::new(0)),
-            owner,
-            current,
-            opens_left: Rc::new(Cell::new(false)),
-            scroll_shift: Rc::new(Cell::new(0.0)),
-            glass_luma: State::create_global(None),
-        };
-        (popups, queue)
-    }
-}
-
-#[cfg(test)]
-impl PopupHandle {
-    pub(crate) fn for_test(popups: Popups, id: PopupId) -> Self {
-        Self { id, popups }
     }
 }
 

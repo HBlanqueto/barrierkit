@@ -9,9 +9,8 @@ use sctk::reexports::client::{Connection, QueueHandle};
 use sctk::reexports::protocols::wp::primary_selection::zv1::client::zwp_primary_selection_device_v1::ZwpPrimarySelectionDeviceV1;
 use sctk::reexports::protocols::wp::primary_selection::zv1::client::zwp_primary_selection_source_v1::ZwpPrimarySelectionSourceV1;
 
-use super::clipboard::read_in_background;
-use super::runtime::Runtime;
-use crate::drag::TEXT_MIMES;
+use crate::platform::linux::clipboard::{TEXT_MIMES, read_in_background};
+use crate::platform::runtime::Runtime;
 
 pub(crate) struct PrimaryDevice {
     manager: PrimarySelectionManagerState,

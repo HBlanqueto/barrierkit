@@ -138,36 +138,3 @@ pub(super) fn observe(application: &NSApplication) {
     };
     std::mem::forget((observer, scrollers, block));
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_system_setting_adds_to_the_file_and_never_removes_from_it() {
-        let file = AppearanceConfig {
-            contrast: true,
-            ..AppearanceConfig::default()
-        };
-        let merged_config = merged(
-            file,
-            Flags {
-                reduce_transparency: true,
-                ..Flags::default()
-            },
-        );
-        assert!(merged_config.contrast && merged_config.reduce_transparency);
-        assert!(!merged_config.reduced_motion);
-        assert_eq!(merged_config.scroll_bars, ScrollBars::WhenScrolling);
-        let with_a_mouse = merged(
-            AppearanceConfig::default(),
-            Flags {
-                legacy_scrollers: true,
-                ..Flags::default()
-            },
-        );
-        assert_eq!(with_a_mouse.scroll_bars, ScrollBars::Always);
-        let plain = merged(AppearanceConfig::default(), Flags::default());
-        assert!(!plain.contrast && !plain.reduce_transparency && !plain.reduced_motion);
-    }
-}

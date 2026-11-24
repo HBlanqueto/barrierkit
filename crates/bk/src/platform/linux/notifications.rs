@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::process::Command;
 use std::sync::{Mutex, OnceLock};
 use std::thread;
 
@@ -13,6 +14,19 @@ const PATH: &str = "/org/freedesktop/Notifications";
 const DEFAULT_ACTION: &str = "default";
 
 static TOKENS: Mutex<Vec<(u32, String)>> = Mutex::new(Vec::new());
+
+// `sound` is a name from the freedesktop sound naming specification.
+pub fn play_event_sound(sound: &str) {
+    match Command::new("canberra-gtk-play")
+        .args(["--id", sound])
+        .spawn()
+    {
+        Ok(mut child) => {
+            thread::spawn(move || child.wait());
+        }
+        Err(error) => tracing::warn!(%error, "could not run canberra-gtk-play"),
+    }
+}
 
 // `clicked` gets the xdg-activation token the server sends before ActionInvoked (spec 1.2).
 pub fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 'static) {
@@ -54,7 +68,7 @@ fn proxy() -> Option<&'static Proxy<'static>> {
     if let Some(proxy) = PROXY.get() {
         return Some(proxy);
     }
-    let connected = crate::session_bus::blocking()
+    let connected = crate::platform::linux::blocking_session_bus()
         .and_then(|connection| Proxy::new(&connection, SERVICE, PATH, SERVICE));
     let proxy = match connected {
         Ok(proxy) => proxy,

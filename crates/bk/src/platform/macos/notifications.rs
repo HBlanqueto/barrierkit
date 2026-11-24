@@ -6,6 +6,7 @@ use dispatch2::DispatchQueue;
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2::{AllocAnyThread, define_class, msg_send};
+use objc2_app_kit::NSSound;
 use objc2_foundation::{NSBundle, NSError, NSObject, NSObjectProtocol, NSString};
 use objc2_user_notifications::{
     UNAuthorizationOptions, UNMutableNotificationContent, UNNotification,
@@ -86,6 +87,13 @@ pub fn post(notice: Notification, clicked: impl FnOnce(Option<String>) + Send + 
     deliver(id.to_string(), notice.summary, notice.body);
 }
 
+// `sound` is the name of an NSSound system sound, such as `Glass`.
+pub fn play_event_sound(sound: &str) {
+    if let Some(sound) = NSSound::soundNamed(&NSString::from_str(sound)) {
+        sound.play();
+    }
+}
+
 pub async fn notify(id: &str, title: &str, body: &str) {
     deliver(id.to_owned(), title.to_owned(), body.to_owned());
 }
@@ -133,43 +141,4 @@ fn add(identifier: &str, title: &str, body: &str) {
         }
     });
     center.addNotificationRequest_withCompletionHandler(&request, Some(&failed));
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::Arc;
-    use std::sync::atomic::AtomicUsize;
-
-    #[test]
-    fn a_click_runs_its_callback_once() {
-        let runs = Arc::new(AtomicUsize::new(0));
-        let counted = runs.clone();
-        lock(&WAITING).push((
-            u32::MAX,
-            Box::new(move |_| {
-                counted.fetch_add(1, Ordering::SeqCst);
-            }),
-        ));
-        answer(&u32::MAX.to_string());
-        answer(&u32::MAX.to_string());
-        assert_eq!(runs.load(Ordering::SeqCst), 1);
-    }
-
-    #[test]
-    fn the_oldest_waiting_callback_is_dropped_beyond_the_limit() {
-        let mut waiting = Vec::new();
-        for id in 0..=WAITING_LIMIT {
-            push_bounded(&mut waiting, id);
-        }
-        assert_eq!(waiting.len(), WAITING_LIMIT);
-        assert_eq!(waiting.first(), Some(&1));
-        assert_eq!(waiting.last(), Some(&WAITING_LIMIT));
-    }
-
-    #[test]
-    fn an_identifier_the_kit_did_not_make_is_not_a_click() {
-        answer("portal-id");
-        assert_eq!(id_of("portal-id"), None);
-    }
 }

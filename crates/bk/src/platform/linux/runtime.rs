@@ -376,12 +376,11 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
     let wake_source = shell.wake_source.take().ok_or(RunError::EventLoop(
         "the wake ping source is already installed",
     ))?;
-    let callbacks = shell.wake.callbacks.clone();
+    let wake = shell.wake.clone();
     event_loop
         .handle()
         .insert_source(wake_source, move |_, _, shell: &mut Runtime| {
-            let callbacks: Vec<Rc<dyn Fn()>> = callbacks.borrow().clone();
-            for callback in callbacks {
+            for callback in wake.live_callbacks() {
                 callback();
             }
             shell.process_pending_menu_addresses();

@@ -3,7 +3,7 @@ use sctk::reexports::calloop::ping::Ping;
 use zbus::blocking::{Connection, Proxy};
 use zbus::zvariant::OwnedValue;
 
-use crate::session_bus;
+use crate::platform::linux::blocking_session_bus;
 
 const NAMESPACE: &str = "org.freedesktop.appearance";
 const KEY: &str = "color-scheme";
@@ -28,7 +28,7 @@ fn settings(connection: &Connection) -> zbus::Result<Proxy<'static>> {
 
 fn read() -> zbus::Result<u32> {
     let value: OwnedValue =
-        settings(&session_bus::blocking()?)?.call("ReadOne", &(NAMESPACE, KEY))?;
+        settings(&blocking_session_bus()?)?.call("ReadOne", &(NAMESPACE, KEY))?;
     Ok(u32::try_from(value)?)
 }
 
@@ -50,7 +50,7 @@ pub(crate) fn observe_scheme(changed: Ping) {
         return;
     }
     let watch = move || -> zbus::Result<()> {
-        let proxy = settings(&session_bus::blocking()?)?;
+        let proxy = settings(&blocking_session_bus()?)?;
         for message in proxy.receive_signal("SettingChanged")? {
             let (namespace, key, value): (String, String, OwnedValue) =
                 message.body().deserialize()?;

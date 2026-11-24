@@ -1,3 +1,4 @@
+use accesskit::Role;
 use freya_core::{
     integration::{
         KeyboardEventName, MouseEventName, PlatformEvent, TouchEventName, WheelEventName,
@@ -15,7 +16,13 @@ use sctk::{
         client::{
             Connection, Proxy, QueueHandle,
             backend::ObjectId,
-            protocol::{wl_keyboard, wl_pointer, wl_seat, wl_surface::WlSurface, wl_touch},
+            protocol::{
+                wl_keyboard,
+                wl_pointer::{self, AxisSource},
+                wl_seat,
+                wl_surface::WlSurface,
+                wl_touch,
+            },
         },
         protocols::wp::cursor_shape::v1::client::wp_cursor_shape_device_v1::Shape as CursorShape,
     },
@@ -25,7 +32,7 @@ use sctk::{
             KeyEvent, KeyboardHandler, Keymap, Keysym, Modifiers as SctkModifiers, RawModifiers,
             RepeatInfo,
         },
-        pointer::{AxisScroll, PointerEvent, PointerHandler},
+        pointer::{AxisScroll, BTN_LEFT, PointerEvent, PointerEventKind, PointerHandler},
         touch::TouchHandler,
     },
 };
@@ -34,11 +41,32 @@ use torin::prelude::CursorPoint;
 
 use crate::platform::{
     WindowEdge,
-    linux::input::{code, map_key, modifiers, mouse_button, set_modifier_flags},
+    app::AppInstance,
+    input::store_modifier_flags,
+    linux::input::{code, map_key, modifiers, mouse_button},
     runtime::Runtime,
     surface::physical_point,
     window::WindowControls,
 };
+
+impl AppInstance {
+    pub(crate) fn text_field_at(&self, (x, y): (f64, f64)) -> bool {
+        let (x, y) = (x as f32, y as f32);
+        self.tree.elements.iter().any(|(node, element)| {
+            matches!(
+                element.accessibility().builder.role(),
+                Role::TextInput
+                    | Role::MultilineTextInput
+                    | Role::SearchInput
+                    | Role::PasswordInput
+            ) && self.tree.layout.get(node).is_some_and(|layout| {
+                let area = layout.visible_area();
+                (area.min_x()..area.max_x()).contains(&x)
+                    && (area.min_y()..area.max_y()).contains(&y)
+            })
+        })
+    }
+}
 
 pub(crate) struct RepeatState {
     pub(in crate::platform) event: KeyEvent,
@@ -219,11 +247,10 @@ impl Runtime {
     // Freya 0.5 flings a touchpad scroll (WheelSource::Pixel) from Started to Ended.
     fn wheel_gesture(
         &mut self,
-        source: Option<wl_pointer::AxisSource>,
+        source: Option<AxisSource>,
         horizontal: &AxisScroll,
         vertical: &AxisScroll,
     ) -> (WheelSource, TouchPhase) {
-        use wl_pointer::AxisSource;
         let stepped = |axis: &AxisScroll| axis.value120 != 0 || axis.discrete != 0;
         let continuous = match source {
             Some(AxisSource::Finger | AxisSource::Continuous) => true,
@@ -247,7 +274,6 @@ impl Runtime {
     }
 
     fn resize_from_edge(&mut self, index: usize, event: &PointerEvent) -> bool {
-        use sctk::seat::pointer::{BTN_LEFT, PointerEventKind};
         let edge = if self.pointer_pressed {
             None
         } else {
@@ -306,7 +332,7 @@ impl PointerHandler for Runtime {
                 continue;
             };
             match event.kind {
-                sctk::seat::pointer::PointerEventKind::Enter { serial } => {
+                PointerEventKind::Enter { serial } => {
                     self.last_pointer_serial.set(serial);
                     self.pointer_surface = Some(event.surface.clone());
                     self.cursor_icon = CursorIcon::Default;
@@ -314,10 +340,9 @@ impl PointerHandler for Runtime {
                         device.set_shape(serial, CursorShape::Default);
                     }
                 }
-                sctk::seat::pointer::PointerEventKind::Leave { .. } => self.pointer_surface = None,
+                PointerEventKind::Leave { .. } => self.pointer_surface = None,
                 _ => {}
             }
-            use sctk::seat::pointer::PointerEventKind;
             if self.resize_from_edge(index, event) {
                 continue;
             }
@@ -474,12 +499,12 @@ impl KeyboardHandler for Runtime {
         _: &QueueHandle<Self>,
         _: &wl_keyboard::WlKeyboard,
         _: u32,
-        modifiers: SctkModifiers,
+        flags: SctkModifiers,
         _: RawModifiers,
         layout: u32,
     ) {
-        self.modifiers = modifiers;
-        set_modifier_flags(modifiers);
+        self.modifiers = flags;
+        store_modifier_flags(modifiers(flags));
         self.keyboard_layout_index = layout;
         self.publish_keyboard_layout();
     }

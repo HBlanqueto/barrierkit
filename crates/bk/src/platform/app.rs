@@ -102,6 +102,8 @@ pub(crate) struct AppInstance {
     pub(crate) knobs: super::KnobOutbox,
     backdrop: bool,
     pub(crate) chromes: Vec<super::backdrop::Chrome>,
+    controls: Option<WindowControls>,
+    ime_area: Option<(i32, i32, i32, i32)>,
 }
 
 pub(crate) enum InstanceRole {
@@ -242,6 +244,7 @@ impl AppInstance {
         extend(&mut runner);
         #[cfg(feature = "a11y")]
         let window_shown = window.is_some();
+        let controls = window.clone();
         if let Some(window) = window {
             runner.provide_root_context(move || window);
         }
@@ -296,24 +299,9 @@ impl AppInstance {
             knobs: knob_outbox,
             backdrop,
             chromes: Vec::new(),
+            controls,
+            ime_area: None,
         }
-    }
-
-    pub(crate) fn text_field_at(&self, (x, y): (f64, f64)) -> bool {
-        let (x, y) = (x as f32, y as f32);
-        self.tree.elements.iter().any(|(node, element)| {
-            matches!(
-                element.accessibility().builder.role(),
-                Role::TextInput
-                    | Role::MultilineTextInput
-                    | Role::SearchInput
-                    | Role::PasswordInput
-            ) && self.tree.layout.get(node).is_some_and(|layout| {
-                let area = layout.visible_area();
-                (area.min_x()..area.max_x()).contains(&x)
-                    && (area.min_y()..area.max_y()).contains(&y)
-            })
-        })
     }
 
     pub(crate) fn cursor_icon(&self) -> CursorIcon {
@@ -341,6 +329,20 @@ impl AppInstance {
                 | Role::PasswordInput
                 | Role::Label
         )
+    }
+
+    // The input method shows its candidates by the focused field: AppKit's `firstRect` and text-input-v3's cursor rectangle.
+    fn place_ime_cursor(&mut self, (x, y, width, height): (f32, f32, f32, f32)) {
+        let scale = self.scale_factor as f32;
+        let logical = |value: f32| (value / scale).round() as i32;
+        let area = Some((logical(x), logical(y), logical(width), logical(height)));
+        if !self.text_field_focused() || area == self.ime_area {
+            return;
+        }
+        self.ime_area = area;
+        if let (Some(controls), Some((x, y, width, height))) = (&self.controls, area) {
+            controls.set_ime_cursor_area(x, y, width, height);
+        }
     }
 
     pub(crate) fn set_focused(&mut self, focused: bool) {
@@ -468,9 +470,11 @@ impl AppInstance {
         if let Some(node_id) = self.accessibility.focused_node_id()
             && let Some(layout_node) = self.tree.layout.get(&node_id)
         {
+            let area = layout_node.visible_area();
             self.platform.focused_accessibility_node.set_if_modified(
                 AccessibilityTree::create_node(node_id, layout_node, &self.tree, ""),
             );
+            self.place_ime_cursor((area.min_x(), area.min_y(), area.width(), area.height()));
         }
         if pressed {
             self.settling = 3;

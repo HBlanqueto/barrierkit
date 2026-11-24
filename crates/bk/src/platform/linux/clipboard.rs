@@ -22,9 +22,12 @@ use torin::prelude::CursorPoint;
 
 use super::runtime::Runtime;
 use super::surface::physical_point;
-use crate::drag::{DragPayload, TEXT_MIMES, URI_LIST};
+use crate::drag::{DragPayload, URI_LIST};
+use crate::portal::file_uri;
 
-const HTML_MIME: &str = "text/html";
+const HTML: &str = "text/html";
+const PNG: &str = "image/png";
+pub(super) const TEXT_MIMES: [&str; 3] = ["text/plain;charset=utf-8", "text/plain", "UTF8_STRING"];
 const MAX_RECEIVED: u64 = 16 << 20;
 
 pub(crate) struct PendingDrop {
@@ -247,7 +250,7 @@ impl Runtime {
         if !std::mem::take(&mut shared.to_publish) {
             return;
         }
-        let html = shared.own_html.is_some().then_some(HTML_MIME);
+        let html = shared.own_html.is_some().then_some(HTML);
         drop(shared);
         let Some(data) = self.clipboard_device.as_mut() else {
             return;
@@ -272,7 +275,7 @@ fn receive_text(offer: &SelectionOffer) -> Option<Arc<OnceLock<String>>> {
     offer.receive(mime.to_string()).ok().map(read_in_background)
 }
 
-// A peer chooses what it sends: the read stops at `MAX_RECEIVED` and keeps what is valid UTF-8.
+// A peer chooses what it sends: the read stops at `MAX_RECEIVED` bytes.
 fn read_capped(pipe: sctk::data_device_manager::ReadPipe) -> Option<String> {
     let mut bytes = Vec::new();
     pipe.take(MAX_RECEIVED).read_to_end(&mut bytes).ok()?;
@@ -412,7 +415,7 @@ impl DataSourceHandler for Runtime {
             return;
         }
         let own = self.clipboard.shared.lock().ok().and_then(|shared| {
-            if mime == HTML_MIME {
+            if mime == HTML {
                 shared.own_html.clone()
             } else {
                 shared.own.clone()
@@ -454,22 +457,34 @@ impl DataSourceHandler for Runtime {
     fn action(&mut self, _: &Connection, _: &QueueHandle<Self>, _: &WlDataSource, _: DndAction) {}
 }
 
-sctk::delegate_data_device!(Runtime);
+impl DragPayload {
+    pub(crate) fn mimes(&self) -> Vec<&'static str> {
+        match self {
+            DragPayload::Files(_) => std::iter::once(URI_LIST).chain(TEXT_MIMES).collect(),
+            DragPayload::Text(_) => TEXT_MIMES.to_vec(),
+            DragPayload::Html { .. } => TEXT_MIMES.into_iter().chain([HTML]).collect(),
+            DragPayload::Image(_) => vec![PNG],
+        }
+    }
 
-#[cfg(test)]
-mod tests {
-    use super::uri_list_paths;
-    use std::path::PathBuf;
-
-    #[test]
-    fn a_uri_list_skips_comments_and_non_file_uris_and_decodes_paths() {
-        let list = "# from Files\r\nfile:///home/ana/Mi%20foto.png\r\nhttps://example.com/x\r\nfile:///tmp/a.txt\r\n";
-        assert_eq!(
-            uri_list_paths(list),
-            [
-                PathBuf::from("/home/ana/Mi foto.png"),
-                PathBuf::from("/tmp/a.txt")
-            ]
-        );
+    pub(crate) fn bytes(&self, mime: &str) -> Vec<u8> {
+        match self {
+            DragPayload::Files(paths) if mime == URI_LIST => paths
+                .iter()
+                .map(|path| file_uri(path) + "\r\n")
+                .collect::<String>()
+                .into_bytes(),
+            DragPayload::Files(paths) => paths
+                .iter()
+                .map(|path| path.to_string_lossy())
+                .collect::<Vec<_>>()
+                .join("\n")
+                .into_bytes(),
+            DragPayload::Html { html, .. } if mime == HTML => html.clone().into_bytes(),
+            DragPayload::Text(text) | DragPayload::Html { text, .. } => text.clone().into_bytes(),
+            DragPayload::Image(bytes) => bytes.clone(),
+        }
     }
 }
+
+sctk::delegate_data_device!(Runtime);

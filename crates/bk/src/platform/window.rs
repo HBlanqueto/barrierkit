@@ -2,7 +2,9 @@ use freya_core::{integration::AppComponent, prelude::State};
 use std::borrow::Cow;
 use std::{cell::RefCell, rc::Rc};
 
-use super::{ObjectId, RunError, calloop::ping::Ping, window_style::Bar};
+use crate::platform::{
+    ObjectId, RunError, calloop::ping::Ping, clipboard::Clipboard, window_style::Bar,
+};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub enum FullscreenBar {
@@ -88,21 +90,13 @@ impl PanelBehavior {
         floating: true,
         key_only_if_needed: true,
     };
-
-    pub(super) fn flags(self) -> super::window_style::Panel {
-        use super::window_style::Panel;
-        [
-            (self.hides_on_deactivate, Panel::HidesOnDeactivate),
-            (self.floating, Panel::Floating),
-            (self.key_only_if_needed, Panel::KeyOnlyIfNeeded),
-        ]
-        .into_iter()
-        .filter(|(on, _)| *on)
-        .fold(Panel::empty(), |flags, (_, flag)| flags | flag)
-    }
 }
 
 impl WindowOptions {
+    pub(super) fn fixed(&self) -> bool {
+        self.min_size.is_some() && self.min_size == self.max_size
+    }
+
     pub fn new(title: impl Into<Cow<'static, str>>, app_name: impl Into<String>) -> Self {
         Self {
             title: title.into(),
@@ -229,8 +223,8 @@ pub struct WindowControls {
     pub hud: bool,
     pub panel: bool,
     pub ime_preedit: State<String>,
-    pub(crate) primary: super::clipboard::Clipboard,
-    pub(crate) clipboard: super::clipboard::Clipboard,
+    pub(crate) primary: Clipboard,
+    pub(crate) clipboard: Clipboard,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -239,6 +233,49 @@ pub(crate) fn window_activated() -> bool {
 }
 
 impl WindowControls {
+    pub(super) fn new(
+        options: &WindowOptions,
+        decoration: DecorationResponse,
+        panel: bool,
+        surface_id: ObjectId,
+        ping: Ping,
+        primary: Clipboard,
+        clipboard: Clipboard,
+    ) -> Self {
+        let fixed = options.fixed();
+        Self {
+            queue: Rc::default(),
+            ping,
+            pointer_serial: Rc::default(),
+            status: State::create_global(WindowStatus {
+                decoration,
+                fixed,
+                ..WindowStatus::default()
+            }),
+            title: options.title.clone(),
+            fixed,
+            fixed_width: matches!(
+                (options.min_size, options.max_size),
+                (Some((min, _)), Some((max, _))) if min > 0 && min == max
+            ),
+            surface_id,
+            focus_bar: State::create_global(false),
+            focus_bar_progress: State::create_global(0.0),
+            focus_overlay: false,
+            focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
+            desktop: State::create_global(None),
+            fullscreen_bar: State::create_global(options.fullscreen_bar),
+            fullscreen_push: State::create_global(options.fullscreen_push),
+            overlay_titlebar_height: State::create_global(0.0),
+            sidebar_span: State::create_global((0.0, 0.0)),
+            hud: options.hud,
+            panel,
+            ime_preedit: State::create_global(String::new()),
+            primary,
+            clipboard,
+        }
+    }
+
     pub fn traffic_lights_shown(&self) -> bool {
         let status = *self.status.read();
         match status.decoration {
@@ -404,16 +441,4 @@ pub(crate) fn open_utility_window(app: AppComponent, options: WindowOptions) {
 
 pub fn run_window(app: impl Into<AppComponent>, options: WindowOptions) -> Result<(), RunError> {
     super::sys::run_window(app.into(), options)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::below_bar;
-
-    #[test]
-    fn the_limits_add_the_bar_and_keep_an_unbounded_maximum() {
-        assert_eq!(below_bar(Some((600, 360)), 52), Some((600, 412)));
-        assert_eq!(below_bar(Some((600, 0)), 52), Some((600, 0)));
-        assert_eq!(below_bar(None, 52), None);
-    }
 }

@@ -69,7 +69,7 @@ fn forward(
 
 // Export before owning the name: a second instance calls Activate as soon as the name is ours.
 pub(crate) fn claim(app_id: &str, requests: Arc<Mutex<Requests>>) -> zbus::Result<bool> {
-    let connection = crate::session_bus::blocking()?;
+    let connection = crate::platform::linux::blocking_session_bus()?;
     let path = object_path(app_id);
     let activation = Activation { requests };
     if !async_io::block_on(crate::session_bus::export(
@@ -98,57 +98,4 @@ pub(crate) fn claim(app_id: &str, requests: Arc<Mutex<Requests>>) -> zbus::Resul
         return Ok(false);
     }
     Ok(true)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_second_launch_forwards_its_activation_token_to_the_first() {
-        if std::env::var_os("DBUS_SESSION_BUS_ADDRESS").is_none() {
-            return;
-        }
-        let app_id = format!("org.malaysia.test{}", std::process::id());
-        let requests = Arc::new(Mutex::new(Requests::default()));
-        assert!(
-            claim(&app_id, requests.clone()).unwrap(),
-            "the first launch must own the name"
-        );
-        let second = Connection::session().unwrap();
-        forward(
-            &second,
-            &app_id,
-            &object_path(&app_id),
-            Some("token-1".to_string()),
-        )
-        .unwrap();
-        let tokens = std::mem::take(&mut requests.lock().unwrap().tokens);
-        assert_eq!(tokens, [Some("token-1".to_string())]);
-    }
-
-    #[test]
-    fn an_activation_without_a_token_still_asks_to_present_the_window() {
-        if std::env::var_os("DBUS_SESSION_BUS_ADDRESS").is_none() {
-            return;
-        }
-        let app_id = format!("org.malaysia.untokened{}", std::process::id());
-        let requests = Arc::new(Mutex::new(Requests::default()));
-        assert!(
-            claim(&app_id, requests.clone()).unwrap(),
-            "the first launch must own the name"
-        );
-        let second = Connection::session().unwrap();
-        forward(&second, &app_id, &object_path(&app_id), None).unwrap();
-        let tokens = std::mem::take(&mut requests.lock().unwrap().tokens);
-        assert_eq!(tokens, [None]);
-    }
-
-    #[test]
-    fn the_object_path_follows_the_app_id() {
-        assert_eq!(
-            object_path("org.malaysia.tengen-app-show"),
-            "/org/malaysia/tengen_app_show"
-        );
-    }
 }

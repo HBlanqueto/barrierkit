@@ -421,9 +421,9 @@ after each callback.
 | Method | Effect |
 |---|---|
 | `after(delay, f)` | Calls `f` once after `delay` |
-| `every(interval, f)` | Calls `f` every `interval`, for as long as the app runs |
-| `every_minute(f)` | Calls `f` at the start of each minute of the clock, the first time within the minute |
-| `wakeup(f) -> WakeHandle` | Registers `f` for as long as the app runs and returns a handle |
+| `every(interval, f) -> Timer` | Calls `f` every `interval` until `invalidate()` on the `Timer` it returns |
+| `every_minute(f) -> Timer` | Calls `f` at the start of each minute of the clock, the first time within the minute, until `invalidate()` |
+| `wakeup(f) -> WakeHandle` | Registers `f` until `invalidate()` on the handle it returns |
 
 `WakeHandle` is `Send`: another thread calls `wake()` to make the UI thread
 run every registered `wakeup` callback. Use it to show the result of
