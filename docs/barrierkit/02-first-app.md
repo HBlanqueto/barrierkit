@@ -6,7 +6,7 @@
 other tasks in the [recipes](../../agents/recipes.md).
 **Reader:** anyone who has never used BarrierKit or Freya. SwiftUI helps but is
 not needed.
-**Input:** the repository and `nix develop`. **Output:** two programs that run.
+**Input:** the repository; on Linux, `nix develop`. **Output:** two programs that run.
 
 ## Steps
 
@@ -94,13 +94,13 @@ fn main() -> Result<(), RunError> {
 
 | Item | What it does |
 |---|---|
-| `Application::new(id)` | Creates the app. `id` is reverse DNS and stable, like a bundle identifier (`com.example.notes`): it is the `app_id`, the settings domain and the folder of the saved window size. Its last part is the name the menus show |
+| `Application::new(id)` | Creates the app. `id` is reverse DNS and stable, like a bundle identifier (`com.example.notes`): it is each window's `app_id` and names the app's own folders for its settings and saved state ([13](13-app.md#settings-and-restoration)). Its last part is the name the menus show |
 | `Application::theme(theme)` | Gives every window the [`Theme`](../../agents/styles.md#levels); without it, `Theme::tengen()` |
 | `Application::window(title, content)` | Declares the window that opens at launch, a `WindowGroup` with the id `MAIN_WINDOW`. `content` is a closure that returns the view; hooks go at its top |
 | `Application::scene(scene)` | Declares another [scene](08-windows.md#scenes): `WindowGroup`, `Window` or `Settings` |
 | `Application::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting of the scene declared last: size, limits, menu, full-screen bar |
-| `Application::commands(commands)` | Gives every window the [standard menus](13-app.md#standard-menus) |
-| `Application::run()` | Draws the window background (`Palette::current().window_background`), the title bar (AppKit's own on macOS, a kit [`Titlebar`](09-titlebars.md) on Linux), centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>`; `RunError::NoWindow` when only `Settings` is declared |
+| `Application::commands(commands)` | Changes the [standard menus](13-app.md#standard-menus) of every window; without it, `Commands::new()` |
+| `Application::run()` | Draws the window background (`Palette::current().window_background`), the title bar (a kit [`Titlebar`](09-titlebars.md) with the title, over AppKit's own bar on macOS), centers `content` and calls [`run_window`](08-windows.md). Returns `Result<(), RunError>`; `RunError::NoWindow` when only `Settings` is declared |
 
 A window that draws its own title bar (a sidebar, toolbar items) sets
 `.options(|window| window.window_style(WindowStyle::HiddenTitleBar))` and gets
@@ -139,7 +139,7 @@ stacks, children and alignment (`child`, `children`, `spacing`,
 
 The defaults of `Text` come from a `TextStyle`, so a theme can change the font
 and color of every text; its fields are in
-[Styles and themes](../../crates/bk/src/styles/text.rs).
+[`styles/text.rs`](../../crates/bk/src/styles/text.rs).
 The stacks have no style of their own: their methods and the
 [paint on views](../../agents/styles.md#paint-on-views) style them.
 
@@ -149,9 +149,13 @@ The stacks have no style of their own: their methods and the
 
 | From | Names |
 |---|---|
-| The kit | `Application`, `Scene`, `WindowGroup`, `Window`, `Settings`, `Commands`, `CommandGroup`, `CommandGroupPlacement`, `OpenWindowAction`, `DismissWindowAction`, `use_open_window`, `use_dismiss_window`, `UtilityWindow`, `Text`, `Label`, `VStack`, `HStack`, `Image`, `Symbol`, `IconStyle`, `TemplateRenderingMode`, `Divider`, the [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) trait (`.help`, `.context_menu`, `.focus_ring`, `.foreground_style`, `.background_style`, `.shadows`), `run_window`, `WindowOptions`, `RunError`, `Palette`, `text`, `color`, `Titlebar`, every control in [`controls`](05-controls.md), the [`StyleModifiers`](../../agents/styles.md#levels) trait (`.control_style`), the [`EnvironmentModifiers`](16-swiftui-to-the-kit.md#environment) trait (`.disabled`, `.environment`, `.focused`, `.default_focus`), `use_environment`, `use_is_enabled`, `FocusState`, `use_focus_state` and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
+| The kit: app and windows | `Application`, `Scene`, `WindowGroup`, `Window`, `Settings`, `UtilityWindow`, `Commands`, `CommandGroup`, `CommandGroupPlacement`, `OpenWindowAction`, `DismissWindowAction`, `use_open_window`, `use_dismiss_window`, `use_app_storage`, `Document`, `OpenedUrl`, `use_document`, `FileDialog`, `ContentType`, `run_window`, `WindowOptions`, `WindowStyle`, `WindowToolbarFullScreenVisibility`, `RunError`, `Titlebar`, `WindowToolbarStyle`, `ToolbarItem`, `ToolbarItemPlacement`, `ToolbarSpacer` |
+| The kit: views | `Text`, `Label`, `VStack`, `HStack`, `Divider`, `Image`, `Symbol`, `ImageScale`, `SymbolRenderingMode`, `SymbolWeight`, `IconStyle`, `TemplateRenderingMode`, `Rectangle`, `RoundedRectangle`, `Capsule`, `Circle`, `Ellipse`, `Path`, and the [`controls`](05-controls.md) module: `Button`, `ButtonRole`, `ControlSize`, `Checkbox`, `Switch`, `Slider`, `CircularSlider`, `SegmentedControl`, `TextField`, `SecureField`, `SearchField`, `ToolGroup`, `ScrollView` and its `ScrollPosition`, `ScrollController`, `use_scroll_controller`… |
+| The kit: layout | `Spacer`, `Frame`, `ZStack`, `ZStackLayout`, `Grid`, `GridRow`, `GridCell`, `Layout`, `LayoutContainer`, `Placement`, `ViewThatFits`, `ContentAlignment`, `HorizontalAlignment`, `VerticalAlignment` |
+| The kit: modifiers | [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) (`.help`, `.context_menu`, `.sheet`, `.alert`, `.popover`, `.on_hover`…), [`StyleModifiers`](../../agents/styles.md#levels) (`.control_style`, `.control_size`, `.frame`, `.glass_effect`, `.content_transition`), [`EnvironmentModifiers`](16-swiftui-to-the-kit.md#environment) (`.disabled`, `.environment`, `.layout_direction`, `.keyboard_shortcut`, `.focused`, `.default_focus`…), `GridModifiers`, `OverlayModifiers`, `ShapeModifiers`, `AccessibilityModifiers` with `AccessibilityTraits` and `AccessibilityChildBehavior` |
+| The kit: state and style | `use_environment`, `use_is_enabled`, `FocusState`, `use_focus_state`, `Transition`, `ContentTransition`, `Presence`, `Glass`, `Palette`, `text`, `color` and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
 | Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods; its `Label` type gives way to the kit's |
-| Torin | `Alignment`, `Direction`, `Size` |
+| Torin | `Alignment`, `Direction`, `Size`, `Size2D` |
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `CAPTION_2`, `FOOTNOTE`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `SUBHEADLINE`, `TITLE`, `TITLE_2`, `TITLE_3`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |
 
 Everything else is imported from its module, for example

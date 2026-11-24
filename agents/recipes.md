@@ -13,7 +13,7 @@ chapter; the names are in the [glossary](../docs/barrierkit/20-glossary.md).
    an example of `bk`, so `./dev.sh check` builds and lints it; inside the
    kit, `cargo run -p bk --example <name>` opens it.
 3. Change only what the task needs.
-4. Build it inside `nix develop` and go through the [checklist](checklist.md).
+4. Build it (on Linux, inside `nix develop`) and go through the [checklist](checklist.md).
 
 ## 1. Text in a window
 
@@ -164,9 +164,9 @@ The program is [`recipes/binding.rs`](recipes/binding.rs).
 
 1. A text field takes the `State<String>` it edits. The child holds that
    `State` as a field, and the parent reads the same value.
-2. Any other control takes the value and a callback, as in
-   [recipe 4](#4-a-toggle-bound-to-state). The kit has no `Binding`
-   ([ADR 0085](../docs/decisions.md)).
+2. Every other control takes the `State` it edits in `new` the same way, as in
+   [recipe 4](#4-a-toggle-bound-to-state): the `State` is SwiftUI's `$name`, and the
+   kit has no `Binding` type ([ADR 0085](../docs/decisions.md)).
 
 ## 16. A value from the environment
 
@@ -419,7 +419,7 @@ The program is [`recipes/gestures.rs`](recipes/gestures.rs).
 
 1. `TapGesture`, `LongPressGesture`, `DragGesture`, `MagnifyGesture` and `RotateGesture` take `.on_changed` and
    `.on_ended`; `.updating(state, |value, state| ..)` is `@GestureState`: it changes while the
-   gesture does and goes back when it ends ([`use_gesture_state`]).
+   gesture does and goes back when it ends (`use_gesture_state`).
 2. `.gesture(g)` attaches one gesture, `.simultaneous_gesture(g)` one that never fails the others and
    `.high_priority_gesture(g)` one that beats those of the views below. A node keeps one handler per
    event: put several gestures on a view with `a.exclusively(b)` (`a` first: while it can still begin,
@@ -533,7 +533,7 @@ SwiftUI: `Text("Total: ") + Text("42 items").bold()`, `Text("**Bold**, _italic_ 
 
 The program is [`recipes/text_runs.rs`](recipes/text_runs.rs).
 
-1. `Text + Text` is one paragraph; each operand keeps its own `bold()`, `italic()`, `underline()`, `strikethrough()`,
+1. `Text + Text` is one paragraph; each operand keeps its own `bold(true)`, `italic(true)`, `underline(true)`, `strikethrough(true)`,
    `font(..)` and `foreground_style(..)`. A modifier on the sum reaches what the operands did not set.
 2. `Text::markdown(..)` reads inline Markdown; `Text::new(..)` shows its string verbatim (SwiftUI reads a literal as Markdown,
    a `String` variable as plain: the kit asks for it by name). A link opens in the browser.
@@ -574,7 +574,7 @@ SwiftUI: `ContentView().environment(\.layoutDirection, .rightToLeft)`.
 The program is [`recipes/right_to_left.rs`](recipes/right_to_left.rs).
 
 1. `.layout_direction(LayoutDirection::RightToLeft)` mirrors the stacks, frames, grids, `ZStack`s, texts and
-   `Form` rows below it, and sets the layout direction of the six control styles
+   `Form` rows below it, and the controls below it read it
    ([chapter 11](../docs/barrierkit/11-views.md#right-to-left)).
 2. A view built inside a component under it reads the direction as it is built; one built before it is
    mirrored once by the modifier.
@@ -604,7 +604,7 @@ The program is [`recipes/file_dialogs.rs`](recipes/file_dialogs.rs).
    The closure runs only when the user chose; the app writes the file.
 2. `.file_dialog_default_directory(path)` wraps a view that holds a component using the modifiers: the environment
    is read by the components below it ([chapter 8](../docs/barrierkit/08-windows.md#documents-and-file-dialogs)).
-3. On Linux the portal ignores the parent, the filters and the start folder.
+3. On Linux the portal dialog takes the filters and the start folder but has no parent window, so it is not a sheet.
 
 ## 48. A document window that asks before it closes
 

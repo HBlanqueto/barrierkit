@@ -2,7 +2,8 @@
 
 **Goal:** paint a backdrop tinted from an image, place media pieces over it,
 and merge glass shapes.
-**Scope:** `bk::backdrop`, `media` and `glass_container`.
+**Scope:** `bk::backdrop`, `media`, `glass_container` (with `.glass_effect`)
+and `group`.
 The window's own glass bars are in [9. Titlebars](09-titlebars.md); the
 palette a backdrop replaces is in
 [4. Appearance and tokens](04-appearance-and-tokens.md); the controls that
@@ -80,6 +81,10 @@ legible on it.
 | `Own(color)` | The app's color |
 | `FromBackdrop` | The most vivid color of the image, adjusted to stay legible on the ink; with `Colors`, the first color |
 
+`Own` and `FromBackdrop` apply only while the user's accent is automatic: an
+accent the user chose in `appearance.domain` wins, as macOS keeps an app's
+accent color only under Multicolor.
+
 The content gets the palette through context. Code evaluated in the parent,
 before the `Backdrop` renders, still reads the system palette.
 
@@ -101,7 +106,7 @@ Controls with a fill take `.tint(Tint)`: `Slider`, `Switch`, `Checkbox`,
 | `Color(color)` | A fixed color |
 | `Backdrop` | A horizontal gradient of the backdrop's three colors; the accent outside a `Backdrop` |
 
-In an inactive window `Accent` and `Backdrop` fall back to the palette's accent. The tint
+In an inactive window `Backdrop` falls back to the palette's accent. The tint
 sets the `fill` of the control's style, so a `Color` tint stays.
 
 ## Media
@@ -111,12 +116,12 @@ are the `MEDIA` tokens of `ctdesign`, fixed for a dark image behind them.
 
 | Item | What it is |
 |---|---|
-| `MediaButton::new(label)` | A large light pill button; `.symbol(symbol)` adds an icon, `.on_press(..)` the action |
-| `RoundButton::new(symbol, label)` | A round glass button with an icon; `label` is its accessible name; `.selected(true)` fills it light; `.on_press(..)` |
+| `MediaButton::new(label)` | A light button `MEDIA.button_height` (38) high with radius `MEDIA.button_radius` (10); `.symbol(symbol)` adds an icon, `.on_press(..)` the action |
+| `RoundButton::new(symbol, label)` | A round button with an icon, a translucent `MEDIA.round_glass` fill and a rim; `label` is its accessible name; `.selected(true)` fills it light; `.on_press(..)` |
 | `Scrim::new(edge)` | A gradient rect that fades from the ground color to transparent; size and place it yourself with Freya's layout methods |
 | `ScrimEdge::Leading`, `Bottom` | The edge the scrim is solid on |
 | `ground()` | The color under the content: the backdrop's average inside a `Backdrop`, the window background outside |
-| `Material::new(corner_radius)` | A layer that fills its parent with blur, the `MEDIA.material_tint` tint and a 1 px rim |
+| `Material::new(corner_radius)` | A layer that fills its parent with the compositor's blurred material ([below](#who-draws-the-blur)), or else an opaque `MEDIA.material_tint` fill and a hairline rim |
 | `TopGlass::new()` | The progressive glass band along the top edge |
 | `use_artwork(path)` | Reads and decodes an image in the background; returns `State<Option<ImageHandle>>`, `None` until it is ready |
 | `use_artwork_from(load)` | The same with bytes from `load: FnOnce() -> Option<Vec<u8>> + Send` |
@@ -133,8 +138,9 @@ child of the element they sit behind, and put what draws over the glass (the
 title bar, the buttons) in that same element. Under a compositor that composes
 the blur ([below](#who-draws-the-blur)) that element is the chrome.
 
-When the user reduces transparency (`reduce_transparency`, off by default),
-the glass is solid and sharp: `Material` fills with the opaque
+When the user reduces transparency (`reduce_transparency` or `contrast` in
+`appearance.domain`, off by default, or the system setting on macOS), the glass
+is solid and sharp: `Material` fills with the opaque
 `MEDIA.material_tint`, `GlassContainer` with the window's opaque glass color
 in light or dark, and both keep their rim; `TopGlass` is an opaque band
 in the window color, `FULLSCREEN_GLASS.height` deep.
@@ -182,7 +188,9 @@ requests ([18](18-platform.md#glass-over-the-windows-content)).
 
 WindowServer is the compositor, so the same declarations become native views
 (`platform/macos/blur.rs`), as in the table's first row. The kit draws no blur
-or glass of its own on macOS. It draws the content and the ink over the glass,
+or glass of its own on macOS, except the two Skia blurs above: a
+`ShapeStyle::Material` fill, and a `GlassContainer` before macOS 26. It draws
+the content and the ink over the glass,
 and SwiftUI on the same macOS is the reference for both. Why is
 [ADR 0118](../decisions.md#0118--on-macos-appkit-composes-every-blur-and-glass-and-swiftui-is-the-reference).
 
@@ -193,7 +201,7 @@ and SwiftUI on the same macOS is the reference for both. Why is
 | `SplitView::background_extension` (with the panes' glass) | Drawn in the content view, under the panes: the glass shows it as SwiftUI's shows `.backgroundExtensionEffect()` |
 | The window's background (`ShapeStyle::WindowBackground`) | Nothing: a titled window keeps AppKit's own background material, an `NSVisualEffectView` that takes its tint from the wallpaper, and the kit's layer leaves it uncovered. A theme that tints the window paints its color |
 | `Material` | An `NSVisualEffectView`, `withinWindow`, of `MaterialStyle::material`, with the corner radius, over the content |
-| `TopGlass` | An `NSVisualEffectView` of the window background material along the edge; with a gradient mask |
+| `TopGlass` | An `NSVisualEffectView` of the `Titlebar` material, `withinWindow`, along the edge, faded by a gradient mask |
 | The glass of a `ToolGroup` (the toolbar capsules, the sidebar toggle) | An `NSGlassEffectView` of the default style, as AppKit's toolbar uses (setting `regular` gives another glass), one `HAIRLINE` inside the group, because AppKit draws the glass rim outside its frame, with the inner capsule's radius; two or more in one chrome sit in an `NSGlassEffectContainerView` and merge when near. On macOS 27 the glass is interactive (`effectIsInteractive`): it takes the pointer events over it, lights a press where it lands and hands every event on to the kit's view. An `IconButton` on it draws SwiftUI's 32 pt circle over that light, for hover and press (`TOOLBAR_ITEM_HIGHLIGHT`). On macOS before 26 the group paints its own fill |
 | A toolbar `SegmentedControl`, `ToolbarSearch` field or `Button`, and a `Button` of `ButtonStyle::glass` or `glass_prominent` | One `NSGlassEffectView` of the default style at the control's frame, interactive as above: a toolbar item is a capsule `GLASS_CONTROL.height` (36) high, as SwiftUI's, and a prominent one (`bordered_prominent` in the toolbar, `glass_prominent`) has the accent as `tintColor`. The kit draws only the ink over it (`GLASS_CONTROL`): full-strength labels, the segment thumbs and SwiftUI's hover veil, and no fill or rim. At rest it matches SwiftUI to the level ([measurements](../research/macos-liquid-glass.md#17-controls-on-their-own-glass-measured-2026-11-23)). On macOS before 26 they paint their own fill |
 | A unified `Titlebar` with no sidebar and no `ScrollView` reaching its bottom (`Effect::Titlebar`) | AppKit's own title bar: the window's title bar stops being transparent, so AppKit draws its material and separator as under SwiftUI's toolbar, and the kit's bar row rides above it in an `NSTitlebarAccessoryViewController`. The row's glass takes its press there, and every other pointer event goes to the kit's view. Over a `ScrollView` and in full screen the title bar stays transparent ([measurements](../research/macos-liquid-glass.md#17-controls-on-their-own-glass-measured-2026-11-23)) |
@@ -212,16 +220,17 @@ clear background to let the glass show.
 
 ### Style
 
-`MediaButton` and `RoundButton` take `.style(|s| ..)` with a `MediaButtonStyle` and a
-`RoundButtonStyle`. Their fields are in
-[Styles and themes](../../crates/bk/src/styles/media_button.rs).
+`MediaButton` and `RoundButton` take `.style(|s| ..)` with a
+[`MediaButtonStyle`](../../crates/bk/src/styles/media_button.rs) and a
+[`RoundButtonStyle`](../../crates/bk/src/styles/round_button.rs).
 
 `Material`, `TopGlass` and `GlassContainer` take `.style(|s| ..)` with a
-`MaterialStyle`, a `TopGlassStyle` and a `GlassContainerStyle`: tint, blur,
-rim and, for the container, the morph; `MaterialStyle` has no blur: the compositor draws it, and `MaterialStyle::material` is the
+[`MaterialStyle`](../../crates/bk/src/styles/material.rs), a
+[`TopGlassStyle`](../../crates/bk/src/styles/top_glass.rs) and a
+[`GlassContainerStyle`](../../crates/bk/src/styles/glass_container.rs): tint,
+blur, rim and, for the container, the morph; `MaterialStyle` has no blur: the compositor draws it, and `MaterialStyle::material` is the
 `NSVisualEffectView.Material` a compositor draws behind `Material` (Tengen:
-`HudWindow`). Their fields are in
-[Styles and themes](../../crates/bk/src/styles/material.rs).
+`HudWindow`).
 `Scrim` has no style: its gradient follows the ground color.
 
 ## Glass that merges
@@ -259,7 +268,7 @@ The morph plan is public, for tests and for other containers:
 
 | Item | What it is |
 |---|---|
-| `Frame` | `x`, `y`, `width`, `height`, `radius`; `.lerp(&to, t)` mixes two frames |
+| `glass_container::Frame` | `x`, `y`, `width`, `height`, `radius`; `.lerp(&to, t)` mixes two frames. It is not the layout [`Frame`](11-views.md#frame) of the prelude |
 | `Morph` | One shape's move: `id`, `from`, `to` |
 | `plan(shown, target)` | The moves from the frames on screen to the new ones |
 
@@ -300,7 +309,7 @@ Text::new("Capsule").padding(14.0).glass_effect(Glass::REGULAR, Shape::Capsule)
 
 `CompositingGroup` draws its children into one layer and runs an effect over the
 layer ([ADR 0103](../decisions.md)). Freya paints one node at a time, so the kit
-paints the tree itself: `bk::group::render` replaces Freya's
+paints the tree itself: its own pass replaces Freya's
 `RenderPipeline::render` and paints every scene as before until a group
 appears.
 

@@ -50,10 +50,12 @@ search and saved state.
 5. Run it as its own window with `run_window` ([`recipes/settings_window.rs`](../../agents/recipes/settings_window.rs)): it draws its own sidebar and
    titlebar. An `Application` window with `WindowStyle::HiddenTitleBar` adds no
    second titlebar either ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
+   Steps 1 to 3 run inside the window's closure, here a function `panes()`,
+   because `use_state` needs a component:
 
    ```rust
    run_window(
-       move || SettingsWindow::new().restoration("com.example.notes").group(group.clone()),
+       || SettingsWindow::new().restoration("com.example.notes").group(panes()),
        WindowOptions::new("Settings", "com.example.notes")
            .size((SETTINGS.window_width, SETTINGS.window_height)),
    )
@@ -156,8 +158,8 @@ SettingsWindow::new().group(group).style(|s| SettingsWindowStyle {
 ### `AboutView`
 
 `AboutView::new(icon, name, copyright)`: the content of an About window,
-centered: the icon, the name in `TITLE`, the version in `BODY` and the
-copyright in `CAPTION`. It is the content of AppKit's
+centered: the icon, the name in `ABOUT_NAME` (22, weight 650), the version in
+`BODY` and the copyright in `CAPTION`. It is the content of AppKit's
 `orderFrontStandardAboutPanel(_:)`.
 
 ```rust
@@ -172,7 +174,7 @@ AboutView::new(Avatar::new("N"), "Notes", "© 2026 Jane Appleseed").version("Ver
 
 `AboutView::style` takes an `AboutViewStyle`: the paints and fonts of the
 name, the version and the copyright, and the gaps between them
-([Styles and themes](../../crates/bk/src/styles/settings_window.rs)).
+([Styles and themes](../../crates/bk/src/styles/about_view.rs)).
 
 ## Language picker
 

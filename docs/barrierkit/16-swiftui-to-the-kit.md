@@ -33,7 +33,7 @@ know the kit's shape.
 | `List { ForEach(mail) { MailRow($0) } }`, `TableColumn("On") { Toggle(..) }` | `List::new(label, names).row(\|index\| view)`, `Table::cell(column, \|row\| view)` | [`list_rows.rs`](../../agents/recipes/list_rows.rs) |
 | `if` and `else` in a view builder | a Rust `if`, `.maybe_child(opt)`, `.into_element()` | [`if_else.rs`](../../agents/recipes/if_else.rs) |
 | `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../agents/recipes/callback.rs) |
-| `.commands`, `.keyboardShortcut` on a menu item | `Action`, `MainMenu`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
+| `.commands`, `.keyboardShortcut` on a menu item | `Action`, `Application::commands(Commands::new().menu(..))`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
 | `.keyboardShortcut` on a button or any view, `Button(role:)` | `Button::keyboard_shortcut(Shortcut)`, `.keyboard_shortcut(Shortcut)` of `EnvironmentModifiers`, `Button::role(ButtonRole)` | [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs) |
 | `WindowGroup`, `Window`, `Settings`, `@Environment(\.openWindow)`, `\.dismissWindow` | `Application::scene(..)`, `use_open_window()`, `use_dismiss_window()` | [`scenes.rs`](../../agents/recipes/scenes.rs) |
 | `.windowStyle(.hiddenTitleBar)`, `.toolbar { ToolbarItem(placement:) }`, `.windowToolbarStyle(_:)`, `.windowToolbarFullScreenVisibility(.onHover)` | `WindowStyle::HiddenTitleBar` in `.options(..)`, a `Titlebar` with `.toolbar(ToolbarItem::new(placement, view))`, `.toolbar_style(..)`, `.shows_title(..)`, `WindowToolbarFullScreenVisibility::OnHover` ([9](09-titlebars.md#window-designs)) | [`window_designs.rs`](../../agents/recipes/window_designs.rs) |
@@ -125,7 +125,7 @@ it in the render (its fields are hooks), and give it to `use_provide_context`.
 
 ✓ [`focus_state.rs`](../../agents/recipes/focus_state.rs).
 
-Below this level, `use_a11y()` returns an id that the view owns. A control that takes the id becomes the focus target, `id.request_focus()` moves the focus to it, and `use_focus(id)` reads its focus state. Only `SearchField` takes an id.
+Below this level, `use_a11y()` returns an id that the view owns. A control that takes the id becomes the focus target, `id.request_focus()` moves the focus to it, and `use_focus(id)` reads its focus state. Only `SearchField` takes an id, with `.a11y_id(id)`.
 
 ## Loops and conditions
 
@@ -156,10 +156,10 @@ A string given to `.child("x")` becomes Freya's bare label, with no theme. Use
 
 ## Actions
 
-An `Action` is a constant with an id, a title and an optional shortcut.
-`MainMenu` lists its items, and `use_menu_action` receives its id
-([chapter 13](13-app.md#actions-and-shortcuts)). Every handler of the window
-receives every id: compare it with the action's `.id`.
+An `Action` is a constant with an id, a title and an optional shortcut. A
+`Menu` in `Application::commands` lists its items, and `use_menu_action`
+receives its id ([chapter 13](13-app.md#actions-and-shortcuts)). Every handler
+of the window receives every id: compare it with the action's `.id`.
 
 ```swift
 // ✗ .commands { CommandMenu("Counter") { Button("Add one") { count += 1 }.keyboardShortcut("k") } }
@@ -181,7 +181,7 @@ A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)` calls `on
 | `.task`, `.task(id:)` | `use_future(..)`; a `State` read outside the async block restarts it | cancelled when the view leaves the tree |
 | `TimelineView` | `use_timeline(active, every)` | every `every` while `active` ([`stopwatch.rs`](../../agents/recipes/stopwatch.rs)) |
 | `NavigationStack(path:)`, `NavigationLink(value:)` | `NavigationStack::new(path, root, destination)` and `use_navigation_path::<R>()` | pages that push and pop ([`navigation_stack.rs`](../../agents/recipes/navigation_stack.rs)) |
-| `withAnimation(.spring(duration:bounce:)) { … }` | `with_animation(Animation::Spring { duration_ms, bounce }, || …)` and `use_animated` | the changes that follow use the animation ([`with_animation.rs`](../../agents/recipes/with_animation.rs)) |
+| `withAnimation(.spring(duration:bounce:)) { … }` | `with_animation(Animation::Spring { duration_ms, bounce }, \|\| …)` and `use_animated` | the changes that follow use the animation ([`with_animation.rs`](../../agents/recipes/with_animation.rs)) |
 
 The hooks are in `freya-core` 0.5.3, `src/lifecycle/` and `src/hooks/`.
 
@@ -191,7 +191,7 @@ The hooks are in `freya-core` 0.5.3, `src/lifecycle/` and `src/hooks/`.
 
 | SwiftUI or AppKit | In the kit |
 |---|---|
-| a `Binding` type, `$model.field` | none; use the `State` or the value and callback above |
+| a `Binding` type, `$model.field` | none; pass the `State` ([State and bindings](#state-and-bindings)) |
 | a command sent to the focused view (the responder chain) | none; every handler of the window gets the id |
 | `windowShouldClose` | `use_document` vetoes the close of an edited window and asks "Save changes?" ([8](08-windows.md#documents-and-file-dialogs)); any other close request closes the window at once, except a sheet's |
 | `applicationShouldTerminate`, `NSApp.terminate` | none to call; the last window closing ends the process. The Quit command (`QUIT`) closes every window ([13](13-app.md#quit)); Cmd-Q on macOS asks for the first edited document first |

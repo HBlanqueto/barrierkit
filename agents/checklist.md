@@ -34,8 +34,8 @@ reason it cannot be.
 6. Are hooks (every `use_*`, and `.help(..)`, `.popover(..)`, `.file_importer(..)`, `.file_exporter(..)` and `.on_open_url(..)`, which hide one) called on every
    render, never inside a condition, a loop or an iterator closure?
 7. Are there no comments besides `// SAFETY:` and one-line invariants?
-8. Is the `Application` name the same one passed to `use_app_language` and
-   `load_defaults`? Is a single setting a `use_app_storage` key rather than a
+8. Is the reverse-DNS id of `Application::new` the same one passed to
+   `use_app_language` and `load_defaults`? Is a single setting a `use_app_storage` key rather than a
    struct saved by hand?
 9. Does every change to a control's look go through its style
    ([`styles.md`](styles.md)), with overrides that name only what changes and

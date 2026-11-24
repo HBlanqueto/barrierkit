@@ -5,7 +5,7 @@ respect reduced motion.
 **Scope:** starts with a component that changes a value and ends with that
 change animated. It covers `bk::animation` and how the kit uses
 `freya-animation`. The duration tokens are defined in
-[4. Appearance and tokens](04-appearance-and-tokens.md); the controls that
+[4. Appearance and tokens](04-appearance-and-tokens.md#motion); the controls that
 animate on their own are in their chapters.
 **Reader:** anyone who adds motion to an app or a control.
 **Input:** a `State` whose change should animate. **Output:** a value that
@@ -68,13 +68,15 @@ token with its own duration (`SWITCH.transition_ms`,
 | `Switch` knob | `SWITCH.transition_ms` | Ease out, cubic |
 | Collapsing a sidebar section | `SPRING_SHEET_MS` | `Spring`, no bounce |
 | Showing or hiding the sidebar and the inspector | `DURATION_BASE` | `ease_in_ease_out`, Core Animation's `easeInEaseOut` (measured on the sidebar of a SwiftUI `NavigationSplitView`) |
-| Sidebar width while dragging | `DURATION_FAST_MS` | `Spring`, no bounce |
+| Sidebar width while dragging | `DURATION_FAST_MS` | Ease out, cubic |
+| `Slider` and `LevelSlider` knob and fill, on a click or a key | `DURATION_FAST_MS` | Ease out, cubic |
+| [`NavigationStack`](11-views.md#navigationstack) push and pop | `SPRING_PUSH_MS` | `Spring`, no bounce |
 | Revealing hidden titlebars, the focus bar | `DURATION_BASE` | Ease out, cubic |
 | Scroll bar | `DURATION_FAST_MS` | Ease out, cubic |
 | Indeterminate `ProgressView` | `PROGRESS.indeterminate_ms` | In-out, cubic, back and forth |
 | `Spinner` | `PROGRESS.spinner_ms` | Linear, one spoke at a time, looping |
 | Fade between [`Backdrop`](15-backdrops-and-media.md#backdrop) colors | `DURATION_SLOW_MS` | In-out, cubic |
-| [`GlassContainer`](15-backdrops-and-media.md#glass-that-merges) morph | `DURATION_BASE` | `Spring`, no bounce |
+| [`GlassContainer`](15-backdrops-and-media.md#glass-that-merges) morph | `DURATION_BASE` | Ease out, cubic |
 
 Pressing a button changes its fill to the pressed color; `BUTTON.pressed_scale` is 1, so it does not scale, as in AppKit.
 
@@ -158,7 +160,7 @@ Presence::new((*shown.read()).then(|| Text::new("Hello")))
 | `Transition::scale(s)`, `offset(x, y)`, `move_edge(edge)` | Scaled to `s`, shifted by `x, y`, or one of its own widths or heights beyond `edge` (left to right) |
 | `.combined(other)` | Both at once: opacity and scale multiply, offsets add |
 | `Transition::asymmetric(insertion, removal)` | One on the way in, the other on the way out |
-| `.content_transition(ContentTransition::Opacity)` | Any view: when it changes, the old one fades out over the new one, which fades in |
+| `.content_transition(ContentTransition::Opacity)` | Any view: when it changes, the old one fades out over the new one, which fades in. `ContentTransition::Identity` swaps it at once |
 
 - Progress is `use_animated`'s, so a spring may overshoot a scale and a toggle
   in midway goes on from the value and velocity shown.
@@ -172,7 +174,9 @@ Presence::new((*shown.read()).then(|| Text::new("Hello")))
 
 ## Reduced motion
 
-`reduced_motion = true` in `appearance.domain` asks for no motion. Every kit
+`reduced_motion = true` in `appearance.domain` asks for no motion, as does the
+system's Reduce Motion on macOS or the `reduced-motion` key of the settings
+portal on Linux. Every kit
 animation then takes 0 ms and the loops (indeterminate progress, spinner) stay
 still. An app's own animation does the same with two functions:
 

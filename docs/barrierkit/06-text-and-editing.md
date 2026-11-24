@@ -229,7 +229,8 @@ text input, like `NSTokenField`. `.width(Size)` sets its width (default fill).
 | Click on a token | Selects it |
 | Backspace or Delete with a token selected | Removes it |
 
-Tokens are 18 tall capsules with the accent at 20 %; a selected one takes the full accent.
+Tokens are 15 tall rounded rectangles (radius 2) in a light blue fill (`TOKEN_FILL_*`); a
+selected one takes the accent.
 
 | Item | What it is |
 |---|---|

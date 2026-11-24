@@ -73,7 +73,8 @@ These steps open a shell surface, the task only this chapter covers.
 | Freya ping | A component changes state or asks for a redraw | Polls every surface, opens pending popups and windows, installs timers, requests frame callbacks |
 | Wake ping | A `WakeHandle`, a D-Bus menu or another thread wakes the app | Runs the wake callbacks and menu actions, then polls |
 | Appearance watch (inotify) | `appearance.domain` or `wallpaper.state` changes | Resolves the appearance again and redraws every surface; `load_appearance` and `load_dominant` parse a file once until its inode, modification time or length changes, and always parse one changed in the last second |
-| The same watch | Another `.domain` file in the config dir changes | Bumps the defaults revision when the app reads that file with `use_defaults`, or calls `use_watched`; the title bar reads `window.domain` |
+| The same watch | Another `.domain` file changes in the config dir or in an app folder that `use_defaults` reads | Bumps the defaults revision when the app reads that file with `use_defaults`, or calls `use_watched`; the title bar reads `window.domain` |
+| Settings portal ping | `org.freedesktop.appearance` changes `color-scheme`, `contrast` or `reduced-motion`; not with the `shell` feature | Resolves the appearance again and redraws every surface |
 | Idle timer, every 10 s | Always | Releases Skia GPU resources unused for 10 s |
 
 The loop ends when the last main window closes (utility windows do not
@@ -146,6 +147,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `wp_viewporter` + `wp_fractional_scale_manager_v1` | 1 | No | [Fractional scale](#scale) | Integer scale |
 | `wp_cursor_shape_manager_v1` | sctk | No | Per-component cursor shapes | The compositor's default cursor |
 | `xdg_activation_v1` | 1 | No | Raising a window; giving the keyboard to a panel | The window stays where it is |
+| `xdg_wm_dialog_v1` | 1 | No | Marks a sheet window modal over its parent | The compositor does not know the sheet is modal |
 | `wl_data_device_manager` | sctk | No | Clipboard and drag and drop | No clipboard |
 | `zwp_primary_selection_device_manager_v1` | sctk | No | The primary selection (middle-click paste) | No primary selection |
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
@@ -154,7 +156,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `infinity_session_v1` | 1 | No | `locking` and `unlocked`, read by [`use_screen_lock`](#screen-lock-and-blur-region) | The menu bar never learns that the session is locking |
 | `ext_background_effect_manager_v1` | 1 | No | [`set_blur_region`](#screen-lock-and-blur-region) | No blur behind the surface |
 | `ext_image_copy_capture_manager_v1` + `ext_foreign_toplevel_image_capture_source_manager_v1` + `wl_shm` | 1 | No | [`capture_window`](#toplevels), in layer-shell components | `capture_window` answers `None` |
-| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
+| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; `set_cards` (v4) for card layers. Version 5 adds `set_desktop`, used by `malaysia-wallpaper`. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 8 adds `set_plates`, which the Dock sends for its clear icons. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in
@@ -167,7 +169,7 @@ the runner logs it at `info` level and continues.
 - Before a key reaches the tree, the runner matches it against the window's
   `MainMenu` shortcuts. A utility window uses its parent's menu. Edit
   shortcuts inside a focused text field stay with the field.
-- `Escape` closes a utility window, unless a text field has focus.
+- `Escape` closes a utility window or a sheet, unless a text field has focus.
 - Key repeat follows the compositor's rate and delay.
 - Tab and Shift+Tab move the focus to the next or previous node, leaving the
   current group; Up and Down move it inside a group (Freya's `integration`
@@ -223,8 +225,10 @@ cannot run it: it has no display.
 
 1. Terminal 1, in Malaysia: `nix develop`, then `./dev.sh kit-local`,
    `./dev.sh build` and `./dev.sh lab`. Leave it running.
-2. Terminal 2, in the kit: `nix develop`. Read the socket of the session and
-   open the window:
+2. Terminal 2, in the kit: `nix develop`. The recipes install no logger: add
+   `bk::init_tracing();` as the first line of `main` in
+   `agents/recipes/glass_window.rs`, and do not commit it. Read the socket of
+   the session and open the window:
 
    ```sh
    socket=$(cd ../malaysia && ./dev.sh log | sed -n 's/.*listening on the Wayland socket socket=\(wayland-[0-9]*\).*/\1/p' | tail -n 1)
@@ -294,17 +298,17 @@ The window and its popups take the system's light or dark, live ([The system's l
 
 1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
-3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (the Wayland code is unused on macOS), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature but not `shell`.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the D-Bus menu exporter carry items only the Linux backend reads), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature but not `shell`.
 4. Optional: `./dev.sh macos-smoke` opens every recipe of `agents/recipes` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
 
 ### Smoke test on macOS
 
 **Goal:** know that every recipe still opens a window on macOS.
 **Reader:** whoever changes `platform/macos/` or a recipe.
-**Input:** a Mac in a logged-in, unlocked session; `scripts/macos-smoke.sh [recipe...]` (`./dev.sh macos-smoke`); `SMOKE_SECONDS` (default 3) sets how long each recipe stays open.
-**Output:** one `PASS name` or `FAIL name: reason` line per recipe and the exit status 1 when any failed. It keeps no screenshots.
+**Input:** a Mac in a logged-in, unlocked session; `scripts/macos-smoke.sh [recipe...]` (`./dev.sh macos-smoke`); `SMOKE_SECONDS` (default 3) sets how long each recipe stays open; `CAPTURE_DIR`, optional, names a folder for a PNG of each window.
+**Output:** one `PASS name` or `FAIL name: reason` line per recipe, with up to three panic or error lines of a failed one's log, a last `<n> failed` line, and the exit status 1 when any failed.
 
-1. The script opens real windows and captures the screen. Nothing serializes it: run one screen-driving script at a time.
+1. The script opens real windows, and captures them when `CAPTURE_DIR` is set. Nothing serializes it: run one screen-driving script at a time.
 2. It builds the examples of the recipes it will open, wraps each one in an ad-hoc signed app bundle in a temporary directory and opens it with `open -n`.
 3. It waits up to ten seconds for a window of that process on the screen (the CoreGraphics window list, no permission needed), then waits `SMOKE_SECONDS`.
 4. It fails the recipe when no window appeared, when the process exited, or when the window went away; otherwise it ends the process.
@@ -313,12 +317,12 @@ The window and its popups take the system's light or dark, live ([The system's l
 
 **Goal:** know how far each surface is from SwiftUI or AppKit in light and dark, with blur and with Reduce Transparency on.
 **Reader:** whoever changes a material, a glass or a popup.
-**Input:** the probes in `~/src/probes` and `cargo build -p bk --examples`.
+**Input:** the SwiftUI probes in `~/src/probes` (or `BARRIERKIT_PROBES`), numpy and Pillow, and `cargo build -p bk --examples`.
 **Output:** per-element differences and their ceilings.
 
 1. Run `scripts/appearance-matrix.py --transparency blur`.
 2. With the system's Reduce Transparency on, run it with `--transparency rt`; the script never changes the setting.
-3. The five twins are the bench `swiftui_twin.rs`. The cells, numbers and causes are in [the matrix](../research/appearance-matrix.md).
+3. It compares six surfaces, each a kit example beside its probe: `notes_sidebar` as `Plain` and as `HiddenTitleBar`, `glass_toolbar`, `glass_container`, and the popover and the sheet of `popups`. The cells, numbers and causes are in [the matrix](../research/appearance-matrix.md).
 
 ## Accessibility
 
@@ -354,11 +358,12 @@ is sent whole on every change, because the kit folds subtrees and names the inpu
 
 ## Desktop services
 
-The kit opens one session-bus connection per process and gives every method
-call 25 s, as libdbus and GDBus do.
+The kit shares one session-bus connection per process, opens one more per
+status item, and gives every method call 25 s, as libdbus and GDBus do.
 
 | Service | Bus name | Used by |
 |---|---|---|
+| Settings portal | `org.freedesktop.portal.Desktop` (`Settings`, namespace `org.freedesktop.appearance`) | The system's light or dark, contrast and reduced motion, without the `shell` feature ([4](04-appearance-and-tokens.md#the-systems-light-or-dark)) |
 | Notifications | `org.freedesktop.Notifications` | `notifications` ([13](13-app.md#notifications)) |
 | Secret Service | `org.freedesktop.secrets` | `secrets` ([13](13-app.md#secrets)) |
 | Desktop portal | `org.freedesktop.portal.Desktop` | `portal`: files, URIs, notifications ([13](13-app.md#portals)) |
@@ -392,14 +397,14 @@ app calls, who answers on macOS, who answers on Linux.
 |---|---|---|---|
 | Window, popup, popover | `NSWindow` and child panels (`frame.rs`, `popups.rs`) | `xdg_toplevel` and `xdg_popup` on sctk; `set_popover` and `set_popover_shape` style the popup | both |
 | Blur, glass, scroll edge | Core Animation layers (`blur.rs`) | The compositor: `set_backdrop`, `set_glass`, `set_scroll_edge` (version 10) | both; the client keeps its Skia path where Malaysia does not serve a case |
-| Traffic lights, title bar | The kit draws them ([Traffic lights](09-titlebars.md#traffic-lights)); the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
+| Traffic lights, title bar | AppKit's own; under `WindowStyle::Plain` the kit draws them ([Traffic lights](09-titlebars.md#traffic-lights)), the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
 | Frame pacing | One `CADisplayLink` per window | The frame callback of the surface ([The frame](#the-frame)) | both |
 | Full screen (the green light) | `toggleFullScreen`, with the menu bar and the Dock hidden for a `Plain` window; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../agents/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |
 | Clipboard | `macos/clipboard.rs` (text) and `macos/pasteboard.rs` (typed: text, HTML, PNG and TIFF, file URLs, private boards) on `NSPasteboard` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection; `linux/pasteboard.rs` holds text only, so images, files and named boards report false | both; typed on macOS only |
 | Drag and drop | Out: an `NSDraggingSession` from the content view with `NSPasteboardItem`s (`macos/view.rs`, `macos/pasteboard.rs`); in: no code | `wl_data_device`; out offers text, `text/html`, `image/png` and `text/uri-list`; in accepts only `text/uri-list` | Linux both ways; macOS out only (not run with a real drag) |
 | Text input | `NSTextInputClient` (`macos/view.rs`): committed and composing text, the candidates at `set_ime_cursor_area`; a CJK input method not run | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
 | Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
-| Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, and the app menu event of `infinity_window_manager_v1` | both |
+| Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, announced with `org_kde_kwin_appmenu_manager`; the shell reads it from the `app_menu` event of `infinity_window_manager_v1` | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
 | File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal with the extensions as `filters` and the start folder as `current_folder`; no parent window, which needs `xdg-foreign` (`linux/panels.rs`, `linux/portal.rs`) | both, Linux partial |
 | Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | The close request and `WindowControls::close()` are vetoed; the kit's `Alert` in a sheet window asks with the same buttons; quit closes the first edited window first; `org.freedesktop.Application.Open` hands each URI to `on_open_url`. No dirty dot (`linux/panels.rs`, `linux/window.rs`) | both |

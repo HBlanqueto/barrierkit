@@ -8,8 +8,9 @@ beside the detail (`views::split`). The titlebar over the detail is in
 [11](11-views.md); a ready-made settings window with a sidebar is in
 [12](12-patterns.md).
 **Reader:** anyone who builds an app with side navigation.
-**Input:** a window that draws its own titlebar with `run_window`
-([2](02-first-app.md), [8](08-windows.md)). **Output:** a sidebar app whose
+**Input:** a window that draws its own titlebar: `run_window` or
+`Application`, with `WindowStyle::HiddenTitleBar` on macOS
+([2](02-first-app.md), [8](08-windows.md#window-style)). **Output:** a sidebar app whose
 page follows the selected item.
 
 ## Steps
@@ -44,18 +45,18 @@ page follows the selected item.
        );
    ```
 
-4. Build the detail: a `Titlebar` with `.with_sidebar(true)` and the
+4. Build the detail: a `Titlebar` with `.with_sidebar(true)`, which adds the
    `SidebarToggle` button, then the page:
 
    ```rust
    let detail = rect()
        .expanded()
        .direction(Direction::Vertical)
-       .child(Titlebar::new().with_sidebar(true).title("Home").left(SidebarToggle))
+       .child(Titlebar::new().with_sidebar(true).title("Home"))
        .child(VStack::new().expanded().child(Text::new("Home")));
    ```
 
-5. Join both in a `SplitView` and return it from the `run_window` closure:
+5. Join both in a `SplitView` and return it from the window's closure:
 
    ```rust
    SplitView::new(sidebar, detail)
@@ -76,8 +77,9 @@ page follows the selected item.
    SplitView::new(sidebar, detail).content(notes_list)
    ```
 
-The names come from `bk::sidebar`, `bk::views::split`,
-`bk::symbol::Symbol` and `ctdesign::ACCENT_SWATCHES`.
+`Sidebar`, `SidebarItem` and `SidebarSection` come from `bk::sidebar`;
+`SplitView`, `SidebarToggle` and `SidebarLayout` from `bk::views::split`; the
+rest is in the prelude.
 
 ## Sidebar content
 
@@ -119,8 +121,9 @@ lights are in the sidebar, the first row starts below them.
 
 With a compositor that offers `infinity_window_style_v1` version 6, as
 Malaysia does, the sidebar is a glass panel. The kit leaves its rectangle
-transparent and sends it with `set_glass`; the compositor draws the material and
-the rim under and over the rows. Only the compositor sees the wallpaper, so
+transparent and sends it with `set_glass`, or from version 10 with
+`set_backdrop` ([18](18-platform.md#wayland-protocols)); the compositor draws
+the material and the rim under and over the rows. Only the compositor sees the wallpaper, so
 only it can draw the material.
 The app does nothing. The kit sends the panel again whenever the sidebar's area
 changes. On macOS the panel is AppKit's own sidebar, the same glass as SwiftUI's
@@ -143,7 +146,9 @@ own solid fill, as described above.
 `SidebarAccount::style` and `SymbolTile::style` take a `SidebarStyle`,
 `SidebarItemStyle`, `SidebarSectionStyle`, `SidebarAccountStyle` and
 `SymbolTileStyle`. The fields are in
-[Styles and themes](../../crates/bk/src/styles/sidebar.rs).
+[`styles/sidebar.rs`](../../crates/bk/src/styles/sidebar.rs) and its siblings
+`sidebar_item.rs`, `sidebar_section.rs`, `sidebar_account.rs` and
+`symbol_tile.rs`.
 
 ```rust
 Theme::tengen().style(|s: SidebarItemStyle| SidebarItemStyle {
@@ -177,7 +182,7 @@ window the selection turns gray.
 ### `SidebarSection`
 
 A titled group of rows. It mounts open; a press on its title collapses or
-opens it over `DURATION_BASE` (250 ms). A chevron appears on the title on hover
+opens it with a `SPRING_SHEET_MS` (344 ms) spring without bounce. A chevron appears on the title on hover
 or with the keyboard focus.
 
 | Method | Effect |
@@ -223,6 +228,7 @@ search results of [`SettingsWindow`](12-patterns.md#settingswindow).
 | `.toggle()` | Shows the sidebar if it is hidden, hides it if it is shown |
 | `.dismiss()` | Hides it only if it floats over the content |
 | `.occupied()` | The width the docked sidebar takes now, animated; `0.0` while it floats |
+| `.content()` | The width of the [content column](#content-column); `0.0` without one |
 | `.settled()` | `true` when it is shown and fully open |
 
 ```rust
@@ -252,7 +258,7 @@ optional content column and a detail column.
 | `.inspector(view, presented)` | none | See [Inspector](#inspector) |
 | `.background_extension(view)` | none | See [Background extension](#background-extension) |
 | `.on_layout(callback)` | none | Reports [`SidebarLayout`](#sidebarlayout) |
-| `.style(f)` | Tengen | A `SplitViewStyle`: inset, grip, background, scrim, inspector line and the animations ([Styles and themes](../../crates/bk/src/styles/split_view.rs)) |
+| `.style(f)` | Tengen | A `SplitViewStyle`: inspector width, grip, background, scrim, inspector line and the animations ([`styles/split_view.rs`](../../crates/bk/src/styles/split_view.rs)) |
 | `.key(key)` | none | Diff key |
 
 `sidebar_width` and `sidebar_visible` are starting values. After the first
@@ -267,7 +273,7 @@ exists only with `.resizable(true)` and while the sidebar is fully open.
    over an AppKit split view divider.
 2. While dragging, the width follows the pointer and stays in the range.
 3. Tab focuses the grip; ← and → change the width by `SPLIT_VIEW.key_step`
-   (10 px) with a `DURATION_FAST_MS` (120 ms) spring. With reduced motion the
+   (10 px) with a `DURATION_FAST_MS` (120 ms) ease. With reduced motion the
    change is immediate. A focused grip shows an accent line of
    `SPLIT_VIEW.grip_line` (2 px), `grip_line_inset` (18 px) from the top and
    the bottom.
@@ -276,10 +282,10 @@ exists only with `.resizable(true)` and while the sidebar is fully open.
 ### Hiding: `SidebarToggle` and `TOGGLE_SIDEBAR`
 
 `SidebarToggle` is a unit struct: an icon button with the `SidebarLeft` symbol,
-on a 36 `ToolGroup` platter, that calls `SidebarControl::toggle`. Its label is
-"Show or Hide Sidebar". It is disabled outside a `SplitView`. Put it in the
-titlebar's left zone: `Titlebar::new().left(SidebarToggle)`. It takes
-`IconButtonStyle`.
+on a `TOOLGROUP.height` (38) `ToolGroup` platter, that calls
+`SidebarControl::toggle`. Its label is "Show or Hide Sidebar". It is disabled
+outside a `SplitView`. Inside one, the unified `Titlebar` puts it in its left
+zone by itself; `.left(view)` replaces it. It takes `IconButtonStyle`.
 
 While the sidebar is docked the button leaves the bar and sits inside the
 sidebar, at its right end, `SIDEBAR.toggle_inset` (7) from the edge, as in
@@ -326,7 +332,8 @@ hid by itself in a narrow window counts as visible.
 [`three_columns.rs`](../../agents/recipes/three_columns.rs). A three-column
 app needs it, and SwiftUI's split view takes one.
 
-- It starts `SIDEBAR.width` wide and has the sidebar's grip, keys and limits
+- It starts as wide as the sidebar (`.sidebar_width`, else `SIDEBAR.width`)
+  and has the sidebar's grip, keys and limits
   (`.sidebar_range`, `.resizable`): there is no token for this column, so it
   reuses the sidebar's. A 1 px separator, the inspector's, divides it from the
   detail.

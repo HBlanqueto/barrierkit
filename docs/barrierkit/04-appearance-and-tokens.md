@@ -73,7 +73,7 @@ component paints only with them.
 
 | Method | Returns |
 |---|---|
-| `Palette::current()` | The palette in effect here: the one a `Backdrop` provides ([15](15-backdrops-and-media.md)), otherwise `Palette::system()`. In an inactive window `accent` becomes `accent_inactive`, and `on_accent` follows it. |
+| `Palette::current()` | The palette in effect here: the one a `Backdrop` provides ([15](15-backdrops-and-media.md)), otherwise `Palette::system()`. In an inactive window `accent` and `toggle_accent` become `accent_inactive`, `selected_content` becomes `selected_content_inactive`, and `on_accent` and `on_selected_content` follow them. |
 | `Palette::system()` | The palette of the resolved appearance, without backdrop and without the active-window rule. |
 
 | Field | Use | AppKit |
@@ -97,6 +97,16 @@ component paints only with them.
 | `sunken_background` | Sunken surfaces | — |
 | `scrim` | Gray veil behind sheets and over a window under an overlay sidebar | — |
 | `card_border` | Edge of a card | — |
+| `system_fill` | Track of a checkbox, radio, switch or slider that is off | `NSColor.systemFillColor` |
+| `control_background_disabled` | Face of a disabled control | — |
+| `text_background` | Background of a text, search or token field | `NSColor.textBackgroundColor` |
+| `toggle_accent`, `toggle_accent_disabled` | Fill of a checkbox, radio, switch or slider that is on, and of a disabled switch | — |
+| `ring_accent` | Arc of a determinate ring | — |
+| `selected_content`, `selected_content_inactive` | Selected rows in an active and in an inactive window | `NSColor.selectedContentBackgroundColor`, `NSColor.unemphasizedSelectedContentBackgroundColor` |
+| `on_selected_content` | Ink on a selected row | — |
+| `separator_strong` | Grid lines of a table | — |
+| `combo_button` | Face of a combo button | — |
+| `segment_divider` | Divider between segments | — |
 
 With `contrast = true` ([The appearance file](#the-appearance-file)) the palette takes
 the `contrast` colors of its theme (`ContrastPalette`), measured from `NSColor` and
@@ -120,10 +130,10 @@ ring (`docs/research/macos-control-metrics.md`). Outlines use the separator.
 of the `Palette`. `.size(f32)` and `.color(Rgba)` change them. The icons
 are drawn on a grid of `SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke`
 (1), like SF Symbols at regular weight and medium scale. Inside a `SymbolTile`
-they take `SYMBOL.fine_stroke` (1 too since 2026-11-21; malaysia still reads it).
-`Bolt`, `CircleHalf`, `Play`, `Pause`, `Forward`, `Backward`, `Battery` and `Dot` are solid shapes without a stroke.
+they take `SYMBOL.fine_stroke` (also 1).
+`Bolt`, `CircleHalf`, `Play`, `Pause`, `Forward`, `Backward`, `Battery`, `Dot`, `DiamondFill` and the four `Triangle*` are solid shapes without a stroke.
 
-A symbol is fitted to the SF Symbol at 16 pt, regular weight, medium scale, drawn at 20 px: one grid unit is 1.25 px and one em is 12.8 units. SF's regular stroke at medium scale is 1.31 pt on average (1.19 to 1.40 by symbol), which is 1.05 on the grid; `SYMBOL.stroke` was 1.4 until 2026-11-21, 35% too heavy, and is 1. A symbol wider than 1.25 em does not fit the grid. The inventory of the SF names, their ink and what the kit has is in [Icons macOS uses](../research/macos-icons.md).
+A symbol is fitted to the SF Symbol at 16 pt, regular weight, medium scale, drawn at 20 px: one grid unit is 1.25 px and one em is 12.8 units. SF's regular stroke at medium scale is 1.31 pt on average (1.19 to 1.40 by symbol), which is 1.05 on the grid, so `SYMBOL.stroke` is 1. A symbol wider than 1.25 em does not fit the grid. The inventory of the SF names, their ink and what the kit has is in [Icons macOS uses](../research/macos-icons.md).
 
 ```rust
 Image::system(Symbol::Folder)
@@ -147,7 +157,7 @@ Image::system(Symbol::InfoCircle)
 |---|---|---|
 | `font_weight` | `UltraLight`, `Thin`, `Light`, `Regular` (default), `Medium`, `Semibold`, `Bold`, `Heavy`, `Black` | The stroke is `SYMBOL.stroke` times `SYMBOL_WEIGHT_STROKE_<scale>[weight]`: 0.29, 0.45, 0.76, 1, 1.22, 1.38, 1.60, 1.91 and 2.20 at medium scale. |
 | `image_scale` | `Small`, `Medium` (default), `Large` | The box is `size` times `SYMBOL_SCALE_SIZE`: 0.793, 1 and 1.275. The stroke grows less than the box (0.90 and 1.10 of medium at regular weight), so it is a separate table per scale. |
-| `symbol_rendering_mode` | `Monochrome` (default), `Hierarchical` | Hierarchical draws a second layer of 30 symbols at `SYMBOL_HIERARCHY[1]` (0.5) or `[2]` (0.25) of the color; the mark stays at 1. The other symbols draw the same in both modes. |
+| `symbol_rendering_mode` | `Monochrome` (default), `Hierarchical` | Hierarchical draws a second layer of 31 symbols at `SYMBOL_HIERARCHY[1]` (0.5) or `[2]` (0.25) of the color; the mark stays at 1. The other symbols draw the same in both modes. |
 
 The tables were measured on macOS 27.2.1 with SwiftUI's `ImageRenderer` ([Icons macOS uses](../research/macos-icons.md#1-method-and-reference-frame)). A weight and a scale apply to `Image::system` only, and to one image: SwiftUI's environment versions that reach a whole subtree do not exist, so a control that draws a symbol keeps regular weight and medium scale. Palette and multicolor rendering are not drawn.
 
@@ -155,14 +165,14 @@ The tables were measured on macOS 27.2.1 with SwiftUI's `ImageRenderer` ([Icons 
 
 | Group | Variants |
 |---|---|
-| Navigation | `ChevronRight`, `ChevronLeft`, `ChevronUp`, `ChevronDown`, `ChevronUpDown`, `ChevronDoubleRight`, `GoBackward`, `GoForward`, `ArrowDownToLine` |
+| Navigation | `ChevronRight`, `ChevronLeft`, `ChevronUp`, `ChevronDown`, `ChevronUpDown`, `ChevronDoubleRight`, `GoBackward`, `GoForward` |
 | Actions | `MagnifyingGlass`, `XMark`, `Plus`, `Minus`, `Ellipsis`, `Checkmark`, `Expand`, `QuestionMark` |
 | Media | `Play`, `Pause`, `Shuffle`, `ChevronLeftForwardSlashChevronRight`, `Backward`, `Forward`, `SpeakerWave`, `Captions`, `Film`, `Tv` |
 | Layout | `ListBullet`, `SquareGrid`, `SlidersVertical`, `SidebarLeft` |
 | Places and things | `House`, `Folder`, `Document`, `Star`, `StarFill`, `Clock`, `Bookmark`, `CircleHalf`, `Accessibility`, `Display`, `MenubarDockRectangle`, `Photo`, `Flower`, `Moon`, `Bell`, `Bed`, `Person`, `Briefcase`, `Printer`, `Phone`, `SquareOnSquare`, `Keyboard` |
 | Connections and power | `Wifi`, `Bluetooth`, `Network`, `Vpn`, `Lock`, `Bolt`, `Battery` |
 | Row actions | `EllipsisCircle` |
-| Shapes | `Square`, `Circle`, `CapsuleOnRectangle`, `CapsuleOnRectangleFill` |
+| Shapes | `Square`, `Circle`, `CapsuleOnRectangle`, `CapsuleOnRectangleFill`, `Dot`, `DiamondFill`, `TriangleLeft`, `TriangleRight`, `TriangleUp`, `TriangleDown` |
 | Sidebar and places | `ArrowDownCircle`, `ICloud`, `InternalDrive`, `ExternalDrive`, `Trash`, `Tag`, `MusicNote`, `DesktopComputer`, `Eject`, `PersonCropCircle` |
 | Share and edit | `SquareAndArrowUp`, `SquareAndArrowDown`, `DocOnDoc`, `Scissors`, `ArrowUturnBackward`, `ArrowUturnForward`, `ArrowClockwise`, `ArrowCounterclockwise` |
 | Find and organize | `ArrowUpArrowDown`, `Line3HorizontalDecrease`, `Heart`, `Flag`, `Key`, `Calendar`, `Envelope`, `PaperPlane`, `Mic`, `Camera`, `GearShape` |
@@ -176,7 +186,7 @@ The tables were measured on macOS 27.2.1 with SwiftUI's `ImageRenderer` ([Icons 
 | Window menus | `XMarkRectangle`, `PlusRectangle`, `RectangleOnRectangle`, `RectangleDashed`, `MacWindowOnRectangle` |
 | Filled | `HeartFill`, `CameraFill` |
 
-The `*Fill` states, `PersonCropCircle`, `LockFill`, `StopFill` and `Pencil` are solid shapes (the mark is cut out of them). `MusicNote`, `Scissors`, `HeartFill`, `CameraFill`, `CapsuleOnRectangleFill` and `Ellipsis` are filled and stroked. `StarFill` is a solid star. The 36 older symbols redrawn on 2026-11-22 are fitted like the 83 before them; `Checkmark`, `Star`, `StarFill`, `QuestionMark` and `Dot` keep their old shapes because the checkbox, the menu check, the rating indicator, the help button and the date picker are sized to them ([Icons macOS uses](../research/macos-icons.md#33-the-65-older-symbols)). The kit caches the SVG of each symbol.
+The `*Fill` states, `PersonCropCircle`, `LockFill`, `StopFill` and `Pencil` are solid shapes (the mark is cut out of them). `Wifi`, `MusicNote`, `Scissors`, `HeartFill`, `CameraFill`, `CapsuleOnRectangleFill` and `Ellipsis` are filled and stroked. `StarFill` is a solid star. Every symbol is fitted this way except `Checkmark`, `Star`, `StarFill`, `QuestionMark` and `Dot`: they keep their shapes because the checkbox, the menu check, the rating indicator, the help button and the date picker are sized to them ([Icons macOS uses](../research/macos-icons.md#33-the-65-older-symbols)). The kit caches the SVG of each symbol.
 
 Add a symbol in four steps:
 
@@ -186,9 +196,9 @@ Add a symbol in four steps:
 4. Add the row with its Apple name to the [glossary](20-glossary.md#symbol-variants).
 
 `Image` draws from an `ImageStyle`: `size`, `stroke` and `foreground`. `.size`
-and `.color` override them for one image and a theme for every image; the
-menu bar sets `stroke` to `SYMBOL.fine_stroke`, as a `SymbolTile` does. The fields
-are in [Styles and themes](../../crates/bk/src/styles/text.rs).
+and `.color` override them for one image and a theme for every image; a
+`SymbolTile` draws at `SYMBOL.fine_stroke`. The fields
+are in [Styles and themes](../../crates/bk/src/styles/image.rs).
 
 ## Images and template rendering
 
@@ -276,7 +286,7 @@ Image::data(include_bytes!("firefox.svg").as_slice())
 ```
 
 An icon that already is a plate takes `.icon_style(...)` instead. The plate and the ends of the icon's color
-ramp are the `ICON_PLATE` and `ICON_LOGO` tokens. `app_icon` works on SVG and
+ramp are the `ICON_PLATE*` and `ICON_LOGO_*` tokens. `app_icon` works on SVG and
 on PNG and is cached with the icon style.
 
 Dark icons suit `Clear` best: the plate has the low luminance that becomes
@@ -381,8 +391,9 @@ In an inactive window every tint uses the inactive accent.
 
 `ctappearance` reads the user's appearance, resolves it into colors and
 watches it. The compositor, the shell, the portal and the kit share it, so all
-of them agree. The kit's runner watches the files: when the appearance or the
-wallpaper changes, every window repaints without a restart.
+of them agree. On Linux the kit's runner watches the files: when the appearance or the
+wallpaper changes, every window repaints without a restart. On macOS the
+system's appearance drives the repaint ([18](18-platform.md#the-macos-runner)).
 
 ### The system's light or dark
 
@@ -402,6 +413,8 @@ may still force one with `use_appearance`.
 - With no preference, or no portal, `color_scheme` holds.
 - The `shell` feature skips the portal: Malaysia's shell is the desktop, and its
   portal backend serves `color_scheme` from this file.
+- The system's Increase Contrast and Reduce Motion, and Reduce Transparency on
+  macOS, add to the file's keys ([18](18-platform.md#who-provides-what-on-each-platform)).
 
 ### The appearance file
 
@@ -453,12 +466,13 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `color_filter` | `ColorFilter` | `grayscale`, `red_green`, `green_red`, `blue_yellow` | `grayscale` |
 | `color_filter_intensity` | `f32` | a value of `COLOR_FILTER_INTENSITY` | `1.0` |
 | `liquid_glass_tint` | `f32` | 0 to 1: the Liquid Glass slider of macOS (`NSGlassTintAmount`); outside it reads as the nearest end | `0.0` |
+| `gtk_bridge`, `qt_bridge` | `bool` | Read by Malaysia, not by the kit | `true` |
 
 Notes on the values:
 
 - The old value `"auto"` reads as `light`; `is_dark()` is true for `dark` and
   `dark_tint`.
-- A number outside its token list reads as the nearest end of the list.
+- A number reads as the nearest value of its token list.
 - A `sidebar_style` key from an older file is ignored: the sidebar has one look ([Glass](10-sidebar.md#glass)).
 - `TintStrength::factor()` multiplies the accent tint and the wallpaper tint by
   `TINT_STRENGTH`: 0.5, 1, 1.5 or 2.
@@ -476,9 +490,9 @@ Notes on the values:
   the measured one of its surface. A file that still has it loads, and the next
   write removes it.
 - The accessibility keys follow macOS System Settings › Accessibility ›
-  Display. The kit applies three of them in `ControlStyle::accessible`:
-  `show_borders` draws a `ControlBorder` line around icon buttons, tool groups
-  and search fields; `differentiate_without_color` keeps the traffic-light
+  Display. The kit applies three of them in its control styles:
+  `show_borders` draws a `ControlBorder` line around icon buttons and tool
+  groups; `differentiate_without_color` keeps the traffic-light
   symbols on while the window is focused; `text_size` scales `Text`, sidebar
   items (and their height) with `Font::scaled`; `Button` scales its text and
   symbol the same way when it draws them, and keeps its height. The compositor applies
@@ -489,13 +503,14 @@ Notes on the values:
 
 | Function | What it does |
 |---|---|
-| `config_dir()`, `data_dir()` | `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia`; `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia`. |
+| `config_dir()`, `data_dir()` | The desktop's shared folders: `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia`; `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia`. They hold `appearance.domain`, `window.domain`, `language.domain` and the wallpaper state; an app keeps its own settings in its own folder ([13](13-app.md#settings-and-restoration)). |
 | `appearance_path()` | `config_dir()/appearance.domain`. |
 | `wallpaper_state_path()` | `data_dir()/wallpaper.state`, where the wallpaper's dominant color and grid live. |
 | `read_appearance()` | `Ok(None)` without a file, `Err` when the TOML does not parse. |
 | `load_appearance()` | The file's config, or the default on any error. |
 | `write_appearance(path, config)` | Writes the config and keeps other keys and comments. A file that does not parse as an appearance config is first copied to `.domain.bak`. The file is replaced atomically. |
-| `replace_file(path, text)` | Writes `text` to a temporary file beside `path`, syncs it and renames it over `path`. Creates the directory with mode `0700`. |
+| `replace_file(path, text)` | Writes `text` to a temporary file beside `path`, syncs it and renames it over `path`. Creates the directory with `create_private_dir`. |
+| `create_private_dir(dir)` | Creates `dir` and its missing parents with mode `0700`, as the XDG Base Directory specification asks. |
 | `load_dominant()` | Reads `dominant` from `wallpaper.state`. |
 | `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. A file that does not parse is first copied to `.state.bak`; one that cannot be read is left alone and the call fails. |
 | `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
@@ -566,6 +581,8 @@ dynamic.
 `resolve(&config, dominant) -> Resolved` turns the config and the wallpaper's
 dominant color into colors. `palette(scheme)` returns the base
 `ctdesign::Palette` of a scheme (`LIGHT`, `DARK` or `DARK_TINT`).
+`palette_in(scheme, contrast)` adds the scheme's `ContrastPalette` with
+Increase Contrast; `Resolved::palette()` is that of a resolved appearance.
 `traffic::looks(style, standard, accent, dominant)` returns the three traffic
 lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 
@@ -583,7 +600,7 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `bar_tint` | Tint of the menu bar and the Dock with the `bars` part: the accent tint, or the dominant color by `wallpaper_tinting`. |
 | `wallpaper_tinting` | `backdrop::WallpaperTinting` of the wallpaper behind a window (`chroma` and `lift`), or `None` when it is off. `Resolved::behind_window(color)` tints the `tint_parts` with that color (rule 4). |
 | `tint_parts` | Copy of the config. |
-| `traffic_lights` | The `TrafficLooks` of the user's `traffic_lights` style, in this scheme and contrast. |
+| `traffic_lights` | The `TrafficLooks` of the user's `traffic_lights` style, in this scheme and contrast. On macOS the style is `standard`, or `accent` with the graphite accent. |
 | `contrast`, `reduced_motion`, `scroll_bars`, `scroll_bar_click` | Copies of the config. |
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
 | `show_borders`, `differentiate_without_color`, `menu_bar_size`, `icon_style` | Copies of the config. |
@@ -594,9 +611,9 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `menu_glass` | `DockSurface` of the menus: the `_LIGHT` veil, lift and cap of `MENU_GLASS_*` in the light scheme, the `_DARK` ones in dark and dark tint. Transparency does not change its veil or tone. |
 | `notification_glass` | `DockSurface` of the notifications: the tone and blur of `menu_glass` in the Dock's frame, with the menus' dark veil in dark and `NOTIFICATION_GLASS_VEIL_LIGHT` in light. With transparency reduced, `dock`. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
-| `sidebar` | `SidebarSurface`: `style`, `bg`, `rim`, `inner`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([Glass](10-sidebar.md#glass)). |
+| `sidebar` | `SidebarSurface`: `bg`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([Glass](10-sidebar.md#glass)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
-| `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted. `line` is the separator color. |
+| `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `toolbar`, `toolbar_line`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted except `toolbar_line` and `control`. `line` is the separator color. |
 
 The rules `resolve` applies:
 
@@ -615,7 +632,7 @@ The rules `resolve` applies:
    with its measured `selected_content`, even where the ink does not reach
    4.5:1, as macOS does. A color macOS has no name for, where the ink does not
    reach 4.5:1 (`ON_ACCENT_MIN_CONTRAST`), is darkened just enough
-   (WCAG 2.2 §1.4.3). Controls keep `control_accent` as chosen.
+   (WCAG 2.2 §1.4.3). Without Increase Contrast, controls keep `control_accent` as chosen.
 4. Wallpaper tinting is on with `wallpaper_tinting` and a neutral
    `window_color`, with any accent (malaysia ADR 0065), unless
    `reduce_transparency` or `contrast` is on. It
@@ -637,8 +654,10 @@ The rules `resolve` applies:
    `wallpaper_accent`, the wallpaper's dominant color, graphite while it has
    none; else Multicolor, which is blue for the controls.
    `automatic_accent` lets an area keep its own only for Multicolor.
-6. Menu hover takes `control_accent`, as macOS does; sidebar selection and the
-   shell's active tile take `accent`.
+6. Menu hover takes `control_accent`, as macOS does, and `accent` with
+   Increase Contrast or a color macOS has no name for. Sidebar selection takes
+   the accent's `sidebar_selection` (`accent` for a color macOS has no name
+   for); the shell's active tile takes `accent`.
 7. The focus ring is the measured `focus_ring` of the accent: translucent
    (49.8%) in normal contrast, opaque with `contrast`. A color macOS has no
    name for takes the rule's ring at that alpha; a translucent ring can fall
@@ -671,9 +690,10 @@ macOS has its own value for every accent in every look, so one color for light a
 | `ring` | the arc of a determinate ring | `Resolved::ring_accent` |
 | `pressed`, `pressed_toggle` | a pressed default button; a pressed checkbox or radio that is on | `PressedPalette` |
 | `segment_disabled` | the chosen segment of a disabled segmented control | `DisabledPalette` |
+| `sidebar_selection` | the selected item of a sidebar | `Resolved::sidebar.palette.selected_bg` |
 
-Blue holds no value of its own: its entries point to the `accent` tokens of the
-themes. The other seven are measured one by one.
+Blue's entries point to the `accent` tokens of the themes, except
+`selected_text`. The other seven are measured one by one.
 
 Three things hold in macOS for every accent. Increase Contrast makes
 `selected_content` equal to `control`. It darkens `control` until white text on
@@ -687,7 +707,7 @@ to the named accents: `selected_text` is exact, `selected_content` and
 chroma scale, hue shift) that stays within 6 levels of every named accent
 (`ACCENT_RULE`), and the fills of a toggle, a pressed control and a disabled
 one mix the `control` toward black in light and toward white in dark by a
-measured amount per look (`ACCENT_RULE.*_mix`). The ring is the `control`. With Increase
+measured amount per look (`ACCENT_RULE.*_mix`). The ring and the sidebar selection are the `control`. With Increase
 Contrast the `control` is first darkened until white text reaches 4.5:1
 (`ON_ACCENT_MIN_CONTRAST`), as rule 3 above asks. An `accent_color`
 that equals the light `control` of a named accent is that accent, so a
@@ -777,7 +797,7 @@ from a grid of average colors:
 
 ### Watching
 
-`watch::AppearanceWatch::new()` watches `config_dir()` and `data_dir()` with
+On Linux, `watch::AppearanceWatch::new()` watches `config_dir()` and `data_dir()` with
 inotify. It is a file descriptor (`AsFd`) for an event loop; `drain()` returns
 what changed as `AppearanceEvent`s:
 
@@ -789,8 +809,9 @@ what changed as `AppearanceEvent`s:
 | `Defaults(name)` | any other `.domain` in the config folder or in a folder added with `watch_app_folder(path)`; `name` is its file name, `None` after a lost event |
 
 If a watched folder is deleted or moved, `drain()` creates it again and watches it again.
+The kit's runner adds the settings folder of each app ([13](13-app.md#settings-and-restoration)).
 
-`restyles()` is true for `Appearance` and `Wallpaper`. The kit's runner already
+`AppearanceEvent::restyles()` is true for `Appearance` and `Wallpaper`. The kit's runner already
 uses it; an app needs it only with its own event loop.
 
 ### Menu bar
@@ -949,6 +970,7 @@ relative paths:
 |---|---|
 | `config_home()` | `$XDG_CONFIG_HOME` or `~/.config` |
 | `data_home()` | `$XDG_DATA_HOME` or `~/.local/share` |
+| `cache_home()` | `$XDG_CACHE_HOME` or `~/.cache` |
 | `data_dirs()` | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` |
 | `user_dir(kind)` | `XDG_<kind>_DIR` from `user-dirs.dirs`, for example `user_dir("DOWNLOAD")` |
 
@@ -977,27 +999,23 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
    in `tokens.json`. A color per theme goes under `themes.light` and
    `themes.dark`; `themes.dark-tint` holds only the colors that differ from
    dark.
-2. A new field of an existing struct: add `pub name: Type,` to the struct in
-   `src/lib.rs`. `build.rs` finds the key by name (`_` becomes `-`, and
-   prefixes match nested objects).
-3. A new constant: add a line `NAME Type json.path` to `CONSTANTS` in
-   `build.rs`, plus its struct in `src/lib.rs` if it is a new type. A line in
-   `THEMED` makes one constant per theme (`_LIGHT`, `_DARK`, `_DARK_TINT`).
-   Write `field=path` after the path when a key has another name.
-4. Use it: `SPLIT_VIEW.key_step`.
-5. Add its row to the [glossary](20-glossary.md).
-6. Run `./dev.sh check`.
+2. Add its field or constant and regenerate `agents/tengen.css`, as
+   [Tengen](tengen.md#steps-to-add-a-constant) says.
+3. Use it: `SPLIT_VIEW.key_step`.
+4. Add its row to the [glossary](20-glossary.md).
+5. Run `./dev.sh check`.
 
 ### Token types
 
 | Type | What it is |
 |---|---|
-| `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `blend` (mixes with alpha, premultiplied), `darken`, `lighten`, `to_linear`, `from_linear`, `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
+| `Rgba` | sRGB color with straight alpha, channels from 0 to 1. `TRANSPARENT`, `rgb8`, `rgba8`, `to_rgba8`, `premultiplied`, `mix` (keeps its own alpha), `blend` (mixes with alpha, premultiplied), `darken`, `lighten`, `to_linear`, `from_linear`, `luma` (Rec. 709 of the stored channels, `Rgba::LUMA`), `relative_luminance`, `contrast_ratio`, `to_hsl`, `from_hsl`. |
 | `Font` | `family`, `size`, `line_height` (pixels) and `weight`. |
-| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `scrim`, `selected_control`, `card_border`, `separator_strong`, `selected_content_inactive`, `combo_button`, `segment_divider`, `accent_ring`. |
-| `ContrastPalette` | What `Palette::contrasted` replaces with Increase Contrast: `ink`, `ink_muted`, `ink_faint`, `separator`, `line_strong`, `bg_control`, `bg_control_disabled`, `system_fill`, `text_background`, `accent`, `selected_content`, `accent_toggle`, `accent_toggle_disabled`, `accent_ring` and `focus_ring`; `CONTRAST_LIGHT`, `CONTRAST_DARK`, `CONTRAST_DARK_TINT`. |
+| `Palette` | Base colors of a theme: `titlebar_bg`, `hairline`, `inner_line`, `panel_inner_line`, `outer_border`, `title`, `row_title`, `text`, `ink_strong`, `ink_muted`, `ink_faint`, `line`, `line_strong`, `separator`, `accent`, `selected_content`, `accent_toggle`, `control`, `control_disabled`, `accent_inactive`, `on_accent`, `danger`, `scrim`, `selected_control`, `card_border`, `system_fill`, `text_background`, `separator_strong`, `selected_content_inactive`, `combo_button`, `segment_divider`, `accent_ring`, `accent_toggle_disabled`. |
+| `ContrastPalette` | The Increase Contrast colors of a theme: `ink`, `ink_muted`, `ink_faint`, `separator`, `line_strong`, `bg_control`, `bg_control_disabled`, `combo_button`, `system_fill`, `text_background`, `accent`, `selected_content`, `accent_toggle`, `accent_toggle_disabled`, `accent_ring`, `separator_strong` and `focus_ring`; `Palette::contrasted` takes all but `focus_ring`; `CONTRAST_LIGHT`, `CONTRAST_DARK`, `CONTRAST_DARK_TINT`. |
 | `DisabledPalette` | The fixed fills of disabled controls, measured from AppKit: `off`, `on`, `slider_fill`, `switch_off`, `stepper_chevron`, `segment` and `segment_label`; `DISABLED_LIGHT`, `DISABLED_DARK`, `DISABLED_DARK_TINT` and the `DISABLED_CONTRAST_*` set under Increase Contrast. |
 | `PressedPalette` | The fills of pressed controls: `bezel`, `accent`, `toggle_accent` and `off`; `PRESSED_*` and `PRESSED_CONTRAST_*`. |
+| `BezelPalette` | The square, textured and inline bezels of `ButtonStyle` and their pressed fills; `BEZEL_*` and `BEZEL_CONTRAST_*`. |
 | `GaugeContrast` | `ring_track`, `level_track` and `level_border` of the gauges under Increase Contrast; `GAUGE_CONTRAST_*`. |
 | `RelevancyPalette` | The `fill` behind the lines of a relevancy indicator and its `line`, measured from AppKit; `RELEVANCY_*` and `RELEVANCY_CONTRAST_*`. Its track is `RELEVANCY_TRACK_*`. |
 | `CalendarPalette` | The card of a graphical date picker: `background`, `border`, `border_width`, `edge` (the line along its bottom) and `separator` (under the weekdays); `CALENDAR_*` and `CALENDAR_CONTRAST_*`. |
@@ -1011,7 +1029,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `ShadowLayer` | `blur`, `y_offset`, `opacity`, `color`. |
 | `MaterialThickness` | `opacity` and `blur` of one material thickness. |
 | `ShadowStyle` | `ambient` and `contact` layers and their scale when unfocused; `layers(focused)` returns both. |
-| `WindowCorner` | Window radii (`titlebar`, `unified_compact`, `unified`, `utility`; all 16 since 2026-11-22), curve `expansion` and superellipse `exponent`. |
+| `WindowCorner` | Window radii (`titlebar`, `unified_compact`, `unified`, `utility`; all 16), curve `expansion` and superellipse `exponent`. |
 | `CornerShape` | `radius` (the API's or the design value), `fitted` (the radius that draws the measured silhouette) and `smoothing` of one element. |
 | `CornerControls` | The corner radius of each control at mini, small, regular, large and extra large: `push`, `circular`, `help`, `text_field`, `popup`, `combo_button`, `checkbox`, `radio`, `segmented`, `segmented_square`, `slider_track`, `slider_knob`, `progress_bar`. |
 | `WindowStyle` | `corner_radius` and `superellipse_exponent` of a dialog or pop-up. |
@@ -1053,10 +1071,9 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `TOOLBAR_TITLE` | 15 / 19 | 600 | the window title in a unified toolbar |
 | `ABOUT_NAME` | 22 / 26 | 650 | the app name of `AboutView` |
 
-The line is the height of a SwiftUI `Text` on macOS 27.2 (`fittingSize`, `~/src/probes/textlines.swift`):
+The line is the height of a SwiftUI `Text` on macOS 27.2 (`fittingSize`):
 13 pt is 16 high, 12 pt 15, 15 pt 19, 17 pt 21, 26 pt 31, 22 pt 26, 11 pt 14 and 10 pt 13. Sizes and
-weights are `NSFont.preferredFont(forTextStyle:)` on macOS 27.2; `CAPTION` is the kit's own between
-`.subheadline` and `.caption`. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
+weights are `NSFont.preferredFont(forTextStyle:)` on macOS 27.2. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
 
 All use Adwaita Sans, the sans of GNOME, so `bk` text matches GTK; `MONO`
 uses Geist Mono. `SANS_FAMILIES` is the fallback list (Adwaita Sans, Inter,
@@ -1189,7 +1206,7 @@ The slider is a function of one number, so a compositor can apply it to every gl
 | `ACCENT_SWATCHES` | `[(&str, Rgba); 8]` | The name and light `control` of each accent. |
 | `ACCENT_RULE` | `AccentRule` | The fitted rule for an accent without a name ([Accents](#accents)). |
 | `MULTICOLOR` | `[Rgba; 25]` | The stops of the Multicolor swatch, from the top clockwise, measured on System Settings; the last is the first. |
-| `LEVEL_INDICATOR_COLORS` | `[Rgba; 3]` | Normal, warning and critical colors of a level indicator. |
+| `LEVEL_INDICATOR_COLORS`, `LEVEL_INDICATOR_COLORS_DARK`, `LEVEL_INDICATOR_COLORS_CONTRAST`, `LEVEL_INDICATOR_COLORS_CONTRAST_DARK` | `[Rgba; 3]` | Normal, warning and critical colors of a level indicator, in light, dark and Increase Contrast. |
 | `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |
 | `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `use_shell_theme`. |
 | `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
@@ -1201,29 +1218,33 @@ The slider is a function of one number, so a compositor can apply it to every gl
 | `SIDEBAR_PALETTE_LIGHT`, `SIDEBAR_PALETTE_DARK`, `SIDEBAR_PALETTE_DARK_TINT` | `SidebarPalette` | Sidebar inks per theme: the selection (`#0270f5` in light, `#007aff` in dark) and the rest. |
 | `TOOLGROUP_BG_LIGHT`, `TOOLGROUP_BG_LIGHT_OPAQUE`, `TOOLGROUP_BG_DARK`, `TOOLGROUP_BG_DARK_OPAQUE`, `TOOLGROUP_BG_DARK_TINT`, `TOOLGROUP_BG_DARK_TINT_OPAQUE` | `Rgba` | Toolbar group background; with Reduce Transparency (`_OPAQUE`): `#ffffff` in light and `#333333` in dark, measured on macOS 27. |
 | `TOOLGROUP_PALETTE_LIGHT`, `TOOLGROUP_PALETTE_DARK`, `TOOLGROUP_PALETTE_DARK_TINT` | `ToolgroupPalette` | Toolbar group lines per theme. |
+| `RING_TRACK_*`, `BAR_TRACK_*`, `LEVEL_TRACK_*`, `LEVEL_BORDER_*`, `SEARCH_CLEAR_*`, `TOKEN_FILL_*`, `DISCLOSURE_TRIANGLE_*`, `DATE_FIELD_*`, `DATE_FIELD_BORDER_*`, `STEPPER_DIVIDER_*` | `Rgba` | One control's color per theme, read by its style; the last five have `_CONTRAST_*` twins. |
 
-An `_OPAQUE` constant is its translucent twin painted over the theme's window
-background, for `reduce_transparency`.
+`SHELL_*_OPAQUE` and `MENU_*_OPAQUE` are their translucent twins painted over
+the theme's window background; `SIDEBAR_*_OPAQUE` and `TOOLGROUP_BG_*_OPAQUE`
+are the colors measured with Reduce Transparency. `resolve` picks them for
+`reduce_transparency` or `contrast`.
 
 ### Windows and titlebars
 
 | Constant | Type | Read by |
 |---|---|---|
-| `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | `(u32, u32)` | `WindowOptions`: 480 × 360 and 640 × 420 ([8](08-windows.md)) |
-| `WINDOW_CORNER` | `WindowCorner` | `style::continuous_corner`, the compositor |
-| `CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_POPOVER`, `CORNER_MENU`, `CORNER_TOOLTIP`, `CORNER_NOTIFICATION`, `CORNER_NOTIFICATION_CENTER`, `CORNER_CONTROL_CENTER_MODULE`, `CORNER_SPOTLIGHT` | `CornerShape` | `ctappearance::corner`, the compositor and the shell: the measured radius and curve of each element |
+| `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | `(u32, u32)` | 480 × 360, which an app passes to `.min_size(Some(..))`, and 640 × 420, the default `WindowOptions::size` ([8](08-windows.md)) |
+| `WINDOW_CORNER` | `WindowCorner` | `style::panel_edges` (`expansion`), the compositor |
+| `CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_POPOVER`, `CORNER_MENU`, `CORNER_TOOLTIP`, `CORNER_NOTIFICATION`, `CORNER_NOTIFICATION_CENTER`, `CORNER_CONTROL_CENTER_MODULE`, `CORNER_SPOTLIGHT` | `CornerShape` | The kit (`CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_MENU`, `CORNER_TOOLTIP`), the compositor and the shell: the measured radius and curve of each element |
 | `CORNER_CONTROLS` | `CornerControls` | The radii of the controls by size, read from the API |
-| `CORNER_SMOOTHING`, `CORNER_CONCENTRIC_REGION` | `f32` | `ctappearance::corner`: the smoothing of the continuous curve (0.745) and the width of the concentric region as a share of the container's radius (1.0) |
+| `CORNER_SMOOTHING`, `CORNER_CONCENTRIC_REGION` | `f32` | `style::continuous` and `ctappearance::corner::concentric`: the smoothing of the continuous curve (0.745) and the width of the concentric region as a share of the container's radius (1.0) |
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
 | `WINDOW_CLIENT_RESIZE` | `WindowResize` | The compositor: the resize band around a window that decorates itself |
 | `WINDOW_EXPAND_MIN_MS`, `WINDOW_EXPAND_MAX_MS` | `u64` | The compositor: how long a window takes to maximize or restore, from the shortest move (300 ms) to one across the whole workspace (560 ms) |
-| `DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH` | `WindowStyle`, `f32`, `f32` | `views::feedback` |
-| `POPUP` | `WindowStyle` | The compositor, for pop-up corners |
-| `PANEL_GLOW_DEPTH` | `f32` | The compositor: depth in points of the `PanelLine::glow` |
+| `DIALOG` | `WindowStyle` | No reader in the kit |
+| `DIALOG_PADDING`, `DIALOG_ALERT_*`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `DIALOG_SOLID_*` | `f32`, `u32`, `Rgba`, `[f32; 2]` | `views::feedback`, `styles` (`AlertStyle`, `SheetStyle`, `AboutViewStyle`) |
+| `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
+| `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`WindowChromeStyle`), the compositor |
 | `ALERT_LAYER_NAMESPACE` | `&str` | `malaysia-dialog`: layer-shell namespace of shell alerts |
 | `NOTIFICATIONS_LAYER_NAMESPACE` | `&str` | `malaysia-notifications`: layer-shell namespace of banners and Notification Center |
-| `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic` |
+| `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`), `chrome` ([9](09-titlebars.md)) |
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
 | `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` | `f32` | The expanded `Titlebar` (SwiftUI `.expanded`): a 28 high title row with the title 15 after the lights, and a toolbar row whose items sit 5 above its middle ([9](09-titlebars.md)) |
@@ -1232,7 +1253,7 @@ background, for `reduce_transparency`.
 | `TITLEBAR_FULLSCREEN_START` | `TitlebarToolbarStart` | Where the title or the first item starts in full screen, with no lights: 22 (unified), 14 (compact), 11 (expanded) from the edge ([9](09-titlebars.md)) |
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
 | `TITLEBAR_REVEAL` | `TitlebarRevealMetrics` | `chrome`, `styles` (`WindowChromeStyle`): the pill, reveal zone and corner, and resting edges of a hidden bar ([9](09-titlebars.md#window-chrome)) |
-| `FULLSCREEN_BAR`, `FULLSCREEN_GLASS` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform`, `styles` (`FullscreenBarStyle`, `TopGlassStyle`) |
+| `FULLSCREEN_BAR`, `FULLSCREEN_GLASS` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform` (`FULLSCREEN_BAR`), `styles` (`TopGlassStyle`) |
 | `GLASS_MASK` | `Rgba` | Base color of the mask that fades glass bars |
 | `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
 
@@ -1250,18 +1271,18 @@ background, for `reduce_transparency`.
 
 | Constant | Type | Read by |
 |---|---|---|
-| `BUTTON` | `ButtonMetrics` | `controls`, `compact`, `font_panel` |
-| `ICON_BUTTON` | `IconButtonMetrics` | `compact` |
-| `SWITCH` | `SwitchMetrics` | `controls`, `choices`, `level` |
-| `CHECKBOX` | `CheckboxMetrics` | `controls` |
+| `BUTTON`, `BUTTON_DESTRUCTIVE_FILL` | `ButtonMetrics`, `f32` | `styles`, `font_panel` |
+| `ICON_BUTTON` | `IconButtonMetrics` | `controls`, `styles` |
+| `SWITCH` | `SwitchMetrics` | `styles` |
+| `CHECKBOX` | `CheckboxMetrics` | `styles` |
 | `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP` | `SliderMetrics`, `SliderFatMetrics`, `f32` | `styles`, `level` |
-| `KNOB_SHADOW` | `ShadowLayer` | `level`, `styles` |
+| `KNOB_SHADOW` | `ShadowLayer` | `styles` |
 | `MATERIAL` | `MaterialMetrics` | `styles` ([Materials](#materials)) |
-| `SEGMENTED` | `SegmentedMetrics` | `controls`, `compact` |
+| `SEGMENTED` | `SegmentedMetrics` | `styles` |
 | `STEPPER` | `StepperMetrics` | `styles` |
 | `HELP_LINK` | `HelpLinkMetrics` | `styles` |
-| `TOOLBAR_SEARCH_WIDTH` | `f32` | `compact` |
-| `TEXT_FIELD` | `TextFieldMetrics` | `controls`, `sidebar` |
+| `TOOLBAR_SEARCH_WIDTH` | `f32` | `styles` |
+| `TEXT_FIELD`, `SEARCH_FIELD`, `TEXT_EDITOR` | `TextFieldMetrics`, `SearchFieldMetrics`, `TextEditorMetrics` | `styles` |
 | `TOKEN_FIELD` | `TokenFieldMetrics` | `styles` |
 | `SPELLING` | `SpellingMetrics` | `spelling` |
 | `COMBO_BOX` | `ComboBoxMetrics` | `styles` |
@@ -1269,6 +1290,7 @@ background, for `reduce_transparency`.
 | `DATE_PICKER` | `DatePickerMetrics` | `styles` |
 | `IMAGE_WELL` | `ImageWellMetrics` | `styles` |
 | `LEVEL_INDICATOR`, `GAUGE` | `LevelIndicatorMetrics`, `GaugeMetrics` | `styles`; `indicator` reads the number of stars |
+| `LEVEL_BOTTOM`, `LEVEL_RING_RADII` | `[f32; 4]` | `styles` (the capacity indicator) |
 | `PROGRESS` | `ProgressMetrics` | `styles` |
 | `BADGE` | `BadgeMetrics` | `styles` (`BadgeStyle`) |
 | `FOCUS_RING` | `FocusRingMetrics` | `interaction` |
@@ -1276,9 +1298,11 @@ background, for `reduce_transparency`.
 | `TOOLTIP` | `TooltipMetrics` | `tooltip` |
 | `POPOVER` | `PopoverMetrics` | `popover`, the compositor |
 | `MENU_POPOVER` | `MenuPopoverMetrics` | `theme`, `popup_button`, `styles` |
-| `MENU_MARK_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
+| `MENU_MARK_TEXT_GAP`, `MENU_ICON_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
 | `MENU_SEPARATOR_INK_MIX` | `f32` | `Resolved::menu_separator` |
 | `DRAG` | `DragMetrics` | `drag` |
+| `GESTURE` | `GestureMetrics` | `gesture` |
+| `SCROLL_PHYSICS` | `ScrollPhysicsMetrics` | `scroll_physics` |
 
 ### View metrics
 
@@ -1286,23 +1310,24 @@ background, for `reduce_transparency`.
 |---|---|---|
 | `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read the per-scheme ones with `glass_chroma`, `glass_lightness`, `glass_rim_lift`, `glass_blur_passes`, `glass_edge` and `glass_shadow` ([Glass](10-sidebar.md#glass)). Values chosen by the owner on the sidebar mockup |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` and `item_selected_weight` (both 400) weigh the row labels |
-| `TOOLGROUP` | `ToolgroupMetrics` | `controls`, `compact` |
+| `TOOLGROUP` | `ToolgroupMetrics` | `compact`, `titlebar`, `views::split`, `styles` (`ToolGroupStyle`) |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |
 | `SPLIT_PANES` | `SplitPanesMetrics` | `views::split_panes`, `styles` (`SplitPanesStyle`) |
 | `TABLE` | `TableMetrics` | `views::table`, `styles` (`TableStyle`); `plain_row_height`, `row_size_font`, `row_size_icon`, `source_list_row_height`, `icon_box` and `icon_gap` are the classic `NSTableView` styles |
-| `COLLECTION` | `CollectionMetrics` | `views::collection` |
+| `COLLECTION` | `CollectionMetrics` | `styles` (`CollectionViewStyle`) |
 | `LIST_GROUP` | `ListGroupMetrics` | `views::form` |
-| `GROUP_BOX` | `GroupBoxMetrics` | `views::group` |
+| `LIST_SECTION` | `ListSectionMetrics` | `views::list` |
+| `GROUP_BOX` | `GroupBoxMetrics` | `styles` (`GroupBoxStyle`) |
 | `COLOR_PICKER` | `ColorPickerMetrics` | `color_picker`, `styles` (`ColorPickerStyle`) |
-| `CIRCULAR_SLIDER` | `CircularSliderMetrics` | `controls`, `styles` (`CircularSliderStyle`) |
-| `DISCLOSURE` | `DisclosureMetrics` | `views::group`, `views::tree`, `font_panel`, `styles` (`RuleEditorStyle`) |
+| `CIRCULAR_SLIDER` | `CircularSliderMetrics` | `styles` (`CircularSliderStyle`) |
+| `DISCLOSURE` | `DisclosureMetrics` | `font_panel`, `styles` (`DisclosureGroupStyle`, `OutlineViewStyle`, `RuleEditorStyle`) |
 | `TAB_VIEW` | `TabViewMetrics` | `views::tabs`, `styles` (`TabViewStyle`); the arrays hold light, dark, then both with Increase Contrast |
-| `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `views::tabs` |
+| `TOOLBAR_TABS` | `ToolbarTabsMetrics` | `styles` (`TabViewStyle`) |
 | `SCROLL_BAR` | `ScrollBarMetrics` | Scroll views, tables and outlines, `styles` (`ScrollViewStyle`); `opacity` and `track_opacity` hold light, dark, then both with Increase Contrast |
-| `SETTINGS` | `SettingsMetrics` | `patterns::settings`, `sidebar`, `styles` |
+| `SETTINGS` | `SettingsMetrics` | `app`, `patterns::settings`, `platform`, `titlebar`, `styles` |
 | `FONT_PANEL` | `FontPanelMetrics` | `font_panel` |
 | `MEDIA` | `MediaMetrics` | `media`, `styles`; `button_font_weight` is the weight of the `MediaButton` label |
-| `BACKDROP` | `BackdropMetrics` | `backdrop`, `sidebar`, `ctappearance::backdrop`, `styles` (`BackdropStyle`) |
+| `BACKDROP` | `BackdropMetrics` | `backdrop`, `ctappearance::backdrop`, `styles` (`BackdropStyle`) |
 | `BACKDROP_SCENES` | `BackdropScenes` | Preset gradient `dusk` (recipe `titlebar_over_gradient`) |
 
 ### Shell
@@ -1356,7 +1381,7 @@ focus-mode bar.
 
 | Item | What it does |
 |---|---|
-| `init_tracing()` | Installs the `tracing` subscriber: logs to stderr filtered by `RUST_LOG` (default `info`), and to Tracy with the `tracy` feature ([19](19-profiling.md)). Call it once, first thing in `main`. |
+| `init_tracing()` | Installs the `tracing` subscriber: logs to stdout filtered by `RUST_LOG` (default `info`), and to Tracy with the `tracy` feature ([19](19-profiling.md)). Call it once, first thing in `main`. |
 | `ProbeExt::probe(id)` | Sets the accessibility id of a `rect`, so tests and tools can find the node: `rect().probe("sidebar-toggle")`. |
 
 Next: [5. Controls](05-controls.md).

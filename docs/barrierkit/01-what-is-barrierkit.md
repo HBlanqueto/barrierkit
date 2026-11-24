@@ -43,7 +43,7 @@ shape ([ADR 0061](../decisions.md)). The
 | Form | `Form` | `AdwPreferencesGroup` | `views::form::Form` |
 | Settings window | `Settings` | `AdwPreferencesWindow` | `patterns::settings::SettingsWindow` |
 | Actions and shortcuts | `Commands` / `NSMenuItem` | `GAction` | `app::Action` |
-| App preferences | `UserDefaults` | `GSettings` | `app::load_defaults`, `app::save_defaults` |
+| App preferences | `@AppStorage` / `UserDefaults` | `GSettings` | `app::use_app_storage`, `app::load_defaults`, `app::save_defaults` |
 | System colors | `Color` / `NSColor.labelColor`… | CSS variables | `style::Palette` |
 
 ## The crates
@@ -53,7 +53,7 @@ Cargo workspace with four library crates. They need Rust 1.98 (edition 2024).
 
 | Crate | What it is | Who depends on it |
 |---|---|---|
-| `bk` | **BarrierKit**, the kit: Wayland runner, style, controls, views, patterns and app services. | Apps and the shell. |
+| `bk` | **BarrierKit**, the kit: Wayland and macOS runners, style, controls, views, patterns and app services. | Apps and the shell. |
 | `ctdesign` | **CTDesign** (CT = Curse Techniques): **Tengen**, the design system. `build.rs` turns `tengen/tokens.json` and `tengen/components.json` into Rust constants ([4](04-appearance-and-tokens.md#tokens-ctdesign)). | The kit, the compositor, the shell and the portal. |
 | `ctappearance` | **CTAppearance**: reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-ctappearance)). | The kit, the compositor, the shell and the portal. |
 | `infinity-protocol` | Private Wayland protocol between the apps and the Malaysia compositor ([18](18-platform.md)). | The kit and the compositor. |
@@ -63,7 +63,7 @@ others it needs: `bk = { …, features = ["shell"] }`.
 
 | Feature | Default | What it adds |
 |---|---|---|
-| `a11y` | on | Publishes each window's accessibility tree over AT-SPI with `accesskit_unix` ([18](18-platform.md#accessibility)). |
+| `a11y` | on | Publishes each window's accessibility tree: over AT-SPI with `accesskit_unix` on Linux, to AppKit with `accesskit_macos` on macOS ([18](18-platform.md#accessibility)). |
 | `shell` | off | The `shell` module: layer-shell surfaces, the lock screen, the list of toplevels and the status tray host ([18](18-platform.md)). Only `malaysia-shell` enables it. |
 | `tracy` | off | Sends the traces of `init_tracing` to Tracy ([19](19-profiling.md)). |
 
@@ -72,8 +72,9 @@ others it needs: `bk = { …, features = ["shell"] }`.
 The kit builds on [Freya](https://freyaui.dev) `=0.5.3`, but only on its core
 crates: `freya-core`, `freya-components` (without default features),
 `freya-edit`, `freya-animation`, `freya-engine`, `freya-clipboard`, `torin` and
-`ragnarok`. It never uses `freya` or `freya-winit`: the kit has its own Wayland
-runner ([ADR 0034](../decisions.md)). Freya's
+`ragnarok`, and on the Skia binding `freya-skia-safe` `=0.104.0`. It never
+uses `freya` or `freya-winit`: the kit has its own Wayland and AppKit runners
+([ADR 0034](../decisions.md)). Freya's
 elements and hooks (`rect`, `label`, `use_state`…) come with the prelude.
 
 ## Does it use the GPU or the CPU?
@@ -81,13 +82,14 @@ elements and hooks (`rect`, `label`, `use_state`…) come with the prelude.
 | Work | Where it runs |
 |---|---|
 | Layout with `torin` | CPU |
-| Drawing with Skia | GPU, through Vulkan ([ADR 0056](../decisions.md)) |
-| Presentation | Vulkan swapchain on `VK_KHR_wayland_surface`: `MAILBOX` when the driver offers it, otherwise `FIFO` |
+| Drawing with Skia | GPU: Vulkan on Linux ([ADR 0056](../decisions.md)), Metal on macOS |
+| Presentation | Linux: Vulkan swapchain on `VK_KHR_wayland_surface`, `MAILBOX` when the driver offers it, otherwise `FIFO`. macOS: a `CAMetalLayer` drawable, paced by a `CADisplayLink` |
 
-There is no EGL and no `wl_shm` path. The kit takes the first Vulkan device with
-a graphics queue that can present on the Wayland display. That device can be a
-GPU or a software driver such as lavapipe. If there is none, the window does not
-open and `run_window` returns `RunError::Vulkan`.
+There is no EGL and no `wl_shm` path. On Linux the kit takes the first Vulkan
+device with a graphics queue that can present on the Wayland display. That
+device can be a GPU or a software driver such as lavapipe. If there is none, the
+window does not open and `run_window` returns `RunError::Vulkan`. On macOS it
+takes the system's default Metal device; without one, `RunError::Skia`.
 
 Freya 0.5.3 repaints the whole tree on every frame; partial damage waits for
 Freya ([ADR 0047](../decisions.md), «Pending»).
@@ -96,8 +98,8 @@ Freya ([ADR 0047](../decisions.md), «Pending»).
 
 | Need | Why |
 |---|---|
-| A Wayland compositor with `wl_compositor` and `xdg_wm_base`, or macOS 15 or later on arm64 | Without a compositor `run_window` returns `RunError::MissingGlobal`. The other protocols are optional ([18](18-platform.md)). macOS: [the runner](18-platform.md#the-macos-runner). |
-| `libvulkan` and a Vulkan driver (ICD) | Drawing and presentation. |
+| A Wayland compositor with `wl_compositor` and `xdg_wm_base`, or macOS 15 or later on arm64 | Without a compositor `run_window` returns `RunError::NoDisplay`; without one of the two globals, `RunError::MissingGlobal`. The other protocols are optional ([18](18-platform.md)). macOS: [the runner](18-platform.md#the-macos-runner). |
+| On Linux, `libvulkan` and a Vulkan driver (ICD) | Drawing and presentation. macOS has Metal. |
 | `nix develop` | The dev shell ships the Skia binaries, the Adwaita Sans, Geist Mono and Inter fonts, the Mesa Vulkan drivers. On Linux `./dev.sh` refuses to run outside it; on macOS it needs no dev shell ([18](18-platform.md#build-and-check-on-macos)). |
 
 ## Which level to use

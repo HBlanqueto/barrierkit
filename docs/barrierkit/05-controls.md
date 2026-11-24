@@ -121,8 +121,8 @@ A touch pan, a long press and drag, and a pinch need recognizers and a rule for 
 | Gesture | Value | Default |
 |---|---|---|
 | `TapGesture::new().count(n)` | `TapValue { location }` | 1 tap, 4 points of movement, 330 ms from a release to the next press, any distance between the taps |
-| `LongPressGesture::new()` | `LongPressValue { location }`, once the time has passed | 500 ms, 10 points |
-| `DragGesture::new()` | `DragValue { start_location, location, translation, velocity }`, velocity in points per millisecond | 10 points |
+| `LongPressGesture::new()` | `LongPressValue { location }`, once the time has passed | 500 ms (`.minimum_duration(ms)`), 10 points (`.maximum_distance(points)`) |
+| `DragGesture::new()` | `DragValue { start_location, location, translation, velocity }`, velocity in points per millisecond | 10 points (`.minimum_distance(points)`) |
 | `MagnifyGesture::new()` | `MagnifyValue { magnification }`, from two fingers | 0.01 |
 | `RotateGesture::new()` | `RotateValue { rotation }` in radians, from two fingers | 1 degree |
 | `a.sequenced_before(b)` | `SequenceValue::First(a)`, then `Second(a, None)` once `a` has ended, then `Second(a, Some(b))`; `b` starts from the press that is still down (after a long press) or from the next press (after a tap) | |
@@ -245,14 +245,15 @@ Button::new("Save").style(|s| ButtonStyle { shape: Shape::Capsule, ..s.bordered_
 `.controlSize(_:)` does, and `.size(ControlSize)` on one control picks its size and wins over it.
 Both take one of five sizes on `Button`, `PopUpButton` (also with
 `pulls_down`), `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`, `Slider`,
-`Stepper`, `TextField`, `SearchField`, `ComboBox` and `DatePicker`. `Regular` is the default. The tokens of each size are in `ctdesign`
+`Stepper`, `TextField`, `SearchField`, `ComboBox`, `DatePicker` and `TabView`; `.control_size` also sizes
+`ProgressView` and `Spinner`. `Regular` is the default. The tokens of each size are in `ctdesign`
 (`BUTTON.size(size)`, `CHECKBOX.size(size)`, `SWITCH.size(size)`, `SLIDER.size(size)`,
 `SEGMENTED.size(size)`, `STEPPER.size(size)`), measured on macOS 27.2.1 in
 [`macos-control-metrics.md`](../research/macos-control-metrics.md#control-sizes).
 
 | `ControlSize` | Button, pop-up, segmented | Button padding | Font | Corner | Checkbox, radio | Switch | Slider | Stepper |
 |---|---|---|---|---|---|---|---|---|
-| `Mini` | 16 | 8.6 | 9 | 4 | 12 | 36 × 16 | 12 | 13 × 20 |
+| `Mini` | 16 | 8.6 | 9 | 4 | 12 | 36 × 16 | 12 | 13 × 16 |
 | `Small` | 20 | 10 | 11 | 5 | 14 | 44 × 20 | 14 | 17 × 20 |
 | `Regular` | 24 | 12 | 13 | 6 | 16 | 54 × 24 | 16 | 20 × 24 |
 | `Large` | 28 | 14 | 13 | capsule | 18 | 64 × 28 | 20 | 23 × 28 |
@@ -280,9 +281,7 @@ instance `.size(..)` or `.style(..)` after it. A circular button keeps its own s
 The label and the glyphs follow the size: a `Mini` pop-up has a 9 label and 9 high
 arrows, and a checkmark is as large as its box. A search field moves its magnifier and clear
 button, and a combo box its arrow button and chevron, with the size (`SEARCH_FIELD`,
-`COMBO_BOX`). A switch takes 54 × 24 in a layout at every size, as in AppKit and SwiftUI, and
-draws its track scaled around the center (`SwitchStyle::frame_size`); the large and extra large
-tracks overflow that frame.
+`COMBO_BOX`).
 
 ## Compact buttons
 
@@ -296,9 +295,9 @@ Module `compact`.
 
 - `IconButton` is 30 × 30 with a 16 symbol (`ICON_BUTTON`). Inside a
   [`ToolGroup`](#toolbar-controls) or a `Titlebar` it becomes a capsule as tall as the bar's
-  platter, 36 × 36 in the unified bar, 26 × 24 in the compact one and 30 × 28 in the expanded one
+  platter, 38 × 38 in the unified bar, 26 × 24 in the compact one and 30 × 28 in the expanded one
   (`TOOLGROUP`), and its
-  symbol grows to 21 with a 1.6 stroke (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`): the size
+  symbol grows to 21 with a 1.3 stroke (`ICON_BUTTON.toolbar_icon`, `toolbar_stroke`): the size
   AppKit draws toolbar symbols at ([sizes](../research/macos-control-metrics.md#toolbar-items-and-navigation-buttons)).
   In an inactive window a toolbar symbol takes `Role(TertiaryLabel)`, as AppKit dims toolbar
   items (Dark, measured 2026-11-23: ink 0.29 over the platter, `tertiaryLabelColor` is 0.25).
@@ -378,7 +377,7 @@ MenuButton::new("Sort", items).style(|s| MenuButtonStyle { shape: Shape::Capsule
 
 | Item | Module | Build | Behavior |
 |---|---|---|---|
-| `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)`, `.style(\|s\| ..)` | Puts each child in a 36 slot, 24 high in the compact bar, with 1 × 20 separators (14 in the compact bar) and a capsule background |
+| `ToolGroup` | `controls` | `ToolGroup::new()`, `.child(..)`, `.children(..)`, `.style(\|s\| ..)` | Puts each child in a 34.5 × 38 slot (36 × 24 in the compact bar, 38 × 28 in the expanded one) on a capsule background; only the compact bar draws separators, 1 × 14 |
 | `ToolbarSearch` | `compact` | `ToolbarSearch::new(value, placeholder)`, `.collapsed(bool)`, `.style(\|s\| ..)` | A 180 wide `SearchField` (`TOOLBAR_SEARCH_WIDTH`). Collapsed, it shows a magnifying-glass `IconButton` until pressed or while the text is not empty |
 | `ToolbarOverflow` | `compact` | `ToolbarOverflow::new(items)`, `.on_activate(\|id: String\| ..)`, `.style(\|s\| ..)` | A `»` `IconButton` that opens the items as a menu |
 
@@ -396,7 +395,7 @@ that glass with the accent. Collapsed, `ToolbarSearch`'s button sits in a
 
 `ToolGroup` draws only from a `ToolGroupStyle`: slot size, separators,
 background, rim and `axis` (a vertical group stacks its items). Its Tengen
-follows the user's sidebar style. The fields are in
+takes the opaque colors with Reduce Transparency. The fields are in
 [Styles and themes](../../crates/bk/src/styles/tool_group.rs).
 
 `ToolbarSearch` takes a `ToolbarSearchStyle` with only its `width`: the field
@@ -417,7 +416,7 @@ ToolGroup::new().child(back).child(forward).style(|s| ToolGroupStyle { axis: Axi
 
 Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
 
-- `Switch` is 54 × 24 with a 31 × 20 knob that slides over `SWITCH.transition_ms`. Its label is
+- `Switch` is 54 × 24 with a 32 × 20 knob that slides over `SWITCH.transition_ms`. Its label is
   only accessible; put the visible one in a [form row](11-views.md) or set the style's
   `label_position`.
 - Hold the knob to drag it. It follows the cursor, grows to `SWITCH.knob_pressed_scale` (1.65:
@@ -425,14 +424,15 @@ Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
   The switch writes its `State` as soon as the knob passes the middle of the travel, not on
   release, and again if it goes back. The track stays on while you drag and turns off only when the knob
   reaches the off end; it turns on again as soon as the knob leaves it. A press that moves less
-  than `DRAG.threshold` is a click and flips the switch when released, as do Space and Enter.
+  than `DRAG.threshold` is a click and flips the switch when released, as does Space.
 - A held `Switch`, `Slider` or `LevelSlider` knob is Liquid Glass the compositor draws, with no
   code in the app: the control reports the knob's rectangle and the compositor adds the lens, the
   outline, the light line and the shadow, in light and dark. The outline is dark and takes the
   colour of what lies under it. `knob_glass` is only the tint (`None` keeps the opaque knob) and
   the control drops its own knob shadows while the compositor draws the knob. Without the
   compositor the knob stays the opaque `knob` paint: the kit draws no knob glass. Draw no knob by hand.
-- `Checkbox` is a 16 box with a 12 check mark, followed by the label.
+- `Checkbox` is a 16 box with a check mark (`CHECKBOX`), followed by the label. Space flips it;
+  Enter goes to the default button, as in AppKit.
 
 ```rust
 let (off, on, remember) = (use_state(|| false), use_state(|| true), use_state(|| true));
@@ -446,7 +446,7 @@ Checkbox::new("Remember me", remember)
 
 `Switch` draws only from a `SwitchStyle` and `Checkbox` from a
 `CheckboxStyle`; `.tint(Tint)` sets their `fill`. Both styles place the label
-with `label_position` (an `Edge`) and `layout_direction`. The fields are in
+with `label_position` (an `Edge`). The fields are in
 [Styles and themes](../../crates/bk/src/styles/switch.rs).
 
 ```rust
@@ -467,9 +467,9 @@ Each takes in `new` the `State` of the chosen index and writes it when the user 
 
 - `RadioGroup` stacks its options in a column; its style's `axis` puts them in a row. The
   arrow keys move the choice and wrap at the ends.
-- `SegmentedControl` fills its width and the segments share it in proportion to their text
-  plus 12 on each side, so a control as wide as its content has the widths of AppKit's `fit`
-  distribution. Each segment is 24 tall. The chosen one is filled with the toggle accent and
+- `SegmentedControl` is as wide as its content: each segment is its text plus 12 on each
+  side, the widths of AppKit's `fit` distribution. A wider `.width(..)` shares the extra in
+  proportion. Each segment is 24 tall. The chosen one is filled with the toggle accent and
   a 14 high line separates two neighbors that are not chosen. The arrows move the choice and
   wrap.
 - `PopUpButton` shows the chosen item, its SVG icon if it has one, and an up-down chevron.
@@ -482,7 +482,8 @@ Each takes in `new` the `State` of the chosen index and writes it when the user 
   (`SETTINGS.swatch_ring_gap`) and 3 wide, like macOS. The chosen swatch and the one
   under the pointer show their name below. `swatches` is a slice of
   `(name, Rgba)`, for example `&ACCENT_SWATCHES`; a name is a literal, a `tr!` result
-  or a `String`, and the well copies it.
+  or a `String`, and the well copies it. A borrowed name that is an accent id (`"blue"`…) shows
+  its translation, `swatch_name(id)`.
   `ColorWell::accents(label, selection)` is the accent picker: it takes `ACCENT_SWATCHES` and draws
   each swatch in the `control` color of the current appearance, as System Settings does.
   `.multicolor(name)` puts a rainbow swatch first, from `ctdesign::MULTICOLOR`,
@@ -559,8 +560,10 @@ RadioGroup::new("Size", size).option("Small").option("Large")
   frame lines. It does not
   depend on the Liquid Glass blur setting. `knob_pressed_scale: 1.0` or `knob_glass: None` in the
   style turn it off.
+- `CircularSlider` is a 24 disc with a dash from 3 to 9 off the center that points at the value
+  (`CIRCULAR_SLIDER`). A drag turns it; the arrows move it by `SLIDER_KEY_STEP`.
 - `LevelSlider` fills its width. The arrows move it by `SLIDER_KEY_STEP` (0.05).
-- Its Tengen is a 6 track with a 20 × 16 knob. `.style(|s| s.fat(Symbol))` is the 22 tall
+- Its Tengen is a 6 track with a 19.5 × 16 knob. `.style(|s| s.fat(Symbol))` is the 22 tall
   Control Center bar with the symbol inside the fill.
 
 ```rust
@@ -581,7 +584,8 @@ LevelSlider::new("Volume", volume).style(|s| s.fat(Symbol::SpeakerWave))
 `Theme::tengen().style(|s: SliderStyle| ..)`
 for the whole app. The levels, the fields and the value types are in
 [Styles and themes](../../agents/styles.md). `LevelSlider` draws the same way from a
-`LevelSliderStyle` ([fields](../../crates/bk/src/styles/level_slider.rs)).
+`LevelSliderStyle` ([fields](../../crates/bk/src/styles/level_slider.rs)) and `CircularSlider`
+from a [`CircularSliderStyle`](../../crates/bk/src/styles/circular_slider.rs).
 
 ```rust
 Slider::new("Volume", volume).style(|s| SliderStyle { track_height: 10.0, ..s })
@@ -641,8 +645,8 @@ TextField::new(name, "User name").style(|s| TextFieldStyle { shape: Shape::Capsu
 
 ## Passwords
 
-`password::PasswordField` holds a secret in a `Zeroizing<String>` and a `password::State`
-(`Idle`, `Verifying`, `Error(String)`). `SecureField` uses it; a custom field can too.
+`password::PasswordField` holds a secret in a `Zeroizing<String>` and a `password::PasswordState`
+(`Idle`, `Verifying`, `Error(Cow<'static, str>)`). `SecureField` uses it; a custom field can too.
 
 | Method | Effect |
 |---|---|
@@ -662,7 +666,8 @@ wipe it.
 
 `color_picker::ColorPicker::new(label, State<Rgba>)` is a 48 × 24 well filled with the color. A click
 opens a [popover](07-menus-and-popovers.md) with the hex value and hue, saturation and
-brightness `LevelSlider`s. Each move writes the `State`.
+brightness `LevelSlider`s. Each move writes the `State`. `.disabled(bool)` draws the whole well
+at 50% and takes no click.
 `ColorPanel::show(color, area, on_change)` opens the same popover beside `area` without a
 well, like `NSColorPanel`, for a menu item such as «Choose Color…».
 
@@ -677,8 +682,6 @@ To choose from preset colors, use [`ColorWell`](#choices).
 ### Style
 
 `ColorPicker` draws from a [`ColorPickerStyle`](../../crates/bk/src/styles/color_picker.rs):
-`.disabled(bool)` draws the whole well at 50% and takes no click.
-
 the well's size, shape and border, and the panel's size and captions. The
 color itself is content. The default is the capsule bezel with the swatch inside, like
 `NSColorWell.Style.default`; two presets take the other styles:
@@ -701,7 +704,7 @@ stepper's arrows draw from the [`StepperStyle`](../../crates/bk/src/styles/stepp
 |---|---|---|
 | `.elements(DateElements)` | `Date` | `Date`, `Time` or `DateAndTime` |
 | `.field()` | field and stepper | `.datePickerStyle(.field)`: the field alone, 80 × 23 with its border outside, like the `textField` style of `NSDatePicker` |
-| `.size(ControlSize)` | `Regular` | The field stays 78 wide and 21 high; the stepper takes 9 × 13, 11 × 16, 13 × 20, 22 × 28 or 29 × 36, and `Large` and `ExtraLarge` make the field 28 and 36 high (`DATE_PICKER.mini` to `xl`) |
+| `.size(ControlSize)` | `Regular` | The field stays 78 wide and 21 high; the stepper takes 9 × 13, 11 × 16, 13 × 20, 22 × 28 or 29 × 36, and `Large` and `ExtraLarge` make the field 30 and 38 high, its border included (`DATE_PICKER.mini` to `xl`) |
 | `.disabled(bool)` | `false` | Tertiary label ink, a disabled stepper and no input |
 | `.graphical()` | the field | Shows the 139 × 148 month calendar itself, like the `clockAndCalendar` style of `NSDatePicker`: the month and year, ◀ ● ▶ (the dot goes to today), the weekdays over a line and right-aligned days. The chosen day is gray until the calendar has focus, then the selection color |
 
@@ -869,7 +872,7 @@ Link::new("Learn more…")
 font. `Badge`, `Divider` and `Avatar` draw from a `BadgeStyle`, a
 `DividerStyle` and an `AvatarStyle`, resolved when they are built; their
 fields are in
-[Styles and themes](../../crates/bk/src/styles/text.rs).
+[Styles and themes](../../crates/bk/src/styles/badge.rs).
 To change a single one, [paint on views](../../agents/styles.md#paint-on-views) also works.
 
 ```rust
@@ -1043,7 +1046,7 @@ and `.accessibilityAddTraits`. The program is
 
 1. Call the modifier on the view or control: `Button::new("+").accessibility_label("Add a task")`.
 2. A `TextField`, `SearchField` and `TextEditor` expose their text as the value and their placeholder as the name when you give no label.
-3. On macOS each window publishes its tree to VoiceOver and to the AX API ([18](18-platform.md#accessibility)). To check it, run `axdump <pid>` from `~/src/probes` and read the title, help and identifier of each element.
+3. On macOS each window publishes its tree to VoiceOver and to the AX API ([18](18-platform.md#accessibility)). To check it, read the title, help and identifier of each element in Xcode's Accessibility Inspector.
 4. The tree is built only when a client asks, so a window with no screen reader costs nothing.
 
 The kit applies the modifiers to the finished tree because Freya replaces the label of a node that has text.

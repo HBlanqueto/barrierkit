@@ -11,12 +11,13 @@ constants in an app is in
 **Input:** `tengen/tokens.json` and `tengen/components.json`.
 **Output:** `$OUT_DIR/tengen.rs`, compile-time constants that
 `crates/ctdesign/src/lib.rs` includes with `include!`
-([ADR 0011](../decisions.md)).
+([ADR 0011](../decisions.md)), and `agents/tengen.css`, the same values as
+CSS variables for [artifacts](../../agents/artifacts.md).
 
 Tengen is the visual language (the role Aqua has in macOS). CTDesign is the
 compiled tokens; CTAppearance is the resolved appearance
-([ADR 0046](../decisions.md)). The JSON files
-produce nothing but these constants, and only `build.rs` reads them.
+([ADR 0046](../decisions.md)). Only `build.rs` and `scripts/tengen-css.sh`
+read the JSON files.
 
 ## Steps to change a value
 
@@ -28,7 +29,9 @@ produce nothing but these constants, and only `build.rs` reads them.
    braces, `"{ink}"`, which resolves in each theme.
 3. Build. `build.rs` merges both files, reads the structs in `src/lib.rs` and
    writes `tengen.rs`. `cargo:rerun-if-changed` watches the three files.
-4. Run `./dev.sh check`.
+4. Regenerate the CSS: `scripts/tengen-css.sh > agents/tengen.css`.
+   `./dev.sh check` fails while the file differs from the JSON.
+5. Run `./dev.sh check`.
 
 Do not edit `src/lib.rs` to change a value: it holds the types and the API.
 
@@ -46,18 +49,19 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
    table. `field==value` writes a literal instead.
 5. Build. A missing key, struct or field stops the build with
    `ctdesign: …` and the path it looked for.
-6. Use the constant through `ctdesign::NAME` and run `./dev.sh check`.
+6. Regenerate `agents/tengen.css` (step 4 above).
+7. Use the constant through `ctdesign::NAME` and run `./dev.sh check`.
 
 ## What the build writes
 
 | Source | Writes |
 |---|---|
 | `CONSTANTS` table | One constant per line |
-| `THEMED` table | `NAME_LIGHT`, `NAME_DARK`, `NAME_DARK_TINT`; `SHELL`, `SIDEBAR` and `TOOLGROUP_BG` also get `_OPAQUE` variants, composited over `bg-window` |
+| `THEMED` table | `NAME_LIGHT`, `NAME_DARK`, `NAME_DARK_TINT`; `SHELL`, `SIDEBAR` and `TOOLGROUP_BG` also get `_OPAQUE` variants, composited over `bg-window`. `SIDEBAR` and `TOOLGROUP_BG` read them from the `-reduced` key, the color measured with Reduce Transparency |
 | `emit_titlebar` | `TITLEBAR`, `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` |
 | `emit_tints` | `WINDOW_TINT_ACCENT`, `WALLPAPER_TINTING`, `WALLPAPER_TINTING_LIFT`, `TINT_STRENGTH` |
 | `emit_palettes` | `LIGHT`, `DARK`, `DARK_TINT` (`Palette`) and `MENU_<THEME>_OPAQUE` |
-| `emit_specials` | `SANS_FAMILIES`, `ACCENTS`, `ACCENT_SWATCHES`, `MULTICOLOR`, `LEVEL_INDICATOR_COLORS` |
+| `emit_specials` | `SANS_FAMILIES`, `ACCENTS`, `ACCENT_SWATCHES`, `MULTICOLOR`, `LEVEL_INDICATOR_COLORS` and its `_DARK`, `_CONTRAST` and `_CONTRAST_DARK` twins |
 
 `ACCENTS` comes from the list `components.settings.accents`, one entry per
 accent with the four looks `light`, `dark`, `light-contrast` and
@@ -73,27 +77,28 @@ each.
 | Themes | `themes.light`, `themes.dark`, `themes.dark-tint`; `default-theme` is `light` | `LIGHT`, `DARK`, `DARK_TINT` and the themed constants |
 | Traffic lights | `traffic-lights` and `traffic-lights-contrast` per theme: the gradient stops, ring, glyph and halo of each light, measured on macOS 27 | `TRAFFIC_LIGHTS_*`, `TRAFFIC_LIGHTS_CONTRAST_*` |
 | Traffic light geometry and glyphs | `components.window.traffic-lights` (`size` 14, `gap` 9, `ring-width`, `pressed`, `glyphs`) | `TITLEBAR.buttons`, `TRAFFIC_GLYPHS`, `TRAFFIC_*` |
-| Titlebar colours | `titlebar-bg`, `titlebar-bg-inactive`, `titlebar-title`, `titlebar-title-inactive`, `titlebar-line` (the `separator` token) | `Palette.titlebar_bg`, `Palette.title`, `Palette.hairline` |
+| Titlebar colours | `titlebar-bg`, `titlebar-bg-inactive`, `titlebar-title`, `titlebar-title-inactive`, `titlebar-row-title`, `titlebar-row-title-inactive`, `titlebar-line` (the `separator` token) | `Palette.titlebar_bg`, `Palette.title`, `Palette.row_title`, `Palette.hairline` |
 | Titlebar heights | `size.titlebar-h` 40 (own apps); `size.titlebar-ssd-h` 32 (the bar the compositor draws) | `TITLEBAR_CLIENT_HEIGHT`; `TITLEBAR.thickness` |
-| Window corners | `components.window.corner`: `titlebar` → `radius.lg` (16), `compact` 20, `unified` 26, `utility` 15, `expansion` 1.52866, `exponent` 3.34 | `WINDOW_CORNER`; the names match the `set_bar` bars |
+| Window corners | `components.window.corner`: `titlebar` → `radius.lg`, `unified-compact`, `unified` and `utility`, all 16; `expansion` 1.52866, `exponent` 3.34 | `WINDOW_CORNER`; the names match the `set_bar` bars |
 | Fonts | `font.families.sans` starts with Adwaita Sans; `font.families.mono` with Geist Mono | `SANS_FAMILIES`; each `Font` takes the first family |
-| Text styles | `font.styles` (size / line height / weight): `display` 26/32/700, `title-1` 22/26/650, `title-2` 15/20/600, `headline` 13/18/700, `body` 13/18/400, `callout` 12/16/400, `caption` 11/14/500, `mono` 13/16/400 | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `HEADLINE`, `BODY`, `CALLOUT`, `CAPTION`, `MONO`; the window title uses `headline` (`TITLEBAR.font`) |
+| Text styles | `font.styles` (size, line height and weight; values in [4](04-appearance-and-tokens.md#type)): `display`, `title-1`, `title-2`, `title-3`, `headline`, `body`, `callout`, `subheadline`, `caption`, `footnote`, `caption-2`, `mono`, `toolbar-title`, `about-name` | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `TITLE_3`, `HEADLINE`, `BODY`, `CALLOUT`, `SUBHEADLINE`, `CAPTION`, `FOOTNOTE`, `CAPTION_2`, `MONO`, `TOOLBAR_TITLE`, `ABOUT_NAME`; the window title uses `headline` (`TITLEBAR.font`) |
 | Spacing | `space.1`–`space.4`: 4, 8, 12, 16 | `SPACE_1`–`SPACE_4` |
 | Durations | `duration.fast` 120, `base` 250, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |
 | Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.unfocused` (blur 0.45, offset 0.4, opacity 0.55) | `SHADOW`, `SHADOW_DARK` |
 | Controls | `components.<control>` | `BUTTON`, `SWITCH`, `SLIDER`, `TEXT_FIELD`… |
 | Shell | `components.shell`: `menubar`, `dock`, `about`, `lock`, `launcher`, `menu` | `MENUBAR_*`, `DOCK_*`, `ABOUT_*`, `LOCK_*`, `LAUNCHER_*`, `MENU_*`, `SHELL_*` |
-| Appearance factors | `appearance`: `dominant`, `tint-strength`, `modes`, `layer-factors` | `DOMINANT_*`, `TINT_STRENGTH`, `WINDOW_TINT_*`, `LAYER_FACTOR_*` |
+| Appearance factors | `appearance`: `dominant`, `tint-strength`, `modes`, `layer-factors`, `wallpaper-tinting`, `contrast`, `accessibility` | `DOMINANT_*`, `TINT_STRENGTH`, `WINDOW_TINT_*`, `ACCENT_CHROMA_GAIN`, `LAYER_FACTOR_*`, `WALLPAPER_TINTING*`, `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST`, `TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` |
 
 ## Appearance and wallpaper
 
 `ctappearance` turns the constants into the resolved appearance with
 `resolve(&load_appearance(), load_dominant())`.
 
-1. `appearance.color_scheme` picks the theme. The old value `auto` reads as
-   `light`.
-2. `reduce_transparency` picks the `_OPAQUE` shell, menu and sidebar
-   palettes.
+1. `appearance.color_scheme` picks the theme, unless the system's light or
+   dark wins ([4](04-appearance-and-tokens.md#the-systems-light-or-dark)).
+   The old value `auto` reads as `light`.
+2. `reduce_transparency` or `contrast` picks the `_OPAQUE` shell, menu,
+   sidebar and toolgroup colors.
 3. `wallpaper_tinting` tints each window with the wallpaper behind it, as
    macOS 26 does: `WALLPAPER_TINTING` of its chroma and
    `WALLPAPER_TINTING_LIFT` of the way to `WALLPAPER_TINTING_TARGET`, times
@@ -107,7 +112,7 @@ each.
    picks the one with the largest area × chroma and clamps its HSL lightness
    into `DOMINANT_LIGHTNESS`.
 
-The kit, the compositor and the portal watch `appearance.domain` and
+On Linux the kit, the compositor and the portal watch `appearance.domain` and
 `wallpaper.state` and resolve again when either changes
 ([18. Platform](18-platform.md#the-runner)).
 
@@ -119,8 +124,10 @@ The kit, the compositor and the portal watch `appearance.domain` and
 
 | Pattern | Rule |
 |---|---|
-| A hex colour (`0xRRGGBB`) or `Rgba::rgb8(…)` / `Rgba::rgba8(…)` with numbers | Colours live in `ctdesign` |
+| A hex colour (`0xRRGGBB`, `"#RRGGBB"`), `Rgba::rgb8(…)` / `Rgba::rgba8(…)` or Freya's `Color::from_rgb(…)` with numbers, or an `r:`, `g:` or `b:` field set to a fraction | Colours live in `ctdesign` |
 | A local `[u8; 4]` | Convert with `Rgba::to_rgba8` |
+| `corner_radius(…)` or `CornerRadius::new(…)` with a number other than 0 | Radii live in `ctdesign` |
+| `Duration::from_millis/secs/micros(…)` or `.time(…)` with a number in `crates/bk/src`, except `platform/`, `shell/`, `session_bus.rs`, `animation.rs` and `group.rs` | Durations live in `ctdesign` |
 | `const NAME: i32/u32/f32 = <number>` in `password.rs`, `controls/`, `theme.rs` | Measurements live in `ctdesign` |
 
 ## Related

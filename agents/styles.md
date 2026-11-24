@@ -37,7 +37,7 @@ its style.
 5. Pick values with [Value types](#value-types): a `Role` or `Accent` when the
    color must follow the system, `Color` only when it must not.
 6. Leave accessibility to the kit ([Accessibility](#accessibility)).
-7. Build with `cargo clippy -- -D warnings` inside `nix develop`.
+7. Build with `cargo clippy -- -D warnings` (on Linux, inside `nix develop`).
 
 ## Levels
 
@@ -88,7 +88,7 @@ All of them are in `bk::styles` and in the prelude.
 | Type | Use it for | Values |
 |---|---|---|
 | `ShapeStyle` | any paint | `Role(Role)` follows light/dark/contrast · `Accent` follows the accent (system, app or `Backdrop`; inactive window) · `Color(Rgba)` fixed · `Gradient(Gradient)` · `Backdrop` the gradient of the surrounding `Backdrop`, the accent without one · `Material(Thickness)` translucency with blur · `WindowBackground` the window's background, SwiftUI's `.windowBackground`: the system's material where it draws one (a titled macOS window), the window color elsewhere · `Clear` nothing |
-| `Role` | a semantic color | every color of `Palette` but `accent` (that is `ShapeStyle::Accent`): `Label`, `SecondaryLabel`, `TertiaryLabel`, `Separator`, `Outline`, `ControlBorder`, `WindowBackground`, `ContentBackground`, `ControlBackground`, `ControlHover`, `AccentInactive`, `OnAccent`, `Destructive`, `RaisedBackground`, `SunkenBackground`, `Scrim`, `SelectedControl`, `CardBorder` |
+| `Role` | a semantic color | every color of `Palette` but `accent` (that is `ShapeStyle::Accent`): `Label`, `SecondaryLabel`, `TertiaryLabel`, `Separator`, `Outline`, `ControlBorder`, `WindowBackground`, `ContentBackground`, `ControlBackground`, `SystemFill`, `ControlBackgroundDisabled`, `TextBackground`, `ControlHover`, `AccentInactive`, `OnAccent`, `ToggleAccent`, `RowAccent`, `ToggleAccentDisabled`, `SelectedContent`, `SelectedContentInactive`, `OnSelectedContent`, `SeparatorStrong`, `ComboButton`, `SegmentDivider`, `RingAccent`, `Destructive`, `DestructiveFill`, `RaisedBackground`, `SunkenBackground`, `Scrim`, `SelectedControl`, `CardBorder` |
 | `Gradient` | a gradient paint | `Gradient::new(angle, stops)` linear, `Gradient::angular(angle, stops)` clockwise from the right, `Gradient::elliptical(stops)`; `angle` in degrees, `stops: Vec<(ShapeStyle, f32)>` with positions 0–1; gradients mix in OKLab like SwiftUI's default; `.color_space(GradientColorSpace::Device)` mixes in device RGB, as the bezel and tab gradients do |
 | `Thickness` | how translucent a material is | `UltraThin`, `Thin`, `Regular`, `Thick`, `UltraThick`; opacity and blur from `MATERIAL` ([4](../docs/barrierkit/04-appearance-and-tokens.md#materials)) |
 | `StateValue<T>` | a value that changes with the state | `StateValue::new(normal)` and `.hovered(..)`, `.pressed(..)`, `.focused(..)`, `.disabled(..)`; the first set one wins in the order disabled, pressed, hovered, focused, then `normal` |
@@ -114,14 +114,14 @@ control; the groups do not. A control leaves out a group it does not draw.
 | Border and shadow | `knob_border`, `knob_shadows` |
 | Held knob | `knob_pressed_scale`, `knob_glass` |
 | Effects | `opacity`, `disabled_opacity` |
-| Layout | `axis`, `labels`, `layout_direction` |
+| Layout | `axis`, `labels` |
 | Typography | `label_font` |
 | Motion | `animation` |
 
 The fields of each style, their Tengen values, its presets and the states its
 control enters are in the rustdoc of its struct, in
 [`crates/bk/src/styles/`](../crates/bk/src/styles/): read the file, or run
-`cargo doc -p bk --open` inside `nix develop`. The
+`cargo doc -p bk --open` (on Linux, inside `nix develop`). The
 [table below](#which-controls-take-a-style) gives the style of each control.
 
 A `Capsule` or `Circle` needs the size of the part. Where the width is only
@@ -373,8 +373,7 @@ The kit applies these after every level; you cannot turn them off:
 
 1. Reduce motion: every `Animation` becomes `None`.
 2. Reduce transparency: every `Material` becomes its solid color, without
-   blur. So do the kit's own glass surfaces: the glass full-screen bars and
-   `TopGlass` become the solid bar, the media `Material` becomes the opaque
+   blur. So do the kit's own glass surfaces: `TopGlass` becomes the solid bar, the media `Material` becomes the opaque
    `MEDIA.material_tint`, and `GlassContainer` the window's opaque glass color.
 3. Keyboard focus: the focus ring is always drawn; no field turns it off.
 
@@ -441,7 +440,7 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `Titlebar` | `TitlebarStyle`; its traffic lights take `TrafficLightsStyle` | 2026-11-07 |
 | The band under the overlaid title bar in focus mode | `FullscreenBarStyle`, theme and container only | 2026-11-07 |
 | `TrafficLights` | `TrafficLightsStyle` | 2026-11-07 |
-| `WindowChrome` | `WindowChromeStyle`, with its layout and reveal | 2026-11-07 |
+| `WindowChrome` | `WindowChromeStyle`, with its reveal | 2026-11-07 |
 | `Sidebar` | `SidebarStyle` | 2026-11-07 |
 | `SidebarItem` | `SidebarItemStyle`; its tile takes `SymbolTileStyle` | 2026-11-07 |
 | `SidebarSection` | `SidebarSectionStyle` | 2026-11-07 |
@@ -457,7 +456,7 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `List` | `TableStyle`; `TableStyle::plain_list()` or `bordered_list()` replace the default `inset_list()` | 2026-11-20 |
 | `CollectionView` | `CollectionViewStyle`, for its tiles | 2026-11-07 |
 | `OutlineView`, `Browser` | `OutlineViewStyle`; `classic()` and `full_width()` are `NSOutlineView` | 2026-11-20 |
-| `TabView` | `TabViewStyle`, for its tabs; `tab_type` is `Top` (default), `Bottom`, `Left`, `NoTabs*` or `Toolbar` (`TabViewStyle::toolbar()`, the settings-window tabs) | 2026-11-20 |
+| `TabView` | `TabViewStyle`, for its tabs; `tab_type` is `Top` (default), `Bottom`, `NoTabs*` or `Toolbar` (`TabViewStyle::toolbar()`, the settings-window tabs) | 2026-11-20 |
 | `TextView` | `TextViewStyle` | 2026-11-07 |
 | `Sheet` | `SheetStyle` | 2026-11-07 |
 | `Alert` | `AlertStyle`; its sheet takes `SheetStyle`, its buttons `ButtonStyle` and its checkbox `CheckboxStyle` | 2026-11-07 |

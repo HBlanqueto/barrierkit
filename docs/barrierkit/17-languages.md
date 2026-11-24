@@ -55,7 +55,7 @@ language is chosen. The language picker widgets are in
    ```
 
 6. Put `app_language_row("com.example.notes")` in the app's preferences
-   ([12. Patterns](12-patterns.md)).
+   ([12. Patterns](12-patterns.md#language-picker)).
 7. Read every visible text through `tr!`:
 
    ```rust
@@ -73,12 +73,12 @@ language is chosen. The language picker widgets are in
 
 ## How the language is chosen
 
-The kit asks `ctappearance::language` once per process, the first time a
-text is read. The first source that gives a value wins:
+Each loader, the app's and the kit's, asks `ctappearance::language` once, the
+first time it reads a text. The first source that gives a value wins:
 
 | Order | Source | Written by |
 |---|---|---|
-| 1 | `language` in `<name>.domain` in the app's settings folder ([13](13-app.md#settings-and-restoration)) | The app's language picker |
+| 1 | `language` in `<app_id>.domain` in the app's settings folder ([13](13-app.md#settings-and-restoration)) | The app's language picker |
 | 2 | `language` in `language.domain` in the config dir | The system language picker (Settings) |
 | 3 | `LANGUAGE`, then the first of `LC_ALL`, `LC_MESSAGES`, `LANG` | The session |
 | 4 | `fallback_language` of `i18n.toml` (`en`) | The app |
@@ -157,23 +157,6 @@ in `loader` from `assets` and returns it. It turns off Unicode isolation marks
 around arguments. When the selection fails, it logs a warning and returns the
 loader as it is. `localize!` calls it; an app only calls it to build a
 second loader by hand.
-
-## The language pickers
-
-`app_language_row(domain)` and `system_language_row()` show a `PopUpButton`
-with three entries. Each choice writes the file at once and keeps the other
-keys of the file.
-
-| Entry | Writes |
-|---|---|
-| Automatic | Removes the `language` key |
-| Español | `language = "es"` |
-| English | `language = "en"` |
-
-| Row | File | Detail text |
-|---|---|---|
-| `app_language_row(domain)` | `<domain>.domain` | Applies the next time the app opens |
-| `system_language_row()` | `language.domain` | none |
 
 ## Adding a language
 

@@ -56,9 +56,9 @@ Wayland protocols) is in [18. Platform](18-platform.md).
 
 ## Running a window
 
-`run_window(app, options) -> Result<(), RunError>` connects to the
-compositor, opens one `xdg_toplevel` and runs the event loop until the last
-main window closes. `app` is anything that converts into an `AppComponent`: a
+`run_window(app, options) -> Result<(), RunError>` opens one window (an
+`xdg_toplevel` on Linux, an `NSWindow` on macOS) and runs the event loop until
+the last main window closes. `app` is anything that converts into an `AppComponent`: a
 closure that returns a view, or `AppComponent::new(component)`.
 
 The runner provides these root contexts to every component of the window,
@@ -83,22 +83,22 @@ method changes one field (the fields are also public).
 | Method | Default | Effect |
 |---|---|---|
 | `new(title, app_id)` | — | Visible title and the reverse-DNS `app_id` (`com.example.notes`); `app_name` is its last part |
-| `.size((width, height))` | `WINDOW_DEFAULT_SIZE` (640 × 420) | Initial size of the whole window, AppKit's title bar included, as SwiftUI's `defaultSize`. A size saved on close wins, clamped to the limits |
+| `.size((width, height))` | `WINDOW_DEFAULT_SIZE` (640 × 420) | Initial size of the whole window, AppKit's title bar included, as SwiftUI's `defaultSize`. On Linux a size saved on close wins, clamped to the limits |
 | `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits of the content below the window's bar, as SwiftUI's `.frame(minWidth:minHeight:)`: the window adds 52 for `HiddenTitleBar`, the native bar for `TitleBar` (40 on Linux) and 0 for `Plain`, so the window stops where its SwiftUI twin does. Equal limits make the window fixed-size (`WindowStatus::fixed`); a 0 in the maximum leaves that dimension unbounded |
 | `.menu(MainMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
 | `.status_item(StatusItem)` | none | A status icon in the menu bar ([13. App](13-app.md)) |
-| `.window_style(WindowStyle)` | `TitleBar` | Who frames the window on macOS ([Window style](#window-style)); Linux ignores it |
+| `.window_style(WindowStyle)` | `TitleBar` | Who frames the window on macOS ([Window style](#window-style)). On Linux it only sets the bar the limits add and whether `Application` adds its `Titlebar` |
 | `.window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility)` | `Automatic` | `OnHover` keeps a `HiddenTitleBar` window's bar out of full screen until the pointer reaches the top edge, where it comes down with the menu bar, as SwiftUI's `.windowToolbarFullScreenVisibility(.onHover)` (AppKit's `.autoHideToolbar`); Linux ignores it |
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
-| `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves; ignored by main windows |
+| `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves on Linux; ignored by main windows and on macOS |
 | `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen band included. `Application::theme` sets it |
-| `scene` (field) | `None` | The scene id that names the saved size: `<app_id>.window.<scene>`. `Application` sets it; `None` is `<app_id>.window` |
+| `scene` (field) | `None` | The scene id that names the saved size. `Application` sets it for every scene but `MAIN_WINDOW` |
 
-The size and the maximized state are saved on close under `<app_id>.window`,
-or `<app_id>.window.<scene>` for a scene other than `MAIN_WINDOW`
-(see restoration in [13. App](13-app.md)). A window closed in full screen
-saves nothing; a maximized one keeps its last normal size and reopens
-maximized.
+On Linux the size and the maximized state are saved on close in the app's
+state folder ([13](13-app.md#settings-and-restoration)):
+`<data>/<app_id>/<app_id>.window.state`, or `<app_id>.window.<scene>.state`
+for a `scene`. A window closed in full screen saves nothing; a maximized one
+keeps its last normal size and reopens maximized. macOS saves no size.
 
 ## Window controls
 
@@ -111,12 +111,12 @@ in.
 | `minimize()` | Minimizes it |
 | `toggle_maximize()` | Maximizes or restores it |
 | `toggle_fullscreen()` | Enters or leaves full screen |
-| `move_window()` | Starts a compositor move (`xdg_toplevel.move`) with the last pointer press |
-| `resize(WindowEdge)` | Starts a compositor resize from that edge with the last pointer press |
+| `move_window()` | Starts a compositor move (`xdg_toplevel.move`) with the last pointer press; on macOS it moves only a `Plain` window ([Window style](#window-style)) |
+| `resize(WindowEdge)` | Starts a compositor resize from that edge with the last pointer press; macOS ignores it |
 | `set_title(title)` | Changes the title the compositor and the menu bar show |
-| `set_bar(Bar)` | Tells the compositor which bar the window draws ([9](09-titlebars.md#corner-radius)) |
-| `set_background_alpha(alpha)` | Multiplies the alpha of the window background, clamped to 0…1 (1 is opaque) |
-| `present(token)` | Activates the window with an xdg-activation token, for example one received from a second launch |
+| `set_bar(Bar)` | Tells the compositor which bar the window draws ([9](09-titlebars.md#corner-radius)); on macOS it sets the style of a `HiddenTitleBar` window's `NSToolbar` |
+| `set_background_alpha(alpha)` | Multiplies the alpha of the window background, clamped to 0…1 (1 is opaque); macOS ignores it |
+| `present(token)` | Activates the window with an xdg-activation token, for example one received from a second launch; macOS ignores the token and activates the app |
 | `make_key_and_order_front()` | Brings the window to the front and gives it the keyboard with the last key or button press, for example from a shortcut in another window of the same process |
 | `open_window(app, options)` | Opens another main window in the same process. [Scenes](#scenes) use it |
 | `set_ime_cursor_area(x, y, width, height)` | Tells the input method where the text cursor is, in logical pixels |
@@ -126,7 +126,7 @@ in.
 |---|---|
 | `status` | `State<WindowStatus>` ([Window state](#window-state)) |
 | `title`, `fixed`, `fixed_width` | The initial title; whether the window is fixed-size; whether its minimum and maximum widths are equal |
-| `hud`, `panel` | Whether it is a HUD window; whether it is a utility window |
+| `hud`, `panel`, `toolbar_on_hover` | Whether it is a HUD window; whether it is a utility window; whether its options ask for `WindowToolbarFullScreenVisibility::OnHover` |
 | `ime_preedit` | `State<String>` with the input method's composition text, empty when there is none. Committed text arrives as `Key::Character` events |
 | `focus_bar`, `focus_bar_progress`, `focus_bar_height`, `focus_overlay` | Malaysia's focus mode: whether the compositor bar is down, its animation progress (0…1), its height, and whether the window draws its title bar over the content ([9](09-titlebars.md#full-screen-and-focus-mode)) |
 | `desktop` | `State<Option<u32>>`: the number of the Malaysia desktop the window is on, from 1; `None` in a focus space or outside Malaysia (`infinity_focus_v1` 4) |
@@ -157,8 +157,9 @@ The look of the title bar in each state is in
 ### Window style
 
 `WindowStyle` (like SwiftUI's `windowStyle`) says who frames a main window on
-macOS. The compositor decides on Linux, so there it has no effect. Utility
-windows and sheets are always `TitleBar`.
+macOS. The compositor frames it on Linux, where the style only sets the bar
+that the size limits add ([Window options](#window-options)). Utility windows
+and sheets are always `TitleBar`.
 
 | Variant | `NSWindow` | `WindowStatus::decoration` | Use |
 |---|---|---|---|
@@ -209,7 +210,7 @@ The content does not move
 
 ### Resizing from the edges
 
-With `Client` decoration, the runner reserves a band inside the window:
+On Linux, with `Client` decoration, the runner reserves a band inside the window:
 `WINDOW_RESIZE.edge` (5 px) on each side and `WINDOW_RESIZE.corner` (16 px)
 along each corner.
 
@@ -229,7 +230,7 @@ An `Application` declares its windows as scenes. `.window(title, content)` is
 the first, `.scene(..)` adds the others, and `.options(..)` changes the
 `WindowOptions` of the scene declared last. The first scene that is not
 `Settings` opens at launch; the rest open when the app asks. A scene gives each window an id, so the
-app can open, front, close and list its windows, and each keeps its own saved size.
+app can open, front, close and list its windows, and on Linux each keeps its own saved size.
 
 | Type | Like | What it is |
 |---|---|---|
@@ -242,9 +243,11 @@ app can open, front, close and list its windows, and each keeps its own saved si
 `WindowGroup` or `Window` window gets the same background and `Titlebar` as
 `Application::window`.
 
-`Application` applies its name and its `Theme` when `.scene(..)` takes a scene,
-so call `Application::theme` first. To give one scene another theme or size,
-call `Application::options` right after its `.scene(..)`.
+`.scene(..)` gives each scene the app's id and name, and `Application::theme`
+gives its `Theme` to every scene, declared before or after. To give one scene
+another theme or size, call `Application::options` right after its
+`.scene(..)` and after `Application::theme`, or `.options(..)` on the scene
+type itself.
 
 The program is [`recipes/scenes.rs`](../../agents/recipes/scenes.rs).
 
@@ -266,8 +269,8 @@ Rules the runner applies:
    opens it otherwise. On a `WindowGroup` it opens a new window each time. On a
    value group, `open_value` fronts the window whose value is equal, or opens
    a new one.
-2. Opening sends `WindowControls::open_window` from the calling window. The
-   runner makes another `xdg_toplevel` with smithay-client-toolkit
+2. Opening sends `WindowControls::open_window` from the calling window. On
+   Linux the runner makes another `xdg_toplevel` with smithay-client-toolkit
    (`Runtime::create_window`, as `run_window` does for the first window), so
    `freya-winit` is not involved ([ADR 0033](../decisions.md)).
 3. Every scene window shares the app's `app_id`.
@@ -276,7 +279,7 @@ Rules the runner applies:
    and removes it when it closes. Fronting is `make_key_and_order_front` on the
    listed controls, which asks the compositor with the last input serial.
    The [Window menu](13-app.md#the-window-menu) shows that list.
-5. Each scene saves its own size (`WindowOptions::scene`).
+5. On Linux each scene saves its own size (`WindowOptions::scene`).
 6. The app is not restored with the windows that were open, and no scene
    sets its position: xdg-shell gives a client neither.
 
@@ -303,21 +306,23 @@ returns the view. `.options(|window| ..)` changes those options. Unlike
 background: `content` draws its own `Titlebar` if it wants one.
 
 1. Call `.open()` from a component of the window that owns the panel.
-2. The runner creates another `xdg_toplevel` with `set_parent` towards that
-   window, so the compositor keeps it on top and groups it with it.
-3. It takes the parent's `app_id` and neither saves nor restores its size.
-4. Before its first commit it declares itself a panel
+2. On Linux the runner creates another `xdg_toplevel` with `set_parent`
+   towards that window, so the compositor keeps it on top and groups it with
+   it. On macOS it is a titled child window of that window, kept above it.
+3. It neither saves nor restores its size. On Linux it takes the parent's
+   `app_id`.
+4. On Linux, before its first commit it declares itself a panel
    (`infinity_window_style_v1.set_panel`, version 3) with
    `WindowOptions::panel`. A panel is never the main window: while it holds
    the keyboard, its parent stays active. Without version 3 it behaves like a
    normal window.
 5. A `Titlebar` inside it switches to `close_only`: a panel does not minimize.
-6. Esc closes it when no text field is focused. Menu shortcuts pressed in it
-   go to its parent's menu, as in an `NSPanel`.
+6. On Linux, Esc closes it when no text field is focused, and menu shortcuts
+   pressed in it go to its parent's menu, as in an `NSPanel`.
 7. Closing it removes only the panel; the app keeps running.
 
-`PanelBehavior` has three flags; `PanelBehavior::UTILITY` sets all three, as
-SwiftUI's `UtilityWindow` does:
+`PanelBehavior` has three flags, which only Linux applies;
+`PanelBehavior::UTILITY` sets all three, as SwiftUI's `UtilityWindow` does:
 
 | Field | Like | Effect |
 |---|---|---|
@@ -329,8 +334,8 @@ SwiftUI's `UtilityWindow` does:
 (`hudWindow`), which the HIG keeps for photo, video and slide apps
 ([Panels](https://developer.apple.com/design/human-interface-guidelines/panels)):
 
-1. The window clears with `HUD_BACKGROUND`, which is translucent, so it
-   declares no opaque region and the compositor blurs what is behind it.
+1. On Linux the window clears with `HUD_BACKGROUND`, which is translucent, so
+   it declares no opaque region and the compositor blurs what is behind it.
    Apple does not publish the material color; `#1e1e1e` at 85 % is an
    approximation.
 2. All its content uses the dark scheme, whatever the app's is.
@@ -339,8 +344,10 @@ SwiftUI's `UtilityWindow` does:
 
 ## Popups
 
-A popup is an `xdg_popup` attached to the window: menus, pop-up buttons,
-popovers and tooltips use one ([7. Menus and popovers](07-menus-and-popovers.md)).
+A popup is a surface attached to the window (an `xdg_popup` on Linux; on
+macOS a child `NSPanel`, or an `NSPopover` for a `Popover`): menus, pop-up
+buttons, popovers and tooltips use one
+([7. Menus and popovers](07-menus-and-popovers.md)).
 For your own:
 
 ```rust
@@ -451,7 +458,7 @@ a pointer event carries none.
 `MainMenuAddress { service, path }` is the D-Bus address of a window's menu
 bar menu. The runner publishes it to the compositor with
 `org_kde_kwin_appmenu`; a shell reads it back for each window
-([18. Platform](18-platform.md)). `ObjectId` is the Wayland object id
+([18. Platform](18-platform.md)). On Linux `ObjectId` is the Wayland object id
 (re-exported from `wayland-backend`) that identifies a surface in those
 lists.
 
@@ -464,14 +471,14 @@ and `DocumentGroup`; AppKit: `NSOpenPanel`, `NSSavePanel` and `NSDocument`. The 
 
 1. **Choose files.** `.file_importer(is_presented, types, multiple, on_completion)` and `.file_exporter(is_presented, "Name.png", types, on_completion)` take a `State<bool>`, as `sheet` does. `types` is a `Vec<ContentType>`: `ContentType::extension("png")` or `ContentType::Folder`. An empty list allows every file. `on_completion` runs only when the user chose.
 2. **Start folder.** `.file_dialog_default_directory(path)` wraps a view; the dialogs of the views below it start there. For a dialog of your own use `FileDialog::open()` or `FileDialog::save(name)`, `.directory(path)` and `.present(&WindowControls::get()).await`.
-3. **Where it opens.** On macOS the dialog is a sheet of the window. On Linux the portal opens it without a parent, filters or start folder.
+3. **Where it opens.** On macOS the dialog is a sheet of the window. On Linux the FileChooser portal opens it without a parent; the extensions become its filters, in any case, and the start folder its `current_folder`.
 4. **Make a window a document.** Call `use_document(|path| write(path))` in the window's component. It returns a `Document`.
 5. **Keep it dirty.** `document.set_edited(true)` when the content differs from the file, `false` when it matches. An edited window shows the dot in its close button.
 6. **Save.** `document.save().await` writes through your closure, asking for a file first when `document.url()` is `None`. Use it for the Save command.
-7. **Close.** The native close button of an edited window shows the "Do you want to save the changes made to the document “name”?" sheet with Save, Cancel and Don’t Save. Save writes and closes; a write that fails keeps the window open. Cmd-W and Cmd-Q go through the same delegate methods and are meant to ask the same, but were not run. On Linux the compositor's close request and `WindowControls::close()` show the kit's `Alert` in a sheet window with the same buttons, and quit asks for the first edited window first; there is no dirty dot.
+7. **Close.** Closing an edited window (its close button, the compositor's close request, `WindowControls::close()`) shows the "Do you want to save the changes made to the document “name”?" sheet with Save, Cancel and Don’t Save. Save writes and closes; a write that fails keeps the window open. Quit asks for the first edited window first. On macOS the sheet is an `NSAlert`; Cmd-W and Cmd-Q go through the same delegate methods but were not run. On Linux it is the kit's `Alert` in a sheet window, and there is no dirty dot.
 8. **Open.** `.on_open_url(|url: OpenedUrl| ..)` runs for each file (`OpenedUrl::File(path)`) or address (`OpenedUrl::Other(text)`) that Finder, `open` or a link hands to the app. The app declares `CFBundleDocumentTypes` and `CFBundleURLTypes` in its `Info.plist`; the kit does not generate it.
 
-On macOS `WindowControls::close()` and the kit's own traffic lights (a `Plain` window) close without asking. Not built: `UTType` filters, `FileDocument`, `DocumentGroup`, autosave and versions, and a recent-documents menu. The kit does not use `NSDocument`: it would be a second owner of the file and of the window.
+Not built: `UTType` filters, `FileDocument`, `DocumentGroup`, autosave and versions, and a recent-documents menu. The kit does not use `NSDocument`: it would be a second owner of the file and of the window.
 
 ## Errors
 
@@ -483,12 +490,15 @@ On macOS `WindowControls::close()` and the kit's own traffic lights (a `Plain` w
 | `Wayland`, `Registry` | The connection or the registry fails |
 | `MissingGlobal(name)` | A [needed global](18-platform.md#wayland-protocols) is missing, `zwlr_layer_shell_v1` for `run_layer`, or `ext_session_lock_manager_v1` for `run_lock` |
 | `Vulkan(reason)` | No `libvulkan`, no GPU that can present, or the surface lacks the swapchain format |
-| `Skia` | Skia cannot create its Vulkan context |
+| `Skia` | Skia cannot create its GPU context: Vulkan on Linux; on macOS, no Metal device, queue or context |
 | `DeviceLost` | The GPU device cannot be recreated, or is lost again after two recreations without a presented frame; a swapchain image not ready within one second counts as a loss |
 | `SurfaceLost` | Never returned: the runner creates a new Vulkan surface and swapchain |
 | `LayerSize` | A `LayerSpec` leaves a size at 0 without anchoring both opposite edges |
 | `NoWindow` | `Application::run` finds no scene to open at launch (only `Settings`, or none) |
 | `EventLoop(reason)` | A `calloop` source cannot be created or the loop fails |
 | `Io` | The appearance watcher cannot start |
+
+On macOS the runner returns only `EventLoop` and `Skia`, and
+`Application::run` `NoWindow`; the other variants are Linux's.
 
 Next: [9. Titlebars](09-titlebars.md).

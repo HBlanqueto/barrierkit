@@ -16,6 +16,10 @@ an Edit menu, a shortcut, undo and settings that survive a restart.
 
 ## Steps
 
+The prelude holds `Application`, `Commands`, `CommandGroup`,
+`CommandGroupPlacement` and `use_app_storage`. Import the rest from `bk::app`
+and `bk::main_menu`.
+
 1. Declare each command once, as a constant `Action` with its shortcut:
 
    ```rust
@@ -118,11 +122,12 @@ How a shortcut reaches the app:
 3. While a text field has focus, Ctrl+A, C, V, X, Y and Z (without Alt or
    Super) go to the field and never fire a menu shortcut.
 
-A shortcut that is in no menu does nothing. A disabled item does not fire its
-shortcut.
+A shortcut that is in no menu and on no `Button` ([5](05-controls.md#buttons))
+does nothing. A disabled item does not fire its shortcut.
 
-The kit does not route an action to the focused view, and it has no close
-veto, quit call or open-URL event ([ADR 0085](../decisions.md)).
+The kit does not route an action to the focused view, and it has no quit call
+([ADR 0085](../decisions.md)). The close veto and the open-URL event are in
+[8](08-windows.md#documents-and-file-dialogs).
 
 The kit declares these actions:
 
@@ -189,7 +194,7 @@ keyboard layout.
 | `CUT`, `COPY`, `PASTE`, `SELECT_ALL` | Ctrl+X, C, V, A | a focused text field, else the app | while a text field is focused (macOS), or after `use_menu_enabled` |
 | `DELETE` | none | the app | after `use_menu_enabled` |
 | `FIND`, `FIND_AND_REPLACE`, `FIND_NEXT`, `FIND_PREVIOUS`, `USE_SELECTION_FOR_FIND`, `JUMP_TO_SELECTION` | Ctrl+F, Ctrl+Alt+F, Ctrl+G, Ctrl+Shift+G, Ctrl+E, Ctrl+J | the app | after `use_menu_enabled` |
-| `HELP` | F1 | the app | after `use_menu_enabled` |
+| `HELP` | F1 (⌘? on macOS until the app serves it) | the app | after `use_menu_enabled` |
 
 Undo, Redo, Cut, Copy, Paste and Select All go to a focused text field first,
 as AppKit sends them to the first responder: the field gets its own shortcut.
@@ -221,8 +226,9 @@ of its own Window menu when the list changes:
 
 ### Quit
 
-`QUIT` closes every window of the app, one by one. It has no veto, so a
-window with unsaved work closes like any other ([ADR 0085](../decisions.md)).
+`QUIT` closes every window of the app, one by one. When a window's `Document`
+has unsaved changes, `QUIT` closes only that window, which asks first; the user
+quits again after answering ([8](08-windows.md#documents-and-file-dialogs)).
 The kit has no function that quits.
 
 ## Menu bar menu
@@ -301,7 +307,7 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 
 | Function | File |
 |---|---|
-| `use_app_storage(key, default)` | `key` of `<app_id>.domain`; returns a `State<T>` that saves the key when the value changes |
+| `use_app_storage(key, default)` | `key` of `<app_id>.domain`, any `T` with `Serialize`, `Deserialize`, `Clone` and `PartialEq`; returns a `State<T>` that saves the key when the value changes |
 | `load_defaults::<T>(app_id)`, `save_defaults(app_id, &value)` | `<app_id>.domain` in the app's settings folder |
 | `use_defaults::<T>(app_id)` | The same; returns a `Memo<T>` that reloads when the file changes |
 | `update_defaults::<T>(app_id, \|value\| ..)` | The same; loads the file, runs the closure on the value and saves it |
@@ -318,7 +324,10 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 - Reading a missing file gives `T::default()`.
 - Reading a file that does not parse logs a warning, copies it to `<file>.bak`
   and gives `T::default()`.
-- Writing creates the folder, writes `<file>.tmp` and renames it over the file.
+- Writing creates the folder (mode 0700), writes a temporary file beside the
+  file and renames it over the file. `update_defaults` and `use_app_storage`
+  hold `<file>.lock` while they read and save, so two processes keep each
+  other's keys.
 - Each app has its own folders, named by its `app_id`, like macOS's
   `~/Library/Preferences/<bundle id>.plist`, so an app built on the kit never
   writes into Malaysia's folder:
@@ -342,8 +351,8 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
   settings other apps save. On macOS the kit looks for changed `.domain`
   files once a second.
 
-The window size and the maximized state are saved and restored by the kit
-([8. Windows](08-windows.md)).
+On Linux the kit saves and restores the window size and the maximized state
+([8. Windows](08-windows.md#window-options)); on macOS it does not.
 
 ## Updates from another thread
 
@@ -383,14 +392,16 @@ let instance = match launch("com.example.notes") {
 ```
 
 1. `launch` exports `org.freedesktop.Application` at the path made from
-   `app_id` (`/com/example/notes`) and asks for the bus name
-   `app_id`.
+   `app_id`, with `.` as `/` and `-` as `_` (`/com/example/notes`), and asks
+   for the bus name `app_id`.
 2. If the name is free, it returns `Launch::Primary(Instance)`.
 3. If another process owns it, `launch` calls `Activate` on it with its
    `XDG_ACTIVATION_TOKEN`, and returns `Launch::Forwarded`. The app then exits.
 4. In the first process, `instance.listen()` handles what arrives:
    `Activate` brings the window to the front (xdg-activation, with or without a
-   token) and `ActivateAction(name)` dispatches `name` to `use_menu_action`.
+   token), `Open(uris)` hands each URI to `on_open_url`
+   ([8](08-windows.md#documents-and-file-dialogs)) and then activates, and
+   `ActivateAction(name)` dispatches `name` to `use_menu_action`.
    Call `listen()` once, from a component of the window, for example in
    `use_hook`.
 
@@ -402,7 +413,8 @@ first run brings its window to the front and activates the app. `launch` returns
 when the socket path is too long (about 100 bytes), and the system drops the lock when
 the process ends, so a crash leaves nothing behind. Launch Services already keeps a
 bundled app to one process when it is opened from the Finder or the Dock; the lock also
-covers a bare binary and `open -n`. There is no `ActivateAction` on macOS. `Open` raises the app like `Activate`; bk has no API to open files yet, and its URIs are dropped.
+covers a bare binary and `open -n`. A second run forwards no action and no files; the files
+the Finder opens reach `on_open_url` through the app delegate.
 
 ## Status item
 
@@ -511,14 +523,15 @@ zeroed.
 | `open_uri(uri, ask)` | `OpenURI`; `ask` lets the user pick the app | — |
 | `notify(id, title, body)` | `Notification.AddNotification`; on macOS a banner with `id` as its identifier (see [Notifications](#notifications)) | — |
 
-For a dialog that is a sheet of its window, with filters and a start folder, use `FileDialog` ([8](08-windows.md#documents-and-file-dialogs)); `open_files` and `save_file` keep the portal's arguments.
+For filters, a start folder and, on macOS, a sheet of its window, use `FileDialog` ([8](08-windows.md#documents-and-file-dialogs)); `open_files` and `save_file` keep the portal's arguments.
 
 `file_uri(path)` turns a path into a `file://` URI escaped like GLib;
 `file_path(uri)` does the reverse and returns `None` for other schemes.
 
 ## Clipboard
 
-The kit serves Freya's clipboard over `wl_data_device`. The app uses
+The kit serves Freya's clipboard over `wl_data_device` on Linux and
+`NSPasteboard` on macOS. The app uses
 `Clipboard` from `freya-clipboard`, which it adds to its `Cargo.toml`:
 
 ```rust
@@ -565,18 +578,19 @@ Linux reads text only. The read has no size cap on macOS: the system already hol
 
 ## Drag and drop
 
-Files dropped on a window arrive as Freya file events:
+On Linux, files dropped on a window arrive as Freya file events. On macOS a
+window takes no drop yet ([18](18-platform.md#the-macos-runner)).
 
 1. While a drag is over the window, every element with
    `on_global_file_hover` gets the cursor position.
 2. On drop, the kit reads the `text/uri-list` offer, turns each `file://` URI
    into a path with `file_path`, and sends one `on_file_drop` event per path
-   to the element under the cursor.
+   to the element under the cursor; its `file_paths` holds that one path.
 3. `on_global_file_hover_cancelled` fires when the drag leaves.
 
 ```rust
 rect().on_file_drop(move |event: Event<FileEventData>| {
-    if let Some(path) = event.file_path.clone() {
+    if let Some(path) = event.file_paths.first().cloned() {
         open(path);
     }
 })

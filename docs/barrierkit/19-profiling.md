@@ -2,8 +2,9 @@
 
 **Goal:** measure how long each frame of a BarrierKit app takes and which
 step uses the time.
-**Scope:** from building the app with the `tracy` feature to reading the
-zones of a frame in the [Tracy](https://github.com/wolfpld/tracy) viewer.
+**Scope:** on Linux, from building the app with the `tracy` feature to
+reading the zones of a frame in the [Tracy](https://github.com/wolfpld/tracy)
+viewer.
 What a frame does is in [18. Platform](18-platform.md#the-frame).
 **Reader:** whoever looks for why an app is slow, or checks that a change
 makes it faster.
@@ -36,7 +37,7 @@ it once, at the start of `main`.
 
 | Layer | Filter | Present |
 |---|---|---|
-| Text log on stderr (`tracing_subscriber::fmt`) | `RUST_LOG` as `target=level` directives; `info` when unset or invalid | Always |
+| Text log on stdout (`tracing_subscriber::fmt`) | `RUST_LOG` as `target=level` directives; `info` when unset or invalid | Always |
 | `tracing_tracy::TracyLayer` | None: it gets every span | With the `tracy` feature |
 
 `RUST_LOG` is parsed as a `tracing_subscriber::filter::Targets` list, such as
@@ -54,12 +55,13 @@ filter, no layer wants them, so they cost almost nothing.
 | `acquire` | The wait for the next swapchain image | `platform/linux/surface.rs` |
 | `layout` | Layout and the `on_sized` reactions | `platform/linux/surface.rs` |
 | `render` | Recording the Skia commands for the whole tree | `platform/linux/surface.rs` |
-| `glass` | The progressive glass, one pass per layer | `glass.rs` |
-| `material` | The blurred material | `glass.rs` |
+| `material` | A `media::Material` that the kit paints itself: its opaque fill when the compositor does not compose its blur | `glass.rs` |
 | `present` | Submitting to the GPU and presenting | `platform/linux/surface.rs` |
 
 After `present`, the runner sends a Tracy frame mark when a viewer is
-connected.
+connected. Only the Wayland runner records the zones of
+`platform/linux/surface.rs` and sends frame marks; the macOS runner records
+none of them.
 
 ## How to read a frame
 
@@ -71,11 +73,11 @@ connected.
   animation keeps asking for redraws.
 - Every surface has its own `draw`: a popup or a second window adds frame
   marks to the same trace.
-- `glass` and `material` appear inside `render` only when the frame contains
-  those elements.
+- `material` appears inside `render` only when the frame paints a `Material`
+  that the compositor does not compose.
 
-For timings without the viewer, the `bk::resize` target logs each
-draw start and the present time (`swap_us`) per surface:
+For timings without the viewer, the `bk::resize` target logs each configure,
+each draw start and the present time (`swap_us`) per surface:
 
 ```sh
 RUST_LOG=info,bk::resize=debug cargo run --release -p <app>

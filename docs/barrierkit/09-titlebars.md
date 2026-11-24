@@ -84,10 +84,10 @@ and the title.
 | `.title(text)` | the window title | Replaces the title shown |
 | `.shows_title(bool)` | `true` | `false` drops the title and lays the trailing items after the lights, as SwiftUI's `.unified(showsTitle: false)` and `.unifiedCompact(showsTitle: false)` |
 | `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
-| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | `Unified`, `UnifiedCompact` or `Expanded`, as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
+| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar, a `.left` view or items, else `UnifiedCompact` | `Unified`, `UnifiedCompact` or `Expanded`, as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
 | `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar: the title at the start of the detail, the lights in the sidebar |
 | `.left(view)` | empty; with a `SplitView` above, the `SidebarToggle` | Items before the navigation items |
-| `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
+| `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (13) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
 | `.hairline(bool)` | `false` | Draws `TitlebarStyle::line()` under the bar, as `NSTitlebarSeparatorStyle.line` |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
@@ -107,8 +107,8 @@ Layout:
   `TitlebarStyle::row_title` ink, over a `TITLEBAR_CLIENT_HEIGHT` (40) toolbar
   row. Its `Navigation` and `PrimaryAction` items sit together from
   `TITLEBAR_TOOLBAR_START.expanded` (11), `SETTINGS.toolbar_gap` (13) apart,
-  `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` (5) above the row's middle, 28 high
-  (`TOOLGROUP.expanded_*`).
+  centred in the row less `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` (5) at its
+  bottom, 28 high (`TOOLGROUP.expanded_*`).
 - **No title:** with `.shows_title(false)` the trailing items join the
   navigation items after the lights.
 - **Beside a sidebar:** the title goes at the start of the detail, next to
@@ -271,6 +271,7 @@ TrafficLights::new()
 | `.zoom_supported(bool)` | `true` | Without zoom, the green light is gray, has no glyph and does nothing |
 | `.fixed_width(bool)` | `false` | The zoom glyph is a plus, for fixed-width windows |
 | `.close_only(bool)` | `false` | Only close is colored and clickable |
+| `.fullscreen(bool)` | `false` | The full-screen state ([States](#states)); `for_window` reads it from `WindowControls` |
 | `.input(TrafficInput)` | — | Draws a fixed state (focus, hover, press) and ignores the pointer, for previews |
 | `.on_action(f)` | — | Receives the `ButtonKind` pressed |
 

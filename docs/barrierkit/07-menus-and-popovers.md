@@ -3,7 +3,7 @@
 **Goal:** show a context menu, open a popover and add a tooltip.
 **Scope:** menu items (`MenuItem`), the menu list (`MenuView`), its keyboard,
 search, shortcuts, mnemonics and submenus; the view modifiers
-(`.context_menu`, `.help`, `.focus_ring`) and `Popover`. The menu bar menu
+(`.context_menu`, `.help`, `.popover`, `.focus_ring`) and `Popover`. The menu bar menu
 (`MainMenu`) is in [13. App](13-app.md). The pop-up button (`PopUpButton`) is
 a control: [5. Controls](05-controls.md).
 Popup surfaces in general (`Popups`, `PopupSpec`) are in
@@ -36,21 +36,16 @@ menu, a button that opens a popover and a control with a tooltip.
    })
    ```
 
-3. For a popover, keep the area of the element that opens it and call
-   `Popover::show` with it on press:
+3. For a popover, keep a `State<bool>` and call `.popover` on the view it
+   points at ([11. Views](11-views.md#sheet)):
 
    ```rust
-   use bk::popover::Popover;
-   use torin::prelude::Area;
-
-   let mut area = use_state(Area::default);
+   let mut showing = use_state(|| false);
    rect()
-       .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
-       .on_press(move |_| {
-           Popover::new((264.0, 56.0), || rect().padding(12.0).child(Text::new(tr!("hello"))).into())
-               .show(*area.peek());
+       .child(Button::new(tr!("info")).on_press(move |_| showing.set(true)))
+       .popover(showing, (264.0, 56.0), || {
+           rect().padding(12.0).child(Text::new(tr!("hello"))).into()
        })
-       .child(Text::new(tr!("info")))
    ```
 
 4. Add a tooltip with `.help`. It works on a control as it does on `rect()`:
@@ -144,7 +139,7 @@ The keyboard works while the menu is open:
 | Home, End | First or last selectable row |
 | Enter, Space | Chooses the focused action or opens the focused submenu. Space types into the search while there is a query |
 | → | Opens the focused submenu; on a plain row with navigation, `Next` |
-| ← | Closes this submenu; with navigation, `Prev` |
+| ← | Closes this menu; with navigation, `Prev` instead |
 | Esc | Clears the search if there is one; otherwise closes this menu |
 | Alt (held) | Underlines the mnemonics ([Mnemonics](#mnemonics)) |
 
@@ -154,7 +149,7 @@ scrolls.
 
 ### Style
 
-Every menu, pop-up menu, popover and tooltip draws from a
+Every menu, pop-up menu and popover draws from a
 [`MenuStyle`](../../agents/styles.md#menustyle), resolved through the theme and the
 container styles of the view that opened it:
 
@@ -262,6 +257,7 @@ type with Freya's `EventHandlersExt`: `rect`, `label`, `Text`, `VStack`,
 |---|---|---|
 | `.context_menu(items, on_activate)` | `.contextMenu` | A menu at the pointer on secondary click |
 | `.help(text)` | `.help(_:)` | A tooltip |
+| `.popover(is_presented, size, content)` | `.popover(isPresented:content:)` | A [`Popover`](#popover) that points at the element while the `State<bool>` is `true` ([11](11-views.md#sheet)) |
 | `.focus_ring(corner_radius, color)` | — | A ring around the element |
 | `.foreground_style(ShapeStyle)` | `.foregroundStyle(_:)` | The text color of `Text`, `label` or `paragraph` |
 | `.background_style(ShapeStyle)` | `.background(_:ignoresSafeAreaEdges:)` | A background paint, with blur for a material |
@@ -272,7 +268,7 @@ in [Styles and themes](../../agents/styles.md#paint-on-views).
 
 A modifier sets Freya event handlers on the element: `.context_menu` sets
 `on_secondary_down`; `.help` sets `on_pointer_enter`, `on_pointer_move`,
-`on_pointer_leave` and `on_pointer_down`. A handler for the same event, set
+`on_pointer_leave` and `on_pointer_down`; `.popover` sets `on_sized`. A handler for the same event, set
 before or after, replaces the other one. On a control the handlers sit on a node
 around it, so they never replace the control's own.
 
@@ -364,7 +360,10 @@ modifier is the caller's and is not changed.
 ### `Popover`
 
 `popover::Popover` is `NSPopover`. `Popover::new(size, content)` builds it and
-`.show(anchor)` opens it below `anchor`, an `Area` in window coordinates:
+`.show(anchor)` opens it below `anchor`, an `Area` in window coordinates, and
+returns its `PopupId`. `.on_dismissed(f)` runs `f` when it closes. Use it
+directly only for an anchor of your own; `.popover` above tracks the view's
+area for you:
 
 | Argument | What it is |
 |---|---|

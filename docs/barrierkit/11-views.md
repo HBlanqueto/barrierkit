@@ -3,7 +3,8 @@
 **Goal:** compose the content of a window from the kit's containers: layout
 views, forms, tables, grids, trees, tabs, panes, alerts and navigation.
 **Scope:** every module under `bk::views` except `split` (the sidebar
-container, in [10](10-sidebar.md)), and `bk::layout`. Single
+container, in [10](10-sidebar.md)) and `toolbar` (toolbar items, in
+[9](09-titlebars.md#toolbar-items)), and `bk::layout`. Single
 controls are in [5](05-controls.md), framed text editing in
 [6](06-text-and-editing.md), complete windows in [12](12-patterns.md).
 **Reader:** anyone who assembles full screens.
@@ -60,7 +61,7 @@ before deleting.
 5. Put the table and the alert in the view:
 
    ```rust
-   rect().expanded().child(table).maybe_child(alert)
+   rect().expanded().child(table).maybe_child(alert).into_element()
    ```
 
 ## Layout
@@ -93,7 +94,7 @@ methods (`width`, `height`, `min_width`, `max_width`). `.alignment(ContentAlignm
 the view inside it, `CENTER` by default. `ContentAlignment` is SwiftUI's
 `Alignment` with its nine constants, from `TOP_LEADING` to `BOTTOM_TRAILING`;
 `HorizontalAlignment` and `VerticalAlignment` are its two axes. `Leading` and
-`Trailing` are left and right.
+`Trailing` are left and right; they swap [right to left](#right-to-left).
 
 ```rust
 // SwiftUI: Text("Name").frame(width: 100, alignment: .trailing)
@@ -170,7 +171,8 @@ move a child after it measures, so a layout is a placement.
 Torin measures each subview once, with the space the container has, so a
 layout cannot ask a subview for another size (`sizeThatFits` with several
 proposals), `layoutValue` or `spacing` preferences. The same parent limit as the
-`ZStack` applies: the first subview sizes the container for its parent.
+`ZStack` applies: the subview that `sizing_subview()` returns (the first by
+default) sizes the container for its parent.
 
 ### `ViewThatFits`
 
@@ -265,9 +267,9 @@ Form::new().style(FormStyle::columns).section(
 | Method | Effect |
 |---|---|
 | `Section::new()` | A card without a title |
-| `Section::titled(title)` | A card with a `HEADLINE` title above |
+| `Section::titled(title)` | A card with a title above, `HEADLINE` at weight 500 (`LIST_GROUP.header_weight`) |
 | `.row(Row)` | Adds a row; rows are separated by a line |
-| `.header(view)` | A view in place of the title, such as a title with buttons; the title still names the section for search. A section with only a header draws no card |
+| `.header(view)` | A view in place of the title, such as a title with buttons. A section with only a header draws no card |
 | `.illustration(view)` | A full-width view at the top of the card, above the rows |
 | `.footer(text)` | A `CAPTION` note below the card |
 
@@ -325,9 +327,9 @@ that the user owns it.
 
 ### Style
 
-`GroupBox::style` and `DisclosureGroup::style` take a `GroupBoxStyle` and a
-`DisclosureGroupStyle`. The fields are in
-[Styles and themes](../../crates/bk/src/styles/form.rs).
+`GroupBox::style` and `DisclosureGroup::style` take a
+[`GroupBoxStyle`](../../crates/bk/src/styles/group_box.rs) and a
+[`DisclosureGroupStyle`](../../crates/bk/src/styles/disclosure_group.rs).
 
 ## Tables
 
@@ -517,13 +519,13 @@ selected writes nothing.
 | Held | Result |
 |---|---|
 | Nothing | Only `index` |
-| Ctrl or Super | `current` with `index` added or removed |
+| Ctrl or Super (⌘ or ⌃ on macOS) | `current` with `index` added or removed |
 | Shift | The range from the last item of `current` (the anchor, kept last) to `index` |
 
 ### Style
 
 `CollectionView::style` takes a `CollectionViewStyle` for its tiles. The
-fields are in [Styles and themes](../../crates/bk/src/styles/table.rs).
+fields are in [Styles and themes](../../crates/bk/src/styles/collection_view.rs).
 
 ## Trees
 
@@ -571,7 +573,7 @@ the view keeps its own.
 
 `OutlineView::style` and `Browser::style` take the same `OutlineViewStyle`,
 so a theme draws both alike. The fields are in
-[Styles and themes](../../crates/bk/src/styles/table.rs).
+[Styles and themes](../../crates/bk/src/styles/outline_view.rs).
 
 ```rust
 Theme::tengen().style(|s: OutlineViewStyle| OutlineViewStyle { row_shape: Shape::Capsule, ..s })
@@ -714,9 +716,10 @@ content, as SwiftUI's does; an app adds no `center()` of its own.
 | `.description(text)` | A second line under the title |
 | `.actions(element)` | A row under the description, such as a `Button` |
 
-Call them in this order, then `.style` first of all. Sizes, gaps and fonts are
-the `CONTENT_UNAVAILABLE_*` tokens ([4](04-appearance-and-tokens.md)), the
-frames SwiftUI reports (`~/src/probes/contentunavailable.swift`).
+Each of them and `.style` rebuild the view, so Freya's layout and style methods
+come after them. Sizes, gaps and fonts are the `CONTENT_UNAVAILABLE_*` tokens
+([4](04-appearance-and-tokens.md)), the frames SwiftUI reports
+([coverage](../research/swiftui-appkit-coverage.md)).
 
 ### `Sheet`
 
@@ -733,16 +736,16 @@ toplevel marked modal with `xdg-dialog-v1`, sized to its content (it starts at
 `DIALOG_SHEET_WIDTH` × `DIALOG_SHEET_HEIGHT`). The compositor keeps it centered
 on the window that opened it and moves it with that window. It is not a
 panel: it takes the keyboard, so the window behind deactivates and dims under
-the veil. On macOS the veil is the system's, so the kit draws none
-(`Host::native_sheets`). Without a window
-(tests, shell layers) it draws inside the surface over the veil.
+the veil. On macOS it is an AppKit sheet (`beginSheet`): AppKit places it and
+veils the window, so the kit draws no veil. Without a window, or in a panel
+(tests, shell layers), it draws inside the surface over the veil.
 
 While a sheet or an [`Alert`](#alert) shows, the window that opened it is modal
 as in AppKit: its content takes no clicks, minimize and zoom still work, and the
 close light is disabled. The sheet ignores a close request from the compositor:
 only removing it closes it.
 
-`.sheet(is_presented, content)` on a container is SwiftUI's `sheet(isPresented:content:)`: the
+`.sheet(is_presented, || content)` on a container is SwiftUI's `sheet(isPresented:content:)`: the
 sheet shows while the `State<bool>` is `true`, and the app closes it by writing `false`
 (from a button of the sheet, as there is no other way to close one). It has no `onDismiss`
 and no `item:` form: nothing closes a sheet but the app. A sheet and its window do not
@@ -778,7 +781,7 @@ Alert::new("Forget this network?", "You will have to type the password again.")
 | `.suppression(State<bool>)` | none | Adds the "Do not show this message again" checkbox bound to the state, like `NSAlert`'s `showsSuppressionButton` |
 | `.destructive()` | off | The primary button takes `ButtonStyle::destructive`, like `NSAlert.hasDestructiveAction` |
 | `.icon(view)` | none | A `DIALOG_ALERT_ICON` (64) square above the title, the application icon in `NSAlert`; the title starts `DIALOG_ALERT_ICON_GAP` (16) under it |
-| `.critical()` | off | With `.icon`, like `NSAlert.Style.critical`: a caution triangle fills the square and the icon shrinks to `DIALOG_ALERT_BADGE` (32) in its bottom right corner. `.warning` and `.informational` look the same as no style |
+| `.critical()` | off | With `.icon`, like `NSAlert.Style.critical`: a caution triangle fills the square and the icon shrinks to `DIALOG_ALERT_BADGE` (32) in its bottom right corner. `NSAlert.Style.warning` and `.informational` look like no style, so they have no method |
 | `.shows_help(callback)` | none | A help button, 28 round, 12 from the top and the right, like `NSAlert.showsHelp` |
 | `.accessory_view(view)` | none | A view under the message, 16 from it and from what follows, like `NSAlert.accessoryView`; it fills the alert's width less 16 on each side |
 | `.add_button(label, callback)` | none | An extra button between the confirm and the cancel buttons; with one the buttons stack, 6 apart, confirm first and cancel last |
@@ -815,11 +818,10 @@ keys and does not close the sheet. The callbacks do.
 ### Style
 
 `Sheet::style`, `Alert::style` and `ContentUnavailableView::style` take a
-`SheetStyle`, an `AlertStyle` and a `ContentUnavailableViewStyle`. An `Alert`
-draws on the `SheetStyle` of the theme and the containers. The fields are in
-[Styles and themes](../../crates/bk/src/styles/sheet.rs).
-`ContentUnavailableView::style` rebuilds the view: call it before any other
-method.
+[`SheetStyle`](../../crates/bk/src/styles/sheet.rs), an
+[`AlertStyle`](../../crates/bk/src/styles/alert.rs) and a
+[`ContentUnavailableViewStyle`](../../crates/bk/src/styles/content_unavailable_view.rs).
+An `Alert` draws on the `SheetStyle` of the theme and the containers.
 
 ## Navigation
 
@@ -838,7 +840,7 @@ method.
 ### `NavigationButtons`
 
 `NavigationButtons::new(State<History<T>>)` draws ‹ and › in a
-[`ToolGroup`](05-controls.md) capsule. Each button is disabled at its end of
+[`ToolGroup`](05-controls.md#toolbar-controls) capsule. Each button is disabled at its end of
 the history. It also answers the shortcuts of `GO_BACK` and `GO_FORWARD`. The
 pair is 73 × 36 and has no divider between the arrows, like the navigational
 items of an `NSToolbar` ([measures](../research/macos-control-metrics.md#toolbar-items-and-navigation-buttons)).
@@ -851,7 +853,7 @@ Titlebar::new().left(NavigationButtons::new(history))
 
 ### `GO_BACK` and `GO_FORWARD`
 
-Two [`Action`](13-app.md)s: `go-back` ("Back", Alt+←) and `go-forward`
+Two [`Action`](13-app.md#actions-and-shortcuts)s: `go-back` ("Back", Alt+←) and `go-forward`
 ("Forward", Alt+→).
 
 ### Style
@@ -877,9 +879,9 @@ a `State`, like `History`).
 A push moves the new page in from the right edge and the page below 30 % of
 the width to the left (`NAVIGATION_PARALLAX`), dimmed by a black of 0.13
 (`NAVIGATION_DIM`), on a critically damped spring of `SPRING_PUSH_MS`; a pop is
-the same reversed. The pages below the one shown are not mounted: while the
-stack settles only the top page is drawn, so a page rebuilds its state when
-the path pops back to it. The edge shadow of UIKit is not drawn.
+the same reversed. Only the pages in motion are mounted: once the stack
+settles only the top page is drawn, so a page rebuilds its state when the path
+pops back to it. The edge shadow of UIKit is not drawn.
 
 ## Search
 
