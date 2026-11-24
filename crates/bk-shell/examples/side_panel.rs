@@ -3,8 +3,7 @@ use bk::{
     theme::{SurfaceKind, resolved, surface_background},
 };
 use bk_shell::{
-    Anchors, KeyboardInteractivity, Layer, LayerGeometry, LayerSpec, run_layer,
-    set_layer_geometry,
+    Anchors, KeyboardInteractivity, Layer, LayerGeometry, LayerSpec, run_layer, set_layer_geometry,
 };
 use freya_core::integration::AppComponent;
 
@@ -27,7 +26,11 @@ fn side_panel() -> impl IntoElement {
         )))
         .child(Text::new("Side panel").font(TITLE))
         .child(Button::new("Change width").on_press(move |_| {
-            let next = if *width.peek() == NARROW { WIDE } else { NARROW };
+            let next = if *width.peek() == NARROW {
+                WIDE
+            } else {
+                NARROW
+            };
             width.set(next);
             set_layer_geometry(LayerGeometry {
                 anchors: RIGHT_EDGE,
