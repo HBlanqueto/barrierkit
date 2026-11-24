@@ -106,6 +106,21 @@ Text::new("Name").frame().width(Size::px(100.0)).alignment(ContentAlignment::TRA
 `.width(Size::flex(1.0))`. An `HStack` or `VStack` with a child sized
 `Size::flex` shares its space as with a `Spacer`, with no `Content` to set.
 
+### `LazyVGrid`
+
+`LazyVGrid::new(GridItem::adaptive(minimum))` is SwiftUI's
+`LazyVGrid(columns: [GridItem(.adaptive(minimum:))])`: as many columns as fit
+at `minimum` wide, sharing the row's width evenly. `GridItem::spacing` is the
+gap between columns and `LazyVGrid::spacing` the gap between rows (both
+`SPACE_2`). It builds every cell, not only the visible ones.
+
+```rust
+// SwiftUI: LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 12)], spacing: 12)
+LazyVGrid::new(GridItem::adaptive(120.0).spacing(12.0))
+    .spacing(12.0)
+    .children(photos.iter().map(|photo| photo.view().width(Size::fill())))
+```
+
 ### `Grid` and `GridRow`
 
 `Grid::new()` lines up the cells of its rows. A `GridRow` holds the cells of one

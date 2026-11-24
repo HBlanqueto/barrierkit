@@ -1411,6 +1411,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `layout::Frame` | struct | `frame(width:height:alignment:)` | — | `NSLayoutConstraint` | A view with its own size and the alignment of its content; `view.frame()` returns it | [11](11-views.md#frame) |
 | `layout::Frame::alignment` | method | `frame(alignment:)` | — | — | Where the content sits inside the frame | [11](11-views.md#frame) |
 | `layout::Grid` | struct | `Grid` | `NSGridView` | — | Rows of cells whose columns line up | [11](11-views.md#grid-and-gridrow) |
+| `layout::LazyVGrid` | struct | `LazyVGrid` | ≈ `NSCollectionViewFlowLayout` | ≈ `UICollectionViewFlowLayout` | Cells in adaptive columns that share the row's width | [11](11-views.md#lazyvgrid) |
+| `layout::GridItem::adaptive`, `spacing` | method | `GridItem(.adaptive(minimum:), spacing:)` | — | — | A column at least `minimum` wide, and its gap | [11](11-views.md#lazyvgrid) |
 | `layout::Grid::row`, `child`, `alignment`, `horizontal_spacing`, `vertical_spacing` | method | `Grid(alignment:horizontalSpacing:verticalSpacing:)` | `NSGridView.addRow(with:)`, `rowSpacing`, `columnSpacing` | — | Adds a `GridRow` or a view that spans the row, and sets the cell alignment and the gaps between columns and rows | [11](11-views.md#grid-and-gridrow) |
 | `layout::GridRow` | struct | `GridRow` | `NSGridRow` | — | The cells of one row of a `Grid` | [11](11-views.md#grid-and-gridrow) |
 | `layout::GridRow::alignment` | method | `GridRow(alignment:)` | `NSGridRow.yPlacement` | — | The alignment of the cells of one row | [11](11-views.md#grid-and-gridrow) |

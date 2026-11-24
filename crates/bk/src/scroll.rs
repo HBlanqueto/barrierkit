@@ -848,17 +848,18 @@ impl Component for ScrollView {
                     .child(
                         Scroller::new_controlled(controller.inner)
                             .direction(self.direction)
-                            .margin(if horizontal {
-                                Gaps::new(0.0, 0.0, reserved, 0.0)
-                            } else {
-                                Gaps::new(0.0, reserved, 0.0, 0.0)
-                            })
                             .show_scrollbar(false)
                             .drag_scrolling(false)
                             .child(
                                 rect()
                                     .direction(self.direction)
                                     .maybe(!horizontal, |el| el.width(Size::fill()))
+                                    // A legacy scroller takes its track from the content, as AppKit's; Freya's scroller ignores a margin.
+                                    .padding(if horizontal {
+                                        Gaps::new(0.0, 0.0, reserved, 0.0)
+                                    } else {
+                                        Gaps::new(0.0, reserved, 0.0, 0.0)
+                                    })
                                     .on_wheel(elastic.wheel(controller, horizontal))
                                     .gesture(elastic.pan(controller, horizontal))
                                     .on_sized(move |event: Event<SizedEventData>| {

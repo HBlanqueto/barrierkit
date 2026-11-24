@@ -14,7 +14,7 @@ use torin::prelude::{
     Alignment, Content, Direction, Length, Position, PostMeasure, Size, Size2D, Torin,
 };
 
-use crate::elements::{forward_container, forward_key};
+use crate::elements::{Overrides, forward_container, forward_key, forward_overrides};
 use crate::styles::LayoutDirection;
 
 mod direction;
@@ -816,5 +816,98 @@ impl ElementExt for GridElement {
             offsets,
             hidden_children: Vec::new(),
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct GridItem {
+    minimum: f32,
+    spacing: f32,
+}
+
+impl GridItem {
+    /// As many columns as fit at `minimum` wide, sharing the row's width evenly.
+    pub fn adaptive(minimum: f32) -> Self {
+        Self {
+            minimum,
+            spacing: SPACE_2,
+        }
+    }
+
+    pub fn spacing(self, spacing: f32) -> Self {
+        Self { spacing, ..self }
+    }
+}
+
+// shortcut: builds every cell, not only the visible ones; virtualize when a grid holds thousands.
+#[derive(PartialEq)]
+pub struct LazyVGrid {
+    column: GridItem,
+    spacing: f32,
+    children: Vec<Element>,
+    overrides: Overrides,
+}
+
+impl LazyVGrid {
+    pub fn new(column: GridItem) -> Self {
+        Self {
+            column,
+            spacing: SPACE_2,
+            children: Vec::new(),
+            overrides: Overrides::default(),
+        }
+    }
+
+    pub fn spacing(self, spacing: f32) -> Self {
+        Self { spacing, ..self }
+    }
+
+    pub fn children<C: IntoElement>(mut self, children: impl IntoIterator<Item = C>) -> Self {
+        self.children
+            .extend(children.into_iter().map(IntoElement::into_element));
+        self
+    }
+}
+
+pub(crate) fn adaptive_columns(width: f32, column: GridItem) -> (usize, f32) {
+    let count =
+        (((width + column.spacing) / (column.minimum + column.spacing)).floor() as usize).max(1);
+    let gaps = column.spacing * (count - 1) as f32;
+    (count, ((width - gaps) / count as f32).max(0.0))
+}
+
+impl Component for LazyVGrid {
+    fn render(&self) -> impl IntoElement {
+        let mut width = use_state(|| 0.0f32);
+        let (count, cell) = adaptive_columns(*width.read(), self.column);
+        let body = rect()
+            .width(Size::fill())
+            .direction(Direction::Vertical)
+            .spacing(self.spacing)
+            .on_sized(move |event: Event<SizedEventData>| width.set_if_modified(event.area.width()))
+            .children(self.children.chunks(count).map(|row| {
+                rect()
+                    .direction(Direction::Horizontal)
+                    .spacing(self.column.spacing)
+                    .children(
+                        row.iter()
+                            .map(|child| rect().width(Size::px(cell)).child(child.clone())),
+                    )
+            }));
+        self.overrides.apply(rect().width(Size::fill()).child(body))
+    }
+}
+
+forward_overrides!(LazyVGrid);
+
+#[cfg(test)]
+mod adaptive_tests {
+    use super::*;
+
+    #[test]
+    fn adaptive_columns_fill_the_row_like_swiftui() {
+        let column = GridItem::adaptive(120.0).spacing(12.0);
+        assert_eq!(adaptive_columns(688.0, column), (5, 128.0));
+        assert_eq!(adaptive_columns(100.0, column), (1, 100.0));
     }
 }

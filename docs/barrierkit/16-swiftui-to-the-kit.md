@@ -43,6 +43,7 @@ know the kit's shape.
 | `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `.frame(width:height:alignment:)`, `.frame(maxWidth: .infinity)` | `.frame()`, then `.width(..)`, `.height(..)`, `.alignment(..)`; `.width(Size::fill())` for `maxWidth: .infinity` in a column | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
 | `Grid { GridRow { .. } }`, `.gridCellColumns(_:)`, `.gridColumnAlignment(_:)` | `Grid::new().row(GridRow::new().child(..))`, `.grid_cell_columns(n)`, `.grid_column_alignment(..)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
+| `LazyVGrid(columns: [GridItem(.adaptive(minimum:))])` | `LazyVGrid::new(GridItem::adaptive(min))` | none |
 | `ZStack(alignment:)`, `.overlay(alignment:content:)`, `.background(alignment:content:)` | `ZStack::new().alignment(..).child(..)`, `.overlay(alignment, content)`, `.background_view(alignment, content)` | [`layout_layers.rs`](../../agents/recipes/layout_layers.rs) |
 | `Layout`, `ViewThatFits(in:)` | `Layout::place_subviews` with `LayoutContainer::with_layout(..)`; `ViewThatFits::new(axis).candidate(extent, view)` | [`layout_layers.rs`](../../agents/recipes/layout_layers.rs) |
 | `.sheet(isPresented:)`, `.alert(_:isPresented:)`, `.popover(isPresented:)` | `.sheet(state, ..)`, `.alert(state, ..)`, `.popover(state, size, ..)` with a `State<bool>` | [`presentations.rs`](../../agents/recipes/presentations.rs) |

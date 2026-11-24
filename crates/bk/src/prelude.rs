@@ -25,9 +25,9 @@ pub use crate::file_dialog::{ContentType, FileDialog};
 pub use crate::focus::{FocusState, use_focus_state};
 pub use crate::glass_container::Glass;
 pub use crate::layout::{
-    ContentAlignment, Frame, Grid, GridCell, GridModifiers, GridRow, HorizontalAlignment, Layout,
-    LayoutContainer, OverlayModifiers, Placement, Spacer, VerticalAlignment, ViewThatFits, ZStack,
-    ZStackLayout,
+    ContentAlignment, Frame, Grid, GridCell, GridItem, GridModifiers, GridRow, HorizontalAlignment,
+    Layout, LayoutContainer, LazyVGrid, OverlayModifiers, Placement, Spacer, VerticalAlignment,
+    ViewThatFits, ZStack, ZStackLayout,
 };
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
 pub use crate::platform::{
