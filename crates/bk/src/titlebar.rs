@@ -706,7 +706,8 @@ impl Titlebar {
             .content(Content::flex())
             .child(title_row)
             .child(toolbar_row)
-            .maybe_child(fullscreen.then(|| {
+            // Native lights in full screen mean AppKit's bar is down; its row rides there and SwiftUI drops this line.
+            .maybe_child((fullscreen && !native_lights).then(|| {
                 let (paint, thickness) = TitlebarStyle::line();
                 rect()
                     .position(Position::new_absolute().top(height).left(0.0))
