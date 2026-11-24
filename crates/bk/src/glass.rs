@@ -17,12 +17,6 @@ use crate::styles::{
 
 use crate::theme::{SurfaceKind, surface_background};
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) enum GlassEdge {
-    Top,
-    Left,
-}
-
 pub(crate) fn glass_tint() -> Rgba {
     if crate::backdrop::tinted().is_some() {
         crate::style::Palette::current().raised_background
@@ -58,20 +52,11 @@ pub(crate) fn material(tint: Rgba, solid: Rgba, blur: f32, opaque: bool) -> (Rgb
     }
 }
 
-fn along(edge: GlassEdge, depth: f32) -> (Size, Size, Position) {
-    let depth = Size::px(depth);
-    match edge {
-        GlassEdge::Top => (Size::fill(), depth, Position::new_absolute()),
-        GlassEdge::Left => (depth, Size::fill(), Position::new_absolute().left(0.0)),
-    }
-}
-
-fn solid(edge: GlassEdge, depth: f32, tint: Rgba) -> Element {
-    let (width, height, position) = along(edge, depth);
+fn solid(depth: f32, tint: Rgba) -> Element {
     rect()
-        .position(position)
-        .width(width)
-        .height(height)
+        .position(Position::new_absolute())
+        .width(Size::fill())
+        .height(Size::px(depth))
         .background(crate::theme::color(tint))
         .into_element()
 }
@@ -136,33 +121,24 @@ pub(crate) fn fullscreen_glass_at(
     let style: FullscreenBarStyle = resolve(&Theme::tengen());
     let depth = fullscreen_depth(&style, bar, depth);
     composed_by_compositor()
-        .then(|| {
-            Declared::bar(
-                bar,
-                GlassEdge::Top,
-                layout(width, Size::px(depth), position),
-            )
-        })
+        .then(|| Declared::bar(bar, layout(width, Size::px(depth), position)))
         .flatten()
 }
 
-pub(crate) fn fullscreen_backdrop(
-    bar: FullscreenBar,
-    edge: GlassEdge,
-    depth: f32,
-    opacity: f32,
-) -> Element {
+pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, depth: f32, opacity: f32) -> Element {
     let style: FullscreenBarStyle = resolve(&Theme::tengen());
     let depth = fullscreen_depth(&style, bar, depth);
-    let (width, height, position) = along(edge, depth);
     if composed_by_compositor()
-        && let Some(glass) = Declared::bar(bar, edge, layout(width, height, position))
+        && let Some(glass) = Declared::bar(
+            bar,
+            layout(Size::fill(), Size::px(depth), Position::new_absolute()),
+        )
     {
         return glass;
     }
     let paints = Paints::current(ControlState::default());
     let tint = paints.color(style.tint.resolve(ControlState::default()));
-    solid(edge, depth, Rgba { a: opacity, ..tint })
+    solid(depth, Rgba { a: opacity, ..tint })
 }
 
 pub struct TopGlass {
@@ -196,7 +172,7 @@ impl From<TopGlass> for Element {
         }
         let paints = Paints::current(ControlState::default());
         let tint = paints.color(style.tint.resolve(ControlState::default()));
-        solid(GlassEdge::Top, style.glass.height, Rgba { a: 1.0, ..tint })
+        solid(style.glass.height, Rgba { a: 1.0, ..tint })
     }
 }
 

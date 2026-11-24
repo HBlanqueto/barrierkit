@@ -60,6 +60,8 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `controls::Button::style(ButtonStyle)` | `controls::Button::style(\|s\| ..)`, the closure of every control | 2026-11-07 |
 | `styles::TabType::Left`, `TabViewStyle.tab_padding_y`, `ctdesign::TAB_VIEW.strip_padding_y` and `.left_strip_top` | Removed: no app used the left strip | 2026-11-23 |
 | `Titlebar::right(view)` | `.toolbar(ToolbarItem::new(ToolbarItemPlacement::PrimaryAction, view))`, SwiftUI's only way to add trailing items | 2026-11-23 |
+| `chrome::TitlebarLayout` (`Top`, `Rail`), `chrome::RailStyle`, `WindowChrome::rail_top`, `rail_bottom`, `WindowChromeStyle::{layout, rail_style, rail_width, rail_padding_top, rail_padding_bottom, rail_spacing, rail_background, drawer_background, title, rail_line, title_angle, title_font}`, `TrafficLights::vertical`, `TrafficLightsStyle::axis`, `SidebarStyle::animation` | Gone: the vertical title bar had no SwiftUI design and no app | 2026-11-23 |
+| `ctdesign::TITLEBAR_RAIL`, `TitlebarRailMetrics` | `TITLEBAR_REVEAL`, `TitlebarRevealMetrics`, without the rail fields | 2026-11-23 |
 | `ButtonStyle::Secondary` | `ButtonStyle::tengen()`, the default (SwiftUI `.bordered`) | 2026-11-07 |
 | `ButtonStyle::Primary` | `ButtonStyle::bordered_prominent` | 2026-11-07 |
 | `ButtonStyle::Glass` | `ButtonStyle::glass` | 2026-11-07 |
@@ -247,7 +249,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::TitlebarStyle` | struct | ≈ `WindowToolbarStyle` | ≈ `NSWindow.ToolbarStyle`, `NSTitlebarSeparatorStyle` | ≈ `UINavigationBarAppearance` | Every visual property of `Titlebar`: heights, paddings, background, title and hairline | [Styles](../../crates/bk/src/styles/titlebar.rs) |
 | `styles::FullscreenBarStyle` | struct | — | — | — | Tint of the solid, depth of `ProgressiveGlass` (`FULLSCREEN_GLASS`) and animation of the full-screen bars; theme and container only; the `band` and `line` fields went with the Skia glass (2026-11-22) | [Styles](../../crates/bk/src/styles/fullscreen_bar.rs) |
 | `styles::TrafficLightsStyle` | struct | — | ≈ `NSWindow.standardWindowButton(_:)` | — | Size, gap, ring width, halo, pressed backdrop and the `ButtonVisual` of each traffic light per state | [Styles](../../crates/bk/src/styles/traffic_lights.rs) |
-| `styles::WindowChromeStyle` | struct | ≈ `WindowStyle` | — | — | Layout, reveal and resting edge of `WindowChrome`, and every visual property of its rail and pill | [Styles](../../crates/bk/src/styles/window_chrome.rs) |
+| `styles::WindowChromeStyle` | struct | ≈ `WindowStyle` | — | — | Reveal and resting edge of `WindowChrome`, and the look of its pill | [Styles](../../crates/bk/src/styles/window_chrome.rs) |
 | `styles::SidebarStyle` | struct | ≈ `SidebarListStyle` | ≈ `NSTableView.Style.sourceList` | ≈ `UICollectionLayoutListConfiguration.Appearance.sidebar` | Paddings, lights position, shape, background and borders of `Sidebar`; not `ctappearance::SidebarStyle` | [Styles](../../crates/bk/src/styles/sidebar.rs) |
 | `styles::SidebarItemStyle` | struct | ≈ `.listItemTint(_:)` | ≈ `NSTableCellView` | ≈ `UITableViewCell` | Every visual property of `SidebarItem`, selected and not | [Styles](../../crates/bk/src/styles/sidebar_item.rs) |
 | `styles::SidebarSectionStyle` | struct | — | — | — | Every visual property of `SidebarSection` and its fold | [Styles](../../crates/bk/src/styles/sidebar_section.rs) |
@@ -399,7 +401,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `rule_editor::RuleEditor::style` | method | — | — | — | Changes the style of one rule editor | [Styles](../../crates/bk/src/styles/rule_editor.rs) |
 | `titlebar::Titlebar::style` | method | — | — | — | Changes the style of one title bar | [Styles](../../crates/bk/src/styles/titlebar.rs) |
 | `traffic::TrafficLights::style` | method | — | — | — | Changes the style of one set of traffic lights | [Styles](../../crates/bk/src/styles/traffic_lights.rs) |
-| `chrome::WindowChrome::style` | method | — | — | — | Sets the layout and look of the window chrome | [Styles](../../crates/bk/src/styles/window_chrome.rs) |
+| `chrome::WindowChrome::style` | method | — | — | — | Sets when the bar shows and the look of the window chrome | [Styles](../../crates/bk/src/styles/window_chrome.rs) |
 | `sidebar::Sidebar::style` | method | — | — | — | Changes the style of one sidebar | [Styles](../../crates/bk/src/styles/sidebar.rs) |
 | `sidebar::SidebarItem::style` | method | — | — | — | Changes the style of one sidebar row | [Styles](../../crates/bk/src/styles/sidebar.rs) |
 | `sidebar::SidebarSection::style` | method | — | — | — | Changes the style of one sidebar section | [Styles](../../crates/bk/src/styles/sidebar.rs) |
@@ -843,6 +845,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::CalendarPalette`, `RelevancyPalette`, `GaugeContrast`, `PressedPalette`, `DisabledPalette`, `ContrastPalette` | struct | — | — | — | Colors of a theme for the graphical date picker, the relevancy indicator, the gauges with Increase Contrast, pressed controls, disabled controls and Increase Contrast | [4](04-appearance-and-tokens.md#the-palette) |
 | `ctdesign::Palette::contrasted` | method | ≈ `colorSchemeContrast` | ≈ `accessibilityDisplayShouldIncreaseContrast` | — | The palette with the colors of a `ContrastPalette` in place | [4](04-appearance-and-tokens.md#the-palette) |
 | `ctdesign::TitlebarToolbarStart`, `TITLEBAR_TOOLBAR_START`, `TITLEBAR_FULLSCREEN_START` | struct, constant | — | — | — | Where a toolbar's first item starts after the lights in the unified, compact and expanded bars, and from the edge in full screen | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::TitlebarRevealMetrics` | struct | — | — | — | Pill, reveal zone, corner and resting edges of a hidden title bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::ToolbarItemHighlight`, `TOOLBAR_ITEM_HIGHLIGHT` | struct, constant | — | — | — | The circle under the pointer and under a press of a toolbar item on glass; an item alone on its glass lights the whole capsule | [9](09-titlebars.md#toolbar-items) |
 | `ctdesign::GlassSelection`, `SIDEBAR_GLASS_SELECTION_LIGHT`, `SIDEBAR_GLASS_SELECTION_DARK` | struct, constant | — | — | — | The veil a sidebar on glass lays over a selection without focus, and in an inactive window | [10](10-sidebar.md#glass) |
 | `ctdesign::GlassMetrics`, `GLASS` | struct, constant | — | — | — | The sidebar glass over a backdrop: chroma, lightness, blur passes, edge and shadow per scheme | [4](04-appearance-and-tokens.md#glass-over-a-backdrop) |
@@ -915,7 +918,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::PopoverMetrics` | struct | — | — | — | Popover radius, arrow and padding | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::MenuPopoverMetrics` | struct | — | — | — | Pop-up menu item, padding, check and swatch grid sizes | [4](04-appearance-and-tokens.md#control-metrics) |
 | `ctdesign::DragMetrics` | struct | — | — | — | Pointer travel before a drag starts | [4](04-appearance-and-tokens.md#control-metrics) |
-| `ctdesign::TitlebarRailMetrics` | struct | — | — | — | Titlebar rail widths, pill and reveal zone | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FullscreenBarMetrics` | struct | — | — | — | Content offset and band line of a full-screen bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FullscreenGlassMetrics` | struct | — | — | — | Height, blur, layers, tint and mask of full-screen glass | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SidebarMetrics` | struct | — | — | — | Sidebar width, traffic lights, items and sections | [4](04-appearance-and-tokens.md#view-metrics) |
@@ -995,7 +997,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `DIALOG_SOLID_LIGHT`, `DIALOG_SOLID_DARK`, `DIALOG_SOLID_SCRIM_LIGHT`, `DIALOG_ALERT_STACK_SPACING`, `DIALOG_ALERT_HELP_SIZE`, `DIALOG_ALERT_HELP_INSET`, `DIALOG_ALERT_BADGE`, `DIALOG_ALERT_CAUTION`, `DIALOG_ALERT_CAUTION_SIZE`, `DIALOG_ALERT_CAUTION_AT`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | — | Dialog and pop-up corners, dialog padding, alert width, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::NATIVE_APP_ID_PREFIX`, `ALERT_LAYER_NAMESPACE`, `NOTIFICATIONS_LAYER_NAMESPACE`, `MENUBAR_LAYER_NAMESPACE`, `DOCK_LAYER_NAMESPACE`, `WALLPAPER_LAYER_NAMESPACE` | constant | — | — | — | App id prefix of kit apps; layer namespaces of shell alerts, notifications, the menu bar, the Dock and the wallpaper | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM`, `TITLEBAR_TOOLBAR_START`, `TITLEBAR_FULLSCREEN_START`, `TITLEBAR_SYSTEM_VEIL`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_RAIL` | constant | — | — | — | Titlebar sizes, lights, double click and rail | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM`, `TITLEBAR_TOOLBAR_START`, `TITLEBAR_FULLSCREEN_START`, `TITLEBAR_SYSTEM_VEIL`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_REVEAL` | constant | — | — | — | Titlebar sizes, lights, double click and the reveal of a hidden bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND`, `GLASS_MASK`, `HUD_BACKGROUND` | constant | — | — | — | Full-screen glass bars, their mask, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TRAFFIC_LIGHTS_{LIGHT,DARK,DARK_TINT}`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_GLYPHS`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_MARGIN`, `TRAFFIC_PRESS`, `TRAFFIC_GLYPH_FADE_MS`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | — | Traffic-light looks, glyphs, ring, margin, press and the shifts that derive tinted tones | [4](04-appearance-and-tokens.md#traffic-lights) |
 | `ctdesign::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `KNOB_HELD_SHADOW`, `KNOB_HELD_SHADOW_DARK`, `KNOB_LENS`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -1410,13 +1412,11 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `traffic::TrafficLights::fullscreen` | method | — | `≈ NSWindow.styleMask.fullScreen` | — | Minimize disabled and the exit glyph on zoom, for a full-screen window | [9](09-titlebars.md#traffic-lights) |
 | `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | — | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::use_window_drag` | fn | — | `≈ NSWindow.performDrag(with:)` | — | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
-| `titlebar::sidebar_bar_height` | fn | — | — | — | Height of the title bar row beside a sidebar | [9](09-titlebars.md#the-sidebar-with-the-rail) |
+| `titlebar::sidebar_bar_height` | fn | — | — | — | Height of the title bar row beside a sidebar | [9](09-titlebars.md#helpers) |
 | `titlebar::app_id` | fn | — | — | — | Default Wayland app id for an app name | [9](09-titlebars.md#helpers) |
-| `chrome::WindowChrome` | struct | — | — | — | Wraps the window and places lights, title and rail items | [9](09-titlebars.md#window-chrome) |
-| `chrome::TitlebarLayout` | enum | — | — | — | `Top` horizontal title bar or `Rail` vertical bar on the left | [9](09-titlebars.md#windowchromestyle-layout-fields) |
-| `chrome::RailStyle` | enum | — | — | — | `Normal` own strip or `Unified` column inside the sidebar | [9](09-titlebars.md#windowchromestyle-layout-fields) |
-| `chrome::Reveal` | enum | — | — | — | When the bar shows: `Always`, `Drawer`, `Push`, `Corner`, `Popup` | [9](09-titlebars.md#reveal) |
-| `chrome::RestingEdge` | enum | — | — | — | What a hidden bar leaves: `None`, `Line`, `Accent` | [9](09-titlebars.md#windowchromestyle-layout-fields) |
+| `chrome::WindowChrome` | struct | — | — | — | Wraps the window and decides when its bar shows | [9](09-titlebars.md#window-chrome) |
+| `chrome::Reveal` | enum | — | — | — | When the bar shows: `Always`, `Drawer`, `Push`, `Corner`, `Popup` | [9](09-titlebars.md#window-chrome) |
+| `chrome::RestingEdge` | enum | — | — | — | What a hidden bar leaves: `None`, `Line`, `Accent` | [9](09-titlebars.md#window-chrome) |
 
 ## Sidebar and split view
 

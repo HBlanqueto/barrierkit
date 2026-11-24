@@ -766,13 +766,7 @@ pub struct TitlebarToolbarStart {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct TitlebarRailMetrics {
-    pub width: f32,
-    pub actions_width: f32,
-    pub padding_top: f32,
-    pub padding_bottom: f32,
-    pub title_size: f32,
-    pub title_angle: f32,
+pub struct TitlebarRevealMetrics {
     pub pill_inset: f32,
     pub pill_padding_x: f32,
     pub pill_padding_y: f32,

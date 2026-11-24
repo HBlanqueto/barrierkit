@@ -69,7 +69,7 @@ token with its own duration (`SWITCH.transition_ms`,
 | Collapsing a sidebar section | `SPRING_SHEET_MS` | `Spring`, no bounce |
 | Showing or hiding the sidebar and the inspector | `DURATION_BASE` | `ease_in_ease_out`, Core Animation's `easeInEaseOut` (measured on the sidebar of a SwiftUI `NavigationSplitView`) |
 | Sidebar width while dragging | `DURATION_FAST_MS` | `Spring`, no bounce |
-| Moving the sidebar into the rail, revealing hidden titlebars, the focus bar | `DURATION_BASE` | Ease out, cubic |
+| Revealing hidden titlebars, the focus bar | `DURATION_BASE` | Ease out, cubic |
 | Scroll bar | `DURATION_FAST_MS` | Ease out, cubic |
 | Indeterminate `ProgressView` | `PROGRESS.indeterminate_ms` | In-out, cubic, back and forth |
 | `Spinner` | `PROGRESS.spinner_ms` | Linear, one spoke at a time, looping |

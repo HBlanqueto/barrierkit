@@ -803,13 +803,7 @@
           "interval-ms": 400,
           "slop": 4
         },
-        "rail": {
-          "width": 30,
-          "actions-width": 34,
-          "padding-top": 12,
-          "padding-bottom": 10,
-          "title-size": 12,
-          "title-angle": -90,
+        "reveal": {
           "pill-inset": 8,
           "pill-padding-x": 6,
           "pill-padding-y": 7,

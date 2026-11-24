@@ -1,59 +1,34 @@
-use ctappearance::{ColorScheme, palette};
-use ctdesign::{DURATION_BASE, Font, HAIRLINE, SHADOW, SHADOW_DARK, TITLEBAR, TITLEBAR_RAIL};
+use ctappearance::ColorScheme;
+use ctdesign::{DURATION_BASE, HAIRLINE, SHADOW, SHADOW_DARK, TITLEBAR_REVEAL};
 
-use crate::chrome::{RailStyle, RestingEdge, Reveal, TitlebarLayout};
+use crate::chrome::{RestingEdge, Reveal};
 use crate::styles::button::rounded;
 use crate::styles::{Animation, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
-use crate::theme::{SurfaceKind, surface_background};
 
-/// `WindowChrome::new(child).style(..)` takes the layout and the look of the
-/// chrome. Its paints are `focused` while the window is active.
-///
-/// States: focused (the window is active). In full screen the rail sits on the
-/// full-screen glass and draws no background. A `Theme` that sets `layout` takes
-/// effect only inside a `WindowChrome`.
+/// `WindowChrome::new(child).style(..)` takes how the title bar reveals and the
+/// look of its resting edge and pill. Its paints are `focused` while the window
+/// is active.
 #[derive(Clone, Debug)]
 pub struct WindowChromeStyle {
-    /// Tengen: `Top`; `Rail` for the vertical bar.
-    pub layout: TitlebarLayout,
-    /// Tengen: `Normal`; `Unified` puts the column inside the sidebar.
-    pub rail_style: RailStyle,
-    /// Tengen: `Always` (9 (`docs/barrierkit/09-titlebars.md#reveal`)).
+    /// Tengen: `Always` (9 (`docs/barrierkit/09-titlebars.md#window-chrome`)).
     pub reveal: Reveal,
     /// Tengen: `None`; `Line` draws `line_edge`, `Accent` `accent_edge`.
     pub resting_edge: RestingEdge,
-    /// Tengen: `TITLEBAR_RAIL.width`, at least `TITLEBAR_RAIL.actions_width` with rail items.
-    pub rail_width: f32,
-    pub rail_padding_top: f32,
-    pub rail_padding_bottom: f32,
-    pub rail_spacing: f32,
     pub pill_inset: f32,
     pub pill_padding: (f32, f32),
-    /// Tengen: `RoundedRectangle { radius: TITLEBAR_RAIL.pill_radius, style: Circular }`.
+    /// Tengen: `RoundedRectangle { radius: TITLEBAR_REVEAL.pill_radius, style: Circular }`.
     pub pill_shape: Shape,
-    /// Tengen: `Color` of `titlebar_inactive`, focused `Color` of the window surface.
-    pub rail_background: StateValue<ShapeStyle>,
-    /// Tengen: `Color` of the window surface, the rail of `Reveal::Drawer`.
-    pub drawer_background: StateValue<ShapeStyle>,
-    /// Tengen: `Color` of the unfocused title, focused `Color` of the focused one.
-    pub title: StateValue<ShapeStyle>,
     /// Tengen: `Role(RaisedBackground)`.
     pub pill_background: StateValue<ShapeStyle>,
-    /// Tengen: `Some((Color of the sidebar line, HAIRLINE))` on the right of the rail.
-    pub rail_line: Option<(ShapeStyle, f32)>,
-    /// Tengen: `(Color of the sidebar line, TITLEBAR_RAIL.edge_line)`.
+    /// Tengen: `(Color of the sidebar line, TITLEBAR_REVEAL.edge_line)`.
     pub line_edge: (ShapeStyle, f32),
-    /// Tengen: `(Accent, TITLEBAR_RAIL.edge_accent)`.
+    /// Tengen: `(Accent, TITLEBAR_REVEAL.edge_accent)`.
     pub accent_edge: (ShapeStyle, f32),
     /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn inside.
     pub pill_border: Option<(ShapeStyle, f32)>,
     /// Tengen: `[SHADOW.contact]` (`SHADOW_DARK.contact` in dark) with its `opacity`, under a
     /// drawer and the pill.
     pub shadows: Vec<ShadowStyle>,
-    /// Tengen: `TITLEBAR_RAIL.title_angle`, the rotation of the rail title in degrees.
-    pub title_angle: f32,
-    /// Tengen: `TITLEBAR.font` at `TITLEBAR_RAIL.title_size`; one line.
-    pub title_font: Font,
     /// Tengen: `Ease { duration_ms: DURATION_BASE }`: a hidden bar slides and the lights fade
     /// in; `None` makes them jump.
     pub animation: Animation,
@@ -62,8 +37,6 @@ pub struct WindowChromeStyle {
 impl ControlStyle for WindowChromeStyle {
     fn tengen() -> Self {
         let resolved = crate::theme::resolved();
-        let toplevel = ShapeStyle::Color(surface_background(&resolved, SurfaceKind::Toplevel));
-        let ink = palette(resolved.scheme).title;
         let line = ShapeStyle::Color(resolved.sidebar.palette.line);
         let contact = if resolved.scheme == ColorScheme::Light {
             SHADOW.contact
@@ -71,28 +44,17 @@ impl ControlStyle for WindowChromeStyle {
             SHADOW_DARK.contact
         };
         Self {
-            layout: TitlebarLayout::Top,
-            rail_style: RailStyle::Normal,
             reveal: Reveal::Always,
             resting_edge: RestingEdge::None,
-            rail_width: TITLEBAR_RAIL.width,
-            rail_padding_top: TITLEBAR_RAIL.padding_top,
-            rail_padding_bottom: TITLEBAR_RAIL.padding_bottom,
-            rail_spacing: TITLEBAR.buttons.spacing as f32,
-            pill_inset: TITLEBAR_RAIL.pill_inset,
-            pill_padding: (TITLEBAR_RAIL.pill_padding_x, TITLEBAR_RAIL.pill_padding_y),
-            pill_shape: rounded(TITLEBAR_RAIL.pill_radius),
-            rail_background: StateValue::new(ShapeStyle::Color(
-                resolved.surfaces.titlebar_inactive,
-            ))
-            .focused(toplevel.clone()),
-            drawer_background: StateValue::new(toplevel),
-            title: StateValue::new(ShapeStyle::Color(ink.unfocused))
-                .focused(ShapeStyle::Color(ink.focused)),
+            pill_inset: TITLEBAR_REVEAL.pill_inset,
+            pill_padding: (
+                TITLEBAR_REVEAL.pill_padding_x,
+                TITLEBAR_REVEAL.pill_padding_y,
+            ),
+            pill_shape: rounded(TITLEBAR_REVEAL.pill_radius),
             pill_background: StateValue::new(ShapeStyle::Role(Role::RaisedBackground)),
-            rail_line: Some((line.clone(), HAIRLINE)),
-            line_edge: (line, TITLEBAR_RAIL.edge_line),
-            accent_edge: (ShapeStyle::Accent, TITLEBAR_RAIL.edge_accent),
+            line_edge: (line, TITLEBAR_REVEAL.edge_line),
+            accent_edge: (ShapeStyle::Accent, TITLEBAR_REVEAL.edge_accent),
             pill_border: Some((ShapeStyle::Role(Role::Outline), HAIRLINE)),
             shadows: vec![ShadowStyle {
                 color: ctdesign::Rgba {
@@ -101,11 +63,6 @@ impl ControlStyle for WindowChromeStyle {
                 },
                 ..contact.into()
             }],
-            title_angle: TITLEBAR_RAIL.title_angle,
-            title_font: Font {
-                size: TITLEBAR_RAIL.title_size as u32,
-                ..TITLEBAR.font
-            },
             animation: Animation::Ease {
                 duration_ms: DURATION_BASE,
             },

@@ -269,7 +269,6 @@ WindowChromeStyle:
 
 ```rust
 WindowChrome::new(content).style(|s| WindowChromeStyle {
-    layout: TitlebarLayout::Rail,
     reveal: Reveal::Drawer,
     resting_edge: RestingEdge::Accent,
     ..s

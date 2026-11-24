@@ -15,8 +15,7 @@ use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 /// full-screen glass and draws no background. `.spacing(px)` is an instance
 /// override of `spacing` and `sidebar_spacing`; `.hairline(true)` sets `hairline` to `TitlebarStyle::line()`.
 ///
-/// `FullscreenBarStyle` paints the glass under the overlaid bar and the rail in
-/// full screen. The kind of bar stays `WindowOptions::fullscreen_bar`. It has no
+/// `FullscreenBarStyle` paints the glass under the overlaid bar in full screen. The kind of bar stays `WindowOptions::fullscreen_bar`. It has no
 /// instance level: set it in the theme or with `.control_style` around the
 /// window.
 ///

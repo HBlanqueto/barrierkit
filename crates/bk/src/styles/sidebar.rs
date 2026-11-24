@@ -1,8 +1,8 @@
 use ctappearance::SidebarSurface;
-use ctdesign::{DURATION_BASE, SETTINGS, SIDEBAR};
+use ctdesign::{SETTINGS, SIDEBAR};
 
 use crate::sidebar::over_backdrop;
-use crate::styles::{Animation, ControlStyle, ShapeStyle, StateValue};
+use crate::styles::{ControlStyle, ShapeStyle, StateValue};
 
 /// The sidebar is flat and full height, as in macOS 27: no inset, rim or edge line.
 ///
@@ -27,9 +27,6 @@ pub struct SidebarStyle {
     /// Tengen: `Color` of the sidebar surface, its `inactive_bg` in an inactive window unless
     /// transparency is reduced; `Clear` over a `Backdrop`.
     pub background: StateValue<ShapeStyle>,
-    /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the first row slides to the title bar row
-    /// when the chrome switches to the `Rail`; `None` makes it jump.
-    pub animation: Animation,
 }
 
 impl SidebarStyle {
@@ -56,9 +53,6 @@ impl ControlStyle for SidebarStyle {
             lights_position: (SIDEBAR.traffic_x as f32, SIDEBAR.traffic_y as f32),
             lights_gap: SETTINGS.sidebar_lights_gap as f32,
             background: StateValue::new(ShapeStyle::Clear),
-            animation: Animation::Ease {
-                duration_ms: DURATION_BASE,
-            },
         }
         .surface(over_backdrop(crate::theme::resolved().sidebar))
     }

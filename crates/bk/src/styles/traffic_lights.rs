@@ -1,14 +1,13 @@
 use ctappearance::traffic::{self, ButtonVisual, TrafficInput};
 use ctdesign::{Rgba, TITLEBAR, TRAFFIC_GLYPH_FADE_MS, TRAFFIC_RING_WIDTH, TrafficHalo};
 
-use crate::styles::{Animation, Axis, ControlStyle, StateValue};
+use crate::styles::{Animation, ControlStyle, StateValue};
 
 /// `looks` holds one `ButtonVisual` per light, in the order close, minimize, zoom.
 ///
 /// States: hovered (the pointer is over the group), pressed (that light), focused
 /// (the window is focused), disabled (zoom without zoom support, the other
-/// lights with `.close_only(true)`). `.vertical(true)` is an instance override of
-/// `axis`. `Titlebar`, the rail and the sidebar place their lights with
+/// lights with `.close_only(true)`). `Titlebar` and the sidebar place their lights with
 /// `TrafficLights::for_window`, so their size comes from the theme and the containers.
 #[derive(Clone, Debug)]
 pub struct TrafficLightsStyle {
@@ -30,8 +29,6 @@ pub struct TrafficLightsStyle {
     pub animation: Animation,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `Horizontal`.
-    pub axis: Axis,
 }
 
 impl TrafficLightsStyle {
@@ -84,7 +81,6 @@ impl ControlStyle for TrafficLightsStyle {
                 duration_ms: TRAFFIC_GLYPH_FADE_MS,
             },
             opacity: 1.0,
-            axis: Axis::Horizontal,
         }
     }
 }

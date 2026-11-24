@@ -2,15 +2,14 @@ use crate::elements::{Overrides, forward_container, forward_key, forward_overrid
 use ctappearance::{ColorScheme, SidebarSurface};
 use ctdesign::{
     GlassSelection, Rgba, SIDEBAR, SIDEBAR_GLASS_SELECTION_DARK, SIDEBAR_GLASS_SELECTION_LIGHT,
-    SidebarPalette, TEXT_FIELD,
+    SidebarPalette,
 };
 use freya_core::prelude::*;
 use std::borrow::Cow;
-use torin::prelude::{Alignment, Area, Content, Direction, Gaps, Position, Size};
+use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::adornments::Avatar;
-use crate::chrome::TitlebarLayout;
 use crate::focus::{FocusState, Focused, use_focus_state};
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::WindowControls;
@@ -334,14 +333,6 @@ impl Component for Sidebar {
                 resting_top + (revealed_top - resting_top) * progress
             }
         };
-        let chrome = crate::chrome::chrome_style();
-        let rail_layout = chrome.layout == TitlebarLayout::Rail;
-        let rail_progress =
-            crate::animation::use_animated(f32::from(u8::from(rail_layout)), style.animation);
-        let bar_height = crate::titlebar::sidebar_bar_height();
-        // With the Rail the traffic lights leave the sidebar, so its first row rises to the titlebar row.
-        let row_top = ((bar_height - TEXT_FIELD.height) / 2.0).max(0.0);
-        let top_height = top_height + (row_top - top_height) * rail_progress;
         let padding_x = style.padding_x;
 
         let (status, fixed) = controls
@@ -349,13 +340,6 @@ impl Component for Sidebar {
             .map(|controls| (*controls.status.read(), controls.fixed))
             .unwrap_or_default();
         let drag = use_window_drag(fixed);
-
-        let lights_column = chrome.unified(true) && self.traffic_lights;
-        let reserved = if lights_column {
-            chrome.rail_width
-        } else {
-            0.0
-        };
 
         let focus = use_focus_state::<InSidebar>();
         use_provide_context(move || focus);
@@ -378,7 +362,7 @@ impl Component for Sidebar {
             .painted(&paints, &style.background)
             .a11y_role(AccessibilityRole::Navigation)
             .on_sized(move |event: Event<SizedEventData>| panel_area.set_if_modified(event.area))
-            .padding(Gaps::new(top_height, padding_x, 0.0, padding_x + reserved))
+            .padding(Gaps::new(top_height, padding_x, 0.0, padding_x))
             .maybe_child(glass.filter(|_| !native_pane).map(|_| {
                 let size = panel_area.read().size;
                 crate::glass_panel::hole((-padding_x, -top_height), (size.width, size.height), 0.0)
@@ -398,48 +382,11 @@ impl Component for Sidebar {
             ));
 
         let sidebar_shown = sidebar_control().is_none_or(|control| control.settled());
-        let floating_lights = !lights_column
-            && self.traffic_lights
-            && lights_shown
-            && draws_lights
-            && sidebar_shown
-            && chrome.layout == TitlebarLayout::Top;
+        let floating_lights = self.traffic_lights && lights_shown && draws_lights && sidebar_shown;
         let root = rect()
             .expanded()
             .child(sidebar_body)
             .maybe_child(native_pane.then(crate::platform::backdrop::Declared::pane))
-            .maybe_child(lights_column.then(|| {
-                let items = crate::chrome::rail_items();
-                let position = Position::new_absolute().top(0.0);
-                rect()
-                    .position(position.left(0.0))
-                    .width(Size::px(chrome.rail_width))
-                    .height(Size::percent(100.0))
-                    .direction(Direction::Vertical)
-                    .content(Content::flex())
-                    .cross_align(Alignment::Center)
-                    .spacing(chrome.rail_spacing)
-                    .padding(Gaps::new(
-                        traffic_y + overlay_top.unwrap_or_default(),
-                        0.0,
-                        chrome.rail_padding_bottom,
-                        0.0,
-                    ))
-                    .maybe(overlay_top.is_some(), |el| {
-                        el.layer(crate::titlebar::TITLEBAR_OVERLAY_LAYER + 1)
-                    })
-                    .maybe_child((lights_shown && draws_lights).then(|| {
-                        rect()
-                            .probe("sidebar-traffic-lights")
-                            .opacity(lights_opacity)
-                            .child(
-                                TrafficLights::for_window(status.activated, fixed).vertical(true),
-                            )
-                    }))
-                    .maybe_child(items.top)
-                    .child(rect().height(Size::flex(1.0)))
-                    .maybe_child(items.bottom)
-            }))
             .maybe_child(floating_lights.then(|| {
                 rect()
                     .position(

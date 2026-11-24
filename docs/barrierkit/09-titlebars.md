@@ -1,119 +1,128 @@
 # 9. Titlebars
 
-**Goal:** add a title bar to a window, choose its layout and know how it
-looks in each window state.
-**Scope:** `Titlebar`, `TrafficLights`, `WindowChrome` and its `WindowChromeStyle`,
-and the full-screen bars (`FullscreenBar`). The window options and state they
-read are in [8. Windows](08-windows.md). The sidebar that holds the traffic
-lights is in [10. Sidebar](10-sidebar.md).
-**Reader:** anyone who designs the window of an app that runs with
-`run_window`.
-**Input:** a window opened with `run_window` ([8](08-windows.md#running-a-window)).
-**Output:** a window with its title bar, traffic lights and full-screen
-behavior.
+**Goal:** give a window its title bar, choose one of SwiftUI's window designs
+and know how the bar looks windowed, in full screen and at the top edge.
+**Scope:** `Titlebar`, its `WindowToolbarStyle`, `TrafficLights`,
+`WindowChrome` and the full-screen bars of Malaysia (`FullscreenBar`). The window
+options and state they read, `WindowStyle` included, are in
+[8. Windows](08-windows.md). The sidebar that holds the traffic lights is in
+[10. Sidebar](10-sidebar.md).
+**Reader:** anyone who designs the window of an app.
+**Input:** a window opened with `Application` or `run_window`
+([8](08-windows.md#running-a-window)).
+**Output:** a window whose bar matches the SwiftUI design it copies, in every
+window state.
 
 ## Steps
 
-1. Put a `Titlebar` at the top of the root view. With `Application`, `Scene`
-   already does it ([2](02-first-app.md#what-application-does-for-you)).
+1. Pick the design in [Window designs](#window-designs). A window that keeps
+   AppKit's bar (`WindowStyle::TitleBar`, the default) needs nothing more; on
+   Linux `Application` draws its `Titlebar`.
+2. For any other design, open the window as `WindowStyle::HiddenTitleBar` and
+   put a `Titlebar` at the top of the root view:
 
    ```rust
-   rect()
-       .expanded()
-       .background(color(Palette::current().window_background))
-       .child(Titlebar::new().title(tr!("notes")))
-       .child(content)
+   Application::new("notes")
+       .window(tr!("notes"), || {
+           rect()
+               .expanded()
+               .child(Titlebar::new().title(tr!("notes")).toolbar(ToolbarItem::new(
+                   ToolbarItemPlacement::PrimaryAction,
+                   IconButton::new(Symbol::Plus, tr!("new-note")),
+               )))
+               .child(content)
+       })
+       .options(|w| w.window_style(WindowStyle::HiddenTitleBar))
+       .run()
    ```
 
-2. Add items to its left and right zones:
-
-   ```rust
-   Titlebar::new()
-       .title(tr!("notes"))
-       .left(SidebarToggle)
-       .right(IconButton::new(Symbol::Plus, tr!("new-note")))
-   ```
-
-3. With a sidebar, pass `.with_sidebar(true)` so the bar aligns with it
+3. Choose the bar with `.toolbar_style(..)` and drop the title with
+   `.shows_title(false)` when the design does.
+4. With a sidebar, pass `.with_sidebar(true)` and `Sidebar::traffic_lights(true)`
    ([10](10-sidebar.md)).
-4. For a vertical title bar or one that hides, wrap the window in
-   `WindowChrome` and set its layout in a `WindowChromeStyle`
-   ([Window chrome](#window-chrome)).
-5. Choose the full-screen bar in `WindowOptions`
-   ([The bar in full screen](#the-bar-in-full-screen-fullscreenbar)).
-6. Leave room under the overlaid title bar in full screen
-   ([What the app does](#what-the-app-does)).
+5. To keep the bar out of full screen until the pointer reaches the top edge,
+   set `WindowToolbarFullScreenVisibility::OnHover`
+   ([8](08-windows.md#window-options)).
+6. On Malaysia, choose the full-screen bar and, if the bar should hide, wrap the
+   window in `WindowChrome` ([Linux and Malaysia](#linux-and-malaysia)).
+
+## Window designs
+
+Each SwiftUI design has one kit form. The program that opens every one is
+[`window_designs.rs`](../../agents/recipes/window_designs.rs)
+([recipe 50](../../agents/recipes.md#50-every-swiftui-window-design)); the
+sidebar design is [`notes_sidebar.rs`](../../agents/recipes/notes_sidebar.rs).
+Each pair was captured next to its SwiftUI twin, active and inactive, windowed,
+in full screen and with the pointer at the top edge, and matches within 1 to
+2 px and one color level in Dark
+([the measurement](../research/csd-window-designs.md#2-designs-against-states)).
+
+| SwiftUI | Kit | Bar |
+|---|---|---|
+| `WindowGroup` (`.windowStyle(.titleBar)`) | `WindowStyle::TitleBar`, no `Titlebar` | AppKit's 32 px bar and lights |
+| `.windowStyle(.hiddenTitleBar)`, no toolbar | `HiddenTitleBar`, no `Titlebar` | None: the native lights over the content |
+| `.toolbar { }` (`.windowToolbarStyle(.unified)`) | `HiddenTitleBar`, `Titlebar` with items or `.toolbar_style(Unified)` | 52 px, title at the start in `TOOLBAR_TITLE` |
+| `.unified(showsTitle: false)` | `Unified` and `.shows_title(false)` | 52 px; the items follow the lights |
+| `.windowToolbarStyle(.unifiedCompact)` | `.toolbar_style(UnifiedCompact)`, or a `Titlebar` with only a title | 40 px, title at the start |
+| `.unifiedCompact(showsTitle: false)` | `UnifiedCompact` and `.shows_title(false)` | 40 px; the items follow the lights |
+| `.windowToolbarStyle(.expanded)` | `.toolbar_style(Expanded)` | 68 px: a 28 px title row over a 40 px toolbar row |
+| `NavigationSplitView` with a `.toolbar` | `SplitView`, `Sidebar::traffic_lights(true)`, `Titlebar::with_sidebar(true)` | 52 px over the detail; the lights in the sidebar |
+| `.windowToolbarFullScreenVisibility(.onHover)` | `WindowOptions::window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility::OnHover)` | As its design windowed; no bar at rest in full screen |
+
+`WindowStyle::Plain` is not a SwiftUI design: it is a borderless frame drawn as
+on Linux, with the kit's own lights ([8](08-windows.md#window-style)).
 
 ## Titlebar
 
-`Titlebar` (`bk::titlebar`, in the prelude) is the client-side title
-bar: traffic lights, a left zone, the title and a right zone.
+`Titlebar` (`bk::titlebar`, in the prelude) is the bar the kit draws: the
+traffic lights (or room for the native ones), a left item, the toolbar items
+and the title.
 
 | Method | Default | Effect |
 |---|---|---|
 | `Titlebar::new()` | — | A bar that reads the title and state from `WindowControls` |
 | `.title(text)` | the window title | Replaces the title shown |
 | `.shows_title(bool)` | `true` | `false` drops the title and lays the trailing items after the lights, as SwiftUI's `.unified(showsTitle: false)` and `.unifiedCompact(showsTitle: false)` |
-| `.left(view)` | empty; with a `SplitView` above, the `SidebarToggle` | Items before the navigation items; trailing items go through `.toolbar(..)` |
 | `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
+| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | `Unified`, `UnifiedCompact` or `Expanded`, as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
+| `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar: the title at the start of the detail, the lights in the sidebar |
+| `.left(view)` | empty; with a `SplitView` above, the `SidebarToggle` | Items before the navigation items |
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (12) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
-| `.with_sidebar(bool)` | `false` | Aligns the bar with a sidebar ([Variants](#variants-in-a-normal-window)) |
-| `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar or items, else `UnifiedCompact` | The unified bar (52 high), the compact one (40 high), both with the title at the start, or the expanded one (a title row over the toolbar row), as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
-| `.hairline(bool)` | `false` | The line under the bar of the sidebar layout. macOS draws none under a unified toolbar at rest over a scroll view; on macOS 26 and later, over content that does not scroll, AppKit's own title bar draws its separator ([15](15-backdrops-and-media.md#on-macos)); `true` draws `TitlebarStyle::line()`, as `NSTitlebarSeparatorStyle.line` does |
+| `.hairline(bool)` | `false` | Draws `TitlebarStyle::line()` under the bar, as `NSTitlebarSeparatorStyle.line` |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
 
-Behavior:
+Layout:
 
-- Without a sidebar and without items, or with `.toolbar_style(UnifiedCompact)`,
-  the bar is the compact one: 40 high, the title in `TITLEBAR.font` where an
-  item would start, `TITLEBAR_TOOLBAR_START.compact` (22) after the lights, as
-  macOS 26 does. Only a `.close_only(true)` bar centers its title.
-- With items the bar is the unified one, as in SwiftUI: 52 high, the traffic
-  lights at (19, 19) and the title `SETTINGS.toolbar_lights_gap` (22) after them, in
-  `TITLE_2`. The first item (the sidebar toggle, a `.left` view or a
-  `Navigation` item) starts `TITLEBAR_TOOLBAR_START.unified`
-  (16) after the lights, and the title follows it `SETTINGS.toolbar_gap` (13)
-  later. In the compact bar that item starts `TITLEBAR_TOOLBAR_START.compact`
-  (22) after the lights; they land at x 95 and 94, where SwiftUI puts them.
-- With `.toolbar_style(Expanded)` the bar is two rows, as SwiftUI's
-  `.expanded` on macOS 27.2: a `TITLEBAR_EXPANDED_TITLE_HEIGHT` (28) row with
-  the traffic lights at (9, 9) and the title `TITLEBAR_EXPANDED_TITLE_GAP` (15) after them,
-  in `TITLEBAR.font` and the dimmer `TitlebarStyle::row_title` ink of a title
-  row (hidden in full screen, as SwiftUI does until the top edge), and a
-  `TITLEBAR_CLIENT_HEIGHT` (40) toolbar row whose `Navigation` and
-  `PrimaryAction` items sit together from `TITLEBAR_TOOLBAR_START.expanded` (11),
-  `SETTINGS.toolbar_gap` (13) apart, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` (5) above
-  the row's middle, as SwiftUI puts them. Its items are 28 high
-  (`TOOLGROUP.expanded_*`). It reports `Bar::Titlebar`; a `HiddenTitleBar`
-  window then gives its empty `NSToolbar` the `.expanded` style, which puts the
-  native lights at (9, 9). AppKit draws its title row when the bar comes down
-  with the menu bar in full screen.
-- Over content that does not scroll under it, a unified or compact bar of a
-  `HiddenTitleBar` window lies on AppKit's own title bar and separator, as
-  SwiftUI's; the expanded bar draws `TitlebarStyle::line()` under itself.
-- In full screen the bar stays pinned, as SwiftUI's toolbar: without lights
-  the title and the first item start `TITLEBAR_FULLSCREEN_START` (22 unified,
-  14 compact, 11 expanded) from the edge, and the expanded bar is 52 high (a
-  12 px title row) with its separator. At the top edge the title rides with
-  the lights and the items in AppKit's strip. With
-  `WindowToolbarFullScreenVisibility::OnHover` the bar is not pinned: the
-  content starts at the top and the bar shows only in that strip
-  ([8](08-windows.md#window-options)).
-- Beside a sidebar, over the platform's window material, the bar is that
-  material under `TITLEBAR_SYSTEM_VEIL`, with AppKit's separator
-  unless a scroll view of the detail reaches under it.
-- With `.with_sidebar(true)` the title goes at the start, next to `left`, in
-  `TITLE_2`, as on macOS. While the sidebar shows, the traffic lights live in
-  the sidebar; they keep their place while it folds.
+- **Unified:** 52 high. The title is `SETTINGS.toolbar_lights_gap` (22) after
+  the lights, in `TOOLBAR_TITLE`. The first item (the sidebar toggle, a `.left`
+  view or a `Navigation` item) starts `TITLEBAR_TOOLBAR_START.unified` (16) after
+  the lights, and the title follows it `SETTINGS.toolbar_gap` (13) later.
+- **Compact:** 40 high, the title in `TITLEBAR.font` where an item would start,
+  `TITLEBAR_TOOLBAR_START.compact` (22) after the lights, as macOS 26 does; the
+  first item lands at x 94, where SwiftUI puts it. Only a `.close_only(true)`
+  bar centers its title.
+- **Expanded:** a `TITLEBAR_EXPANDED_TITLE_HEIGHT` (28) title row, its title
+  `TITLEBAR_EXPANDED_TITLE_GAP` (15) after the lights in the dimmer
+  `TitlebarStyle::row_title` ink, over a `TITLEBAR_CLIENT_HEIGHT` (40) toolbar
+  row. Its `Navigation` and `PrimaryAction` items sit together from
+  `TITLEBAR_TOOLBAR_START.expanded` (11), `SETTINGS.toolbar_gap` (13) apart,
+  `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` (5) above the row's middle, 28 high
+  (`TOOLGROUP.expanded_*`).
+- **No title:** with `.shows_title(false)` the trailing items join the
+  navigation items after the lights.
+- **Beside a sidebar:** the title goes at the start of the detail, next to
+  `left`, in `TOOLBAR_TITLE`. While the sidebar shows, the lights live in it and
+  keep their place while it folds.
 - A press on the bar moves the window; a double click does what
   `double_click_titlebar` says ([Traffic lights](#traffic-lights)).
 - `.close_only(true)`: a transparent bar `TITLEBAR.thickness` (32 px) tall,
   with only close enabled. Utility and HUD windows switch to it by themselves
   ([8](08-windows.md#utility-windows)).
-- With server-side decoration (`DecorationResponse::Server`) the bar takes no
-  space: the compositor or AppKit draws one, and its toolbar items do not show. On
-  macOS, `WindowStyle::HiddenTitleBar` asks for the bar ([8](08-windows.md#window-style)).
+- Under a system title bar (`DecorationResponse::Server`) the bar takes no
+  space and its toolbar items do not show; the kit warns once in the log. On
+  macOS, `WindowStyle::HiddenTitleBar` asks for the bar
+  ([8](08-windows.md#window-style)).
 
 ### Toolbar items
 
@@ -143,8 +152,8 @@ The recipe is [`toolbar_items.rs`](../../agents/recipes/toolbar_items.rs).
   it go next to the `Navigation` items and the ones after it go to the right
   zone. `ToolbarSpacer::fixed()` adds one gap (`TitlebarStyle::sidebar_padding_x`)
   to the zone where it falls.
-- Items in a zone are `sidebar_padding_x` apart. A `.left` or `.right` view
-  comes first in its zone; a `.left` view still replaces the sidebar toggle.
+- Items in a zone are `sidebar_padding_x` apart. A `.left` view comes first in
+  the left zone and replaces the sidebar toggle.
 - A bar with toolbar items is the unified one.
 - There is no overflow: the bar does not measure its items, so items that do
   not fit are clipped, not moved to a menu.
@@ -169,43 +178,54 @@ Titlebar::new().style(|s: TitlebarStyle| TitlebarStyle {
 })
 ```
 
-### Variants in a normal window
+## On macOS: window, full screen and top edge
 
-The same `Titlebar` changes with the sidebar and the focus. The app chooses
-neither variant.
+A `HiddenTitleBar` window keeps AppKit's frame, so AppKit gives it what it
+gives a SwiftUI window: the native lights, the wallpaper tint of the window
+background, the inactive look and the full-screen strip. The kit draws only the
+rows AppKit does not.
 
-| Variant | How it looks |
-|---|---|
-| Sidebar: the unified `SETTINGS.toolbar_height` (52 px) bar runs over the content, the traffic lights go in the sidebar at (19, 19), and a translucent line sits under the bar | ![Titlebar with a sidebar](assets/states/titlebar-sidebar.png) |
-| Sidebar, inactive window: traffic lights and title in gray | ![Titlebar with a sidebar, inactive](assets/states/titlebar-sidebar-inactive.png) |
-| No sidebar: traffic lights in the bar, title centered between two equal zones | ![Titlebar without a sidebar](assets/states/titlebar-no-bar.png) |
-| No sidebar, inactive window: `titlebar_inactive` background and gray traffic lights | ![Titlebar without a sidebar, inactive](assets/states/titlebar-no-bar-inactive.png) |
+### Windowed
 
-### Corner radius
+- **AppKit's bar under the kit's row.** Over content that does not scroll
+  under it, a unified or compact bar lies on AppKit's own title bar and
+  separator, as SwiftUI's toolbar does; over a scroll view the bar has no line
+  at rest.
+- **Expanded.** AppKit draws the 28 px title row and its separator; the kit
+  draws only the toolbar row on AppKit's bar, so the bar is 68 px with
+  AppKit's tint.
+- **Beside a sidebar.** The detail's bar is the window material under white at
+  `TITLEBAR_SYSTEM_VEIL`, with AppKit's separator unless a scroll view of the
+  detail reaches under it. In Light the veil adds nothing, as in SwiftUI.
+- **Inactive.** AppKit grays the lights and dims the tint; the title takes the
+  inactive ink.
 
-The `Titlebar` tells the compositor which bar it draws with
-`infinity_window_style_v1.set_bar`, and Malaysia rounds the window with that
-bar's radius
-([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions.md)).
-The app does nothing:
+### Full screen
 
-| `Titlebar` | `Bar` | Height | Radius (`WINDOW_CORNER`) |
-|---|---|---|---|
-| Panel (`UtilityWindow`) | `Utility` | `TITLEBAR.thickness` (32) | `utility` (16) |
-| `.close_only(true)` or HUD window | `Titlebar` | `TITLEBAR.thickness` (32) | `titlebar` (16) |
-| `.with_sidebar(true)` | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (16) |
-| The rest | `UnifiedCompact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `unified_compact` (16) |
+The bar stays pinned at the top, as SwiftUI's toolbar does. Without lights the
+title and the first item start `TITLEBAR_FULLSCREEN_START` from the edge
+(22 unified, 14 compact, 11 expanded). The expanded bar is 52 high: a 12 px
+title row, the 40 px toolbar row and a separator. Beside a sidebar the
+detail's bar takes the toolbar background, not the sidebar layout's veil.
 
-`Bar` (`bk::platform`) comes from the Infinity protocol and has four
-values, each an AppKit window kind: `Titlebar` (no toolbar), `UnifiedCompact`
-(`NSWindow.ToolbarStyle.unifiedCompact`), `Unified` (`.unified`) and
-`Utility` (a panel, radius 16). Every radius is 16, as macOS 27.2.1 gives every window kind; the silhouette to draw is `CORNER_WINDOW.fitted` (16.8, [Corners](04-appearance-and-tokens.md#corners)).
+### The top edge
 
-An app that draws its own
-bar without `Titlebar` declares it with
-`WindowControls::get().set_bar(Bar::Titlebar)`; otherwise Malaysia uses
-`unified` for a client-decorated window. The user can force one radius for
-every window with `corner_radius` in `window.domain`.
+With the pointer at the top edge, the menu bar comes down with AppKit's strip.
+The kit's row rides in that strip with the native lights and the title, as
+SwiftUI's ([ADR 0116](../decisions.md#0116--in-full-screen-the-title-bar-row-of-a-hiddentitlebar-window-rides-with-appkits-bar)):
+
+- the title of a unified or compact bar rides on a layer of its own;
+- in the expanded bar AppKit draws the title row, the toolbar row rides
+  centered in AppKit's 36 px accessory, and the pinned separator hides, as
+  SwiftUI's does.
+
+### `OnHover`
+
+`WindowToolbarFullScreenVisibility::OnHover` is AppKit's `.autoHideToolbar`.
+In full screen there is no bar at rest: the content starts at the top. At the
+top edge the row comes down with the menu bar, in the same places as
+SwiftUI's, and a press in it leaves no stale frame. Windowed it changes
+nothing.
 
 ## Traffic lights
 
@@ -213,14 +233,14 @@ Close, minimize and zoom, drawn as macOS 27 draws them: 14 pt discs with a
 vertical gradient, a 0.5 pt ring, a halo in the light appearances and a glyph
 while the pointer is over the group. The measurement is in
 [macOS control metrics](../research/macos-control-metrics.md#traffic-lights-macos-27).
-`Titlebar`, the `Rail` and
-`Sidebar::traffic_lights(true)` place them with
+`Titlebar` and `Sidebar::traffic_lights(true)` place them with
 `TrafficLights::for_window(focused, fixed)`, which wires them to
 `WindowControls` and the user's settings. In a fixed-width window
 (`WindowControls::fixed_width`) the green light is a plus and zooms to the full
-height. Use it when a view covers the title bar and needs its own lights.
+height. Use it when a view covers the title bar and needs its own lights. A
+`HiddenTitleBar` window shows AppKit's own lights instead.
 
-In a bar the lights sit `TITLEBAR.buttons.inset_compact` (12) from the left when
+In a bar the kit draws (Linux, `Plain`) the lights sit `TITLEBAR.buttons.inset_compact` (12) from the left when
 it is `TITLEBAR_CLIENT_HEIGHT` (40) tall and `TITLEBAR.buttons.inset` (9) when it
 is `TITLEBAR.thickness` (32) tall, centred vertically, so 13 and 9 from the top.
 `ctappearance::traffic::inset(bar_height)` is the one rule; the `Titlebar` and
@@ -248,7 +268,6 @@ TrafficLights::new()
 | `.zoom_supported(bool)` | `true` | Without zoom, the green light is gray, has no glyph and does nothing |
 | `.fixed_width(bool)` | `false` | The zoom glyph is a plus, for fixed-width windows |
 | `.close_only(bool)` | `false` | Only close is colored and clickable |
-| `.vertical(bool)` | `false` | A column instead of a row |
 | `.input(TrafficInput)` | — | Draws a fixed state (focus, hover, press) and ignores the pointer, for previews |
 | `.on_action(f)` | — | Receives the `ButtonKind` pressed |
 
@@ -256,7 +275,7 @@ Each light has the accessible role button and the name "Close", "Minimize" or
 "Zoom". Hovering the group shows the glyphs.
 
 `.style(..)` takes a `TrafficLightsStyle`: size, gap, ring width, halo, and the
-`ButtonVisual` of each light in each state; `.vertical` overrides its `axis`
+`ButtonVisual` of each light in each state
 ([Styles and themes](../../crates/bk/src/styles/traffic_lights.rs)). The lights that
 `TrafficLights::for_window` place take the theme and the containers:
 
@@ -316,89 +335,76 @@ A double click is two presses within `TITLEBAR_DOUBLE_CLICK.interval_ms`
 that moves the window or runs the double-click action; put it on your own
 draggable areas.
 
-## Window chrome
+## Linux and Malaysia
 
-`WindowChrome` (`bk::chrome`) wraps the window and places the traffic
-lights, the title and the rail items according to its `WindowChromeStyle`.
-`Titlebar` and `Sidebar` inside it read the layout.
+On Linux the kit draws the whole bar and its lights. The designs above keep
+their layout; full screen and the hidden bars follow Malaysia.
+
+### Corner radius
+
+The `Titlebar` tells the compositor which bar it draws with
+`infinity_window_style_v1.set_bar`, and Malaysia rounds the window with that
+bar's radius
+([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions.md)).
+The app does nothing:
+
+| `Titlebar` | `Bar` | Height | Radius (`WINDOW_CORNER`) |
+|---|---|---|---|
+| Panel (`UtilityWindow`) | `Utility` | `TITLEBAR.thickness` (32) | `utility` (16) |
+| `.close_only(true)` or HUD window | `Titlebar` | `TITLEBAR.thickness` (32) | `titlebar` (16) |
+| `Unified` (with a sidebar or items) | `Unified` | `SETTINGS.toolbar_height` (52) | `unified` (16) |
+| `UnifiedCompact` | `UnifiedCompact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `unified_compact` (16) |
+| `Expanded` | `Titlebar` | 68 | `titlebar` (16) |
+
+`Bar` (`bk::platform`) comes from the Infinity protocol and has four
+values, each an AppKit window kind: `Titlebar` (no toolbar), `UnifiedCompact`
+(`NSWindow.ToolbarStyle.unifiedCompact`), `Unified` (`.unified`) and
+`Utility` (a panel, radius 16). Every radius is 16, as macOS 27.2.1 gives every window kind; the silhouette to draw is `CORNER_WINDOW.fitted` (16.8, [Corners](04-appearance-and-tokens.md#corners)).
+
+An app that draws its own
+bar without `Titlebar` declares it with
+`WindowControls::get().set_bar(Bar::Titlebar)`; otherwise Malaysia uses
+`unified` for a client-decorated window. The user can force one radius for
+every window with `corner_radius` in `window.domain`.
+
+### Window chrome
+
+`WindowChrome` (`bk::chrome`) wraps the window and decides when the bar
+shows. `Titlebar` and `Sidebar` inside it read that decision.
 
 ```rust
-use bk::chrome::{TitlebarLayout, WindowChrome};
+use bk::chrome::{Reveal, WindowChrome};
 
-WindowChrome::new(window_content)
-    .style(|s| WindowChromeStyle {
-        layout: TitlebarLayout::Rail,
-        ..s
-    })
-    .rail_top(top_items)
-    .rail_bottom(bottom_items)
+WindowChrome::new(window_content).style(|s| WindowChromeStyle {
+    reveal: Reveal::Drawer,
+    ..s
+})
 ```
 
-### `WindowChromeStyle` layout fields
-
-These fields choose the layout. The style also holds the rail's paints,
-padding, title and the pill
-([Styles and themes](../../crates/bk/src/styles/window_chrome.rs)); a `Theme` sets them
-for every window.
-
-| Field | Default | Values |
+| `WindowChromeStyle` field | Default | Values |
 |---|---|---|
-| `layout` | `Top` | `TitlebarLayout::Top`: the horizontal `Titlebar`. `Rail`: a vertical bar on the left, with the traffic lights in a column, the title rotated 90° and the rail items |
-| `rail_width` | `TITLEBAR_RAIL.width` (30) | Rail width without items |
-| `rail_style` | `Normal` | `RailStyle::Normal`: its own strip. `Unified`: no strip; the column goes inside the sidebar, and without a visible sidebar it draws as `Normal` |
-| `reveal` | `Always` | When the bar shows ([Reveal](#reveal)) |
-| `resting_edge` | `None` | What stays while a hidden bar is away: `RestingEdge::None`, `Line` (`TITLEBAR_RAIL.edge_line`, 1 px) or `Accent` (`edge_accent`, 4 px, accent color) |
+| `reveal` | `Always` | When the bar shows (below) |
+| `resting_edge` | `None` | What stays while a hidden bar is away: `RestingEdge::None`, `Line` (`TITLEBAR_REVEAL.edge_line`, 1 px) or `Accent` (`edge_accent`, 4 px, accent color) |
 
-### Reveal
+The style also holds the pill, its shadow and the animation
+([Styles and themes](../../crates/bk/src/styles/window_chrome.rs)); a `Theme`
+sets them for every window.
 
 | `Reveal` | What happens |
 |---|---|
 | `Always` | The bar is always there |
-| `Drawer` | Hidden. The pointer within `TITLEBAR_RAIL.reveal_zone` (8 px) of the edge slides it in over the content, with a shadow |
-| `Push` | Hidden. It grows in from the edge and pushes the content |
+| `Drawer` | Hidden. The pointer within `TITLEBAR_REVEAL.reveal_zone` (8 px) of the top edge slides it in over the content, with a shadow |
+| `Push` | Hidden. It grows in from the top edge and pushes the content |
 | `Corner` | The bar stays; only the traffic lights fade in while the pointer is in the top-left `reveal_corner` (96 px) |
 | `Popup` | The traffic lights leave the bar. The pointer at the edge slides in a pill with them, which stays while the pointer is in the corner |
 
-The reveal animates over `DURATION_BASE`. Some combinations correct
-themselves: a unified `Rail` turns `Drawer`, `Push` and `Popup` into
-`Corner`. In Malaysia's focus mode the chrome behaves as `Always`.
+The reveal animates over `DURATION_BASE`. In Malaysia's focus mode the chrome
+behaves as `Always`.
 
-### Rail items
-
-As the `Top` titlebar holds items at its left and right, the `Rail` holds them
-vertically:
-
-| Method | Where it goes |
-|---|---|
-| `WindowChrome::rail_top(items)` | Below the traffic lights |
-| `WindowChrome::rail_bottom(items)` | At the foot of the rail |
-
-With any item, the rail widens to at least `TITLEBAR_RAIL.actions_width` (34).
-In `Unified` the items go in the sidebar column, in the same places.
-
-| `Normal` with items | `Unified` with items |
-|---|---|
-| ![Normal rail with items at the top and the bottom](assets/states/rail-items.png) | ![Unified rail with items at the top and the bottom](assets/states/rail-unified-items.png) |
-
-### The sidebar with the `Rail`
-
-With the `Rail`, the traffic lights leave the sidebar. The `Sidebar` then
-raises its first row (the search field in `SettingsWindow`) to the title
-bar row; `sidebar_bar_height()` gives that row's height (52). Switching
-between `Top` and `Rail` slides the row over `DURATION_BASE` with a cubic
-ease-out; with reduced motion it jumps.
-
-| `Top`: the search field below the traffic lights | `Rail`: the search field in the title bar row |
-|---|---|
-| ![Sidebar with Top](assets/states/sidebar-top.png) | ![Sidebar with Rail](assets/states/sidebar-rail.png) |
-
-## Maximized, full screen and focus mode
+### Maximized, full screen and focus mode
 
 The state comes from [`WindowStatus`](08-windows.md#window-state). The
-screenshots are a test window (`Top` layout unless stated)
-rendered by the kit in each state.
-
-### The four states with the `Top` layout
+screenshots are a test window rendered by the kit in each state.
 
 | State | How it is entered | What the kit does | How it looks |
 |---|---|---|---|
@@ -416,7 +422,7 @@ is drawn over the content, right below the bar, on the background the app
 chooses (`FullscreenBar`). It slides and fades with the bar over
 `DURATION_BASE`.
 
-### The bar in full screen: `FullscreenBar`
+#### The bar in full screen: `FullscreenBar`
 
 Each window chooses how its overlaid title bar is drawn, in `WindowOptions`
 ([8](08-windows.md#window-options)):
@@ -447,7 +453,7 @@ the animation are a `FullscreenBarStyle`, set in the theme or with
 The screenshots of the two glass bars were rendered before the blur moved to
 the compositor and show the blur it draws.
 
-#### Pushing the content: `fullscreen_push`
+##### Pushing the content: `fullscreen_push`
 
 `fullscreen_push(true)` combines with any of the three bars. It is off by
 default:
@@ -471,46 +477,20 @@ move with the title bar, and `fullscreen_content_top()` is 0.
 | `ProgressiveGlass` + push | ![Progressive glass pushing the content](assets/states/bar-push-progressive-glass.png) |
 | Bar up: the content reaches the top edge | ![Push with the bar up](assets/states/bar-push-top.png) |
 
-#### With the `Rail`
+#### Focus mode with the bar down
 
-With the `Rail`, the top title bar neither retracts nor overlays: it stays in
-place and nothing moves down with the compositor bar. Only the rail hides
-while the compositor bar is up; when the bar comes down, the rail slides in
-from the left with the same bar, vertically, its traffic lights below the
-compositor bar:
+The `Titlebar` comes down over the content and the sidebar traffic lights move
+down by the same amount. The black strip at the top (30 px) is the compositor
+bar, added to the image.
 
-| `FullscreenBar` | The rail | How it looks |
-|---|---|---|
-| `Solid` (default) | An opaque strip as wide as the rail, over the content | ![Rail with Solid](assets/states/rail-bar-solid.png) |
-| `Glass` | A strip as wide as the rail that blurs what is below, with a line on the inner edge | ![Rail with the glass band](assets/states/rail-bar-glass-band.png) |
-| `ProgressiveGlass` | Full blur at the window edge that fades inward over 96 px | ![Rail with progressive glass](assets/states/rail-bar-progressive-glass.png) |
-| Any, with push | The rail returns to the layout and pushes the content sideways by its width | ![Rail pushing the content](assets/states/rail-bar-push.png) |
+![Top with the bar down](assets/states/focus-top.png)
 
-### Focus mode with the bar down, by layout
-
-The layout is kept when the window is maximized and in full screen, also with
-a sidebar: the `Rail` stays on the left.
-
-| `Rail` with a sidebar, maximized | `Rail` with a sidebar, focus mode |
-|---|---|
-| ![Rail with a sidebar and the window maximized](assets/states/rail-maximized.png) | ![Rail with a sidebar in focus mode](assets/states/rail-focus.png) |
-
-These screenshots use `Solid` (except `Top`). The black
-strip at the top (30 px) is the compositor bar, added to the image.
-
-| Layout | What comes down | How it looks |
-|---|---|---|
-| `Top` (default) | The `Titlebar` over the content; the sidebar traffic lights move down by the same amount | ![Top with the bar down](assets/states/focus-top.png) |
-| Unified `Rail` | The sidebar column; the traffic lights appear with the bar, below it | ![Unified rail with the bar down](assets/states/focus-unified.png) |
-| `Rail` | The rail slides in from the left with the chosen bar; its traffic lights sit below the compositor bar | ![Rail with the bar down](assets/states/rail-bar-solid.png) |
-| `Rail` with items | The same, with its items | ![Rail with items and the bar down](assets/states/focus-rail-items.png) |
-
-### What the app does
+## What the app does
 
 1. With `Titlebar`, `WindowChrome`, `Sidebar` or `SettingsWindow`, nothing:
    every state above already works.
-2. It leaves room for the bar in content that sits under the overlaid title
-   bar:
+2. On Malaysia, it leaves room for the bar in content that sits under the
+   overlaid title bar:
 
    ```rust
    let top = try_consume_root_context::<WindowControls>()

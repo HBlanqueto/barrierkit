@@ -233,7 +233,6 @@ impl Component for SplitView {
 
         let shown =
             crate::animation::use_animated(f32::from(u8::from(*visible.read())), style.animation);
-        crate::chrome::report_sidebar_shown(*visible.read());
 
         let resize = style.resize_animation;
         let resize_ms = use_reactive(&resize.duration_ms());

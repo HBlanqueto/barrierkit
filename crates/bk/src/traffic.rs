@@ -9,7 +9,7 @@ use crate::animation::{effective, use_animated, use_reduced_motion};
 use crate::controls::dimmed;
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
-use crate::styles::{Axis, ControlState, Theme, TrafficLightsStyle, resolve};
+use crate::styles::{ControlState, Theme, TrafficLightsStyle, resolve};
 use crate::traffic_raster::{Layers, light};
 
 #[derive(PartialEq)]
@@ -76,15 +76,6 @@ impl TrafficLights {
     pub fn close_only(mut self, close_only: bool) -> Self {
         self.close_only = close_only;
         self
-    }
-
-    pub fn vertical(self, vertical: bool) -> Self {
-        let axis = if vertical {
-            Axis::Vertical
-        } else {
-            Axis::Horizontal
-        };
-        self.style(move |s| TrafficLightsStyle { axis, ..s })
     }
 
     pub fn style(
@@ -273,15 +264,10 @@ impl Component for TrafficLights {
                     .into_element()
             });
 
-        let (length, thickness) = (style.length(), diameter);
-        let (width, height, direction) = match style.axis {
-            Axis::Vertical => (thickness, length, Direction::Vertical),
-            Axis::Horizontal => (length, thickness, Direction::Horizontal),
-        };
         let root = rect()
-            .width(Size::px(width))
-            .height(Size::px(height))
-            .direction(direction)
+            .width(Size::px(style.length()))
+            .height(Size::px(diameter))
+            .direction(Direction::Horizontal)
             .spacing(style.spacing)
             .maybe(interactive, |group| {
                 group

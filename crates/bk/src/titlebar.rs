@@ -225,14 +225,9 @@ impl Component for Titlebar {
                 .into_element();
         }
 
-        let layout = match self.preview {
-            Some(_) => crate::chrome::TitlebarLayout::Top,
-            None => crate::chrome::chrome_style().layout,
-        };
-        let overlaid = layout != crate::chrome::TitlebarLayout::Rail
-            && controls
-                .as_ref()
-                .is_some_and(WindowControls::titlebar_overlaid);
+        let overlaid = controls
+            .as_ref()
+            .is_some_and(WindowControls::titlebar_overlaid);
         let style: TitlebarStyle = resolve(&self.style);
         let control = crate::sidebar::sidebar_control();
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
@@ -277,22 +272,19 @@ impl Component for Titlebar {
         let draws_lights = controls
             .as_ref()
             .is_none_or(WindowControls::draws_traffic_lights);
-        let vertical = layout != crate::chrome::TitlebarLayout::Top;
         let lights_opacity = crate::chrome::lights_opacity();
-        let traffic =
-            if sidebar || !lights_shown || !draws_lights || vertical || lights_opacity == 0.0 {
-                None
-            } else {
-                Some(
-                    rect()
-                        .opacity(lights_opacity)
-                        .child(
-                            TrafficLights::for_window(status.activated, fixed)
-                                .close_only(close_only),
-                        )
-                        .into_element(),
-                )
-            };
+        let traffic = if sidebar || !lights_shown || !draws_lights || lights_opacity == 0.0 {
+            None
+        } else {
+            Some(
+                rect()
+                    .opacity(lights_opacity)
+                    .child(
+                        TrafficLights::for_window(status.activated, fixed).close_only(close_only),
+                    )
+                    .into_element(),
+            )
+        };
 
         let slots = self.toolbar_slots(&style);
         let title_font = if unified {
@@ -884,7 +876,6 @@ fn place_overlaid(
                     .layer(TITLEBAR_OVERLAY_LAYER)
                     .child(crate::glass::fullscreen_backdrop(
                         fullscreen_bar,
-                        crate::glass::GlassEdge::Top,
                         height,
                         opacity,
                     )),
