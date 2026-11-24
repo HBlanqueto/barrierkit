@@ -9,7 +9,7 @@ fn main() -> Result<(), RunError> {
                 .child(
                     Text::new("Total: ")
                         + Text::new("42 items")
-                            .bold()
+                            .bold(true)
                             .foreground_style(ShapeStyle::Accent),
                 )
                 .child(Text::markdown(

@@ -288,20 +288,36 @@ impl Text {
         Self(self.0.max_lines(lines), self.1, self.2, self.3)
     }
 
-    pub fn bold(self) -> Self {
-        self.font_weight(FontWeight::BOLD)
+    pub fn bold(self, active: bool) -> Self {
+        if active {
+            self.font_weight(FontWeight::BOLD)
+        } else {
+            self
+        }
     }
 
-    pub fn italic(self) -> Self {
-        self.font_slant(FontSlant::Italic)
+    pub fn italic(self, active: bool) -> Self {
+        if active {
+            self.font_slant(FontSlant::Italic)
+        } else {
+            self
+        }
     }
 
-    pub fn underline(self) -> Self {
-        self.text_decoration(TextDecoration::Underline)
+    pub fn underline(self, active: bool) -> Self {
+        if active {
+            self.text_decoration(TextDecoration::Underline)
+        } else {
+            self
+        }
     }
 
-    pub fn strikethrough(self) -> Self {
-        self.text_decoration(TextDecoration::LineThrough)
+    pub fn strikethrough(self, active: bool) -> Self {
+        if active {
+            self.text_decoration(TextDecoration::LineThrough)
+        } else {
+            self
+        }
     }
 
     /// Lets the reader select the text with the pointer and copy it; a link of a selectable text does not open.

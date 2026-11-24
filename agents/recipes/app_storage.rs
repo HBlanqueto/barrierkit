@@ -9,8 +9,8 @@ fn main() -> Result<(), RunError> {
                 .padding(SPACE_4)
                 .child(
                     Text::new("Hola mundo")
-                        .maybe(*bold.read(), Text::bold)
-                        .maybe(*italic.read(), Text::italic),
+                        .bold(*bold.read())
+                        .italic(*italic.read()),
                 )
                 .child(
                     Checkbox::new("Bold")
