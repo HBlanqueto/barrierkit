@@ -1231,7 +1231,7 @@ background, for `reduce_transparency`.
 | `TITLEBAR_FULLSCREEN_START` | `TitlebarToolbarStart` | Where the title or the first item starts in full screen, with no lights: 22 (unified), 14 (compact), 11 (expanded) from the edge ([9](09-titlebars.md)) |
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
 | `TITLEBAR_REVEAL` | `TitlebarRevealMetrics` | `chrome`, `styles` (`WindowChromeStyle`): the pill, reveal zone and corner, and resting edges of a hidden bar ([9](09-titlebars.md#window-chrome)) |
-| `FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `FULLSCREEN_BAND` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform`, `styles` (`FullscreenBarStyle`, `TopGlassStyle`) |
+| `FULLSCREEN_BAR`, `FULLSCREEN_GLASS` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform`, `styles` (`FullscreenBarStyle`, `TopGlassStyle`) |
 | `GLASS_MASK` | `Rgba` | Base color of the mask that fades glass bars |
 | `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
 

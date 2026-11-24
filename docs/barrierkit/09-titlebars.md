@@ -3,7 +3,7 @@
 **Goal:** give a window its title bar, choose one of SwiftUI's window designs
 and know how the bar looks windowed, in full screen and at the top edge.
 **Scope:** `Titlebar`, its `WindowToolbarStyle`, `TrafficLights`,
-`WindowChrome` and the full-screen bars of Malaysia (`FullscreenBar`). The window
+`WindowChrome` and the bar in Malaysia's focus mode. The window
 options and state they read, `WindowStyle` included, are in
 [8. Windows](08-windows.md). The sidebar that holds the traffic lights is in
 [10. Sidebar](10-sidebar.md).
@@ -43,8 +43,8 @@ window state.
 5. To keep the bar out of full screen until the pointer reaches the top edge,
    set `WindowToolbarFullScreenVisibility::OnHover`
    ([8](08-windows.md#window-options)).
-6. On Malaysia, choose the full-screen bar and, if the bar should hide, wrap the
-   window in `WindowChrome` ([Linux and Malaysia](#linux-and-malaysia)).
+6. On Malaysia, if the bar should hide, wrap the window in `WindowChrome`
+   ([Linux and Malaysia](#linux-and-malaysia)).
 
 ## Window designs
 
@@ -338,7 +338,7 @@ draggable areas.
 ## Linux and Malaysia
 
 On Linux the kit draws the whole bar and its lights. The designs above keep
-their layout; full screen and the hidden bars follow Malaysia.
+their layout; focus mode and the hidden bars follow Malaysia.
 
 ### Corner radius
 
@@ -401,89 +401,23 @@ sets them for every window.
 The reveal animates over `DURATION_BASE`. In Malaysia's focus mode the chrome
 behaves as `Always`.
 
-### Maximized, full screen and focus mode
+### Full screen and focus mode
 
-The state comes from [`WindowStatus`](08-windows.md#window-state). The
-screenshots are a test window rendered by the kit in each state.
+The state comes from [`WindowStatus`](08-windows.md#window-state).
 
-| State | How it is entered | What the kit does | How it looks |
-|---|---|---|---|
-| Normal | — | Title bar in place, traffic lights in the sidebar. The edges resize the window | ![Normal window](assets/states/state-normal.png) |
-| Maximized | Green light with `zoom`, double click with `zoom` or `fill`, or `toggle_maximize()` | Same as normal, without resize edges. Malaysia keeps the frame (corners and shadow) | ![Maximized window: same as normal](assets/states/state-maximized.png) |
-| Full screen without the focus protocol (another compositor) | Green light with `focus`, or `toggle_fullscreen()` | The title bar stays; the traffic lights hide | ![Full screen without the protocol: no traffic lights](assets/states/state-fullscreen-no-protocol.png) |
-| Malaysia focus mode, bar up | The same; the compositor sends the `fullscreen` state | The title bar leaves the layout and the content fills the window | ![Focus mode with the bar up: content only](assets/states/state-focus-bar-top.png) |
-
-In Malaysia, focus mode
-([Malaysia ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions.md))
-slides a black bar down when the pointer nears the top. The kit asks for
-`set_overlay` through `infinity_focus_v1` version 2, so the window does not
-move: while the bar is down, `titlebar_overlaid()` is true and the title bar
-is drawn over the content, right below the bar, on the background the app
-chooses (`FullscreenBar`). It slides and fades with the bar over
-`DURATION_BASE`.
-
-#### The bar in full screen: `FullscreenBar`
-
-Each window chooses how its overlaid title bar is drawn, in `WindowOptions`
-([8](08-windows.md#window-options)):
-
-```rust
-WindowOptions::new(tr!("ondina"), "ondina").fullscreen_bar(FullscreenBar::ProgressiveGlass)
-```
-
-The default is `Solid`. In the screenshots, the black strip at the top is the
-compositor bar, added to the image.
-
-| `FullscreenBar` | What it draws | Content starts (`fullscreen_content_top`) | How it looks |
-|---|---|---|---|
-| `Solid` (default) | An opaque band in the window color, as tall as the title bar, with a hard edge | Bar + `FULLSCREEN_BAR.content_top` (44) | ![Solid](assets/states/bar-solid.png) |
-| `Glass` | A band as tall as the title bar, across the whole window and the sidebar, that the compositor blurs with a hard edge (`set_scroll_edge`, `hard`) | Bar + `FULLSCREEN_BAND.content_top` (44) | ![Glass band](assets/states/bar-glass-band.png) |
-| `ProgressiveGlass` | Full blur at the top that the compositor fades out over `FULLSCREEN_GLASS.height` (96 px) (`soft`), across the whole window and the sidebar ([ADR 0057](../decisions.md)) | Bar + `FULLSCREEN_GLASS.content_top` (74) | ![Progressive glass](assets/states/bar-progressive-glass.png) |
-
-Only `Glass` and `ProgressiveGlass` blur, and the compositor draws that blur
-([ADR 0100](../decisions.md)): the kit declares the band with `set_scroll_edge`
-from a chrome sub-surface that holds the bar, so the bar stays sharp over it
-([18](18-platform.md#glass-over-the-windows-content)). The glass does not
-fade with the bar: the bar's items do, and the material is there from the first
-frame. With a compositor below version 10, or when the user reduces transparency
-(`reduce_transparency`, off by default), both draw as `Solid`; the content keeps
-the offset of the chosen bar. Their tint, the depth of `ProgressiveGlass` and
-the animation are a `FullscreenBarStyle`, set in the theme or with
-`.control_style` ([Styles and themes](../../crates/bk/src/styles/titlebar.rs)).
-The screenshots of the two glass bars were rendered before the blur moved to
-the compositor and show the blur it draws.
-
-##### Pushing the content: `fullscreen_push`
-
-`fullscreen_push(true)` combines with any of the three bars. It is off by
-default:
-
-```rust
-WindowOptions::new(tr!("ondina"), "ondina")
-    .fullscreen_bar(FullscreenBar::ProgressiveGlass)
-    .fullscreen_push(true)
-```
-
-Both options are initial values: the app changes them live through the
-`WindowControls::fullscreen_bar` and `fullscreen_push` states.
-
-With it, the bar covers nothing: all the content, sidebar included, moves down
-by the height of the compositor bar plus the title bar. The traffic lights
-move with the title bar, and `fullscreen_content_top()` is 0.
-
-| Combination | How it looks |
-|---|---|
-| `Solid` + push | ![Solid pushing the content](assets/states/bar-push.png) |
-| `ProgressiveGlass` + push | ![Progressive glass pushing the content](assets/states/bar-push-progressive-glass.png) |
-| Bar up: the content reaches the top edge | ![Push with the bar up](assets/states/bar-push-top.png) |
-
-#### Focus mode with the bar down
-
-The `Titlebar` comes down over the content and the sidebar traffic lights move
-down by the same amount. The black strip at the top (30 px) is the compositor
-bar, added to the image.
-
-![Top with the bar down](assets/states/focus-top.png)
+- **Maximized:** the bar stays as in a window; the edges stop resizing.
+  Malaysia keeps the frame (corners and shadow).
+- **Full screen on another compositor:** the bar stays; the traffic lights
+  hide.
+- **Malaysia focus mode**
+  ([Malaysia ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions.md)):
+  the bar leaves the layout and the content fills the window. When the pointer
+  nears the top, the compositor slides its bar down and the kit asks for
+  `set_overlay` through `infinity_focus_v1` version 2, so the window does not
+  move: `titlebar_overlaid()` is true and the `Titlebar` comes down over the
+  content, right below the compositor bar, on an opaque band of
+  `FullscreenBarStyle::tint`. The sidebar's traffic lights move down by the same
+  amount. Bar and band slide and fade over `DURATION_BASE`.
 
 ## What the app does
 

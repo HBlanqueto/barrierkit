@@ -6,14 +6,6 @@ use crate::platform::{
     ObjectId, RunError, calloop::ping::Ping, clipboard::Clipboard, window_style::Bar,
 };
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
-pub enum FullscreenBar {
-    #[default]
-    Solid,
-    Glass,
-    ProgressiveGlass,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WindowEdge {
     Top,
@@ -74,8 +66,6 @@ pub struct WindowOptions {
     pub min_size: Option<(u32, u32)>,
     pub max_size: Option<(u32, u32)>,
     pub menu: Option<crate::main_menu::MainMenu>,
-    pub fullscreen_bar: FullscreenBar,
-    pub fullscreen_push: bool,
     pub hud: bool,
     pub status_item: Option<crate::status_item::StatusItem>,
     pub panel: PanelBehavior,
@@ -115,8 +105,6 @@ impl WindowOptions {
             min_size: None,
             max_size: None,
             menu: None,
-            fullscreen_bar: FullscreenBar::Solid,
-            fullscreen_push: false,
             hud: false,
             status_item: None,
             panel: PanelBehavior::UTILITY,
@@ -168,16 +156,6 @@ impl WindowOptions {
 
     pub fn menu(mut self, menu: crate::main_menu::MainMenu) -> Self {
         self.menu = Some(menu);
-        self
-    }
-
-    pub fn fullscreen_bar(mut self, bar: FullscreenBar) -> Self {
-        self.fullscreen_bar = bar;
-        self
-    }
-
-    pub fn fullscreen_push(mut self, push: bool) -> Self {
-        self.fullscreen_push = push;
         self
     }
 
@@ -233,8 +211,6 @@ pub struct WindowControls {
     pub focus_overlay: bool,
     pub focus_bar_height: State<f32>,
     pub desktop: State<Option<u32>>,
-    pub fullscreen_bar: State<FullscreenBar>,
-    pub fullscreen_push: State<bool>,
     pub(crate) overlay_titlebar_height: State<f32>,
     // Where the sidebar spans the window, left and width: on macOS the full-screen bar leaves a soft edge over it.
     pub(crate) sidebar_span: State<(f32, f32)>,
@@ -283,8 +259,6 @@ impl WindowControls {
             focus_overlay: false,
             focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
             desktop: State::create_global(None),
-            fullscreen_bar: State::create_global(options.fullscreen_bar),
-            fullscreen_push: State::create_global(options.fullscreen_push),
             overlay_titlebar_height: State::create_global(0.0),
             sidebar_span: State::create_global((0.0, 0.0)),
             hud: options.hud,
@@ -318,22 +292,8 @@ impl WindowControls {
     }
 
     pub fn fullscreen_content_top(&self) -> f32 {
-        let below_bar = match *self.fullscreen_bar.read() {
-            FullscreenBar::ProgressiveGlass => ctdesign::FULLSCREEN_GLASS.content_top,
-            FullscreenBar::Glass => ctdesign::FULLSCREEN_BAND.content_top,
-            FullscreenBar::Solid => ctdesign::FULLSCREEN_BAR.content_top,
-        };
-        if self.titlebar_overlaid() && !*self.fullscreen_push.read() {
-            *self.focus_bar_height.read() + below_bar
-        } else {
-            0.0
-        }
-    }
-
-    pub(crate) fn push_offset(&self) -> f32 {
-        if *self.fullscreen_push.read() && self.titlebar_overlaid() {
-            (*self.focus_bar_height.read() + *self.overlay_titlebar_height.read())
-                * *self.focus_bar_progress.read()
+        if self.titlebar_overlaid() {
+            *self.focus_bar_height.read() + ctdesign::FULLSCREEN_BAR.content_top
         } else {
             0.0
         }

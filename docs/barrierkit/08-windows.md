@@ -88,18 +88,12 @@ method changes one field (the fields are also public).
 | `.min_size(Some((w, h)))`, `.max_size(..)` | `None` | Limits of the content below the window's bar, as SwiftUI's `.frame(minWidth:minHeight:)`: the window adds 52 for `HiddenTitleBar`, the native bar for `TitleBar` (40 on Linux) and 0 for `Plain` (ADR 0117). Equal limits make the window fixed-size (`WindowStatus::fixed`); a 0 in the maximum leaves that dimension unbounded |
 | `.menu(MainMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
 | `.status_item(StatusItem)` | none | A status icon in the menu bar ([13. App](13-app.md)) |
-| `.fullscreen_bar(FullscreenBar)` | `Solid` | How the title bar is drawn over the content in full screen ([9](09-titlebars.md#the-bar-in-full-screen-fullscreenbar)) |
-| `.fullscreen_push(bool)` | `false` | In full screen, the bar pushes the content down instead of covering it ([9](09-titlebars.md#pushing-the-content-fullscreen_push)) |
 | `.window_style(WindowStyle)` | `TitleBar` | Who frames the window on macOS ([Window style](#window-style)); Linux ignores it |
 | `.window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility)` | `Automatic` | `OnHover` keeps a `HiddenTitleBar` window's bar out of full screen until the pointer reaches the top edge, where it comes down with the menu bar, as SwiftUI's `.windowToolbarFullScreenVisibility(.onHover)` (AppKit's `.autoHideToolbar`); Linux ignores it |
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
 | `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves; ignored by main windows |
-| `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen bar included. `Application::theme` sets it |
+| `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen band included. `Application::theme` sets it |
 | `scene` (field) | `None` | The scene id that names the saved size: `<app_id>.window.<scene>`. `Application` sets it; `None` is `<app_id>.window` |
-
-`FullscreenBar` has three variants, `Solid` (default), `Glass` and
-`ProgressiveGlass`; their look is in
-[9. Titlebars](09-titlebars.md#the-bar-in-full-screen-fullscreenbar).
 
 The size and the maximized state are saved on close under `<app_id>.window`,
 or `<app_id>.window.<scene>` for a scene other than `MAIN_WINDOW`
@@ -135,8 +129,7 @@ in.
 | `title`, `fixed`, `fixed_width` | The initial title; whether the window is fixed-size; whether its minimum and maximum widths are equal |
 | `hud`, `panel` | Whether it is a HUD window; whether it is a utility window |
 | `ime_preedit` | `State<String>` with the input method's composition text, empty when there is none. Committed text arrives as `Key::Character` events |
-| `fullscreen_bar`, `fullscreen_push` | `State`s with the current full-screen bar options. Writing them changes the bar live |
-| `focus_bar`, `focus_bar_progress`, `focus_bar_height`, `focus_overlay` | Malaysia's focus mode: whether the compositor bar is down, its animation progress (0…1), its height, and whether the window draws its title bar over the content ([9](09-titlebars.md#maximized-full-screen-and-focus-mode)) |
+| `focus_bar`, `focus_bar_progress`, `focus_bar_height`, `focus_overlay` | Malaysia's focus mode: whether the compositor bar is down, its animation progress (0…1), its height, and whether the window draws its title bar over the content ([9](09-titlebars.md#full-screen-and-focus-mode)) |
 | `desktop` | `State<Option<u32>>`: the number of the Malaysia desktop the window is on, from 1; `None` in a focus space or outside Malaysia (`infinity_focus_v1` 4) |
 | `traffic_lights_shown()` | `false` in full screen while the compositor bar is up |
 | `titlebar_overlaid()` | `true` in full screen when the title bar is drawn over the content |
@@ -160,7 +153,7 @@ macOS has no public tiled state: a tiled window only moves and resizes
 ([window designs](../research/csd-window-designs.md#2-designs-against-states)).
 
 The look of the title bar in each state is in
-[9. Titlebars](09-titlebars.md#maximized-full-screen-and-focus-mode).
+[9. Titlebars](09-titlebars.md#full-screen-and-focus-mode).
 
 ### Window style
 

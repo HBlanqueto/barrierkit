@@ -53,12 +53,7 @@ pub(crate) fn window_root(theme: Theme, app: impl IntoElement) -> Rect {
             config.color_scheme = ctappearance::ColorScheme::Dark
         });
     }
-    let pushed =
-        try_consume_root_context::<WindowControls>().map_or(0.0, |controls| controls.push_offset());
-    rect()
-        .expanded()
-        .padding(Gaps::new(pushed, 0.0, 0.0, 0.0))
-        .child(app)
+    rect().expanded().child(app)
 }
 
 fn bar_height() -> f32 {

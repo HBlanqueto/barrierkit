@@ -9,7 +9,6 @@ use freya_core::tree::DiffModifies;
 use freya_engine::prelude::{Color4f, Paint, PaintStyle, RRect, Rect as SkRect};
 use torin::prelude::{Position, Size};
 
-use crate::platform::FullscreenBar;
 use crate::platform::backdrop::{BackdropSupport, Declared, GlassLook};
 use crate::styles::{
     ControlState, FullscreenBarStyle, MaterialStyle, Paints, Theme, TopGlassStyle, resolve,
@@ -104,38 +103,8 @@ pub(crate) fn layout(width: Size, height: Size, position: Position) -> LayoutDat
     .into()
 }
 
-fn fullscreen_depth(style: &FullscreenBarStyle, bar: FullscreenBar, depth: f32) -> f32 {
-    match bar {
-        FullscreenBar::ProgressiveGlass => style.glass.height,
-        _ => depth,
-    }
-}
-
-// The glass of a full-screen bar the compositor draws, over the strip the bar sits in.
-pub(crate) fn fullscreen_glass_at(
-    bar: FullscreenBar,
-    depth: f32,
-    position: Position,
-    width: Size,
-) -> Option<Element> {
+pub(crate) fn fullscreen_backdrop(depth: f32, opacity: f32) -> Element {
     let style: FullscreenBarStyle = resolve(&Theme::tengen());
-    let depth = fullscreen_depth(&style, bar, depth);
-    composed_by_compositor()
-        .then(|| Declared::bar(bar, layout(width, Size::px(depth), position)))
-        .flatten()
-}
-
-pub(crate) fn fullscreen_backdrop(bar: FullscreenBar, depth: f32, opacity: f32) -> Element {
-    let style: FullscreenBarStyle = resolve(&Theme::tengen());
-    let depth = fullscreen_depth(&style, bar, depth);
-    if composed_by_compositor()
-        && let Some(glass) = Declared::bar(
-            bar,
-            layout(Size::fill(), Size::px(depth), Position::new_absolute()),
-        )
-    {
-        return glass;
-    }
     let paints = Paints::current(ControlState::default());
     let tint = paints.color(style.tint.resolve(ControlState::default()));
     solid(depth, Rgba { a: opacity, ..tint })

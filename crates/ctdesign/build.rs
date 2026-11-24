@@ -84,7 +84,6 @@ PROGRESS ProgressMetrics components.progress
 TOOLTIP TooltipMetrics components.tooltip delay_ms=delay
 TITLEBAR_REVEAL TitlebarRevealMetrics components.window.titlebar.reveal
 FULLSCREEN_GLASS FullscreenGlassMetrics components.window.titlebar.fullscreen-glass
-FULLSCREEN_BAND FullscreenGlassMetrics components.window.titlebar.fullscreen-band
 FULLSCREEN_BAR FullscreenBarMetrics components.window.titlebar.fullscreen-bar
 BACKDROP BackdropMetrics components.backdrop
 BACKDROP_SCENES BackdropScenes components.backdrop-scenes

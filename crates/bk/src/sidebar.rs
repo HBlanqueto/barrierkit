@@ -306,15 +306,9 @@ impl Component for Sidebar {
             .as_ref()
             .is_none_or(|controls| controls.traffic_lights_shown())
             && lights_opacity > 0.0;
-        let pushed_titlebar = controls
+        let overlay_top = controls
             .as_ref()
-            .filter(|controls| *controls.fullscreen_push.read())
-            .map(|controls| *controls.overlay_titlebar_height.read());
-        let overlay_top = controls.as_ref().and_then(|controls| {
-            controls
-                .titlebar_overlay_top()
-                .map(|top| top - controls.push_offset())
-        });
+            .and_then(|controls| controls.titlebar_overlay_top());
         let resting_top = style.padding_top;
         let lights_top = traffic_y + lights.diameter + style.lights_gap;
         let top_height = match (
@@ -325,11 +319,7 @@ impl Component for Sidebar {
             (true, None) => lights_top,
             (true, Some(controls)) => {
                 let progress = *controls.focus_bar_progress.read();
-                let revealed_top = match pushed_titlebar {
-                    Some(height) if height > 0.0 => resting_top,
-                    Some(_) => lights_top,
-                    None => lights_top + *controls.focus_bar_height.read(),
-                };
+                let revealed_top = lights_top + *controls.focus_bar_height.read();
                 resting_top + (revealed_top - resting_top) * progress
             }
         };

@@ -14,9 +14,9 @@ use freya_core::tree::{DiffModifies, Tree};
 use freya_engine::prelude::{Canvas, FontCollection, FontMgr};
 use torin::prelude::{Area, Point2D, Position, Size, Size2D};
 
+use super::MOST_CHROMES;
 use super::glass::Rects;
 use super::window_style::{Edge, ScrollEdgeEffectStyle, WireMaterial};
-use super::{FullscreenBar, MOST_CHROMES};
 
 #[derive(Clone, Copy)]
 pub(crate) struct BackdropSupport(pub(crate) bool);
@@ -107,15 +107,6 @@ impl Declared {
             ScrollEdgeEffectStyle::Soft,
             crate::glass::layout(Size::fill(), Size::px(depth), Position::new_absolute()),
         )
-    }
-
-    pub(crate) fn bar(bar: FullscreenBar, layout: LayoutData) -> Option<Element> {
-        let style = match bar {
-            FullscreenBar::Glass => ScrollEdgeEffectStyle::Hard,
-            FullscreenBar::ProgressiveGlass => ScrollEdgeEffectStyle::Soft,
-            FullscreenBar::Solid => return None,
-        };
-        Some(Self::scroll_edge(Edge::Top, style, layout))
     }
 
     pub(crate) fn glass(

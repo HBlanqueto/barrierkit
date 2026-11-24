@@ -439,7 +439,7 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `TextEditor` | `TextEditorStyle`; its find bar takes `SearchFieldStyle`, `IconButtonStyle` and `ButtonStyle` | 2026-11-07 |
 | `RuleEditor` | `RuleEditorStyle`; its rows take `PopUpButtonStyle`, `TextFieldStyle` and `IconButtonStyle` | 2026-11-07 |
 | `Titlebar` | `TitlebarStyle`; its traffic lights take `TrafficLightsStyle` | 2026-11-07 |
-| The full-screen bars (`FullscreenBar`) | `FullscreenBarStyle`, theme and container only | 2026-11-07 |
+| The band under the overlaid title bar in focus mode | `FullscreenBarStyle`, theme and container only | 2026-11-07 |
 | `TrafficLights` | `TrafficLightsStyle` | 2026-11-07 |
 | `WindowChrome` | `WindowChromeStyle`, with its layout and reveal | 2026-11-07 |
 | `Sidebar` | `SidebarStyle` | 2026-11-07 |
