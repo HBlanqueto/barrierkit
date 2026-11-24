@@ -2,6 +2,7 @@ use freya_components::selectable_text::SelectableText;
 use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
 
+use crate::elements::forward_key;
 use crate::text_editor::char_under;
 
 /// A run of equal style and the link it opens, if any.
@@ -107,6 +108,8 @@ struct StyledText {
 }
 
 impl Component for StyledText {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let holder = use_state(ParagraphHolder::default);
         let mut over_link = use_state(|| false);
@@ -178,9 +181,5 @@ impl Component for StyledText {
                     })
             })
             .into_element()
-    }
-
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
     }
 }

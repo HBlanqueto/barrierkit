@@ -112,7 +112,7 @@ impl Component for FontPanel {
             focused: true,
             ..ControlState::default()
         };
-        let paints = Paints::current(focused, rows.effect);
+        let paints = Paints::current(focused);
         let row =
             |node: &TreeNode, selected: bool, lead: Option<Element>, trail: Option<Element>| {
                 crate::views::tree::row(&rows, &paints, focused, node, selected, lead, trail)

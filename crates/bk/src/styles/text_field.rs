@@ -3,7 +3,7 @@ use freya_core::prelude::TextAlign;
 use ctdesign::{BODY, CORNER_CONTROLS, ControlSize, Font, TEXT_FIELD};
 
 use super::button::{continuous_rounded, corner_for};
-use super::{ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect};
+use super::{ControlStyle, Role, Shape, ShapeStyle, StateValue};
 
 /// Freya's `Input` draws `TextField` and `SearchField`. It paints one color per
 /// part: a `Gradient` gives its first stop, `Backdrop` the first backdrop color
@@ -35,8 +35,6 @@ pub struct TextFieldStyle {
     pub misspelling: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`; the text sits (`height` − `line_height`) / 2 from the top.
     pub font: Font,
     /// Tengen: `Start`; a `Form` row ends it, as SwiftUI does.
@@ -92,7 +90,6 @@ impl ControlStyle for TextFieldStyle {
             placeholder: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             misspelling: StateValue::new(ShapeStyle::Role(Role::Destructive)),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
             text_align: TextAlign::Start,
         }

@@ -133,7 +133,7 @@ impl List {
 
     fn sectioned(&self) -> ScrollView {
         let style: TableStyle = resolve(&self.row_theme());
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let header_ink = paints.color(&ShapeStyle::Role(Role::SecondaryLabel));
         let theme = self.row_theme().style(|style: TableStyle| TableStyle {
             body_inset: 0.0,

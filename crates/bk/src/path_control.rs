@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Size};
 
 use crate::controls::dimmed;
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::style::with_font;
 use crate::styles::{ControlState, Paints, PathControlStyle, Theme, resolve};
 use crate::symbol::{Symbol, symbol};
@@ -14,6 +14,7 @@ pub struct PathControl {
     items: Vec<(Symbol, Cow<'static, str>)>,
     on_select: Option<Callback<usize, ()>>,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -24,6 +25,7 @@ impl PathControl {
             items: Vec::new(),
             on_select: None,
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -49,11 +51,15 @@ impl PathControl {
 
 forward_overrides!(PathControl);
 
+forward_key!(PathControl);
+
 impl Component for PathControl {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: PathControlStyle = resolve(&self.style);
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let icon_ink = paints.color(style.icon.resolve(state));
         let chevron_ink = paints.color(style.chevron.resolve(state));
         let last = self.items.len().saturating_sub(1);

@@ -86,10 +86,6 @@ name = "callback"
 path = "../../agents/recipes/callback.rs"
 
 [[example]]
-name = "color_effect"
-path = "../../agents/recipes/color_effect.rs"
-
-[[example]]
 name = "control_modifiers"
 path = "../../agents/recipes/control_modifiers.rs"
 

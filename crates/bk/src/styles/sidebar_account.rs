@@ -1,6 +1,6 @@
 use ctdesign::{Font, SETTINGS};
 
-use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct SidebarAccountStyle {
@@ -14,8 +14,6 @@ pub struct SidebarAccountStyle {
     pub spacing: f32,
     pub name: StateValue<ShapeStyle>,
     pub detail: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `SETTINGS.account_name_font`.
     pub name_font: Font,
     /// Tengen: `account_detail_font`.
@@ -32,7 +30,6 @@ impl ControlStyle for SidebarAccountStyle {
             spacing: SETTINGS.account_gap as f32,
             name: StateValue::new(ShapeStyle::Color(palette.item_ink)),
             detail: StateValue::new(ShapeStyle::Color(palette.count_ink)),
-            effect: system_effect,
             name_font: SETTINGS.account_name_font,
             detail_font: SETTINGS.account_detail_font,
         }

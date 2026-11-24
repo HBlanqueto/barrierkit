@@ -5,9 +5,8 @@ use crate::controls::ControlSize;
 use crate::glass_container::Glass;
 
 use crate::styles::{
-    Animation, ColorEffect, ControlStyle, CornerStyle, Gradient, GradientColorSpace, Rgba, Role,
-    ShadowStyle, Shape, ShapeStyle, StateValue, bezel_palette, glass_ink, pressed_palette,
-    reduce_motion, system_effect,
+    Animation, ControlStyle, CornerStyle, Gradient, GradientColorSpace, Rgba, Role, ShadowStyle,
+    Shape, ShapeStyle, StateValue, bezel_palette, glass_ink, pressed_palette, reduce_motion,
 };
 
 /// `ButtonStyle::tengen()` is SwiftUI's `.bordered`.
@@ -59,8 +58,6 @@ pub struct ButtonStyle {
     pub disabled_opacity: f32,
     /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY` with `BUTTON.font_size` and `BUTTON.font_weight`; the label is one line
     /// centered in `height`, so `line_height` has no effect.
     pub font: Font,
@@ -354,7 +351,6 @@ impl ControlStyle for ButtonStyle {
             opacity: 1.0,
             disabled_opacity: 1.0,
             pressed_scale: BUTTON.pressed_scale,
-            effect: system_effect,
             font: font(BUTTON.font_size),
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,

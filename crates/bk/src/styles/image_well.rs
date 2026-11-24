@@ -1,9 +1,7 @@
 use ctdesign::{HAIRLINE, IMAGE_WELL};
 
 use crate::styles::button::rounded;
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// States: hovered, pressed, focused. The image is content.
 #[derive(Clone, Debug)]
@@ -25,8 +23,6 @@ pub struct ImageWellStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for ImageWellStyle {
@@ -40,7 +36,6 @@ impl ControlStyle for ImageWellStyle {
             drop_border: (ShapeStyle::Accent, IMAGE_WELL.drop_border),
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
         }
     }
 }

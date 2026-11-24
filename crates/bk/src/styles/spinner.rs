@@ -1,10 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{ControlSize, PROGRESS, SYMBOL};
 
-use crate::styles::{
-    Animation, ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, reduce_motion,
-    system_effect,
-};
+use crate::styles::{Animation, ControlStyle, Role, ShapeStyle, StateValue, reduce_motion};
 
 #[derive(Clone, Debug)]
 pub struct SpinnerStyle {
@@ -18,8 +15,6 @@ pub struct SpinnerStyle {
     pub spoke: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Custom { duration_ms: PROGRESS.spinner_ms, curve: identity }`: one turn, spoke
     /// by spoke, again and again.
     pub animation: Animation,
@@ -42,7 +37,6 @@ impl ControlStyle for SpinnerStyle {
             stroke: SYMBOL.stroke,
             spoke: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             opacity: 1.0,
-            effect: system_effect,
             animation: Animation::Custom {
                 duration_ms: PROGRESS.spinner_ms,
                 curve: std::convert::identity,

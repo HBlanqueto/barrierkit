@@ -1,9 +1,7 @@
 use ctdesign::{BODY, COMBO_BOX, ControlSize, Font, TEXT_FIELD};
 
 use crate::styles::button::continuous_rounded;
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// The field is a text field: it draws from the `TextFieldStyle` in context, whose
 /// `misspelling` has no effect and whose `opacity` dims the whole combo box.
@@ -35,7 +33,6 @@ pub struct ComboBoxStyle {
     /// Tengen: empty.
     pub button_shadows: Vec<ShadowStyle>,
     pub opacity: f32,
-    pub effect: ColorEffect,
 }
 
 impl ComboBoxStyle {
@@ -83,7 +80,6 @@ impl ControlStyle for ComboBoxStyle {
             button_border: None,
             button_shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
         }
     }
 }

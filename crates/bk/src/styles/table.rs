@@ -1,7 +1,7 @@
 use ctdesign::{BODY, CAPTION, ControlSize, Font, HAIRLINE, Rgba, SPACE_1, TABLE};
 
 use crate::style::Palette;
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 /// `OutlineViewStyle` is one style for `OutlineView` and `Browser`, which draw
 /// the same rows; the rows of the font panel of `FontPicker` take it too.
@@ -50,8 +50,6 @@ pub struct TableStyle {
     /// Tengen: `Some((Role(Separator), TABLE.header_line))`, the line under the header, which
     /// reaches 1 into the first row.
     pub header_border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `CAPTION` with the weight of `BODY`.
     pub header_font: Font,
     /// Tengen: `header_font` at `TABLE.sorted_weight`, for the sorted column.
@@ -122,7 +120,6 @@ impl ControlStyle for TableStyle {
                 ShapeStyle::Role(Role::SeparatorStrong),
                 TABLE.header_separator,
             )),
-            effect: system_effect,
             header_font: Font {
                 weight: BODY.weight,
                 ..CAPTION

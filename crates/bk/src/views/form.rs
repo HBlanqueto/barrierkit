@@ -306,7 +306,7 @@ forward_overrides!(Form);
 impl Component for Form {
     fn render(&self) -> impl IntoElement {
         let style: FormStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         let right_to_left = ambient() == LayoutDirection::RightToLeft;
@@ -468,7 +468,7 @@ impl Component for FormRow {
         } else {
             ControlState::default()
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
         let title_ink = match row.accessory {
             Accessory::Destructive(_) => ink(&style.destructive_title),

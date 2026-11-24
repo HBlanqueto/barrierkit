@@ -192,7 +192,8 @@ or with the keyboard focus.
 
 The account row at the top of the sidebar: an avatar with the initials, the
 name in bold and a detail line below. `SETTINGS.account_height` (48) high. It
-reports nothing; `.style(f)` takes a `SidebarAccountStyle`.
+reports nothing; `.style(f)` takes a `SidebarAccountStyle` and `.key(key)`
+sets its diff key.
 
 ```rust
 SidebarAccount::new("JA", "Jane Appleseed", "Local account")

@@ -1,10 +1,7 @@
 use ctdesign::{Font, HAIRLINE, SETTINGS, SWITCH};
 
 use crate::styles::button::rounded;
-use crate::styles::{
-    Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
-};
+use crate::styles::{Axis, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct ChoiceCardsStyle {
@@ -32,8 +29,6 @@ pub struct ChoiceCardsStyle {
     pub opacity: f32,
     /// Tengen: `SWITCH.disabled_opacity`.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Horizontal`; `Vertical` stacks them.
     pub axis: Axis,
     /// Tengen: `false`; `true` starts a new line when the next one does not fit.
@@ -57,7 +52,6 @@ impl ControlStyle for ChoiceCardsStyle {
             card_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: SWITCH.disabled_opacity,
-            effect: system_effect,
             axis: Axis::Horizontal,
             wraps: false,
             caption_font: SETTINGS.card_caption_font,

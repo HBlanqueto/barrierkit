@@ -12,7 +12,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::adornments::Divider;
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::gesture::{DragGesture, DragValue};
 use crate::i18n::text;
 use crate::modifiers::ViewModifiers;
@@ -579,11 +579,7 @@ impl ChildrenExt for ScrollView {
     }
 }
 
-impl KeyExt for ScrollView {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(ScrollView);
 
 fn thumb(viewport: f32, content: f32, scrolled: f32, min_length: f32) -> Option<(f32, f32)> {
     if viewport <= 0.0 || content <= viewport {
@@ -661,7 +657,7 @@ enum FadedEdge {
 }
 
 fn edge_fade(style: &ScrollViewStyle, edge: FadedEdge) -> Rect {
-    let paints = Paints::current(ControlState::default(), style.effect);
+    let paints = Paints::current(ControlState::default());
     let ground = paints.color(style.edge.resolve(ControlState::default()));
     let (position, angle) = match edge {
         FadedEdge::Top => (Position::new_absolute().top(0.0).left(0.0), 0.0),
@@ -703,7 +699,7 @@ pub(crate) fn use_scroll_bar(
     autohides: bool,
     style: &ScrollViewStyle,
 ) -> ScrollBarParts {
-    let paints = Paints::current(ControlState::default(), style.effect);
+    let paints = Paints::current(ControlState::default());
     let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
     let resolved = crate::theme::resolved();
     let always = match resolved.scroll_bars {
@@ -797,6 +793,8 @@ pub(crate) fn use_scroll_bar(
 forward_overrides!(ScrollView);
 
 impl Component for ScrollView {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: ScrollViewStyle = resolve(&self.style);
         let own = use_scroll_controller();
@@ -896,7 +894,7 @@ impl Component for ScrollView {
                     .then(|| edge_fade(&style, FadedEdge::Right)),
             )
             .maybe_child(self.top_line.then(|| {
-                let paints = Paints::current(ControlState::default(), style.effect);
+                let paints = Paints::current(ControlState::default());
                 Divider::new()
                     .position(Position::new_absolute().top(0.0).left(0.0))
                     .layer(THUMB_LAYER)
@@ -907,9 +905,5 @@ impl Component for ScrollView {
             .maybe_child(bars.track)
             .maybe_child(bars.thumb);
         self.overrides.apply(root)
-    }
-
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
     }
 }

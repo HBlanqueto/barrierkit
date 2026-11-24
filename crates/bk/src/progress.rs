@@ -8,7 +8,7 @@ use torin::prelude::{Alignment, Direction, Position, Size};
 use crate::animation::{Clock, effective};
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, shadowed};
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::styles::{
     Animation, ControlState, LayoutDirection, Painted, Paints, ProgressRingStyle,
     ProgressViewStyle, SpinnerStyle, StateValue, Theme, resolve,
@@ -20,6 +20,7 @@ pub struct ProgressView {
     label: Cow<'static, str>,
     value: Option<f32>,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -29,6 +30,7 @@ impl ProgressView {
             label: label.into(),
             value: Some(value.clamp(0.0, 1.0)),
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -38,6 +40,7 @@ impl ProgressView {
             label: label.into(),
             value: None,
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -82,10 +85,14 @@ fn use_running(animation: Animation, restart: bool) -> f32 {
 
 forward_overrides!(ProgressView);
 
+forward_key!(ProgressView);
+
 impl Component for ProgressView {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: ProgressViewStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let animation = effective(style.animation, self.value.is_some());
         let sweep = use_running(animation, false);
         let (start, length) = match self.value {
@@ -139,6 +146,7 @@ pub struct ProgressRing {
     label: Cow<'static, str>,
     value: f32,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -148,6 +156,7 @@ impl ProgressRing {
             label: label.into(),
             value: value.clamp(0.0, 1.0),
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -163,11 +172,15 @@ impl ProgressRing {
 
 forward_overrides!(ProgressRing);
 
+forward_key!(ProgressRing);
+
 impl Component for ProgressRing {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: ProgressRingStyle = resolve(&self.style);
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let size = style.size;
         let stroke = style.stroke;
         let radius = (size - stroke) / 2.0;
@@ -217,6 +230,7 @@ impl Component for ProgressRing {
 pub struct Spinner {
     label: Cow<'static, str>,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -225,6 +239,7 @@ impl Spinner {
         Self {
             label: label.into(),
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -237,11 +252,15 @@ impl Spinner {
 
 forward_overrides!(Spinner);
 
+forward_key!(Spinner);
+
 impl Component for Spinner {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: SpinnerStyle = resolve(&self.style);
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let spokes = style.spokes;
         let turn = use_running(style.animation, true);
         let step = (turn * spokes as f32).floor() as u32 % spokes;

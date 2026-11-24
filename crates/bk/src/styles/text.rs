@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{BODY, Font};
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 /// These views wrap `label()` or `rect()` and keep Freya's methods. They resolve
 /// their style when they are built, against the theme and the `.control_style`
@@ -18,8 +18,6 @@ use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, sys
 pub struct TextStyle {
     /// Tengen: `foreground` `Role(Label)`.
     pub foreground: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `font` `BODY`.
     pub font: Font,
 }
@@ -28,7 +26,6 @@ impl ControlStyle for TextStyle {
     fn tengen() -> Self {
         Self {
             foreground: StateValue::new(ShapeStyle::Role(Role::Label)),
-            effect: system_effect,
             font: BODY,
         }
     }

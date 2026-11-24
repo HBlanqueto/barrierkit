@@ -4,8 +4,8 @@ use ctdesign::{BAR_TRACK_DARK, BAR_TRACK_DARK_TINT, BAR_TRACK_LIGHT, ControlSize
 use crate::animation::ease_in_out;
 
 use crate::styles::{
-    Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    per_scheme, reduce_motion, system_effect,
+    Animation, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, per_scheme,
+    reduce_motion,
 };
 
 /// An SVG part (the ring and the spinner) takes one color: a `Gradient` gives its
@@ -35,8 +35,6 @@ pub struct ProgressViewStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Custom { duration_ms: PROGRESS.indeterminate_ms, curve }` with an ease-in-out
     /// cubic curve: the segment sweeps there and back.
     pub animation: Animation,
@@ -71,7 +69,6 @@ impl ControlStyle for ProgressViewStyle {
             border: None,
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             animation: Animation::Custom {
                 duration_ms: PROGRESS.indeterminate_ms,
                 curve: ease_in_out,

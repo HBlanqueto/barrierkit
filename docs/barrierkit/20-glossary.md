@@ -99,6 +99,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `titlebar::window_drag_handler` | `titlebar::use_window_drag` (a hook) | 2026-11-23 |
 | `password::State` | `password::PasswordState` | 2026-11-23 |
 | `SecureFieldStyle` `height`, `padding_x`, `shape`, `background`, `text`, `border`, `opacity`, `effect`, `font`; `SwitchStyle::frame_size`; `layout_direction` of `CheckboxStyle`, `LevelSliderStyle`, `RadioGroupStyle`, `SliderStyle`, `StepperStyle` and `SwitchStyle` | Gone: `SecureField` draws from `TextFieldStyle`, a switch takes its track's size, and the controls read the ambient `.layout_direction(..)` | 2026-11-23 |
+| `styles::ColorEffect`, `styles::system_effect`, the `effect` field of every style, the `effect` argument of `Paints::current` | Gone: every style drew its paints unchanged | 2026-11-23 |
 
 ## How to read the tables
 
@@ -166,8 +167,6 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::CornerStyle` | enum | `RoundedCornerStyle` | — | `CALayerCornerCurve` | `Continuous` or `Circular` corners | [Styles](../../agents/styles.md#value-types) |
 | `styles::ShadowStyle` | struct | `ShadowStyle` (`.drop`, `.inner`) | `NSShadow` | `NSShadow` | One shadow: color, x, y, blur, spread, inner | [Styles](../../agents/styles.md#value-types) |
 | `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | How a change moves: `None`, `Ease`, `Spring` (period and bounce), `Custom`; ADR 0102 | [Styles](../../agents/styles.md#value-types) |
-| `styles::ColorEffect` | type | — | ≈ `NSColor.withSystemEffect(_:)` | — | `fn(Rgba, ControlState) -> Rgba` applied to every paint of a control | [Styles](../../agents/styles.md#value-types) |
-| `styles::system_effect` | fn | — | ≈ `NSColor.SystemEffect` | — | Tengen's color effect: returns the color unchanged | [Styles](../../agents/styles.md#value-types) |
 | `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `NSLayoutConstraint.Axis` | `Horizontal` or `Vertical` | [Styles](../../agents/styles.md#value-types) |
 | `styles::Edge` | enum | `Edge` | `NSRectEdge` | `UIRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../../agents/styles.md#value-types) |
 | `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `UISemanticContentAttribute` | `LeftToRight` (default) or `RightToLeft`; ambient through `.layout_direction(..)` | [Styles](../../agents/styles.md#value-types) |

@@ -1,10 +1,7 @@
 use ctdesign::{BODY, Font, ICON_BUTTON, LARGE_TITLE, SEGMENTED};
 
 use crate::styles::button::continuous_rounded;
-use crate::styles::{
-    Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
-};
+use crate::styles::{Axis, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// States: each toggle is hovered, pressed and focused on its own; the group has
 /// only `normal`.
@@ -32,8 +29,6 @@ pub struct ToggleGroupStyle {
     pub selected_shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Horizontal`; `Vertical` stacks the toggles.
     pub axis: Axis,
     pub font: Font,
@@ -56,7 +51,6 @@ impl ControlStyle for ToggleGroupStyle {
             border: None,
             selected_shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             axis: Axis::Horizontal,
             font: Font {
                 weight: SEGMENTED.font_weight as u16,

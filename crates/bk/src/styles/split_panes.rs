@@ -1,6 +1,6 @@
 use ctdesign::SPLIT_PANES;
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct SplitPanesStyle {
@@ -8,8 +8,6 @@ pub struct SplitPanesStyle {
     pub divider_width: f32,
     /// Tengen: `divider` `Role(Separator)`.
     pub divider: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for SplitPanesStyle {
@@ -17,7 +15,6 @@ impl ControlStyle for SplitPanesStyle {
         Self {
             divider_width: SPLIT_PANES.divider,
             divider: StateValue::new(ShapeStyle::Role(Role::Separator)),
-            effect: system_effect,
         }
     }
 }

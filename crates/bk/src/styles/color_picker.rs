@@ -1,9 +1,7 @@
 use ctdesign::{BODY, BUTTON, COLOR_PICKER, Font, SPACE_2, SPLIT_VIEW};
 
 use crate::styles::button::{continuous_rounded, rounded};
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// The color in the well and in the panel is content: no paint or `effect`
 /// changes it. The hex text keeps its contrast with the color.
@@ -43,8 +41,6 @@ pub struct ColorPickerStyle {
     pub wheel_background: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -65,7 +61,6 @@ impl ControlStyle for ColorPickerStyle {
             wheel: false,
             wheel_background: StateValue::new(ShapeStyle::Role(Role::SystemFill)),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

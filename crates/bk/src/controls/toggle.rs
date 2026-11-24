@@ -2,6 +2,7 @@ use ctdesign::DRAG;
 use std::borrow::Cow;
 
 use super::*;
+use crate::elements::forward_key;
 use crate::platform::Knob;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -93,11 +94,7 @@ impl Switch {
     }
 }
 
-impl KeyExt for Switch {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(Switch);
 
 impl ProbeExt for Switch {
     fn probe(mut self, id: &'static str) -> Self {
@@ -109,9 +106,7 @@ impl ProbeExt for Switch {
 forward_overrides!(Switch);
 
 impl Component for Switch {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
@@ -120,7 +115,7 @@ impl Component for Switch {
         let style: SwitchStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let is_on = *on.read();
 
         let on_toggle = self.on_toggle.clone();
@@ -340,11 +335,7 @@ impl Checkbox {
     }
 }
 
-impl KeyExt for Checkbox {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(Checkbox);
 
 impl ProbeExt for Checkbox {
     fn probe(mut self, id: &'static str) -> Self {
@@ -356,9 +347,7 @@ impl ProbeExt for Checkbox {
 forward_overrides!(Checkbox);
 
 impl Component for Checkbox {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let checked = crate::controlled::use_controlled(&self.checked);
@@ -368,7 +357,7 @@ impl Component for Checkbox {
         let interaction = use_interaction();
         let style: CheckboxStyle = resolve(&self.style);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let is_checked = *checked.read();
         let opacity = opacity_when(disabled, style.opacity, style.disabled_opacity);
 

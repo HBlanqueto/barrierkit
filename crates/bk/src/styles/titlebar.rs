@@ -5,7 +5,7 @@ use ctdesign::{
 };
 use torin::prelude::Alignment;
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 /// `Titlebar` has two bars: the centered one (no sidebar) and the one beside a
 /// sidebar (`.with_sidebar(true)`). Its paints are `focused` while the window is
@@ -63,8 +63,6 @@ pub struct TitlebarStyle {
     /// view; over content that does not scroll, AppKit's own title bar draws it on macOS.
     /// `NSTitlebarSeparatorStyle.line` is `Some(TitlebarStyle::line())`.
     pub hairline: Option<(ShapeStyle, f32)>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Center` between the two equal zones.
     pub title_alignment: Alignment,
     /// Tengen: `Start`, next to the left zone.
@@ -132,7 +130,6 @@ impl ControlStyle for TitlebarStyle {
             title,
             row_title,
             hairline: None,
-            effect: system_effect,
             title_alignment: Alignment::Center,
             sidebar_title_alignment: Alignment::Start,
             title_font: TITLEBAR.font,

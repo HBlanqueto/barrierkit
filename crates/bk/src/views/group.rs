@@ -46,7 +46,7 @@ impl Component for GroupBox {
     fn render(&self) -> impl IntoElement {
         let style: GroupBoxStyle = resolve(&self.style);
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let root = rect()
             .width(Size::fill())
             .direction(Direction::Vertical)
@@ -131,7 +131,7 @@ impl Component for DisclosureGroup {
         let mut expanded = use_state(|| initial);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let open = *expanded.read();
         let chevron = if open {
             Symbol::ChevronDown

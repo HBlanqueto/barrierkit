@@ -10,7 +10,7 @@ use zeroize::Zeroizing;
 
 use crate::context_menu::{Spelling, edit_menu};
 use crate::controls::{dimmed, outer_hairline};
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
 use crate::focus::use_focus_target;
 use crate::i18n::text;
@@ -90,18 +90,12 @@ impl SecureField {
     }
 }
 
-impl KeyExt for SecureField {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(SecureField);
 
 forward_overrides!(SecureField);
 
 impl Component for SecureField {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
@@ -109,7 +103,7 @@ impl Component for SecureField {
         let style: SecureFieldStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, field_style.effect);
+        let paints = Paints::current(state);
         let mut field = self.field;
         let on_submit = self.on_submit.clone();
         let shown = if self.revealed {
@@ -250,25 +244,19 @@ impl TextField {
     }
 }
 
-impl KeyExt for TextField {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(TextField);
 
 forward_overrides!(TextField);
 
 impl Component for TextField {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: TextFieldStyle = resolve(&self.style);
         let field = use_hook(AccessibilityId::new_unique);
         let (state, _, mut hovered) = use_field_state(field, self.disabled);
         let disabled = state.disabled;
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
         let radius = style
@@ -453,18 +441,12 @@ impl SearchField {
     }
 }
 
-impl KeyExt for SearchField {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(SearchField);
 
 forward_overrides!(SearchField);
 
 impl Component for SearchField {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: SearchFieldStyle = resolve(&self.style);
@@ -478,7 +460,7 @@ impl Component for SearchField {
         let a11y_id = use_hook(|| self.a11y_id.unwrap_or_else(AccessibilityId::new_unique));
         let (state, focus, mut hovered) = use_field_state(a11y_id, self.disabled);
         let disabled = state.disabled;
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
         let on_focus_change = use_reactive(&self.on_focus_change);
         let mut reported = use_state(|| false);

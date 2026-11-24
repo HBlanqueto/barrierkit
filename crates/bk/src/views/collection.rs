@@ -128,7 +128,7 @@ impl Component for Tile {
         let style: CollectionViewStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let selected = self.selected;
         let on_press = self.on_press.clone();
         let (icon_background, label_background, label) = if selected {

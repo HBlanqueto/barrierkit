@@ -1,9 +1,7 @@
 use ctdesign::{BODY, CAPTION, Font, SETTINGS, SIDEBAR, SPACE_2};
 
 use crate::styles::button::rounded;
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, Shape, ShapeStyle, StateValue};
 use crate::theme::{SurfaceKind, over_glass, popover_palette};
 
 /// `SettingsWindow` is built from styled views: its sidebar takes
@@ -59,8 +57,6 @@ pub struct SettingsWindowStyle {
     /// Tengen: `Color` of the glass shortcut ink of the popover menu, hovered `Role(OnAccent)`.
     /// Before the user types.
     pub suggestion_subtitle: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `CAPTION`.
     pub header_font: Font,
     /// Tengen: `BODY`.
@@ -99,7 +95,6 @@ impl ControlStyle for SettingsWindowStyle {
             suggestion_background: StateValue::new(ShapeStyle::Clear).hovered(ShapeStyle::Accent),
             suggestion_title: StateValue::new(label).hovered(on_accent.clone()),
             suggestion_subtitle: StateValue::new(secondary_label).hovered(on_accent),
-            effect: system_effect,
             header_font: CAPTION,
             title_font: BODY,
             subtitle_font: CAPTION,

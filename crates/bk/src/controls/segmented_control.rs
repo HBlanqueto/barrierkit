@@ -1,4 +1,5 @@
 use super::*;
+use crate::elements::forward_key;
 use crate::menu::measure_text_weight;
 use std::borrow::Cow;
 
@@ -61,22 +62,16 @@ impl SegmentedControl {
     }
 }
 
-impl KeyExt for SegmentedControl {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(SegmentedControl);
 
 forward_overrides!(SegmentedControl);
 
 impl Component for SegmentedControl {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: SegmentedControlStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let keyed = use_state(|| false);
         let weight = FontWeight::from(style.font.weight as i32);
@@ -165,7 +160,7 @@ impl Component for Segment {
         let style: SegmentedControlStyle = resolve(&self.style);
         let interaction = use_interaction();
         let disabled = use_disabled(self.disabled);
-        let paints = Paints::current(control_state(interaction, disabled), style.effect);
+        let paints = Paints::current(control_state(interaction, disabled));
         crate::choices::take_focus_when(interaction, self.take_focus);
         let active = self.active;
         let on_select = self.on_select.clone();

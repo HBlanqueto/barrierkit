@@ -55,7 +55,7 @@ forward_overrides!(SplitPanes);
 impl Component for SplitPanes {
     fn render(&self) -> impl IntoElement {
         let style: SplitPanesStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let mut length = use_state(|| 0.0f32);
         let direction = self.direction;
         let horizontal = direction == Direction::Horizontal;

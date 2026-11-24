@@ -6,9 +6,7 @@ use ctdesign::{
     LEVEL_TRACK_LIGHT,
 };
 
-use crate::styles::{
-    ColorEffect, ControlStyle, ShadowStyle, ShapeStyle, StateValue, per_look, system_effect,
-};
+use crate::styles::{ControlStyle, ShadowStyle, ShapeStyle, StateValue, per_look};
 
 /// States: only `normal`.
 #[derive(Clone, Debug)]
@@ -42,8 +40,6 @@ pub struct CapacityIndicatorStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for CapacityIndicatorStyle {
@@ -103,7 +99,6 @@ impl ControlStyle for CapacityIndicatorStyle {
             edge_softness: LEVEL_INDICATOR.edge_softness,
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
         }
     }
 }

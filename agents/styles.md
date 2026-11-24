@@ -97,7 +97,6 @@ All of them are in `bk::styles` and in the prelude.
 | `CornerStyle` | the corner curve | `Continuous` (macOS's smooth corner, smoothing 0.745), `Circular` |
 | `ShadowStyle` | one shadow | `color: Rgba`, `x`, `y`, `blur`, `spread`, `inner`; a part takes a `Vec` |
 | `Animation` | how a value change moves | `None`, `Ease { duration_ms }` (cubic ease-out), `Spring { duration_ms, bounce }` (SwiftUI's spring: `duration_ms` is its period, `bounce` 0 is critically damped; it carries the velocity of a change interrupted midway), `Custom { duration_ms, curve }` with `curve: fn(f32) -> f32` from 0–1 to 0–1 |
-| `ColorEffect` | your own color algorithm | `fn(Rgba, ControlState) -> Rgba`, applied to every paint of the control; Tengen's `system_effect` returns the color unchanged |
 | `Axis` | orientation | `Horizontal`, `Vertical` |
 | `Edge` | where labels go | `Top`, `Bottom`, `Leading`, `Trailing` |
 | `LayoutDirection` | reading direction | `LeftToRight`, `RightToLeft` |
@@ -114,7 +113,7 @@ control; the groups do not. A control leaves out a group it does not draw.
 | Paint | `track`, `fill`, `knob`, `tick`, `label` |
 | Border and shadow | `knob_border`, `knob_shadows` |
 | Held knob | `knob_pressed_scale`, `knob_glass` |
-| Effects | `opacity`, `disabled_opacity`, `effect` |
+| Effects | `opacity`, `disabled_opacity` |
 | Layout | `axis`, `labels`, `layout_direction` |
 | Typography | `label_font` |
 | Motion | `animation` |
@@ -184,30 +183,6 @@ HStack::new()
         track: StateValue::new(ShapeStyle::Material(Thickness::Thin)),
         ..s
     })
-```
-
-A theme for the whole app with its own color algorithm:
-
-```rust
-use bk::prelude::*;
-
-fn darker_when_pressed(color: Rgba, state: ControlState) -> Rgba {
-    if state.pressed {
-        color.darken(0.2)
-    } else {
-        color
-    }
-}
-
-fn main() -> Result<(), RunError> {
-    Application::new("mixer")
-        .theme(Theme::tengen().style(|s: SliderStyle| SliderStyle {
-            effect: darker_when_pressed,
-            ..s
-        }))
-        .window("Mixer", || Slider::new("Volume").value(0.4))
-        .run()
-}
 ```
 
 ### By style

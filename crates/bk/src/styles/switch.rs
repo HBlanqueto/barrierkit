@@ -2,8 +2,8 @@ use ctappearance::Resolved;
 use ctdesign::{BODY, CHECKBOX, ControlSize, Font, KNOB_SHADOW, Rgba, SWITCH};
 
 use super::{
-    Animation, ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    disabled_palette, reduce_motion, system_effect,
+    Animation, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    disabled_palette, reduce_motion,
 };
 
 /// States: hovered, pressed, focused, disabled. `Switch::tint(Tint)` is an
@@ -54,8 +54,6 @@ pub struct SwitchStyle {
     /// Tengen: `SWITCH.disabled_opacity` (`SWITCH.disabled_opacity_contrast` under Increase
     /// Contrast), for the track and the label; the knob stays opaque.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `None`: the label is only accessible, as in a form row
     /// (`docs/barrierkit/11-views.md`); `Leading` and `Trailing` put it beside the switch,
     /// `Top` and `Bottom` above and below.
@@ -110,7 +108,6 @@ impl ControlStyle for SwitchStyle {
             } else {
                 SWITCH.disabled_opacity
             },
-            effect: system_effect,
             label_position: None,
             label_font: BODY,
             animation: Animation::Ease {

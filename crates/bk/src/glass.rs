@@ -160,7 +160,7 @@ pub(crate) fn fullscreen_backdrop(
     {
         return glass;
     }
-    let paints = Paints::current(ControlState::default(), style.effect);
+    let paints = Paints::current(ControlState::default());
     let tint = paints.color(style.tint.resolve(ControlState::default()));
     solid(edge, depth, Rgba { a: opacity, ..tint })
 }
@@ -194,7 +194,7 @@ impl From<TopGlass> for Element {
         if composed_by_compositor() {
             return Declared::soft_top_edge(style.glass.height);
         }
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let tint = paints.color(style.tint.resolve(ControlState::default()));
         solid(GlassEdge::Top, style.glass.height, Rgba { a: 1.0, ..tint })
     }
@@ -233,7 +233,7 @@ impl From<Material> for Element {
         if composed_by_compositor() {
             return Declared::material(style.material, material.corner_radius);
         }
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let tint = paints.color(style.tint.resolve(ControlState::default()));
         leaf(MaterialElement {
             corner_radius: material.corner_radius,

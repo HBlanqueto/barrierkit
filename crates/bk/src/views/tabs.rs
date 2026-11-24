@@ -98,7 +98,7 @@ impl TabView {
         current: usize,
         page: Option<Element>,
     ) -> Rect {
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let bar_height = tab_height(style) + 2.0 * style.padding;
         let tabs = self
             .tabs
@@ -148,7 +148,7 @@ impl TabView {
         page: Option<Element>,
         tab_type: TabType,
     ) -> Rect {
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let [far, near, side] = [
             TAB_VIEW.box_inset_far,
             TAB_VIEW.box_inset_near,
@@ -285,7 +285,7 @@ impl Component for ToolbarTab {
         let style: TabViewStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let active = self.active;
         let on_select = self.on_select.clone();
         let (background, ink) = if active {
@@ -343,7 +343,7 @@ impl Component for StripTab {
         let style: TabViewStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let active = self.active;
         let on_select = self.on_select.clone();
         let (background, ink) = if active {

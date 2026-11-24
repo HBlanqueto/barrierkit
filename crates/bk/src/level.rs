@@ -9,7 +9,7 @@ use torin::prelude::{Area, CursorPoint, Position, Size};
 use crate::backdrop::Tint;
 use crate::controlled::commit;
 use crate::controls::{dimmed, opacity_when, shadowed};
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
 use crate::interaction::{Interaction, control_state, use_interaction};
 use crate::layout::ambient;
@@ -76,25 +76,19 @@ impl LevelSlider {
     }
 }
 
-impl KeyExt for LevelSlider {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(LevelSlider);
 
 forward_overrides!(LevelSlider);
 
 impl Component for LevelSlider {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: LevelSliderStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let value = crate::controlled::use_controlled_unless(&self.value, interaction.held());
         let mut width = use_state(|| 0.0f32);
         let origin = use_state(CursorPoint::default);

@@ -4,9 +4,7 @@ use ctdesign::{
     DISCLOSURE_TRIANGLE_LIGHT, Font,
 };
 
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, per_look, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue, per_look};
 
 pub(super) fn disclosure_triangle() -> StateValue<ShapeStyle> {
     StateValue::new(ShapeStyle::Color(per_look(
@@ -42,8 +40,6 @@ pub struct DisclosureGroupStyle {
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `label` `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -62,7 +58,6 @@ impl ControlStyle for DisclosureGroupStyle {
             ),
             chevron: disclosure_triangle(),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
-            effect: system_effect,
             font: BODY,
         }
     }

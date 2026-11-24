@@ -5,8 +5,8 @@ use ctdesign::{
 
 use crate::styles::button::rounded;
 use crate::styles::{
-    Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    pressed_palette, show_borders, system_effect,
+    Animation, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
+    show_borders,
 };
 
 /// States: pressed, focused, disabled; hovered in a toolbar on native glass. `ToolbarOverflow` is an
@@ -43,8 +43,6 @@ pub struct IconButtonStyle {
     pub disabled_opacity: f32,
     /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the pressed scale eases; `None` makes it
     /// jump.
     pub animation: Animation,
@@ -120,7 +118,6 @@ impl ControlStyle for IconButtonStyle {
             opacity: 1.0,
             disabled_opacity: 1.0,
             pressed_scale: BUTTON.pressed_scale,
-            effect: system_effect,
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,
             },

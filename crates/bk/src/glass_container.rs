@@ -421,7 +421,7 @@ impl Component for GlassContainer {
             .into_element()
         });
         let shown_origin = *origin.read();
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         let backdrop: Vec<Element> = if crate::glass::native_glass() {

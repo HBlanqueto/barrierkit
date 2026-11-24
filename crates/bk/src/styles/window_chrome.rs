@@ -3,10 +3,7 @@ use ctdesign::{DURATION_BASE, Font, HAIRLINE, SHADOW, SHADOW_DARK, TITLEBAR, TIT
 
 use crate::chrome::{RailStyle, RestingEdge, Reveal, TitlebarLayout};
 use crate::styles::button::rounded;
-use crate::styles::{
-    Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
-};
+use crate::styles::{Animation, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 use crate::theme::{SurfaceKind, surface_background};
 
 /// `WindowChrome::new(child).style(..)` takes the layout and the look of the
@@ -53,8 +50,6 @@ pub struct WindowChromeStyle {
     /// Tengen: `[SHADOW.contact]` (`SHADOW_DARK.contact` in dark) with its `opacity`, under a
     /// drawer and the pill.
     pub shadows: Vec<ShadowStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `TITLEBAR_RAIL.title_angle`, the rotation of the rail title in degrees.
     pub title_angle: f32,
     /// Tengen: `TITLEBAR.font` at `TITLEBAR_RAIL.title_size`; one line.
@@ -106,7 +101,6 @@ impl ControlStyle for WindowChromeStyle {
                 },
                 ..contact.into()
             }],
-            effect: system_effect,
             title_angle: TITLEBAR_RAIL.title_angle,
             title_font: Font {
                 size: TITLEBAR_RAIL.title_size as u32,

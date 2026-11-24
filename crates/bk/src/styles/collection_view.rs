@@ -2,9 +2,7 @@ use ctdesign::{CAPTION, COLLECTION, Font, Rgba};
 
 use crate::style::Palette;
 use crate::styles::button::rounded;
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct CollectionViewStyle {
@@ -35,8 +33,6 @@ pub struct CollectionViewStyle {
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `Role(OnAccent)`.
     pub selected_label: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `CAPTION`.
     pub font: Font,
 }
@@ -61,7 +57,6 @@ impl ControlStyle for CollectionViewStyle {
             selected_label_background: StateValue::new(ShapeStyle::Accent),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
-            effect: system_effect,
             font: CAPTION,
         }
     }

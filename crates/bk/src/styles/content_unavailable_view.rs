@@ -4,7 +4,7 @@ use ctdesign::{
     CONTENT_UNAVAILABLE_ICON_LINE, CONTENT_UNAVAILABLE_TITLE, Font,
 };
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct ContentUnavailableViewStyle {
@@ -24,8 +24,6 @@ pub struct ContentUnavailableViewStyle {
     pub description_gap: f32,
     /// Tengen: `CONTENT_UNAVAILABLE_ACTIONS_GAP`.
     pub actions_gap: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `CONTENT_UNAVAILABLE_TITLE`.
     pub title_font: Font,
     /// Tengen: `CONTENT_UNAVAILABLE_DESCRIPTION`.
@@ -43,7 +41,6 @@ impl ControlStyle for ContentUnavailableViewStyle {
             description: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             description_gap: CONTENT_UNAVAILABLE_DESCRIPTION_GAP,
             actions_gap: CONTENT_UNAVAILABLE_ACTIONS_GAP,
-            effect: system_effect,
             title_font: CONTENT_UNAVAILABLE_TITLE,
             description_font: CONTENT_UNAVAILABLE_DESCRIPTION,
         }

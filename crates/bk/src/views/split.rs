@@ -10,7 +10,7 @@ use crate::animation::Clock;
 use crate::app::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::compact::IconButton;
 use crate::controls::ToolGroup;
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::i18n::text;
 use crate::platform::backdrop::Declared;
 use crate::sidebar::{SidebarControl, sidebar_control};
@@ -162,22 +162,16 @@ impl SplitView {
     }
 }
 
-impl KeyExt for SplitView {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(SplitView);
 
 forward_overrides!(SplitView);
 
 impl Component for SplitView {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: SplitViewStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let mut window_width = use_state(|| f32::MAX);
         let mut presented = use_state(|| self.inspector.as_ref().is_some_and(|(_, shown)| *shown));
         let wanted = self.inspector.as_ref().is_some_and(|(_, shown)| *shown);
@@ -501,7 +495,7 @@ impl Component for ColumnGrip {
             focused: matches!(*focus.read(), Focus::Keyboard),
             disabled: false,
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let line = paints.color(style.grip.resolve(state));
         let (resize, width) = (self.resize.clone(), self.width);
         rect()

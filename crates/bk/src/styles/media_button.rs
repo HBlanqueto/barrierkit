@@ -1,9 +1,7 @@
 use ctdesign::{BODY, BUTTON, DURATION_FAST_MS, Font, MEDIA};
 
 use crate::styles::button::rounded;
-use crate::styles::{
-    Animation, ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{Animation, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// The media buttons sit on artwork, so their Tengen paints are fixed colors.
 ///
@@ -32,8 +30,6 @@ pub struct MediaButtonStyle {
     pub opacity: f32,
     /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY` with `MEDIA.button_font_size` and `MEDIA.button_font_weight`;
     /// `line_height` has no effect.
     pub font: Font,
@@ -56,7 +52,6 @@ impl ControlStyle for MediaButtonStyle {
             shadows: Vec::new(),
             opacity: 1.0,
             pressed_scale: BUTTON.pressed_scale,
-            effect: system_effect,
             font: Font {
                 size: MEDIA.button_font_size as u32,
                 weight: MEDIA.button_font_weight as u16,

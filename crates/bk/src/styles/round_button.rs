@@ -1,8 +1,6 @@
 use ctdesign::{BUTTON, DURATION_FAST_MS, HAIRLINE, MEDIA};
 
-use crate::styles::{
-    Animation, ColorEffect, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{Animation, ControlStyle, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct RoundButtonStyle {
@@ -28,8 +26,6 @@ pub struct RoundButtonStyle {
     pub opacity: f32,
     /// Tengen: `BUTTON.pressed_scale`.
     pub pressed_scale: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the pressed scale eases; `None` makes it
     /// jump.
     pub animation: Animation,
@@ -49,7 +45,6 @@ impl ControlStyle for RoundButtonStyle {
             shadows: Vec::new(),
             opacity: 1.0,
             pressed_scale: BUTTON.pressed_scale,
-            effect: system_effect,
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,
             },

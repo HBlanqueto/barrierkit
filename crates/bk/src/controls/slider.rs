@@ -8,7 +8,7 @@ use crate::ProbeExt;
 use crate::backdrop::Tint;
 use crate::controlled::commit;
 use crate::controls::{dimmed, inner_border, opacity_when, shadowed};
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
 use crate::interaction::{control_state, use_interaction};
 use crate::layout::ambient;
@@ -119,11 +119,7 @@ impl Slider {
     }
 }
 
-impl KeyExt for Slider {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(Slider);
 
 impl ProbeExt for Slider {
     fn probe(mut self, id: &'static str) -> Self {
@@ -135,15 +131,13 @@ impl ProbeExt for Slider {
 forward_overrides!(Slider);
 
 impl Component for Slider {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: SliderStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
-        let paints = Paints::current(control_state(interaction, disabled), style.effect);
+        let paints = Paints::current(control_state(interaction, disabled));
         let (low, high) = self.range;
         let value = crate::controlled::use_controlled_unless(
             &self.value.clamp(low, high),

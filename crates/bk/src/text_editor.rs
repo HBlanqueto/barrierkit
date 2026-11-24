@@ -126,7 +126,7 @@ impl Component for TextEditor {
             focused,
             ..ControlState::default()
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
         let (padding_x, padding_y) = (style.padding_x, style.padding_y);
         let mut dragging = use_state(|| false);

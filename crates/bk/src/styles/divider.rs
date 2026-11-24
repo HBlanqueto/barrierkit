@@ -1,6 +1,6 @@
 use ctdesign::HAIRLINE;
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct DividerStyle {
@@ -8,8 +8,6 @@ pub struct DividerStyle {
     pub thickness: f32,
     /// Tengen: `line` `Role(Separator)`.
     pub line: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for DividerStyle {
@@ -17,7 +15,6 @@ impl ControlStyle for DividerStyle {
         Self {
             thickness: HAIRLINE,
             line: StateValue::new(ShapeStyle::Role(Role::Separator)),
-            effect: system_effect,
         }
     }
 }

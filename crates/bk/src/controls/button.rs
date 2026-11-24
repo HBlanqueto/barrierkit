@@ -1,4 +1,5 @@
 use super::*;
+use crate::elements::forward_key;
 use std::borrow::Cow;
 
 pub use ctdesign::ControlSize;
@@ -96,16 +97,10 @@ impl Button {
 
 forward_overrides!(Button);
 
-impl KeyExt for Button {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(Button);
 
 impl Component for Button {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
@@ -122,7 +117,7 @@ impl Component for Button {
             style
         };
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let pressed = enabled && interaction.pressed();
         let scale = crate::animation::use_animated(
             if pressed { style.pressed_scale } else { 1.0 },

@@ -5,6 +5,7 @@ use freya_core::prelude::*;
 use torin::prelude::{Position, Size2D};
 
 use crate::animation::use_animated;
+use crate::elements::forward_key;
 use crate::styles::{Animation, Edge};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -145,11 +146,7 @@ impl Presence {
     }
 }
 
-impl KeyExt for Presence {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(Presence);
 
 impl Component for Presence {
     fn render(&self) -> impl IntoElement {

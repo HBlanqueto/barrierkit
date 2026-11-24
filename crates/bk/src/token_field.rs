@@ -5,7 +5,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Size};
 
 use crate::context_menu::edit_menu;
 use crate::controls::{default_pre_key, dimmed, input, outer_hairline, shadowed};
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::focus::use_focus_target;
 use crate::style::{text_style, with_font};
 use crate::styles::Painted;
@@ -17,6 +17,7 @@ pub struct TokenField {
     placeholder: Cow<'static, str>,
     width: Size,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -27,6 +28,7 @@ impl TokenField {
             placeholder: placeholder.into(),
             width: Size::fill(),
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -52,7 +54,7 @@ pub fn commit_token(tokens: &mut Vec<String>, draft: &str) -> bool {
 }
 
 pub(crate) fn token_chip(token: String, selected: bool, style: &TokenFieldStyle) -> Rect {
-    let paints = Paints::current(ControlState::default(), style.effect);
+    let paints = Paints::current(ControlState::default());
     let (fill, ink) = if selected {
         (&style.selected_token, &style.selected_token_label)
     } else {
@@ -112,10 +114,14 @@ pub fn token_selection(
 
 forward_overrides!(TokenField);
 
+forward_key!(TokenField);
+
 impl Component for TokenField {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: TokenFieldStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let ink = |paint| paints.color(paint);
         let mut tokens = self.tokens;
         let mut draft = use_state(String::new);

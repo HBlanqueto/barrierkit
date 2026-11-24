@@ -1,8 +1,8 @@
 use ctdesign::{BODY, CHECKBOX, ControlSize, Font, SETTINGS};
 
 use super::{
-    Axis, ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    disabled_palette, pressed_palette, system_effect,
+    Axis, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue, disabled_palette,
+    pressed_palette,
 };
 
 /// States: each option is hovered, pressed, focused and disabled on its own.
@@ -41,8 +41,6 @@ pub struct RadioGroupStyle {
     pub opacity: f32,
     /// Tengen, with `opacity`: `1.0`, `1.0`, for the button and the label.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Vertical`: a column of options; `Horizontal` puts them in a row.
     pub axis: Axis,
     /// Tengen: `Some(Edge::Trailing)`; `None` hides the labels, which stay accessible.
@@ -91,7 +89,6 @@ impl ControlStyle for RadioGroupStyle {
             button_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: 1.0,
-            effect: system_effect,
             axis: Axis::Vertical,
             label_position: Some(Edge::Trailing),
             label_font: Font {

@@ -103,7 +103,7 @@ impl Component for MenuButton {
         let interaction = use_interaction();
         let disabled = !use_is_enabled();
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
         let on_activate = self.on_activate.clone();
@@ -226,10 +226,10 @@ impl Component for ComboButton {
         let action = use_interaction();
         let arrow = use_interaction();
         let disabled = !use_is_enabled();
-        let group = Paints::current(ControlState::default(), style.effect);
-        let action_paints = Paints::current(control_state(action, disabled), style.effect);
+        let group = Paints::current(ControlState::default());
+        let action_paints = Paints::current(control_state(action, disabled));
         let arrow_state = control_state(arrow, disabled);
-        let arrow_paints = Paints::current(arrow_state, style.effect);
+        let arrow_paints = Paints::current(arrow_state);
         let mut area = use_state(Area::default);
         let items = self.items.clone();
         let on_press = self.on_press.clone();
@@ -343,7 +343,7 @@ impl Component for HelpLink {
         let style: HelpLinkStyle = resolve(&self.style);
         let interaction = use_interaction();
         let disabled = !use_is_enabled();
-        let paints = Paints::current(control_state(interaction, disabled), style.effect);
+        let paints = Paints::current(control_state(interaction, disabled));
         let scale = crate::animation::use_animated(
             if interaction.pressed() {
                 style.pressed_scale
@@ -420,7 +420,7 @@ forward_overrides!(ControlGroup);
 impl Component for ControlGroup {
     fn render(&self) -> impl IntoElement {
         let style: ControlGroupStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let (separator_width, separator_height) = style.separator_size;
         let mut items = Vec::with_capacity(self.children.len() * 2);
         for (index, child) in self.children.iter().enumerate() {

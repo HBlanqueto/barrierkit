@@ -1,8 +1,6 @@
 use ctdesign::{BODY, DISCLOSURE, Font, HAIRLINE, SPACE_1};
 
-use crate::styles::{
-    ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct OutlineViewStyle {
@@ -56,8 +54,6 @@ pub struct OutlineViewStyle {
     pub selected_chevron: StateValue<ShapeStyle>,
     /// Tengen: `(Role(Separator), HAIRLINE)`, between `Browser` columns.
     pub column_separator: (ShapeStyle, f32),
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -127,7 +123,6 @@ impl ControlStyle for OutlineViewStyle {
             selected_chevron: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
                 .focused(ShapeStyle::Role(Role::OnSelectedContent)),
             column_separator: (ShapeStyle::Role(Role::Separator), HAIRLINE),
-            effect: system_effect,
             font: BODY,
         }
     }

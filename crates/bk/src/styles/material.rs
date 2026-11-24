@@ -1,6 +1,6 @@
 use ctdesign::{HAIRLINE, MEDIA};
 
-use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, ShapeStyle, StateValue};
 
 /// States: only `normal`. Without compositor glass, or when the user reduces transparency,
 /// the material and the top glass become their `tint`, opaque, and the glass container its
@@ -15,8 +15,6 @@ pub struct MaterialStyle {
     /// Tengen: `Material::HudWindow`. The material a compositor that offers `set_backdrop`
     /// draws behind `Material`; the kit then ignores `tint` and `border`.
     pub material: ctappearance::material::Material,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for MaterialStyle {
@@ -25,7 +23,6 @@ impl ControlStyle for MaterialStyle {
             tint: StateValue::new(ShapeStyle::Color(MEDIA.material_tint)),
             border: Some((ShapeStyle::Color(MEDIA.material_rim), HAIRLINE)),
             material: ctappearance::material::Material::HudWindow,
-            effect: system_effect,
         }
     }
 }

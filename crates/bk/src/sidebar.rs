@@ -1,4 +1,4 @@
-use crate::elements::{Overrides, forward_container, forward_overrides};
+use crate::elements::{Overrides, forward_container, forward_key, forward_overrides};
 use ctappearance::{ColorScheme, SidebarSurface};
 use ctdesign::{
     GlassSelection, Rgba, SIDEBAR, SIDEBAR_GLASS_SELECTION_DARK, SIDEBAR_GLASS_SELECTION_LIGHT,
@@ -172,7 +172,7 @@ impl SymbolTile {
 
     fn styled(glyph: Symbol, theme: Theme) -> Self {
         let style: SymbolTileStyle = resolve(&theme);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let resolved = theme::resolved();
         let (plate, ink) = ctappearance::icon_plate::tile(
             resolved.icon_style,
@@ -276,18 +276,12 @@ impl ChildrenExt for Sidebar {
     }
 }
 
-impl KeyExt for Sidebar {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(Sidebar);
 
 forward_overrides!(Sidebar);
 
 impl Component for Sidebar {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: SidebarStyle = resolve(&self.style);
@@ -301,7 +295,7 @@ impl Component for Sidebar {
             style
         };
         let lights: TrafficLightsStyle = resolve(&Theme::tengen());
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let (traffic_x, traffic_y) = style.lights_position;
 
         let controls = try_consume_root_context::<WindowControls>();
@@ -537,18 +531,12 @@ impl SidebarItem {
     }
 }
 
-impl KeyExt for SidebarItem {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(SidebarItem);
 
 forward_overrides!(SidebarItem);
 
 impl Component for SidebarItem {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: SidebarItemStyle = resolve(&self.style);
@@ -561,7 +549,7 @@ impl Component for SidebarItem {
         };
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let (background, ink, font) = if self.selected {
             (
                 &style.selected_background,
@@ -690,25 +678,19 @@ impl ChildrenExt for SidebarSection {
     }
 }
 
-impl KeyExt for SidebarSection {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(SidebarSection);
 
 forward_overrides!(SidebarSection);
 
 impl Component for SidebarSection {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let expanded = use_state(|| true);
         let style: SidebarSectionStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let show_chevron = interaction.hovered() || interaction.keyboard_focused();
 
         let toggle = {
@@ -789,6 +771,7 @@ pub struct SidebarAccount {
     name: Cow<'static, str>,
     detail: Cow<'static, str>,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -803,6 +786,7 @@ impl SidebarAccount {
             name: name.into(),
             detail: detail.into(),
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -818,10 +802,14 @@ impl SidebarAccount {
 
 forward_overrides!(SidebarAccount);
 
+forward_key!(SidebarAccount);
+
 impl Component for SidebarAccount {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: SidebarAccountStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let ink =
             |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(ControlState::default()));
         let root = rect()

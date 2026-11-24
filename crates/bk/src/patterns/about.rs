@@ -49,7 +49,7 @@ impl From<AboutView> for Element {
 fn about_window(about: AboutView) -> Rect {
     let style: AboutViewStyle = resolve(&about.style);
     let state = ControlState::default();
-    let paints = Paints::current(state, style.effect);
+    let paints = Paints::current(state);
     let ink = |paint: &StateValue<ShapeStyle>| paints.color(paint.resolve(state));
     rect()
         .expanded()

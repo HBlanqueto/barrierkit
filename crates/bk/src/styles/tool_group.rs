@@ -4,8 +4,7 @@ use ctdesign::{HAIRLINE, TOOLGROUP};
 use crate::titlebar::WindowToolbarStyle;
 
 use crate::styles::{
-    Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    show_borders, system_effect,
+    Axis, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, show_borders,
 };
 
 /// States: only `normal`. Tengen follows reduce transparency, which picks the opaque tool
@@ -41,8 +40,6 @@ pub struct ToolGroupStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Horizontal`; `Vertical` stacks the items.
     pub axis: Axis,
 }
@@ -89,7 +86,6 @@ impl ControlStyle for ToolGroupStyle {
             border: Some((rim, HAIRLINE)),
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             axis: Axis::Horizontal,
         }
     }

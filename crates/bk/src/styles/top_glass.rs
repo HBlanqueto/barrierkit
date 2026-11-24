@@ -1,6 +1,6 @@
 use ctdesign::{FULLSCREEN_GLASS, FullscreenGlassMetrics};
 
-use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct TopGlassStyle {
@@ -10,8 +10,6 @@ pub struct TopGlassStyle {
     /// Tengen: `Color` of the glass of the window: `raised_background` over a `Backdrop`, the
     /// window surface without one.
     pub tint: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for TopGlassStyle {
@@ -19,7 +17,6 @@ impl ControlStyle for TopGlassStyle {
         Self {
             glass: FULLSCREEN_GLASS,
             tint: StateValue::new(ShapeStyle::Color(crate::glass::glass_tint())),
-            effect: system_effect,
         }
     }
 }

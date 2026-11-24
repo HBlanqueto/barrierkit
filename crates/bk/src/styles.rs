@@ -548,8 +548,6 @@ fn unit_spring(duration_ms: u64, bounce: f32) -> crate::animation::Spring {
     crate::animation::Spring::new(0.0, 1.0, Duration::from_millis(duration_ms), bounce)
 }
 
-pub type ColorEffect = fn(Rgba, ControlState) -> Rgba;
-
 // SwiftUI draws a label over a control's own glass at full strength.
 pub(crate) fn glass_ink() -> Rgba {
     per_scheme([
@@ -625,10 +623,6 @@ pub(crate) fn pressed_palette() -> PressedPalette {
     }
 }
 
-pub fn system_effect(color: Rgba, _: ControlState) -> Rgba {
-    color
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Axis {
     Horizontal,
@@ -676,11 +670,10 @@ pub(crate) struct Paints {
     window: Rgba,
     opaque: bool,
     state: ControlState,
-    effect: ColorEffect,
 }
 
 impl Paints {
-    pub(crate) fn current(state: ControlState, effect: ColorEffect) -> Self {
+    pub(crate) fn current(state: ControlState) -> Self {
         Self {
             palette: Palette::current(),
             backdrop: crate::backdrop::tinted().filter(|_| crate::platform::window_activated()),
@@ -695,7 +688,6 @@ impl Paints {
             },
             opaque: crate::glass::transparency_reduced(),
             state,
-            effect,
         }
     }
 
@@ -710,22 +702,17 @@ impl Paints {
         }
     }
 
-    pub(crate) fn color(&self, paint: &ShapeStyle) -> Rgba {
-        (self.effect)(self.base(paint), self.state)
-    }
-
     fn fill_of(&self, paint: &ShapeStyle) -> Fill {
-        let ink = |rgba: Rgba| color((self.effect)(rgba, self.state));
         match (paint, self.backdrop) {
             (ShapeStyle::Gradient(gradient), _) => gradient.fill(|stop| self.color(stop)),
             (ShapeStyle::Backdrop, Some(backdrop)) => {
-                crate::backdrop::highlights(backdrop, ink).into()
+                crate::backdrop::highlights(backdrop, color).into()
             }
             _ => color(self.color(paint)).into(),
         }
     }
 
-    fn base(&self, paint: &ShapeStyle) -> Rgba {
+    pub(crate) fn color(&self, paint: &ShapeStyle) -> Rgba {
         match paint {
             ShapeStyle::Role(role) => role.color(&self.palette),
             ShapeStyle::Accent => self.palette.accent,
@@ -733,7 +720,7 @@ impl Paints {
             ShapeStyle::Gradient(gradient) => gradient
                 .stops
                 .first()
-                .map_or(Rgba::TRANSPARENT, |(stop, _)| self.base(stop)),
+                .map_or(Rgba::TRANSPARENT, |(stop, _)| self.color(stop)),
             ShapeStyle::Backdrop => self
                 .backdrop
                 .map_or(self.palette.accent, |backdrop| backdrop.highlights()[0]),

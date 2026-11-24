@@ -15,7 +15,7 @@ use crate::style::Palette;
 use crate::style::with_font;
 use crate::styled_text::{Inline, Piece, explicit, layered};
 use crate::styles::{
-    ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve, system_effect,
+    ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve,
 };
 use crate::symbol::{Image, Symbol};
 use crate::views::list::ListRow;
@@ -155,8 +155,24 @@ macro_rules! forward_overrides {
     };
 }
 
+macro_rules! forward_key {
+    ($outer:ident) => {
+        impl ::freya_core::prelude::KeyExt for $outer {
+            fn key_mut(&mut self) -> &mut ::freya_core::prelude::DiffKey {
+                &mut self.key
+            }
+        }
+    };
+    () => {
+        fn render_key(&self) -> ::freya_core::prelude::DiffKey {
+            self.key.clone().or(self.default_key())
+        }
+    };
+}
+
 pub(crate) use forward_container;
 pub(crate) use forward_element;
+pub(crate) use forward_key;
 pub(crate) use forward_overrides;
 
 #[derive(Default, Clone, PartialEq)]
@@ -243,7 +259,7 @@ impl Text {
             text.3.pieces = styled_spans(
                 &content,
                 &runs,
-                &Paints::current(ControlState::default(), system_effect),
+                &Paints::current(ControlState::default()),
                 Palette::current().accent,
             );
             for (span, _) in text.3.pieces.iter_mut().filter(|(_, link)| link.is_some()) {
@@ -296,7 +312,7 @@ impl Text {
 
     fn styled(content: Cow<'static, str>, theme: Theme) -> Self {
         let style: TextStyle = resolve(&theme);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let inline = Inline {
             line_height: style.font.line_height as f32 / style.font.size as f32,
             ..Inline::default()
@@ -356,7 +372,7 @@ pub struct Label(Rect);
 impl Label {
     pub fn new(title: impl Into<Cow<'static, str>>, image: Symbol) -> Self {
         let style: TextStyle = resolve(&Theme::tengen());
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let in_list = try_consume_context::<ListRow>().is_some();
         let compact = !in_list && try_consume_context::<InTextStyleScope>().is_some();
         let tint = ShapeStyle::Color(Palette::current().accent);

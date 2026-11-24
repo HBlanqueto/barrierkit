@@ -905,7 +905,7 @@ impl Image {
 impl From<Image> for Element {
     fn from(image: Image) -> Self {
         let style: ImageStyle = resolve(&image.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let color = paints.color(style.foreground.resolve(ControlState::default()));
         let side = Size::px(style.size);
         let (width, height) = image.frame.map_or((side.clone(), side), |(width, height)| {

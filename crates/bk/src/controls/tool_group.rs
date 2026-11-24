@@ -1,4 +1,5 @@
 use super::*;
+use crate::elements::forward_key;
 use crate::titlebar::WindowToolbarStyle;
 
 #[derive(PartialEq)]
@@ -39,11 +40,7 @@ impl ChildrenExt for ToolGroup {
     }
 }
 
-impl KeyExt for ToolGroup {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(ToolGroup);
 
 impl ProbeExt for ToolGroup {
     fn probe(mut self, id: &'static str) -> Self {
@@ -55,15 +52,13 @@ impl ProbeExt for ToolGroup {
 forward_overrides!(ToolGroup);
 
 impl Component for ToolGroup {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         crate::compact::use_toolbar_items_or(WindowToolbarStyle::Unified);
         crate::compact::use_toolbar_item_alone(self.children.len() == 1);
         let style: ToolGroupStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let vertical = style.axis == Axis::Vertical;
         let (length, thickness) = style.item_size;
         let (slot_width, slot_height) = if vertical {

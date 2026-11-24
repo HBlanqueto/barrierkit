@@ -5,7 +5,7 @@ use ctdesign::{
     RELEVANCY_TRACK_DARK_TINT, RELEVANCY_TRACK_LIGHT,
 };
 
-use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, per_look, system_effect};
+use crate::styles::{ControlStyle, ShapeStyle, StateValue, per_look};
 
 /// States: `RatingIndicator` is hovered, pressed and focused; the others only
 /// `normal`. The ring and the marker of a `Gauge` take one color each, like the
@@ -29,8 +29,6 @@ pub struct RelevancyIndicatorStyle {
     pub line: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for RelevancyIndicatorStyle {
@@ -76,7 +74,6 @@ impl ControlStyle for RelevancyIndicatorStyle {
                 ],
             ))),
             opacity: 1.0,
-            effect: system_effect,
         }
     }
 }

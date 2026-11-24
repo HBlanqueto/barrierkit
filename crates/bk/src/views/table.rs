@@ -271,7 +271,7 @@ impl Component for Table {
             focused: interaction.focused(),
             ..ControlState::default()
         };
-        let paints = Paints::current(focused, style.effect);
+        let paints = Paints::current(focused);
         let padding_x = style.padding_x;
         let header_padding_x = style.header_padding_x;
         let column_shift = style.column_shift;
@@ -428,7 +428,7 @@ impl Component for Table {
         );
         let separated = style.row_separator.is_some();
         let background = self.list_rows.background.clone().map(|background| {
-            let paints = Paints::current(focused, style.effect);
+            let paints = Paints::current(focused);
             Callback::new(move |row| paints.fill(&StateValue::new(background.call(row))))
         });
         let list_rows = (
@@ -720,7 +720,7 @@ impl Component for HeaderCell {
         let style: TableStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let label = if self.arrow.is_some() {
             &style.sorted_header_label
         } else {

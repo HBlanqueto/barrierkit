@@ -3,9 +3,7 @@ use ctdesign::{
     SEARCH_FIELD, SETTINGS, TEXT_FIELD,
 };
 
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, per_scheme, system_effect,
-};
+use crate::styles::{ControlStyle, Role, Shape, ShapeStyle, StateValue, per_scheme};
 
 #[derive(Clone, Debug)]
 pub struct SearchFieldStyle {
@@ -46,8 +44,6 @@ pub struct SearchFieldStyle {
     pub clear_background: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`; the text sits (`height` − `line_height`) / 2 from the top.
     pub font: Font,
 }
@@ -110,7 +106,6 @@ impl ControlStyle for SearchFieldStyle {
                 SEARCH_CLEAR_DARK_TINT,
             ]))),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

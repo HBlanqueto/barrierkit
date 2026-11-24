@@ -435,7 +435,7 @@ impl Component for WindowChrome {
                         )
                         .height(Size::fill())
                         .layer(Layer::Overlay);
-                    let background = window_paints(&style).fill(&style.drawer_background);
+                    let background = window_paints().fill(&style.drawer_background);
                     shadowed(drawer, &style.shadows)
                         .child(rail(&style, items, 1.0).background(background))
                 }),
@@ -474,12 +474,12 @@ fn window_state() -> (bool, bool, Cow<'static, str>) {
         .unwrap_or((true, false, Cow::default()))
 }
 
-fn window_paints(style: &WindowChromeStyle) -> Paints {
+fn window_paints() -> Paints {
     let state = ControlState {
         focused: window_state().0,
         ..ControlState::default()
     };
-    Paints::current(state, style.effect)
+    Paints::current(state)
 }
 
 fn line(paints: &Paints, (paint, thickness): &(ShapeStyle, f32), vertical: bool) -> Rect {
@@ -496,7 +496,7 @@ fn line(paints: &Paints, (paint, thickness): &(ShapeStyle, f32), vertical: bool)
 
 fn rail(style: &WindowChromeStyle, items: &RailItems, lights_opacity: f32) -> Rect {
     let (activated, fixed, title) = window_state();
-    let paints = window_paints(style);
+    let paints = window_paints();
     let controls = try_consume_root_context::<WindowControls>();
     let overlaid = fullscreen_overlay().0;
     let lights_shown = controls
@@ -598,7 +598,7 @@ impl Component for RotatedTitle {
 }
 
 fn resting_edge(style: &WindowChromeStyle, vertical: bool) -> Rect {
-    let paints = window_paints(style);
+    let paints = window_paints();
     match style.resting_edge {
         RestingEdge::None => line(&paints, &(ShapeStyle::Clear, 0.0), vertical),
         RestingEdge::Line => line(&paints, &style.line_edge, vertical),
@@ -608,7 +608,7 @@ fn resting_edge(style: &WindowChromeStyle, vertical: bool) -> Rect {
 
 fn pill(style: &WindowChromeStyle, vertical: bool, slide: f32) -> Rect {
     let (activated, fixed, _) = window_state();
-    let paints = window_paints(style);
+    let paints = window_paints();
     let hidden_by = TITLEBAR_RAIL.reveal_corner * (1.0 - slide);
     let position = Position::new_absolute();
     let position = match vertical {

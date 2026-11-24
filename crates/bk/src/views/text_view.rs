@@ -5,7 +5,7 @@ use freya_core::prelude::*;
 use freya_edit::*;
 use torin::prelude::{Area, Size};
 
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::style::sized_font;
 use crate::styles::{ControlState, Paints, ShapeStyle, StateValue, TextViewStyle, Theme, resolve};
 use crate::theme::color;
@@ -115,22 +115,19 @@ fn rgba(color: Color) -> ctdesign::Rgba {
     )
 }
 
-impl KeyExt for TextView {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(TextView);
 
 forward_overrides!(TextView);
 
 impl Component for TextView {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let (ink, cursor, instance) = (rgba(self.ink), rgba(self.cursor), self.style.clone());
-        let style: TextViewStyle = resolve(&Theme::tengen().style(move |s: TextViewStyle| {
+        let style: TextViewStyle = resolve(&Theme::tengen().style(move |_: TextViewStyle| {
             instance.apply(TextViewStyle {
                 text: StateValue::new(ShapeStyle::Color(ink)),
                 cursor: StateValue::new(ShapeStyle::Color(cursor)),
-                ..s
             })
         }));
         let a11y_id = use_hook(AccessibilityId::new_unique);
@@ -139,7 +136,7 @@ impl Component for TextView {
             focused: focus().is_focused(),
             ..ControlState::default()
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let holder = use_state(ParagraphHolder::default);
         let mut area = use_state(Area::default);
         let mut dragging = use_state(|| false);
@@ -298,9 +295,5 @@ impl Component for TextView {
             .height(self.height.clone())
             .child(paragraph);
         self.overrides.apply(root)
-    }
-
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
     }
 }

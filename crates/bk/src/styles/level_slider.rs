@@ -4,8 +4,7 @@ use ctdesign::{DURATION_FAST_MS, KNOB_SHADOW, SLIDER, SLIDER_FAT, SWITCH, SYMBOL
 use crate::symbol::Symbol;
 
 use super::{
-    Animation, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    reduce_motion, system_effect,
+    Animation, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, reduce_motion,
 };
 
 /// States: hovered, pressed, focused, disabled. `LevelSlider::tint(Tint)` is an
@@ -56,8 +55,6 @@ pub struct LevelSliderStyle {
     pub opacity: f32,
     /// Tengen: `SWITCH.disabled_opacity`, for the track, fill and symbol.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the knob and the fill glide to a new
     /// value, except under a drag, where they follow the cursor; `None` makes them jump.
     pub animation: Animation,
@@ -98,7 +95,6 @@ impl ControlStyle for LevelSliderStyle {
             knob_glass: Some(ShapeStyle::Role(Role::ControlBackground)),
             opacity: 1.0,
             disabled_opacity: SWITCH.disabled_opacity,
-            effect: system_effect,
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,
             },

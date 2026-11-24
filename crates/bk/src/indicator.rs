@@ -139,7 +139,7 @@ forward_overrides!(CapacityIndicator);
 impl Component for CapacityIndicator {
     fn render(&self) -> impl IntoElement {
         let style: CapacityIndicatorStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let value = self.value.clamp(0.0, 1.0);
         let fill = [&style.fill, &style.warning, &style.critical]
             [level_color(value, self.warning, self.critical)];
@@ -244,7 +244,7 @@ forward_overrides!(RelevancyIndicator);
 impl Component for RelevancyIndicator {
     fn render(&self) -> impl IntoElement {
         let style: RelevancyIndicatorStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let value = self.value;
         let mut width = use_state(|| 0.0f32);
         let pitch = style.line_width + style.gap;
@@ -329,7 +329,7 @@ impl Component for Gauge {
     fn render(&self) -> impl IntoElement {
         let style: GaugeStyle = resolve(&self.style);
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let size = style.size;
         let center = size / 2.0;
         let radius = (size - style.stroke) / 2.0;
@@ -440,7 +440,7 @@ impl Component for RatingIndicator {
         let style: RatingIndicatorStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let value = self.value.min(LEVEL_INDICATOR.stars);
         let stars = (1..=LEVEL_INDICATOR.stars).map(|star| {
             let ink = if star <= value {

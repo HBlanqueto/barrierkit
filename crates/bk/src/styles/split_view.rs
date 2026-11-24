@@ -1,10 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SPLIT_VIEW, ease_in_ease_out};
 
-use crate::styles::{
-    Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion,
-    system_effect,
-};
+use crate::styles::{Animation, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion};
 
 /// The widths of a `SplitView` sidebar (`.sidebar_width`, `.sidebar_range`) stay
 /// options: they are layout the user changes.
@@ -31,8 +28,6 @@ pub struct SplitViewStyle {
     pub scrim: StateValue<ShapeStyle>,
     /// Tengen: `(Role(Separator), HAIRLINE)`.
     pub inspector_line: (ShapeStyle, f32),
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the sidebar and the inspector slide in
     /// and out.
     pub animation: Animation,
@@ -59,7 +54,6 @@ impl ControlStyle for SplitViewStyle {
             grip: StateValue::new(ShapeStyle::Clear).focused(accent),
             scrim: StateValue::new(ShapeStyle::Role(Role::Scrim)),
             inspector_line: (ShapeStyle::Role(Role::Separator), HAIRLINE),
-            effect: system_effect,
             animation: Animation::Custom {
                 duration_ms: DURATION_BASE,
                 curve: ease_in_ease_out,

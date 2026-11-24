@@ -50,7 +50,7 @@ impl Component for ImageWell {
     fn render(&self) -> impl IntoElement {
         let style: ImageWellStyle = resolve(&self.style);
         let interaction = use_interaction();
-        let paints = Paints::current(control_state(interaction, false), style.effect);
+        let paints = Paints::current(control_state(interaction, false));
         let mut image = self.image;
         let mut area = use_state(Area::default);
         let mut targeted = use_state(|| false);

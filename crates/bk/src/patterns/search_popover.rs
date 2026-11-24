@@ -152,7 +152,7 @@ impl App for SearchPopover {
             active,
         } = (*self.results.read()).clone();
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let height = popover_height(&entries, &style);
         let padding_x = style.result_padding_x;
         let mut index = 0..;
@@ -220,7 +220,7 @@ impl Component for SearchResult {
             hovered: self.active || interaction.hovered(),
             ..control_state(interaction, false)
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let (background, title_ink, subtitle_ink) = if self.accent_highlight {
             (
                 &style.suggestion_background,

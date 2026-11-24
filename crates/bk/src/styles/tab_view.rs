@@ -3,8 +3,8 @@ use ctdesign::{BODY, CAPTION, ControlSize, Font, Rgba, SPACE_2, TAB_VIEW, TOOLBA
 use crate::style::Palette;
 use crate::styles::button::{continuous_rounded, rounded};
 use crate::styles::{
-    ColorEffect, ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, appearance_index, system_effect,
+    ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    appearance_index,
 };
 
 /// Where the tabs are, like `NSTabView.TabType`: a strip of segments on one side of a bezel box,
@@ -62,8 +62,6 @@ pub struct TabViewStyle {
     pub selected_label: StateValue<ShapeStyle>,
     /// Tengen: `None`, around the strip.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY` at `TAB_VIEW`'s label size; `CAPTION` at `TOOLBAR_TABS.font_size` with
     /// `TOOLBAR_TABS.font_weight` in `toolbar`; one line, so `line_height` only sets the tab's
     /// height there.
@@ -202,7 +200,6 @@ impl ControlStyle for TabViewStyle {
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             selected_label: StateValue::new(ShapeStyle::Role(Role::Label)),
             border: None,
-            effect: system_effect,
             font: BODY,
             strip_height: TAB_VIEW.strip_height,
             strip_inset: TAB_VIEW.strip_inset,

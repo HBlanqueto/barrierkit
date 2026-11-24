@@ -2,8 +2,7 @@ use ctdesign::{BODY, BUTTON, Font, HAIRLINE, SETTINGS};
 
 use crate::styles::button::continuous_rounded;
 use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
-    system_effect,
+    ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
 };
 
 #[derive(Clone, Debug)]
@@ -36,8 +35,6 @@ pub struct ComboButtonStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -60,7 +57,6 @@ impl ControlStyle for ComboButtonStyle {
             border: None,
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

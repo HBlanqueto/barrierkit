@@ -11,7 +11,6 @@ use crate::canvas::{Canvas, CanvasContext};
 use crate::elements::forward_element;
 use crate::styles::{
     ControlState, CornerStyle, LayoutDirection, Paints, Shape, ShapeStyle, StateValue,
-    system_effect,
 };
 
 // Skia scales radii down to fit the frame, so a capsule or a circle clips with a radius no frame reaches.
@@ -105,7 +104,7 @@ struct Drawing {
 }
 
 fn fill_of(style: ShapeStyle) -> Fill {
-    Paints::current(ControlState::default(), system_effect).fill(&StateValue::new(style))
+    Paints::current(ControlState::default()).fill(&StateValue::new(style))
 }
 
 // A gradient or backdrop is a render callback that fills everything; the path's coverage keeps part of it.

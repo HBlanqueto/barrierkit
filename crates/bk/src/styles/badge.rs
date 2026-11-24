@@ -1,8 +1,6 @@
 use ctdesign::{BADGE, CAPTION, Font};
 
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct BadgeStyle {
@@ -18,8 +16,6 @@ pub struct BadgeStyle {
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `font` `CAPTION`.
     pub font: Font,
 }
@@ -34,7 +30,6 @@ impl ControlStyle for BadgeStyle {
             label: StateValue::new(ShapeStyle::Role(Role::OnAccent)),
             border: None,
             shadows: Vec::new(),
-            effect: system_effect,
             font: CAPTION,
         }
     }

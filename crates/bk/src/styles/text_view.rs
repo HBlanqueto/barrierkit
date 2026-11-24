@@ -1,4 +1,4 @@
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 /// States: focused while the view edits. The `ink` of `TextView::new` and
 /// `.cursor(color)` are instance overrides of `text` and `cursor`, applied
@@ -8,8 +8,6 @@ use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, sys
 pub struct TextViewStyle {
     pub text: StateValue<ShapeStyle>,
     pub cursor: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for TextViewStyle {
@@ -17,7 +15,6 @@ impl ControlStyle for TextViewStyle {
         Self {
             text: StateValue::new(ShapeStyle::Role(Role::Label)),
             cursor: StateValue::new(ShapeStyle::Role(Role::Label)),
-            effect: system_effect,
         }
     }
 }

@@ -28,7 +28,7 @@ impl Badge {
 
     fn styled(content: Cow<'static, str>, theme: Theme) -> Self {
         let style: BadgeStyle = resolve(&theme);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let ink = paints.color(style.label.resolve(ControlState::default()));
         let badge = rect()
             .height(Size::px(style.height))
@@ -62,7 +62,7 @@ impl Divider {
 
     fn styled(theme: Theme) -> Self {
         let style: DividerStyle = resolve(&theme);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         Self(
             rect()
                 .a11y_role(AccessibilityRole::Splitter)
@@ -111,7 +111,7 @@ impl Avatar {
 
     fn styled(initials: String, theme: Theme, picture: Option<PathBuf>) -> Self {
         let style: AvatarStyle = resolve(&theme);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let ink = paints.color(style.label.resolve(ControlState::default()));
         let avatar = rect()
             .a11y_role(AccessibilityRole::Image)
@@ -178,7 +178,7 @@ impl Component for Link {
         let style: LinkStyle = resolve(&self.style);
         let interaction = use_interaction();
         let disabled = !use_is_enabled();
-        let paints = Paints::current(control_state(interaction, disabled), style.effect);
+        let paints = Paints::current(control_state(interaction, disabled));
         let on_press = self.on_press.clone();
         let link = interaction
             .attach(rect(), !disabled)

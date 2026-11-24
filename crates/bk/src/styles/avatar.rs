@@ -2,9 +2,7 @@ use ctappearance::backdrop::ink_on;
 use ctdesign::{Font, HEADLINE, SETTINGS};
 
 use crate::style::Palette;
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct AvatarStyle {
@@ -18,8 +16,6 @@ pub struct AvatarStyle {
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `font` `HEADLINE`.
     pub font: Font,
 }
@@ -35,7 +31,6 @@ impl ControlStyle for AvatarStyle {
             ))),
             border: None,
             shadows: Vec::new(),
-            effect: system_effect,
             font: HEADLINE,
         }
     }

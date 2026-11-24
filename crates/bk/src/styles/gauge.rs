@@ -1,6 +1,6 @@
 use ctdesign::{CAPTION, Font, GAUGE};
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct GaugeStyle {
@@ -16,8 +16,6 @@ pub struct GaugeStyle {
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `CAPTION`, the value in the center.
     pub font: Font,
 }
@@ -35,7 +33,6 @@ impl ControlStyle for GaugeStyle {
             capacity_fill: StateValue::new(ShapeStyle::Accent),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             opacity: 1.0,
-            effect: system_effect,
             font: CAPTION,
         }
     }

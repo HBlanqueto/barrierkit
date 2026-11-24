@@ -1,6 +1,6 @@
 use ctdesign::{BODY, SYMBOL};
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct ImageStyle {
@@ -10,8 +10,6 @@ pub struct ImageStyle {
     pub stroke: f32,
     /// Tengen: `foreground` `Role(Label)`, the symbol.
     pub foreground: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for ImageStyle {
@@ -20,7 +18,6 @@ impl ControlStyle for ImageStyle {
             size: BODY.size as f32,
             stroke: SYMBOL.stroke,
             foreground: StateValue::new(ShapeStyle::Role(Role::Label)),
-            effect: system_effect,
         }
     }
 }

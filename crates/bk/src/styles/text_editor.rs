@@ -1,8 +1,6 @@
 use ctdesign::{BODY, CAPTION, Font, HAIRLINE, SPACE_1, SPACE_2, TEXT_EDITOR};
 
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, Shape, ShapeStyle, StateValue};
 
 /// `TextEditor` is drawn like an `NSTextView` in a bordered scroll view: a square
 /// field with a 1 line border inside, whose border does not turn to the accent: the focus
@@ -34,8 +32,6 @@ pub struct TextEditorStyle {
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY` with the line height `TEXT_EDITOR.line_height`.
     pub font: Font,
     /// Tengen: `CAPTION`.
@@ -58,7 +54,6 @@ impl ControlStyle for TextEditorStyle {
             caption: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             opacity: 1.0,
-            effect: system_effect,
             font: Font {
                 line_height: TEXT_EDITOR.line_height,
                 ..BODY

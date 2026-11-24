@@ -2,7 +2,7 @@ use ctappearance::Resolved;
 use ctdesign::{BODY, Font, SIDEBAR};
 
 use crate::styles::button::continuous_rounded;
-use crate::styles::{ColorEffect, ControlStyle, Shape, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct SidebarItemStyle {
@@ -31,8 +31,6 @@ pub struct SidebarItemStyle {
     /// Tengen: `selected_tile_border` `Some((Color of the selected icon rim,
     /// SIDEBAR.rim_width))`, the tile of a selected item.
     pub selected_tile_border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `font`, `selected_font`: `BODY` at `SIDEBAR.item_text_size` with
     /// `SIDEBAR.item_weight` and `SIDEBAR.item_selected_weight`.
     pub font: Font,
@@ -66,7 +64,6 @@ impl ControlStyle for SidebarItemStyle {
                 ShapeStyle::Color(palette.selected_icon_rim),
                 SIDEBAR.rim_width,
             )),
-            effect: system_effect,
             font: font(SIDEBAR.item_weight),
             selected_font: font(SIDEBAR.item_selected_weight),
         }

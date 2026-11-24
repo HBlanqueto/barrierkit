@@ -2,8 +2,8 @@ use ctdesign::{BODY, CHECKBOX, ControlSize, Font};
 
 use super::button::continuous_rounded;
 use super::{
-    ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    disabled_palette, pressed_palette, system_effect,
+    ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue, disabled_palette,
+    pressed_palette,
 };
 
 /// States: hovered, pressed, focused, disabled. `Checkbox::tint(Tint)` is an
@@ -43,8 +43,6 @@ pub struct CheckboxStyle {
     pub opacity: f32,
     /// Tengen, with `opacity`: `1.0`, `1.0`, for the box and the label.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Some(Edge::Trailing)`; `None` hides the label, which stays accessible.
     pub label_position: Option<Edge>,
     /// Tengen: `BODY` with `CHECKBOX.size` as `line_height`, so the row is as high as the box.
@@ -94,7 +92,6 @@ impl ControlStyle for CheckboxStyle {
             box_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: 1.0,
-            effect: system_effect,
             label_position: Some(Edge::Trailing),
             label_font: Font {
                 line_height: CHECKBOX.size as u32,

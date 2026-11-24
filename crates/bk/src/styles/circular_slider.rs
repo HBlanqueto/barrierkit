@@ -1,8 +1,6 @@
 use ctdesign::CIRCULAR_SLIDER;
 
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, Shape, ShapeStyle, StateValue};
 
 /// States: hovered, pressed, focused, disabled.
 #[derive(Clone, Debug)]
@@ -20,8 +18,6 @@ pub struct CircularSliderStyle {
     pub dash_ink: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for CircularSliderStyle {
@@ -39,7 +35,6 @@ impl ControlStyle for CircularSliderStyle {
             dash_ink: StateValue::new(ShapeStyle::Role(Role::Label))
                 .disabled(ShapeStyle::Role(Role::TertiaryLabel)),
             opacity: 1.0,
-            effect: system_effect,
         }
     }
 }

@@ -13,7 +13,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
 use crate::choices::use_choice;
 use crate::controls::{dimmed, opacity_when, shadowed};
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
@@ -37,6 +37,7 @@ pub struct PopUpButton {
     pulls_down: bool,
     disabled: bool,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -52,6 +53,7 @@ impl PopUpButton {
             pulls_down: false,
             disabled: false,
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -111,13 +113,17 @@ impl PopUpButton {
 
 forward_overrides!(PopUpButton);
 
+forward_key!(PopUpButton);
+
 impl Component for PopUpButton {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: PopUpButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let choice = use_choice(Some(self.selected), self.on_change.clone());
         let mut area = use_state(Area::default);
         let pulls_down = self.pulls_down;

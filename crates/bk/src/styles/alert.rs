@@ -4,7 +4,7 @@ use ctdesign::{
     SPACE_4,
 };
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct AlertStyle {
@@ -29,8 +29,6 @@ pub struct AlertStyle {
     pub title: StateValue<ShapeStyle>,
     /// Tengen: `message` `Role(Label)`.
     pub message: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     pub title_font: Font,
     pub message_font: Font,
 }
@@ -48,7 +46,6 @@ impl ControlStyle for AlertStyle {
             buttons_margin_top: SPACE_4,
             title: StateValue::new(ShapeStyle::Role(Role::Label)),
             message: StateValue::new(ShapeStyle::Role(Role::Label)),
-            effect: system_effect,
             title_font: Font {
                 line_height: DIALOG_ALERT_LINE_HEIGHT,
                 ..HEADLINE

@@ -5,7 +5,7 @@ use torin::prelude::{CursorPoint, Position, Size};
 
 use crate::controlled::{commit, use_controlled_unless};
 use crate::controls::dimmed;
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
 use crate::interaction::{control_state, use_interaction};
 use crate::layout::ambient;
@@ -60,11 +60,7 @@ impl CircularSlider {
     }
 }
 
-impl KeyExt for CircularSlider {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(CircularSlider);
 
 fn turn_value(from_center_x: f32, from_center_y: f32) -> f32 {
     from_center_x
@@ -77,16 +73,14 @@ fn turn_value(from_center_x: f32, from_center_y: f32) -> f32 {
 forward_overrides!(CircularSlider);
 
 impl Component for CircularSlider {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let interaction = use_interaction();
         let style: CircularSliderStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let value = use_controlled_unless(&self.value, interaction.held());
         let origin = use_state(CursorPoint::default);
         let on_change = self.on_change.clone();

@@ -1,6 +1,7 @@
 use freya_core::prelude::*;
 use torin::prelude::Size;
 
+use crate::elements::forward_key;
 use crate::styles::Axis;
 
 #[derive(PartialEq)]
@@ -26,17 +27,11 @@ impl ViewThatFits {
     }
 }
 
-impl KeyExt for ViewThatFits {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(ViewThatFits);
 
 // Torin cannot measure a view before it picks it, so each candidate states its extent and the container's measured size chooses (ADR 0110).
 impl Component for ViewThatFits {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let mut offered = use_state(|| 0.0f32);

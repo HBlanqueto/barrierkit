@@ -1,9 +1,7 @@
 use ctappearance::Resolved;
 use ctdesign::{DURATION_BASE, MEDIA};
 
-use crate::styles::{
-    Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, reduce_motion, system_effect,
-};
+use crate::styles::{Animation, ControlStyle, ShapeStyle, StateValue, reduce_motion};
 
 #[derive(Clone, Debug)]
 pub struct GlassContainerStyle {
@@ -16,8 +14,6 @@ pub struct GlassContainerStyle {
     pub rim: StateValue<ShapeStyle>,
     /// Tengen: `MEDIA.material_blur`.
     pub blur: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the shapes morph; `None` makes them jump.
     pub animation: Animation,
     /// Tengen: `false`. `true` asks the platform that draws the glass itself for `Glass.clear`.
@@ -31,7 +27,6 @@ impl ControlStyle for GlassContainerStyle {
             solid: StateValue::new(ShapeStyle::Color(crate::glass::glass_tint())),
             rim: StateValue::new(ShapeStyle::Color(MEDIA.round_rim)),
             blur: MEDIA.material_blur,
-            effect: system_effect,
             animation: Animation::Ease {
                 duration_ms: DURATION_BASE,
             },

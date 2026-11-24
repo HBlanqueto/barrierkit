@@ -3,8 +3,7 @@ use ctdesign::{BODY, CAPTION, Font, HAIRLINE, HEADLINE, LIST_GROUP, Rgba, SPACE_
 use crate::backdrop::tinted;
 use crate::style::Palette;
 use crate::styles::{
-    ColorEffect, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, appearance_index,
-    system_effect,
+    ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue, appearance_index,
 };
 
 /// `FormStyle` draws the whole `Form`: its sections and their rows. `Section`
@@ -62,8 +61,6 @@ pub struct FormStyle {
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(CardBorder), HAIRLINE))`, drawn inside the card.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `HEADLINE` at `LIST_GROUP.header_weight`.
     pub header_font: Font,
     /// Tengen: `CAPTION`.
@@ -132,7 +129,6 @@ impl ControlStyle for FormStyle {
             value: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             chevron: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
             border: Some((ShapeStyle::Role(Role::CardBorder), HAIRLINE)),
-            effect: system_effect,
             header_font: Font {
                 weight: LIST_GROUP.header_weight,
                 ..HEADLINE

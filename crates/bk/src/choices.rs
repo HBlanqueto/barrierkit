@@ -1,4 +1,4 @@
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
 use crate::i18n::text;
 use std::borrow::Cow;
@@ -163,18 +163,12 @@ impl RadioGroup {
     }
 }
 
-impl KeyExt for RadioGroup {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(RadioGroup);
 
 forward_overrides!(RadioGroup);
 
 impl Component for RadioGroup {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: RadioGroupStyle = resolve(&self.style);
@@ -219,7 +213,7 @@ impl Component for RadioOption {
         take_focus_when(interaction, self.take_focus);
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let direction = ambient();
         let size = style.button_size;
         let dot = style.dot_size;
@@ -383,18 +377,12 @@ impl ColorWell {
     }
 }
 
-impl KeyExt for ColorWell {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(ColorWell);
 
 forward_overrides!(ColorWell);
 
 impl Component for ColorWell {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: ColorWellStyle = resolve(&self.style);
@@ -450,7 +438,7 @@ impl Component for Swatch {
         let interaction = use_interaction();
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let size = style.swatch_size;
         let radius = style.swatch_shape.corner_radius(size, size, ambient());
         let selected = self.selected;
@@ -576,18 +564,12 @@ impl ChoiceCards {
     }
 }
 
-impl KeyExt for ChoiceCards {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(ChoiceCards);
 
 forward_overrides!(ChoiceCards);
 
 impl Component for ChoiceCards {
-    fn render_key(&self) -> DiffKey {
-        self.key.clone().or(self.default_key())
-    }
+    forward_key!();
 
     fn render(&self) -> impl IntoElement {
         let style: ChoiceCardsStyle = resolve(&self.style);
@@ -628,7 +610,7 @@ impl Component for Card {
         let interaction = use_interaction();
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let (width, height) = style.card_size;
         let radius = style.card_shape.corner_radius(width, height, ambient());
         let selected = self.selected;

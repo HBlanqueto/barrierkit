@@ -1,8 +1,7 @@
 use ctdesign::{DURATION_FAST_MS, SCROLL_BAR};
 
 use crate::styles::{
-    Animation, ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, appearance_index,
-    system_effect,
+    Animation, ControlStyle, Role, Shape, ShapeStyle, StateValue, appearance_index,
 };
 
 /// States: only `normal`. The user's setting decides whether the bar is always
@@ -28,8 +27,6 @@ pub struct ScrollViewStyle {
     pub thumb_opacity: f32,
     /// Tengen: `SCROLL_BAR.track_opacity` of the appearance.
     pub track_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `SCROLL_BAR.hide_delay_ms`, from the last scroll until the bar fades out.
     pub hide_delay_ms: u64,
     /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the bar fades; `None` makes it appear
@@ -52,7 +49,6 @@ impl ControlStyle for ScrollViewStyle {
             top_line: StateValue::new(ShapeStyle::Color(crate::sidebar::sidebar_palette().line)),
             thumb_opacity: SCROLL_BAR.opacity[appearance_index()],
             track_opacity: SCROLL_BAR.track_opacity[appearance_index()],
-            effect: system_effect,
             hide_delay_ms: SCROLL_BAR.hide_delay_ms,
             animation: Animation::Ease {
                 duration_ms: DURATION_FAST_MS,

@@ -203,12 +203,11 @@ impl Component for TextStyleScope {
         let mut text = use_state(|| (self.font, self.foreground.clone()));
         text.set_if_modified((self.font, self.foreground.clone()));
         let scope = use_hook(move || {
-            Theme::tengen().style(move |style: TextStyle| {
+            Theme::tengen().style(move |_: TextStyle| {
                 let (font, foreground) = text.peek().clone();
                 TextStyle {
                     font,
                     foreground: StateValue::new(foreground),
-                    ..style
                 }
             })
         });

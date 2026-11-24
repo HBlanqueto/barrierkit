@@ -4,8 +4,8 @@ use ctdesign::{
 };
 
 use super::{
-    Animation, Axis, ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle,
-    StateValue, disabled_palette, reduce_motion, system_effect,
+    Animation, Axis, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
+    disabled_palette, reduce_motion,
 };
 
 /// On a horizontal slider `Leading` is `Top` and `Trailing` is `Bottom`; on a
@@ -56,8 +56,6 @@ pub struct SliderStyle {
     pub opacity: f32,
     /// Tengen: `1.0`: a disabled slider changes its fill, not its opacity.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Horizontal`; `Vertical` grows upwards.
     pub axis: Axis,
     /// Tengen: `Some(Edge::Bottom)`; the ticks sit on the same side, below when `None` hides
@@ -108,7 +106,6 @@ impl ControlStyle for SliderStyle {
             knob_glass: Some(ShapeStyle::Role(Role::ControlBackground)),
             opacity: 1.0,
             disabled_opacity: 1.0,
-            effect: system_effect,
             axis: Axis::Horizontal,
             labels: Some(Edge::Bottom),
             label_font: CAPTION,

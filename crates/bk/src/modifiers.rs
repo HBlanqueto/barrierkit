@@ -14,7 +14,7 @@ use crate::menu::MenuItem;
 use crate::shapes::UNBOUNDED;
 use crate::styles::{
     ControlState, ControlStyle, GlassContainerStyle, LayoutDirection, Painted, Paints, ShadowStyle,
-    Shape, ShapeStyle, StateValue, StyleScope, Theme, system_effect,
+    Shape, ShapeStyle, StateValue, StyleScope, Theme,
 };
 use crate::transition::{ContentTransition, ContentTransitioned};
 use crate::views::feedback::Alert;
@@ -99,7 +99,7 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
     where
         Self: TextStyleExt,
     {
-        let paints = Paints::current(ControlState::default(), system_effect);
+        let paints = Paints::current(ControlState::default());
         self.color(paints.fill(&StateValue::new(style)))
     }
 
@@ -108,7 +108,7 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
         Self: BackgroundExt + DecorationExt + EffectExt,
     {
         self.painted(
-            &Paints::current(ControlState::default(), system_effect),
+            &Paints::current(ControlState::default()),
             &StateValue::new(style),
         )
     }

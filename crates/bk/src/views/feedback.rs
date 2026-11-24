@@ -74,7 +74,7 @@ impl ContentUnavailableView {
     ) -> Self {
         let style: ContentUnavailableViewStyle = resolve(&theme);
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let view = rect()
             .expanded()
             .center()
@@ -222,7 +222,7 @@ impl Component for SheetWindow {
         let opened: Rc<RefCell<Option<WindowControls>>> = use_hook(Rc::default);
         let closed: Rc<Cell<bool>> = use_hook(Rc::default);
         let style: SheetStyle = resolve(&self.theme);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let theme = self.theme.clone();
         let parent = self.parent.0.clone();
         let registered = opened.clone();
@@ -278,7 +278,7 @@ pub(crate) fn sheet_window_root(
         }
     });
     let style: SheetStyle = resolve(theme);
-    let paints = Paints::current(ControlState::default(), style.effect);
+    let paints = Paints::current(ControlState::default());
     rect().expanded().painted(&paints, &style.background).child(
         rect()
             .padding(Gaps::new_all(style.padding))
@@ -291,7 +291,7 @@ pub(crate) fn sheet_window_root(
 }
 
 fn sheet(content: impl IntoElement, style: &SheetStyle) -> Rect {
-    let paints = Paints::current(ControlState::default(), style.effect);
+    let paints = Paints::current(ControlState::default());
     rect()
         .position(Position::new_absolute().left(0.0).top(0.0))
         .width(Size::fill())
@@ -534,7 +534,7 @@ impl Component for Alert {
         let sheet_style: SheetStyle = resolve(&Theme::tengen());
         let destructive = self.destructive;
         let state = ControlState::default();
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let presented = self.presented;
         let dismiss = move || {
             if let Some(mut presented) = presented {

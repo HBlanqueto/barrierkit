@@ -3,9 +3,7 @@ use ctdesign::{
     RING_TRACK_DARK_TINT, RING_TRACK_LIGHT,
 };
 
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, per_look, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue, per_look};
 
 #[derive(Clone, Debug)]
 pub struct ProgressRingStyle {
@@ -22,8 +20,6 @@ pub struct ProgressRingStyle {
     pub fill: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for ProgressRingStyle {
@@ -42,7 +38,6 @@ impl ControlStyle for ProgressRingStyle {
             ))),
             fill: StateValue::new(ShapeStyle::Role(Role::RingAccent)),
             opacity: 1.0,
-            effect: system_effect,
         }
     }
 }

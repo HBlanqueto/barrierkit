@@ -313,7 +313,7 @@ fn match_picker(
     all: bool,
     on_change: impl FnMut(usize) + 'static,
 ) -> impl IntoElement {
-    let paints = Paints::current(ControlState::default(), style.effect);
+    let paints = Paints::current(ControlState::default());
     rect()
         .direction(Direction::Horizontal)
         .cross_align(Alignment::Center)

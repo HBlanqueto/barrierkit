@@ -2,8 +2,7 @@ use ctdesign::{BODY, BUTTON, Font, SETTINGS, SPACE_1};
 
 use crate::styles::button::continuous_rounded;
 use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
-    system_effect,
+    ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
 };
 
 /// States: pressed and focused; each half of a `ComboButton` on its own,
@@ -36,8 +35,6 @@ pub struct MenuButtonStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -59,7 +56,6 @@ impl ControlStyle for MenuButtonStyle {
             border: None,
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

@@ -1,6 +1,6 @@
 use ctdesign::{BODY, Font, PATH_CONTROL};
 
-use crate::styles::{ColorEffect, ControlStyle, Role, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
 
 /// States: only `normal`.
 #[derive(Clone, Debug)]
@@ -21,8 +21,6 @@ pub struct PathControlStyle {
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -39,7 +37,6 @@ impl ControlStyle for PathControlStyle {
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             chevron: StateValue::new(ShapeStyle::Role(Role::TertiaryLabel)),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

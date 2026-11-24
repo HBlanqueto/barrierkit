@@ -2,9 +2,7 @@ use ctdesign::{CAPTION, Font, GROUP_BOX, HAIRLINE, Rgba};
 
 use crate::style::Palette;
 use crate::styles::button::continuous_rounded;
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct GroupBoxStyle {
@@ -26,8 +24,6 @@ pub struct GroupBoxStyle {
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(CardBorder), HAIRLINE))`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `CAPTION`.
     pub font: Font,
 }
@@ -46,7 +42,6 @@ impl ControlStyle for GroupBoxStyle {
             })),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             border: Some((ShapeStyle::Role(Role::CardBorder), HAIRLINE)),
-            effect: system_effect,
             font: CAPTION,
         }
     }

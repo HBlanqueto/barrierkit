@@ -1,4 +1,4 @@
-use crate::elements::{Overrides, forward_container, forward_overrides};
+use crate::elements::{Overrides, forward_container, forward_key, forward_overrides};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -64,6 +64,7 @@ pub struct MediaButton {
     symbol: Option<Symbol>,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -74,6 +75,7 @@ impl MediaButton {
             symbol: None,
             on_press: None,
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -99,12 +101,16 @@ impl MediaButton {
 
 forward_overrides!(MediaButton);
 
+forward_key!(MediaButton);
+
 impl Component for MediaButton {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: MediaButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let scale = use_pressed_scale(interaction.pressed(), style.pressed_scale, style.animation);
         let on_press = self.on_press.clone();
         let radius =
@@ -157,6 +163,7 @@ pub struct RoundButton {
     selected: bool,
     on_press: Option<Callback<(), ()>>,
     style: Theme,
+    key: DiffKey,
     overrides: Overrides,
 }
 
@@ -168,6 +175,7 @@ impl RoundButton {
             selected: false,
             on_press: None,
             style: Theme::tengen(),
+            key: DiffKey::None,
             overrides: Overrides::default(),
         }
     }
@@ -193,12 +201,16 @@ impl RoundButton {
 
 forward_overrides!(RoundButton);
 
+forward_key!(RoundButton);
+
 impl Component for RoundButton {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: RoundButtonStyle = resolve(&self.style);
         let interaction = use_interaction();
         let state = control_state(interaction, false);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let scale = use_pressed_scale(interaction.pressed(), style.pressed_scale, style.animation);
         let on_press = self.on_press.clone();
         let (fill, ink) = if self.selected {

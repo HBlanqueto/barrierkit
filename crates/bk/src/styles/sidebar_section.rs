@@ -1,6 +1,6 @@
 use ctdesign::{BODY, Font, SIDEBAR, SPRING_SHEET_MS};
 
-use crate::styles::{Animation, ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{Animation, ControlStyle, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct SidebarSectionStyle {
@@ -14,8 +14,6 @@ pub struct SidebarSectionStyle {
     pub chevron_size: f32,
     pub title: StateValue<ShapeStyle>,
     pub chevron: StateValue<ShapeStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `font`: `BODY` at `SIDEBAR.section_size` with `SIDEBAR.section_weight`.
     pub font: Font,
     /// Tengen: `Spring { duration_ms: SPRING_SHEET_MS, bounce: 0.0 }`, the measured spring of a card changing height: the rows fold; `None` makes them jump.
@@ -32,7 +30,6 @@ impl ControlStyle for SidebarSectionStyle {
             chevron_size: SIDEBAR.chevron as f32,
             title: StateValue::new(ink.clone()),
             chevron: StateValue::new(ink),
-            effect: system_effect,
             font: Font {
                 size: SIDEBAR.section_size,
                 weight: SIDEBAR.section_weight,

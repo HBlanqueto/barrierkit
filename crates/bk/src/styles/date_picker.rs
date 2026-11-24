@@ -11,8 +11,7 @@ use ctdesign::{
 use crate::styles::button::rounded;
 use crate::styles::text_field::field_shape;
 use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, StepperStyle,
-    per_look, system_effect,
+    ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, StepperStyle, per_look,
 };
 
 /// States: the field is hovered, pressed and focused; the calendar has only
@@ -97,7 +96,6 @@ pub struct DatePickerStyle {
     /// Tengen: empty.
     pub shadows: Vec<ShadowStyle>,
     pub opacity: f32,
-    pub effect: ColorEffect,
     pub font: Font,
     pub title_font: Font,
     pub day_font: Font,
@@ -293,7 +291,6 @@ impl ControlStyle for DatePickerStyle {
             )),
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
             title_font: HEADLINE,
             day_font: Font {

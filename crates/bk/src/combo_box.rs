@@ -87,13 +87,13 @@ impl Component for ComboBox {
         let field = use_hook(AccessibilityId::new_unique);
         let (state, _, mut hovered) = use_field_state(field, self.disabled);
         let disabled = state.disabled;
-        let field_paints = Paints::current(state, field_style.effect);
+        let field_paints = Paints::current(state);
         let ink = |paint: &StateValue<ShapeStyle>| field_paints.color(paint.resolve(state));
         let button_state = ControlState {
             disabled,
             ..ControlState::default()
         };
-        let paints = Paints::current(button_state, style.effect);
+        let paints = Paints::current(button_state);
         let margin_y = (style.height - style.font.line_height as f32) / 2.0;
         let trailing = style.button_inset + style.button_size.0 + style.text_gap;
         let radius = field_style

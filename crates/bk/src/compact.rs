@@ -122,7 +122,7 @@ impl Component for IconButton {
         let disabled = use_disabled(self.disabled);
         let enabled = !disabled;
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let pressed = enabled && interaction.pressed();
         let scale = crate::animation::use_animated(
             if pressed { style.pressed_scale } else { 1.0 },
@@ -220,7 +220,7 @@ impl Component for Stepper {
         let style: StepperStyle = resolve(&self.style);
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let value = crate::controlled::use_controlled(&self.value);
         let current = *value.read();
         let (min, max) = (self.min, self.max);
@@ -280,13 +280,13 @@ pub(crate) fn stepper_arrows(
     up: Option<Rc<dyn Fn()>>,
     down: Option<Rc<dyn Fn()>>,
 ) -> Rect {
-    let paints = Paints::current(state, style.effect);
+    let paints = Paints::current(state);
     let arrow = |kind: Symbol, label: &'static str, offset: f32, press: Option<Rc<dyn Fn()>>| {
         let state = ControlState {
             disabled: press.is_none(),
             ..state
         };
-        let ink = Paints::current(state, style.effect).color(style.chevron.resolve(state));
+        let ink = Paints::current(state).color(style.chevron.resolve(state));
         rect()
             .a11y_role(AccessibilityRole::Button)
             .a11y_alt(label)
@@ -405,7 +405,7 @@ forward_overrides!(ToggleGroup);
 impl Component for ToggleGroup {
     fn render(&self) -> impl IntoElement {
         let style: ToggleGroupStyle = resolve(&self.style);
-        let paints = Paints::current(ControlState::default(), style.effect);
+        let paints = Paints::current(ControlState::default());
         let states = crate::controlled::use_controlled(
             &self.items.iter().map(|item| item.3).collect::<Vec<_>>(),
         );
@@ -472,7 +472,7 @@ impl Component for Toggle {
         let interaction = use_interaction();
         let disabled = !use_is_enabled();
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let on = self.on;
         let on_press = self.on_press.clone();
         let (paint, ink) = if on {

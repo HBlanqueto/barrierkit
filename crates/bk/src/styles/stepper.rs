@@ -6,8 +6,8 @@ use ctdesign::{
 
 use super::button::rounded;
 use super::{
-    ColorEffect, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    disabled_palette, per_look, system_effect,
+    ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue, disabled_palette,
+    per_look,
 };
 
 /// States: the stepper is hovered, pressed and focused; each arrow is disabled at
@@ -47,8 +47,6 @@ pub struct StepperStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Some(Edge::Leading)`; `None` hides the value, which stays accessible.
     pub value_position: Option<Edge>,
     /// Tengen: `BODY`.
@@ -100,7 +98,6 @@ impl ControlStyle for StepperStyle {
             border: None,
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             value_position: Some(Edge::Leading),
             value_font: BODY,
         }

@@ -6,8 +6,7 @@ use ctdesign::{
 
 use crate::styles::text_field::field_shape;
 use crate::styles::{
-    ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    per_look, system_effect,
+    ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, per_look,
 };
 
 /// States: only `normal`; a token is selected with the arrows or a click.
@@ -52,8 +51,6 @@ pub struct TokenFieldStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`, for the text and the tokens.
     pub font: Font,
 }
@@ -91,7 +88,6 @@ impl ControlStyle for TokenFieldStyle {
             border: Some((ShapeStyle::Role(Role::ControlBorder), HAIRLINE)),
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

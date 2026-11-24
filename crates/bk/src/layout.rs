@@ -14,7 +14,7 @@ use torin::prelude::{
     Alignment, Content, Direction, Length, Position, PostMeasure, Size, Size2D, Torin,
 };
 
-use crate::elements::forward_container;
+use crate::elements::{forward_container, forward_key};
 use crate::styles::LayoutDirection;
 
 mod direction;
@@ -483,11 +483,7 @@ impl From<Grid> for Element {
     }
 }
 
-impl KeyExt for Grid {
-    fn key_mut(&mut self) -> &mut DiffKey {
-        &mut self.key
-    }
-}
+forward_key!(Grid);
 
 impl LayoutExt for Grid {
     fn layout_mut(&mut self) -> &mut LayoutData {

@@ -2,8 +2,7 @@ use ctdesign::{BODY, BUTTON, ControlSize, Font, LIST_GROUP, SYMBOL};
 
 use crate::styles::button::sized_shape;
 use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
-    system_effect,
+    ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, pressed_palette,
 };
 
 /// States: hovered, pressed, focused. The menu it opens is a menu view
@@ -52,8 +51,6 @@ pub struct PopUpButtonStyle {
     pub opacity: f32,
     /// Tengen: `1.0`: a disabled pop-up button changes its colors, not its opacity.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -125,7 +122,6 @@ impl ControlStyle for PopUpButtonStyle {
             indicator_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

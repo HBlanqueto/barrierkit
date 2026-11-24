@@ -193,7 +193,7 @@ impl Component for DatePicker {
         let interaction = use_interaction();
         let disabled = use_disabled(self.disabled);
         let state = control_state(interaction, disabled);
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let value = use_controlled(&self.value);
         let current = *value.read();
         let mut selected = use_state(|| 0usize);
@@ -444,7 +444,7 @@ impl Component for CalendarView {
             focused: self.popup || interaction.focused(),
             ..ControlState::default()
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let ink = |content: String, paint: &StateValue<ShapeStyle>, font| {
             with_font(label().text(content), font)
                 .max_lines(1)

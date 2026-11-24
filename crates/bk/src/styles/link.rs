@@ -1,6 +1,6 @@
 use ctdesign::{BODY, Font};
 
-use crate::styles::{ColorEffect, ControlStyle, ShapeStyle, StateValue, system_effect};
+use crate::styles::{ControlStyle, ShapeStyle, StateValue};
 
 /// States: hovered, pressed, focused.
 #[derive(Clone, Debug)]
@@ -9,8 +9,6 @@ pub struct LinkStyle {
     pub label: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -20,7 +18,6 @@ impl ControlStyle for LinkStyle {
         Self {
             label: StateValue::new(ShapeStyle::Color(crate::theme::resolved().link)),
             opacity: 1.0,
-            effect: system_effect,
             font: BODY,
         }
     }

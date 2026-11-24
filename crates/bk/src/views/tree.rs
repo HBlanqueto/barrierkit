@@ -215,7 +215,7 @@ impl Component for OutlineView {
             focused: interaction.focused(),
             ..ControlState::default()
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let mut expanded = use_state(|| open_paths(&self.nodes));
         let mut selected = use_state(|| self.selected.clone());
         let held = use_held_modifiers();
@@ -381,7 +381,7 @@ impl Component for Browser {
             focused: interaction.focused(),
             ..ControlState::default()
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let mut path = use_state(Vec::<usize>::new);
         let current = path.read().clone();
         let mut columns: Vec<(Vec<usize>, &[TreeNode])> = vec![(Vec::new(), &self.nodes)];

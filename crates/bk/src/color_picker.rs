@@ -110,7 +110,7 @@ impl Component for ColorPicker {
         let style: ColorPickerStyle = resolve(&self.style);
         let interaction = use_interaction();
         let disabled = use_disabled(self.disabled);
-        let paints = Paints::current(control_state(interaction, disabled), style.effect);
+        let paints = Paints::current(control_state(interaction, disabled));
         let mut area = use_state(Area::default);
         let shown = self.color;
         let on_change = self.on_change.clone();
@@ -268,7 +268,7 @@ forward_overrides!(ColorPanel);
 impl Component for ColorPanel {
     fn render(&self) -> impl IntoElement {
         let style: ColorPickerStyle = resolve(&self.style);
-        let paints = Paints::current(Default::default(), style.effect);
+        let paints = Paints::current(Default::default());
         let caption = |content: &'static str| {
             with_font(label().text(content), style.font)
                 .max_lines(1)

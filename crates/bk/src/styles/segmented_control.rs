@@ -3,8 +3,8 @@ use ctdesign::{BODY, ControlSize, Font, GLASS_CONTROL, SEGMENTED};
 use crate::styles::button::continuous_rounded;
 use crate::styles::button::sized_shape;
 use crate::styles::{
-    Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    disabled_palette, glass_hover, glass_ink, per_scheme, system_effect,
+    Axis, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, disabled_palette,
+    glass_hover, glass_ink, per_scheme,
 };
 
 /// States: each segment is hovered, pressed and focused on its own; the group
@@ -41,8 +41,6 @@ pub struct SegmentedControlStyle {
     pub selected_shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Horizontal`: the segments share the width; `Vertical` stacks them at full
     /// width.
     pub axis: Axis,
@@ -93,7 +91,6 @@ impl ControlStyle for SegmentedControlStyle {
             border: None,
             selected_shadows: vec![],
             opacity: 1.0,
-            effect: system_effect,
             axis: Axis::Horizontal,
             font: Font {
                 size: SEGMENTED.font_size as u32,

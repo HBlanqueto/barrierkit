@@ -1,9 +1,7 @@
 use ctdesign::{BUTTON, HAIRLINE};
 
 use crate::styles::button::continuous_rounded;
-use crate::styles::{
-    ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, system_effect,
-};
+use crate::styles::{ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// States: only `normal`. The children keep their own styles: a `Button` inside
 /// draws from its `ButtonStyle`.
@@ -25,8 +23,6 @@ pub struct ControlGroupStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl ControlStyle for ControlGroupStyle {
@@ -40,7 +36,6 @@ impl ControlStyle for ControlGroupStyle {
             border: None,
             shadows: Vec::new(),
             opacity: 1.0,
-            effect: system_effect,
         }
     }
 }

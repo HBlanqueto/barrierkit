@@ -1,9 +1,6 @@
 use ctdesign::{CAPTION, Font, HAIRLINE, SETTINGS, SWITCH};
 
-use crate::styles::{
-    Axis, ColorEffect, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
-};
+use crate::styles::{Axis, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// The colors of the swatches and the previews of the cards are content: no
 /// paint or `effect` changes them.
@@ -36,8 +33,6 @@ pub struct ColorWellStyle {
     pub opacity: f32,
     /// Tengen: `SWITCH.disabled_opacity`.
     pub disabled_opacity: f32,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
     /// Tengen: `Horizontal`; `Vertical` stacks them.
     pub axis: Axis,
     /// Tengen: `false`; `true` starts a new line when the next one does not fit.
@@ -61,7 +56,6 @@ impl ControlStyle for ColorWellStyle {
             swatch_shadows: Vec::new(),
             opacity: 1.0,
             disabled_opacity: SWITCH.disabled_opacity,
-            effect: system_effect,
             axis: Axis::Horizontal,
             wraps: false,
             name_font: CAPTION,

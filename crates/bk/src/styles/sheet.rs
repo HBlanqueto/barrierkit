@@ -4,10 +4,7 @@ use ctdesign::{
     DIALOG_SOLID_SCRIM_LIGHT, HAIRLINE, SHADOW, SHADOW_DARK,
 };
 
-use crate::styles::{
-    ColorEffect, ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    system_effect,
-};
+use crate::styles::{ControlStyle, CornerStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue};
 
 /// `Alert` draws on a sheet: it takes `SheetStyle` from the theme and the
 /// containers, and `AlertStyle` for its own parts. Its buttons take
@@ -34,8 +31,6 @@ pub struct SheetStyle {
     pub border: Option<(ShapeStyle, f32)>,
     /// Tengen: the window shadow, `SHADOW` (`SHADOW_DARK` in dark): the sheet floats like a window.
     pub shadows: Vec<ShadowStyle>,
-    /// Tengen: `system_effect`.
-    pub effect: ColorEffect,
 }
 
 impl SheetStyle {
@@ -85,7 +80,6 @@ impl ControlStyle for SheetStyle {
                     ..layer.into()
                 })
                 .collect(),
-            effect: system_effect,
         }
     }
 }

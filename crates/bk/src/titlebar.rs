@@ -223,7 +223,7 @@ impl Component for Titlebar {
             focused: status.activated,
             ..ControlState::default()
         };
-        let paints = Paints::current(state, style.effect);
+        let paints = Paints::current(state);
         let background = if overlaid {
             paints.fill(&StateValue::new(ShapeStyle::Clear))
         } else if close_only {
