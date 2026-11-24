@@ -49,7 +49,7 @@ use super::timer::{Wake, WakeQueue};
 use super::window::{
     OpenUtility, WindowCommand, WindowControls, WindowOptions, WindowStatus, WindowStyle, below_bar,
 };
-use super::window_style::{Bar as TitlebarBar, Edge, ScrollEdgeEffectStyle};
+use super::window_style::{Bar as TitlebarBar, ScrollEdgeEffectStyle};
 use super::{EditShortcut, RunError, Sent, calloop::ping::Ping};
 use crate::platform::macos::blur::PlacedGlass;
 
@@ -99,8 +99,9 @@ mod view;
 
 pub(crate) use system::appearance;
 
+use blur::Pocket;
 use popups::PopupState;
-use view::{BarView, ChromeView, ContentView, Effect, Glass, Toplevel, WindowDelegate};
+use view::{BarView, ChromeView, ContentView, Glass, Toplevel, WindowDelegate};
 
 thread_local! {
     static RUNTIME: RefCell<Option<Runtime>> = const { RefCell::new(None) };
@@ -151,7 +152,7 @@ struct Bar {
     row: (f32, f32),
     // How far down the bar reaches, and the soft edge it leaves over the sidebar there, as SwiftUI's scroll pocket.
     depth: f64,
-    pocket: Option<Retained<Effect>>,
+    pocket: Option<Pocket>,
 }
 
 // A pane is AppKit's own split item, above the content view when the kit draws its contents in a chrome, removed when the kit stops publishing it.
@@ -395,22 +396,28 @@ impl Window {
         let (left, width) = *controls.sidebar_span.peek();
         if width <= 0.0 || bar.depth <= 0.0 {
             if let Some(pocket) = bar.pocket.take() {
-                pocket.removeFromSuperview();
+                pocket.remove();
             }
             return;
         }
-        let pocket = bar.pocket.get_or_insert_with(|| {
-            let pocket = blur::effect(
-                container.mtm(),
-                Material::Sidebar,
-                NSVisualEffectBlendingMode::WithinWindow,
-                0.0,
+        if bar.pocket.is_none() {
+            bar.pocket = Pocket::new(container.mtm(), &format!("bk-pocket-{}", self.id));
+        }
+        let Some(pocket) = &bar.pocket else {
+            return;
+        };
+        // SAFETY: the view is alive; its parent is only checked, never kept.
+        if unsafe { pocket.capture.superview() }.is_none() {
+            let split = self.sidebar.as_ref().map(|split| split.view());
+            let floor: &NSView = split.as_deref().unwrap_or(&self.view);
+            container.addSubview_positioned_relativeTo(
+                &pocket.capture,
+                NSWindowOrderingMode::Above,
+                Some(floor),
             );
-            pocket.setAutoresizingMask(NSAutoresizingMaskOptions::ViewMinYMargin);
-            pocket
-        });
+        }
         // The sidebar's panes and rows lie above the content, so the pocket goes over them and under the title bar row left in the container.
-        let pocket_view: &NSView = pocket;
+        let pocket_view: &NSView = &pocket.view;
         let row: Vec<&NSView> = self
             .chromes
             .iter()
@@ -439,9 +446,8 @@ impl Window {
             NSPoint::new(f64::from(left), container.bounds().size.height - bar.depth),
             NSSize::new(f64::from(width), bar.depth),
         );
-        if pocket.frame() != frame {
-            pocket.setFrame(frame);
-            blur::fade(pocket, Edge::Top, blur::POCKET_STRENGTH);
+        if pocket.view.frame() != frame {
+            pocket.set_frame(frame);
         }
     }
 }
@@ -1009,7 +1015,7 @@ impl Runtime {
         }
         let bar = window.bar.take()?;
         if let Some(pocket) = bar.pocket {
-            pocket.removeFromSuperview();
+            pocket.remove();
         }
         Some(bar.accessory)
     }

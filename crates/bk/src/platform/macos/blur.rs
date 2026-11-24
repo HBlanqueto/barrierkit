@@ -1,16 +1,18 @@
 use ctappearance::material::Material;
 use ctdesign::Rgba;
 use objc2::rc::Retained;
+use objc2::runtime::{AnyClass, AnyObject};
 use objc2::{MainThreadMarker, MainThreadOnly, msg_send, sel};
 use objc2_app_kit::{
     NSAutoresizingMaskOptions, NSColor, NSGlassEffectViewStyle, NSSplitViewController,
     NSSplitViewItem, NSView, NSViewController, NSVisualEffectBlendingMode, NSVisualEffectMaterial,
     NSVisualEffectState,
 };
-use objc2_core_graphics::CGColor;
-use objc2_foundation::{NSArray, NSNumber, NSObjectProtocol};
+use objc2_core_foundation::CFData;
+use objc2_core_graphics::{CGColor, CGDataProvider, CGImage};
+use objc2_foundation::{NSArray, NSNumber, NSObjectProtocol, NSString, ns_string};
 use objc2_foundation::{NSPoint, NSRect, NSSize};
-use objc2_quartz_core::{CAGradientLayer, kCACornerCurveContinuous};
+use objc2_quartz_core::{CAGradientLayer, CALayer, CATransaction, kCACornerCurveContinuous};
 
 use super::view::{Effect, Glass, GlassGroup, PaneSplit};
 use crate::platform::backdrop::{Chrome, Effect as Declared, strip_rect};
@@ -110,8 +112,177 @@ const FADE_STOPS: [f64; 3] = [0.0, 0.75, 1.0];
 // How much of the material a soft edge shows where it is whole and at its end: the SwiftUI window over a red row shows it at half.
 pub(super) const FADE_STRENGTH: (f64, f64) = (0.6, 0.0);
 
-// The full-screen bar of the SwiftUI twin blurs a sidebar row under it whole at the top and still at 0.6 where the bar ends.
-pub(super) const POCKET_STRENGTH: (f64, f64) = (1.0, 0.6);
+// SwiftUI's sidebar scroll pocket under a full-screen bar, read from Resonance Swift (ADR 0116), with Core Animation's private
+// backdrop layers: a half-scale variable blur of the rows, and over it the background behind the rows, captured below them and shown
+// through a gradient. Both run 10 pt past the pocket's bottom; the blur's mask and the gradient each ramp over 30 pt there.
+const POCKET_RAMP: f64 = 30.0;
+const POCKET_OVERRUN: f64 = 10.0;
+const POCKET_MASK_ROWS: usize = 128;
+const POCKET_VEIL_START: f64 = 0.5;
+const POCKET_VEIL: f64 = 0.85;
+
+pub(super) struct Pocket {
+    // Under the sidebar's rows, it captures the background they lie on.
+    pub(super) capture: Retained<NSView>,
+    pub(super) view: Retained<NSView>,
+}
+
+impl Pocket {
+    // None where Core Animation lacks the private backdrop layer; the sidebar then goes without a pocket.
+    pub(super) fn new(mtm: MainThreadMarker, group: &str) -> Option<Self> {
+        let group = NSString::from_str(group);
+        let captured = backdrop(Some(&group))?;
+        // SAFETY: `captureOnly` makes the backdrop feed its group without drawing.
+        let _: () = unsafe { msg_send![&captured, setCaptureOnly: true] };
+        let veil = backdrop(Some(&group))?;
+        let gradient = CAGradientLayer::new();
+        let (clear, veiled) = (
+            CGColor::new_generic_rgb(1.0, 0.0, 1.0, 0.0),
+            CGColor::new_generic_rgb(1.0, 0.0, 1.0, POCKET_VEIL),
+        );
+        // SAFETY: a CGColor is a Core Foundation object, and CAGradientLayer takes them as its colors.
+        let colors = unsafe {
+            NSArray::from_slice(&[
+                &*(std::ptr::from_ref::<CGColor>(&clear).cast::<AnyObject>()),
+                &*(std::ptr::from_ref::<CGColor>(&veiled).cast::<AnyObject>()),
+            ])
+        };
+        // SAFETY: the colors are the two CGColors above, and `destIn` a compositing filter name.
+        unsafe {
+            gradient.setColors(Some(&colors));
+            gradient.setCompositingFilter(Some(ns_string!("destIn")));
+        }
+        veil.addSublayer(&gradient);
+        let blur = backdrop(None)?;
+        let host = |layers: &[&CALayer]| {
+            let view = NSView::new(mtm);
+            view.setWantsLayer(true);
+            view.setAutoresizingMask(NSAutoresizingMaskOptions::ViewMinYMargin);
+            let host = view.layer()?;
+            layers.iter().for_each(|layer| host.addSublayer(layer));
+            Some(view)
+        };
+        Some(Self {
+            capture: host(&[&captured])?,
+            view: host(&[&blur, &veil])?,
+        })
+    }
+
+    pub(super) fn remove(&self) {
+        self.capture.removeFromSuperview();
+        self.view.removeFromSuperview();
+    }
+
+    pub(super) fn set_frame(&self, frame: NSRect) {
+        let (width, depth) = (frame.size.width, frame.size.height);
+        let overrun = NSRect::new(
+            NSPoint::new(0.0, -POCKET_OVERRUN),
+            NSSize::new(width, depth + POCKET_OVERRUN),
+        );
+        let bounds = NSRect::new(NSPoint::new(0.0, 0.0), frame.size);
+        CATransaction::begin();
+        CATransaction::setDisableActions(true);
+        self.capture.setFrame(frame);
+        self.view.setFrame(frame);
+        if let Some(layer) = self.capture.layer().as_deref().and_then(first_sublayer) {
+            layer.setFrame(bounds);
+        }
+        // SAFETY: the sublayers are only read; the pocket made them.
+        let layers = self
+            .view
+            .layer()
+            .and_then(|host| unsafe { host.sublayers() });
+        if let (Some(layers), Some(blur)) = (layers, variable_blur(depth)) {
+            for layer in &layers {
+                layer.setFrame(overrun);
+            }
+            if let Some(layer) = layers.firstObject() {
+                // SAFETY: a CAFilter is what a layer's filters hold.
+                unsafe { layer.setFilters(Some(&NSArray::from_slice(&[&*blur]))) };
+            }
+            if let Some(gradient) = layers
+                .lastObject()
+                .as_deref()
+                .and_then(first_sublayer)
+                .and_then(|layer| layer.downcast::<CAGradientLayer>().ok())
+            {
+                let height = overrun.size.height;
+                gradient.setFrame(NSRect::new(NSPoint::new(0.0, 0.0), overrun.size));
+                gradient.setStartPoint(NSPoint::new(0.5, POCKET_VEIL_START / height));
+                gradient.setEndPoint(NSPoint::new(
+                    0.5,
+                    (POCKET_VEIL_START + POCKET_RAMP) / height,
+                ));
+            }
+        }
+        CATransaction::commit();
+    }
+}
+
+fn first_sublayer(layer: &CALayer) -> Option<Retained<CALayer>> {
+    // SAFETY: the sublayers are only read.
+    unsafe { layer.sublayers() }?.firstObject()
+}
+
+fn backdrop(group: Option<&NSString>) -> Option<Retained<CALayer>> {
+    let class = AnyClass::get(c"CABackdropLayer")?;
+    // SAFETY: CABackdropLayer is a CALayer subclass, made by CALayer's `layer` factory.
+    let layer: Retained<CALayer> = unsafe { msg_send![class, layer] };
+    // SAFETY: `scale` is the backdrop's capture resolution, a CGFloat; `groupName` an NSString or nil.
+    unsafe {
+        let _: () = msg_send![&layer, setScale: 0.5f64];
+        let _: () = msg_send![&layer, setGroupName: group];
+    }
+    Some(layer)
+}
+
+fn variable_blur(depth: f64) -> Option<Retained<AnyObject>> {
+    let bytes = CFData::from_bytes(&pocket_mask(depth));
+    let provider = CGDataProvider::with_cf_data(Some(&bytes))?;
+    // SAFETY: one 8-bit row per mask byte, and no decode array.
+    let mask = unsafe {
+        CGImage::mask_create(
+            1,
+            POCKET_MASK_ROWS,
+            8,
+            8,
+            1,
+            Some(&provider),
+            std::ptr::null(),
+            true,
+        )
+    }?;
+    let class = AnyClass::get(c"CAFilter")?;
+    // SAFETY: CAFilter's factory takes a filter type name and returns an autoreleased filter.
+    let filter: Retained<AnyObject> =
+        unsafe { msg_send![class, filterWithType: ns_string!("variableBlur")] };
+    let set = |key: &NSString, value: &AnyObject| {
+        // SAFETY: a CAFilter takes its inputs by key-value coding.
+        let _: () = unsafe { msg_send![&filter, setValue: value, forKey: key] };
+    };
+    for key in [
+        "inputRadius",
+        "inputFade",
+        "inputNormalizeEdges",
+        "inputDither",
+    ] {
+        set(&NSString::from_str(key), &NSNumber::new_f64(1.0));
+    }
+    // SAFETY: a CGImage is a Core Foundation object, which key-value coding takes as an object.
+    set(ns_string!("inputMaskImage"), unsafe {
+        &*std::ptr::from_ref::<CGImage>(&mask).cast::<AnyObject>()
+    });
+    Some(filter)
+}
+
+// The same bytes as SwiftUI's mask for this depth: zero, then a 30 pt ramp ending at the pocket's bottom, then whole over the overrun.
+fn pocket_mask(depth: f64) -> [u8; POCKET_MASK_ROWS] {
+    let height = depth + POCKET_OVERRUN;
+    std::array::from_fn(|row| {
+        let y = row as f64 / (POCKET_MASK_ROWS - 1) as f64 * height;
+        (((y - (depth - POCKET_RAMP)) / POCKET_RAMP).clamp(0.0, 1.0) * 255.0) as u8
+    })
+}
 
 // The effect shows through a mask that is whole at the edge and keeps the tail's strength at the depth.
 pub(super) fn fade(effect: &Effect, edge: Edge, (whole, tail): (f64, f64)) {
@@ -341,5 +512,15 @@ mod tests {
             ]
         );
         assert_eq!(Requests::of(&chrome, 1.0).backdrop.rects.len(), 1);
+    }
+
+    #[test]
+    fn the_pocket_mask_is_swiftuis_mask_revealed_and_at_rest() {
+        let revealed = pocket_mask(82.0);
+        assert_eq!(revealed[71..=74], [0, 1, 7, 13]);
+        assert_eq!(revealed[112..=114], [247, 253, 255]);
+        let rest = pocket_mask(52.0);
+        assert_eq!(rest[45..=48], [0, 3, 8, 12]);
+        assert_eq!(rest[105..=107], [248, 252, 255]);
     }
 }
