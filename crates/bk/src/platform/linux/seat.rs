@@ -573,7 +573,7 @@ impl Runtime {
             && let Some(context) = surface
                 .context
                 .as_ref()
-                .filter(|context| context.parent.is_some())
+                .filter(|context| context.parent.is_some() && !context.modal)
         {
             context.controls.close();
             return;

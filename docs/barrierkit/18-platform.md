@@ -145,7 +145,8 @@ On macOS the lens is a native glass view ([chapter 15](15-backdrops-and-media.md
 - Before a key reaches the tree, the runner matches it against the window's
   `MainMenu` shortcuts. A utility window uses its parent's menu. Edit
   shortcuts inside a focused text field stay with the field.
-- `Escape` closes a utility window or a sheet, unless a text field has focus.
+- `Escape` closes a utility window, unless a text field has focus. A sheet gets
+  the key, as on macOS: an `Alert` answers it with its cancel button.
 - Key repeat follows the compositor's rate and delay.
 - Tab and Shift+Tab move the focus to the next or previous node, leaving the
   current group; Up and Down move it inside a group (Freya's `integration`
