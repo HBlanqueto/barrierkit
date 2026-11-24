@@ -468,10 +468,10 @@ and `DocumentGroup`; AppKit: `NSOpenPanel`, `NSSavePanel` and `NSDocument`. The 
 4. **Make a window a document.** Call `use_document(|path| write(path))` in the window's component. It returns a `Document`.
 5. **Keep it dirty.** `document.set_edited(true)` when the content differs from the file, `false` when it matches. An edited window shows the dot in its close button.
 6. **Save.** `document.save().await` writes through your closure, asking for a file first when `document.url()` is `None`. Use it for the Save command.
-7. **Close.** The native close button of an edited window shows the "Do you want to save the changes made to the document “name”?" sheet with Save, Cancel and Don’t Save. Save writes and closes; a write that fails keeps the window open. Cmd-W and Cmd-Q go through the same delegate methods and are meant to ask the same, but were not run.
+7. **Close.** The native close button of an edited window shows the "Do you want to save the changes made to the document “name”?" sheet with Save, Cancel and Don’t Save. Save writes and closes; a write that fails keeps the window open. Cmd-W and Cmd-Q go through the same delegate methods and are meant to ask the same, but were not run. On Linux the compositor's close request and `WindowControls::close()` show the kit's `Alert` in a sheet window with the same buttons, and quit asks for the first edited window first; there is no dirty dot.
 8. **Open.** `.on_open_url(|url: OpenedUrl| ..)` runs for each file (`OpenedUrl::File(path)`) or address (`OpenedUrl::Other(text)`) that Finder, `open` or a link hands to the app. The app declares `CFBundleDocumentTypes` and `CFBundleURLTypes` in its `Info.plist`; the kit does not generate it.
 
-`WindowControls::close()` and the kit's own traffic lights (a `Plain` window) close without asking. What is not built is in [ADR 0112](../decisions.md).
+On macOS `WindowControls::close()` and the kit's own traffic lights (a `Plain` window) close without asking. What is not built is in [ADR 0112](../decisions.md).
 
 ## Errors
 

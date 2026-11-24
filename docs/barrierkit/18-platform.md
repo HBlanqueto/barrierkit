@@ -270,7 +270,7 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 | Input methods and dead keys through `NSTextInputClient`: the committed text reaches the field as the key that types it, the composing text goes to `WindowControls::ime_preedit`, `set_ime_cursor_area` places the candidates | A CJK input method and its candidate window (not run) |
 | Mouse, scroll, keyboard (Command acts as Ctrl and Control as Super, as the menu draws them), cursors | |
 | The menu bar from the key window's `MainMenu`, after the standard app menu (bundle name, Settings…, Services): Command key equivalents for the Ctrl shortcuts, checkmarks, disabled items, patched when the menu changes. A key that edits a focused text field goes to the field, not to the menu; so does an Edit item. Window and Help are AppKit's `windowsMenu` and `helpMenu`, and the window items are AppKit's own ([13](13-app.md#standard-menus)) | Palettes, search fields, icons and badges of a menu item; `Header` is a disabled item; the About panel of a bundled app (not run) |
-| Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | Accessibility |
+| Live resize, scale from `backingScaleFactor` (not run at 2x yet), close, quit with Command+Q | |
 | `portal::open_files`, `save_file` and `open_uri` as `NSOpenPanel`, `NSSavePanel` and `NSWorkspace` (`platform/macos/panels.rs`) | |
 | `secrets::Secrets` as the login Keychain, generic passwords (`platform/macos/keychain.rs`) | |
 | `launch` as a lock and a socket in `$TMPDIR`; a second run activates the first (`platform/macos/instance.rs`) | `ActivateAction`, files to open |
@@ -348,8 +348,8 @@ role, title, value, help, identifier, frame and children of each node, and
 | `Focus` on a node | Moves the focus to that node |
 | `Click` (`AXPress`) on a node | Moves the focus to that node and presses `Enter` on it |
 
-A tree whose views use `accessibility_element` or a text field is sent whole on
-every change, because the kit folds subtrees and names the input node
+On both systems, a tree whose views use `accessibility_element` or a text field
+is sent whole on every change, because the kit folds subtrees and names the input node
 ([ADR 0112](../decisions.md)). The macOS label is `AXTitle`, not `AXDescription`.
 
 ## Desktop services
@@ -370,9 +370,10 @@ call 25 s, as libdbus and GDBus do.
 ## Who provides what on each platform
 
 `platform/mod.rs` imports `linux` or `macos` as `sys` and re-exports the
-same names from either: `clipboard`, `instance`, `keychain`,
-`notifications`, `panels`, `pasteboard`, `run_window`, `Bridge`, `ObjectId`,
-`MOST_CHROMES` and `SYSTEM_MOMENTUM`. Each name has one signature and two
+same names from either: `appearance`, `clipboard`, `instance`, `keychain`,
+`notifications`, `panels`, `pasteboard`, `ObjectId`, `MOST_CHROMES`,
+`OPTICAL_SIZING` and `SYSTEM_MOMENTUM`; `run_window` and `Bridge` are reached
+through `sys`. Each name has one signature and two
 bodies. Shared code, including the shared files of `platform/`, calls
 `crate::platform::<name>` and holds no `cfg(target_os)`:
 `scripts/check-platform-cfg.sh` fails on one outside `platform/mod.rs`,
@@ -396,12 +397,12 @@ app calls, who answers on macOS, who answers on Linux.
 | Full screen (the green light) | `toggleFullScreen`, with the menu bar and the Dock hidden for a `Plain` window; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../agents/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |
 | Clipboard | `macos/clipboard.rs` (text) and `macos/pasteboard.rs` (typed: text, HTML, PNG and TIFF, file URLs, private boards) on `NSPasteboard` | `wl_data_device`, and `zwp_primary_selection_v1` for the primary selection; `linux/pasteboard.rs` holds text only, so images, files and named boards report false | both; typed on macOS only |
 | Drag and drop | Out: an `NSDraggingSession` from the content view with `NSPasteboardItem`s (`macos/view.rs`, `macos/pasteboard.rs`); in: no code | `wl_data_device`; out offers text, `text/html`, `image/png` and `text/uri-list`; in accepts only `text/uri-list` | Linux both ways; macOS out only (not run with a real drag) |
-| Text input | Key events with `insertText`; marked text is not verified | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
+| Text input | `NSTextInputClient` (`macos/view.rs`): committed and composing text, the candidates at `set_ime_cursor_area`; a CJK input method not run | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
 | Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
 | Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, and the app menu event of `infinity_window_manager_v1` | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
 | File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal: no parent window, no filters, no start folder (`linux/panels.rs`, `linux/portal.rs`) | both, Linux partial |
-| Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | None: nothing is vetoed, the alert and the open events are not served (`linux/panels.rs`) | macOS only |
+| Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | The close request and `WindowControls::close()` are vetoed; the kit's `Alert` in a sheet window asks with the same buttons; quit closes the first edited window first; `org.freedesktop.Application.Open` hands each URI to `on_open_url`. No dirty dot (`linux/panels.rs`, `linux/window.rs`) | both |
 | Notifications | `UserNotifications` (`macos/notifications.rs`) | `org.freedesktop.Notifications` and the portal (`linux/notifications.rs`) | both |
 | Secrets | Keychain (`security-framework`, `macos/keychain.rs`) | Secret Service (`linux/keychain.rs`) | both |
 | Single instance | `macos/instance.rs` | `org.freedesktop.Application` (`linux/instance.rs`) | both |
@@ -413,10 +414,10 @@ left out of the current round, by who would answer it:
 | Gap | Kit | macOS | Linux (Malaysia) |
 |---|---|---|---|
 | 3 `ZStack` and `Layout`, 6 `Transition`, 15 right-to-left | Yes: Freya and Torin, the same on both | none | none |
-| 4 Accessibility by SwiftUI name | The modifiers (done) | `accesskit_macos` (done) | AT-SPI (exists; `accessibility_element` not applied) |
+| 4 Accessibility by SwiftUI name | The modifiers (done) | `accesskit_macos` (done) | AT-SPI (done) |
 | 7 Typed drag and drop | `Transferable` and `Pasteboard` (done) | `NSPasteboard` types (done); a drop target (none) | `wl_data_device` MIME types (offers done; a typed drop target none) |
 | 11 `glassEffect` on any view | The modifier | A layer per view | `set_backdrop` on a sub-surface per view |
-| 12 Document apps | `Document`, `use_document`, `on_open_url` (done, [ADR 0112](../decisions.md)) | `NSWindow` dirty state, `windowShouldClose:`, `NSAlert`, the app delegate (done) | none |
+| 12 Document apps | `Document`, `use_document`, `on_open_url` (done, [ADR 0112](../decisions.md)) | `NSWindow` dirty state, `windowShouldClose:`, `NSAlert`, the app delegate (done) | The close veto, the kit's `Alert` and `org.freedesktop.Application.Open` (done); no dirty dot |
 | 13 Dialogs attached to their window | `FileDialog`, `file_importer`, `file_exporter` (done) | `beginSheetModalForWindow` (done) | `xdg-foreign`, not bound |
 
 How to keep it true:
