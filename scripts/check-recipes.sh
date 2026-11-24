@@ -9,9 +9,12 @@ trap 'rm -rf "$blocks"' EXIT
 
 for doc in docs/barrierkit/*.md agents/*.md; do
     awk -v dir="$blocks" -v doc="$(basename "$doc" .md)" '
-        /^```rust$/ { n++; file = dir "/" doc "-" n ".rs"; inside = 1; next }
-        /^```$/ { inside = 0; next }
-        inside { print > file }
+        /^[[:space:]]*```rust$/ {
+            n++; file = dir "/" doc "-" n ".rs"; inside = 1
+            indent = $0; sub(/```rust$/, "", indent); next
+        }
+        /^[[:space:]]*```$/ { inside = 0; next }
+        inside { if (index($0, indent) == 1) $0 = substr($0, length(indent) + 1); print > file }
     ' "$doc"
 done
 

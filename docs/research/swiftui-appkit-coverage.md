@@ -7,8 +7,8 @@ parallel pick work without overlap.
 against `bk` on `main`. It covers the look and behavior of controls,
 containers, presentation, windows, materials, symbols and accessibility. It
 does not cover data, networking, media, document or graphics frameworks.
-**Snapshot:** `main` at `bb83b10`, 2026-11-20. Sessions that change a row
-change it in the same commit.
+**Snapshot:** `main` at `bb83b10`, 2026-11-20. This matrix is the one source of
+each API's status: sessions that change a row change it in the same commit.
 **Reader:** an engineer or agent who changes a control, a view or a token in
 the kit.
 **Input:** [the glossary](../barrierkit/20-glossary.md), the bench scene
@@ -125,19 +125,19 @@ Rows per status at the snapshot. A row is one API, style or size.
 | 3. Pickers | 5 | 2 | 2 | 3 | 12 |
 | 4. Steppers | 2 | 1 | 0 | 0 | 3 |
 | 5. Sliders | 4 | 2 | 0 | 0 | 6 |
-| 6. Gauges, progress and level indicators | 6 | 3 | 0 | 2 | 11 |
-| 7. Text | 7 | 8 | 11 | 6 | 32 |
+| 6. Gauges, progress and level indicators | 6 | 2 | 1 | 2 | 11 |
+| 7. Text | 7 | 11 | 8 | 6 | 32 |
 | 8. Date and time | 3 | 0 | 1 | 4 | 8 |
 | 9. Color and font panels | 2 | 0 | 2 | 3 | 7 |
 | 10. Image and path control | 0 | 2 | 2 | 0 | 4 |
-| 11. Control sizes | 2 | 0 | 0 | 0 | 2 |
-| 12. Containers and navigation | 9 | 4 | 15 | 3 | 31 |
-| 13. Presentation | 1 | 4 | 8 | 1 | 14 |
-| 14. Windows and chrome | 1 | 4 | 12 | 13 | 30 |
-| 15. Materials and glass | 0 | 1 | 5 | 1 | 7 |
+| 11. Control sizes | 2 | 2 | 2 | 0 | 6 |
+| 12. Containers and navigation | 13 | 6 | 15 | 3 | 37 |
+| 13. Presentation | 1 | 3 | 9 | 1 | 14 |
+| 14. Windows and chrome | 5 | 4 | 9 | 13 | 31 |
+| 15. Materials and glass | 0 | 1 | 8 | 1 | 10 |
 | 16. Symbols | 2 | 0 | 3 | 1 | 6 |
 | 17. Accessibility | 1 | 1 | 10 | 1 | 13 |
-| **All** | 65 | 36 | 81 | 39 | 221 |
+| **All** | 73 | 41 | 82 | 39 | 235 |
 
 To recount after a change, run this from the repository root:
 
@@ -411,16 +411,16 @@ The size of each control is a row in its own family.
 | `TabView` classic | `NSTabView` (top, bottom, left, right, none), `.segmentedControlOnTop`, `.segmentedControlOnBottom` | `TabView` with `TabType` `Top`, `Bottom`, `Left` and the three without tabs | `measured`: 3.7 to 4.9% of the pixels for the strips, 1.5 to 2.3% without tabs; no right tabs | bench `containers` (`tabs-*`); [Tab views][m-tabviews] | — |
 | `TabView` `.sidebarAdaptable`, `.tabBarOnly`, `Tab`, `TabSection` | — | — | `missing` | sdk | P3 |
 | `NavigationSplitView` (`.automatic`, `.balanced`, `.prominentDetail`) | `NSSplitViewController`, `NSSplitViewItem` (sidebar, content list, inspector) | `SplitView` | `partial`: two columns and an inspector; no content-list column; the sidebar is in [14](#14-windows-and-chrome) | none | P1 |
-| `NavigationStack`, `NavigationLink`, `navigationDestination` | — | `History`, `NavigationButtons`, `Row::page` | `partial`: no path or destination API | none | P2 |
+| `NavigationStack`, `NavigationLink`, `navigationDestination` | — | `NavigationStack`, `NavigationLink`, `NavigationPath`, `use_navigation_path`; `History`, `NavigationButtons` for browser-like panes | `implemented`: a typed path with push and pop, the destination closure per route ([11. Views](../barrierkit/11-views.md#navigationstack)) | recipe `agents/recipes/navigation_stack.rs` | — |
 | `HSplitView`, `VSplitView` | `NSSplitView` (`.thin`, `.thick`) | `SplitPanes` | `partial`: no `.thick` divider, no keyboard on the divider | none | P2 |
 | `inspector(isPresented:)` | `NSSplitViewItem` inspector | `SplitView::inspector` | `implemented` | none | P2 |
 | `ScrollView` legacy bar | `NSScroller` legacy | `ScrollView`, `Table`, `List`, `OutlineView` | `measured` in the four appearances | bench `scrollers`; [Scrollers][m-scrollers] | — |
 | `ScrollView` elasticity and deceleration | `NSScrollView.verticalScrollElasticity`, `UIScrollView.bounces`, `decelerationRate` | `ScrollView`, `List` | `measured` on a Catalyst scroll view: stop distance `157.5 v^(4/3)`, a quartic ease-out path, a rubber band of 0.07 and a critically damped return of 12 rad/s; four flicks within 0.5 to 1.8 % of the distance; the touch path, a real trackpad and Weather are not measured; `List` through `ScrollView` and `Table` through its rows take the same element; `refreshable` pulls at 80 and holds at 60 (UIKit's, three pulls, the pull band is not fitted) | tests `scroll`, `scroll_physics`; [UIKit animations](uikit-animations.md#6-scroll) | P1 |
 | `ScrollView` overlay bar | `NSScroller` overlay | `ScrollView`, `Table`, `List`, `OutlineView` | `partial`: the thumb is measured (6 wide, per appearance), not compared in a scene | probe `scrollers` (`overlay`); [Scrollers][m-scrollers] | P2 |
 | `scrollEdgeEffectStyle` | `NSScrollPocket` | `TopGlass`, `ScrollView` edge | `partial` | [Sidebar][m-sidebar] | P2 |
-| `Grid`, `GridRow`, `gridCellColumns`, `gridColumnAlignment` | `NSGridView`, `NSGridRow`, `NSGridCell` | `Grid`, `GridRow`, `GridModifiers` | `partial`: rows, columns, spans and alignments; content-sized cells only, no `gridCellAnchor`, `gridCellUnsizedAxes` or hidden rows, and a parent that aligns places it by the tallest column ([ADR 0089](../decisions.md)) | probe `layout` (L5 to L10), test `crates/bk/tests/kit/layout.rs` | P2 |
-| `Spacer` | `NSLayoutGuide` | `Spacer` | `implemented`: the minimum length and the sharing of space are the numbers SwiftUI gives (probe `layout`, L1 to L3) | probe `layout`, test `crates/bk/tests/kit/layout.rs` | — |
-| `frame(width:height:alignment:)`, `frame(maxWidth:)` | — | `StyleModifiers::frame`, `Frame` | `implemented`: the nine alignments place the view as SwiftUI does (probe `layout`, L4) | probe `layout`, test `crates/bk/tests/kit/layout.rs` | — |
+| `Grid`, `GridRow`, `gridCellColumns`, `gridColumnAlignment` | `NSGridView`, `NSGridRow`, `NSGridCell` | `Grid`, `GridRow`, `GridModifiers` | `partial`: rows, columns, spans and alignments; content-sized cells only, no `gridCellAnchor`, `gridCellUnsizedAxes` or hidden rows, and a parent that aligns places it by the tallest column ([ADR 0089](../decisions.md)) | probe `layout` (L5 to L10) | P2 |
+| `Spacer` | `NSLayoutGuide` | `Spacer` | `implemented`: the minimum length and the sharing of space are the numbers SwiftUI gives (probe `layout`, L1 to L3) | probe `layout` | — |
+| `frame(width:height:alignment:)`, `frame(maxWidth:)` | — | `StyleModifiers::frame`, `Frame` | `implemented`: the nine alignments place the view as SwiftUI does (probe `layout`, L4) | probe `layout` | — |
 | `HStack(alignment: .firstTextBaseline)`, `GridRow(alignment: .firstTextBaseline)` | `NSStackView.alignment` `.firstBaseline`, `NSGridRow.rowAlignment` | — | `missing`: torin cannot state a baseline ([ADR 0089](../decisions.md)) | probe `layout` (L7) | P3 |
 | `LazyVGrid`, `LazyHGrid` | `NSCollectionView` | `CollectionView` | `partial`: one vertical wrap of fixed-width tiles, not lazy, no `GridItem`, no sections, no keyboard | none | P3 |
 | — | `NSPredicateEditor`, `NSRuleEditor` | `RuleEditor` | `partial`: `RuleKind` has Text, Number and Choice only | none | P3 |
@@ -451,7 +451,7 @@ The size of each control is a row in its own family.
 
 | SwiftUI | AppKit | Kit | Status | Measure | Pri |
 |---|---|---|---|---|---|
-| `RoundedRectangle(cornerRadius:style:)`, `.continuous` | `CALayer.cornerCurve = .continuous`, `cornerRadius` | `Shape::RoundedRectangle`, `CornerStyle`, `style::continuous_corner` | `measured`: the smoothing is 0.745 at radius 8 to 40 and the kit draws it (`CORNER_SMOOTHING`, ADR 0101); push, pop-up, segmented, text field, combo box, checkbox, group box, tab view, sidebar item, rows, cards and sheets are continuous, the circular and help buttons, the progress bar and what nobody measured are circular; scale 2 and the tail clamp near a capsule are not measured | `crates/bk/tests/kit/corners.rs`; [Corners][m-corners] section 12 | P1 |
+| `RoundedRectangle(cornerRadius:style:)`, `.continuous` | `CALayer.cornerCurve = .continuous`, `cornerRadius` | `Shape::RoundedRectangle`, `CornerStyle`, `style::continuous_corner` | `measured`: the smoothing is 0.745 at radius 8 to 40 and the kit draws it (`CORNER_SMOOTHING`, ADR 0101); push, pop-up, segmented, text field, combo box, checkbox, group box, tab view, sidebar item, rows, cards and sheets are continuous, the circular and help buttons, the progress bar and what nobody measured are circular; scale 2 and the tail clamp near a capsule are not measured | [Corners][m-corners] section 12 | P1 |
 | `ConcentricRectangle`, `.containerShape`, `.concentric(minimum:)` | `NSViewCornerRadius.containerConcentric`, `NSView.cornerConfiguration` | `ctappearance::corner::concentric`, `style::concentric` | `partial`: the rule is measured (AppKit and SwiftUI agree to 0.01); the kit uses it for the color well and the image well, no view API; measured cell-drawn nests (tab pill) keep their measurement | [Corners][m-corners] sections 7 and 12 | P3 |
 | window corners | compositor | `Bar`, `WindowCorner`, `CORNER_WINDOW` | `measured`: 16 (API) and 16.8 (silhouette, continuous) in every style, light and dark, active and inactive; full screen 0; `WindowCorner` was 16, 20, 26, 15 and is 16 for all; the kit's `WindowGlass` hole is the 16.8 silhouette; scale 2 not measured | [Window corners][m-tabs], [Corners][m-corners] | P1 |
 | traffic lights | `standardWindowButton(_:)` | `TrafficLights` | `measured`: geometry, glyphs, gradient, ring, halo and every state in light, dark and Increase Contrast, at 1x; the utility panel's 10 pt lights are not drawn and the full-screen lights are compared in light only | bench `lights`; [Traffic lights][m-lights] | P1 |

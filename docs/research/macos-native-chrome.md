@@ -1,6 +1,6 @@
 # Native window chrome on macOS (level 2)
 
-Goal: decide whether the kit declares the window chrome (toolbar, sidebar, title bar) and macOS draws it, while Freya draws the content. Level 1 is what the runner does today: the kit draws the chrome and macOS draws the backdrops and the glass under it ([blur](macos-arm-port.md#blur-three-proposals)). Level 3, native controls inside the content, is rejected: the kit keeps drawing every control so the twin bench still measures it.
+Goal: decide whether the kit declares the window chrome (toolbar, sidebar, title bar) and macOS draws it, while Freya draws the content. Level 1 was the runner before [ADR 0118](../decisions.md): the kit drew the chrome and macOS drew the backdrops and the glass under it ([blur](macos-arm-port.md#blur-three-proposals)). Since ADR 0118 AppKit composes every blur and glass, the sidebar and inspector are `NSSplitViewItem`s and a bar no scroll view reaches lies on AppKit's own title bar; the kit still draws the toolbar items and the content ([Backdrops and media](../barrierkit/15-backdrops-and-media.md#on-macos)). Level 3, native controls inside the content, is rejected: the kit keeps drawing every control so the twin bench still measures it.
 
 Scope: the experiments below and a proposal. No code of `crates/bk` changes with this document.
 

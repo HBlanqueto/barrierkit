@@ -112,7 +112,7 @@ Wayland code on one side and AppKit on the other.
    `shell` feature stays Linux-only.
 2. Keep the common types (`WindowOptions`, `WindowControls`, `PopupSpec`,
    `Timers`) in `platform/` and gate the Wayland code by `cfg`; macOS files
-   live in `platform/macos/` ([M0 result](#m0-result-2026-11-22-uncommitted)).
+   live in `platform/macos/` ([M0 result](#m0-result-2026-11-22)).
 3. Run the loop on `NSApplication`. A Freya redraw request is a `CFRunLoop`
    source; a `WakeHandle` is a `CFRunLoopSourceSignal`; a timer is a
    `CFRunLoopTimer`. `calloop` stays on Linux.
@@ -162,7 +162,7 @@ should be smaller.
 
 M0 is useful alone: it lets the bench run on the Mac that holds the probes.
 
-### M0 result (2026-11-22, uncommitted)
+### M0 result (2026-11-22)
 
 M0 is built: 15 files changed (+147, −34) and one new file,
 `platform/macos/clipboard.rs`. Checks on this Mac and in the Linux container:
@@ -196,7 +196,7 @@ What it did, and what it found:
 5. `run_window` on macOS returns the new `RunError::NoRunner`.
 6. `ctappearance::watch` is Linux-only; M1 needs a `kqueue` watcher.
 
-### M1 result (2026-11-22, uncommitted)
+### M1 result (2026-11-22)
 
 M1 is built as an AppKit runner in `platform/macos/` (about 1,050 lines):
 `Host` (the fields `AppInstance` reads from its runner) was extracted from
@@ -225,7 +225,7 @@ Findings:
    (probe tool artifact; down, 150 ms, up works).
 3. `NSApplication.activateIgnoringOtherApps` is deprecated; `activate()` is used.
 
-### M2 result (2026-11-22, uncommitted)
+### M2 result (2026-11-22)
 
 Popups, sheets, utility windows and cursors are built in `platform/macos/`
 (`popups.rs`, `place.rs`, additions to `view.rs`, `mod.rs` and `input.rs`).
@@ -258,7 +258,7 @@ Findings and limits:
 4. `NSCursor::columnResizeCursor` needs macOS 15, so the floor is macOS 15.
 5. Cursors are implemented with cursor rects and were not looked at on screen.
 
-### IME result (2026-11-22, uncommitted)
+### IME result (2026-11-22)
 
 `ContentView` implements `NSTextInputClient` (`view.rs`). A key goes to the
 input method while it composes, and for the characters of a focused text field
@@ -593,12 +593,11 @@ Other things macOS draws that the kit does not, with the proposal:
 
 1. ~~The runner~~ decided: A, own `objc2` (2026-11-22).
 2. The default window mode on macOS: SSD or hybrid.
-3. ~~The blur~~ decided: P1 (2026-11-22). Open: when P3's Skia residue is
-   admitted, if ever.
-4. Whether macOS reads the live system appearance, or only `appearance.domain`.
-5. Whether the goldens stay the Linux ones (`freya-testing`, nix fonts) and
-   the Mac bench is a second report, or the Mac becomes a source of goldens.
-6. Whether `agents/prompt.md` changes now («Linux on Wayland») or when M1
+3. ~~The blur~~ decided: P1 (2026-11-22); AppKit composes every blur and
+   glass ([ADR 0118](../decisions.md)).
+4. ~~The appearance~~ decided: the kit follows the system's light or dark
+   ([ADR 0114](../decisions.md)).
+5. Whether `agents/prompt.md` changes now («Linux on Wayland») or when M1
    lands (`AGENTS.md`, rule 3 of «Documentación»).
 
 ## Not verified

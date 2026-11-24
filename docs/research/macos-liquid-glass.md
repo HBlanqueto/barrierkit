@@ -110,8 +110,7 @@ Three sources, in this order of trust. Each value says which one it comes from:
 
 A captured value beats a read one. The probes are in
 `~/src/probes/liquidglass/` (`README.txt`), the captures in
-`~/src/captures/liquidglass/`, the 8 163 inputs in
-[`macos-liquid-glass-inputs.csv`](macos-liquid-glass-inputs.csv).
+`~/src/captures/liquidglass/`; the probes print the 8 163 inputs again.
 
 **Limits.** One display, scale 1, 2560 x 1440. Scale 2 needs a HiDPI display
 mode, which is not authorised: every 2x cell is `not measured`. The session
@@ -653,7 +652,7 @@ process the glass of that slider position and changes no system setting. Values 
 live inputs equal those of a run with no argument, and the captures equal the earlier default ones (122 and 154 over gray 128, dark).
 
 **Method.** `lgmulti` (the live inputs of a key window, `plans/live5.json`: regular and clear glass, aqua and darkAqua) at 31 values of `t`
-(`macos-liquid-glass-tint.csv`, every input that moves); `lgshot -panel` windows (raw captures, never converted) of a 200 x 160 glass over gray 128 and of a
+(every input that moves); `lgshot -panel` windows (raw captures, never converted) of a 200 x 160 glass over gray 128 and of a
 560 x 400 glass over the gray ramp `tone` and the step edges `kern2` at `t` = 0, 0.25, 0.5, 0.75 and 1, in both appearances and both styles; the kernel is the
 step-edge fit of section 7 (`opacity` is the share of the Gaussian over the sharp step). 1x, the probe's own windows (the active look). Captures:
 `~/src/captures/liquidglass/tint/`.
@@ -765,8 +764,7 @@ inherits. What differs most: regular light at 1 (2.8 px wider), regular dark at 
 Per-process reads of the layer tree (`-NSGlassTintAmount <t>` and, where noted,
 `-reduceTransparency 1` or `-increaseContrast 1` on the probe's command line; no system
 setting changed; no capture, so these are inputs, not pixels). The values at 0, 0.25,
-0.5, 0.75 and 1 (0, 0.5, 1 for the key window) are in
-[`macos-liquid-glass-tint-surfaces.csv`](macos-liquid-glass-tint-surfaces.csv): every input
+0.5, 0.75 and 1 (0, 0.5, 1 for the key window) were read for every input
 of every `glassBackground` that moves, by source (`lgcfg-nonkey`, `lgmulti-key`,
 `swiftglass`, `swiftwin`), surface, scheme and flags.
 
@@ -859,7 +857,7 @@ Dock or the menus.
 | Surface | Follows the slider | Tag | Evidence |
 |---|---|---|---|
 | `NSGlassEffectView`, regular and clear, in a key and in a non-key window | Yes: blur, blur fill, fill, cap, read scale and tone | `[R]` `[C]` | section 13.1 to 13.3; pixels at 1x over gray 128, the ramp and the step edges, both schemes |
-| SwiftUI `glassEffect` (regular, clear, tint, interactive, containers, 30 to 300 px) and the glass buttons `.glass` and `.glassProminent` | Yes, the same inputs; `.identity` does not move | `[R]` | section 13.4, `swiftglass` rows of `macos-liquid-glass-tint-surfaces.csv`; no pixels |
+| SwiftUI `glassEffect` (regular, clear, tint, interactive, containers, 30 to 300 px) and the glass buttons `.glass` and `.glassProminent` | Yes, the same inputs; `.identity` does not move | `[R]` | section 13.4, `swiftglass` reads; no pixels |
 | A glass tile (a card or a panel built with `glassEffect`) | Yes, as the two rows above | `[R]` | same |
 | The toolbar's button glass (36 px) and the scroll-edge bar of a `NavigationSplitView` window (`safeAreaInset`, 48 px) | Yes, the inputs of the regular glass | `[R]` | section 13.4, `swiftwin` rows; no pixels |
 | The tab control's pill | Only the face fill moves | `[R]` | section 13.4 |

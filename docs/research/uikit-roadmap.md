@@ -222,7 +222,7 @@ long-press timer and calls the arena; the modifiers. 3. The scroll pan on top of
 | Own probes miss Apple's apps | A probe reads its own `CAAnimation`s, not Maps' | Pair every probe row with a recording row (T6) |
 | Freya's frame pacing | The loop redraws everything each frame ([Shader needs](shader-needs.md), cost per frame) | Measure a kit transition against a 60 fps recording before tuning a duration |
 | Several sessions share the checkout | The sessions on the macOS runner, CSD and the translator edit the same tree | Commit by temporary index; the first sessions write docs and probes, not `crates/` |
-| The glossary column breaks the translator | `make-table.py` reads fixed columns and its tests fail while the table is stale | Change both in one commit; run `scripts/swift-to-bk/check.sh` |
+| The glossary column breaks the translator | `make-table.py` reads fixed columns and fails while the table is stale | Change both in one commit |
 
 ## First three sessions
 
@@ -234,7 +234,7 @@ long-press timer and calls the arena; the modifiers. 3. The scroll pan on top of
 2. **Glossary UIKit column (problem 10).** Add the column to
    `docs/barrierkit/20-glossary.md`, fill it from the iOSSupport headers of the
    SDK (E1), and fix `scripts/swift-to-bk/make-table.py` for the new column.
-   Done when `scripts/swift-to-bk/check.sh` passes and `./dev.sh check` is clean.
+   Done when `./dev.sh check` is clean.
 3. **Spring and implicit animation design (U2, design only).** Decide O2 and
    O4 from the table of session 1 and write the ADR with a sketch of
    `Animation` and `with_animation`. No code. It starts after the first rows of

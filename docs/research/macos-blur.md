@@ -742,7 +742,7 @@ on a backdrop downsampled by 4 equals the Dual Kawase's cost for the wide sigmas
 ([`macos-materials.md`](macos-materials.md#14-the-blur-algorithm-and-malaysias-dual-kawase-2026-11-22));
 the narrow sigmas (0.75 to 3.5) are a separable Gaussian of 5 to 25 taps at full or half
 resolution. Cost on a GPU was not measured here. A Dual Kawase of 1 to 3 passes with a
-small offset reproduces a single narrow sigma (`kawase_reaching`: sigma 3.5 is 3 passes
+small offset reproduces a single narrow sigma (sigma 3.5 is 3 passes
 at offset 0.37) but has no halo and does not normalise edges.
 
 ### 14.8 Configuration and provenance
@@ -800,5 +800,4 @@ The 2 levels are the sum of the 1.0 level that linear interpolation of the tone 
 at most and the 0.5 level of the quantisation of an 8-bit capture, with 0.5 for the noise
 of the bare patch (std 0.5); the in-window materials use 1.5
 ([`macos-materials.md`](macos-materials.md#107-parity-check)) because their fit is a
-closed form. The numbers of the tests are in
-`crates/ctappearance/tests/data/shell-glass-samples.csv`.
+closed form.

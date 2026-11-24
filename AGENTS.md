@@ -213,7 +213,7 @@ pub fn focused(mut self, focused: bool) -> Self { … }
 ```
 
 ```rust
-// ✓ comentario que se queda (platform/vulkan.rs)
+// ✓ comentario que se queda (platform/linux/vulkan.rs)
 // SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
 ```
 

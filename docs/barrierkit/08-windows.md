@@ -24,23 +24,19 @@ Wayland protocols) is in [18. Platform](18-platform.md).
 2. Describe the window with `WindowOptions` in `.options(..)`:
 
    ```rust
-   use bk::prelude::*;
-
-   fn main() -> Result<(), RunError> {
-       Application::new("notes")
-           .window(tr!("notes"), || {
-               rect()
-                   .expanded()
-                   .child(Titlebar::new().title(tr!("notes")))
-           })
-           .options(|window| {
-               window
-                   .size((760, 520))
-                   .min_size(Some(WINDOW_MIN_SIZE))
-                   .window_style(WindowStyle::HiddenTitleBar)
-           })
-           .run()
-   }
+   Application::new("notes")
+       .window(tr!("notes"), || {
+           rect()
+               .expanded()
+               .child(Titlebar::new().title(tr!("notes")))
+       })
+       .options(|window| {
+           window
+               .size((760, 520))
+               .min_size(Some(WINDOW_MIN_SIZE))
+               .window_style(WindowStyle::HiddenTitleBar)
+       })
+       .run()
    ```
 
 3. Inside any component, read the state and send commands through

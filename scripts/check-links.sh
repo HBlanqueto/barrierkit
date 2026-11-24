@@ -16,14 +16,30 @@ anchors() {
 }
 
 broken=$(git ls-files '*.md' | while read -r file; do
-    awk '/^[[:space:]]*```/ { fenced = !fenced; next }
+    awk 'FNR == NR {
+            if (match($0, /^\[[^]]+\]: /)) defs[tolower(substr($0, 2, RLENGTH - 4))] = 1
+            next
+        }
+        /^[[:space:]]*```/ { fenced = !fenced; next }
         !fenced {
             line = $0
             while (match(line, /\]\([^)[:space:]]+\)/)) {
                 print FILENAME "\t" substr(line, RSTART + 2, RLENGTH - 3)
                 line = substr(line, RSTART + RLENGTH)
             }
-        }' "$file"
+            if (match($0, /^\[[^]]+\]: [^[:space:]]+/)) {
+                target = substr($0, RSTART, RLENGTH)
+                sub(/^\[[^]]+\]: /, "", target)
+                print FILENAME "\t" target
+            }
+            line = $0
+            gsub(/`[^`]*`/, "", line)
+            while (match(line, /\]\[[^]]+\]/)) {
+                ref = substr(line, RSTART + 2, RLENGTH - 3)
+                if (!(tolower(ref) in defs)) print FILENAME "\t[" ref "]"
+                line = substr(line, RSTART + RLENGTH)
+            }
+        }' "$file" "$file"
 done | while IFS="$(printf '\t')" read -r file target; do
     case $target in
         (*://* | mailto:*) continue ;;

@@ -48,7 +48,7 @@ answers it.
 
 | Question | Where |
 |---|---|
-| What is missing? | The «Pending» line of [ADR 0047](../decisions.md) |
+| What is missing? | [What an app author still needs](../research/swiftui-api-gap.md#what-an-app-author-still-needs) |
 | Does it work outside Malaysia? | [18](18-platform.md#wayland-protocols): every protocol but `wl_compositor` and `xdg_wm_base` is optional |
 | Can I use Freya directly? | [3, Rules](03-layers.md#rules) and [2, The prelude](02-first-app.md#the-prelude) |
 | How do I change how a control looks? | [`agents/styles.md`](../../agents/styles.md) |

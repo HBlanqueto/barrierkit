@@ -50,10 +50,8 @@ language is chosen. The language picker widgets are in
    same name as `Application::new` and `load_defaults`:
 
    ```rust
-   fn main() -> Result<(), RunError> {
-       bk::i18n::use_app_language("notes");
-       Application::new("notes").window("Notes", content).run()
-   }
+   bk::i18n::use_app_language("notes");
+   Application::new("notes").window("Notes", content).run()
    ```
 
 6. Put `app_language_row("notes")` in the app's preferences

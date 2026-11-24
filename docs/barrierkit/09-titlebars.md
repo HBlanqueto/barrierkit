@@ -391,7 +391,7 @@ rendered by the kit in each state.
 | Malaysia focus mode, bar up | The same; the compositor sends the `fullscreen` state | The title bar leaves the layout and the content fills the window | ![Focus mode with the bar up: content only](assets/states/state-focus-bar-top.png) |
 
 In Malaysia, focus mode
-([Malaysia ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/tree/main/docs/decisions))
+([Malaysia ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions.md))
 slides a black bar down when the pointer nears the top. The kit asks for
 `set_overlay` through `infinity_focus_v1` version 2, so the window does not
 move: while the bar is down, `titlebar_overlaid()` is true and the title bar

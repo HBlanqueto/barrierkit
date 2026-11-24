@@ -259,8 +259,7 @@ error against the captures, the states and a parity check.
 6. **Reproduce.** `~/src/probes/matbatch.sh core chroma a11y swiftui follows`
    captures; `matreport.py`, `matsigma.py`, `matdocs.py` and `mattokens.py`
    (Python of the venv of [`macos-observations.md`](macos-observations.md), run
-   with `-I`) fit and print the tables. The raw numbers are in
-   [`macos-materials-ramps.csv`](macos-materials-ramps.csv).
+   with `-I`) fit and print the tables.
 
 ### 10.2 The pipeline
 
@@ -492,8 +491,7 @@ Use it to compare the compositor with macOS over the same backdrop.
    pixels inside differ from the plateau by 0.0 on macOS. A compositor that
    samples outside the region fails it.
 
-`ctappearance::material` checks the same in its tests
-(`crates/ctappearance/tests/data/material-samples.csv`): 286 ramp samples within
+`ctappearance::material` met the same on the samples: 286 ramp samples within
 1.5 levels (the gray ramp is blurred inside its region first), 6 step profiles
 within 2 and 26 solids within 1.
 

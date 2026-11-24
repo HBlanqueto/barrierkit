@@ -13,7 +13,7 @@ retouched.
 | Folder | Holds | Produced by |
 |---|---|---|
 | `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | Renders of the kit; the repository has no script for them |
-| `brand/` | The BarrierKit icon and banner, as SVG | Drawn by hand; the repository has no script for them |
+| `brand/` | The BarrierKit banner, as SVG | Drawn by hand; the repository has no script for them |
 
 The black band at the top of the focus-mode scenes stands for the compositor
 bar, which Malaysia draws over a real window.

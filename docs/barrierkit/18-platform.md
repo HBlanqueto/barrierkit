@@ -538,7 +538,7 @@ Inside `app`, `SessionUnlock::get()` returns the unlock handle.
 An `unlock()` before the compositor confirms the lock waits for that
 confirmation. `SessionUnlock::locked()` turns `true` once the compositor has
 confirmed the lock, which Malaysia does after the lock screen's first frame is
-on screen (ADR 0074), so the app can start its entry animation then. If the compositor refuses the lock, the process prints an error
+on screen (Malaysia ADR 0074), so the app can start its entry animation then. If the compositor refuses the lock, the process prints an error
 and exits with status 1.
 
 `SessionUnlock::keyboard_layout()` returns the name of the active keyboard

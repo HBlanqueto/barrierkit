@@ -977,7 +977,7 @@ Side effects of the probes: K3 wrote its own defaults domain
      one `rect()` around the control that carries event handlers (an `Event`
      cannot be cloned, so two handlers for one event cannot chain). `.padding`,
      `.margin`, `.height` and `Size::fill()` keep their layout and the order of
-     the calls does not matter (`crates/bk/tests/kit/modifiers.rs`). Finding 2
+     the calls does not matter. Finding 2
      and surprise 1 above describe the state before. `.key(..)` is still a no
      op on most controls: only `ScrollView`, `TextView` and `RuleEditor` read
      it in `render_key`.
