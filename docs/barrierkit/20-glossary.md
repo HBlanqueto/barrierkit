@@ -1241,7 +1241,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `menu::normalize_separators` | fn | — | — | — | Removes leading, trailing and repeated separators, also in submenus | [7](07-menus-and-popovers.md#helpers) |
 | `menu::MNEMONIC_MARK` | constant | — | `≈ NSMenuItem.mnemonic` | — | U+2063 placed before the letter that Alt underlines | [7](07-menus-and-popovers.md#mnemonics) |
 | `menu::strip_mnemonic` | fn | — | — | — | Returns a label without the mnemonic mark | [7](07-menus-and-popovers.md#mnemonics) |
-| `menu::format_shortcut` | fn | — | — | — | Turns shortcut text such as `"Ctrl+Shift+G"` into glyphs `"⌃⇧G"` | [7](07-menus-and-popovers.md#shortcuts) |
+| `menu::format_shortcut` | fn | — | — | — | Turns shortcut text such as `"Ctrl+Shift+G"` into glyphs: `"⌃⇧G"` on Linux, `"⇧⌘G"` on macOS | [7](07-menus-and-popovers.md#shortcuts) |
 | `menu::shortcut_matches` | fn | — | — | — | Whether a key event with modifiers is the given shortcut text | [7](07-menus-and-popovers.md#shortcuts) |
 | `menu::measure_text` | fn | — | — | — | Width in pixels of text in the system sans font | [7](07-menus-and-popovers.md#helpers) |
 | `menu::measure_text_weight` | fn | — | — | — | Width in pixels of text at a given font weight | [7](07-menus-and-popovers.md#helpers) |

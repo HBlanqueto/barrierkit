@@ -1,25 +1,20 @@
 use freya_core::prelude::{Key, Modifiers};
 
+use crate::platform::MODIFIER_GLYPHS;
+
 type Names = &'static [&'static str];
 
-const MODIFIERS: [(Modifiers, &str, &str, Names); 4] = [
+const MODIFIERS: [(Modifiers, &str, Names); 4] = [
     (
         Modifiers::CONTROL,
         "Control",
-        "⌃",
         &["ctrl", "control", "primary"],
     ),
-    (
-        Modifiers::ALT,
-        "Alt",
-        "⌥",
-        &["alt", "option", "opt", "mod1"],
-    ),
-    (Modifiers::SHIFT, "Shift", "⇧", &["shift"]),
+    (Modifiers::ALT, "Alt", &["alt", "option", "opt", "mod1"]),
+    (Modifiers::SHIFT, "Shift", &["shift"]),
     (
         Modifiers::META,
         "Super",
-        "❖",
         &["super", "meta", "cmd", "command"],
     ),
 ];
@@ -88,7 +83,7 @@ fn parse_shortcut(text: &str) -> Shortcut {
     shortcut
 }
 
-fn held_modifiers(shortcut: &Shortcut) -> impl Iterator<Item = &(Modifiers, &str, &str, Names)> {
+fn held_modifiers(shortcut: &Shortcut) -> impl Iterator<Item = &(Modifiers, &str, Names)> {
     MODIFIERS
         .iter()
         .filter(|(modifier, ..)| shortcut.modifiers.contains(*modifier))
@@ -96,8 +91,10 @@ fn held_modifiers(shortcut: &Shortcut) -> impl Iterator<Item = &(Modifiers, &str
 
 pub fn format_shortcut(text: &str) -> String {
     let shortcut = parse_shortcut(text);
-    held_modifiers(&shortcut)
-        .map(|(_, _, glyph, _)| *glyph)
+    MODIFIER_GLYPHS
+        .iter()
+        .filter(|(modifier, _)| shortcut.modifiers.contains(*modifier))
+        .map(|(_, glyph)| *glyph)
         .chain(shortcut.key.as_ref().map(|(_, glyph)| glyph.as_str()))
         .collect()
 }

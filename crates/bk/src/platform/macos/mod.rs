@@ -88,6 +88,13 @@ pub(crate) fn app_folders(app_id: &str) -> (PathBuf, PathBuf) {
 }
 // CoreText sets each face's optical size and `trak` tracking from the point size.
 pub(crate) const OPTICAL_SIZING: bool = true;
+// Control is ⌘ and Super is ⌃ (`input::modifiers`), in the Mac order ⌃⌥⇧⌘.
+pub(crate) const MODIFIER_GLYPHS: [(Modifiers, &str); 4] = [
+    (Modifiers::META, "⌃"),
+    (Modifiers::ALT, "⌥"),
+    (Modifiers::SHIFT, "⇧"),
+    (Modifiers::CONTROL, "⌘"),
+];
 pub(crate) const MOST_CHROMES: usize = 8;
 
 #[cfg(feature = "a11y")]
@@ -1759,4 +1766,15 @@ pub(super) fn run_window(app: AppComponent, options: WindowOptions) -> Result<()
     application.activate();
     application.run();
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::menu::format_shortcut;
+
+    #[test]
+    fn kit_menus_draw_control_as_command_in_mac_order() {
+        assert_eq!(format_shortcut("Ctrl+D"), "⌘D");
+        assert_eq!(format_shortcut("Ctrl+Shift+Super+Alt+D"), "⌃⌥⇧⌘D");
+    }
 }

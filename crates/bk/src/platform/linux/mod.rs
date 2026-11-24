@@ -30,6 +30,7 @@ mod window_style;
 
 use std::path::PathBuf;
 
+use freya_core::prelude::Modifiers;
 pub use sctk::reexports::client::backend::ObjectId;
 
 pub(crate) fn blocking_session_bus() -> zbus::Result<zbus::blocking::Connection> {
@@ -39,6 +40,12 @@ pub(crate) fn blocking_session_bus() -> zbus::Result<zbus::blocking::Connection>
 pub(crate) const SYSTEM_MOMENTUM: bool = false;
 pub(crate) const NATIVE_LIGHTS: bool = false;
 pub(crate) const OPTICAL_SIZING: bool = false;
+pub(crate) const MODIFIER_GLYPHS: [(Modifiers, &str); 4] = [
+    (Modifiers::CONTROL, "⌃"),
+    (Modifiers::ALT, "⌥"),
+    (Modifiers::SHIFT, "⇧"),
+    (Modifiers::META, "❖"),
+];
 // Malaysia serves 4 requesting surfaces per toplevel and the sidebar's is the window's own (docs/barrierkit/15-backdrops-and-media.md#glass-on-any-view).
 pub(crate) const MOST_CHROMES: usize = 3;
 

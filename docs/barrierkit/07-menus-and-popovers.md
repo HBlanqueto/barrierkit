@@ -163,20 +163,21 @@ VStack::new()
 
 A shortcut is text: modifiers and a key joined with `+`, in any case.
 
-| Part | Accepted names | Shown as |
-|---|---|---|
-| Control | `Ctrl`, `Control`, `Primary` | ⌃ |
-| Alt | `Alt`, `Option`, `Opt`, `Mod1` | ⌥ |
-| Shift | `Shift` | ⇧ |
-| Super | `Super`, `Meta`, `Cmd`, `Command` | ❖ |
-| Named keys | X keysym names or aliases: `Escape`/`Esc`, `Return`/`Enter`, `Tab`, `space`, `BackSpace`, `Delete`, `Left`, `Right`, `Up`, `Down`, `Home`, `End`, `Page_Up`, `Page_Down`, `comma`, `period`, `minus`, `plus`, `equal`, `slash`, `question`, `backslash`, `semicolon`, `apostrophe`, `bracketleft`, `bracketright` | ⎋ ↩ ⇥ ␣ ⌫ ⌦ ← → ↑ ↓ ↖ ↘ ⇞ ⇟ and the character |
-| Any other single character | itself | in upper case |
+| Part | Accepted names | Shown on Linux | Shown on macOS |
+|---|---|---|---|
+| Control | `Ctrl`, `Control`, `Primary` | ⌃ | ⌘ |
+| Alt | `Alt`, `Option`, `Opt`, `Mod1` | ⌥ | ⌥ |
+| Shift | `Shift` | ⇧ | ⇧ |
+| Super | `Super`, `Meta`, `Cmd`, `Command` | ❖ | ⌃ |
+| Named keys | X keysym names or aliases: `Escape`/`Esc`, `Return`/`Enter`, `Tab`, `space`, `BackSpace`, `Delete`, `Left`, `Right`, `Up`, `Down`, `Home`, `End`, `Page_Up`, `Page_Down`, `comma`, `period`, `minus`, `plus`, `equal`, `slash`, `question`, `backslash`, `semicolon`, `apostrophe`, `bracketleft`, `bracketright` | ⎋ ↩ ⇥ ␣ ⌫ ⌦ ← → ↑ ↓ ↖ ↘ ⇞ ⇟ and the character | the same |
+| Any other single character | itself | in upper case | in upper case |
 
-Modifiers are always shown in the order ⌃ ⌥ ⇧ ❖.
+Modifiers are shown in the order ⌃ ⌥ ⇧ ❖ on Linux and ⌃ ⌥ ⇧ ⌘ on macOS, the
+same keys the native menu bar draws.
 
 | Function | What it does |
 |---|---|
-| `format_shortcut(text)` | `"Ctrl+Shift+G"` → `"⌃⇧G"` |
+| `format_shortcut(text)` | `"Ctrl+Shift+G"` → `"⌃⇧G"` on Linux, `"⇧⌘G"` on macOS |
 | `shortcut_matches(text, modifiers, &key)` | `true` when a key event is that shortcut. Only Control, Alt, Shift and Super count |
 
 ## Mnemonics
