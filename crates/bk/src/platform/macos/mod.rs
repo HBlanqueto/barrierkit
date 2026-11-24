@@ -214,6 +214,19 @@ struct Window {
 }
 
 impl ChromeLayer {
+    fn in_bar_row(&self, row: (f32, f32)) -> bool {
+        let (_, top) = self.wanted.placement.origin;
+        let (_, strip) = self.wanted.placement.size;
+        crate::titlebar::in_bar_row(top as f32, strip as f32, row)
+    }
+
+    fn views(&self) -> impl Iterator<Item = &NSView> {
+        self.effects
+            .iter()
+            .map(|effect| &**effect)
+            .chain([&**self.view])
+    }
+
     fn remove(self) {
         self.view.removeFromSuperview();
         for effect in self.effects {
@@ -276,13 +289,9 @@ impl Window {
         };
         bar.view.align(container.bounds().size.height);
         for chrome in &self.chromes {
-            let (_, top) = chrome.wanted.placement.origin;
-            let (_, strip) = chrome.wanted.placement.size;
-            let riding =
-                bar.revealed && crate::titlebar::in_bar_row(top as f32, strip as f32, bar.row);
+            let riding = bar.revealed && chrome.in_bar_row(bar.row);
             let parent: &NSView = if riding { &bar.view } else { container };
-            let views = chrome.effects.iter().map(|effect| &**effect);
-            for view in views.chain([&**chrome.view]) {
+            for view in chrome.views() {
                 // SAFETY: the view is alive; its parent is only compared, never kept.
                 let current = unsafe { view.superview() };
                 if current.is_none_or(|current| !std::ptr::eq(&*current, parent)) {
@@ -340,13 +349,34 @@ impl Window {
                 0.0,
             );
             pocket.setAutoresizingMask(NSAutoresizingMaskOptions::ViewMinYMargin);
-            container.addSubview_positioned_relativeTo(
-                &pocket,
-                NSWindowOrderingMode::Above,
-                Some(&self.view),
-            );
             pocket
         });
+        // The sidebar's panes and rows lie above the content, so the pocket goes over them and under the title bar row left in the container.
+        let pocket_view: &NSView = pocket;
+        let row: Vec<&NSView> = self
+            .chromes
+            .iter()
+            .filter(|chrome| chrome.in_bar_row(bar.row))
+            .flat_map(ChromeLayer::views)
+            .filter(|view| {
+                // SAFETY: the view is alive; its parent is only compared, never kept.
+                unsafe { view.superview() }
+                    .is_some_and(|parent| std::ptr::eq(&*parent, &**container))
+            })
+            .collect();
+        let in_row = |view: &NSView| row.iter().any(|kept| std::ptr::eq(*kept, view));
+        let subviews = container.subviews();
+        let ordered = subviews
+            .iter()
+            .position(|view| std::ptr::eq(&*view, pocket_view))
+            .is_some_and(|at| {
+                subviews.len() - at - 1 == row.len()
+                    && subviews.iter().skip(at + 1).all(|view| in_row(&view))
+            });
+        if !ordered {
+            container.addSubview(pocket_view);
+            row.iter().for_each(|view| container.addSubview(view));
+        }
         let frame = NSRect::new(
             NSPoint::new(f64::from(left), container.bounds().size.height - bar.depth),
             NSSize::new(f64::from(width), bar.depth),

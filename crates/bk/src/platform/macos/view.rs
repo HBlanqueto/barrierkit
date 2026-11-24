@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell};
 
+use dispatch2::{DispatchQueue, MainThreadBound};
 use freya_core::integration::{KeyboardEventName, MouseEventName, PlatformEvent};
 use freya_core::prelude::CursorIcon;
 use objc2::rc::Retained;
@@ -493,6 +494,11 @@ define_class!(
             // AppKit shows and hides the fill itself, so the kit only makes it clear.
             if let Some(window) = window_of(note) {
                 set_titlebar_fill_alpha(&window, 0.0);
+                // The full-screen bar's opaque fills come one run-loop turn later and would hide the kit's row for the whole transition.
+                let window = MainThreadBound::new(window, self.mtm());
+                DispatchQueue::main().exec_async(move || {
+                    window.get_on_main(|window| set_titlebar_fill_alpha(window, 0.0));
+                });
             }
             if let Some((window, accessory)) = with_runtime(|runtime| runtime.attach_bar(id)).flatten() {
                 window.addTitlebarAccessoryViewController(&accessory);
