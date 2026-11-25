@@ -565,7 +565,6 @@ pub(super) struct Runtime {
     last_input_serial: Rc<Cell<u32>>,
     resolved: State<Resolved>,
     defaults_revision: State<u64>,
-    clipboard: Clipboard,
     primary: Clipboard,
     pointer_window: Option<u64>,
     cursor: CursorIcon,
@@ -750,7 +749,6 @@ impl Runtime {
                 NATIVE_LIGHTS,
             )),
             defaults_revision: State::create_global(0),
-            clipboard,
             primary: Clipboard::primary(),
             pointer_window: None,
             cursor: CursorIcon::Default,
@@ -900,7 +898,6 @@ impl Runtime {
             ObjectId::from_raw(id),
             self.ping.clone(),
             self.primary.clone(),
-            self.clipboard.clone(),
         );
         let menu = options.menu.clone().map(|menu| {
             crate::main_menu::MenuHandle::new(
@@ -1628,7 +1625,9 @@ impl Runtime {
                     }
                     WindowCommand::Fit((width, height)) => later(id, Native::Size(width, height)),
                     WindowCommand::Bar(bar) => later(id, Native::Toolbar(bar)),
-                    WindowCommand::ImeCursor(area) => areas.push((id, area)),
+                    WindowCommand::ImeCursor(area) | WindowCommand::FieldCursor(area) => {
+                        areas.push((id, area))
+                    }
                     WindowCommand::Open(window) => open.push((window, None)),
                     WindowCommand::Sheet(window) => open.push((window, Some(id))),
                     _ => {}

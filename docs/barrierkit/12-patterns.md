@@ -90,7 +90,7 @@ The app only declares the panes. System Settings is built with it.
 3. Choosing a pane pushes it on the [`History`](11-views.md#history); the bar
    shows its title, the toggle and [`NavigationButtons`](11-views.md#navigationbuttons).
 4. With `.restoration(app_id)`, every change is written to
-   `<app_id>.state` in the app's state folder
+   `<app_id>.settings.state` in the app's state folder
    ([Settings and restoration](13-app.md#settings-and-restoration)).
 
 ### `Pane`

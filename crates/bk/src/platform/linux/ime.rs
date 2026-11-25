@@ -74,8 +74,10 @@ impl Runtime {
         }
     }
 
-    pub(crate) fn set_ime_cursor(&mut self, surface: ObjectId, area: (i32, i32, i32, i32)) {
-        self.ime.cursor_surface = Some(surface);
+    pub(crate) fn set_ime_cursor(&mut self, surface: Option<ObjectId>, area: (i32, i32, i32, i32)) {
+        if surface.is_some() {
+            self.ime.cursor_surface = surface;
+        }
         if self.ime.cursor == Some(area) {
             return;
         }

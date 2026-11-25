@@ -1,5 +1,8 @@
 use std::borrow::Cow;
-use std::sync::{Arc, Mutex};
+use std::sync::{
+    Arc, Mutex,
+    atomic::{AtomicBool, Ordering},
+};
 
 use freya_core::prelude::{
     Key, Modifiers, WritableUtils, try_consume_root_context, use_hook, use_state,
@@ -42,6 +45,7 @@ pub struct MenuHandle {
     wake: Option<WakeHandle>,
     path: Arc<Mutex<Option<String>>>,
     action_queue: Arc<Mutex<Vec<String>>>,
+    field_focused: Arc<AtomicBool>,
 }
 
 #[derive(Clone, Debug)]
@@ -57,6 +61,7 @@ impl MenuHandle {
             wake,
             path: Arc::new(Mutex::new(None)),
             action_queue: Arc::new(Mutex::new(Vec::new())),
+            field_focused: Arc::default(),
         }
     }
 
@@ -114,9 +119,26 @@ impl MenuHandle {
         }
     }
 
+    pub(crate) fn set_field_focused(&self, focused: bool) {
+        if self.field_focused.swap(focused, Ordering::Relaxed) != focused {
+            self.publish();
+        }
+    }
+
+    // dbusmenu has no `validateMenuItem:`, so the exported menu itself enables the Edit items a focused field serves.
     pub(crate) fn snapshot(&self) -> (MainMenu, u32) {
         let state = lock(&self.state);
-        (state.menu.clone(), state.revision)
+        let mut menu = state.menu.clone();
+        if self.field_focused.load(Ordering::Relaxed) {
+            for (action, _) in FIELD_EDITS {
+                update_item(&mut menu, action.id, &|item| {
+                    if let MenuItem::Action { enabled, .. } = item {
+                        *enabled = true;
+                    }
+                });
+            }
+        }
+        (menu, state.revision)
     }
 }
 

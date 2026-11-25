@@ -62,6 +62,8 @@ impl Shortcut {
             }
         }
         parts.push(match self.key {
+            ShortcutKey::Char('+') => "plus".into(),
+            ShortcutKey::Char(' ') => "space".into(),
             ShortcutKey::Char(c) => c.to_uppercase().to_string(),
             ShortcutKey::Left => "Left".into(),
             ShortcutKey::Right => "Right".into(),

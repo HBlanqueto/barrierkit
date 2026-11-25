@@ -121,7 +121,7 @@ in.
 | `make_key_and_order_front()` | Brings the window to the front and gives it the keyboard with the last key or button press, for example from a shortcut in another window of the same process |
 | `open_window(app, options)` | Opens another main window in the same process. [Scenes](#scenes) use it |
 | `set_ime_cursor_area(x, y, width, height)` | Tells the input method where the text cursor is, in logical pixels |
-| `copy_rich(text, html)`, `primary_selection()` | Clipboard ([13. App](13-app.md)) |
+| `primary_selection()` | Clipboard ([13. App](13-app.md)) |
 
 | Query | Returns |
 |---|---|

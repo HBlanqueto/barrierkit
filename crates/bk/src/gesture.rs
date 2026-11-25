@@ -427,9 +427,8 @@ impl Pair {
     ) -> Option<(State, f32)> {
         match input.phase {
             Phase::Down => {
-                if let Some(slot) = self.fingers.iter_mut().find(|slot| slot.is_none()) {
-                    *slot = Some((input.id, input.at));
-                }
+                let slot = self.fingers.iter_mut().find(|slot| slot.is_none())?;
+                *slot = Some((input.id, input.at));
                 if let [Some((_, a)), Some((_, b))] = self.fingers {
                     self.first = measure(a, b);
                     self.began = false;
@@ -1290,7 +1289,7 @@ where
             Step::Idle => {}
             Step::Failed | Step::Cancelled => {
                 deliver(step)();
-                let mut released = with_pointer(pointer, |state| {
+                let released = with_pointer(pointer, |state| {
                     state.settled(id);
                     if priority == Priority::High {
                         state.high = state.high.saturating_sub(1);
@@ -1303,17 +1302,19 @@ where
                         Vec::new()
                     }
                 });
-                if !released.is_empty() {
-                    let (holder, delivery) = released.remove(0);
+                if let Some(&(holder, _)) = released.first() {
                     let blocked = with_pointer(pointer, |state| state.outranked(holder));
                     if blocked {
-                        with_pointer(pointer, |state| {
-                            state.held.push((holder, delivery));
-                            state.held.extend(released);
-                        });
+                        with_pointer(pointer, |state| state.held.extend(released));
                     } else {
-                        with_pointer(pointer, |state| state.claimed = Some(holder));
-                        delivery();
+                        let (won, others): (Vec<_>, Vec<_>) = released
+                            .into_iter()
+                            .partition(|(owner, _)| *owner == holder);
+                        with_pointer(pointer, |state| {
+                            state.claimed = Some(holder);
+                            state.held.extend(others);
+                        });
+                        won.into_iter().for_each(|(_, delivery)| delivery());
                     }
                 }
             }
@@ -1420,7 +1421,8 @@ where
     R::Value: Clone + 'static,
 {
     fn trackpad(engine: &Rc<RefCell<Self>>, event: Trackpad) {
-        if !engine.borrow().hovered {
+        let began = engine.borrow().pinch.is_none();
+        if began && !engine.borrow().hovered {
             return;
         }
         let center = engine.borrow().cursor;
@@ -1444,7 +1446,6 @@ where
                 Self::handle(engine, input, id);
             }
         };
-        let began = engine.borrow().pinch.is_none();
         if began && event.phase != TrackpadPhase::Ended {
             engine.borrow_mut().pinch = Some((1.0, 0.0));
             send(Phase::Down, fingers(1.0, 0.0));

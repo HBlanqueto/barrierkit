@@ -23,7 +23,7 @@ const KEYS: [(&str, &str, Names); 26] = [
     ("Escape", "⎋", &["esc"]),
     ("Return", "↩", &["enter"]),
     ("Tab", "⇥", &[]),
-    ("space", "␣", &[" "]),
+    ("space", "␣", &[]),
     ("BackSpace", "⌫", &[]),
     ("Delete", "⌦", &[]),
     ("Left", "←", &["arrowleft"]),

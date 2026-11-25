@@ -191,7 +191,7 @@ keyboard layout.
 | `BRING_ALL_TO_FRONT` | none | the kit | always |
 | `TOGGLE_FULL_SCREEN` | F11 (⌃⌘F on macOS) | the kit: enters or leaves full screen | not for a fixed-size window |
 | `UNDO`, `REDO` | Ctrl+Z, Ctrl+Shift+Z | [`use_undo`](#undo) | while a stack has a value |
-| `CUT`, `COPY`, `PASTE`, `SELECT_ALL` | Ctrl+X, C, V, A | a focused text field, else the app | while a text field is focused (macOS), or after `use_menu_enabled` |
+| `CUT`, `COPY`, `PASTE`, `SELECT_ALL` | Ctrl+X, C, V, A | a focused text field, else the app | while a text field is focused, or after `use_menu_enabled` |
 | `DELETE` | none | the app | after `use_menu_enabled` |
 | `FIND`, `FIND_AND_REPLACE`, `FIND_NEXT`, `FIND_PREVIOUS`, `USE_SELECTION_FOR_FIND`, `JUMP_TO_SELECTION` | Ctrl+F, Ctrl+Alt+F, Ctrl+G, Ctrl+Shift+G, Ctrl+E, Ctrl+J | the app | after `use_menu_enabled` |
 | `HELP` | F1 (⌘? on macOS until the app serves it) | the app | after `use_menu_enabled` |
@@ -312,7 +312,7 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
 | `load_defaults::<T>(app_id)`, `save_defaults(app_id, &value)` | `<app_id>.domain` in the app's settings folder |
 | `use_defaults::<T>(app_id)` | The same; returns a `Memo<T>` that reloads when the file changes |
 | `update_defaults::<T>(app_id, \|value\| ..)` | The same; loads the file, runs the closure on the value and saves it |
-| `load_restoration::<T>(app_id)`, `save_restoration(app_id, &value)` | `<app_id>.state` in the app's state folder |
+| `load_restoration::<T>(app_id)`, `save_restoration(app_id, &value)` | `<app_id>.state` in the app's state folder; `SettingsWindow` keeps its own state in `<app_id>.settings.state` beside it |
 | `read_toml::<T>(path)`, `write_toml(path, &value)` | Any path; the base of the others |
 | `use_watched(load)` | Runs `load` again when a settings file changes; returns a `Memo` |
 
@@ -570,7 +570,7 @@ app implements `Transferable` (`payload` and `from_payload`) to travel as one of
 | Payload | macOS (`NSPasteboard`) | Linux |
 |---|---|---|
 | `Text` | `public.utf8-plain-text` | the Wayland clipboard |
-| `Html { text, html }` | both types; `WindowControls::copy_rich` writes this | the Wayland clipboard keeps the text; `copy_rich` also offers `text/html` |
+| `Html { text, html }` | both types | both: `text/html` and the text |
 | `Image(png)` | `public.png` and `public.tiff`; a TIFF alone reads as PNG | not held: `copy` returns false |
 | `Files(paths)` | one `public.file-url` item per path, with the path as text | not held: `copy` returns false |
 | a named board | private to the process, shared with others that use the name | not held: false and `None` |

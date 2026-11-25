@@ -128,6 +128,9 @@ impl SidebarControl {
     }
 
     pub fn toggle(self) {
+        if !self.present {
+            return;
+        }
         let (mut visible, mut auto_hidden) = (self.visible, self.auto_hidden);
         with_animation(*self.animation.peek(), || {
             auto_hidden.set(false);

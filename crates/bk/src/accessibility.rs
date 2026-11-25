@@ -361,9 +361,12 @@ fn collect_descendants(
             continue;
         };
         let node = &update.nodes[child_position].1;
-        if node.is_hidden() {
-            continue;
-        }
+        let mut unspoken = Vec::new();
+        let texts = if node.is_hidden() {
+            &mut unspoken
+        } else {
+            &mut *texts
+        };
         if let Some(text) = node
             .label()
             .or_else(|| node.value())

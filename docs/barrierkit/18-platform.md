@@ -276,7 +276,7 @@ The window and its popups take the system's light or dark, live ([The system's l
 
 1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
-3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the menu handle carry items only the Linux backend reads), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without the `shell` feature.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the menu handle carry items only the Linux backend reads; `ctdesign`, `ctappearance` and `limitless` run again without `-A dead_code`), the unit tests, and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without the `shell` feature.
 4. Optional: `./dev.sh macos-smoke` opens every recipe of `crates/bk/examples` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
 
 ### Smoke test on macOS

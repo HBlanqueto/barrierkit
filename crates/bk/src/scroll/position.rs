@@ -296,7 +296,7 @@ pub(crate) fn use_scroll_position(
     controller: ScrollController,
     position: Option<State<ScrollPosition>>,
 ) {
-    let applied = use_hook(|| Rc::new(RefCell::new(None::<ScrollPosition>)));
+    let applied = use_hook(|| Rc::new(RefCell::new(None::<(ScrollPosition, (i32, i32))>)));
     let settled = use_hook(|| Rc::new(Cell::new(None::<(i32, i32)>)));
     let requested = position.map(|position| position.read().clone());
     let (applying, resolved) = (applied.clone(), settled.clone());
@@ -304,17 +304,18 @@ pub(crate) fn use_scroll_position(
         &(requested, *controller.content.read()),
         move |(requested, _)| {
             let Some(requested) = requested else { return };
-            if applying.borrow().as_ref() == Some(requested) {
-                return;
-            }
             if requested.is_positioned_by_user() {
-                *applying.borrow_mut() = Some(requested.clone());
+                *applying.borrow_mut() = None;
                 return;
             }
             let Some(to) = controller.target_of(requested) else {
                 return;
             };
-            *applying.borrow_mut() = Some(requested.clone());
+            let request = Some((requested.clone(), to));
+            if *applying.borrow() == request {
+                return;
+            }
+            *applying.borrow_mut() = request;
             resolved.set(Some(to));
             controller.move_to(
                 to,

@@ -356,7 +356,7 @@ impl AppInstance {
         }
         self.ime_area = area;
         if let (Some(controls), Some((x, y, width, height))) = (&self.controls, area) {
-            controls.set_ime_cursor_area(x, y, width, height);
+            controls.set_field_cursor_area(x, y, width, height);
         }
     }
 

@@ -211,7 +211,9 @@ define_class!(
                 && let Some(context) = self.inputContext()
                 && context.handleEvent(event)
             {
-                self.ivars().routed.borrow_mut().push(event.keyCode());
+                if !event.isARepeat() {
+                    self.ivars().routed.borrow_mut().push(event.keyCode());
+                }
                 return;
             }
             self.send(input::key(event, KeyboardEventName::KeyDown));

@@ -299,12 +299,27 @@ impl Component for Table {
                 .collect()
         }));
         let chosen: HashSet<usize> = selected.iter().copied().collect();
+        let held = use_held_modifiers();
+        let section = offset..offset + self.rows.len();
         let on_select = self.selection.map(|mut selection| {
             Callback::new(move |rows: Vec<usize>| {
-                selection.set(rows.into_iter().map(|row| row + offset).collect())
+                let extending = held
+                    .peek()
+                    .intersects(Modifiers::SHIFT | Modifiers::CONTROL | Modifiers::META);
+                let others: Vec<usize> = selection
+                    .peek()
+                    .iter()
+                    .copied()
+                    .filter(|row| extending && !section.contains(row))
+                    .collect();
+                selection.set(
+                    others
+                        .into_iter()
+                        .chain(rows.into_iter().map(|row| row + offset))
+                        .collect(),
+                )
             })
         });
-        let held = use_held_modifiers();
         let mut hidden = use_state(Vec::<usize>::new);
         let mut widths = use_state(|| vec![None::<f32>; self.columns.len()]);
         let mut measured = use_state(|| vec![0.0f32; self.columns.len()]);

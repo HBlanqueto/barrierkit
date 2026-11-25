@@ -163,7 +163,8 @@ fn code(key_code: u16) -> Code {
 pub(super) fn key(event: &NSEvent, name: KeyboardEventName) -> PlatformEvent {
     let key_code = event.keyCode();
     let modifiers = modifiers(event.modifierFlags());
-    let characters = if modifiers.intersects(Modifiers::CONTROL | Modifiers::ALT) {
+    let characters = if modifiers.intersects(Modifiers::CONTROL | Modifiers::ALT | Modifiers::META)
+    {
         event.charactersIgnoringModifiers()
     } else {
         event.characters()

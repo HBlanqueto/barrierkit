@@ -524,10 +524,8 @@ impl VStack {
         }
     }
 
-    pub fn children<C: IntoElement>(self, children: impl IntoIterator<Item = C>) -> Self {
-        children.into_iter().fold(self, |column, child| {
-            column.push(Neighbor::Control, 0.0, child.into_element())
-        })
+    pub fn children<C: IntoElement + 'static>(self, children: impl IntoIterator<Item = C>) -> Self {
+        children.into_iter().fold(self, Self::child)
     }
 
     // A spacing set by hand replaces the distances of the neighbours.

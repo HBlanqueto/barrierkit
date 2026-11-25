@@ -238,7 +238,6 @@ impl Runtime {
                 surface.id(),
                 self.ping.clone(),
                 self.primary.clone(),
-                self.clipboard.clone(),
             )
         };
         let window_resolved = State::create_global(*self.resolved.peek());
@@ -314,7 +313,8 @@ impl Runtime {
                             self.close_window(id.clone());
                         }
                     }
-                    WindowCommand::ImeCursor(area) => self.set_ime_cursor(id.clone(), area),
+                    WindowCommand::ImeCursor(area) => self.set_ime_cursor(Some(id.clone()), area),
+                    WindowCommand::FieldCursor(area) => self.set_ime_cursor(None, area),
                     WindowCommand::Open(window) => {
                         let (app, options) = *window;
                         self.create_window(app, options, None);
@@ -388,7 +388,8 @@ impl Runtime {
                             | WindowCommand::Open(_)
                             | WindowCommand::Sheet(_)
                             | WindowCommand::Fit(_)
-                            | WindowCommand::ImeCursor(_) => unreachable!(),
+                            | WindowCommand::ImeCursor(_)
+                            | WindowCommand::FieldCursor(_) => unreachable!(),
                         }
                         self.surfaces[index].needs_redraw = true;
                     }
@@ -573,6 +574,16 @@ impl Runtime {
             }
             if let Some(appmenu) = self.surfaces[index].appmenu.take() {
                 appmenu.release();
+            }
+            let sheets: Vec<ObjectId> = self
+                .surfaces
+                .iter()
+                .filter_map(|surface| surface.context.as_ref())
+                .filter(|context| context.parent.as_ref() == Some(&surface_id))
+                .map(|context| context.controls.surface_id.clone())
+                .collect();
+            for sheet in sheets {
+                self.close_window(sheet);
             }
             self.close_popups_of(&surface_id);
             let Some(index) = self.surface_index_by_id(&surface_id) else {

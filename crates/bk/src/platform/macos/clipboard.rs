@@ -1,4 +1,3 @@
-use crate::drag::DragPayload;
 use freya_clipboard::copypasta::{
     ClipboardContext, ClipboardProvider, nop_clipboard::NopClipboardContext,
 };
@@ -21,12 +20,6 @@ impl Clipboard {
         match ClipboardContext::new() {
             Ok(context) if self.system => Box::new(context),
             _ => Box::new(NopClipboardContext::new().expect("the nop clipboard cannot fail")),
-        }
-    }
-
-    pub(crate) fn set_rich(&self, text: String, html: String) {
-        if self.system {
-            crate::platform::pasteboard::write(None, &DragPayload::Html { text, html });
         }
     }
 }

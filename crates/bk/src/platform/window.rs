@@ -237,7 +237,6 @@ pub struct WindowControls {
     pub toolbar_on_hover: bool,
     pub ime_preedit: State<String>,
     pub(crate) primary: Clipboard,
-    pub(crate) clipboard: Clipboard,
 }
 
 pub(crate) fn window_activated() -> bool {
@@ -253,7 +252,6 @@ impl WindowControls {
         surface_id: ObjectId,
         ping: Ping,
         primary: Clipboard,
-        clipboard: Clipboard,
     ) -> Self {
         let fixed = options.fixed();
         Self {
@@ -286,7 +284,6 @@ impl WindowControls {
                 == WindowToolbarFullScreenVisibility::OnHover,
             ime_preedit: State::create_global(String::new()),
             primary,
-            clipboard,
         }
     }
 
@@ -379,16 +376,16 @@ impl WindowControls {
         }
     }
 
-    pub fn copy_rich(&self, text: String, html: String) {
-        self.clipboard.set_rich(text, html);
-    }
-
     pub fn primary_selection(&self) -> Box<dyn freya_clipboard::copypasta::ClipboardProvider> {
         self.primary.provider()
     }
 
     pub fn set_ime_cursor_area(&self, x: i32, y: i32, width: i32, height: i32) {
         self.send(WindowCommand::ImeCursor((x, y, width, height)));
+    }
+
+    pub(crate) fn set_field_cursor_area(&self, x: i32, y: i32, width: i32, height: i32) {
+        self.send(WindowCommand::FieldCursor((x, y, width, height)));
     }
 
     pub(crate) fn open_sheet(&self, app: AppComponent, mut options: WindowOptions) {
@@ -446,6 +443,7 @@ pub(crate) enum WindowCommand {
     Sheet(Box<(AppComponent, WindowOptions)>),
     Fit((u32, u32)),
     ImeCursor((i32, i32, i32, i32)),
+    FieldCursor((i32, i32, i32, i32)),
 }
 
 pub(crate) struct OpenUtility {

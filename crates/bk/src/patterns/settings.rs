@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Area, Direction, Gaps, Size};
 
-use crate::app::{load_restoration, save_restoration};
+use crate::app::{defaults::restoration_file, read_toml, write_toml};
 use crate::controlled::use_mirror;
 use crate::controls::SearchField;
 use crate::sidebar::{Sidebar, SidebarAccount, SidebarItem, SidebarSection};
@@ -232,6 +232,10 @@ pub fn index(panes: &[&Pane]) -> SearchIndex<Hit> {
     index
 }
 
+fn settings_file(app_id: &str) -> std::path::PathBuf {
+    restoration_file(app_id, &format!("{app_id}.settings"))
+}
+
 forward_overrides!(SettingsWindow);
 
 impl Component for SettingsWindow {
@@ -241,7 +245,7 @@ impl Component for SettingsWindow {
         let restoration = self.restoration;
         let saved = use_hook(|| {
             restoration
-                .map(load_restoration::<Restored>)
+                .map(|app_id| read_toml::<Restored>(&settings_file(app_id)))
                 .unwrap_or_default()
         });
         let known = |id: &String| self.panes().map(|pane| pane.id).find(|known| known == id);
@@ -257,7 +261,7 @@ impl Component for SettingsWindow {
                 sidebar: *layout.read(),
             };
             if let Some(app_id) = restoration
-                && let Err(error) = save_restoration(app_id, &state)
+                && let Err(error) = write_toml(&settings_file(app_id), &state)
             {
                 tracing::warn!(%error, "settings: the state was not saved");
             }

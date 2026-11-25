@@ -55,8 +55,10 @@ check() {
     {
         cargo clippy --locked -p bk --lib -- -D warnings $allow
         cargo clippy --locked -p bk --lib --no-default-features -- -D warnings $allow
-        cargo clippy --locked --workspace --lib --examples --features "$features" -- -D warnings $allow
+        cargo clippy --locked --workspace --lib --examples --tests --features "$features" -- -D warnings $allow
     }
+    cargo clippy --locked -p ctdesign -p ctappearance -p limitless --lib -- -D warnings
+    cargo test --locked --workspace --lib --features "$features"
     "$script_dir/scripts/check-design-tokens.sh"
     "$script_dir/scripts/check-client-only-deps.sh"
     "$script_dir/scripts/check-platform-cfg.sh"

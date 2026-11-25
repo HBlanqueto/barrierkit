@@ -591,6 +591,7 @@ impl Runtime {
         contexts.insert_context(freya_clipboard::prelude::Clipboard::create(Some(Box::new(
             shell.clipboard.clone(),
         ))));
+        contexts.insert_context(shell.clipboard.clone());
         if let Some(seat) = shell.seat_handle.clone() {
             shell.attach_clipboard(&seat);
             shell.attach_text_input(&seat);
@@ -634,6 +635,9 @@ impl Runtime {
     pub(crate) fn poll_all(&mut self) {
         for window in &mut self.surfaces {
             window.needs_redraw |= window.app.pump();
+            if let Some(handle) = &window.menu_handle {
+                handle.set_field_focused(window.app.text_field_focused());
+            }
             if self.request_redraw_all {
                 window.needs_redraw = true;
             }
