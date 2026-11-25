@@ -805,7 +805,6 @@
         "toolbar-start": {"unified": 16, "compact": 22, "expanded": 11},
         "fullscreen-start": {"unified": 22, "compact": 14, "expanded": 11},
         "system-veil": "#ffffff09",
-        "inspector-band": ["#ffffffe6", "#2a2a2bbf", "#ffffffe6", "#2a2a2bbf"],
         "double-click": {
           "interval-ms": 400,
           "slop": 4

@@ -1,8 +1,6 @@
 use freya_animation::prelude::use_animation_transition;
 
-use ctdesign::{
-    Font, LIST_GROUP, LIST_SECTION, SPLIT_VIEW, SUBHEADLINE, TITLEBAR_INSPECTOR_BAND, TOOLGROUP,
-};
+use ctdesign::{Font, LIST_GROUP, LIST_SECTION, SPLIT_VIEW, SUBHEADLINE, TOOLGROUP};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Area, Content, Direction, Gaps, Position, Size};
@@ -94,7 +92,7 @@ impl Component for ContentColumn {
 pub(crate) struct BarOverhang {
     pub(crate) leading: State<f32>,
     pub(crate) trailing: State<f32>,
-    // Whether the bar draws its veil and separator; the inspector's glass hides the kit's bar, so the column draws them too.
+    // Whether the bar draws its veil and separator: the inspector's glass then starts below the bar, which runs over it as over the detail.
     pub(crate) band: State<bool>,
 }
 
@@ -237,8 +235,13 @@ impl Component for SplitView {
         let mut inspector_area = use_state(Area::default);
         let mut detail_area = use_state(Area::default);
         crate::glass_panel::use_publish_inspector(
-            (native_panes && self.inspector.is_some() && inspector_shown > 0.0)
-                .then(|| *inspector_area.read()),
+            (native_panes && self.inspector.is_some() && inspector_shown > 0.0).then(|| {
+                let mut area = *inspector_area.read();
+                let below = if *bar_band.read() { bar_height } else { 0.0 };
+                area.origin.y += below;
+                area.size.height -= below;
+                area
+            }),
         );
         let (min_width, max_width) = self.sidebar_range;
         let initial_width = self
@@ -505,7 +508,8 @@ impl Component for SplitView {
                             }))
                             .maybe_child(
                                 (native_panes && *bar_band.read())
-                                    .then(|| inspector_band(bar_height)),
+                                    .then(|| inspector_bar_line(bar_height))
+                                    .flatten(),
                             )
                     }),
             )
@@ -598,25 +602,16 @@ impl Component for ColumnGrip {
     }
 }
 
-fn inspector_band(height: f32) -> Rect {
+fn inspector_bar_line(height: f32) -> Option<Rect> {
     let paints = Paints::current(ControlState::default());
-    let band = TITLEBAR_INSPECTOR_BAND[appearance_index()];
-    let line = crate::theme::window_material_here().then(TitlebarStyle::line);
-    rect()
-        .position(Position::new_absolute().top(0.0).left(0.0))
-        .width(Size::fill())
-        .child(
-            rect()
-                .width(Size::fill())
-                .height(Size::px(height))
-                .background(crate::theme::color(band)),
-        )
-        .maybe_child(line.map(|(ink, thickness)| {
-            rect()
-                .width(Size::fill())
-                .height(Size::px(thickness))
-                .background(paints.fill(&StateValue::new(ink)))
-        }))
+    let (ink, thickness) = crate::theme::window_material_here().then(TitlebarStyle::line)?;
+    Some(
+        rect()
+            .position(Position::new_absolute().top(height).left(0.0))
+            .width(Size::fill())
+            .height(Size::px(thickness))
+            .background(paints.fill(&StateValue::new(ink))),
+    )
 }
 
 // A form in SwiftUI's inspector keeps its inset to the column, and over the column's material its cards and titles are the sidebar's.

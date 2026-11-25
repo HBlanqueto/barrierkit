@@ -365,9 +365,10 @@ it keeps `SPLIT_VIEW.inspector_form_padding` (10) to the column, its cards are
 its titles take the sidebar's ink and its section headers are `SUBHEADLINE`
 semibold in the secondary ink, `SPLIT_VIEW.inspector_header_gap` (6) above the
 card, as over SwiftUI's inspector material. Over still detail content the bar's
-veil and separator run over the inspector too: the column draws
-`TITLEBAR_INSPECTOR_BAND` under the bar and starts its divider below it. The
-inspector's own scrolling does not count as content under the bar.
+veil and separator run over the inspector too: AppKit's inspector glass then
+starts below the bar, so the bar covers the column in the same color as the
+detail, and the divider starts below it. The inspector's own scrolling does not
+count as content under the bar.
 
 Where the sidebar is AppKit's glass (macOS 26), the inspector is too: the
 kit publishes the pane's rect, AppKit draws that split item's glass over the

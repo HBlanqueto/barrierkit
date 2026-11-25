@@ -333,7 +333,6 @@ CONTENT_UNAVAILABLE_ACTIONS_GAP f32 components.content-unavailable.actions-gap
 DOMINANT_MIN_CHROMA f32 appearance.dominant.min-chroma
 TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
 TITLEBAR_SYSTEM_VEIL Rgba components.window.titlebar.system-veil
-TITLEBAR_INSPECTOR_BAND [Rgba;4] components.window.titlebar.inspector-band
 TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
 TITLEBAR_EXPANDED_TITLE_HEIGHT f32 components.window.titlebar.expanded-title.height
 TITLEBAR_EXPANDED_TITLE_GAP f32 components.window.titlebar.expanded-title.gap
