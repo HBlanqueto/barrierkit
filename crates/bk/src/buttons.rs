@@ -152,10 +152,17 @@ impl Component for MenuButton {
             .maybe(!icon_only, |button| {
                 button
                     .map(self.image, |button, image| {
+                        let side = style.font.size as f32;
                         button.child(
-                            crate::symbol::Image::system(image)
-                                .size(style.font.size as f32)
-                                .color(paints.color(style.label.resolve(state))),
+                            rect()
+                                .width(Size::px(side))
+                                .height(Size::px(side))
+                                .center()
+                                .child(
+                                    crate::symbol::Image::system(image)
+                                        .size(side)
+                                        .color(paints.color(style.label.resolve(state))),
+                                ),
                         )
                     })
                     .child(

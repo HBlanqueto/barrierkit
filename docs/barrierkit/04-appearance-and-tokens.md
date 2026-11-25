@@ -136,12 +136,13 @@ symbol keep Skia's own placement.
 ## Symbols
 
 `Image::system(symbol)` draws a line icon, like SwiftUI's
-`Image(systemName:)`. It is `BODY.size` pixels square, in the `label` color
-of the `Palette`. `.size(f32)` and `.color(Rgba)` change them. `.font(Font)`
-is SwiftUI's `.font(_:)` on a symbol: the font's size in SF points (an SF
-symbol at 16 pt fills the kit's 20 px frame) and its weight; within 1 px of
-SwiftUI from `BODY` to `LARGE_TITLE`, 2 px larger at `CAPTION_2`, where SF
-changes its optical size. The icons
+`Image(systemName:)`: by default at `BODY` in SF points (an SF symbol at
+16 pt fills the kit's 20 px grid), in the `label` color of the `Palette`.
+`.size(f32)` and `.color(Rgba)` change them. `.font(Font)` is SwiftUI's
+`.font(_:)` on a symbol: the font's size in SF points and its weight. A symbol
+lays out in its own SF frame, not a square: each one's width and height per
+point, measured with SwiftUI from 10 to 32 pt, so a stack of symbols and text
+spaces as SwiftUI's within 1 px (`tray` at 13 pt is 19 × 13). The icons
 are drawn on a grid of `SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke`
 (1), like SF Symbols at regular weight and medium scale. Inside a `SymbolTile`
 they take `SYMBOL.fine_stroke` (also 1).

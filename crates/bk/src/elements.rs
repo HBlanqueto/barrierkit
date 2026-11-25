@@ -419,11 +419,17 @@ impl Label {
         } else {
             style.foreground.resolve(ControlState::default())
         };
+        let side = style.font.size as f32 * if compact { 1.0 } else { LABEL_ICON_FRAME };
         let icon = Image::system(image)
-            .size(style.font.size as f32 * if compact { 1.0 } else { LABEL_ICON_FRAME })
+            .size(side)
             .color(paints.color(foreground));
         let icon = if compact {
-            icon.into_element()
+            rect()
+                .width(Size::px(side))
+                .height(Size::px(side))
+                .center()
+                .child(icon)
+                .into_element()
         } else {
             rect()
                 .width(Size::px(LABEL_ICON_WIDTH))

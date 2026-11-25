@@ -157,7 +157,7 @@ give one.
 | Method | Default | Effect |
 |---|---|---|
 | `Button::new(label)` | — | `label` is visible text, see [step 2](#steps) |
-| `Button::system_image(label, Symbol)` | — | A symbol before the label, in the label's color |
+| `Button::system_image(label, Symbol)` | — | A symbol before the label, in the label's color, laid out as SwiftUI's `Label`: the symbol at the font's size in SF points, centered in `LABEL_ICON_WIDTH`, `LABEL_GAP` before the label |
 | `.label(\|\| view)` | the drawn text | A closure that returns the view drawn in place of the text; the string of `new` stays the accessible name |
 | `.style(\|s\| ..)` | Tengen, SwiftUI's `.bordered` | Look: a preset or any field of `ButtonStyle`, see below |
 | `.size(ControlSize)` | `Regular` | Height, padding, font and corners; see [control size](#control-size) |

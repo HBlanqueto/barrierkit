@@ -20,7 +20,7 @@ use torin::prelude::Size;
 use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
 
 // An SF symbol at 16 pt fills the kit's 20 px frame on the 16 grid (docs/research/macos-icons.md).
-const SF_POINT: f32 = 20.0 / 16.0;
+pub(crate) const SF_POINT: f32 = 20.0 / 16.0;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum SymbolWeight {
@@ -681,6 +681,169 @@ impl Symbol {
         )
     }
 
+    // SF's layout frame of the symbol per point of its size, as SwiftUI lays `Image(systemName:)` out (macOS 27.2, 10-32 pt).
+    fn frame_ratio(self) -> (f32, f32) {
+        match self {
+            Self::Accessibility => (1.1707, 1.1707),
+            Self::ArrowClockwise => (1.0545, 1.2417),
+            Self::ArrowCounterclockwise => (1.0545, 1.2417),
+            Self::ArrowDown => (1.005, 1.1148),
+            Self::ArrowDownCircle => (1.1707, 1.1707),
+            Self::ArrowDownToLine => (1.005, 1.2197),
+            Self::ArrowLeft => (1.1713, 0.9361),
+            Self::ArrowLeftCircle => (1.1707, 1.1707),
+            Self::ArrowRight => (1.1713, 0.9361),
+            Self::ArrowRightCircle => (1.1707, 1.1707),
+            Self::ArrowUp => (1.005, 1.1148),
+            Self::ArrowUpArrowDown => (1.4102, 1.1487),
+            Self::ArrowUpCircle => (1.1707, 1.1707),
+            Self::ArrowUpForward => (0.9846, 0.9157),
+            Self::ArrowUturnBackward => (1.1836, 1.1115),
+            Self::ArrowUturnForward => (1.1836, 1.1115),
+            Self::Backward => (1.4871, 0.9361),
+            Self::Battery => (1.7043, 0.861),
+            Self::Bed => (1.5055, 1.0262),
+            Self::Bell => (1.1468, 1.2197),
+            Self::Bold => (0.8398, 0.894),
+            Self::Bolt => (0.9901, 1.3257),
+            Self::Bookmark => (1.0636, 1.2417),
+            Self::Briefcase => (1.3945, 1.1432),
+            Self::Calendar => (1.2395, 1.0854),
+            Self::Camera => (1.4628, 1.1256),
+            Self::CameraFill => (1.4628, 1.1256),
+            Self::CapsuleOnRectangle => (1.5055, 1.1707),
+            Self::CapsuleOnRectangleFill => (1.5105, 1.2472),
+            Self::Captions => (1.3337, 1.2197),
+            Self::Checkmark => (1.0983, 1.0295),
+            Self::CheckmarkCircle => (1.1707, 1.1707),
+            Self::CheckmarkCircleFill => (1.1707, 1.1707),
+            Self::CheckmarkSquare => (1.1542, 1.0854),
+            Self::ChevronDoubleRight => (1.1925, 1.049),
+            Self::ChevronDown => (1.1178, 0.6784),
+            Self::ChevronLeft => (0.7594, 1.049),
+            Self::ChevronLeftCircle => (1.1707, 1.1707),
+            Self::ChevronLeftForwardSlashChevronRight => (1.6335, 1.1256),
+            Self::ChevronRight => (0.7594, 1.049),
+            Self::ChevronRightCircle => (1.1707, 1.1707),
+            Self::ChevronUp => (1.1178, 0.6784),
+            Self::ChevronUpDown => (0.9083, 1.1385),
+            Self::Circle => (1.1707, 1.1707),
+            Self::CircleHalf => (1.1707, 1.1707),
+            Self::Clock => (1.1707, 1.1707),
+            Self::DesktopComputer => (1.4298, 1.1707),
+            Self::DiamondFill => (1.3359, 1.3359),
+            Self::Display => (1.4298, 1.1707),
+            Self::DocOnDoc => (1.2395, 1.4213),
+            Self::DocText => (1.0903, 1.2417),
+            Self::Document => (1.0903, 1.2417),
+            Self::Dot => (1.1707, 1.1707),
+            Self::Eject => (1.2073, 1.1024),
+            Self::Ellipsis => (1.1115, 0.378),
+            Self::EllipsisCircle => (1.1707, 1.1707),
+            Self::Envelope => (1.4378, 1.0295),
+            Self::ExclamationMarkCircle => (1.1707, 1.1707),
+            Self::ExclamationMarkCircleFill => (1.1707, 1.1707),
+            Self::ExclamationMarkTriangle => (1.2434, 1.1256),
+            Self::ExclamationMarkTriangleFill => (1.2434, 1.1256),
+            Self::Expand => (1.1944, 1.1256),
+            Self::ExternalDrive => (1.4102, 1.0295),
+            Self::Film => (1.4102, 1.0854),
+            Self::Flag => (1.1503, 1.1547),
+            Self::Flower => (1.3359, 1.2472),
+            Self::Folder => (1.3739, 1.0854),
+            Self::Forward => (1.4871, 0.9361),
+            Self::GearShape => (1.2357, 1.2357),
+            Self::GearShape2 => (1.5295, 1.2607),
+            Self::GoBackward => (1.1707, 1.2968),
+            Self::GoForward => (1.1707, 1.2968),
+            Self::Heart => (1.2395, 1.0854),
+            Self::HeartFill => (1.2395, 1.0854),
+            Self::House => (1.4298, 1.2197),
+            Self::ICloud => (1.4213, 1.049),
+            Self::InfoCircle => (1.1707, 1.1707),
+            Self::InfoCircleFill => (1.1707, 1.1707),
+            Self::InternalDrive => (1.4102, 1.0295),
+            Self::Italic => (0.7808, 0.894),
+            Self::Key => (0.9138, 1.4152),
+            Self::Keyboard => (1.4901, 0.9692),
+            Self::Line3HorizontalDecrease => (1.2395, 0.7709),
+            Self::Link => (1.2968, 1.2968),
+            Self::ListBullet => (1.2395, 0.9069),
+            Self::Lock => (0.9678, 1.1547),
+            Self::LockFill => (0.9678, 1.1547),
+            Self::LockOpen => (1.2885, 1.1547),
+            Self::MacWindow => (1.4102, 1.0854),
+            Self::MacWindowOnRectangle => (1.4752, 1.1707),
+            Self::MagnifyingGlass => (1.1982, 1.1619),
+            Self::MenubarDockRectangle => (1.4102, 1.0854),
+            Self::Mic => (1.0278, 1.2357),
+            Self::Minus => (1.0653, 0.2789),
+            Self::MinusCircle => (1.1707, 1.1707),
+            Self::MinusCircleFill => (1.1707, 1.1707),
+            Self::Moon => (1.1619, 1.1707),
+            Self::MusicNote => (0.8626, 1.1707),
+            Self::Network => (1.1707, 1.1707),
+            Self::NoSign => (1.1707, 1.1707),
+            Self::PaperPlane => (1.2398, 1.2197),
+            Self::Pause => (0.8626, 0.9964),
+            Self::PauseCircle => (1.1707, 1.1707),
+            Self::Pencil => (1.016, 0.984),
+            Self::Person => (1.1233, 1.0936),
+            Self::PersonCropCircle => (1.1707, 1.1707),
+            Self::Phone => (1.1982, 1.1487),
+            Self::Photo => (1.4102, 1.0854),
+            Self::Play => (0.8899, 1.0215),
+            Self::PlayCircle => (1.1707, 1.1707),
+            Self::Plus => (1.0653, 0.9964),
+            Self::PlusCircle => (1.1707, 1.1707),
+            Self::PlusCircleFill => (1.1707, 1.1707),
+            Self::PlusRectangle => (1.4102, 1.0854),
+            Self::Printer => (1.3739, 1.2472),
+            Self::QuestionMark => (0.7855, 1.1256),
+            Self::QuestionMarkCircle => (1.1707, 1.1707),
+            Self::QuestionMarkCircleFill => (1.1707, 1.1707),
+            Self::RectangleDashed => (1.4102, 1.0854),
+            Self::RectangleOnRectangle => (1.4752, 1.1707),
+            Self::Repeat => (1.3045, 1.0647),
+            Self::Scissors => (1.5295, 1.1707),
+            Self::Shuffle => (1.3945, 1.0854),
+            Self::SidebarLeft => (1.4102, 1.0854),
+            Self::SidebarRight => (1.4102, 1.0854),
+            Self::SlidersVertical => (1.1542, 1.0545),
+            Self::SpeakerSlash => (1.0286, 1.2417),
+            Self::SpeakerWave => (1.4127, 1.0545),
+            Self::SpeakerWave1 => (1.1985, 1.0545),
+            Self::Square => (1.1542, 1.0854),
+            Self::SquareAndArrowDown => (1.1294, 1.3298),
+            Self::SquareAndArrowUp => (1.1294, 1.3643),
+            Self::SquareAndPencil => (1.2461, 1.2357),
+            Self::SquareGrid => (1.1542, 1.0854),
+            Self::SquareOnSquare => (1.2974, 1.2197),
+            Self::Star => (1.3062, 1.2357),
+            Self::StarFill => (1.3062, 1.2357),
+            Self::StopFill => (1.0529, 0.984),
+            Self::Tag => (1.3345, 1.3051),
+            Self::TextAlignCenter => (1.2395, 1.0383),
+            Self::TextAlignLeft => (1.2395, 1.0383),
+            Self::TextAlignRight => (1.2395, 1.0383),
+            Self::TextFormatSize => (1.3739, 0.9157),
+            Self::TextJustify => (1.2395, 1.0383),
+            Self::Trash => (1.1145, 1.2789),
+            Self::Tray => (1.4102, 1.0295),
+            Self::TriangleDown => (0.9989, 0.984),
+            Self::TriangleLeft => (1.0303, 0.9752),
+            Self::TriangleRight => (1.0303, 0.9752),
+            Self::TriangleUp => (0.9989, 0.984),
+            Self::Tv => (1.484, 1.1707),
+            Self::Wifi => (1.337, 0.984),
+            Self::XMark => (1.0529, 0.984),
+            Self::XMarkCircle => (1.1707, 1.1707),
+            Self::XMarkCircleFill => (1.1707, 1.1707),
+            Self::XMarkRectangle => (1.4102, 1.0854),
+            Self::Bluetooth | Self::Vpn => (SF_POINT, SF_POINT),
+        }
+    }
+
     fn is_filled(self) -> bool {
         self.is_solid()
             || matches!(
@@ -956,12 +1119,18 @@ impl From<Image> for Element {
             (Source::System(glyph), _) => {
                 let size = style.size * SYMBOL_SCALE_SIZE[image.scale as usize];
                 let stroke = style.stroke * image.scale.weight_strokes()[image.weight as usize];
-                viewer(
-                    source(glyph, stroke, image.symbol_rendering_mode),
-                    size,
-                    color,
-                )
-                .into_element()
+                let (width, height) = glyph.frame_ratio();
+                let points = size / SF_POINT;
+                rect()
+                    .width(Size::px(points * width))
+                    .height(Size::px(points * height))
+                    .center()
+                    .child(viewer(
+                        source(glyph, stroke, image.symbol_rendering_mode),
+                        size,
+                        color,
+                    ))
+                    .into_element()
             }
             (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
                 SvgViewer::new(bytes)

@@ -156,7 +156,14 @@ impl Component for Button {
             .corner_radius(radius)
             .center()
             .direction(Direction::Horizontal)
-            .spacing(ctdesign::SPACE_1)
+            // An image beside the title lays out as SwiftUI's `Label`: a fixed icon column and its gap.
+            .spacing(
+                if self.image.is_some() && !icon_only && self.content.is_none() {
+                    ctdesign::LABEL_GAP
+                } else {
+                    ctdesign::SPACE_1
+                },
+            )
             .maybe(glass.is_none(), |el| {
                 el.painted(&paints, &style.background)
                     .bordered(&paints, style.border.as_ref())
@@ -202,13 +209,23 @@ impl Component for Button {
                 TextStyleScope::new(style.font, style.label.resolve(state).clone(), content)
             }))
             .maybe_child(self.image.filter(|_| self.content.is_none()).map(|image| {
-                crate::symbol::Image::system(image)
-                    .size(if icon_only {
-                        ctdesign::ICON_BUTTON.toolbar_icon
+                let side = if icon_only {
+                    ctdesign::ICON_BUTTON.toolbar_icon
+                } else {
+                    font.size as f32 * crate::symbol::SF_POINT
+                };
+                rect()
+                    .width(Size::px(if icon_only {
+                        side
                     } else {
-                        font.size as f32
-                    })
-                    .color(paints.color(style.label.resolve(state)))
+                        ctdesign::LABEL_ICON_WIDTH
+                    }))
+                    .center()
+                    .child(
+                        crate::symbol::Image::system(image)
+                            .size(side)
+                            .color(paints.color(style.label.resolve(state))),
+                    )
             }))
             .maybe_child(
                 (self.content.is_none() && !self.label.is_empty() && !icon_only).then(|| {
