@@ -3,16 +3,17 @@ use std::borrow::Cow;
 
 use ctdesign::{
     Font, LABEL_GAP, LABEL_ICON_FRAME, LABEL_ICON_HEIGHT, LABEL_ICON_WIDTH, SPACE_1, SPACE_2,
-    STACK_COLUMN_GAPS, STACK_TEXT_ABOVE, STACK_TEXT_BELOW, STACK_TEXT_SIZES,
+    STACK_COLUMN_GAPS, STACK_TEXT_ABOVE, STACK_TEXT_BELOW, STACK_TEXT_SIZES, SYSTEM_SIZE_ASCENT,
+    SYSTEM_SIZE_DESCENT, SYSTEM_SIZE_LEADING,
 };
 use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
-use torin::prelude::{Alignment, Direction, Size};
+use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::controls::Checkbox;
 use crate::rich_text::styled_spans;
 use crate::style::Palette;
-use crate::style::with_pitch;
+use crate::style::{sized_font, with_pitch};
 use crate::styled_text::{Inline, Piece, explicit, layered};
 use crate::styles::{
     ControlState, InTextStyleScope, Paints, ShapeStyle, TextStyle, Theme, resolve,
@@ -284,6 +285,18 @@ impl Text {
         Self(with_pitch(self.0, font), self.1, self.2, self.3)
     }
 
+    /// A size outside the text styles, in SF's optical variant for it and with the line SwiftUI gives `.system(size:)`.
+    pub fn font_size(mut self, size: impl Into<FontSize>) -> Self {
+        let size = f32::from(size.into());
+        let style: TextStyle = resolve(&self.2);
+        let line = system_line_height(size) / size;
+        self.3.line_height = line;
+        let view = sized_font(self.0, style.font.family, size)
+            .line_height(line)
+            .margin(Gaps::new(0.0, 0.0, 0.0, 0.0));
+        Self(view, self.1, self.2, self.3)
+    }
+
     pub fn line_limit(mut self, lines: usize) -> Self {
         self.3.max_lines = Some(lines);
         Self(self.0.max_lines(lines), self.1, self.2, self.3)
@@ -383,6 +396,14 @@ impl From<Text> for Element {
 forward_element!(Text, custom_from);
 
 impl TextOverflowExt for Text {}
+
+// SwiftUI rounds SF's ascent and descent apart and adds a point of leading at some sizes (measured 8-96 pt on macOS 27.2).
+fn system_line_height(size: f32) -> f32 {
+    let leading = SYSTEM_SIZE_LEADING.contains(&size.round());
+    (size * SYSTEM_SIZE_ASCENT).round()
+        + (size * SYSTEM_SIZE_DESCENT).round()
+        + f32::from(u8::from(leading))
+}
 
 pub struct Label(Rect);
 
@@ -565,4 +586,24 @@ fn stack(direction: Direction) -> Rect {
         .main_align(Alignment::Center)
         .cross_align(Alignment::Center)
         .spacing(SPACE_2)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_custom_size_line_is_as_tall_as_swiftuis() {
+        let measured = [
+            (10.0, 13.0),
+            (13.0, 16.0),
+            (17.0, 20.0),
+            (20.0, 24.0),
+            (48.0, 56.0),
+            (96.0, 113.0),
+        ];
+        for (size, line) in measured {
+            assert_eq!(system_line_height(size), line, "{size} pt");
+        }
+    }
 }

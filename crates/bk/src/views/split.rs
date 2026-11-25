@@ -1,6 +1,8 @@
 use freya_animation::prelude::use_animation_transition;
 
-use ctdesign::{LIST_GROUP, SPLIT_VIEW, TOOLGROUP};
+use ctdesign::{
+    Font, LIST_GROUP, LIST_SECTION, SPLIT_VIEW, SUBHEADLINE, TITLEBAR_INSPECTOR_BAND, TOOLGROUP,
+};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Area, Content, Direction, Gaps, Position, Size};
@@ -18,8 +20,8 @@ use crate::platform::backdrop::Declared;
 use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, FormStyle, LayoutDirection, Paints, ShapeStyle, SplitViewStyle, StateValue,
-    StyleScope, Theme, appearance_index, resolve,
+    ControlState, FormStyle, LayoutDirection, Paints, Role, ShapeStyle, SplitViewStyle, StateValue,
+    StyleScope, Theme, TitlebarStyle, appearance_index, resolve,
 };
 use crate::symbol::Symbol;
 use crate::titlebar::{TITLEBAR_OVERLAY_LAYER, sidebar_toggle_placement};
@@ -92,6 +94,8 @@ impl Component for ContentColumn {
 pub(crate) struct BarOverhang {
     pub(crate) leading: State<f32>,
     pub(crate) trailing: State<f32>,
+    // Whether the bar draws its veil and separator; the inspector's glass hides the kit's bar, so the column draws them too.
+    pub(crate) band: State<bool>,
 }
 
 #[derive(PartialEq)]
@@ -220,10 +224,12 @@ impl Component for SplitView {
                 .map_or(0.0, |_| style.inspector_width * inspector_shown),
         );
         let mut content_span = use_state(|| 0.0f32);
+        let bar_band = use_state(|| false);
         use_hook(|| {
             provide_context(BarOverhang {
                 leading: content_span,
                 trailing: inspector_span,
+                band: bar_band,
             })
         });
         let bar_height = try_consume_root_context::<WindowControls>()
@@ -491,10 +497,16 @@ impl Component for SplitView {
                                     .child(inspector_form(inspector.clone())),
                             )
                             .maybe_child(native_panes.then(|| {
+                                // SwiftUI's divider starts under the bar's veil, as the bar runs over the inspector.
+                                let top = if *bar_band.read() { bar_height } else { 0.0 };
                                 line()
                                     .height(Size::percent(100.0))
-                                    .position(Position::new_absolute().left(0.0).top(0.0))
+                                    .position(Position::new_absolute().left(0.0).top(top))
                             }))
+                            .maybe_child(
+                                (native_panes && *bar_band.read())
+                                    .then(|| inspector_band(bar_height)),
+                            )
                     }),
             )
             .maybe_child((overlay && shown > 0.0).then(|| {
@@ -586,6 +598,27 @@ impl Component for ColumnGrip {
     }
 }
 
+fn inspector_band(height: f32) -> Rect {
+    let paints = Paints::current(ControlState::default());
+    let band = TITLEBAR_INSPECTOR_BAND[appearance_index()];
+    let line = crate::theme::window_material_here().then(TitlebarStyle::line);
+    rect()
+        .position(Position::new_absolute().top(0.0).left(0.0))
+        .width(Size::fill())
+        .child(
+            rect()
+                .width(Size::fill())
+                .height(Size::px(height))
+                .background(crate::theme::color(band)),
+        )
+        .maybe_child(line.map(|(ink, thickness)| {
+            rect()
+                .width(Size::fill())
+                .height(Size::px(thickness))
+                .background(paints.fill(&StateValue::new(ink)))
+        }))
+}
+
 // A form in SwiftUI's inspector keeps its inset to the column, and over the column's material its cards and titles are the sidebar's.
 fn inspector_form(inspector: Element) -> StyleScope {
     let inset = SPLIT_VIEW.inspector_form_padding;
@@ -593,6 +626,17 @@ fn inspector_form(inspector: Element) -> StyleScope {
     let ink = crate::sidebar::item_palette(true).item_ink;
     inspector.control_style(move |style: FormStyle| FormStyle {
         padding: [inset; 4],
+        header_padding: [
+            style.header_padding[0],
+            style.header_padding[1],
+            SPLIT_VIEW.inspector_header_gap,
+            style.header_padding[3],
+        ],
+        header: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
+        header_font: Font {
+            weight: LIST_SECTION.header_weight,
+            ..SUBHEADLINE
+        },
         background: StateValue::new(ShapeStyle::Color(card)),
         title: StateValue::new(ShapeStyle::Color(ink)),
         ..style

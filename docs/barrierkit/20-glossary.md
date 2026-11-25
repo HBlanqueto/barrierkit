@@ -140,6 +140,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 |---|---|---|---|---|---|---|
 | `prelude` | module | `import SwiftUI` | `import AppKit` | — | Re-exports the entry points, controls, Freya's prelude and the tokens | [2](02-first-app.md#the-prelude) |
 | `elements::Text` | struct | `Text` | `NSTextField(labelWithString:)` | `UILabel` | Text with `BODY` and the label color by default; wraps | [2](02-first-app.md#text-and-stacks) |
+| `elements::Text::font_size` | method | `.font(.system(size:))` | `NSFont.systemFont(ofSize:)` | `UIFont.systemFont(ofSize:)` | A size outside the text styles, with SwiftUI's line height for it | [4](04-appearance-and-tokens.md#fonts) |
 | `elements::Text::line_limit` | method | `.lineLimit(_:)` | `NSTextField.maximumNumberOfLines` | `UILabel.numberOfLines` | Shows at most `n` lines | [2](02-first-app.md#text-and-stacks) |
 | `elements::Text::markdown` | fn | `Text("**x**")`, `AttributedString(markdown:)` | `NSAttributedString(markdown:)` | `NSAttributedString(markdown:)` | Reads inline Markdown: `**bold**`, `*italic*`, `~~strike~~`, `` `code` ``, `[title](https://x.org)`; `Text::new` keeps its string as it is | [6](06-text-and-editing.md#text-runs) |
 | `elements::Text::bold`, `italic`, `underline`, `strikethrough` | method | `.bold(_:)`, `.italic(_:)`, `.underline(_:)`, `.strikethrough(_:)` | `NSFontManager.convert(_:toHaveTrait:)`, `NSUnderlineStyle` | — | Styles one `Text` when the `bool` is true, like SwiftUI's `isActive`; a sum of texts keeps each part's own | [6](06-text-and-editing.md#text-runs) |
@@ -478,7 +479,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
-| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | ≈ `UIImage` | Name of a built-in line icon; 154 variants, listed with their Apple names in [Symbol variants](#symbol-variants) | [4](04-appearance-and-tokens.md#symbols) |
+| `symbol::Symbol` | enum | ≈ `Image(systemName:)` names | ≈ `NSImage(systemSymbolName:accessibilityDescription:)` names | ≈ `UIImage` | Name of a built-in line icon; 158 variants, listed with their Apple names in [Symbol variants](#symbol-variants) | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::SymbolWeight` | enum | `Font.Weight` | `NSFont.Weight` | `UIFont.Weight` | The nine weights of a symbol: `UltraLight` to `Black`; `Regular` by default. Named after UIKit's `UIImage.SymbolWeight`: Freya's `FontWeight` is a number the prelude must not shadow; named `FontWeight` on 2026-11-21 only | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::ImageScale` | enum | `Image.Scale` | `NSImage.SymbolScale` | `UIImage.SymbolScale` | `Small`, `Medium` (default) or `Large`: the size of a symbol next to its text | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::SymbolRenderingMode` | enum | `SymbolRenderingMode` | `NSImage.SymbolConfiguration` | `UIImage.SymbolConfiguration` | `Monochrome` (default) or `Hierarchical` (a dimmed second layer) | [4](04-appearance-and-tokens.md#symbols) |
@@ -668,6 +669,10 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `PauseCircle` | `pause.circle` | 2026-11-21 |
 | `HeartFill` | `heart.fill` | 2026-11-21 |
 | `CameraFill` | `camera.fill` | 2026-11-21 |
+| `Bold` | `bold` | 2026-11-24 |
+| `Italic` | `italic` | 2026-11-24 |
+| `TextFormatSize` | `textformat.size` | 2026-11-24 |
+| `GearShape2` | `gearshape.2` | 2026-11-24 |
 
 ## Helpers
 

@@ -238,7 +238,7 @@
   --bk-level-indicator-bottom-1: 0.55;
   --bk-level-indicator-bottom-2: 0.11;
   --bk-level-indicator-bottom-3: 0.11;
-  --bk-level-indicator-star: 17;
+  --bk-level-indicator-star: 14.43;
   --bk-level-indicator-star-pitch: 12;
   --bk-level-indicator-star-drop: 0.4;
   --bk-level-indicator-stars: 5;
@@ -1037,6 +1037,7 @@
   --bk-split-view-collapse-below: 760;
   --bk-split-view-inspector: 270;
   --bk-split-view-inspector-form-padding: 10;
+  --bk-split-view-inspector-header-gap: 6;
   --bk-split-view-grip: 8;
   --bk-split-view-grip-line: 2;
   --bk-split-view-grip-line-inset: 18;
@@ -1072,10 +1073,10 @@
   --bk-list-group-card-1: #252525;
   --bk-list-group-card-2: #f7f7f7;
   --bk-list-group-card-3: #252525;
-  --bk-list-group-inspector-card: #f7f7f7 #ffffff07 #f7f7f7 #ffffff07;
-  --bk-list-group-inspector-card-0: #f7f7f7;
+  --bk-list-group-inspector-card: #00000008 #ffffff07 #00000008 #ffffff07;
+  --bk-list-group-inspector-card-0: #00000008;
   --bk-list-group-inspector-card-1: #ffffff07;
-  --bk-list-group-inspector-card-2: #f7f7f7;
+  --bk-list-group-inspector-card-2: #00000008;
   --bk-list-group-inspector-card-3: #ffffff07;
   --bk-list-group-separator-line: #0000000c #ffffff0c #00000033 #ffffff33;
   --bk-list-group-separator-line-0: #0000000c;
@@ -1260,6 +1261,11 @@
   --bk-window-titlebar-fullscreen-start-compact: 14;
   --bk-window-titlebar-fullscreen-start-expanded: 11;
   --bk-window-titlebar-system-veil: #ffffff09;
+  --bk-window-titlebar-inspector-band: #ffffffe6 #2a2a2bbf #ffffffe6 #2a2a2bbf;
+  --bk-window-titlebar-inspector-band-0: #ffffffe6;
+  --bk-window-titlebar-inspector-band-1: #2a2a2bbf;
+  --bk-window-titlebar-inspector-band-2: #ffffffe6;
+  --bk-window-titlebar-inspector-band-3: #2a2a2bbf;
   --bk-window-titlebar-double-click-interval-ms: 400;
   --bk-window-titlebar-double-click-slop: 4;
   --bk-window-titlebar-reveal-pill-inset: 8;
@@ -1340,6 +1346,7 @@
   --bk-window-sidebar-item-weight: 400;
   --bk-window-sidebar-item-selected-weight: 400;
   --bk-window-sidebar-item-label-selected-weight: 600;
+  --bk-window-sidebar-item-label-text-drop: 1;
   --bk-window-sidebar-item-selected-bg: var(--bk-sidebar-selection);
   --bk-window-sidebar-item-selected-ink: var(--bk-on-accent);
   --bk-window-sidebar-item-selected-icon-rim: #00000033;
@@ -4947,6 +4954,16 @@
   --bk-system-colors-dark-10: #ff375f;
   --bk-system-colors-dark-11: #b78a66;
   --bk-system-colors-dark-12: #98989d;
+  --bk-system-size-ascent: 0.9667969;
+  --bk-system-size-descent: 0.2109375;
+  --bk-system-size-leading-sizes: 10 11 15 16 19 20 21;
+  --bk-system-size-leading-sizes-0: 10;
+  --bk-system-size-leading-sizes-1: 11;
+  --bk-system-size-leading-sizes-2: 15;
+  --bk-system-size-leading-sizes-3: 16;
+  --bk-system-size-leading-sizes-4: 19;
+  --bk-system-size-leading-sizes-5: 20;
+  --bk-system-size-leading-sizes-6: 21;
   --bk-stack-text-sizes: 26 22 17 15 13 12 11 10;
   --bk-stack-text-sizes-0: 26;
   --bk-stack-text-sizes-1: 22;

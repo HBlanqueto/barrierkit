@@ -85,7 +85,7 @@
       "height": 16,
       "ring-radii": [2.09, 1.72, 0.65, 0.05],
       "bottom": [0.125, 0.55, 0.11, 0.11],
-      "star": 17,
+      "star": 14.43,
       "star-pitch": 12,
       "star-drop": 0.4,
       "stars": 5,
@@ -664,6 +664,7 @@
       "collapse-below": 760,
       "inspector": 270,
       "inspector-form-padding": 10,
+      "inspector-header-gap": 6,
       "grip": 8,
       "grip-line": 2,
       "grip-line-inset": 18,
@@ -696,7 +697,7 @@
       "capacity-frame": 24,
       "dark-accent-lift": [18, -1, 0],
       "card": ["#f7f7f7", "#252525", "#f7f7f7", "#252525"],
-      "inspector-card": ["#f7f7f7", "#ffffff07", "#f7f7f7", "#ffffff07"],
+      "inspector-card": ["#00000008", "#ffffff07", "#00000008", "#ffffff07"],
       "separator-line": ["#0000000c", "#ffffff0c", "#00000033", "#ffffff33"],
       "padding": [
         20,
@@ -804,6 +805,7 @@
         "toolbar-start": {"unified": 16, "compact": 22, "expanded": 11},
         "fullscreen-start": {"unified": 22, "compact": 14, "expanded": 11},
         "system-veil": "#ffffff09",
+        "inspector-band": ["#ffffffe6", "#2a2a2bbf", "#ffffffe6", "#2a2a2bbf"],
         "double-click": {
           "interval-ms": 400,
           "slop": 4
@@ -886,6 +888,7 @@
           "weight": 400,
           "selected-weight": 400,
           "label-selected-weight": 600,
+          "label-text-drop": 1,
           "selected-bg": "sidebar-selection",
           "selected-ink": "on-accent",
           "selected-icon-rim": "#00000033",
@@ -2305,6 +2308,11 @@
     "system-colors": {
       "light": ["#ff383c", "#ff8d28", "#ffcc00", "#34c759", "#00c8b3", "#00c3d0", "#00c0e8", "#0088ff", "#6155f5", "#cb30e0", "#ff2d55", "#ac7f5e", "#8e8e93"],
       "dark": ["#ff4245", "#ff9230", "#ffd600", "#30d158", "#00dac3", "#00d2e0", "#3cd3fe", "#0091ff", "#6d7cff", "#db34f2", "#ff375f", "#b78a66", "#98989d"]
+    },
+    "system-size": {
+      "ascent": 0.9667969,
+      "descent": 0.2109375,
+      "leading-sizes": [10, 11, 15, 16, 19, 20, 21]
     },
     "stack": {
       "text-sizes": [26, 22, 17, 15, 13, 12, 11, 10],

@@ -361,9 +361,13 @@ with no sidebar, `.inspector(view, presented)` of `ViewModifiers` builds that
 As SwiftUI's, the inspector starts below the bar, and the bar runs over it to
 the window's edge, so the trailing items sit above the inspector. A `Form` in
 it keeps `SPLIT_VIEW.inspector_form_padding` (10) to the column, its cards are
-`LIST_GROUP.inspector_card` (white at 0.027 in Dark) and its titles take the
-sidebar's ink, as over SwiftUI's inspector material (Light keeps the window's
-card; not measured).
+`LIST_GROUP.inspector_card` (black at 0.03 in Light, white at 0.027 in Dark),
+its titles take the sidebar's ink and its section headers are `SUBHEADLINE`
+semibold in the secondary ink, `SPLIT_VIEW.inspector_header_gap` (6) above the
+card, as over SwiftUI's inspector material. Over still detail content the bar's
+veil and separator run over the inspector too: the column draws
+`TITLEBAR_INSPECTOR_BAND` under the bar and starts its divider below it. The
+inspector's own scrolling does not count as content under the bar.
 
 Where the sidebar is AppKit's glass (macOS 26), the inspector is too: the
 kit publishes the pane's rect, AppKit draws that split item's glass over the

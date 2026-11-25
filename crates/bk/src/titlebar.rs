@@ -237,13 +237,22 @@ impl Component for Titlebar {
         let style: TitlebarStyle = resolve(&self.style);
         let control = crate::sidebar::sidebar_control();
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
-        // Beside a sidebar, over content that does not scroll under it, AppKit's bar draws its veil and separator, as SwiftUI's.
+        let overhang = try_consume_context::<BarOverhang>();
+        let (leading, trailing) = overhang.map_or((0.0, 0.0), |over| {
+            (*over.leading.read(), *over.trailing.read())
+        });
+        let window_width = Platform::get().current_window().root_size.read().width;
+        // Beside a sidebar, over detail content that does not scroll under it, AppKit's bar draws its veil and separator, as SwiftUI's; the inspector's own scrolling does not count.
         let bar_over_still = sidebar
             && !status.fullscreen
             && !scroll_under(
                 style.sidebar_height,
                 control.map_or(0.0, |control| control.occupied()),
+                window_width - trailing,
             );
+        if let Some(BarOverhang { mut band, .. }) = overhang {
+            band.set_if_modified(bar_over_still);
+        }
         let style = TitlebarStyle {
             hairline: style.hairline.clone().or_else(|| {
                 (bar_over_still && crate::theme::window_material_here()).then(TitlebarStyle::line)
@@ -359,7 +368,7 @@ impl Component for Titlebar {
                 && !status.fullscreen
                 && *style.background.resolve(state) == ShapeStyle::WindowBackground
                 && crate::glass::native_glass()
-                && !scroll_under(height, 0.0)
+                && !scroll_under(height, 0.0, window_width - trailing)
         };
         // On AppKit's own bar, AppKit draws the expanded title row, as SwiftUI's.
         let system_title = system_bar(TITLEBAR_EXPANDED_TITLE_HEIGHT + style.height);
@@ -455,9 +464,6 @@ impl Component for Titlebar {
         } else {
             bar
         };
-        let (leading, trailing) = try_consume_context::<BarOverhang>().map_or((0.0, 0.0), |over| {
-            (*over.leading.read(), *over.trailing.read())
-        });
         let bar = if leading > 0.0 || trailing > 0.0 {
             rect()
                 .width(Size::fill())
@@ -509,10 +515,13 @@ impl ScrollFrames {
 }
 
 // Whether a scroll view right of `left` reaches under the bar.
-fn scroll_under(bar_height: f32, left: f32) -> bool {
+fn scroll_under(bar_height: f32, left: f32, right: f32) -> bool {
     try_consume_root_context::<ScrollFrames>().is_some_and(|frames| {
         frames.0.read().iter().any(|(_, area)| {
-            area.min_x() >= left && area.min_y() <= bar_height + 1.0 && area.max_y() > bar_height
+            area.min_x() >= left
+                && area.min_x() < right
+                && area.min_y() <= bar_height + 1.0
+                && area.max_y() > bar_height
         })
     })
 }

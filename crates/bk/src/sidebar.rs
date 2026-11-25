@@ -590,6 +590,11 @@ impl Component for SidebarItem {
             }))
             .child(
                 with_font(label(), font)
+                    // SwiftUI centers a Label's odd-height content and rounds its title a pixel down.
+                    .maybe(self.symbol.is_some(), |title| {
+                        let drop = SIDEBAR.item_label_text_drop;
+                        title.margin(Gaps::new(drop, 0.0, -drop, 0.0))
+                    })
                     .text(self.label.clone())
                     .color(theme::color(paints.color(ink.resolve(state))))
                     .max_lines(1),

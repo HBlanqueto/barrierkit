@@ -342,7 +342,9 @@ CoreText picks a face's optical size (`opsz`) and its `trak` tracking from the
 point size; Skia pins both. So on macOS the kit lays out every type token as
 CoreText does: a copy of the face at `opsz` equal to the size, and the `trak`
 value as letter spacing. A 22 pt bold title is then as wide as in AppKit.
-Set sizes with `Text::font`: a bare `.font_size(..)` keeps Skia's layout.
+Set sizes with `Text::font`, or `Text::font_size` for a size outside the text
+styles: it takes the face at that size and SwiftUI's line height for
+`.system(size:)` (`SYSTEM_SIZE_*`, measured 8-96 pt).
 Linux keeps the face as it is.
 
 ## Theme functions

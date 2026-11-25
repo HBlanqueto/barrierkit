@@ -313,6 +313,9 @@ SETTINGS SettingsMetrics components.settings account_name_font=account.name
     account_detail_font=account.detail card_caption_font=card.caption
 HAIRLINE f32 components.hairline
 STACK_COLUMN_GAPS [f32;25] components.stack.column-gaps
+SYSTEM_SIZE_ASCENT f32 components.system-size.ascent
+SYSTEM_SIZE_DESCENT f32 components.system-size.descent
+SYSTEM_SIZE_LEADING [f32;7] components.system-size.leading-sizes
 STACK_TEXT_SIZES [f32;8] components.stack.text-sizes
 STACK_TEXT_ABOVE [f32;8] components.stack.text-above
 STACK_TEXT_BELOW [f32;8] components.stack.text-below
@@ -330,6 +333,7 @@ CONTENT_UNAVAILABLE_ACTIONS_GAP f32 components.content-unavailable.actions-gap
 DOMINANT_MIN_CHROMA f32 appearance.dominant.min-chroma
 TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
 TITLEBAR_SYSTEM_VEIL Rgba components.window.titlebar.system-veil
+TITLEBAR_INSPECTOR_BAND [Rgba;4] components.window.titlebar.inspector-band
 TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
 TITLEBAR_EXPANDED_TITLE_HEIGHT f32 components.window.titlebar.expanded-title.height
 TITLEBAR_EXPANDED_TITLE_GAP f32 components.window.titlebar.expanded-title.gap
