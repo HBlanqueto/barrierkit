@@ -3,7 +3,7 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle, globals:
 use crate::platform::{PanelBehavior, runtime::Runtime};
 
 pub(crate) use limitless_protocol::client::style::limitless_window_style_v1::limitless_window_style_v1::{
-    BlendingMode, LimitlessWindowStyleV1, Material, Panel,
+    LimitlessWindowStyleV1, Panel,
 };
 
 pub(crate) fn wire<T: TryFrom<u32, Error = ()>>(value: u32) -> T {
@@ -23,7 +23,7 @@ impl PanelBehavior {
     }
 }
 
-pub(crate) const BACKDROP_VERSION: u32 = 10;
+const VERSION: u32 = 9;
 
 // A request newer than the bound version is a protocol error (ADR 0091): bind at what the compositor offers.
 pub(crate) fn bind<State>(
@@ -33,11 +33,7 @@ pub(crate) fn bind<State>(
 where
     State: Dispatch<LimitlessWindowStyleV1, ()> + 'static,
 {
-    globals.bind(queue, 1..=BACKDROP_VERSION, ()).ok()
-}
-
-pub(crate) fn offers_backdrop(style: &LimitlessWindowStyleV1) -> bool {
-    style.version() >= BACKDROP_VERSION
+    globals.bind(queue, 1..=VERSION, ()).ok()
 }
 
 impl Dispatch<LimitlessWindowStyleV1, ()> for Runtime {

@@ -115,6 +115,7 @@ pub struct Runtime {
     pub(crate) dialog_manager:
         Option<wayland_protocols::xdg::dialog::v1::client::xdg_wm_dialog_v1::XdgWmDialogV1>,
     pub window_style: Option<crate::platform::linux::window_style::LimitlessWindowStyleV1>,
+    pub(crate) effects: Option<crate::platform::linux::effects::Effects>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) timers: TimerQueue,
@@ -474,6 +475,7 @@ impl Runtime {
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
         let window_style = crate::platform::linux::window_style::bind(&globals, &qh);
+        let effects = crate::platform::linux::effects::Effects::bind(&globals, &qh);
         let viewporter = globals.bind::<WpViewporter, _, _>(&qh, 1..=1, ()).ok();
         // wp_fractional_scale_v1: a fractional buffer is only valid behind a wp_viewport.
         let fractional_manager = viewporter.as_ref().and_then(|_| {
@@ -548,6 +550,7 @@ impl Runtime {
             focus_manager,
             dialog_manager,
             window_style,
+            effects,
             fractional_manager,
             viewporter,
             timers: Rc::new(RefCell::new(Vec::new())),

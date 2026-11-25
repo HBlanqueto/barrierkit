@@ -12,7 +12,7 @@ pub struct MaterialStyle {
     pub tint: StateValue<ShapeStyle>,
     /// Tengen: `Some((Color(MEDIA.material_rim), HAIRLINE))`, drawn inside.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen: `Material::HudWindow`. The material a compositor that offers `set_backdrop`
+    /// Tengen: `Material::HudWindow`. The material a compositor that offers `limitless_effects_v1`
     /// draws behind `Material`; the kit then ignores `tint` and `border`.
     pub material: ctappearance::material::Material,
 }

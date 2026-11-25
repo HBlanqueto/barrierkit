@@ -18,6 +18,15 @@ macro_rules! protocol {
 #[cfg(any(feature = "client", feature = "server"))]
 macro_rules! side {
     ($wayland:ident, $generate:ident) => {
+        pub mod effects {
+            protocol!(
+                limitless_effects_v1,
+                $wayland,
+                $generate,
+                "protocols/limitless-effects-v1.xml"
+            );
+        }
+
         pub mod focus {
             protocol!(
                 limitless_focus_v1,

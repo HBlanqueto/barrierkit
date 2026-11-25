@@ -119,10 +119,10 @@ lights are in the sidebar, the first row starts below them.
 
 #### Glass
 
-With a compositor that offers `limitless_window_style_v1` version 6, as
-Malaysia does, the sidebar is a glass panel. The kit leaves its rectangle
-transparent and sends it with `set_glass`, or from version 10 with
-`set_backdrop` ([18](18-platform.md#wayland-protocols)); the compositor draws
+With a compositor that offers `limitless_effects_v1`, as Malaysia does, the
+sidebar is a glass panel. The kit leaves its rectangle transparent and
+declares it as a `behind_window` visual effect of the `sidebar` material
+([18](18-platform.md#wayland-protocols)); the compositor draws
 the material and the rim under and over the rows. Only the compositor sees the wallpaper, so
 only it can draw the material.
 The app does nothing. The kit sends the panel again whenever the sidebar's area

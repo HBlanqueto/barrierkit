@@ -103,14 +103,6 @@
     <request name="set_style">
       <arg name="style" type="uint" enum="style"/>
     </request>
-    <request name="set_tint">
-      <description summary="Glass.tint: 0xAARRGGBB, its alpha counts"/>
-      <arg name="tint" type="uint"/>
-    </request>
-    <request name="set_interactive">
-      <description summary="Glass.interactive: it answers hover and press"/>
-      <arg name="interactive" type="uint"/>
-    </request>
     <request name="set_shape">
       <description summary="the same arguments as limitless_visual_effect_v1.set_shape"/>
       <arg name="radius" type="uint"/>

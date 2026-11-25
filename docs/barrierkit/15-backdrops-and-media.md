@@ -155,8 +155,8 @@ the compositor once per window:
 
 | Compositor | `Material` and `TopGlass` |
 |---|---|
-| `limitless_window_style_v1` version 10 or later (and `wl_subcompositor`) | Paint nothing and declare themselves: `TopGlass` a soft scroll edge, `Material` a `within_window` backdrop of `MaterialStyle::material` with its corner radius. The compositor draws the material, with its measured blur, saturation and tint |
-| Version 9 or lower, another compositor, no global | The opaque solid the kit draws under Reduce Transparency |
+| `limitless_effects_v1` (and `wl_subcompositor`) | Paint nothing and declare themselves: `TopGlass` a soft scroll edge, `Material` a `within_window` backdrop of `MaterialStyle::material` with its corner radius. The compositor draws the material, with its measured blur, saturation and tint |
+| Another compositor, no global | The opaque solid the kit draws under Reduce Transparency |
 | Either, with `reduce_transparency` | The same opaque solid |
 
 In the first row the element that holds the glass is the window's chrome: it and
@@ -180,8 +180,7 @@ The kit draws no tint or rim of its own in that mode, so `tint` and `border` of
 compositor does not serve a glass, `GlassContainer` draws a flat rounded
 rectangle of its tint (the opaque solid under Reduce Transparency), and a
 `ShapeStyle::Material(Thickness)` paints its tint with no blur. The sidebar is
-a `behind_window` request for the `sidebar` material from version 10, before
-that `set_glass`
+a `behind_window` visual effect of the `sidebar` material
 ([18](18-platform.md#wayland-protocols)). A real session needs Malaysia to serve the
 requests ([18](18-platform.md#glass-over-the-windows-content)).
 

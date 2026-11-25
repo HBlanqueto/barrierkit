@@ -64,8 +64,8 @@ callback; the frame callback draws. One draw does this:
 2. Acquires the next swapchain image.
 3. Lays out the tree with `torin` and settles the `on_sized` reactions, so a
    live resize paints the new layout.
-4. Sends the sidebar glass panels (`set_backdrop` with `behind_window` and the
-   `sidebar` material from version 10, `set_glass` before) and declares an opaque
+4. Sends the sidebar glass panels (a `behind_window` visual effect of the
+   `sidebar` material) and declares an opaque
    background, minus the panels, as the opaque region. They reach the compositor
    in the commit of the buffer they describe.
 5. Opens, moves and closes the [chrome sub-surfaces](#glass-over-the-windows-content)
@@ -122,7 +122,8 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
 | `limitless_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
-| `limitless_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
+| `limitless_window_style_v1` | 1–9 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests. Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold; the kit binds at the lower of what the compositor offers and 9 ([ADR 0091](../decisions.md)) | The compositor guesses the window style |
+| `limitless_effects_v1` | 1 | No | Objects for glass over the window's own content and behind it: `Sidebar` keeps a `behind_window` visual effect of the `sidebar` material; a chrome keeps a `within_window` visual effect or a glass effect (with a container when its glasses merge) and a scroll edge effect. Destroying an object removes the effect ([design](../research/limitless-effects.md), [ADR 0098](../decisions.md), [ADR 0100](../decisions.md)) | The sidebar and chromes stay a flat fill the kit draws |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `limitless_*` protocols are Malaysia's private protocols, in
@@ -182,8 +183,9 @@ container that holds a glass, and the requests that describe it.
    merge; a holder with nothing beside it in the tree is skipped.
 3. For each chrome opens a synchronized `wl_subsurface` above the window's
    surface at the strip's position (`set_position`), with its own `wp_viewport`
-   and swapchain, and sends `set_backdrop` (`within_window`) and
-   `set_scroll_edge` to it, before its buffer and only when they changed.
+   and swapchain, and keeps a `within_window` visual effect (or a glass effect)
+   and a scroll edge effect for it, changed before its buffer and only when they
+   changed.
 4. Draws the chrome nodes on the sub-surface's canvas, shifted by the strip's
    origin, and everything else on the window's, then presents the sub-surfaces
    and the window last. The window's commit applies theirs.
@@ -195,7 +197,7 @@ again.
 ### Try it under Malaysia
 
 Needs the owner's Linux machine with a GPU and Vulkan, a Malaysia that serves
-`set_backdrop` and `set_scroll_edge` and advertises version 10 (the commit of
+`limitless_effects_v1` (the objects of the effects design, not the requests of
 session M2), and the kit checked out beside it as `../barrierkit`. The VM
 cannot run it: it has no display.
 
@@ -371,7 +373,7 @@ app calls, who answers on macOS, who answers on Linux.
 | Capability | macOS | Linux (Malaysia) | State |
 |---|---|---|---|
 | Window, popup, popover | `NSWindow` and child panels (`frame.rs`, `popups.rs`) | `xdg_toplevel` and `xdg_popup` on sctk; `set_popover` and `set_popover_shape` style the popup | both |
-| Blur, glass, scroll edge | Core Animation layers (`blur.rs`) | The compositor: `set_backdrop`, `set_glass`, `set_scroll_edge` (version 10) | both; where the system serves no glass the client draws a flat fill |
+| Blur, glass, scroll edge | Core Animation layers (`blur.rs`) | The compositor: the objects of `limitless_effects_v1` | both; where the system serves no glass the client draws a flat fill |
 | Traffic lights, title bar | AppKit's own; under `WindowStyle::Plain` the kit draws them ([Traffic lights](09-titlebars.md#traffic-lights)), the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
 | Frame pacing | One `CADisplayLink` per window | The frame callback of the surface ([The frame](#the-frame)) | both |
 | Full screen (the green light) | `toggleFullScreen`, with the menu bar and the Dock hidden for a `Plain` window; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../.claude/skills/barrierkit-app/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |
@@ -396,14 +398,14 @@ left out of the current round, by who would answer it:
 | 3 `ZStack` and `Layout`, 6 `Transition`, 15 right-to-left | Yes: Freya and Torin, the same on both | none | none |
 | 4 Accessibility by SwiftUI name | The modifiers (done) | `accesskit_macos` (done) | AT-SPI (done) |
 | 7 Typed drag and drop | `Transferable` and `Pasteboard` (done) | `NSPasteboard` types (done); a drop target (none) | `wl_data_device` MIME types (offers done; a typed drop target none) |
-| 11 `glassEffect` on any view | The modifier | A layer per view | `set_backdrop` on a sub-surface per view |
+| 11 `glassEffect` on any view | The modifier | A layer per view | A `limitless_effects_v1` object on a sub-surface per view |
 | 12 Document apps | `Document`, `use_document`, `on_open_url` (done, [Documents](08-windows.md#documents-and-file-dialogs)) | `NSWindow` dirty state, `windowShouldClose:`, `NSAlert`, the app delegate (done) | The close veto, the kit's `Alert` and `org.freedesktop.Application.Open` (done); no dirty dot |
 | 13 Dialogs attached to their window | `FileDialog`, `file_importer`, `file_exporter` (done) | `beginSheetModalForWindow` (done) | `xdg-foreign`, not bound |
 
 How to keep it true:
 
 1. A new capability gets its row in the commit that adds it.
-2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 9 cannot send `set_backdrop` ([ADR 0091](../decisions.md)).
+2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 8 cannot send `set_knobs` ([ADR 0091](../decisions.md)).
 3. A function that needs a new request goes into `limitless-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
 4. `cfg(target_os)` stays in `platform/` ([crates/AGENTS.md](../../crates/AGENTS.md)): `platform/macos/` and `platform/linux/` hold what one system uses, and `platform/` holds what both use. The matrix names the file.
 

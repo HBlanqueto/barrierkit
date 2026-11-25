@@ -3,6 +3,7 @@
 **Goal:** declare how a BarrierKit app asks for a material and Malaysia composes
 every blur, inside the window too, so the kit can delete its Skia backdrop
 blur.
+**Superseded in part:** the requests of version 10 are the objects of [limitless_effects_v1](limitless-effects.md).
 **Scope:** the protocol that landed in `limitless-protocol` (version 10), the
 rules a compositor follows, the compositor algorithm, the kit changes, the
 phase 0 results, the GPU measurement that decides whether the in-window blur

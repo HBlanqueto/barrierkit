@@ -54,7 +54,9 @@ pub struct SurfaceWindow {
     failing: bool,
     pub(crate) opaque_region: Option<((u32, u32), Rects)>,
     pub(crate) glass_holes: Rects,
-    pub(crate) glass_style: Option<crate::platform::linux::window_style::LimitlessWindowStyleV1>,
+    pub(crate) knobs_style: Option<crate::platform::linux::window_style::LimitlessWindowStyleV1>,
+    pub(crate) effects: Option<crate::platform::linux::effects::Effects>,
+    pub(crate) sidebar: Option<crate::platform::linux::effects::LimitlessVisualEffectV1>,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
@@ -380,6 +382,9 @@ impl Drop for SurfaceWindow {
         if let Some(notice) = self.glass_notice.take() {
             notice.destroy();
         }
+        if let Some(sidebar) = self.sidebar.take() {
+            sidebar.destroy();
+        }
     }
 }
 
@@ -418,7 +423,9 @@ impl Runtime {
             failing: false,
             opaque_region: None,
             glass_holes: Vec::new(),
-            glass_style: self.glass_style(),
+            knobs_style: self.knobs_style(),
+            effects: self.effects.clone(),
+            sidebar: None,
             background_alpha: 1.0,
             pending_configure: None,
             appmenu: None,

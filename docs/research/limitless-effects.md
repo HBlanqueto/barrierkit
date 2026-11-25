@@ -2,7 +2,7 @@
 
 **Goal:** replace the effect requests of `limitless_window_style_v1` with objects named as in AppKit and SwiftUI, so a new macOS effect adds an object, not a request with a `since` number.
 **Reader:** whoever writes the compositor side or moves the kit to it.
-**Status:** design. The draft is [`limitless-effects-v1.xml`](limitless-effects-v1.xml); it generates client and server code with `wayland-scanner` 0.31. Nothing in the kit sends it yet.
+**Status:** the XML is in `crates/limitless-protocol/protocols/limitless-effects-v1.xml` and the Linux backend of the kit sends it (`platform/linux/effects.rs`). No compositor serves it yet, and the Linux code was checked for types against the generated bindings, not built or run.
 
 ## Why
 
@@ -14,8 +14,8 @@ macOS has no `set_backdrop`. A view with a material is a layer in the tree, and 
 |---|---|
 | `set_backdrop` (v10) | `limitless_visual_effect_v1`: `set_material`, `set_blending_mode`, `set_shape` |
 | `set_scroll_edge` (v10) | `limitless_scroll_edge_effect_v1`: `set_edge`, `set_style`, `set_depth` |
-| `set_glass` (v6) | gone: the kit sends `set_backdrop` with `sidebar` from version 10 ([ADR 0100](../decisions.md)) |
-| pending v11: tint, interaction, group spacing | `limitless_glass_effect_v1` (`set_tint`, `set_interactive`, `set_container`) and `limitless_glass_container_v1` (`set_spacing`) |
+| `set_glass` (v6) | gone: the sidebar is a `behind_window` visual effect of the `sidebar` material ([ADR 0100](../decisions.md)) |
+| `glass_regular`, `glass_clear` of `set_backdrop` | `limitless_glass_effect_v1` (`set_style`, `set_shape`, `set_container`) and `limitless_glass_container_v1` (`set_spacing`, the kit's `glass_spacing`) |
 
 ## What stays in `limitless_window_style_v1`
 
@@ -25,13 +25,12 @@ macOS has no `set_backdrop`. A view with a material is a layer in the tree, and 
 
 ## Not in version 1
 
-`state`, `isEmphasized` and `maskImage` of `NSVisualEffectView`, the hovered and pressed look of a glass, and a glass' own lens: the kit sends none of them today, and the compositor does not draw them.
+Tint and interaction of a glass (`Glass.tint`, `.interactive`), `state`, `isEmphasized` and `maskImage` of `NSVisualEffectView`, and a glass' own lens. The kit's Linux backend sends none of them today, so the protocol does not carry them; a later version adds them with `since`.
 
-## Steps to move the kit
+## What changed in the kit
 
-1. The compositor serves `limitless_effects_v1` (Remake-Malaysia; the Malaysia in `~/src/malaysia` serves only style v10).
-2. `limitless-protocol` gets the XML under `protocols/` and a `effects` module next to `focus` and `style`.
-3. `platform/linux/glass.rs` and `platform/linux/chrome_surface.rs` create one object per sidebar and per chrome, and send the same rectangles and materials they send now. `SurfaceWindow` keeps the objects and destroys them with the surface.
-4. `set_backdrop`, `set_scroll_edge` and `set_glass` leave the style XML, and the version of `limitless_window_style_v1` is renumbered.
+1. `limitless-protocol` has the `effects` module; `set_glass`, `set_backdrop` and `set_scroll_edge` left `limitless_window_style_v1`, now at version 9.
+2. `platform/linux/effects.rs` binds the global and keeps one backdrop object and one scroll edge object per chrome surface (`Applied`), recreated when the material or the glass spacing changes. `platform/linux/glass.rs` keeps the sidebar's visual effect in `SurfaceWindow::sidebar`.
+3. `GlassPanels` lost `base`, `solid` and `chroma`: only `set_glass` read them.
 
-Blocked: nothing serves the protocol, and `platform/linux/` does not compile on macOS, so step 3 needs a Linux build.
+Blocked until a compositor serves the protocol: a run on Linux. Until then a window of this kit on Malaysia's current compositor draws its sidebar and chromes as flat fills.

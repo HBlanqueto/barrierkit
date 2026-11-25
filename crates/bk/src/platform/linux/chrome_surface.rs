@@ -4,7 +4,7 @@ use freya_core::node_id::NodeId;
 use sctk::{
     reexports::{
         client::{
-            Proxy, QueueHandle,
+            Proxy,
             protocol::{wl_subsurface::WlSubsurface, wl_surface::WlSurface},
         },
         protocols::wp::viewporter::client::{wp_viewport::WpViewport, wp_viewporter::WpViewporter},
@@ -20,18 +20,14 @@ use super::{
 use crate::platform::{
     RunError,
     backdrop::{Chrome, Placement, Requests},
-    linux::{
-        glass::packed,
-        window_style::{BlendingMode, LimitlessWindowStyleV1, wire},
-    },
+    linux::effects::{Applied, Effects},
 };
 
 #[derive(Clone)]
 pub(crate) struct ChromeHost {
     pub(crate) subcompositor: Rc<SubcompositorState>,
-    pub(crate) style: LimitlessWindowStyleV1,
+    pub(crate) effects: Effects,
     pub(crate) viewporter: Option<WpViewporter>,
-    pub(crate) queue: QueueHandle<Runtime>,
 }
 
 // Synchronized: its commit waits for the parent's, so the material and the content below it change in one frame (ADR 0092).
@@ -45,6 +41,7 @@ pub(crate) struct ChromeSurface {
     pub(crate) placement: Placement,
     configured: Option<((u32, u32), f64)>,
     sent: Requests,
+    applied: Applied,
 }
 
 impl ChromeSurface {
@@ -56,12 +53,12 @@ impl ChromeSurface {
     ) -> Self {
         let (subsurface, surface) = host
             .subcompositor
-            .create_subsurface(parent.clone(), &host.queue);
+            .create_subsurface(parent.clone(), &host.effects.queue);
         let viewport = host
             .viewporter
             .as_ref()
             .filter(|_| scaled_by_viewport)
-            .map(|viewporter| viewporter.get_viewport(&surface, &host.queue, surface.id()));
+            .map(|viewporter| viewporter.get_viewport(&surface, &host.effects.queue, surface.id()));
         Self {
             root: chrome.root,
             nodes: Rc::default(),
@@ -75,6 +72,7 @@ impl ChromeSurface {
             },
             configured: None,
             sent: Requests::default(),
+            applied: Applied::default(),
         }
     }
 
@@ -120,45 +118,16 @@ impl ChromeSurface {
             return false;
         }
         let requests = Requests::of(chrome, scale as f32);
-        send_requests(&host.style, &self.surface, &self.sent, &requests);
+        self.applied
+            .send(&host.effects, &self.surface, &self.sent, &requests);
         self.sent = requests;
         true
     }
 }
 
-// The requests go out before the buffer they describe, so both land in the parent's next commit.
-fn send_requests(
-    style: &LimitlessWindowStyleV1,
-    surface: &WlSurface,
-    old: &Requests,
-    new: &Requests,
-) {
-    if old.backdrop != new.backdrop
-        && let Some(material) = new.backdrop.material.or(old.backdrop.material)
-    {
-        style.set_backdrop(
-            surface,
-            BlendingMode::WithinWindow,
-            wire(material as u32),
-            new.backdrop.radius,
-            packed(&new.backdrop.rects),
-        );
-    }
-    if old.scroll_edge != new.scroll_edge
-        && let Some(edge) = new.scroll_edge.or(old.scroll_edge)
-    {
-        let depth = new.scroll_edge.map_or(0, |edge| edge.depth);
-        style.set_scroll_edge(
-            surface,
-            wire(edge.edge as u32),
-            wire(edge.style as u32),
-            depth,
-        );
-    }
-}
-
 impl Drop for ChromeSurface {
     fn drop(&mut self) {
+        self.applied.destroy();
         // The swapchain must go before the wl_surface (vkCreateWaylandSurfaceKHR).
         self.graphics = None;
         if let Some(viewport) = self.viewport.take() {
@@ -214,12 +183,8 @@ impl Runtime {
         matches!(role, SurfaceRole::Window(_)).then_some(())?;
         Some(ChromeHost {
             subcompositor: self.subcompositor.clone()?,
-            style: self
-                .window_style
-                .clone()
-                .filter(crate::platform::linux::window_style::offers_backdrop)?,
+            effects: self.effects.clone()?,
             viewporter: self.viewporter.clone(),
-            queue: self.qh.clone(),
         })
     }
 }

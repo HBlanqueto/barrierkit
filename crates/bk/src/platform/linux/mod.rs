@@ -5,6 +5,7 @@ pub(super) mod atspi;
 mod chrome_surface;
 pub(crate) mod clipboard;
 mod dialog;
+mod effects;
 pub(crate) mod extension;
 mod focus;
 mod glass;

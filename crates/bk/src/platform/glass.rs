@@ -15,9 +15,6 @@ pub(crate) struct KnobSupport(pub(crate) bool);
 pub(crate) struct GlassPanels {
     pub(crate) radius: u32,
     pub(crate) rects: Rects,
-    pub(crate) base: u32,
-    pub(crate) solid: u32,
-    pub(crate) chroma: u32,
     pub(crate) inspector: Option<(i32, i32, i32, i32)>,
     // The kit draws the sidebar's contents in a chrome above its glass, so the glass lies above the content.
     pub(crate) contents_above: bool,

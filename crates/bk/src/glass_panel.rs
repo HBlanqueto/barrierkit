@@ -3,7 +3,7 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use ctappearance::SidebarGlass;
-use ctdesign::{CORNER_WINDOW, Rgba};
+use ctdesign::CORNER_WINDOW;
 use freya_core::data::LayoutData;
 use freya_core::element::{ElementExt, RenderContext};
 use freya_core::prelude::*;
@@ -24,11 +24,6 @@ pub(crate) fn sidebar_glass() -> Option<SidebarGlass> {
         .sidebar
         .glass
         .filter(|_| supported && !over_backdrop)
-}
-
-fn argb(color: Rgba) -> u32 {
-    let [red, green, blue, _] = color.to_rgba8();
-    u32::from_be_bytes([u8::MAX, red, green, blue])
 }
 
 // The sidebar and the inspector are the platform's own split items, whose glass shows what lies under them.
@@ -71,12 +66,9 @@ pub(crate) fn use_publish(
     let sent = use_hook(|| Rc::new(RefCell::new(GlassPanels::default())));
     let panels = glass
         .filter(|_| area.width() > 0.0 && area.height() > 0.0)
-        .map_or_else(GlassPanels::default, |glass| GlassPanels {
+        .map_or_else(GlassPanels::default, |_| GlassPanels {
             radius: radius.round() as u32,
             rects: vec![rounded(area)],
-            base: argb(glass.base),
-            solid: argb(glass.solid),
-            chroma: (glass.chroma * ctdesign::THOUSANDTHS).round() as u32,
             inspector: None,
             contents_above,
         });
