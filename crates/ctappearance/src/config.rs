@@ -11,9 +11,7 @@ use std::{
     time::{Duration, SystemTime},
 };
 
-use ctdesign::{
-    COLOR_FILTER_INTENSITY, DISPLAY_CONTRAST, POINTER_SIZES, Rgba, TEXT_SIZES, TINT_STRENGTH,
-};
+use ctdesign::{Rgba, TEXT_SIZES, TINT_STRENGTH};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::DeserializeOwned};
 use toml_edit::{Array, DocumentMut};
 
@@ -145,10 +143,6 @@ fn stepped<'de, D: Deserializer<'de>>(
     }))
 }
 
-fn display_contrast<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    Ok(stepped(deserializer, &DISPLAY_CONTRAST)?.unwrap_or(DISPLAY_CONTRAST[0]))
-}
-
 fn hour<'de, D: Deserializer<'de>, const FALLBACK: u8>(deserializer: D) -> Result<u8, D::Error> {
     Ok(lenient::<D, Option<u8>>(deserializer)?.map_or(FALLBACK, |hour| hour.min(23)))
 }
@@ -166,24 +160,6 @@ fn text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error
 
 fn toolkit_text_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<f32>, D::Error> {
     stepped(deserializer, &TEXT_SIZES)
-}
-
-fn pointer_size<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    Ok(stepped(deserializer, &POINTER_SIZES)?.unwrap_or(POINTER_SIZES[0]))
-}
-
-fn color_filter_intensity<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    let strongest = COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1];
-    Ok(stepped(deserializer, &COLOR_FILTER_INTENSITY)?.unwrap_or(strongest))
-}
-
-fn liquid_glass_tint<'de, D: Deserializer<'de>>(deserializer: D) -> Result<f32, D::Error> {
-    let amount = lenient::<D, Option<f32>>(deserializer)?.unwrap_or(0.0);
-    Ok(if amount.is_nan() {
-        0.0
-    } else {
-        amount.clamp(0.0, 1.0)
-    })
 }
 
 fn deserialize_tint_parts<'de, D>(deserializer: D) -> Result<TintParts, D::Error>
@@ -240,24 +216,6 @@ pub enum ScrollBarClick {
     #[default]
     NextPage,
     ClickedSpot,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum MenuBarSize {
-    #[default]
-    Default,
-    Large,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ColorFilter {
-    #[default]
-    Grayscale,
-    RedGreen,
-    GreenRed,
-    BlueYellow,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -340,41 +298,19 @@ pub struct AppearanceConfig {
     #[serde(deserialize_with = "lenient")]
     pub wallpaper_tinting_in_light: bool,
     #[serde(deserialize_with = "lenient")]
-    pub invert_colors: bool,
-    #[serde(deserialize_with = "lenient")]
     pub show_borders: bool,
     #[serde(deserialize_with = "lenient")]
     pub differentiate_without_color: bool,
-    #[serde(deserialize_with = "display_contrast")]
-    pub display_contrast: f32,
     #[serde(deserialize_with = "text_size")]
     pub text_size: f32,
     #[serde(deserialize_with = "lenient")]
     pub text_sizes: TextSizes,
-    #[serde(deserialize_with = "lenient")]
-    pub menu_bar_size: MenuBarSize,
     #[serde(deserialize_with = "lenient")]
     pub icon_style: IconStyle,
     #[serde(deserialize_with = "lenient")]
     pub icon_tone: IconTone,
     #[serde(skip_serializing, deserialize_with = "lenient")]
     pub icon_color: Option<[f32; 3]>,
-    #[serde(deserialize_with = "lenient_true")]
-    pub shake_to_locate: bool,
-    #[serde(deserialize_with = "pointer_size")]
-    pub pointer_size: f32,
-    #[serde(deserialize_with = "lenient")]
-    pub color_filters: bool,
-    #[serde(deserialize_with = "lenient")]
-    pub color_filter: ColorFilter,
-    #[serde(deserialize_with = "color_filter_intensity")]
-    pub color_filter_intensity: f32,
-    #[serde(deserialize_with = "liquid_glass_tint")]
-    pub liquid_glass_tint: f32,
-    #[serde(deserialize_with = "lenient_true")]
-    pub gtk_bridge: bool,
-    #[serde(deserialize_with = "lenient_true")]
-    pub qt_bridge: bool,
 }
 
 impl Default for AppearanceConfig {
@@ -398,24 +334,13 @@ impl Default for AppearanceConfig {
             tint_parts: TintParts::default(),
             wallpaper_tinting: true,
             wallpaper_tinting_in_light: false,
-            invert_colors: false,
             show_borders: false,
             differentiate_without_color: false,
-            display_contrast: DISPLAY_CONTRAST[0],
             text_size: TEXT_SIZES[0],
             text_sizes: TextSizes::default(),
-            menu_bar_size: MenuBarSize::default(),
             icon_style: IconStyle::default(),
             icon_tone: IconTone::default(),
             icon_color: None,
-            shake_to_locate: true,
-            pointer_size: POINTER_SIZES[0],
-            color_filters: false,
-            color_filter: ColorFilter::default(),
-            color_filter_intensity: COLOR_FILTER_INTENSITY[COLOR_FILTER_INTENSITY.len() - 1],
-            liquid_glass_tint: 0.0,
-            gtk_bridge: true,
-            qt_bridge: true,
         }
     }
 }

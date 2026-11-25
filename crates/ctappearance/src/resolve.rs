@@ -32,7 +32,7 @@ use ctdesign::{
 };
 
 use crate::{
-    AppearanceConfig, ColorScheme, MenuBarSize, ScrollBarClick, ScrollBars, TintParts, Toolkit,
+    AppearanceConfig, ColorScheme, ScrollBarClick, ScrollBars, TintParts, Toolkit,
     TrafficLightStyle, WindowColorMode, accent,
     backdrop::{WallpaperTinting, lift, shift_like, take_chroma, take_chroma_capped},
     icon_style::IconStyle,
@@ -96,7 +96,6 @@ pub struct Resolved {
     pub show_borders: bool,
     pub differentiate_without_color: bool,
     pub text_size: f32,
-    pub menu_bar_size: MenuBarSize,
     pub icon_style: IconStyle,
     pub icon_dark: bool,
     pub icon_tint: Rgba,
@@ -582,7 +581,6 @@ pub fn resolve(
         show_borders: appearance.show_borders,
         differentiate_without_color: appearance.differentiate_without_color,
         text_size: appearance.text_size_for(Toolkit::BarrierKit),
-        menu_bar_size: appearance.menu_bar_size,
         icon_style: appearance.icon_style,
         icon_dark: appearance
             .icon_style

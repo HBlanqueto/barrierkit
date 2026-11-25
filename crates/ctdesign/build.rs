@@ -200,9 +200,6 @@ WALLPAPER_TINTING_SIDEBAR f32 appearance.wallpaper-tinting.sidebar
 WALLPAPER_TINTING_SIDEBAR_LIFT f32 appearance.wallpaper-tinting.sidebar-lift
 WALLPAPER_TINTING_TARGET f32 appearance.wallpaper-tinting.target
 TEXT_SIZES [f32;6] appearance.accessibility.text-sizes
-POINTER_SIZES [f32;7] appearance.accessibility.pointer-sizes
-DISPLAY_CONTRAST [f32;7] appearance.accessibility.display-contrast
-COLOR_FILTER_INTENSITY [f32;7] appearance.accessibility.color-filter-intensity
 MENU_GLASS_VEIL_LIGHT Rgba components.shell.menu.glass-veil-light
 MENU_GLASS_VEIL_DARK Rgba components.shell.menu.glass-veil-dark
 MENU_GLASS_LIFT_LIGHT f32 components.shell.menu.glass-lift-light

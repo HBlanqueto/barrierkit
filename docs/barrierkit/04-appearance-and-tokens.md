@@ -468,23 +468,13 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `traffic_lights` | `TrafficLightStyle` | `standard`, `accent`, `wallpaper` | `wallpaper` |
 | `wallpaper_tinting` | `bool` | | `true` |
 | `wallpaper_tinting_in_light` | `bool` | | `false` |
-| `invert_colors` | `bool` | | `false` |
 | `show_borders` | `bool` | | `false` |
 | `differentiate_without_color` | `bool` | | `false` |
-| `display_contrast` | `f32` | a value of `DISPLAY_CONTRAST` | `1.0` |
 | `text_size` | `f32` | a value of `TEXT_SIZES` | `1.0` |
 | `text_sizes` | `TextSizes` | table with optional `barrierkit`, `gtk`, `qt`, each a value of `TEXT_SIZES` | empty: every toolkit uses `text_size` |
-| `menu_bar_size` | `MenuBarSize` | `default`, `large` | `default` |
 | `icon_style` | `IconStyle` | `default`, `dark`, `clear`, `tinted`; the retired `monochrome` reads as `tinted` with a graphite `icon_color` | `default` |
 | `icon_tone` | `IconTone` | `light`, `dark`, `automatic` (follows the color scheme); `default` ignores it | `automatic` |
 | `icon_color` | `Option<[f32; 3]>` | RGB from 0 to 1 for tinted icons and folders; absent means the accent | absent |
-| `shake_to_locate` | `bool` | | `true` |
-| `pointer_size` | `f32` | a value of `POINTER_SIZES` | `1.0` |
-| `color_filters` | `bool` | | `false` |
-| `color_filter` | `ColorFilter` | `grayscale`, `red_green`, `green_red`, `blue_yellow` | `grayscale` |
-| `color_filter_intensity` | `f32` | a value of `COLOR_FILTER_INTENSITY` | `1.0` |
-| `liquid_glass_tint` | `f32` | 0 to 1: the Liquid Glass slider of macOS (`NSGlassTintAmount`); outside it reads as the nearest end | `0.0` |
-| `gtk_bridge`, `qt_bridge` | `bool` | Read by Malaysia, not by the kit | `true` |
 
 Notes on the values:
 
@@ -513,9 +503,9 @@ Notes on the values:
   groups; `differentiate_without_color` keeps the traffic-light
   symbols on while the window is focused; `text_size` scales `Text`, sidebar
   items (and their height) with `Font::scaled`; `Button` scales its text and
-  symbol the same way when it draws them, and keeps its height. The compositor applies
-  `invert_colors`, `display_contrast`, the color filter and the pointer keys;
-  the shell applies `menu_bar_size` (malaysia ADR 0066).
+  symbol the same way when it draws them, and keeps its height. The other
+  accessibility keys (`invert_colors`, `display_contrast`, the color filter, the
+  pointer keys and `menu_bar_size`) belong to the desktop, not to the kit.
 
 ### Reading and writing
 
@@ -564,7 +554,7 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `traffic_lights` | The `TrafficLooks` of the user's `traffic_lights` style, in this scheme and contrast. On macOS the style is `standard`, or `accent` with the graphite accent. |
 | `contrast`, `reduced_motion`, `scroll_bars`, `scroll_bar_click` | Copies of the config. |
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
-| `show_borders`, `differentiate_without_color`, `menu_bar_size`, `icon_style` | Copies of the config. |
+| `show_borders`, `differentiate_without_color`, `icon_style` | Copies of the config. |
 | `icon_dark`, `icon_tint` | `IconStyle::dark` for `icon_tone` and the scheme, and `icon_color` or the accent. |
 | `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
