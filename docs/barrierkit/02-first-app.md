@@ -115,7 +115,7 @@ with several windows declares scenes
 |---|---|---|
 | `Text::new(content)` | Font `BODY`, color `Palette::current().label`, wraps to as many lines as needed | `.style(\|s\| ..)`, `.font(Font)`, `.line_limit(n)`, `.bold(bool)`, `.italic(bool)`, `.underline(bool)`, `.strikethrough(bool)`, `.text_selection(bool)`; `Text::markdown(..)` reads inline Markdown and `a + b` joins runs ([6](06-text-and-editing.md#text-runs)) |
 | `Label::new(title, Symbol)` | The symbol in a 16 wide, 16.5 high box, then the title 6 apart (SwiftUI's 48 wide `Label("Doc", ...)`); in a button label the compact `SPACE_1` layout; in a `List` row the symbol takes the accent | — |
-| `VStack::new()` | Children in a column, centered, apart by what SwiftUI puts between a text, a symbol, a label, a checkbox and any other control (`STACK_COLUMN_GAPS`: 0 between two texts, 9 under a text, 5 over one, 8 between controls; none under a `Titlebar`, which SwiftUI keeps out of the stack); `.spacing(x)` makes them all `x` | — |
+| `VStack::new()` | Children in a column, centered, apart by what SwiftUI puts between a text, a symbol, a label, a checkbox and any other control (`STACK_COLUMN_GAPS`: 0 between two texts, 8 under a text, 5 over one, 8 between controls, more beside a larger text by `STACK_TEXT_ABOVE` and `STACK_TEXT_BELOW`, as SwiftUI's; none under a `Titlebar`, which SwiftUI keeps out of the stack); `.spacing(x)` makes them all `x` | — |
 | `HStack::new()` | Children in a row, centered, `SPACE_2` apart | — |
 
 `content` and `title` accept a `&'static str`, a `String` or the result of `tr!`.

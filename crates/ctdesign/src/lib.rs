@@ -53,6 +53,8 @@ pub struct Font {
     pub line_height: u32,
     // How far a wrapped line advances; SwiftUI's is a point past the line height in the larger titles.
     pub line_pitch: u32,
+    // How far Skia's glyph must rise in its line to sit where CoreText draws it.
+    pub glyph_lift: u32,
     pub weight: u16,
 }
 

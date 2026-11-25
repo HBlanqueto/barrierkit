@@ -112,8 +112,12 @@ impl Tengen {
             .find(&format!("{style}.line-pitch"))
             .and_then(Value::as_f64)
             .map_or(int("line-height"), |pitch| pitch as i64);
+        let lift = self
+            .find(&format!("{style}.glyph-lift"))
+            .and_then(Value::as_f64)
+            .map_or(0, |lift| lift as i64);
         format!(
-            "Font {{ family: {family:?}, size: {}, line_height: {}, line_pitch: {pitch}, weight: {} }}",
+            "Font {{ family: {family:?}, size: {}, line_height: {}, line_pitch: {pitch}, glyph_lift: {lift}, weight: {} }}",
             int("size"),
             int("line-height"),
             int("weight")

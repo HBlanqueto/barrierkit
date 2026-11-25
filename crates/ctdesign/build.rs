@@ -312,6 +312,9 @@ SETTINGS SettingsMetrics components.settings account_name_font=account.name
     account_detail_font=account.detail card_caption_font=card.caption
 HAIRLINE f32 components.hairline
 STACK_COLUMN_GAPS [f32;25] components.stack.column-gaps
+STACK_TEXT_SIZES [f32;8] components.stack.text-sizes
+STACK_TEXT_ABOVE [f32;8] components.stack.text-above
+STACK_TEXT_BELOW [f32;8] components.stack.text-below
 LABEL_ICON_WIDTH f32 components.label.icon-width
 LABEL_ICON_HEIGHT f32 components.label.icon-height
 LABEL_ICON_FRAME f32 components.label.icon-frame

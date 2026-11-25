@@ -1,9 +1,9 @@
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 use std::borrow::Cow;
 
 use ctdesign::{
     Font, LABEL_GAP, LABEL_ICON_FRAME, LABEL_ICON_HEIGHT, LABEL_ICON_WIDTH, SPACE_1, SPACE_2,
-    STACK_COLUMN_GAPS,
+    STACK_COLUMN_GAPS, STACK_TEXT_ABOVE, STACK_TEXT_BELOW, STACK_TEXT_SIZES,
 };
 use freya_core::integration::EventHandlers;
 use freya_core::prelude::*;
@@ -454,8 +454,17 @@ pub(crate) fn column_gap(above: Neighbor, below: Neighbor) -> f32 {
     STACK_COLUMN_GAPS[above as usize * 5 + below as usize]
 }
 
-// The rect, the kind of the last child, where the gaps sit among the children and whether the gaps adapt.
-pub struct VStack(Rect, Option<Neighbor>, Vec<usize>, bool);
+// SwiftUI's gap between a text and the view beside it grows with the text's size, measured per text style on macOS 27.2.
+fn text_gap(size: f32, deltas: [f32; 8]) -> f32 {
+    STACK_TEXT_SIZES
+        .iter()
+        .zip(deltas)
+        .min_by(|(a, _), (b, _)| (*a - size).abs().total_cmp(&(*b - size).abs()))
+        .map_or(0.0, |(_, delta)| delta)
+}
+
+// The rect, the kind and text size of the last child, where the gaps sit among the children and whether the gaps adapt.
+pub struct VStack(Rect, Option<(Neighbor, f32)>, Vec<usize>, bool);
 
 impl VStack {
     pub fn new() -> Self {
@@ -467,8 +476,12 @@ impl VStack {
         )
     }
 
-    pub fn child<C: IntoElement + 'static>(self, child: C) -> Self {
-        let column = self.push(Neighbor::of::<C>(), child.into_element());
+    pub fn child<C: IntoElement + 'static>(self, mut child: C) -> Self {
+        let size = (&mut child as &mut dyn Any)
+            .downcast_mut::<Text>()
+            .and_then(|text| text.0.text_style_data_mut().font_size)
+            .map_or(0.0, f32::from);
+        let column = self.push(Neighbor::of::<C>(), size, child.into_element());
         // SwiftUI's toolbar is not in the stack, so the view under a `Titlebar` gets no gap.
         if TypeId::of::<C>() == TypeId::of::<Titlebar>() {
             Self(column.0, None, column.2, column.3)
@@ -486,7 +499,7 @@ impl VStack {
 
     pub fn children<C: IntoElement>(self, children: impl IntoIterator<Item = C>) -> Self {
         children.into_iter().fold(self, |column, child| {
-            column.push(Neighbor::Control, child.into_element())
+            column.push(Neighbor::Control, 0.0, child.into_element())
         })
     }
 
@@ -500,9 +513,15 @@ impl VStack {
         self
     }
 
-    fn push(mut self, kind: Neighbor, child: Element) -> Self {
-        if let Some(above) = self.1.filter(|_| self.3) {
-            let gap = column_gap(above, kind);
+    fn push(mut self, kind: Neighbor, size: f32, child: Element) -> Self {
+        if let Some((above, above_size)) = self.1.filter(|_| self.3) {
+            let mut gap = column_gap(above, kind);
+            if gap > 0.0 && above == Neighbor::Text && kind != Neighbor::Text {
+                gap += text_gap(above_size, STACK_TEXT_ABOVE);
+            }
+            if gap > 0.0 && kind == Neighbor::Text && above != Neighbor::Text {
+                gap += text_gap(size, STACK_TEXT_BELOW);
+            }
             if gap > 0.0 {
                 self.2.push(self.0.children_mut().len());
                 self.0
@@ -511,7 +530,7 @@ impl VStack {
             }
         }
         self.0.children_mut().push(child);
-        self.1 = Some(kind);
+        self.1 = Some((kind, size));
         self
     }
 }

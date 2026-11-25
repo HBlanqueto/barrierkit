@@ -896,6 +896,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 |---|---|
 | `SPACE_1`, `SPACE_2`, `SPACE_3`, `SPACE_4` | 4, 8, 12, 16 |
 | `STACK_COLUMN_GAPS` | The gap in a `VStack` between a view of one kind and the next, 5 × 5 (above, below) for text, symbol, label, checkbox and any other control, read from SwiftUI; `HStack` is always `SPACE_2` |
+| `STACK_TEXT_SIZES`, `STACK_TEXT_ABOVE`, `STACK_TEXT_BELOW` | What a text of each size adds to the gap under it and over it beside a view that is not a text (`.largeTitle` 8 and 5, `.title` 5 and 3, `.title2` 3 and 2, `.title3` 1 and 0), read from SwiftUI on macOS 27.2 |
 | `HAIRLINE` | 1, the width of a separator |
 
 ### Type
@@ -922,7 +923,9 @@ The line is the height of a SwiftUI `Text` on macOS 27.2 (`fittingSize`):
 weights are `NSFont.preferredFont(forTextStyle:)` on macOS 27.2. A control's text is centered in its box, so the line height only matters where a text sets the height of a row.
 A wrapped `Text` advances each line by the style's `line_pitch`: a point more than
 the line in `.largeTitle`, `.title2` and `.title3`, as SwiftUI's (five lines of
-`.title3` are 99 high), while one line keeps the line height.
+`.title3` are 99 high), while one line keeps the line height. `glyph_lift` raises
+the glyphs in their line where Skia sets them lower than CoreText: 1 in `TITLE`,
+`TITLE_2` and `FOOTNOTE`.
 
 All use Adwaita Sans, the sans of GNOME, so `bk` text matches GTK; `MONO`
 uses Geist Mono. `SANS_FAMILIES` is the fallback list (Adwaita Sans, Inter,
