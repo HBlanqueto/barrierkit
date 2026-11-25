@@ -9,6 +9,7 @@ use crate::animation::use_animated;
 use crate::controls::dimmed;
 use crate::elements::{Overrides, forward_overrides};
 use crate::i18n::text;
+use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::styles::{ControlState, Theme, TrafficLightsStyle, resolve};
 use crate::traffic_raster::{Layers, light};
 
@@ -21,7 +22,7 @@ pub struct TrafficLights {
     fullscreen: bool,
     close_only: bool,
     style: Theme,
-    on_action: Option<Callback<ButtonKind, ()>>,
+    on_action: Option<Callback<(ButtonKind, bool), ()>>,
     probe: Option<&'static str>,
     overrides: Overrides,
 }
@@ -86,7 +87,7 @@ impl TrafficLights {
         self
     }
 
-    pub fn on_action(mut self, callback: impl Into<Callback<ButtonKind, ()>>) -> Self {
+    pub fn on_action(mut self, callback: impl Into<Callback<(ButtonKind, bool), ()>>) -> Self {
         self.on_action = Some(callback.into());
         self
     }
@@ -158,6 +159,7 @@ impl Component for TrafficLights {
     fn render(&self) -> impl IntoElement {
         let style: TrafficLightsStyle = resolve(&self.style);
         let mut pointer = use_state(TrafficPointer::default);
+        let held = use_held_modifiers();
         let input = self.input.unwrap_or_else(|| {
             let pointer = pointer.read();
             TrafficInput {
@@ -175,6 +177,9 @@ impl Component for TrafficLights {
         let interactive = self.input.is_none();
         let action = self.on_action.clone();
         let fixed_width = self.fixed_width;
+        let zoom_instead =
+            held.read().contains(Modifiers::ALT) && input.group_hovered && !input.fullscreen;
+        let plus = fixed_width || zoom_instead;
         let diameter = style.diameter;
 
         let lights = TITLEBAR
@@ -220,7 +225,7 @@ impl Component for TrafficLights {
                     .children(light_images(
                         &style,
                         &visual,
-                        (index, fixed_width, input.fullscreen),
+                        (index, plus, input.fullscreen),
                         exit_mix,
                     ))
                     .maybe(interactive, |light| {
@@ -253,7 +258,7 @@ impl Component for TrafficLights {
                                 let fired = p.on_release(Some(kind), true);
                                 release.set(p);
                                 if let (Some(kind), Some(action)) = (fired, &action) {
-                                    action.call(kind);
+                                    action.call((kind, zoom_instead));
                                 }
                             })
                     })
@@ -287,6 +292,11 @@ impl Component for TrafficLights {
             .maybe(close_blocked, |group| {
                 group.layer(crate::views::feedback::SHEET_TRAFFIC_LIGHTS)
             });
+        let root = if interactive {
+            track_modifiers(root, held)
+        } else {
+            root
+        };
         let root = dimmed(root, style.opacity).map(self.probe, ProbeExt::probe);
         self.overrides.apply(root)
     }

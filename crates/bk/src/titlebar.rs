@@ -997,11 +997,14 @@ impl TrafficLights {
             .fullscreen(fullscreen)
             .zoom_supported(green != TitlebarAction::None)
             .fixed_width(fixed)
-            .on_action(move |kind| {
+            .on_action(move |(kind, zoom_instead)| {
                 let controls = WindowControls::get();
                 match kind {
                     ButtonKind::Close => controls.close(),
                     ButtonKind::Minimize => controls.minimize(),
+                    ButtonKind::Maximize if zoom_instead && green == TitlebarAction::Focus => {
+                        run_action(&controls, TitlebarAction::Maximize)
+                    }
                     ButtonKind::Maximize => run_action(&controls, green),
                 }
             })

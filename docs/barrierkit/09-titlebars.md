@@ -337,6 +337,9 @@ title bars use the same functions. What each value does here:
 | `zoom` | Maximizes | Maximizes |
 | `none` | Nothing; the light is gray and has no glyph | Nothing |
 
+With `focus`, holding Option over the lights turns the green glyph into a plus and
+the click zooms instead of entering full screen, as AppKit does.
+
 | `double_click_titlebar` | Normal window | Fixed size |
 |---|---|---|
 | `zoom` (default), `fill` | Maximizes | Nothing |
