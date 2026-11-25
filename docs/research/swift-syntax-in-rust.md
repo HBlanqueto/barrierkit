@@ -67,7 +67,7 @@ Findings that decide most translations:
    notification bus, no hosting of foreign views.
 8. **14 statements in `agents/` and the chapters are stale, wrong,
    incomplete or trap-prone** ([5.4](#54-stale-or-wrong-statements)).
-   Example: `agents/prompt.md` says `.help` works "on any view".
+   Example: `.claude/skills/barrierkit-app/SKILL.md` says `.help` works "on any view".
 
 Method in numbers: 32 Swift programs (18 SwiftUI, 14 AppKit) compiled and run;
 six reruns by me matched; 15 sampled claims about the source matched.
@@ -211,7 +211,7 @@ SwiftUI modifier against kit method:
 | the nearest ancestor wins | scopes **compose**: the inner closure sees the outer result | SwiftUI replaces: a child's own `.buttonStyle` wins (S5) | `styles/theme.rs:184-205` |
 | `ToggleStyle`, `LabelStyle`, `PickerStyle` | one `*Style` struct per control (`SwitchStyle`, `PopUpButtonStyle`) | no protocols; a style that spans controls does not exist | [glossary](../barrierkit/20-glossary.md), ADR 0064 in [`decisions.md`](../decisions.md) |
 | `.controlSize(.small)` | `.control_size(ControlSize::Small)` on a view, `.size(..)` on a control; 13 families | `.size` wins over the scope | [`control_sizes.rs`](../../crates/bk/examples/control_sizes.rs) lines 14-22 |
-| precedence | tengen, theme, scopes (outermost first), instance, accessibility | `resolve` is crate-private: an app cannot make its own themed control (UNVERIFIED: no other path) | `styles.rs:170-171`, [`agents/styles.md`](../../agents/styles.md#levels) |
+| precedence | tengen, theme, scopes (outermost first), instance, accessibility | `resolve` is crate-private: an app cannot make its own themed control (UNVERIFIED: no other path) | `styles.rs:170-171`, [`.claude/skills/barrierkit-app/styles.md`](../../.claude/skills/barrierkit-app/styles.md#levels) |
 
 ### 1.5 Static and implicit members
 
@@ -307,7 +307,7 @@ render, or one of another type, panics (`fc/lifecycle/base.rs:75-95`). A hook
 belongs to the enclosing component, so a plain function that calls hooks
 shares its caller's list. `.help` hides a hook (`modifiers.rs:20-22`), so
 `ForEach { row.help(..) }` and `if x { b.help(..) }` break the rule. The
-checklist names it ([`checklist.md`](../../agents/checklist.md), question 6)
+checklist names it ([`checklist.md`](../../.claude/skills/barrierkit-app/checklist.md), question 6)
 but lists only `use_state` and `use_defaults`.
 
 SwiftUI has no such rule: a wrapper is keyed by its property, not its order.
@@ -791,7 +791,7 @@ Would an agent that knows SwiftUI write the kit's app without surprises, using
 one; the closest are `Text`, `VStack` and `HStack`, `Button::on_press` and
 `TextField::on_submit`. The three agent files teach the shape of an app
 (`Application`, `use_state`, the controlled pattern, the glossary lookup), and
-`agents/prompt.md` step 1 asks for the SwiftUI code first. No document says
+`.claude/skills/barrierkit-app/SKILL.md` step 1 asks for the SwiftUI code first. No document says
 what to do with `@Binding`, `@Environment`, `@Observable`, `@FocusState`,
 `ForEach` or `if/else`.
 
@@ -799,7 +799,7 @@ what to do with `@Binding`, `@Environment`, `@Observable`, `@FocusState`,
 
 | # | Surprise | Evidence |
 |---|---|---|
-| 1 | Modifier chains stop compiling on controls: `Button::new("x").padding(..).help("..")`. Only 10 types take them; `agents/prompt.md` says "any view" | 1.3; D4 below |
+| 1 | Modifier chains stop compiling on controls: `Button::new("x").padding(..).help("..")`. Only 10 types take them; `.claude/skills/barrierkit-app/SKILL.md` says "any view" | 1.3; D4 below |
 | 2 | Modifiers set, not wrap: the padding is inside the background, repeated `.padding` replaces, a fixed width includes the padding | S1; 1.3 |
 | 3 | Different types in `if/else` or `match` branches do not compile; erase with `.into_element()` | 1.1 |
 | 4 | No `Picker`, `Toggle`, `ForEach`, `.tag`: `PopUpButton`, `Switch`, `Checkbox`, `usize` selection, `Vec<String>` rows | 1.6, 1.7 |
@@ -815,7 +815,7 @@ what to do with `@Binding`, `@Environment`, `@Observable`, `@FocusState`,
 | 14 | `Callback` is never equal: a component with a handler never memoises; a `PartialEq` struct cannot hold a bare closure | 1.2, 1.10 |
 | 15 | Actions reach every handler of the window; there is no close veto, quit API or open-URL event | section 2; K1, K8 |
 
-Runners-up: `.foreground_style` does not cascade from a stack (`agents/styles.md`);
+Runners-up: `.foreground_style` does not cascade from a stack (`.claude/skills/barrierkit-app/styles.md`);
 the shortcut modifier is Ctrl; `Application` centres the content; `Label` in
 the prelude is Freya's text element; `.offset` shifts children, it does not
 move the view.
@@ -860,18 +860,18 @@ of `Row::navigation`, `destructive`, `toggle`; `SheetButtons::new`. Twenty
 
 | # | Statement | Where | Evidence | Verdict |
 |---|---|---|---|---|
-| D1 | "The 121 `Symbol`s" | `agents/prompt.md:79`, glossary row `symbol::Symbol` | `symbol.rs:19-144` has 124 variants; the glossary's variant table has 124 rows | stale |
-| D2 | the font list omits `TITLE_3`, `SUBHEADLINE`, `FOOTNOTE`, `CAPTION_2` | `agents/prompt.md:56-57`, [chapter 2](../barrierkit/02-first-app.md) | `prelude.rs:1-5` exports them | incomplete |
-| D3 | "An app depends only on `bk`" | `agents/prompt.md:37-39` | [chapter 14](../barrierkit/14-animations.md) adds `freya-animation`; chapter 13 adds `freya-clipboard`; chapter 3 and `titlebar_over_gradient.rs` import `ctdesign` | wrong |
-| D4 | `.help` and `.context_menu` work "on any view" | `agents/prompt.md:66-70` | [chapter 7](../barrierkit/07-menus-and-popovers.md): wrap controls in a `rect()` | contradiction |
+| D1 | "The 121 `Symbol`s" | `.claude/skills/barrierkit-app/SKILL.md:79`, glossary row `symbol::Symbol` | `symbol.rs:19-144` has 124 variants; the glossary's variant table has 124 rows | stale |
+| D2 | the font list omits `TITLE_3`, `SUBHEADLINE`, `FOOTNOTE`, `CAPTION_2` | `.claude/skills/barrierkit-app/SKILL.md:56-57`, [chapter 2](../barrierkit/02-first-app.md) | `prelude.rs:1-5` exports them | incomplete |
+| D3 | "An app depends only on `bk`" | `.claude/skills/barrierkit-app/SKILL.md:37-39` | [chapter 14](../barrierkit/14-animations.md) adds `freya-animation`; chapter 13 adds `freya-clipboard`; chapter 3 and `titlebar_over_gradient.rs` import `ctdesign` | wrong |
+| D4 | `.help` and `.context_menu` work "on any view" | `.claude/skills/barrierkit-app/SKILL.md:66-70` | [chapter 7](../barrierkit/07-menus-and-popovers.md): wrap controls in a `rect()` | contradiction |
 | D5 | `Sheet` is a rect and takes the modifiers | [chapter 11](../barrierkit/11-views.md), chapter 7 | `views/feedback.rs:69-73`: a `PartialEq` struct | wrong |
-| D6 | "Controls are controlled: pass the value" | `agents/prompt.md:61-62`, checklist 4 | 11 types take `State<T>`; the exception is only in [chapter 5](../barrierkit/05-controls.md#the-controlled-pattern) | incomplete |
-| D7 | "No literal sizes" has no throwaway exemption | `agents/prompt.md:54-55` | `hello_world.rs` line 6 `.padding(40.)`, `counter.rs` line 14 `.size((420, 300))` | self-contradiction |
+| D6 | "Controls are controlled: pass the value" | `.claude/skills/barrierkit-app/SKILL.md:61-62`, checklist 4 | 11 types take `State<T>`; the exception is only in [chapter 5](../barrierkit/05-controls.md#the-controlled-pattern) | incomplete |
+| D7 | "No literal sizes" has no throwaway exemption | `.claude/skills/barrierkit-app/SKILL.md:54-55` | `hello_world.rs` line 6 `.padding(40.)`, `counter.rs` line 14 `.size((420, 300))` | self-contradiction |
 | D8 | the `Text::style` order rule | chapter 2 only | the same rebuild in `Badge`, `Divider`, `Avatar`, `SymbolTile` | undocumented for four types |
-| D9 | "Call hooks on every render" | `agents/prompt.md:68-70`, checklist 6 | right, but `ForEach { row.help(..) }` breaks it; the checklist names two hooks of about ten | trap-prone |
-| D10 | step 1: "write down the SwiftUI code" | `agents/prompt.md:19` | no document maps `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else` | gap |
+| D9 | "Call hooks on every render" | `.claude/skills/barrierkit-app/SKILL.md:68-70`, checklist 6 | right, but `ForEach { row.help(..) }` breaks it; the checklist names two hooks of about ten | trap-prone |
+| D10 | step 1: "write down the SwiftUI code" | `.claude/skills/barrierkit-app/SKILL.md:19` | no document maps `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else` | gap |
 | D11 | glossary step 1: search for `Toggle` | glossary, Steps | the only row with `Toggle` is `Row::toggle` | misleading |
-| D12 | "Colors only from `Palette::current()`" | `agents/prompt.md:54` | `styles.md` and `styled_control.rs` use `ShapeStyle::Role` and `Accent` | incomplete |
+| D12 | "Colors only from `Palette::current()`" | `.claude/skills/barrierkit-app/SKILL.md:54` | `styles.md` and `styled_control.rs` use `ShapeStyle::Role` and `Accent` | incomplete |
 | D13 | the prelude table | chapter 2 | `prelude.rs:17` also exports `IconStyle`, `TemplateRenderingMode` | incomplete |
 | D14 | recipes are files, never a block in `recipes.md` | `AGENTS.md` | `recipes.md:74-76` has a block; 12 sections, 11 `[[example]]` | minor |
 

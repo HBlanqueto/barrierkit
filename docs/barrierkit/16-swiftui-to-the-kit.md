@@ -96,7 +96,7 @@ The built-in keys have their own readers:
 | `\.layoutDirection` | `.layout_direction(LayoutDirection)` on a view; `use_environment::<LayoutDirection>()` reads it ([11](11-views.md#right-to-left)) |
 | `\.accessibilityReduceMotion` | `use_reduced_motion()` |
 | `\.isEnabled` | `use_is_enabled()`; `.disabled(bool)` on a view ([disabled](#disabled)) |
-| `\.font`, `\.foregroundStyle` | set on each element; a `Text` keeps its own color ([`styles.md`](../../agents/styles.md)) |
+| `\.font`, `\.foregroundStyle` | set on each element; a `Text` keeps its own color ([`styles.md`](../../.claude/skills/barrierkit-app/styles.md)) |
 
 ## Disabled
 

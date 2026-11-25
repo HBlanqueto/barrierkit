@@ -2,7 +2,7 @@
 
 **Goal:** catch the usual mistakes before a program or a change is handed in.
 **Scope:** the code, the build, and changes to the kit itself.
-**Reader:** an AI agent sent here by [`prompt.md`](prompt.md), or a reviewer.
+**Reader:** an AI agent sent here by [`prompt.md`](SKILL.md), or a reviewer.
 **Input:** finished code. **Output:** every question answered "yes", or the
 reason it cannot be.
 
@@ -45,11 +45,11 @@ reason it cannot be.
     it is black in light and white in dark?
     Is a new `Symbol` fitted to its SF name (ink box within 0.5, mass within
     5%) and listed in the glossary's
-    [Symbol variants](../docs/barrierkit/20-glossary.md#symbol-variants)?
+    [Symbol variants](../../../docs/barrierkit/20-glossary.md#symbol-variants)?
 
 11. Do the modifiers sit on the view or control they change, with outer space
     as `.margin` and not a second `.padding`? A modifier sets one node; it does
-    not wrap it ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
+    not wrap it ([chapter 5](../../../docs/barrierkit/05-controls.md#modifiers-on-controls)).
     A key for a button goes through `.keyboard_shortcut(..)`, not a key handler.
     A round or rounded clip goes through `.clip_shape(..)` and a drawn shape through
     `Circle`, `Capsule`, `RoundedRectangle` or `Path`, not a `rect()` with a radius you computed.
@@ -65,7 +65,7 @@ reason it cannot be.
 ## Changes to the kit itself
 
 15. Is every new or renamed public item in
-    [`docs/barrierkit/20-glossary.md`](../docs/barrierkit/20-glossary.md), named by
+    [`docs/barrierkit/20-glossary.md`](../../../docs/barrierkit/20-glossary.md), named by
     its rules, in the same commit?
 16. Does the chapter that describes the changed behavior say what the code
     does now?

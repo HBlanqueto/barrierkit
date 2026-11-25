@@ -3,7 +3,7 @@
 **Goal:** let an AI agent (for example Claude, in a claude.ai artifact) draw
 an HTML page that looks like a BarrierKit app.
 **Scope:** from a description of a window to one HTML file built only from
-BarrierKit tokens. Writing the real app in Rust is in [`prompt.md`](prompt.md).
+BarrierKit tokens. Writing the real app in Rust is in [`prompt.md`](../../.claude/skills/barrierkit-app/SKILL.md).
 **Reader:** an AI agent. Read it whole before drawing.
 **Input:** a task, a SwiftUI sketch or an existing app. **Output:** one HTML
 file whose controls carry `data-bk` and whose values all come from
@@ -17,8 +17,8 @@ the kit's name.
 
 ## Steps
 
-1. Read [`prompt.md`](prompt.md) and the
-   [glossary](../docs/barrierkit/20-glossary.md): the page uses the same views
+1. Read [`prompt.md`](../../.claude/skills/barrierkit-app/SKILL.md) and the
+   [glossary](20-glossary.md): the page uses the same views
    and names as the Rust app.
 2. Put [`tengen.css`](tengen.css) in the page: a `<link>` inside the repo, or
    its whole text in a `<style>` in an artifact, which cannot load local files.

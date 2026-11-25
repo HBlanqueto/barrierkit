@@ -10,7 +10,7 @@ the build they share are in [Tengen](../barrierkit/tengen.md) and
 wallpaper.
 **Input:** `crates/ctdesign/tengen/components.json` and `tokens.json`.
 **Output:** a constant in `ctshell::design`, and its CSS variable in
-`agents/tengen.css`.
+`docs/barrierkit/tengen.css`.
 
 ## Steps to add a token
 
@@ -31,7 +31,7 @@ wallpaper.
    [Tengen](../barrierkit/tengen.md#steps-to-add-a-constant), steps 3 and 4.
 5. Build with `cargo build -p ctshell`. A missing key, struct or field stops
    the build with `ctdesign: …` and the path it looked for.
-6. Regenerate the CSS: `scripts/tengen-css.sh > agents/tengen.css`.
+6. Regenerate the CSS: `scripts/tengen-css.sh > docs/barrierkit/tengen.css`.
 7. Add its row to the [shell glossary](glossary.md).
 8. Use it as `ctshell::design::NAME` and run `./dev.sh check`
    ([Checks](#checks)).
@@ -187,7 +187,7 @@ panel), `inactive`, `reduced` (Reduce Transparency), `increased_contrast` and
 | Check | Fails when |
 |---|---|
 | `scripts/check-design-tokens.sh` | Production code in `crates/*/src`, outside `ctdesign`, holds a color, radius, duration or UI measurement literal ([the patterns](../barrierkit/tengen.md#checks)). `ctshell/src` is checked too |
-| `scripts/tengen-css.sh \| diff -u agents/tengen.css -` | `agents/tengen.css` differs from the JSON |
+| `scripts/tengen-css.sh \| diff -u docs/barrierkit/tengen.css -` | `docs/barrierkit/tengen.css` differs from the JSON |
 
 `scripts/check-client-only-deps.sh` also fails if `ctshell` pulls Freya or
 Skia.

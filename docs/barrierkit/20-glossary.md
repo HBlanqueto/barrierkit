@@ -7,7 +7,7 @@ AppKit or UIKit, and name new items the same way.
 documents it. Some methods have a row; the chapters document the rest. The
 names of `bk_shell` and `ctshell` are in [the shell glossary](../shell/glossary.md).
 **Reader:** anyone who writes an app with the kit, adds an item to it, or is an
-AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
+AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrierkit-app/SKILL.md)).
 **Input:** a name. **Output:** its counterpart and the chapter to read.
 
 ## Steps
@@ -176,28 +176,28 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
-| `styles` | module | — | — | — | Value types of the styling system, `Theme`, `StyleScope` and the control styles | [Styles](../../agents/styles.md) |
-| `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | ≈ `UIColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material, the window background (`WindowBackground`, SwiftUI's `.windowBackground`: clear where the system draws the window's material), a system color or nothing | [Styles](../../agents/styles.md#value-types) |
-| `styles::SystemColor` | enum | `Color.red`…`Color.gray` | `NSColor.systemRed`… | `UIColor.systemRed`… | The 13 system colors, light and dark as AppKit gives them on macOS 27.2; paint with `ShapeStyle::System` | [Styles](../../agents/styles.md#value-types) |
-| `styles::Role` | enum | ≈ semantic `Color` (`.primary`, `.secondary`) | ≈ `NSColor.labelColor`… | ≈ `UIColor.label` | One color of the `Palette` (all but `accent`), resolved late | [Styles](../../agents/styles.md#value-types) |
-| `styles::Gradient` | struct | `LinearGradient`, `AngularGradient`, `EllipticalGradient` | `NSGradient` | ≈ `CAGradientLayer` | Stops of `ShapeStyle` as a linear gradient (`new`, an angle), an angular one (`angular`) or an elliptical one (`elliptical`) | [Styles](../../agents/styles.md#value-types) |
-| `styles::Gradient::angular` | method | `AngularGradient(gradient:center:angle:)` | — | ≈ `CAGradientLayer` | Sweeps clockwise from the right, starting at an angle in degrees; the center is the view's | [Styles](../../agents/styles.md#value-types) |
-| `styles::Gradient::elliptical` | method | `EllipticalGradient(gradient:)` | — | ≈ `CAGradientLayer` | An ellipse whose radii are half the view's width and half its height; center and radii are not offered | [Styles](../../agents/styles.md#value-types) |
-| `styles::Gradient::color_space` | method | `AnyGradient.colorSpace(_:)` | — | — | Picks how the stops mix | [Styles](../../agents/styles.md#value-types) |
-| `styles::GradientColorSpace` | enum | `Gradient.ColorSpace` | — | — | `Perceptual` (default; OKLab, premultiplied: what SwiftUI draws by default on macOS 27.2.1) or `Device` (the mix of the bezel and tab gradients, measured against AppKit) | [Styles](../../agents/styles.md#value-types) |
-| `styles::Thickness` | enum | `Material` (`.ultraThin`…`.ultraThick`) | `NSVisualEffectView.Material` | `UIBlurEffect.Style` | How translucent and blurred a material is; values in `MATERIAL` | [Styles](../../agents/styles.md#value-types) |
-| `styles::StateValue` | struct | — | — | — | A value with optional hovered, pressed, focused and disabled values | [Styles](../../agents/styles.md#value-types) |
-| `styles::ControlState` | struct | ≈ `ButtonStyle.Configuration` (`isPressed`) | ≈ `NSControl.isHighlighted`, `isEnabled` | ≈ `UIControl.State` | Hovered, pressed, focused and disabled flags of a control | [Styles](../../agents/styles.md#value-types) |
-| `styles::Shape` | enum | `Rectangle`, `RoundedRectangle`, `UnevenRoundedRectangle`, `Capsule`, `Circle` | ≈ `NSBezierPath` | ≈ `UIBezierPath` | Outline of a part | [Styles](../../agents/styles.md#value-types) |
-| `styles::CornerStyle` | enum | `RoundedCornerStyle` | — | `CALayerCornerCurve` | `Continuous` or `Circular` corners | [Styles](../../agents/styles.md#value-types) |
-| `styles::ShadowStyle` | struct | `ShadowStyle` (`.drop`, `.inner`) | `NSShadow` | `NSShadow` | One shadow: color, x, y, blur, spread, inner | [Styles](../../agents/styles.md#value-types) |
-| `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | How a change moves: `None`, `Ease`, `Spring` (period and bounce), `Custom`; [Spring](14-animations.md#spring) | [Styles](../../agents/styles.md#value-types) |
-| `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `NSLayoutConstraint.Axis` | `Horizontal` or `Vertical` | [Styles](../../agents/styles.md#value-types) |
-| `styles::Edge` | enum | `Edge` | `NSRectEdge` | `UIRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../../agents/styles.md#value-types) |
-| `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `UISemanticContentAttribute` | `LeftToRight` (default) or `RightToLeft`; ambient through `.layout_direction(..)` | [Styles](../../agents/styles.md#value-types) |
-| `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | ≈ `UIContentConfiguration` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../../agents/styles.md#which-controls-take-a-style) |
+| `styles` | module | — | — | — | Value types of the styling system, `Theme`, `StyleScope` and the control styles | [Styles](../../.claude/skills/barrierkit-app/styles.md) |
+| `styles::ShapeStyle` | enum | `ShapeStyle` | ≈ `NSColor` | ≈ `UIColor` | Paint of a part: a role, the accent, a fixed color, a gradient, the backdrop, a material, the window background (`WindowBackground`, SwiftUI's `.windowBackground`: clear where the system draws the window's material), a system color or nothing | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::SystemColor` | enum | `Color.red`…`Color.gray` | `NSColor.systemRed`… | `UIColor.systemRed`… | The 13 system colors, light and dark as AppKit gives them on macOS 27.2; paint with `ShapeStyle::System` | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Role` | enum | ≈ semantic `Color` (`.primary`, `.secondary`) | ≈ `NSColor.labelColor`… | ≈ `UIColor.label` | One color of the `Palette` (all but `accent`), resolved late | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Gradient` | struct | `LinearGradient`, `AngularGradient`, `EllipticalGradient` | `NSGradient` | ≈ `CAGradientLayer` | Stops of `ShapeStyle` as a linear gradient (`new`, an angle), an angular one (`angular`) or an elliptical one (`elliptical`) | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Gradient::angular` | method | `AngularGradient(gradient:center:angle:)` | — | ≈ `CAGradientLayer` | Sweeps clockwise from the right, starting at an angle in degrees; the center is the view's | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Gradient::elliptical` | method | `EllipticalGradient(gradient:)` | — | ≈ `CAGradientLayer` | An ellipse whose radii are half the view's width and half its height; center and radii are not offered | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Gradient::color_space` | method | `AnyGradient.colorSpace(_:)` | — | — | Picks how the stops mix | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::GradientColorSpace` | enum | `Gradient.ColorSpace` | — | — | `Perceptual` (default; OKLab, premultiplied: what SwiftUI draws by default on macOS 27.2.1) or `Device` (the mix of the bezel and tab gradients, measured against AppKit) | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Thickness` | enum | `Material` (`.ultraThin`…`.ultraThick`) | `NSVisualEffectView.Material` | `UIBlurEffect.Style` | How translucent and blurred a material is; values in `MATERIAL` | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::StateValue` | struct | — | — | — | A value with optional hovered, pressed, focused and disabled values | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::ControlState` | struct | ≈ `ButtonStyle.Configuration` (`isPressed`) | ≈ `NSControl.isHighlighted`, `isEnabled` | ≈ `UIControl.State` | Hovered, pressed, focused and disabled flags of a control | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Shape` | enum | `Rectangle`, `RoundedRectangle`, `UnevenRoundedRectangle`, `Capsule`, `Circle` | ≈ `NSBezierPath` | ≈ `UIBezierPath` | Outline of a part | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::CornerStyle` | enum | `RoundedCornerStyle` | — | `CALayerCornerCurve` | `Continuous` or `Circular` corners | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::ShadowStyle` | struct | `ShadowStyle` (`.drop`, `.inner`) | `NSShadow` | `NSShadow` | One shadow: color, x, y, blur, spread, inner | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Animation` | enum | `Animation` | ≈ `NSAnimationContext` | ≈ `UIViewPropertyAnimator` | How a change moves: `None`, `Ease`, `Spring` (period and bounce), `Custom`; [Spring](14-animations.md#spring) | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Axis` | enum | `Axis` | `NSUserInterfaceLayoutOrientation` | `NSLayoutConstraint.Axis` | `Horizontal` or `Vertical` | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::Edge` | enum | `Edge` | `NSRectEdge` | `UIRectEdge` | `Top`, `Bottom`, `Leading`, `Trailing` | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::LayoutDirection` | enum | `LayoutDirection` | `NSUserInterfaceLayoutDirection` | `UISemanticContentAttribute` | `LeftToRight` (default) or `RightToLeft`; ambient through `.layout_direction(..)` | [Styles](../../.claude/skills/barrierkit-app/styles.md#value-types) |
+| `styles::ControlStyle` | trait | ≈ the style protocols (`ButtonStyle`, `ToggleStyle`) | ≈ `NSCell` | ≈ `UIContentConfiguration` | Implemented by every control style: `tengen()` and the accessibility rules of its control | [Styles](../../.claude/skills/barrierkit-app/styles.md#which-controls-take-a-style) |
 | `styles::CircularSliderStyle` | struct | — | ≈ `NSSliderCell` | — | Every visual property of `CircularSlider` | [Styles](../../crates/bk/src/styles/circular_slider.rs) |
-| `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | ≈ `UISlider` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../../agents/styles.md#the-fields-of-a-style) |
+| `styles::SliderStyle` | struct | ≈ `ButtonStyle` | ≈ `NSSliderCell` | ≈ `UISlider` | Every visual property of `Slider`; `tengen()` builds the default from the tokens | [Styles](../../.claude/skills/barrierkit-app/styles.md#the-fields-of-a-style) |
 | `styles::ButtonStyle` | struct | `ButtonStyle`, `PrimitiveButtonStyle` | ≈ `NSButtonCell`, `NSButton.BezelStyle` | ≈ `UIButton.Configuration` | Every visual property of `Button`; `tengen()` is `.bordered`; `glass` is the native glass it sits on where the platform draws glass | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::bordered_prominent` | method | `PrimitiveButtonStyle.borderedProminent` | ≈ `NSButton.keyEquivalent` `"\r"` | ≈ `UIButton.Configuration.filled()` | Preset: accent fill, `on_accent` label | [Styles](../../crates/bk/src/styles/button.rs) |
 | `styles::ButtonStyle::circular` | method | `.buttonBorderShape(.circle)` | ≈ `NSButton.BezelStyle.circular` | ≈ `UIButton.Configuration.cornerStyle` | Preset: a 17 high circle for an icon-only button | [Styles](../../crates/bk/src/styles/button.rs) |
@@ -293,13 +293,13 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `styles::ContentUnavailableViewStyle` | struct | — | — | — | Every visual property of `ContentUnavailableView` | [Styles](../../crates/bk/src/styles/content_unavailable_view.rs) |
 | `styles::SettingsWindowStyle` | struct | — | — | — | Gaps of `SettingsWindow` and its search popover | [Styles](../../crates/bk/src/styles/settings_window.rs) |
 | `styles::AboutViewStyle` | struct | — | — | — | Every visual property of `AboutView` | [Styles](../../crates/bk/src/styles/about_view.rs) |
-| `styles::MenuStyle` | type | ≈ `MenuStyle` | ≈ `NSMenu` drawing | ≈ `UIMenu` | `ctdesign::MenuPalette`: the colors and metrics of menus, pop-up menus, popovers and tooltips | [Styles](../../agents/styles.md#menustyle) |
-| `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | ≈ `UITraitCollection` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../../agents/styles.md#levels) |
-| `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | ≈ `UIButton.Configuration` | Adds an override of the control whose style the closure takes | [Styles](../../agents/styles.md#levels) |
-| `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | ≈ `UIButton.Configuration` | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../../agents/styles.md#levels) |
-| `modifiers::StyleModifiers` | trait | `View` modifiers | — | — | Style modifiers for every view | [Styles](../../agents/styles.md#levels) |
+| `styles::MenuStyle` | type | ≈ `MenuStyle` | ≈ `NSMenu` drawing | ≈ `UIMenu` | `ctdesign::MenuPalette`: the colors and metrics of menus, pop-up menus, popovers and tooltips | [Styles](../../.claude/skills/barrierkit-app/styles.md#menustyle) |
+| `styles::Theme` | struct | ≈ styles set in the environment | ≈ `NSAppearance` | ≈ `UITraitCollection` | Style overrides for the whole app; `Theme::tengen()` changes nothing | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
+| `styles::Theme::style` | method | ≈ `.buttonStyle(_:)` on the scene | — | ≈ `UIButton.Configuration` | Adds an override of the control whose style the closure takes | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
+| `styles::StyleScope` | struct | ≈ a view after `.buttonStyle(_:)` | — | ≈ `UIButton.Configuration` | Component returned by `.control_style`: its overrides reach the controls inside | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
+| `modifiers::StyleModifiers` | trait | `View` modifiers | — | — | Style modifiers for every view | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
 | `modifiers::StyleModifiers::control_size` | method | `.controlSize(_:)` | `NSControl.controlSize` | — | Sizes every control inside the view; a control's own `.size(..)` wins | [5](05-controls.md#control-size) |
-| `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | ≈ `UIButton.Configuration`, ≈ `UISwitch` | Changes the style of every control of that style inside the view | [Styles](../../agents/styles.md#levels) |
+| `modifiers::StyleModifiers::control_style` | method | ≈ `.buttonStyle(_:)`, `.toggleStyle(_:)` | — | ≈ `UIButton.Configuration`, ≈ `UISwitch` | Changes the style of every control of that style inside the view | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
 | `modifiers::StyleModifiers::frame` | method | `.frame(width:height:alignment:)` | — | `NSLayoutConstraint` | Wraps the view in a `Frame`; the size methods and `.alignment(..)` follow | [11](11-views.md#frame) |
 | `modifiers::EnvironmentModifiers` | trait | `View` modifiers | — | — | Modifiers that put a value in the environment of a view: `disabled`, `environment`, `focused`, `default_focus` | [16](16-swiftui-to-the-kit.md#environment) |
 | `modifiers::EnvironmentModifiers::disabled` | method | `.disabled(_:)` | `NSControl.isEnabled` | `UIControl.isEnabled` | Disables every control inside the view; its own `.disabled` and every view above add up, and `false` enables nothing | [16](16-swiftui-to-the-kit.md#disabled) |
@@ -354,10 +354,10 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `gesture::SequenceValue` | enum | `SequenceGesture.Value` | — | — | First, or second with the first's value and the second's if it began | [5](05-controls.md#gestures) |
 | `gesture::SequenceRecognizer` | struct | — | — | — | The state machine of `SequenceGesture` | [5](05-controls.md#gestures) |
 | `gesture::Gesture::sequenced_before` | method | `.sequenced(before:)` | — | — | `next` can begin once this gesture has ended | [5](05-controls.md#gestures) |
-| `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | ≈ `UILabel.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../../agents/styles.md#paint-on-views) |
-| `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | ≈ `UIView.layer` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../../agents/styles.md#paint-on-views) |
-| `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | ≈ `CALayer.shadowOpacity` | Adds a list of `ShadowStyle` to a view | [Styles](../../agents/styles.md#paint-on-views) |
-| `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | ≈ `UISlider.minimumTrackTintColor` | Changes the style of one slider | [Styles](../../agents/styles.md#levels) |
+| `modifiers::ViewModifiers::foreground_style` | method | `.foregroundStyle(_:)` | ≈ `NSTextField.textColor` | ≈ `UILabel.textColor` | Text color of `Text`, `label` or `paragraph` from a `ShapeStyle` | [Styles](../../.claude/skills/barrierkit-app/styles.md#paint-on-views) |
+| `modifiers::ViewModifiers::background_style` | method | `.background(_:ignoresSafeAreaEdges:)`; Freya already uses `background` | ≈ `NSView.layer.backgroundColor` | ≈ `UIView.layer` | Background of a view from a `ShapeStyle`, with blur for a material | [Styles](../../.claude/skills/barrierkit-app/styles.md#paint-on-views) |
+| `modifiers::ViewModifiers::shadows` | method | ≈ `.shadow(color:radius:x:y:)`; Freya already uses `shadow` | ≈ `NSView.shadow` | ≈ `CALayer.shadowOpacity` | Adds a list of `ShadowStyle` to a view | [Styles](../../.claude/skills/barrierkit-app/styles.md#paint-on-views) |
+| `controls::Slider::style` | method | ≈ `.buttonStyle(_:)` on one view | ≈ `NSSlider.trackFillColor` | ≈ `UISlider.minimumTrackTintColor` | Changes the style of one slider | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
 | `controls::Button::style` | method | `.buttonStyle(_:)` on one view | ≈ `NSButton.bezelStyle` | ≈ `UIButton.Configuration` | Changes the style of one button; takes a preset or a closure | [Styles](../../crates/bk/src/styles/button.rs) |
 | `controls::Switch::style` | method | `.toggleStyle(.switch)` on one view | — | `UISwitch` | Changes the style of one switch | [Styles](../../crates/bk/src/styles/switch.rs) |
 | `controls::Checkbox::mixed` | method | — | ≈ `NSButton.allowsMixedState` | — | Shows a dash instead of the check | [5](05-controls.md#switch-and-checkbox) |
@@ -473,7 +473,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `menu::MenuView::with_query_state` | method | — | — | — | Keeps the search text across rebuilds of the menu | [7](07-menus-and-popovers.md#search) |
 | `menu::MenuView::with_navigation` | method | — | — | — | Calls the closure when ← or → asks for the neighbouring menu | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::MenuView::preferred_size` | fn | — | `NSMenu.size` | — | The width and height the items take | [7](07-menus-and-popovers.md#menu-view) |
-| `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | ≈ `UIWindow.overrideUserInterfaceStyle` | Gives the app its `Theme` | [Styles](../../agents/styles.md#levels) |
+| `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | ≈ `UIWindow.overrideUserInterfaceStyle` | Gives the app its `Theme` | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
 
 ## Symbols and fonts
 

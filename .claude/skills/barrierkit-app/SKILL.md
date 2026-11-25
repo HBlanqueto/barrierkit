@@ -1,9 +1,15 @@
+---
+name: barrierkit-app
+description: Write or change a desktop app with BarrierKit (bk), the Rust toolkit whose API follows SwiftUI. Use it before writing app code with bk, translating a SwiftUI app to the kit, or restyling kit controls; it says which recipe, chapter and checklist to read.
+---
+
 # BarrierKit: prompt for AI agents
 
 **Goal:** let an AI agent write or change a BarrierKit app correctly.
 **Scope:** from a task to code that builds and follows the kit's rules. This is
 the only entry point; it says which other file to read and when.
-**Reader:** an AI agent. Copy this file whole into its context, or point it here.
+**Reader:** an AI agent. Claude Code loads it as the `barrierkit-app` skill;
+another agent reads this file first.
 **Input:** a task. **Output:** a program or a change, checked with the
 [checklist](checklist.md).
 
@@ -18,10 +24,10 @@ version.
 
 1. Write down the SwiftUI code a Mac developer would write for the task.
 2. Translate it name by name with the
-   [glossary](../docs/barrierkit/20-glossary.md). Do not guess a name. Translate
+   [glossary](../../../docs/barrierkit/20-glossary.md). Do not guess a name. Translate
    what is not a name (`@Binding`, `@Environment`, `@Observable`, `@FocusState`,
    `ForEach`, `if/else`, actions, effects) with
-   [SwiftUI to the kit](../docs/barrierkit/16-swiftui-to-the-kit.md).
+   [SwiftUI to the kit](../../../docs/barrierkit/16-swiftui-to-the-kit.md).
 3. Start from the closest [recipe](recipes.md); change only what the task
    needs.
 4. Open the chapter of every item you use (the glossary links it) and check
@@ -36,7 +42,7 @@ version.
 
 - **Language:** Rust 2024, stable toolchain.
 - **Platform:** macOS arm64 first, drawn with Metal and Skia ([the macOS
-  runner](../docs/barrierkit/18-platform.md#the-macos-runner)); Linux on
+  runner](../../../docs/barrierkit/18-platform.md#the-macos-runner)); Linux on
   Wayland, drawn with Vulkan and Skia. No Windows, no X11.
 - **Layers:** BarrierKit (`bk`) is built on Freya 0.5.3
   (`freya-core`), its layout engine Torin, and the design tokens of
@@ -46,12 +52,12 @@ version.
 - **Model:** declarative. A view is a function of the state; when the state
   changes, the kit calls it again and applies the difference.
 - **Features:** an app enables none but `tracy`, for profiling; shell
-  components use `bk-shell` ([the shell docs](../docs/shell/README.md))
-  ([chapter 1](../docs/barrierkit/01-what-is-barrierkit.md#the-crates)).
+  components use `bk-shell` ([the shell docs](../../../docs/shell/README.md))
+  ([chapter 1](../../../docs/barrierkit/01-what-is-barrierkit.md#the-crates)).
 - **Shape of every app:** `use bk::prelude::*;`, then
   `Application::new(id).window(title, || view).run()`, with a reverse-DNS `id` (`com.example.notes`), in `main`. The program
   and what each part does are in
-  [chapter 2](../docs/barrierkit/02-first-app.md#hello-world). A window that
+  [chapter 2](../../../docs/barrierkit/02-first-app.md#hello-world). A window that
   draws its own bar (a `Titlebar` with a sidebar or toolbar items) adds
   `.options(|w| w.window_style(WindowStyle::HiddenTitleBar))`; every design is
   in [recipe 50](recipes.md#50-every-swiftui-window-design).
@@ -72,7 +78,7 @@ version.
    for throwaway samples.
 4. **Controls are controlled.** A control takes the `State<T>` it edits in
    `new` (`Checkbox::new("Bold", bold)`, `Slider::new("Volume", volume)`), like
-   `TextField` ([chapter 5](../docs/barrierkit/05-controls.md#the-controlled-pattern)).
+   `TextField` ([chapter 5](../../../docs/barrierkit/05-controls.md#the-controlled-pattern)).
    Lists, tables, outlines and tab views take an optional `.selection(state)`;
    `SidebarItem` uses `.tag(selection, value)`. A callback remains only for
    actions such as `on_press` and `on_submit`.
@@ -87,7 +93,7 @@ version.
    `.background(..)`, `.help("…")` or `.context_menu(items, …)` on a view or a
    control, in any order. A modifier sets a property on that one node instead
    of wrapping it, so the padding stays inside the background and outer space
-   is `.margin` ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
+   is `.margin` ([chapter 5](../../../docs/barrierkit/05-controls.md#modifiers-on-controls)).
    `StyleScope`, `Sheet`, `Alert`, `SidebarToggle` and `Titlebar` take none:
    put them in a `rect()`. Call `.help` unconditionally: it uses a hook. `.sheet(state, ..)`, `.alert(state, ..)` and `.popover(state, size, ..)` show while a `State<bool>` is true. `.disabled(bool)`, `.environment(value)`, `.keyboard_shortcut(Shortcut)`, `.focused(..)` and `.default_focus(..)`
    wrap a view in a scope, as `.control_style` does: call them last.
@@ -95,41 +101,41 @@ version.
    non-obvious invariant. Names explain the code.
 9. **On Linux, build inside `nix develop`.** `./dev.sh check` refuses to run
    outside it; on macOS it uses your `rustup` toolchain
-   ([Build and check on macOS](../docs/barrierkit/18-platform.md#build-and-check-on-macos)).
+   ([Build and check on macOS](../../../docs/barrierkit/18-platform.md#build-and-check-on-macos)).
 10. **Symbols are SVG, never PNG.** Use `Image::system(..)`; for another
     one-color icon, `Image::data(svg).rendering_mode(TemplateRenderingMode::Template)`,
     which paints it black in light and white in dark
-    ([Images and template rendering](../docs/barrierkit/04-appearance-and-tokens.md#images-and-template-rendering)).
+    ([Images and template rendering](../../../docs/barrierkit/04-appearance-and-tokens.md#images-and-template-rendering)).
     The 154 `Symbol`s are named after SF Symbols; look an Apple name up in
-    the [glossary](../docs/barrierkit/20-glossary.md#symbol-variants) before
+    the [glossary](../../../docs/barrierkit/20-glossary.md#symbol-variants) before
     drawing a new one. `.font_weight(SymbolWeight::Bold)`, `.image_scale(ImageScale::Large)`
     and `.symbol_rendering_mode(SymbolRenderingMode::Hierarchical)` set one
     symbol's weight, scale and mode
-    ([Symbols](../docs/barrierkit/04-appearance-and-tokens.md#symbols)).
+    ([Symbols](../../../docs/barrierkit/04-appearance-and-tokens.md#symbols)).
 
 ## Read more only when the task needs it
 
 | When you need to… | Read |
 |---|---|
-| Find the name of anything (control, view, token, hook) | [`20-glossary.md`](../docs/barrierkit/20-glossary.md) |
-| Write `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, an action or an effect | [`16-swiftui-to-the-kit.md`](../docs/barrierkit/16-swiftui-to-the-kit.md) |
+| Find the name of anything (control, view, token, hook) | [`20-glossary.md`](../../../docs/barrierkit/20-glossary.md) |
+| Write `@Binding`, `@Environment`, `@Observable`, `@FocusState`, `ForEach`, `if/else`, an action or an effect | [`16-swiftui-to-the-kit.md`](../../../docs/barrierkit/16-swiftui-to-the-kit.md) |
 | Copy a working program | [`recipes.md`](recipes.md) |
-| Translate a SwiftUI file with a tool | [`scripts/swift-to-bk/README.md`](../scripts/swift-to-bk/README.md) |
+| Translate a SwiftUI file with a tool | [`scripts/swift-to-bk/README.md`](../../../scripts/swift-to-bk/README.md) |
 | Check your work before you answer | [`checklist.md`](checklist.md) |
-| Understand the first app line by line | [`02-first-app.md`](../docs/barrierkit/02-first-app.md) |
-| Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../docs/barrierkit/04-appearance-and-tokens.md) |
-| Use a control, give a view an accessibility label, scroll to a position or draw a shape | [`05-controls.md`](../docs/barrierkit/05-controls.md) |
+| Understand the first app line by line | [`02-first-app.md`](../../../docs/barrierkit/02-first-app.md) |
+| Colors, fonts, symbols and tokens | [`04-appearance-and-tokens.md`](../../../docs/barrierkit/04-appearance-and-tokens.md) |
+| Use a control, give a view an accessibility label, scroll to a position or draw a shape | [`05-controls.md`](../../../docs/barrierkit/05-controls.md) |
 | Change how a control looks (color, shape, size, motion) or build a theme | [`styles.md`](styles.md) |
-| Edit, style or spell-check text | [`06-text-and-editing.md`](../docs/barrierkit/06-text-and-editing.md) |
-| Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../docs/barrierkit/07-menus-and-popovers.md) |
-| Window size, limits, more than one window, popups, timers, file dialogs, a document that asks before it closes | [`08-windows.md`](../docs/barrierkit/08-windows.md) |
-| Title bars, toolbar items by placement and traffic lights | [`09-titlebars.md`](../docs/barrierkit/09-titlebars.md) |
-| A sidebar app, with or without a content column | [`10-sidebar.md`](../docs/barrierkit/10-sidebar.md) |
-| Forms, tables, tabs, alerts, search | [`11-views.md`](../docs/barrierkit/11-views.md) |
-| Preferences or About window | [`12-patterns.md`](../docs/barrierkit/12-patterns.md) |
-| Menu bar menu, shortcuts, single instance, saved settings, undo | [`13-app.md`](../docs/barrierkit/13-app.md) |
-| Animations | [`14-animations.md`](../docs/barrierkit/14-animations.md) |
-| Tinted backdrops, glass, artwork | [`15-backdrops-and-media.md`](../docs/barrierkit/15-backdrops-and-media.md) |
-| Translate the app | [`17-languages.md`](../docs/barrierkit/17-languages.md) |
-| Draw the app as an HTML artifact | [`artifacts.md`](artifacts.md) |
-| Change the kit itself | [`AGENTS.md`](../AGENTS.md) and [`03-layers.md`](../docs/barrierkit/03-layers.md) |
+| Edit, style or spell-check text | [`06-text-and-editing.md`](../../../docs/barrierkit/06-text-and-editing.md) |
+| Menus, context menus, popovers, tooltips | [`07-menus-and-popovers.md`](../../../docs/barrierkit/07-menus-and-popovers.md) |
+| Window size, limits, more than one window, popups, timers, file dialogs, a document that asks before it closes | [`08-windows.md`](../../../docs/barrierkit/08-windows.md) |
+| Title bars, toolbar items by placement and traffic lights | [`09-titlebars.md`](../../../docs/barrierkit/09-titlebars.md) |
+| A sidebar app, with or without a content column | [`10-sidebar.md`](../../../docs/barrierkit/10-sidebar.md) |
+| Forms, tables, tabs, alerts, search | [`11-views.md`](../../../docs/barrierkit/11-views.md) |
+| Preferences or About window | [`12-patterns.md`](../../../docs/barrierkit/12-patterns.md) |
+| Menu bar menu, shortcuts, single instance, saved settings, undo | [`13-app.md`](../../../docs/barrierkit/13-app.md) |
+| Animations | [`14-animations.md`](../../../docs/barrierkit/14-animations.md) |
+| Tinted backdrops, glass, artwork | [`15-backdrops-and-media.md`](../../../docs/barrierkit/15-backdrops-and-media.md) |
+| Translate the app | [`17-languages.md`](../../../docs/barrierkit/17-languages.md) |
+| Draw the app as an HTML artifact | [`artifacts.md`](../../../docs/barrierkit/artifacts.md) |
+| Change the kit itself | [`AGENTS.md`](../../../AGENTS.md) and [`03-layers.md`](../../../docs/barrierkit/03-layers.md) |

@@ -4,9 +4,9 @@
 blur, shape, corners, size, shadow, layout, direction, animation, color
 algorithm) for one control, a container or the whole app, or build a theme
 that does not look like Tengen.
-**Scope:** the styling system of [ADR 0064](../docs/decisions.md).
-Writing an app in general is in [`prompt.md`](prompt.md); colors and tokens
-are in [4. Appearance and tokens](../docs/barrierkit/04-appearance-and-tokens.md).
+**Scope:** the styling system of [ADR 0064](../../../docs/decisions.md).
+Writing an app in general is in [`prompt.md`](SKILL.md); colors and tokens
+are in [4. Appearance and tokens](../../../docs/barrierkit/04-appearance-and-tokens.md).
 **Reader:** an AI agent. Read it whole before styling anything.
 **Input:** a description of the look. **Output:** style code at the right
 level, checked against [Rules](#rules).
@@ -27,7 +27,7 @@ its style.
      `Badge` or `Divider` → [Paint on views](#paint-on-views); the
      defaults of every `Text`, `Badge`, `Divider`, `Avatar` or `Image` →
      their view styles (`TextStyle` and the rest, in
-     [`crates/bk/src/styles/`](../crates/bk/src/styles/)).
+     [`crates/bk/src/styles/`](../../../crates/bk/src/styles/)).
 2. Check in [Which controls take a style](#which-controls-take-a-style) that
    the control supports it. If not, say so; do not imitate it with `rect()`.
 3. Read the fields and Tengen values of the style in the rustdoc of its
@@ -91,7 +91,7 @@ All of them are in `bk::styles` and in the prelude.
 | `SystemColor` | SwiftUI's `.red`…`.gray`, AppKit's `systemRed`… | `Red`, `Orange`, `Yellow`, `Green`, `Mint`, `Teal`, `Cyan`, `Blue`, `Indigo`, `Purple`, `Pink`, `Brown`, `Gray`; the values AppKit gives on macOS 27.2 (`SYSTEM_COLORS`, `SYSTEM_COLORS_DARK`) |
 | `Role` | a semantic color | every color of `Palette` but `accent` (that is `ShapeStyle::Accent`): `Label`, `SecondaryLabel`, `TertiaryLabel`, `Separator`, `Outline`, `ControlBorder`, `WindowBackground`, `ContentBackground`, `ControlBackground`, `SystemFill`, `ControlBackgroundDisabled`, `TextBackground`, `ControlHover`, `AccentInactive`, `OnAccent`, `ToggleAccent`, `RowAccent`, `ToggleAccentDisabled`, `SelectedContent`, `SelectedContentInactive`, `OnSelectedContent`, `SeparatorStrong`, `ComboButton`, `SegmentDivider`, `RingAccent`, `Destructive`, `DestructiveFill`, `RaisedBackground`, `SunkenBackground`, `Scrim`, `SelectedControl`, `CardBorder` |
 | `Gradient` | a gradient paint | `Gradient::new(angle, stops)` linear, `Gradient::angular(angle, stops)` clockwise from the right, `Gradient::elliptical(stops)`; `angle` in degrees, `stops: Vec<(ShapeStyle, f32)>` with positions 0–1; gradients mix in OKLab like SwiftUI's default; `.color_space(GradientColorSpace::Device)` mixes in device RGB, as the bezel and tab gradients do |
-| `Thickness` | how translucent a material is | `UltraThin`, `Thin`, `Regular`, `Thick`, `UltraThick`; opacity and blur from `MATERIAL` ([4](../docs/barrierkit/04-appearance-and-tokens.md#materials)) |
+| `Thickness` | how translucent a material is | `UltraThin`, `Thin`, `Regular`, `Thick`, `UltraThick`; opacity and blur from `MATERIAL` ([4](../../../docs/barrierkit/04-appearance-and-tokens.md#materials)) |
 | `StateValue<T>` | a value that changes with the state | `StateValue::new(normal)` and `.hovered(..)`, `.pressed(..)`, `.focused(..)`, `.disabled(..)`; the first set one wins in the order disabled, pressed, hovered, focused, then `normal` |
 | `ControlState` | the state of a control | `hovered`, `pressed`, `focused`, `disabled` (`bool`) |
 | `Shape` | the outline of a part | `Rectangle`, `RoundedRectangle { radius, style }`, `UnevenRoundedRectangle { top_leading, bottom_leading, bottom_trailing, top_trailing, style }`, `Capsule`, `Circle` (a capsule on a part that is not square) |
@@ -121,7 +121,7 @@ control; the groups do not. A control leaves out a group it does not draw.
 
 The fields of each style, their Tengen values, its presets and the states its
 control enters are in the rustdoc of its struct, in
-[`crates/bk/src/styles/`](../crates/bk/src/styles/): read the file, or run
+[`crates/bk/src/styles/`](../../../crates/bk/src/styles/): read the file, or run
 `cargo doc -p bk --open` (on Linux, inside `nix develop`). The
 [table below](#which-controls-take-a-style) gives the style of each control.
 
@@ -135,7 +135,7 @@ A `StateValue` value for a state the control never enters never applies.
 
 `MenuStyle` is `ctdesign::MenuPalette`: every color and metric of a menu, a
 pop-up menu, the popover background and the tooltip. Its fields and their
-groups are in [4. Appearance and tokens](../docs/barrierkit/04-appearance-and-tokens.md#token-types).
+groups are in [4. Appearance and tokens](../../../docs/barrierkit/04-appearance-and-tokens.md#token-types).
 
 | Tengen | Comes from |
 |---|---|
@@ -474,7 +474,7 @@ the [paint on views](#paint-on-views) and Freya's methods.
 Every style implements `ControlStyle`: `tengen()` and, when its control
 animates or must change under an accessibility setting, `accessible`. A style
 with `animation` turns it off under *Reduce motion* through `reduce_motion`. New styles follow the order of
-[5. Controls](../docs/barrierkit/05-controls.md), one control per commit.
+[5. Controls](../../../docs/barrierkit/05-controls.md), one control per commit.
 
 ## Rules
 
@@ -486,4 +486,4 @@ with `animation` turns it off under *Reduce motion* through `reduce_motion`. New
 3. New default values go to `ctdesign`, never into `bk`.
 4. Do not imitate a control with `rect()` to change its look.
 5. Put a style on the smallest level that covers the request.
-6. Every name here is in the [glossary](../docs/barrierkit/20-glossary.md).
+6. Every name here is in the [glossary](../../../docs/barrierkit/20-glossary.md).

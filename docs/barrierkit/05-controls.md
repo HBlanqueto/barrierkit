@@ -115,7 +115,7 @@ The program is [`control_modifiers.rs`](../../crates/bk/examples/control_modifie
 ## Gestures
 
 `.gesture(g)`, `.simultaneous_gesture(g)` and `.high_priority_gesture(g)` of `ViewModifiers`
-attach a gesture to any view; the gestures are in `bk::gesture` (recipe 33 of [agents](../../agents/recipes.md)).
+attach a gesture to any view; the gestures are in `bk::gesture` (recipe 33 of [agents](../../.claude/skills/barrierkit-app/recipes.md)).
 A touch pan, a long press and drag, and a pinch need recognizers and a rule for who wins a pointer.
 
 | Gesture | Value | Default |
@@ -266,7 +266,7 @@ Slider::new("Volume", volume).size(ControlSize::Mini)
 VStack::new().child(Button::new("Save")).child(Slider::new("Volume", volume)).control_size(ControlSize::Small)
 ```
 
-`.control_size` is a container-level style override ([styles](../../agents/styles.md#levels)): it
+`.control_size` is a container-level style override ([styles](../../.claude/skills/barrierkit-app/styles.md#levels)): it
 changes the style of each sized control inside the view, so a theme comes before it and an
 instance `.size(..)` or `.style(..)` after it. A circular button keeps its own size.
 
@@ -583,7 +583,7 @@ LevelSlider::new("Volume", volume).style(|s| s.fat(Symbol::SpeakerWave))
 `.control_style(|s: SliderStyle| ..)` for every slider inside a view and
 `Theme::tengen().style(|s: SliderStyle| ..)`
 for the whole app. The levels, the fields and the value types are in
-[Styles and themes](../../agents/styles.md). `LevelSlider` draws the same way from a
+[Styles and themes](../../.claude/skills/barrierkit-app/styles.md). `LevelSlider` draws the same way from a
 `LevelSliderStyle` ([fields](../../crates/bk/src/styles/level_slider.rs)) and `CircularSlider`
 from a [`CircularSliderStyle`](../../crates/bk/src/styles/circular_slider.rs).
 
@@ -873,7 +873,7 @@ font. `Badge`, `Divider` and `Avatar` draw from a `BadgeStyle`, a
 `DividerStyle` and an `AvatarStyle`, resolved when they are built; their
 fields are in
 [Styles and themes](../../crates/bk/src/styles/badge.rs).
-To change a single one, [paint on views](../../agents/styles.md#paint-on-views) also works.
+To change a single one, [paint on views](../../.claude/skills/barrierkit-app/styles.md#paint-on-views) also works.
 
 ```rust
 Badge::new("3").style(|s| BadgeStyle {

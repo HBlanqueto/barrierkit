@@ -72,7 +72,7 @@ If the whole commit is of one type, the title carries the type in front
 
 ## Documentation (English only)
 
-Applies to `README.md`, `docs/`, `agents/` and the ADRs.
+Applies to `README.md`, `docs/`, the skill in `.claude/skills/` and the ADRs.
 
 1. **English only.** Each document exists once, in English, as `name.md`;
    there are no Spanish copies and no `.en.md` files. Code comments and rustdoc
@@ -110,7 +110,8 @@ methods, hooks, tokens).
    bump the `rev`.
 4. **New API, documented in the same commit:** its glossary row, its use in
    the chapter that describes it and, if it changes how an app is written,
-   `agents/` (`prompt.md`, `recipes.md`, `checklist.md`).
+   the `barrierkit-app` skill (`.claude/skills/barrierkit-app/`: `SKILL.md`,
+   `recipes.md`, `checklist.md`).
 5. **The code of the documentation compiles.** Each recipe is a file in
    `crates/bk/examples/`, which Cargo finds as an example; `./dev.sh check`
    compiles it and runs clippy on it. The programs of chapter 2 are exact

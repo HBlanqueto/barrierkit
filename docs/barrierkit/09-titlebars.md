@@ -50,7 +50,7 @@ window state.
 
 Each SwiftUI design has one kit form. The program that opens every one is
 [`window_designs.rs`](../../crates/bk/examples/window_designs.rs)
-([recipe 50](../../agents/recipes.md#50-every-swiftui-window-design)); the
+([recipe 50](../../.claude/skills/barrierkit-app/recipes.md#50-every-swiftui-window-design)); the
 sidebar design is [`notes_sidebar.rs`](../../crates/bk/examples/notes_sidebar.rs).
 Each pair was captured next to its SwiftUI twin, active and inactive, windowed,
 in full screen and with the pointer at the top edge, and matches within 1 to

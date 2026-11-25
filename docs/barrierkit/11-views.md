@@ -416,7 +416,7 @@ row. A selected row and its neighbors have none.
 
 `List::row` and `Table::cell` draw a view where the table would draw the text,
 like SwiftUI's `List { ForEach(..) { Row($0) } }` and `TableColumn { row in .. }`.
-The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-table-cells).
+The program is [recipe 23](../../.claude/skills/barrierkit-app/recipes.md#23-views-in-list-rows-and-table-cells).
 
 | Method | Effect |
 |---|---|
@@ -884,7 +884,7 @@ Two [`Action`](13-app.md#actions-and-shortcuts)s: `go-back` ("Back", Alt+←) an
 
 `NavigationButtons` takes no style of its own: its group takes
 `ToolGroupStyle` and its arrows `IconButtonStyle`
-([Styles and themes](../../agents/styles.md#which-controls-take-a-style)).
+([Styles and themes](../../.claude/skills/barrierkit-app/styles.md#which-controls-take-a-style)).
 
 ### `NavigationStack`
 

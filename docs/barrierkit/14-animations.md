@@ -197,7 +197,7 @@ captured in the closure.
 
 | Item | What it does |
 |---|---|
-| `use_switch_progress(on, animation)` | Returns 0–1 that follows `on: State<bool>` with the duration and curve of an [`Animation`](../../agents/styles.md#value-types); it jumps with `Animation::None` and with reduced motion. The full-screen bar uses it with `FullscreenBarStyle::animation` |
+| `use_switch_progress(on, animation)` | Returns 0–1 that follows `on: State<bool>` with the duration and curve of an [`Animation`](../../.claude/skills/barrierkit-app/styles.md#value-types); it jumps with `Animation::None` and with reduced motion. The full-screen bar uses it with `FullscreenBarStyle::animation` |
 | `use_alive()` | Returns an `Rc<Cell<bool>>` that is `true` while the component is mounted and `false` after; a background task checks it before writing state |
 
 ```rust

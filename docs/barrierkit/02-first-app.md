@@ -3,7 +3,7 @@
 **Goal:** open a window with text, then add state that changes it.
 **Scope:** from an empty crate to a window that counts. Controls are in
 [5](05-controls.md), window options in [8](08-windows.md), full programs for
-other tasks in the [recipes](../../agents/recipes.md).
+other tasks in the [recipes](../../.claude/skills/barrierkit-app/recipes.md).
 **Reader:** anyone who has never used BarrierKit or Freya. SwiftUI helps but is
 not needed.
 **Input:** the repository; on Linux, `nix develop`. **Output:** two programs that run.
@@ -95,7 +95,7 @@ fn main() -> Result<(), RunError> {
 | Item | What it does |
 |---|---|
 | `Application::new(id)` | Creates the app. `id` is reverse DNS and stable, like a bundle identifier (`com.example.notes`): it is each window's `app_id` and names the app's own folders for its settings and saved state ([13](13-app.md#settings-and-restoration)). Its last part is the name the menus show |
-| `Application::theme(theme)` | Gives every window the [`Theme`](../../agents/styles.md#levels); without it, `Theme::tengen()` |
+| `Application::theme(theme)` | Gives every window the [`Theme`](../../.claude/skills/barrierkit-app/styles.md#levels); without it, `Theme::tengen()` |
 | `Application::window(title, content)` | Declares the window that opens at launch, a `WindowGroup` with the id `MAIN_WINDOW`. `content` is a closure that returns the view; hooks go at its top |
 | `Application::scene(scene)` | Declares another [scene](08-windows.md#scenes): `WindowGroup`, `Window` or `Settings` |
 | `Application::options(\|window\| …)` | Changes any [`WindowOptions`](08-windows.md) setting of the scene declared last: size, limits, menu, full-screen bar |
@@ -105,9 +105,9 @@ fn main() -> Result<(), RunError> {
 A window that draws its own title bar (a sidebar, toolbar items) sets
 `.options(|window| window.window_style(WindowStyle::HiddenTitleBar))` and gets
 no kit `Titlebar` ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits),
-[recipe 7](../../agents/recipes.md#7-drawing-the-whole-window-yourself)). An app
+[recipe 7](../../.claude/skills/barrierkit-app/recipes.md#7-drawing-the-whole-window-yourself)). An app
 with several windows declares scenes
-([recipe 25](../../agents/recipes.md#25-several-windows)).
+([recipe 25](../../.claude/skills/barrierkit-app/recipes.md#25-several-windows)).
 
 ## Text and stacks
 
@@ -141,7 +141,7 @@ The defaults of `Text` come from a `TextStyle`, so a theme can change the font
 and color of every text; its fields are in
 [`styles/text.rs`](../../crates/bk/src/styles/text.rs).
 The stacks have no style of their own: their methods and the
-[paint on views](../../agents/styles.md#paint-on-views) style them.
+[paint on views](../../.claude/skills/barrierkit-app/styles.md#paint-on-views) style them.
 
 ## The prelude
 
@@ -153,8 +153,8 @@ The stacks have no style of their own: their methods and the
 | The kit: views | `Text`, `Label`, `VStack`, `HStack`, `Divider`, `Image`, `Symbol`, `ImageScale`, `SymbolRenderingMode`, `SymbolWeight`, `IconStyle`, `TemplateRenderingMode`, `Rectangle`, `RoundedRectangle`, `Capsule`, `Circle`, `Ellipse`, `Path`, and the [`controls`](05-controls.md) module: `Button`, `ButtonRole`, `ControlSize`, `Checkbox`, `Switch`, `Slider`, `CircularSlider`, `SegmentedControl`, `TextField`, `SecureField`, `SearchField`, `ToolGroup`, `ScrollView` and its `ScrollPosition`, `ScrollController`, `use_scroll_controller`… |
 | The kit: app views | `SplitView`, `Sidebar`, `SidebarItem`, `List`, `Form`, `Section`, `Row`, `TabView`, `TextEditor`, `ProgressView`, `PopUpButton`, `IconButton`, `ToolbarSearch`, `with_animation`, `use_animated`, `use_timeline` |
 | The kit: layout | `Spacer`, `Frame`, `ZStack`, `ZStackLayout`, `Grid`, `GridRow`, `LazyVGrid`, `GridItem`, `GridCell`, `Layout`, `LayoutContainer`, `Placement`, `ViewThatFits`, `ContentAlignment`, `HorizontalAlignment`, `VerticalAlignment` |
-| The kit: modifiers | [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) (`.help`, `.context_menu`, `.sheet`, `.alert`, `.popover`, `.on_hover`…), [`StyleModifiers`](../../agents/styles.md#levels) (`.control_style`, `.control_size`, `.frame`, `.glass_effect`, `.content_transition`), [`EnvironmentModifiers`](16-swiftui-to-the-kit.md#environment) (`.disabled`, `.environment`, `.layout_direction`, `.keyboard_shortcut`, `.focused`, `.default_focus`…), `GridModifiers`, `OverlayModifiers`, `ShapeModifiers`, `AccessibilityModifiers` with `AccessibilityTraits` and `AccessibilityChildBehavior` |
-| The kit: state and style | `use_environment`, `use_is_enabled`, `FocusState`, `use_focus_state`, `Transition`, `ContentTransition`, `Presence`, `Glass`, `Palette`, `text`, `color` and everything in [`styles`](../../agents/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
+| The kit: modifiers | [`ViewModifiers`](07-menus-and-popovers.md#view-modifiers) (`.help`, `.context_menu`, `.sheet`, `.alert`, `.popover`, `.on_hover`…), [`StyleModifiers`](../../.claude/skills/barrierkit-app/styles.md#levels) (`.control_style`, `.control_size`, `.frame`, `.glass_effect`, `.content_transition`), [`EnvironmentModifiers`](16-swiftui-to-the-kit.md#environment) (`.disabled`, `.environment`, `.layout_direction`, `.keyboard_shortcut`, `.focused`, `.default_focus`…), `GridModifiers`, `OverlayModifiers`, `ShapeModifiers`, `AccessibilityModifiers` with `AccessibilityTraits` and `AccessibilityChildBehavior` |
+| The kit: state and style | `use_environment`, `use_is_enabled`, `FocusState`, `use_focus_state`, `Transition`, `ContentTransition`, `Presence`, `Glass`, `Palette`, `text`, `color` and everything in [`styles`](../../.claude/skills/barrierkit-app/styles.md#value-types) (`Theme`, `ControlStyle`, `SliderStyle`, `ShapeStyle`, `Rgba`…) |
 | Freya | its whole prelude: `rect()`, `label()`, `use_state`, `Component`, `App`, `IntoElement`, element methods; its `Label` type gives way to the kit's |
 | Torin | `Alignment`, `Direction`, `Size`, `Size2D` |
 | Tokens | `BODY`, `CALLOUT`, `CAPTION`, `CAPTION_2`, `FOOTNOTE`, `HEADLINE`, `LARGE_TITLE`, `MONO`, `SUBHEADLINE`, `TITLE`, `TITLE_2`, `TITLE_3`, `Font`, `SPACE_1`…`SPACE_4`, `WINDOW_DEFAULT_SIZE`, `WINDOW_MIN_SIZE` |

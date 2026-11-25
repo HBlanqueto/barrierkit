@@ -150,7 +150,7 @@ scrolls.
 ### Style
 
 Every menu, pop-up menu and popover draws from a
-[`MenuStyle`](../../agents/styles.md#menustyle), resolved through the theme and the
+[`MenuStyle`](../../.claude/skills/barrierkit-app/styles.md#menustyle), resolved through the theme and the
 container styles of the view that opened it:
 
 ```rust
@@ -265,7 +265,7 @@ type with Freya's `EventHandlersExt`: `rect`, `label`, `Text`, `VStack`,
 | `.shadows(Vec<ShadowStyle>)` | `.shadow(color:radius:x:y:)` | Shadows |
 
 The last three take the paint types of the styling system and are described
-in [Styles and themes](../../agents/styles.md#paint-on-views).
+in [Styles and themes](../../.claude/skills/barrierkit-app/styles.md#paint-on-views).
 
 A modifier sets Freya event handlers on the element: `.context_menu` sets
 `on_secondary_down`; `.help` sets `on_pointer_enter`, `on_pointer_move`,

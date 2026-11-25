@@ -136,7 +136,7 @@ The functions behind it are pure and work on any runs:
 
 ## Text runs
 
-`Text` (recipe [42](../../agents/recipes.md#42-text-with-runs-markdown-and-selection)) takes
+`Text` (recipe [42](../../.claude/skills/barrierkit-app/recipes.md#42-text-with-runs-markdown-and-selection)) takes
 SwiftUI's inline forms. Each is a `Text` again, so it keeps the layout and style modifiers.
 
 | Form | Result |

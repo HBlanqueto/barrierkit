@@ -65,7 +65,7 @@ check() {
     "$script_dir/scripts/check-links.sh"
     "$script_dir/scripts/check-recipes.sh"
     "$script_dir/scripts/check-render-loop.sh"
-    "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/agents/tengen.css" -
+    "$script_dir/scripts/tengen-css.sh" | diff -u "$script_dir/docs/barrierkit/tengen.css" -
 }
 
 case "${1:-}" in

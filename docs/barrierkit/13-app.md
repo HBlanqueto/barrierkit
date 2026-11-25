@@ -549,7 +549,7 @@ paste ([6. Text and editing](06-text-and-editing.md)).
 ### Typed clipboard
 
 Module `pasteboard`. `Pasteboard::general()` is the system clipboard and `Pasteboard::named("name")` a
-private board; recipe [43](../../agents/recipes.md#43-copy-paste-and-drag-typed-data) runs it.
+private board; recipe [43](../../.claude/skills/barrierkit-app/recipes.md#43-copy-paste-and-drag-typed-data) runs it.
 An app copies more than text (rich text, images, files), as `NSPasteboard` and SwiftUI's `Transferable` do.
 
 ```rust

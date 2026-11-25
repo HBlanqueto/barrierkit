@@ -92,7 +92,7 @@ method changes one field (the fields are also public).
 | `.window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility)` | `Automatic` | `OnHover` keeps a `HiddenTitleBar` window's bar out of full screen until the pointer reaches the top edge, where it comes down with the menu bar, as SwiftUI's `.windowToolbarFullScreenVisibility(.onHover)` (AppKit's `.autoHideToolbar`); Linux ignores it |
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
 | `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves on Linux; ignored by main windows and on macOS |
-| `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../agents/styles.md#levels) of every control of the window, its title bar and full-screen band included. `Application::theme` sets it |
+| `.theme(Theme)` | `Theme::tengen()` | The [`Theme`](../../.claude/skills/barrierkit-app/styles.md#levels) of every control of the window, its title bar and full-screen band included. `Application::theme` sets it |
 | `scene` (field) | `None` | The scene id that names the saved size. `Application` sets it for every scene but `MAIN_WINDOW` |
 
 On Linux the size and the maximized state are saved on close in the app's
@@ -254,7 +254,7 @@ type itself.
 The program is [`recipes/scenes.rs`](../../crates/bk/examples/scenes.rs).
 
 Open and close from a component of a scene window
-([recipe 25](../../agents/recipes.md#25-several-windows)):
+([recipe 25](../../.claude/skills/barrierkit-app/recipes.md#25-several-windows)):
 
 | Hook | Returns | Methods |
 |---|---|---|
@@ -439,7 +439,7 @@ std::thread::spawn(move || {
 To draw again at a steady pace while something runs, call `use_timeline(active, every)`
 from `bk::app` on every render, like SwiftUI's `TimelineView(.periodic(from:by:))`. It
 renders the component every `every` while `active` is `true` and stops when it is `false`
-([recipe 9](../../agents/recipes.md#9-a-stopwatch)).
+([recipe 9](../../.claude/skills/barrierkit-app/recipes.md#9-a-stopwatch)).
 
 ```rust
 // ✗ an `after` that schedules the next `after`

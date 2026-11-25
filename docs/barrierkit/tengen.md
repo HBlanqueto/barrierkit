@@ -11,8 +11,8 @@ constants in an app is in
 **Input:** `tengen/tokens.json` and `tengen/components.json`.
 **Output:** `$OUT_DIR/tengen.rs`, compile-time constants that
 `crates/ctdesign/src/lib.rs` includes with `include!`
-([ADR 0011](../decisions.md)), and `agents/tengen.css`, the same values as
-CSS variables for [artifacts](../../agents/artifacts.md).
+([ADR 0011](../decisions.md)), and `docs/barrierkit/tengen.css`, the same values as
+CSS variables for [artifacts](artifacts.md).
 
 Tengen is the visual language (the role Aqua has in macOS). CTDesign is the
 compiled tokens; CTAppearance is the resolved appearance
@@ -29,7 +29,7 @@ read the JSON files.
    braces, `"{ink}"`, which resolves in each theme.
 3. Build. `build.rs` merges both files, reads the structs in `src/lib.rs` and
    writes `tengen.rs`. `cargo:rerun-if-changed` watches the three files.
-4. Regenerate the CSS: `scripts/tengen-css.sh > agents/tengen.css`.
+4. Regenerate the CSS: `scripts/tengen-css.sh > docs/barrierkit/tengen.css`.
    `./dev.sh check` fails while the file differs from the JSON.
 5. Run `./dev.sh check`.
 
@@ -51,7 +51,7 @@ Do not edit `src/lib.rs` to change a value: it holds the types and the API.
    table. `field==value` writes a literal instead.
 5. Build. A missing key, struct or field stops the build with
    `ctdesign: …` and the path it looked for.
-6. Regenerate `agents/tengen.css` (step 4 above).
+6. Regenerate `docs/barrierkit/tengen.css` (step 4 above).
 7. Use the constant through `ctdesign::NAME` and run `./dev.sh check`.
 
 ## What the build writes

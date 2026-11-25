@@ -31,7 +31,7 @@ The port is feasible, and the cost is in one place. Everything the kit draws
 (Freya, Torin, Skia, the controls, the styles) builds on macOS arm64. What does
 not build is the Linux stack under `platform/`: Wayland, Vulkan, xkbcommon,
 inotify, D-Bus and AT-SPI. The kit has no macOS backend and says so:
-[`agents/prompt.md`](../../agents/prompt.md) lists «No macOS, no Windows, no
+[`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrierkit-app/SKILL.md) lists «No macOS, no Windows, no
 X11», and `flake.nix` builds for Linux only.
 
 Recommended: a second runner written on AppKit (`objc2`) and Metal, behind the
@@ -597,7 +597,7 @@ Other things macOS draws that the kit does not, with the proposal:
    glass ([ADR 0118](../decisions.md)).
 4. ~~The appearance~~ decided: the kit follows the system's light or dark
    ([ADR 0114](../decisions.md)).
-5. Whether `agents/prompt.md` changes now («Linux on Wayland») or when M1
+5. Whether `.claude/skills/barrierkit-app/SKILL.md` changes now («Linux on Wayland») or when M1
    lands (`AGENTS.md`, rule 3 of «Documentation»).
 
 ## Not verified

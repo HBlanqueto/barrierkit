@@ -18,7 +18,7 @@ extract() {
     ' "$2"
 }
 
-for doc in docs/barrierkit/*.md agents/*.md; do
+for doc in docs/barrierkit/*.md .claude/skills/barrierkit-app/*.md; do
     extract "$(basename "$doc" .md)" "$doc"
 done
 extract shell-02-first-component docs/shell/02-first-component.md

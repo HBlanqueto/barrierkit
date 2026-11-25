@@ -17,7 +17,7 @@ answers it.
    `ForEach`, `if/else`), read [chapter 16](16-swiftui-to-the-kit.md).
    Otherwise, pick the chapter in the table below.
 3. New to the kit: read chapters 1 to 3 in order.
-4. An AI agent starts from [`agents/prompt.md`](../../agents/prompt.md).
+4. An AI agent starts from [`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrierkit-app/SKILL.md).
 
 ## Chapters
 
@@ -51,7 +51,7 @@ answers it.
 | What is missing? | [What an app author still needs](../research/swiftui-api-gap.md#what-an-app-author-still-needs) |
 | Does it work outside Malaysia? | [18](18-platform.md#wayland-protocols): every protocol but `wl_compositor` and `xdg_wm_base` is optional |
 | Can I use Freya directly? | [3, Rules](03-layers.md#rules) and [2, The prelude](02-first-app.md#the-prelude) |
-| How do I change how a control looks? | [`agents/styles.md`](../../agents/styles.md) |
+| How do I change how a control looks? | [`.claude/skills/barrierkit-app/styles.md`](../../.claude/skills/barrierkit-app/styles.md) |
 | Where does an app store its data? | [13](13-app.md#settings-and-restoration): in its own folder, named by its id |
 | How do I add a component to the kit? | [3, What every component does](03-layers.md#what-every-component-does) and [`AGENTS.md`](../../AGENTS.md) |
 | How do I write a desktop shell component? | [The shell docs](../shell/README.md) |

@@ -3,7 +3,7 @@
 **Goal:** show, from Apple's own documentation, how styles work at system, container and instance level, with a source for every claim.
 **Scope:** research only; the decision built on it is
 [ADR 0064](../decisions.md) and the guide for agents is
-[`agents/styles.md`](../../agents/styles.md).
+[`.claude/skills/barrierkit-app/styles.md`](../../.claude/skills/barrierkit-app/styles.md).
 **Reader:** anyone who changes the styling system.
 **Input:** the question in the first section. **Output:** findings and
 "Lessons for BarrierKit".

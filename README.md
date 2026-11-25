@@ -50,6 +50,6 @@ nix develop
 - [The kit, chapter by chapter](docs/barrierkit/README.md), starting with [your first app](docs/barrierkit/02-first-app.md).
 - [Glossary](docs/barrierkit/20-glossary.md): every SwiftUI and AppKit name and its BarrierKit name.
 - [Porting a SwiftUI app](scripts/swift-to-bk/README.md) with `swift-to-bk`.
-- [Decisions](docs/decisions.md) and the [prompt for AI agents](agents/prompt.md).
+- [Decisions](docs/decisions.md) and the [prompt for AI agents](.claude/skills/barrierkit-app/SKILL.md).
 
 License: MIT

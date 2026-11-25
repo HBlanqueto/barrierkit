@@ -2,14 +2,14 @@
 
 **Goal:** start a program from a whole `src/main.rs` that already compiles.
 **Scope:** one program per common task. Each item's reference lives in its
-chapter; the names are in the [glossary](../docs/barrierkit/20-glossary.md).
-**Reader:** an AI agent sent here by [`prompt.md`](prompt.md), or a person.
+chapter; the names are in the [glossary](../../../docs/barrierkit/20-glossary.md).
+**Reader:** an AI agent sent here by [`prompt.md`](SKILL.md), or a person.
 **Input:** a task. **Output:** the closest program, ready to change.
 
 ## Steps
 
 1. Find the recipe closest to the task in the list below.
-2. Copy its file from [`crates/bk/examples/`](../crates/bk/examples/) into `src/main.rs`. Each file is
+2. Copy its file from [`crates/bk/examples/`](../../../crates/bk/examples/) into `src/main.rs`. Each file is
    an example of `bk`, so `./dev.sh check` builds and lints it; inside the
    kit, `cargo run -p bk --example <name>` opens it.
 3. Change only what the task needs.
@@ -19,40 +19,40 @@ chapter; the names are in the [glossary](../docs/barrierkit/20-glossary.md).
 
 SwiftUI: `WindowGroup { Text("Hello, world").font(.title).padding(40) }`
 
-The program is [`crates/bk/examples/hello_world.rs`](../crates/bk/examples/hello_world.rs); [chapter 2](../docs/barrierkit/02-first-app.md#hello-world) explains it line by line.
+The program is [`crates/bk/examples/hello_world.rs`](../../../crates/bk/examples/hello_world.rs); [chapter 2](../../../docs/barrierkit/02-first-app.md#hello-world) explains it line by line.
 
 ## 2. State and a button
 
 SwiftUI: `@State var count = 0` with `VStack { Text("\(count)"); Button("Add one") { count += 1 } }`
 
-The program is [`crates/bk/examples/counter.rs`](../crates/bk/examples/counter.rs); [chapter 2](../docs/barrierkit/02-first-app.md#adding-state) explains it line by line.
+The program is [`crates/bk/examples/counter.rs`](../../../crates/bk/examples/counter.rs); [chapter 2](../../../docs/barrierkit/02-first-app.md#adding-state) explains it line by line.
 
 ## 3. Rows and columns
 
 SwiftUI: `VStack(alignment: .leading, spacing: 4) { HStack { … } }`
 
-The program is [`crates/bk/examples/rows_and_columns.rs`](../crates/bk/examples/rows_and_columns.rs).
+The program is [`crates/bk/examples/rows_and_columns.rs`](../../../crates/bk/examples/rows_and_columns.rs).
 
 ## 4. A toggle bound to state
 
 SwiftUI: `Toggle("Wi-Fi", isOn: $wifi)`
 
-The program is [`crates/bk/examples/toggle.rs`](../crates/bk/examples/toggle.rs).
+The program is [`crates/bk/examples/toggle.rs`](../../../crates/bk/examples/toggle.rs).
 
 ## 5. A settings form
 
 SwiftUI: `Form { Section("General") { Toggle("Sounds", isOn: $sounds) } }`
 
-The program is [`crates/bk/examples/settings_form.rs`](../crates/bk/examples/settings_form.rs).
+The program is [`crates/bk/examples/settings_form.rs`](../../../crates/bk/examples/settings_form.rs).
 
 For a real preferences window use `SettingsWindow` (chapter
-[12](../docs/barrierkit/12-patterns.md)).
+[12](../../../docs/barrierkit/12-patterns.md)).
 
 ## 6. A reusable view
 
 SwiftUI: `struct Greeting: View { let name: String; var body: some View { … } }`
 
-The program is [`crates/bk/examples/reusable_view.rs`](../crates/bk/examples/reusable_view.rs).
+The program is [`crates/bk/examples/reusable_view.rs`](../../../crates/bk/examples/reusable_view.rs).
 
 A `Component` must be `PartialEq`: the kit redraws it only when its fields
 change. A handler field is a `Callback`
@@ -65,44 +65,44 @@ field does not compile under `#[derive(PartialEq)]`.
 Use it when the window draws its own bar: a title beside the lights, a sidebar or
 toolbar items. `WindowStyle::HiddenTitleBar`
 in `.options(..)` leaves out the kit `Titlebar`, so you draw your own beside AppKit's
-lights; [recipe 50](#50-every-swiftui-window-design) lists every design ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
+lights; [recipe 50](#50-every-swiftui-window-design) lists every design ([ADR 0115](../../../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
 
-The program is [`crates/bk/examples/custom_window.rs`](../crates/bk/examples/custom_window.rs).
+The program is [`crates/bk/examples/custom_window.rs`](../../../crates/bk/examples/custom_window.rs).
 
 ## 8. Translated text
 
-Follow the steps in chapter [17](../docs/barrierkit/17-languages.md); then every
+Follow the steps in chapter [17](../../../docs/barrierkit/17-languages.md); then every
 literal above becomes `tr!("id")`, as in `Text::new(tr!("hello"))`.
 
 ## 9. A stopwatch
 
 SwiftUI: a `Text` fed by `TimelineView(.periodic(from:by:))` with Start/Stop and Lap/Reset buttons.
 
-The program is [`crates/bk/examples/stopwatch.rs`](../crates/bk/examples/stopwatch.rs).
+The program is [`crates/bk/examples/stopwatch.rs`](../../../crates/bk/examples/stopwatch.rs).
 
 `use_timeline(active, every)` renders the window again every `every` while
-`active` is true ([8](../docs/barrierkit/08-windows.md)), so `Instant::now()`
+`active` is true ([8](../../../docs/barrierkit/08-windows.md)), so `Instant::now()`
 in the render is the time of each tick.
 
 ## 10. Buttons in the title bar over a gradient
 
 SwiftUI: `.toolbar { ToolbarItemGroup { … } }` over a `LinearGradient` background.
 
-The program is [`crates/bk/examples/titlebar_over_gradient.rs`](../crates/bk/examples/titlebar_over_gradient.rs).
+The program is [`crates/bk/examples/titlebar_over_gradient.rs`](../../../crates/bk/examples/titlebar_over_gradient.rs).
 
-1. The gradient is a [`Backdrop`](../docs/barrierkit/15-backdrops-and-media.md#backdrop),
+1. The gradient is a [`Backdrop`](../../../docs/barrierkit/15-backdrops-and-media.md#backdrop),
    not a hand-written `LinearGradient`: it gives the content a legible palette
    and makes the `Titlebar` transparent. Its colors come from a
    `BACKDROP_SCENES` preset or from an image (`BackdropSource::Image`).
 2. The content is a `Component`, so it reads the backdrop's palette.
 3. `WindowStyle::HiddenTitleBar` leaves out the kit `Titlebar`, because the window
-   draws its own with buttons ([ADR 0115](../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
+   draws its own with buttons ([ADR 0115](../../../docs/decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
 
 ## 11. Style one control
 
 SwiftUI: a custom `ButtonStyle` given with `.buttonStyle(_:)` to one view, a stack or the whole app.
 
-The program is [`crates/bk/examples/styled_control.rs`](../crates/bk/examples/styled_control.rs).
+The program is [`crates/bk/examples/styled_control.rs`](../../../crates/bk/examples/styled_control.rs).
 
 1. The theme makes every slider square and every button glass
    (`ButtonStyle::glass` is a preset: a function of the style, like SwiftUI's
@@ -119,23 +119,23 @@ The program is [`crates/bk/examples/styled_control.rs`](../crates/bk/examples/st
 
 SwiftUI: `.controlSize(.mini)`, `.small`, `.regular`, `.large` or `.extraLarge` on a button, a toggle or a slider.
 
-The program is [`crates/bk/examples/control_sizes.rs`](../crates/bk/examples/control_sizes.rs).
+The program is [`crates/bk/examples/control_sizes.rs`](../../../crates/bk/examples/control_sizes.rs).
 
 `.control_size(ControlSize)` on a view sizes every control inside it, like SwiftUI's
 `.controlSize(_:)`; `.size(ControlSize)` on one control wins over it. Both take one of five
 sizes on `Button`, `PopUpButton`, `SegmentedControl`, `Checkbox`, `RadioGroup`, `Switch`,
 `Slider`, `Stepper`, `TextField`, `SearchField`, `ComboBox` and `DatePicker`; the sizes are in
-[chapter 5](../docs/barrierkit/05-controls.md#control-size).
+[chapter 5](../../../docs/barrierkit/05-controls.md#control-size).
 
 ## 13. Modifiers on controls
 
 SwiftUI: `Button("Save") { }.padding(8).help("Save the file")` inside an `HStack`.
 
-The program is [`crates/bk/examples/control_modifiers.rs`](../crates/bk/examples/control_modifiers.rs).
+The program is [`crates/bk/examples/control_modifiers.rs`](../../../crates/bk/examples/control_modifiers.rs).
 
 1. Every control takes `.padding`, `.margin`, `.width`, `.background`,
    `.corner_radius`, `.opacity`, `.help` and `.context_menu`, in any order
-   ([chapter 5](../docs/barrierkit/05-controls.md#modifiers-on-controls)).
+   ([chapter 5](../../../docs/barrierkit/05-controls.md#modifiers-on-controls)).
 2. A modifier sets a property on that one node; it does not wrap it. Outer
    space is `.margin`: a second `.padding` replaces the first.
 3. `.help` uses a hook: call it on every render, never inside a condition or
@@ -145,11 +145,11 @@ The program is [`crates/bk/examples/control_modifiers.rs`](../crates/bk/examples
 
 SwiftUI: `Button(action: add) { Label("Add", systemImage: "plus") }`.
 
-The program is [`crates/bk/examples/button_label.rs`](../crates/bk/examples/button_label.rs).
+The program is [`crates/bk/examples/button_label.rs`](../../../crates/bk/examples/button_label.rs).
 
 1. `.label(|| view)` takes a closure that returns the view; it replaces the
    drawn text. The string given to `Button::new` stays the accessible name
-   ([chapter 5](../docs/barrierkit/05-controls.md#buttons)).
+   ([chapter 5](../../../docs/barrierkit/05-controls.md#buttons)).
 2. Inside the closure, `Text`, `Label` and `label()` take the button's font and
    the ink of its current state, so the symbol and the title turn white on the
    accent fill of `bordered_prominent`.
@@ -160,19 +160,19 @@ The program is [`crates/bk/examples/button_label.rs`](../crates/bk/examples/butt
 
 SwiftUI: `struct NameField: View { @Binding var name: String … }` used as `NameField(name: $name)`.
 
-The program is [`crates/bk/examples/binding.rs`](../crates/bk/examples/binding.rs).
+The program is [`crates/bk/examples/binding.rs`](../../../crates/bk/examples/binding.rs).
 
 1. A text field takes the `State<String>` it edits. The child holds that
    `State` as a field, and the parent reads the same value.
 2. Every other control takes the `State` it edits in `new` the same way, as in
    [recipe 4](#4-a-toggle-bound-to-state): the `State` is SwiftUI's `$name`, and the
-   kit has no `Binding` type ([ADR 0085](../docs/decisions.md)).
+   kit has no `Binding` type ([ADR 0085](../../../docs/decisions.md)).
 
 ## 16. A value from the environment
 
 SwiftUI: `.environment(\.account, account)` above and `@Environment(\.account) var account` below.
 
-The program is [`crates/bk/examples/environment.rs`](../crates/bk/examples/environment.rs).
+The program is [`crates/bk/examples/environment.rs`](../../../crates/bk/examples/environment.rs).
 
 1. The value is a type that is `Clone + PartialEq + Default`; the type is the
    key. `.environment(value)` on a view gives it to everything inside, and
@@ -184,7 +184,7 @@ The program is [`crates/bk/examples/environment.rs`](../crates/bk/examples/envir
 
 SwiftUI: `@Observable class Counter { var count = 0; var step = 1 }` shared through the environment.
 
-The program is [`crates/bk/examples/observable.rs`](../crates/bk/examples/observable.rs).
+The program is [`crates/bk/examples/observable.rs`](../../../crates/bk/examples/observable.rs).
 
 1. The model is a `Copy` struct of `State`s. Build it in the render, then give
    it to `use_provide_context`.
@@ -195,7 +195,7 @@ The program is [`crates/bk/examples/observable.rs`](../crates/bk/examples/observ
 
 SwiftUI: `@FocusState var field: Field?`, `.focused($field, equals: .email)` and `field = .email`.
 
-The program is [`crates/bk/examples/focus_state.rs`](../crates/bk/examples/focus_state.rs).
+The program is [`crates/bk/examples/focus_state.rs`](../../../crates/bk/examples/focus_state.rs).
 
 1. `use_focus_state::<Field>()` returns a `FocusState`; `.focused(focus, value)`
    registers the controls inside a view under a value of your enum.
@@ -207,7 +207,7 @@ The program is [`crates/bk/examples/focus_state.rs`](../crates/bk/examples/focus
 
 SwiftUI: `ForEach(fruits, id: \.id) { Text($0.name) }`
 
-The program is [`crates/bk/examples/for_each.rs`](../crates/bk/examples/for_each.rs).
+The program is [`crates/bk/examples/for_each.rs`](../../../crates/bk/examples/for_each.rs).
 
 1. `.children(iter)` takes any iterator; `.key(id)` gives each child its
    identity, so its state follows the item when the list changes.
@@ -217,7 +217,7 @@ The program is [`crates/bk/examples/for_each.rs`](../crates/bk/examples/for_each
 
 SwiftUI: `if signedIn { Text("Welcome back") } else { Button("Sign in") { … } }`
 
-The program is [`crates/bk/examples/if_else.rs`](../crates/bk/examples/if_else.rs).
+The program is [`crates/bk/examples/if_else.rs`](../../../crates/bk/examples/if_else.rs).
 
 1. Two arms of different types need `.into_element()`.
 2. `.maybe_child(opt)` adds a child only when the option is `Some`.
@@ -226,15 +226,15 @@ The program is [`crates/bk/examples/if_else.rs`](../crates/bk/examples/if_else.r
 
 SwiftUI: `.commands { CommandMenu("Counter") { Button("Add one") { … }.keyboardShortcut("k") } }`
 
-The program is [`crates/bk/examples/actions.rs`](../crates/bk/examples/actions.rs).
+The program is [`crates/bk/examples/actions.rs`](../../../crates/bk/examples/actions.rs).
 
 1. The `Action` is a constant. Its item goes in a `Commands` menu, after the
    standard ones, and the shortcut works only through an enabled menu item
-   ([chapter 13](../docs/barrierkit/13-app.md#actions-and-shortcuts)).
+   ([chapter 13](../../../docs/barrierkit/13-app.md#actions-and-shortcuts)).
 2. Every handler of the window receives every id, so the handler compares the
    id with `ADD.id`.
 3. A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)`, with no menu
-   item ([`crates/bk/examples/keyboard_shortcut.rs`](../crates/bk/examples/keyboard_shortcut.rs)). A menu
+   item ([`crates/bk/examples/keyboard_shortcut.rs`](../../../crates/bk/examples/keyboard_shortcut.rs)). A menu
    item with the same key wins.
 4. `.keyboard_shortcut(Shortcut)` on a view gives the shortcut to every button
    inside it that has none; `Shortcut::DEFAULT_ACTION` and `CANCEL_ACTION` are
@@ -244,7 +244,7 @@ The program is [`crates/bk/examples/actions.rs`](../crates/bk/examples/actions.r
 
 SwiftUI: `struct SaveBar: View { let onSave: () -> Void; var body: some View { Button("Save", action: onSave) } }`
 
-The program is [`crates/bk/examples/callback.rs`](../crates/bk/examples/callback.rs).
+The program is [`crates/bk/examples/callback.rs`](../../../crates/bk/examples/callback.rs).
 
 1. The field is a `Callback<A, R>`. It is `Clone`, and a constructor that takes
    `impl Into<Callback<A, R>>` accepts any closure.
@@ -257,12 +257,12 @@ The program is [`crates/bk/examples/callback.rs`](../crates/bk/examples/callback
 
 SwiftUI: `List { ForEach(mail) { MailRow($0) } }` and `TableColumn("Enabled") { Toggle(..) }`.
 
-The program is [`crates/bk/examples/list_rows.rs`](../crates/bk/examples/list_rows.rs).
+The program is [`crates/bk/examples/list_rows.rs`](../../../crates/bk/examples/list_rows.rs).
 
 1. `List::new(label, names)` keeps the row count and the accessible names;
    `.row(|index| view)` draws each row as a view. `Table::cell(column,
    |row| view)` does it for one column; the other columns draw their strings
-   ([chapter 11](../docs/barrierkit/11-views.md#views-in-rows-and-cells)).
+   ([chapter 11](../../../docs/barrierkit/11-views.md#views-in-rows-and-cells)).
 2. Inside the closure, `Text` takes the font and the ink of the row, so the
    title turns white on a selected row. `Avatar` and `Badge` keep their own
    colors.
@@ -271,13 +271,13 @@ The program is [`crates/bk/examples/list_rows.rs`](../crates/bk/examples/list_ro
 4. Rows have a fixed height: set `TableStyle::row_height` for a taller row. The
    closure never compares equal, so the list redraws with its parent.
 5. `.list_row_background`, `.list_row_separator` and `.list_row_insets` take a
-   closure of the row index ([chapter 11](../docs/barrierkit/11-views.md#list-row-modifiers)).
+   closure of the row index ([chapter 11](../../../docs/barrierkit/11-views.md#list-row-modifiers)).
 
 ## 24. Disabling a group of controls
 
 SwiftUI: `VStack { TextField(..); Button("Save") { } }.disabled(saving)`.
 
-The program is [`crates/bk/examples/disabled.rs`](../crates/bk/examples/disabled.rs).
+The program is [`crates/bk/examples/disabled.rs`](../../../crates/bk/examples/disabled.rs).
 
 1. `.disabled(bool)` goes after the children and takes the whole view; every
    control inside is disabled when its own flag or a view above it is.
@@ -287,11 +287,11 @@ The program is [`crates/bk/examples/disabled.rs`](../crates/bk/examples/disabled
 
 SwiftUI: `WindowGroup { }`, `Window("Inspector", id: "inspector") { }`, `Settings { }` and `@Environment(\.openWindow) var openWindow`.
 
-The program is [`crates/bk/examples/scenes.rs`](../crates/bk/examples/scenes.rs).
+The program is [`crates/bk/examples/scenes.rs`](../../../crates/bk/examples/scenes.rs).
 
 1. `.window(..)` is the window that opens at launch. `.scene(..)` adds a
    `Window`, a `WindowGroup` or `Settings`
-   ([chapter 8](../docs/barrierkit/08-windows.md#scenes)).
+   ([chapter 8](../../../docs/barrierkit/08-windows.md#scenes)).
 2. `use_open_window()` goes at the top of a component of a scene window. Its
    `open(id)` opens the scene with that id, or fronts it when it is a `Window`
    that is already open; `open_value(7)` opens the `WindowGroup::for_value`
@@ -300,16 +300,16 @@ The program is [`crates/bk/examples/scenes.rs`](../crates/bk/examples/scenes.rs)
    id (`dismiss_id(id)`).
 4. `.commands(Commands::new())` adds the standard menus, with a Window menu
    that lists the open windows and a Settings… item
-   ([chapter 13](../docs/barrierkit/13-app.md#standard-menus)).
+   ([chapter 13](../../../docs/barrierkit/13-app.md#standard-menus)).
 
 ## 26. A grid of labeled rows and a toolbar
 
 SwiftUI: `Grid(alignment: .leading) { GridRow { Text("Name").gridColumnAlignment(.trailing); Text(name) } }`, then `HStack { Button("Reset") { }; Spacer(); Button("Save") { } }`.
 
-The program is [`crates/bk/examples/layout_grid.rs`](../crates/bk/examples/layout_grid.rs).
+The program is [`crates/bk/examples/layout_grid.rs`](../../../crates/bk/examples/layout_grid.rs).
 
 1. A `GridRow` holds the cells of one row. Every column is as wide as its widest
-   cell and every row as tall as its tallest ([chapter 11](../docs/barrierkit/11-views.md#layout)).
+   cell and every row as tall as its tallest ([chapter 11](../../../docs/barrierkit/11-views.md#layout)).
 2. `.grid_column_alignment(..)` on one cell aligns its whole column;
    `Grid::alignment` places the other cells.
 3. `Spacer::new()` takes the space the other children leave, so the two buttons
@@ -321,40 +321,40 @@ The program is [`crates/bk/examples/layout_grid.rs`](../crates/bk/examples/layou
 
 SwiftUI: `ZStack(alignment: .top) { List { … }; Color.clear.frame(height: 52).background(.regularMaterial) }`, with `.scrollEdgeEffectStyle(.soft, for: .top)`.
 
-The program is [`crates/bk/examples/glass_window.rs`](../crates/bk/examples/glass_window.rs).
+The program is [`crates/bk/examples/glass_window.rs`](../../../crates/bk/examples/glass_window.rs).
 
 1. `TopGlass::new()` is the first child of the element that holds the title
    bar, and the title bar is its second child: that element is drawn over the
    glass. `Material::new(12.0)` is the first child of the card it sits behind.
 2. A compositor that offers `infinity_window_style_v1` 10 blurs what is under
    them and the kit draws no blur; any other makes the kit draw an opaque solid
-   ([chapter 15](../docs/barrierkit/15-backdrops-and-media.md#who-draws-the-blur)).
+   ([chapter 15](../../../docs/barrierkit/15-backdrops-and-media.md#who-draws-the-blur)).
 3. Do not make the window's only top-level element hold the glass: it needs
    content beside it to blur.
 4. To see the compositor's blur, run it under Malaysia as
-   [chapter 18](../docs/barrierkit/18-platform.md#glass-over-the-windows-content)
+   [chapter 18](../../../docs/barrierkit/18-platform.md#glass-over-the-windows-content)
    says.
 
 ## 28. A window with a sidebar on macOS
 
 SwiftUI: `WindowGroup { NavigationSplitView { List { … } } detail: { … } }` with a `.toolbar`.
 
-The program is [`crates/bk/examples/notes_sidebar.rs`](../crates/bk/examples/notes_sidebar.rs). It takes `title-bar` or `plain` to try the
+The program is [`crates/bk/examples/notes_sidebar.rs`](../../../crates/bk/examples/notes_sidebar.rs). It takes `title-bar` or `plain` to try the
 other window styles; without an argument it is a `HiddenTitleBar` window.
 
 1. `WindowOptions::window_style(WindowStyle::HiddenTitleBar)` keeps AppKit's lights and the wallpaper tint, and the
    kit draws the bar beside them, as SwiftUI's window. Linux ignores it; the compositor decides there.
 2. `Sidebar::traffic_lights(true)` holds the lights while the sidebar shows, and
    `Titlebar::with_sidebar(true)` puts the title at the start of the detail.
-   [`custom_window`](../crates/bk/examples/custom_window.rs) and
-   [`titlebar_over_gradient`](../crates/bk/examples/titlebar_over_gradient.rs) use the same
+   [`custom_window`](../../../crates/bk/examples/custom_window.rs) and
+   [`titlebar_over_gradient`](../../../crates/bk/examples/titlebar_over_gradient.rs) use the same
    option.
 
 ## 29. A toolbar window without a sidebar
 
 SwiftUI: `NavigationStack { List { Label(..) } .navigationTitle("Tasks").toolbar { ToolbarItemGroup { Button(..) } } }`.
 
-The program is [`crates/bk/examples/tasks_list.rs`](../crates/bk/examples/tasks_list.rs).
+The program is [`crates/bk/examples/tasks_list.rs`](../../../crates/bk/examples/tasks_list.rs).
 
 1. A `Titlebar` with items is the unified toolbar: 52 high, the lights at their
    place and the title at the start. `.toolbar_style(WindowToolbarStyle::UnifiedCompact)`
@@ -367,7 +367,7 @@ The program is [`crates/bk/examples/tasks_list.rs`](../crates/bk/examples/tasks_
 
 SwiftUI: `Button("Show") { withAnimation(.smooth) { expanded.toggle() } }` and a `frame(height:)` that follows `expanded`.
 
-The program is [`crates/bk/examples/with_animation.rs`](../crates/bk/examples/with_animation.rs).
+The program is [`crates/bk/examples/with_animation.rs`](../../../crates/bk/examples/with_animation.rs).
 
 1. `use_animated(target, Animation::None)` returns the value that follows
    `target`. With `Animation::None` as its default, it moves only inside a
@@ -383,7 +383,7 @@ The program is [`crates/bk/examples/with_animation.rs`](../crates/bk/examples/wi
 
 SwiftUI: `ZStack { Circle(); Circle() }.compositingGroup().opacity(0.5)` and `.layerEffect(ShaderLibrary.pulse(.float(time)), maxSampleOffset: .zero)` inside a `TimelineView`.
 
-The program is [`crates/bk/examples/compositing_group.rs`](../crates/bk/examples/compositing_group.rs).
+The program is [`crates/bk/examples/compositing_group.rs`](../../../crates/bk/examples/compositing_group.rs).
 
 1. `CompositingGroup::new(effect).child(..)` draws its children into one layer and
    applies `effect` to the layer: the two discs at `GroupEffect::Opacity(0.5)` show
@@ -399,7 +399,7 @@ The program is [`crates/bk/examples/compositing_group.rs`](../crates/bk/examples
 
 SwiftUI: `NavigationStack(path: $path) { Home() .navigationDestination(for: Route.self) { Detail($0) } }` with `NavigationLink(value:)`.
 
-The program is [`crates/bk/examples/navigation_stack.rs`](../crates/bk/examples/navigation_stack.rs).
+The program is [`crates/bk/examples/navigation_stack.rs`](../../../crates/bk/examples/navigation_stack.rs).
 
 1. The app owns the route type and a `State<NavigationPath<Route>>`.
    `NavigationStack::new(path, root, |route| page)` draws the root and one page per route.
@@ -407,15 +407,15 @@ The program is [`crates/bk/examples/navigation_stack.rs`](../crates/bk/examples/
    gives any page below the stack the path, to pop (`path.write().pop()`) or push from code.
 3. A push moves the new page in from the right edge and the old one 30 % of the
    width to the left, dimmed, on the spring measured on Mac Catalyst
-   ([UIKit animations](../docs/research/uikit-animations.md#2-motion-table)). Reduced motion
+   ([UIKit animations](../../../docs/research/uikit-animations.md#2-motion-table)). Reduced motion
    shows the page at once. Wrap the change in `with_animation` to use another
-   animation ([14](../docs/barrierkit/14-animations.md#implicit-animation)).
+   animation ([14](../../../docs/barrierkit/14-animations.md#implicit-animation)).
 
 ## 33. A tap, a long press and a drag on one view
 
 SwiftUI: `Rectangle().gesture(LongPressGesture().exclusively(before: TapGesture())).simultaneousGesture(DragGesture().updating($offset) { value, state, _ in state = value.translation.width })`.
 
-The program is [`crates/bk/examples/gestures.rs`](../crates/bk/examples/gestures.rs).
+The program is [`crates/bk/examples/gestures.rs`](../../../crates/bk/examples/gestures.rs).
 
 1. `TapGesture`, `LongPressGesture`, `DragGesture`, `MagnifyGesture` and `RotateGesture` take `.on_changed` and
    `.on_ended`; `.updating(state, |value, state| ..)` is `@GestureState`: it changes while the
@@ -432,7 +432,7 @@ The program is [`crates/bk/examples/gestures.rs`](../crates/bk/examples/gestures
 
 SwiftUI: `.alert("Delete this file?", isPresented: $deleting) { Button("Delete", role: .destructive) { .. } }` and `Button("Info") { info = true }.popover(isPresented: $info) { Text("Updated just now").padding() }`.
 
-The program is [`crates/bk/examples/presentations.rs`](../crates/bk/examples/presentations.rs).
+The program is [`crates/bk/examples/presentations.rs`](../../../crates/bk/examples/presentations.rs).
 
 1. `.alert(state, || Alert::new(..))` on a container shows the alert while the `State<bool>` is `true`;
    any button, Enter or Escape writes `false` after the callback. `.sheet(state, || content)` works the same,
@@ -444,7 +444,7 @@ The program is [`crates/bk/examples/presentations.rs`](../crates/bk/examples/pre
 
 SwiftUI: `.toolbar { ToolbarItem(placement: .navigation) { .. }; ToolbarItem(placement: .principal) { Text(page) }; ToolbarSpacer(.flexible); ToolbarItem(placement: .primaryAction) { Button("New") { .. } } }`.
 
-The program is [`crates/bk/examples/toolbar_items.rs`](../crates/bk/examples/toolbar_items.rs).
+The program is [`crates/bk/examples/toolbar_items.rs`](../../../crates/bk/examples/toolbar_items.rs).
 
 1. `Titlebar::toolbar(content)` takes one `ToolbarItem::new(placement, view)` or one `ToolbarSpacer`
    per call and lays it by placement: `Navigation` after the sidebar toggle, `Principal` and `Status` in the
@@ -456,7 +456,7 @@ The program is [`crates/bk/examples/toolbar_items.rs`](../crates/bk/examples/too
 
 SwiftUI: `NavigationSplitView { sidebar } content: { notes } detail: { note }`.
 
-The program is [`crates/bk/examples/three_columns.rs`](../crates/bk/examples/three_columns.rs).
+The program is [`crates/bk/examples/three_columns.rs`](../../../crates/bk/examples/three_columns.rs).
 
 1. `SplitView::content(view)` adds the middle column. It has the sidebar's grip and limits, and only the
    sidebar hides.
@@ -467,7 +467,7 @@ The program is [`crates/bk/examples/three_columns.rs`](../crates/bk/examples/thr
 
 SwiftUI: `ScrollView { ForEach(rows) { Text($0.name).id($0.id) } }.scrollPosition($position)` with `position = .init(edge: .top)`, `position.scrollTo(id: "row-40", anchor: .center)` and `.onScrollGeometryChange(for: CGFloat.self, of: \.contentOffset.y) { offset = $1 }`.
 
-The program is [`crates/bk/examples/scroll_position.rs`](../crates/bk/examples/scroll_position.rs).
+The program is [`crates/bk/examples/scroll_position.rs`](../../../crates/bk/examples/scroll_position.rs).
 
 1. `.id("row-40")` names a view inside the `ScrollView`; the id is a `String`.
 2. `ScrollView::scroll_position(state)` takes a `State<ScrollPosition>`. Set it to `ScrollPosition::edge(..)`,
@@ -480,7 +480,7 @@ The program is [`crates/bk/examples/scroll_position.rs`](../crates/bk/examples/s
 
 SwiftUI: `Circle().fill(.tint)`, `RoundedRectangle(cornerRadius: 18).strokeBorder(.tint, lineWidth: 4)` and `LinearGradient(..).clipShape(.capsule)`.
 
-The program is [`crates/bk/examples/shapes.rs`](../crates/bk/examples/shapes.rs).
+The program is [`crates/bk/examples/shapes.rs`](../../../crates/bk/examples/shapes.rs).
 
 1. `Rectangle`, `RoundedRectangle::new(radius)`, `Capsule`, `Circle`, `Ellipse` and `Path` fill their
    frame: size them with a parent `rect()` or `.width(..)` and `.height(..)`. `.fill(ShapeStyle)` and
@@ -493,7 +493,7 @@ The program is [`crates/bk/examples/shapes.rs`](../crates/bk/examples/shapes.rs)
 
 SwiftUI: the green light, `View > Enter Full Screen`, and `NSWindow.didEnterFullScreenNotification`.
 
-The program is [`crates/bk/examples/full_screen.rs`](../crates/bk/examples/full_screen.rs). It takes `title-bar`, `hidden-title-bar` (the default) or `plain`,
+The program is [`crates/bk/examples/full_screen.rs`](../../../crates/bk/examples/full_screen.rs). It takes `title-bar`, `hidden-title-bar` (the default) or `plain`,
 then `unified`, `compact` or `expanded` for its `WindowToolbarStyle`: SwiftUI's `.toolbar { }` with `.windowToolbarStyle(..)`.
 
 1. `WindowControls::get().status.read().fullscreen` is true while the window is in full screen, whichever way it
@@ -506,7 +506,7 @@ then `unified`, `compact` or `expanded` for its `WindowToolbarStyle`: SwiftUI's 
 
 SwiftUI: `if shown { Text("Hello").transition(.move(edge: .leading).combined(with: .opacity)) }` with `withAnimation { shown.toggle() }`, and `Text("\(count)").contentTransition(.opacity)`.
 
-The program is [`crates/bk/examples/transitions.rs`](../crates/bk/examples/transitions.rs).
+The program is [`crates/bk/examples/transitions.rs`](../../../crates/bk/examples/transitions.rs).
 
 1. Put the view that comes and goes in `Presence::new(condition.then(|| view))` and give it `.transition(..)`:
    `Transition::OPACITY`, `SCALE`, `scale(s)`, `offset(x, y)` and `move_edge(Edge)`, joined with `.combined(..)` or
@@ -520,7 +520,7 @@ The program is [`crates/bk/examples/transitions.rs`](../crates/bk/examples/trans
 
 SwiftUI: `Text("Capsule").padding().glassEffect(.regular, in: .capsule)`.
 
-The program is [`crates/bk/examples/glass_effect.rs`](../crates/bk/examples/glass_effect.rs).
+The program is [`crates/bk/examples/glass_effect.rs`](../../../crates/bk/examples/glass_effect.rs).
 
 1. `.glass_effect(Glass::REGULAR, Shape::Capsule)` puts glass behind the view; `Glass::CLEAR` is the clear
    variant, and `Shape::RoundedRectangle { .. }` and `Shape::Circle` work too.
@@ -531,7 +531,7 @@ The program is [`crates/bk/examples/glass_effect.rs`](../crates/bk/examples/glas
 
 SwiftUI: `Text("Total: ") + Text("42 items").bold()`, `Text("**Bold**, _italic_ and a [link](https://example.org)")` and `Text("Copy me").textSelection(.enabled)`.
 
-The program is [`crates/bk/examples/text_runs.rs`](../crates/bk/examples/text_runs.rs).
+The program is [`crates/bk/examples/text_runs.rs`](../../../crates/bk/examples/text_runs.rs).
 
 1. `Text + Text` is one paragraph; each operand keeps its own `bold(true)`, `italic(true)`, `underline(true)`, `strikethrough(true)`,
    `font(..)` and `foreground_style(..)`. A modifier on the sum reaches what the operands did not set.
@@ -543,7 +543,7 @@ The program is [`crates/bk/examples/text_runs.rs`](../crates/bk/examples/text_ru
 
 SwiftUI: `NSPasteboard.general.setString(_, forType: .string)`, `.draggable(transferable)` and a `Transferable` type with `DataRepresentation(contentType: .png)`.
 
-The program is [`crates/bk/examples/pasteboard.rs`](../crates/bk/examples/pasteboard.rs).
+The program is [`crates/bk/examples/pasteboard.rs`](../../../crates/bk/examples/pasteboard.rs).
 
 1. `DragPayload` is the typed value: `Text`, `Html { text, html }`, `Image(png bytes)` and `Files(paths)`.
 2. `Pasteboard::general().copy(&value)` replaces the clipboard with any `Transferable` (`String`, `Vec<PathBuf>`, `DragPayload`, or a
@@ -556,11 +556,11 @@ The program is [`crates/bk/examples/pasteboard.rs`](../crates/bk/examples/pasteb
 
 SwiftUI: `ZStack(alignment: .bottomLeading) { card; Text("Caption") }`, `Image(systemName: "bell").overlay(alignment: .topTrailing) { badge }`, a custom `Layout`, and `ViewThatFits(in: .horizontal) { full; compact }`.
 
-The program is [`crates/bk/examples/layout_layers.rs`](../crates/bk/examples/layout_layers.rs).
+The program is [`crates/bk/examples/layout_layers.rs`](../../../crates/bk/examples/layout_layers.rs).
 
 1. `ZStack::new().alignment(..).child(..)` draws its children on top of one another;
    `.overlay(alignment, content)` and `.background_view(alignment, content)` do the same
-   around one view, which alone sets the size ([chapter 11](../docs/barrierkit/11-views.md#zstack-overlay-and-background_view)).
+   around one view, which alone sets the size ([chapter 11](../../../docs/barrierkit/11-views.md#zstack-overlay-and-background_view)).
 2. A `Layout` returns a `Placement` (the size and one origin per subview) from the space offered and
    the size of each subview; `LayoutContainer::with_layout(layout)` is its view.
 3. `ViewThatFits::new(Axis::Horizontal).candidate(extent, view)` shows the first view whose
@@ -571,11 +571,11 @@ The program is [`crates/bk/examples/layout_layers.rs`](../crates/bk/examples/lay
 
 SwiftUI: `ContentView().environment(\.layoutDirection, .rightToLeft)`.
 
-The program is [`crates/bk/examples/right_to_left.rs`](../crates/bk/examples/right_to_left.rs).
+The program is [`crates/bk/examples/right_to_left.rs`](../../../crates/bk/examples/right_to_left.rs).
 
 1. `.layout_direction(LayoutDirection::RightToLeft)` mirrors the stacks, frames, grids, `ZStack`s, texts and
    `Form` rows below it, and the controls below it read it
-   ([chapter 11](../docs/barrierkit/11-views.md#right-to-left)).
+   ([chapter 11](../../../docs/barrierkit/11-views.md#right-to-left)).
 2. A view built inside a component under it reads the direction as it is built; one built before it is
    mirrored once by the modifier.
 3. Padding is physical: swap `left` and `right` yourself. `List`, `Table` and the window chrome do not mirror yet.
@@ -584,12 +584,12 @@ The program is [`crates/bk/examples/right_to_left.rs`](../crates/bk/examples/rig
 
 SwiftUI: `Button("+") { }.accessibilityLabel("Add a task").accessibilityHint("Adds one to the list")`.
 
-The program is [`crates/bk/examples/accessibility.rs`](../crates/bk/examples/accessibility.rs).
+The program is [`crates/bk/examples/accessibility.rs`](../../../crates/bk/examples/accessibility.rs).
 
 1. `AccessibilityModifiers` (in the prelude) gives every view and control `.accessibility_label`, `.accessibility_hint`,
    `.accessibility_value`, `.accessibility_hidden`, `.accessibility_identifier`,
    `.accessibility_element(AccessibilityChildBehavior::Combine)` and `.accessibility_add_traits(AccessibilityTraits::IS_HEADER)`
-   ([chapter 5](../docs/barrierkit/05-controls.md#accessibility-modifiers)).
+   ([chapter 5](../../../docs/barrierkit/05-controls.md#accessibility-modifiers)).
 2. On macOS the window publishes the tree to VoiceOver and the AX API; read it with `axdump <pid>`. The label is AXTitle.
 3. A `TextField` is named by its label, else its placeholder; its typed text is the value.
 
@@ -597,20 +597,20 @@ The program is [`crates/bk/examples/accessibility.rs`](../crates/bk/examples/acc
 
 SwiftUI: `.fileImporter(isPresented: $importing, allowedContentTypes: [.png], allowsMultipleSelection: true) { .. }`.
 
-The program is [`crates/bk/examples/file_dialogs.rs`](../crates/bk/examples/file_dialogs.rs).
+The program is [`crates/bk/examples/file_dialogs.rs`](../../../crates/bk/examples/file_dialogs.rs).
 
 1. `.file_importer(State<bool>, vec![ContentType::extension("png")], multiple, |paths| ..)` and
    `.file_exporter(State<bool>, "Name.png", types, |path| ..)` open `NSOpenPanel` and `NSSavePanel` as a sheet of the window.
    The closure runs only when the user chose; the app writes the file.
 2. `.file_dialog_default_directory(path)` wraps a view that holds a component using the modifiers: the environment
-   is read by the components below it ([chapter 8](../docs/barrierkit/08-windows.md#documents-and-file-dialogs)).
+   is read by the components below it ([chapter 8](../../../docs/barrierkit/08-windows.md#documents-and-file-dialogs)).
 3. On Linux the portal dialog takes the filters and the start folder but has no parent window, so it is not a sheet.
 
 ## 48. A document window that asks before it closes
 
 SwiftUI: `DocumentGroup(newDocument: Notes()) { .. }` and `.onOpenURL { url in .. }`.
 
-The program is [`crates/bk/examples/documents.rs`](../crates/bk/examples/documents.rs).
+The program is [`crates/bk/examples/documents.rs`](../../../crates/bk/examples/documents.rs).
 
 1. `use_document(|path| write(path))` makes the window a document; call `document.set_edited(..)` when the content differs
    from the file. An edited window shows the dot and, on the native close, asks "Save changes?"
@@ -621,18 +621,18 @@ The program is [`crates/bk/examples/documents.rs`](../crates/bk/examples/documen
 4. On Linux the compositor's close request and `WindowControls::close()` ask with the kit's `Alert` in a sheet window
    (Save, Don’t Save, Cancel), quit asks for the first edited window first, and `org.freedesktop.Application.Open`
    hands each URI to `on_open_url`; there is no dirty dot
-   ([chapter 8](../docs/barrierkit/08-windows.md#documents-and-file-dialogs)).
+   ([chapter 8](../../../docs/barrierkit/08-windows.md#documents-and-file-dialogs)).
 
 ## 49. An inspector and a background extension
 
 SwiftUI: `NavigationSplitView { .. } detail: { photo.backgroundExtensionEffect().inspector(isPresented: $shown) { .. } }`.
 
-The program is [`crates/bk/examples/inspector.rs`](../crates/bk/examples/inspector.rs).
+The program is [`crates/bk/examples/inspector.rs`](../../../crates/bk/examples/inspector.rs).
 
 1. `SplitView::inspector(view, presented)` adds the right pane; toggle `presented` to slide it in and out.
 2. `SplitView::background_extension(view)` takes the view that lies behind the detail's leading edge, laid
    out as wide as the detail: it continues under the sidebar and, on macOS, under the inspector, through
-   their glass ([10](../docs/barrierkit/10-sidebar.md#background-extension)).
+   their glass ([10](../../../docs/barrierkit/10-sidebar.md#background-extension)).
 
 ## 50. Every SwiftUI window design
 
@@ -640,16 +640,16 @@ SwiftUI: `WindowGroup` with `.windowStyle(.titleBar)` or `.hiddenTitleBar`, and 
 `.windowToolbarStyle(.unified)`, `.unified(showsTitle: false)`, `.unifiedCompact`,
 `.unifiedCompact(showsTitle: false)` or `.expanded`, and `.windowToolbarFullScreenVisibility(.onHover)`.
 
-The program is [`crates/bk/examples/window_designs.rs`](../crates/bk/examples/window_designs.rs). It takes `title-bar`,
+The program is [`crates/bk/examples/window_designs.rs`](../../../crates/bk/examples/window_designs.rs). It takes `title-bar`,
 `hidden-title-bar`, `unified`, `unified-no-title`, `compact`, `compact-no-title`, `expanded` or
-`on-hover`; the `NavigationSplitView` design is [`notes_sidebar`](../crates/bk/examples/notes_sidebar.rs).
+`on-hover`; the `NavigationSplitView` design is [`notes_sidebar`](../../../crates/bk/examples/notes_sidebar.rs).
 
 1. `WindowStyle::TitleBar` is AppKit's own bar; every other design is a `HiddenTitleBar` window with
    native lights and a `Titlebar` drawn by the kit. A `HiddenTitleBar` window with no `Titlebar` keeps
    SwiftUI's bare strip, its lights at (8, 8).
 2. `Titlebar::toolbar_style(..)` picks the bar and `.shows_title(false)` drops the title, so the items
    follow the lights. Windowed, in full screen and at the top edge in full screen the bar matches the
-   SwiftUI window ([9](../docs/barrierkit/09-titlebars.md)).
+   SwiftUI window ([9](../../../docs/barrierkit/09-titlebars.md)).
 3. `WindowOptions::window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility::OnHover)`
    leaves the content alone in full screen; the bar comes down with the menu bar at the top edge.
 
@@ -657,6 +657,6 @@ The program is [`crates/bk/examples/window_designs.rs`](../crates/bk/examples/wi
 
 SwiftUI: `@AppStorage("bold") private var bold = false` and `Toggle("Bold", isOn: $bold)`
 
-The program is [`crates/bk/examples/app_storage.rs`](../crates/bk/examples/app_storage.rs). `use_app_storage` gives a `State`
+The program is [`crates/bk/examples/app_storage.rs`](../../../crates/bk/examples/app_storage.rs). `use_app_storage` gives a `State`
 like `use_state`, read from the app's settings file and saved when it changes
-([13](../docs/barrierkit/13-app.md#settings-and-restoration)).
+([13](../../../docs/barrierkit/13-app.md#settings-and-restoration)).

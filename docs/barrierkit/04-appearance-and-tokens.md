@@ -63,7 +63,7 @@ fn storage_row() -> impl IntoElement {
 |---|---|---|
 | **Tokens**: base colors, spacing, type, durations, per-component metrics | The design system | `crates/ctdesign/tengen/tokens.json` and `components.json` |
 | **Appearance**: mode, accent, tints, contrast, motion | The user | `~/.config/malaysia/appearance.domain` |
-| **Variants** and **styles** of a control: a preset such as `ButtonStyle::bordered_prominent`, tint, tinted backdrop, a `SliderStyle` | The app | The app's code ([styles](../../agents/styles.md)) |
+| **Variants** and **styles** of a control: a preset such as `ButtonStyle::bordered_prominent`, tint, tinted backdrop, a `SliderStyle` | The app | The app's code ([styles](../../.claude/skills/barrierkit-app/styles.md)) |
 
 The kit resolves the first two into a `Resolved` value
 ([Resolution](#resolution)) and the `Palette` that views paint with.
@@ -390,18 +390,18 @@ fn dark_panel() -> impl IntoElement {
 ## Custom colors in an app
 
 An app picks a variant, or changes the style of a control that takes one
-([Styles and themes](../../agents/styles.md)).
+([Styles and themes](../../.claude/skills/barrierkit-app/styles.md)).
 
 | I want… | Like this | Where |
 |---|---|---|
-| A system color that follows light and dark (SwiftUI's `.red`) | `.fill(ShapeStyle::System(SystemColor::Red))`, `.foreground_style(ShapeStyle::System(SystemColor::Blue))` | [Styles and themes](../../agents/styles.md#value-types) |
+| A system color that follows light and dark (SwiftUI's `.red`) | `.fill(ShapeStyle::System(SystemColor::Red))`, `.foreground_style(ShapeStyle::System(SystemColor::Blue))` | [Styles and themes](../../.claude/skills/barrierkit-app/styles.md#value-types) |
 | A control in another color | `.tint(Tint::Color(ACCENT_SWATCHES[4].1))` on `Switch`, `Checkbox`, `Slider`, `LevelSlider`, `RadioGroup`, `ProgressView` | [5](05-controls.md) |
 | A control filled with the backdrop gradient | `.tint(Tint::Backdrop)` inside a `Backdrop` | [15](15-backdrops-and-media.md) |
 | Another accent for a whole area | `Backdrop::new(..).accent(Accent::Own(color))` or `Accent::FromBackdrop`; it holds only while the user's accent is automatic | [15](15-backdrops-and-media.md) |
 | Let the user pick a color | `ColorWell::new("Color", &ACCENT_SWATCHES, chosen)`, with `chosen: State<Option<usize>>` | [5](05-controls.md) |
 | Light or dark in one area | `theme::use_appearance(..)` | [Theme functions](#theme-functions) |
-| Any color, shape, size or motion of a control that takes a style (sliders, buttons, menu buttons, switch, checkbox, choices, stepper, toggle group, segmented control, tool group, text fields) | `.style(\|s\| ..)`, `.control_style(\|s: SliderStyle\| ..)` or `Theme` | [Styles and themes](../../agents/styles.md#which-controls-take-a-style) |
-| The text color, background or shadow of a view | `.foreground_style(..)`, `.background_style(..)`, `.shadows(..)` | [Styles and themes](../../agents/styles.md#paint-on-views) |
+| Any color, shape, size or motion of a control that takes a style (sliders, buttons, menu buttons, switch, checkbox, choices, stepper, toggle group, segmented control, tool group, text fields) | `.style(\|s\| ..)`, `.control_style(\|s: SliderStyle\| ..)` or `Theme` | [Styles and themes](../../.claude/skills/barrierkit-app/styles.md#which-controls-take-a-style) |
+| The text color, background or shadow of a view | `.foreground_style(..)`, `.background_style(..)`, `.shadows(..)` | [Styles and themes](../../.claude/skills/barrierkit-app/styles.md#paint-on-views) |
 
 In an inactive window every tint uses the inactive accent.
 
@@ -862,7 +862,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
    in `tokens.json`. A color per theme goes under `themes.light` and
    `themes.dark`; `themes.dark-tint` holds only the colors that differ from
    dark.
-2. Add its field or constant and regenerate `agents/tengen.css`, as
+2. Add its field or constant and regenerate `docs/barrierkit/tengen.css`, as
    [Tengen](tengen.md#steps-to-add-a-constant) says.
 3. Use it: `SPLIT_VIEW.key_step`.
 4. Add its row to the [glossary](20-glossary.md).
