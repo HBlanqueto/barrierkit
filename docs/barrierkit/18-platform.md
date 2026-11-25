@@ -366,7 +366,7 @@ app calls, who answers on macOS, who answers on Linux.
 
 - **Kit:** code in `bk`, the same on both systems.
 - **macOS:** AppKit, Core Animation, Metal and the Security and UserNotifications frameworks, in `crates/bk/src/platform/macos/`.
-- **Linux (Malaysia):** Wayland protocols and D-Bus services; what the compositor does, it does through `limitless-protocol` ([ADR 0091](../decisions.md)). Malaysia served `limitless_window_style_v1` version 10 and `limitless_window_manager_v1` version 8 on 2026-11-22 and pinned the kit at `ccf65557`.
+- **Linux (Malaysia):** Wayland protocols and D-Bus services; what the compositor does, it does through `limitless-protocol` ([ADR 0091](../decisions.md)). Malaysia served `limitless_window_style_v1` version 10 on 2026-11-22 and pinned the kit at `ccf65557`.
 
 | Capability | macOS | Linux (Malaysia) | State |
 |---|---|---|---|
@@ -379,7 +379,7 @@ app calls, who answers on macOS, who answers on Linux.
 | Drag and drop | Out: an `NSDraggingSession` from the content view with `NSPasteboardItem`s (`macos/view.rs`, `macos/pasteboard.rs`); in: no code | `wl_data_device`; out offers text, `text/html`, `image/png` and `text/uri-list`; in accepts only `text/uri-list` | Linux both ways; macOS out only (not run with a real drag) |
 | Text input | `NSTextInputClient` (`macos/view.rs`): committed and composing text, the candidates at `set_ime_cursor_area`; a CJK input method not run | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
 | Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
-| Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, announced with `org_kde_kwin_appmenu_manager`; the shell reads it from the `app_menu` event of `limitless_window_manager_v1` | both |
+| Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, announced with `org_kde_kwin_appmenu_manager`; the shell reads it from the `app_menu` event of the shell protocol `limitless_window_manager_v1` (`limitless-shell`) | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
 | File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal with the extensions as `filters` and the start folder as `current_folder`; no parent window, which needs `xdg-foreign` (`linux/panels.rs`, `linux/portal.rs`) | both, Linux partial |
 | Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | The close request and `WindowControls::close()` are vetoed; the kit's `Alert` in a sheet window asks with the same buttons; quit closes the first edited window first; `org.freedesktop.Application.Open` hands each URI to `on_open_url`. No dirty dot (`linux/panels.rs`, `linux/window.rs`) | both |

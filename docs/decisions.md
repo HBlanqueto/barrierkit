@@ -42,8 +42,8 @@ Why: an app built on the kit is not Malaysia's, so its id, settings folder and b
 Code: `crates/bk/src/platform/window.rs`
 
 ## 0039 — Limitless v1
-Decision: `limitless_window_manager_v1` is a private Wayland protocol for the shell's window management. `limitless-protocol` generates the client side (feature `client`, with `shell` for this protocol) and the server side (feature `server`, used by the compositor). Only a desktop shell binds it; the compositor decides which clients may bind it.
-Why: the standard protocols do not cover what the Dock and the menu bar need from the compositor.
+Decision: `limitless-protocol` holds the private Wayland protocols that apps speak (`limitless_window_style_v1`, `limitless_focus_v1`): the client side with feature `client` and the server side with feature `server`, used by the compositor. The protocols only a desktop shell binds, `limitless_window_manager_v1` and `limitless_session_v1`, live with the shell in `limitless-shell`; the compositor decides which clients may bind them.
+Why: the standard protocols do not cover what apps ask of the compositor, and a toolkit repository carries only what its apps use.
 Code: `crates/limitless-protocol/protocols/`
 
 ## 0047 — BarrierKit in layers

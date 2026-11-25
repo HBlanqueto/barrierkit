@@ -65,7 +65,6 @@ wayland-server = "0.31"
 wayland-backend = "0.3"
 wayland-scanner = "0.31"
 wayland-protocols = { version = "0.32", features = ["client", "staging", "unstable"] }
-wayland-protocols-wlr = { version = "0.3.12", default-features = false }
 wayland-protocols-plasma = { version = "0.3.12", default-features = false }
 
 ash = { version = "0.38", default-features = false, features = ["loaded", "std"] }
