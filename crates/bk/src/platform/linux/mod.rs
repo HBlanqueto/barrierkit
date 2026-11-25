@@ -4,6 +4,7 @@ mod app;
 pub(super) mod atspi;
 mod chrome_surface;
 pub(crate) mod clipboard;
+pub(crate) mod dbusmenu;
 mod dialog;
 mod effects;
 pub(crate) mod extension;
@@ -22,6 +23,8 @@ mod portal;
 mod primary;
 pub(crate) mod runtime;
 mod seat;
+pub(crate) mod session_bus;
+pub(crate) mod status_item;
 pub(crate) mod surface;
 mod system;
 mod timer;
@@ -36,12 +39,13 @@ use freya_core::prelude::Modifiers;
 pub use sctk::reexports::client::backend::ObjectId;
 
 pub(crate) fn blocking_session_bus() -> zbus::Result<zbus::blocking::Connection> {
-    async_io::block_on(crate::session_bus::connection()).map(Into::into)
+    async_io::block_on(session_bus::connection()).map(Into::into)
 }
 
 pub(crate) const SYSTEM_MOMENTUM: bool = false;
 pub(crate) const NATIVE_LIGHTS: bool = false;
 pub(crate) use ctappearance::load_dominant as dominant;
+pub(crate) use dbusmenu::server::update as menu_changed;
 pub(crate) const OPTICAL_SIZING: bool = false;
 // Fontconfig resolves the generic names to the faces the desktop sets as default.
 pub(crate) const SYSTEM_FONTS: (&str, &str) = ("sans-serif", "monospace");

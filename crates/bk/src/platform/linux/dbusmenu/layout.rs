@@ -4,8 +4,9 @@ use std::sync::{Arc, Mutex, MutexGuard};
 use zbus::zvariant::OwnedValue;
 
 use crate::lock;
-use crate::main_menu::{IdMap, MainMenu, MenuHandle, check_state, dbusmenu_label, owned};
+use crate::main_menu::{MainMenu, MenuHandle};
 use crate::menu::{MenuItem, shortcut_keys};
+use crate::platform::linux::dbusmenu::{IdMap, check_state, dbusmenu_label, owned};
 
 pub type LayoutItem = (i32, HashMap<String, OwnedValue>, Vec<OwnedValue>);
 

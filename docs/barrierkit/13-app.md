@@ -251,9 +251,10 @@ The kit publishes the menu on the session bus:
 3. Without that protocol the menu still exists on the bus, and its shortcuts
    still work.
 
-`main_menu::layout::LayoutItem` and `DbusMenuLayout` are the dbusmenu types of
-`GetLayout`: `(id, properties, children)` and `(revision, root)`. An app does
-not build them.
+`LayoutItem` and `DbusMenuLayout` are the dbusmenu types of `GetLayout`:
+`(id, properties, children)` and `(revision, root)`. They live in
+`platform/linux/dbusmenu/layout.rs` and the shell reaches them through
+`bk::extension`. An app does not build them.
 
 ### Changing the menu live
 
@@ -435,7 +436,7 @@ Application::new("com.example.mail")
 | `StatusItem::new(id, title, icon_name)` | `id` and `title` for the host; `icon_name` from the icon theme |
 | `.items(items)` | Its menu |
 | `STATUS_ITEM_ACTIVATE` | The action id (`"status-item.activate"`) sent when the icon is clicked |
-| `Pixmaps` | The `IconPixmap` type of the specification; the kit sends it empty |
+| `Pixmaps` | The `IconPixmap` type of the specification (`bk::extension`, Linux); the kit sends it empty |
 
 It follows the
 [StatusNotifierItem](https://specifications.freedesktop.org/status-notifier-item/latest/)

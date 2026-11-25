@@ -67,12 +67,14 @@ fn forward(
     Ok(())
 }
 
+pub type Error = zbus::Error;
+
 // Export before owning the name: a second instance calls Activate as soon as the name is ours.
 pub(crate) fn claim(app_id: &str, requests: Arc<Mutex<Requests>>) -> zbus::Result<bool> {
     let connection = crate::platform::linux::blocking_session_bus()?;
     let path = object_path(app_id);
     let activation = Activation { requests };
-    if !async_io::block_on(crate::session_bus::export(
+    if !async_io::block_on(crate::platform::linux::session_bus::export(
         connection.inner(),
         &path,
         activation,

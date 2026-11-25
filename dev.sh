@@ -40,7 +40,7 @@ check() {
     require cargo-clippy
     if [ "$(uname -s)" = Darwin ]; then
         # The shell feature does not build on macOS. Window and popup commands carry fields and the
-        # D-Bus menu exporter (main_menu) has items that only the Linux backend reads.
+        # menu handle keeps the path and the action queue that only the Linux backend reads.
         features=bk/tracy
         allow='-A dead_code'
     else

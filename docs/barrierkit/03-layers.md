@@ -46,7 +46,7 @@ modules (not `pub`) are in the last column; an app cannot import them.
 
 | Layer | Public modules | Internal |
 |---|---|---|
-| 0 · Platform | `platform`, `i18n`, `portal`, `drag`, `pasteboard`, `notifications`, `secrets` | `session_bus`, `fonts`, `logging` |
+| 0 · Platform | `platform`, `i18n`, `portal`, `drag`, `pasteboard`, `notifications`, `secrets` | `fonts`, `logging` |
 | 1 · Primitives | `elements`, `layout`, `shapes`, `style`, `styles`, `theme`, `symbol`, `interaction`, `gesture`, `animation`, `transition`, `group`, `accessibility`, `environment`, `focus`, `file_dialog`, `document`, `controls`, `buttons`, `compact`, `choices`, `level`, `progress`, `indicator`, `adornments`, `popup_button`, `combo_box`, `popover`, `menu`, `password`, `text_editor`, `rich_text`, `spelling`, `token_field`, `path_control`, `date`, `date_picker`, `color_picker`, `image_well`, `rule_editor`, `canvas`, `glass_container`, `backdrop`, `media`, `modifiers`, `titlebar`, `traffic`, `chrome`, `sidebar`, `main_menu`, `status_item` | `scroll`, `scroll_physics`, `glass`, `glass_panel`, `shader`, `styled_text`, `traffic_raster`, `app_icon`, `controlled`, `context_menu`, `tooltip` |
 | 2 · Views | `views` (`collection`, `feedback`, `form`, `group`, `list`, `navigation`, `navigation_stack`, `search`, `split`, `split_panes`, `table`, `tabs`, `text_view`, `toolbar`, `tree`) and `font_panel` | — |
 | 3 · Patterns | `patterns` (`about`, `language`, `settings`) | `patterns::search_popover` |

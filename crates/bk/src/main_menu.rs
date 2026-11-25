@@ -1,19 +1,14 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use freya_core::prelude::{
     Key, Modifiers, WritableUtils, try_consume_root_context, use_hook, use_state,
 };
-use zbus::zvariant::{OwnedValue, Value};
 
 use crate::app::{Action, COPY, CUT, PASTE, REDO, SELECT_ALL, UNDO};
 use crate::lock;
 use crate::menu::{CheckState, MenuItem, shortcut_matches};
-use crate::platform::{MainMenuAddress, WakeHandle};
-
-pub mod layout;
-pub(crate) mod server;
+use crate::platform::WakeHandle;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct MainMenu {
@@ -47,11 +42,7 @@ pub struct MenuHandle {
     wake: Option<WakeHandle>,
     path: Arc<Mutex<Option<String>>>,
     action_queue: Arc<Mutex<Vec<String>>>,
-    address_callback: AddressCallbackCell,
 }
-
-type AddressCallback = Box<dyn Fn(MainMenuAddress) + Send>;
-type AddressCallbackCell = Arc<Mutex<Option<AddressCallback>>>;
 
 #[derive(Clone, Debug)]
 pub(crate) struct MenuState {
@@ -66,7 +57,6 @@ impl MenuHandle {
             wake,
             path: Arc::new(Mutex::new(None)),
             action_queue: Arc::new(Mutex::new(Vec::new())),
-            address_callback: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -90,16 +80,6 @@ impl MenuHandle {
     pub(crate) fn drain_actions(&self) -> Vec<String> {
         let mut guard = lock(&self.action_queue);
         std::mem::take(&mut *guard)
-    }
-
-    pub(crate) fn set_address_callback(&self, f: impl Fn(MainMenuAddress) + Send + Sync + 'static) {
-        *lock(&self.address_callback) = Some(Box::new(f));
-    }
-
-    pub(crate) fn deliver_address(&self, address: MainMenuAddress) {
-        if let Some(cb) = lock(&self.address_callback).as_ref() {
-            cb(address);
-        }
     }
 
     pub fn update(&self, id: impl AsRef<str>, f: impl Fn(&mut MenuItem)) {
@@ -127,7 +107,7 @@ impl MenuHandle {
 
     fn publish(&self) {
         if let Some(path) = lock(&self.path).as_ref() {
-            server::update(path);
+            crate::platform::menu_changed(path);
         }
         if let Some(wake) = &self.wake {
             wake.wake();
@@ -167,28 +147,6 @@ fn update_menu_items(items: &mut [MenuItem], id: &str, f: &dyn Fn(&mut MenuItem)
         }
     }
     false
-}
-
-#[derive(Clone, Debug, Default)]
-pub(crate) struct IdMap {
-    ids: HashMap<String, i32>,
-    next: i32,
-}
-
-impl IdMap {
-    pub(crate) fn get(&mut self, key: impl Into<String>) -> i32 {
-        let key = key.into();
-        if let Some(id) = self.ids.get(&key) {
-            return *id;
-        }
-        self.next += 1;
-        self.ids.insert(key, self.next);
-        self.next
-    }
-}
-
-pub(crate) fn dbusmenu_label(label: &str) -> String {
-    label.replace('_', "__")
 }
 
 // A focused text field serves these Edit items before the app, as AppKit's responder chain does (docs/barrierkit/13-app.md#standard-menus).
@@ -239,19 +197,6 @@ fn find_shortcut_in_items(items: &[MenuItem], modifiers: Modifiers, key: &Key) -
         | MenuItem::Palette { items: children } => find_shortcut_in_items(children, modifiers, key),
         _ => None,
     })
-}
-
-fn owned<T: Into<Value<'static>>>(value: T) -> OwnedValue {
-    OwnedValue::try_from(value.into()).expect("value is ownable")
-}
-
-pub(crate) fn check_state(check: &CheckState) -> (Option<&'static str>, i32) {
-    match check {
-        CheckState::Checkbox(active) => (Some("checkmark"), *active as i32),
-        CheckState::Radio(active) => (Some("radio"), *active as i32),
-        CheckState::Mixed => (Some("checkmark"), -1),
-        CheckState::None | CheckState::Minimized => (None, 0),
-    }
 }
 
 pub fn use_menu_update<T: PartialEq + Clone + 'static>(

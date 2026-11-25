@@ -126,6 +126,7 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `ctdesign::` shell tokens: `DOCK_*` sizes and timings, `MENUBAR_*` but `MENUBAR_HEIGHT` and `MENUBAR_TINT_SPREAD`, `NOTIFICATION_*` but `NOTIFICATION_GLASS_VEIL_LIGHT`, `LOCK_*`, `LAUNCHER_*`, `ABOUT_*` but `ABOUT_NAME`, `LIQUID_GLASS_*`, `SHELL_GLASS_*`, `CURSOR_SHAKE_*`, `LIVE_ACTIVITY_*`, `SPACE_GAP*`, `SPACE_SLIDE_*`, `SCREENSHOT_*`, `FORCE_QUIT_*`, `CONFIRM_*`, `CORNER_{NOTIFICATION,NOTIFICATION_CENTER,CONTROL_CENTER_MODULE,SPOTLIGHT}`, `WALLPAPER_{FPS,THUMBNAIL,FRAME}`, `WINDOW_EXPAND_*`, `TILE_*`, `FOCUS_BAR_*`, `BACKGROUND_BLUR_*`, `GLASS_MASK`, `DESKTOP_CLEAR`, `CIRCLE_EXPONENT`, the five `*_LAYER_NAMESPACE`, `dock_divider`, `RIM_BINS`, `GlassLook`, `GlassRim`, `GlassScale`, `GlassSet`, `GlassLens`, `GlassTint`, `ShellGlass` | `ctshell::design::`, the same names | 2026-11-24 |
 | `ctappearance::{MenuBarSize, ColorFilter}` and the `AppearanceConfig` keys `invert_colors`, `display_contrast`, `menu_bar_size`, `shake_to_locate`, `pointer_size`, `color_filters`, `color_filter`, `color_filter_intensity`, `liquid_glass_tint`, `gtk_bridge`, `qt_bridge`; `ctdesign::{POINTER_SIZES, DISPLAY_CONTRAST, COLOR_FILTER_INTENSITY}` | `ctshell::appearance::{DesktopAppearance, MenuBarSize, ColorFilter}`; the tokens in `ctshell::design`; the file keeps its keys | 2026-11-24 |
 | `ctappearance::resolve(appearance, dominant)` | `ctappearance::resolve(appearance, dominant, native_lights)`: each backend passes its `NATIVE_LIGHTS`, Malaysia `false` | 2026-11-24 |
+| `main_menu::layout::{DbusMenuLayout, LayoutItem}`, `status_item::{Pixmaps, ITEM_PATH, WATCHER, WATCHER_PATH}` | `bk::extension::{DbusMenuLayout, LayoutItem, Pixmaps, ITEM_PATH, WATCHER, WATCHER_PATH}` (feature `shell`, Linux): the D-Bus code lives in `platform/linux/` and `zbus` is a Linux-only dependency | 2026-11-25 |
 | `infinity_protocol::THOUSANDTHS` | `ctdesign::THOUSANDTHS` | 2026-11-24 |
 | `infinity-protocol`, `infinity_*` interfaces, `Infinity*` types, `infinity-*.xml` | `limitless`, `limitless_*`, `Limitless*`, `limitless-*.xml` | 2026-11-25 |
 
@@ -1618,8 +1619,8 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `main_menu::use_submenu_items` | fn | — | `NSMenuItem.submenu` | — | Hook that replaces a submenu's children | [13](13-app.md#changing-the-menu-live) |
 | `main_menu::use_menu_update` | fn | — | — | — | Hook that applies any change to a menu item when a value changes | [13](13-app.md#changing-the-menu-live) |
 | `main_menu::find_menu_shortcut` | fn | — | `NSMenu.performKeyEquivalent(with:)` | — | Finds the enabled action whose shortcut matches a key press | [13](13-app.md#changing-the-menu-live) |
-| `main_menu::layout::DbusMenuLayout` | type | — | — | — | dbusmenu `GetLayout` reply: revision and root item | [13](13-app.md#menu-bar-menu) |
-| `main_menu::layout::LayoutItem` | type | — | — | — | dbusmenu layout node: id, properties, children | [13](13-app.md#menu-bar-menu) |
+| `extension::DbusMenuLayout` | type | — | — | — | dbusmenu `GetLayout` reply: revision and root item | [13](13-app.md#menu-bar-menu) |
+| `extension::LayoutItem` | type | — | — | — | dbusmenu layout node: id, properties, children | [13](13-app.md#menu-bar-menu) |
 
 ## Undo
 
@@ -1660,7 +1661,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `status_item::StatusItem` | struct | `MenuBarExtra` | `NSStatusItem` | — | Status area icon with a menu, over StatusNotifierItem | [13](13-app.md#status-item) |
 | `status_item::STATUS_ITEM_ACTIVATE` | constant | — | — | — | Action id sent when the status icon is clicked | [13](13-app.md#status-item) |
-| `status_item::Pixmaps` | type | — | — | — | StatusNotifierItem `IconPixmap` type: width, height, ARGB bytes | [13](13-app.md#status-item) |
+| `extension::Pixmaps` | type | — | — | — | StatusNotifierItem `IconPixmap` type: width, height, ARGB bytes | [13](13-app.md#status-item) |
 | `notifications::Notification` | struct | — | ≈ `UNMutableNotificationContent` | ≈ `UNMutableNotificationContent` | A notification's app name, desktop entry, summary, body and action | [13](13-app.md#notifications) |
 | `notifications::post` | fn | — | ≈ `UNUserNotificationCenter` | ≈ `UNUserNotificationCenter` | Posts a notification; the callback gets the activation token on click | [13](13-app.md#notifications) |
 | `notifications::play_event_sound` | fn | — | ≈ `NSSound` | — | Plays a sound from the freedesktop sound theme | [13](13-app.md#notifications) |

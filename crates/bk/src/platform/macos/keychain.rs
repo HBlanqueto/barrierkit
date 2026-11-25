@@ -4,7 +4,6 @@ use security_framework::item::{ItemClass, ItemSearchOptions, Limit};
 use security_framework::passwords::{
     delete_generic_password, get_generic_password, set_generic_password,
 };
-use zbus::zvariant::OwnedObjectPath;
 use zeroize::Zeroizing;
 
 use crate::secrets::{Error, Item};
@@ -63,9 +62,12 @@ fn service_of(item: &Item) -> String {
     service(&attributes)
 }
 
+pub type ItemPath = String;
+pub type BusError = std::convert::Infallible;
+
 // The Keychain has no object paths; the label and the attributes find an item again.
-fn keychain_path() -> OwnedObjectPath {
-    OwnedObjectPath::try_from("/keychain").expect("a valid object path")
+fn keychain_path() -> ItemPath {
+    "/keychain".to_owned()
 }
 
 pub struct Secrets;

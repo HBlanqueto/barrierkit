@@ -276,7 +276,7 @@ The window and its popups take the system's light or dark, live ([The system's l
 
 1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
-3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the D-Bus menu exporter carry items only the Linux backend reads), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without the `shell` feature.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the menu handle carry items only the Linux backend reads), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without the `shell` feature.
 4. Optional: `./dev.sh macos-smoke` opens every recipe of `crates/bk/examples` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
 
 ### Smoke test on macOS
@@ -353,9 +353,9 @@ status item, and gives every method call 25 s, as libdbus and GDBus do.
 
 `platform/mod.rs` imports `linux` or `macos` as `sys` and re-exports the
 same names from either: `app_folders`, `appearance`, `clipboard`, `dominant`, `instance`, `keychain`,
-`notifications`, `panels`, `pasteboard`, `ObjectId`, `MOST_CHROMES`,
+`menu_changed`, `notifications`, `panels`, `pasteboard`, `ObjectId`, `MOST_CHROMES`,
 `NATIVE_LIGHTS`, `OPTICAL_SIZING` and `SYSTEM_MOMENTUM`; `run_window` and `Bridge` are reached
-through `sys`. Each name has one signature and two
+through `sys`. `zbus` is a Linux-only dependency: the dbusmenu and status item servers and the session bus live in `platform/linux/`, and the two types that cross the API are aliases (`keychain::{ItemPath, BusError}`, `instance::Error`). Each name has one signature and two
 bodies. Shared code, including the shared files of `platform/`, calls
 `crate::platform::<name>` and holds no `cfg(target_os)`:
 `scripts/check-platform-cfg.sh` fails on one outside `platform/mod.rs`,

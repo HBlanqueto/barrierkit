@@ -6,11 +6,13 @@ use futures_channel::mpsc::{UnboundedReceiver, UnboundedSender};
 use futures_util::StreamExt;
 use zbus::zvariant::{OwnedValue, Value};
 
-use crate::main_menu::layout::{
+use crate::main_menu::MenuHandle;
+use crate::platform::MainMenuAddress;
+use crate::platform::linux::dbusmenu::IdMap;
+use crate::platform::linux::dbusmenu::layout::{
     DbusMenuLayout, LayoutItem, LayoutNode, LayoutSnapshot, RegisteredMenu, Update,
     action_id_for_numeric, build_layout, diff_layout,
 };
-use crate::main_menu::{IdMap, MenuHandle};
 
 const VERSION: u32 = 3;
 
@@ -18,10 +20,13 @@ const PATH_PREFIX: &str = "/MenuBar/";
 
 static NEXT_PATH_INDEX: AtomicU32 = AtomicU32::new(0);
 
+pub(crate) type AddressCallback = Box<dyn Fn(MainMenuAddress) + Send>;
+
 enum Command {
     Register {
         path: String,
         registered: Arc<RegisteredMenu>,
+        on_address: Option<AddressCallback>,
     },
     Unregister {
         path: String,
@@ -51,13 +56,14 @@ fn send(command: Command) {
     let _ = commands.unbounded_send(command);
 }
 
-pub fn register(handle: MenuHandle) {
+pub fn register(handle: MenuHandle, on_address: Option<AddressCallback>) {
     let index = NEXT_PATH_INDEX.fetch_add(1, Ordering::Relaxed);
     let path = format!("{PATH_PREFIX}{index}");
     handle.set_path(&path);
     send(Command::Register {
         path,
         registered: RegisteredMenu::new(handle),
+        on_address,
     });
 }
 
@@ -86,7 +92,7 @@ pub fn update(path: &str) {
 }
 
 async fn run(mut commands: UnboundedReceiver<Command>) {
-    let connection = match crate::session_bus::connection().await {
+    let connection = match crate::platform::linux::session_bus::connection().await {
         Ok(c) => c,
         Err(error) => {
             tracing::warn!(%error, "barrier-dbusmenu: no session bus; menus are local only");
@@ -96,22 +102,27 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
 
     let mut menus: HashMap<String, Arc<RegisteredMenu>> = HashMap::new();
     let mut id_maps: HashMap<String, IdMap> = HashMap::new();
-    let mut status_items: HashMap<String, crate::status_item::Exported> = HashMap::new();
+    let mut status_items: HashMap<String, crate::platform::linux::status_item::Exported> =
+        HashMap::new();
 
     while let Some(command) = commands.next().await {
         match command {
-            Command::Register { path, registered } => {
+            Command::Register {
+                path,
+                registered,
+                on_address,
+            } => {
                 let Some(unique) = connection.unique_name().map(|s| s.to_string()) else {
                     tracing::warn!("barrier-dbusmenu: the session bus gave no unique name");
                     continue;
                 };
                 if export(&connection, &path, &registered, &mut menus, &mut id_maps).await {
-                    registered
-                        .handle
-                        .deliver_address(crate::platform::MainMenuAddress {
+                    if let Some(on_address) = on_address {
+                        on_address(MainMenuAddress {
                             service: unique,
                             path,
                         });
+                    }
                 }
             }
             Command::StatusItem {
@@ -120,7 +131,7 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 item,
                 index,
             } => {
-                let own = match crate::session_bus::private_connection().await {
+                let own = match crate::platform::linux::session_bus::private_connection().await {
                     Ok(own) => own,
                     Err(error) => {
                         tracing::warn!(%error, "barrier-dbusmenu: no connection for the status item");
@@ -129,8 +140,14 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                 };
                 if export(&own, &path, &registered, &mut menus, &mut id_maps).await {
                     let handle = registered.handle.clone();
-                    let served =
-                        crate::status_item::serve(own, item, path.clone(), handle, index).await;
+                    let served = crate::platform::linux::status_item::serve(
+                        own,
+                        item,
+                        path.clone(),
+                        handle,
+                        index,
+                    )
+                    .await;
                     if let Some(exported) = served {
                         status_items.insert(path, exported);
                     }
@@ -190,7 +207,7 @@ async fn export(
     let iface = DbusMenuObject {
         registered: registered.clone(),
     };
-    if !crate::session_bus::export(connection, path, iface).await {
+    if !crate::platform::linux::session_bus::export(connection, path, iface).await {
         return false;
     }
     menus.insert(path.to_owned(), registered.clone());

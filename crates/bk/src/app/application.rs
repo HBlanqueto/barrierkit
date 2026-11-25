@@ -75,7 +75,7 @@ pub(crate) fn present(requests: &Mutex<Requests>, token: Option<String>) {
     }
 }
 
-pub fn launch(app_id: &str) -> zbus::Result<Launch> {
+pub fn launch(app_id: &str) -> Result<Launch, instance::Error> {
     let requests = Arc::new(Mutex::new(Requests::default()));
     Ok(if instance::claim(app_id, requests.clone())? {
         Launch::Primary(Instance { requests })

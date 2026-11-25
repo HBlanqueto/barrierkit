@@ -10,10 +10,12 @@ use crate::app::{Requests, present};
 
 // Launch Services already keeps a bundled app to one process; this also holds a bare binary and `open -n`. The user's
 // temporary directory is per user, so each user has an instance of their own.
-pub(crate) fn claim(app_id: &str, requests: Arc<Mutex<Requests>>) -> zbus::Result<bool> {
-    Ok(claim_in(&std::env::temp_dir(), app_id, move || {
+pub type Error = io::Error;
+
+pub(crate) fn claim(app_id: &str, requests: Arc<Mutex<Requests>>) -> io::Result<bool> {
+    claim_in(&std::env::temp_dir(), app_id, move || {
         present(&requests, None)
-    })?)
+    })
 }
 
 // A connection to the socket is the activation; the lock is released by the system when the process ends.

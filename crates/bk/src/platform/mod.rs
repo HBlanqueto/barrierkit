@@ -18,14 +18,14 @@ mod window_style;
 
 pub(crate) use app::KitSender;
 #[cfg(all(feature = "shell", target_os = "linux"))]
-pub(crate) use linux::extension;
+pub(crate) use linux::{dbusmenu, extension, session_bus, status_item};
 #[cfg(target_os = "linux")]
 pub(crate) use linux::{runtime, surface};
 pub use sys::ObjectId;
 pub(crate) use sys::{
     MODIFIER_GLYPHS, MOST_CHROMES, NATIVE_LIGHTS, OPTICAL_SIZING, SYSTEM_FONTS, SYSTEM_MOMENTUM,
-    app_folders, appearance, clipboard, dominant, instance, keychain, notifications, panels,
-    pasteboard, preferred_languages,
+    app_folders, appearance, clipboard, dominant, instance, keychain, menu_changed, notifications,
+    panels, pasteboard, preferred_languages,
 };
 
 #[cfg(target_os = "macos")]

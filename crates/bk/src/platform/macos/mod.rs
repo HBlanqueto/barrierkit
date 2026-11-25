@@ -60,6 +60,8 @@ use crate::platform::macos::blur::PlacedGlass;
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
 pub(crate) const NATIVE_LIGHTS: bool = true;
 
+pub(crate) fn menu_changed(_path: &str) {}
+
 // WindowServer tints the windows with the wallpaper; the kit has no dominant colour to resolve.
 pub(crate) fn dominant() -> Option<ctdesign::Rgba> {
     None

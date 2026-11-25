@@ -14,6 +14,21 @@ const ITEM_INTERFACE: &str = "org.freedesktop.Secret.Item";
 const DEFAULT_COLLECTION: &str = "/org/freedesktop/secrets/aliases/default";
 const NO_PROMPT: &str = "/";
 
+pub type ItemPath = OwnedObjectPath;
+pub type BusError = zbus::Error;
+
+impl From<zbus::Error> for Error {
+    fn from(error: zbus::Error) -> Self {
+        Self::Bus(error)
+    }
+}
+
+impl From<zbus::zvariant::Error> for Error {
+    fn from(error: zbus::zvariant::Error) -> Self {
+        Self::Bus(error.into())
+    }
+}
+
 type Secret = (OwnedObjectPath, Vec<u8>, Vec<u8>, String);
 
 pub struct Secrets {

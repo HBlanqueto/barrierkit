@@ -2,7 +2,6 @@ mod app_icon;
 mod fonts;
 pub mod group;
 mod logging;
-mod session_bus;
 mod shader;
 
 pub use fonts::register_font;
@@ -21,7 +20,11 @@ pub mod extension {
         runtime::{Connected, Runtime},
         surface::{ExtensionRole, SurfaceRole},
     };
-    pub use crate::session_bus::{connection, export};
+    pub use crate::platform::{
+        dbusmenu::layout::{DbusMenuLayout, LayoutItem},
+        session_bus::{connection, export},
+        status_item::{ITEM_PATH, Pixmaps, WATCHER, WATCHER_PATH},
+    };
 }
 
 pub mod password;

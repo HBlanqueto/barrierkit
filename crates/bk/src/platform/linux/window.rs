@@ -16,7 +16,7 @@ use sctk::{
 use crate::platform::{
     ObjectId, RunError,
     app::{AppInstance, InstanceRole},
-    linux::window_style::wire,
+    linux::{dbusmenu::server::AddressCallback, window_style::wire},
     runtime::{Connected, Runtime, WindowContext},
     surface::{SurfaceRole, SurfaceWindow},
     timer::WakeHandle,
@@ -211,18 +211,18 @@ impl Runtime {
                 menu.clone(),
                 Some(WakeHandle::from_ping(self.wake.ping.clone())),
             );
-            if self.appmenu_manager.is_some() {
+            let on_address = self.appmenu_manager.is_some().then(|| {
                 let surface_id = surface.id();
                 let pending_addresses = self.pending_menu_addresses.clone();
                 let wake = self.wake.ping.clone();
-                handle.set_address_callback(move |address| {
+                Box::new(move |address| {
                     if let Ok(mut pending) = pending_addresses.lock() {
                         pending.push((surface_id.clone(), address));
                     }
                     wake.ping();
-                });
-            }
-            crate::main_menu::server::register(handle.clone());
+                }) as AddressCallback
+            });
+            crate::platform::linux::dbusmenu::server::register(handle.clone(), on_address);
             menu_handle = Some(handle);
         }
 
@@ -276,7 +276,7 @@ impl Runtime {
                 menu,
                 Some(WakeHandle::from_ping(self.wake.ping.clone())),
             );
-            crate::main_menu::server::register_status_item(handle.clone(), item);
+            crate::platform::linux::dbusmenu::server::register_status_item(handle.clone(), item);
             handle
         });
         window.context = Some(WindowContext {
@@ -568,7 +568,7 @@ impl Runtime {
                 .flatten()
             {
                 if let Some(path) = handle.path() {
-                    crate::main_menu::server::unregister(&path);
+                    crate::platform::linux::dbusmenu::server::unregister(&path);
                 }
             }
             if let Some(appmenu) = self.surfaces[index].appmenu.take() {
