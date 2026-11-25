@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="limitless_effects_v1">
+  <copyright>
+    Copyright © 2026 Malaysia contributors. Same MIT terms as limitless-window-style-v1.
+  </copyright>
+
+  <description summary="material effects of an app, one object each">
+    A client declares an effect as an object, as a macOS app puts a view with
+    a material in its hierarchy. The object holds the effect's state, applies
+    it on the next wl_surface.commit of its surface and removes the effect when
+    it is destroyed. The compositor decides blur radius, saturation, tint and
+    lens, and draws solids under Reduce Transparency and Increase Contrast.
+    The compositor serves it only to BarrierKit clients.
+  </description>
+
+  <interface name="limitless_effects_v1" version="1">
+    <request name="destroy" type="destructor"/>
+
+    <request name="create_visual_effect">
+      <description summary="an NSVisualEffectView">
+        The surface is the one that draws over the material: the toplevel, a
+        sub-surface of it, a popup or a layer surface.
+      </description>
+      <arg name="id" type="new_id" interface="limitless_visual_effect_v1"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+
+    <request name="create_glass_effect">
+      <description summary="SwiftUI glassEffect or an NSGlassEffectView">
+        The surface is the one that draws over the glass.
+      </description>
+      <arg name="id" type="new_id" interface="limitless_glass_effect_v1"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+
+    <request name="create_glass_container">
+      <description summary="SwiftUI GlassEffectContainer">
+        Glass effects of the same container merge when they come closer than
+        its spacing.
+      </description>
+      <arg name="id" type="new_id" interface="limitless_glass_container_v1"/>
+    </request>
+
+    <request name="create_scroll_edge_effect">
+      <description summary="SwiftUI scrollEdgeEffectStyle">
+        A blur strip along one edge of the surface, over what lies below it.
+      </description>
+      <arg name="id" type="new_id" interface="limitless_scroll_edge_effect_v1"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+  </interface>
+
+  <interface name="limitless_visual_effect_v1" version="1">
+    <enum name="blending_mode">
+      <description summary="as NSVisualEffectView.BlendingMode"/>
+      <entry name="behind_window" value="0" summary="the wallpaper and the windows below the toplevel"/>
+      <entry name="within_window" value="1" summary="what the toplevel's surfaces draw below the requester"/>
+    </enum>
+
+    <enum name="material">
+      <description summary="the NSVisualEffectView.Material values of macOS 27.2 that are not deprecated"/>
+      <entry name="titlebar" value="0"/>
+      <entry name="selection" value="1"/>
+      <entry name="menu" value="2"/>
+      <entry name="popover" value="3"/>
+      <entry name="sidebar" value="4"/>
+      <entry name="header_view" value="5"/>
+      <entry name="sheet" value="6"/>
+      <entry name="window_background" value="7"/>
+      <entry name="hud_window" value="8"/>
+      <entry name="full_screen_ui" value="9"/>
+      <entry name="tool_tip" value="10"/>
+      <entry name="content_background" value="11"/>
+      <entry name="under_window_background" value="12"/>
+      <entry name="under_page_background" value="13"/>
+    </enum>
+
+    <request name="destroy" type="destructor"/>
+    <request name="set_material">
+      <arg name="material" type="uint" enum="material"/>
+    </request>
+    <request name="set_blending_mode">
+      <arg name="blending" type="uint" enum="blending_mode"/>
+    </request>
+    <request name="set_shape">
+      <description summary="where the material shows">
+        rects holds int32 quadruples x, y, width and height in surface-local
+        logical pixels, at most 16, and radius is the continuous corner in
+        logical pixels. An empty array hides the effect.
+      </description>
+      <arg name="radius" type="uint"/>
+      <arg name="rects" type="array"/>
+    </request>
+  </interface>
+
+  <interface name="limitless_glass_effect_v1" version="1">
+    <enum name="style">
+      <entry name="regular" value="0" summary="NSGlassEffectView.Style.regular"/>
+      <entry name="clear" value="1" summary="NSGlassEffectView.Style.clear"/>
+    </enum>
+
+    <request name="destroy" type="destructor"/>
+    <request name="set_style">
+      <arg name="style" type="uint" enum="style"/>
+    </request>
+    <request name="set_tint">
+      <description summary="Glass.tint: 0xAARRGGBB, its alpha counts"/>
+      <arg name="tint" type="uint"/>
+    </request>
+    <request name="set_interactive">
+      <description summary="Glass.interactive: it answers hover and press"/>
+      <arg name="interactive" type="uint"/>
+    </request>
+    <request name="set_shape">
+      <description summary="the same arguments as limitless_visual_effect_v1.set_shape"/>
+      <arg name="radius" type="uint"/>
+      <arg name="rects" type="array"/>
+    </request>
+    <request name="set_container">
+      <description summary="the container this glass merges in; null leaves it"/>
+      <arg name="container" type="object" interface="limitless_glass_container_v1" allow-null="true"/>
+    </request>
+  </interface>
+
+  <interface name="limitless_glass_container_v1" version="1">
+    <request name="destroy" type="destructor"/>
+    <request name="set_spacing">
+      <description summary="GlassEffectContainer spacing in logical pixels"/>
+      <arg name="spacing" type="uint"/>
+    </request>
+  </interface>
+
+  <interface name="limitless_scroll_edge_effect_v1" version="1">
+    <enum name="edge">
+      <description summary="as SwiftUI's Edge, with physical sides"/>
+      <entry name="top" value="0"/>
+      <entry name="leading" value="1"/>
+      <entry name="bottom" value="2"/>
+      <entry name="trailing" value="3"/>
+    </enum>
+
+    <enum name="style">
+      <description summary="as SwiftUI's ScrollEdgeEffectStyle"/>
+      <entry name="automatic" value="0"/>
+      <entry name="soft" value="1"/>
+      <entry name="hard" value="2"/>
+    </enum>
+
+    <request name="destroy" type="destructor"/>
+    <request name="set_edge">
+      <arg name="edge" type="uint" enum="edge"/>
+    </request>
+    <request name="set_style">
+      <arg name="style" type="uint" enum="style"/>
+    </request>
+    <request name="set_depth">
+      <description summary="strip depth in logical pixels; 0 hides the effect"/>
+      <arg name="depth" type="uint"/>
+    </request>
+  </interface>
+</protocol>
