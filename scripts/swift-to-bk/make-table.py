@@ -64,7 +64,7 @@ def construct_rows():
             key, labels = swift_key(token.split(' ')[0] if token.startswith('@') else token)
             if key:
                 yield {'swift': key, 'kit': c[1].replace('`', ''), 'status': 'mapped',
-                       'origin': 'chapter 16', 'recipe': (re.search(r'\((\.\./\.\./agents/recipes/\w+\.rs)\)', c[2]) or [None, ''])[1].split('/')[-1]}
+                       'origin': 'chapter 16', 'recipe': (re.search(r'\((\.\./\.\./crates/bk/examples/\w+\.rs)\)', c[2]) or [None, ''])[1].split('/')[-1]}
 
 
 def gap_rows():

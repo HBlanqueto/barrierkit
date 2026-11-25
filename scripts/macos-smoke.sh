@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds every recipe of agents/recipes, opens each as an app bundle for a few seconds
+# Builds every recipe of crates/bk/examples, opens each as an app bundle for a few seconds
 # and checks that a window appears and the process stays alive.
 # Usage: scripts/macos-smoke.sh [recipe...]   (SMOKE_SECONDS: how long each stays open, default 3;
 # CAPTURE_DIR: a folder that receives a PNG of each recipe's window)
@@ -17,7 +17,7 @@ cd "$root"
 if [ "$#" -gt 0 ]; then
     names=$*
 else
-    names=$(for file in agents/recipes/*.rs; do basename "$file" .rs; done)
+    names=$(for file in crates/bk/examples/*.rs; do basename "$file" .rs; done)
 fi
 builds=
 for name in $names; do builds="$builds --example $name"; done

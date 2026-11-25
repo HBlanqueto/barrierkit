@@ -2,7 +2,7 @@ use bk::drag::{DragPayload, use_drag_source};
 use bk::pasteboard::Pasteboard;
 use bk::prelude::*;
 
-const PICTURE: &[u8] = include_bytes!("../../docs/barrierkit/assets/states/state-normal.png");
+const PICTURE: &[u8] = include_bytes!("../../../docs/barrierkit/assets/states/state-normal.png");
 
 fn rich() -> DragPayload {
     DragPayload::Html {

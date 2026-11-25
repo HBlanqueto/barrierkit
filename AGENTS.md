@@ -62,6 +62,14 @@ If the whole commit is of one type, the title carries the type in front
 (`Fix: dock reappears in focus mode`). No trailer: no `Co-Authored-By`, no
 `Claude-Session`, no links to the session.
 
+## Code (permanent)
+
+- The rules for code are in [`crates/AGENTS.md`](crates/AGENTS.md): macOS and
+  Linux, Rust and how the rules apply in barrierkit. Read it before you change
+  anything under `crates/`.
+- Check every change with `./dev.sh check`, not with a bare `cargo check`: it
+  runs clippy with the features and the scripts of `scripts/check-*.sh`.
+
 ## Documentation (English only)
 
 Applies to `README.md`, `docs/`, `agents/` and the ADRs.
@@ -104,64 +112,11 @@ methods, hooks, tokens).
    the chapter that describes it and, if it changes how an app is written,
    `agents/` (`prompt.md`, `recipes.md`, `checklist.md`).
 5. **The code of the documentation compiles.** Each recipe is a file in
-   `agents/recipes/`, declared as an `[[example]]` in `crates/bk/Cargo.toml`;
-   `./dev.sh check` compiles it and runs clippy on it. The programs of chapter
-   2 are exact copies of `hello_world.rs` and `counter.rs`, and
-   `scripts/check-recipes.sh` checks it. A new recipe is a new file with its
-   `[[example]]`, never a code block in `recipes.md`.
-
-## macOS and Linux
-
-1. **`cfg(target_os)` only in `crates/bk/src/platform/mod.rs`,
-   `platform/linux/`, `platform/macos/`, `crates/ctappearance/` and
-   `Cargo.toml`.** `scripts/check-platform-cfg.sh` checks it, with no
-   exceptions.
-2. **One name, one signature, two bodies.** What a system provides
-   (clipboard, keychain, notifications, menus) is a function with the same
-   signature in `platform/macos/` and in `platform/linux/`, re-exported once
-   from `platform/mod.rs` (`use linux|macos as sys`). No traits while there is
-   one body per system (rule 3 of «Minimal code»).
-3. **The decision lives in pure code, without `cfg`:** recognizers, state
-   machines, `ctdesign` numbers. The backend only translates system events into
-   that logic and applies its effects, like `gesture::trackpad`.
-4. **You touch a file with a stray `cfg`:** move it to its backend in that
-   commit.
-
-## Rust (new code or code you touch)
-
-Do not rewrite existing code only to meet these (rule 7 of «Minimal code»).
-
-1. **No `unwrap()` in the library or the recipes:** handle the error. An
-   invariant that cannot break uses `expect("why it cannot fail")`. Tests may
-   use `unwrap()`.
-2. **Import with `crate::`, not `super::`.** Exception: `use super::*` in a
-   `mod tests`.
-3. **A component is a data type with `#[derive(PartialEq)]` that implements
-   `Component`.** A public view or control that an app can put in a list also
-   implements `KeyExt` (`.key(..)`), so Freya reconciles by key.
-4. **Components import with `use freya_core::prelude::*;`.**
-5. **Doc comments:** one `///` line on a new public API whose name does not
-   state its contract (what it returns, what it assumes, when it fails). Rule 6
-   still holds: none that repeats the name, and no other comments inside the
-   code.
-6. **An element that changes is not kept in a variable to mutate it:** it is
-   declared as the component's last value and changed with `maybe(..)`,
-   `maybe_child(..)` or `map(..)`.
-7. **A `&str` or a `String` already is a Freya `label`** where a child is
-   expected: do not write `label().text("Hello")` only for that. Apps use
-   `Text` (rule 3).
-8. **Check with `./dev.sh check`**, not with a bare `cargo check`: that
-   command runs clippy with the features and the scripts of
-   `scripts/check-*.sh`.
-9. **Short control flow:** `?` instead of a `match` that only propagates the
-   error; `if let` instead of a one-arm `match`; `while let` instead of `loop`
-   with `match`.
-10. **Iterators before loops with `push`:** `filter`, `map`, `filter_map`,
-    `flatten`, `fold`, with no intermediate collections.
-11. **Errors:** `?` when `From` converts on its own; `map_err` only if it adds
-    context that `From` cannot give.
-12. **Imports grouped by crate:** `use crate::{a, b::c};`. Import the names;
-    do not use qualified paths in signatures.
+   `crates/bk/examples/`, which Cargo finds as an example; `./dev.sh check`
+   compiles it and runs clippy on it. The programs of chapter 2 are exact
+   copies of `hello_world.rs` and `counter.rs`, and `scripts/check-recipes.sh`
+   checks it. A new recipe is a new file there, never a code block in
+   `recipes.md`.
 
 ## Minimal code (hard rules, ponytail style)
 
@@ -212,43 +167,3 @@ They are followed to the letter. The shortest diff and the shortest answer win.
    Do not adopt a solution you cannot back with a source. If the solution is a
    workaround, put the link in the commit or in the one-line comment of rule 6.
    The chat gets the conclusion with the link, not the research.
-
-### How it applies in barrierkit
-
-```rust
-// ✗ literal and recomputed geometry
-let x = 8.0 + i as f64 * (12.0 + 8.0);
-// ✓ token and function that already exist (ctdesign, ctappearance::traffic)
-let (x, y, d) = ctappearance::traffic::button_rect(i);
-```
-
-```rust
-// ✗ doc that repeats the name
-/// Whether the window currently has focus.
-pub fn focused(mut self, focused: bool) -> Self { … }
-// ✓ no comment: the name is enough
-pub fn focused(mut self, focused: bool) -> Self { … }
-```
-
-```rust
-// ✓ a comment that stays (platform/linux/vulkan.rs)
-// SAFETY: instance, device and queue live in `Self` and outlive the Skia context.
-```
-
-- An app starts with `use bk::prelude::*;` and
-  `Application::new(..).window(..).run()`; if it draws its own title bar,
-  with `.options(|w| w.window_style(WindowStyle::HiddenTitleBar))`
-  (ADR 0115).
-- New colors, radii, durations and metrics go to `ctdesign`, never to `bk`.
-- The system decides light or dark (ADR 0114): an app does not set its scheme;
-  only a part of a window can force it with `use_appearance`.
-- A new control composes kit primitives; it does not reimplement the sidebar,
-  the menus or the traffic lights (ADR 0047).
-- Visible text goes in `i18n/{en,es}/<crate>.ftl` and is read with `tr!`;
-  never a literal in the code (`docs/barrierkit/17-languages.md`).
-- Symbols are SVG, never PNG: `Image::system`, or an SVG with
-  `currentColor`. A one-color icon (SVG or PNG, like freedesktop's
-  `-symbolic` ones) is drawn with
-  `.rendering_mode(TemplateRenderingMode::Template)`: black in light and white
-  in dark. App icons, photos and illustrations stay `Original`
-  (`docs/barrierkit/04-appearance-and-tokens.md`).

@@ -32,17 +32,11 @@ grep -lq 'fn main' "$blocks"/shell-02-first-component-*.rs 2>/dev/null || {
     printf 'check-recipes: no program found in docs/shell/02-first-component.md\n' >&2
     status=1
 }
-for recipe in agents/recipes/*.rs; do
-    grep -q "recipes/$(basename "$recipe")\"" crates/bk/Cargo.toml || {
-        printf 'check-recipes: %s has no [[example]] in crates/bk/Cargo.toml\n' "$recipe" >&2
-        status=1
-    }
-done
 for block in "$blocks"/*.rs; do
     grep -q 'fn main' "$block" 2>/dev/null || continue
     case $(basename "$block") in
         (shell-*) programs=crates/bk-shell/examples ;;
-        (*) programs=agents/recipes ;;
+        (*) programs=crates/bk/examples ;;
     esac
     found=0
     for recipe in "$programs"/*.rs; do

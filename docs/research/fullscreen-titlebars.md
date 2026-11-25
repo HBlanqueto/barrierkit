@@ -94,7 +94,7 @@ Further findings:
 
 ## The kit against those designs
 
-Cases from `agents/recipes/full_screen.rs`, logs `kit-title-bar`,
+Cases from `crates/bk/examples/full_screen.rs`, logs `kit-title-bar`,
 `kit-hidden-title-bar`, `kit-plain`.
 
 | Kit style | Compared with | Reproduced | Differs |

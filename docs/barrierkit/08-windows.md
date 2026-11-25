@@ -192,7 +192,7 @@ that calls `toggle_fullscreen()`.
 WindowOptions::new("Notes", "com.example.notes").window_style(WindowStyle::Plain)
 ```
 
-The program is [`recipes/notes_sidebar.rs`](../../agents/recipes/notes_sidebar.rs).
+The program is [`recipes/notes_sidebar.rs`](../../crates/bk/examples/notes_sidebar.rs).
 
 In full screen a `HiddenTitleBar` window keeps its empty `NSToolbar`, icons
 only as in SwiftUI, and makes AppKit's full-screen bar clear. The kit's
@@ -251,7 +251,7 @@ another theme or size, call `Application::options` right after its
 `.scene(..)` and after `Application::theme`, or `.options(..)` on the scene
 type itself.
 
-The program is [`recipes/scenes.rs`](../../agents/recipes/scenes.rs).
+The program is [`recipes/scenes.rs`](../../crates/bk/examples/scenes.rs).
 
 Open and close from a component of a scene window
 ([recipe 25](../../agents/recipes.md#25-several-windows)):
@@ -468,8 +468,8 @@ lists.
 
 SwiftUI: `.fileImporter`, `.fileExporter`, `.fileDialogDefaultDirectory`, `.onOpenURL`
 and `DocumentGroup`; AppKit: `NSOpenPanel`, `NSSavePanel` and `NSDocument`. The programs are
-[`recipes/file_dialogs.rs`](../../agents/recipes/file_dialogs.rs) and
-[`recipes/documents.rs`](../../agents/recipes/documents.rs).
+[`recipes/file_dialogs.rs`](../../crates/bk/examples/file_dialogs.rs) and
+[`recipes/documents.rs`](../../crates/bk/examples/documents.rs).
 
 1. **Choose files.** `.file_importer(is_presented, types, multiple, on_completion)` and `.file_exporter(is_presented, "Name.png", types, on_completion)` take a `State<bool>`, as `sheet` does. `types` is a `Vec<ContentType>`: `ContentType::extension("png")` or `ContentType::Folder`. An empty list allows every file. `on_completion` runs only when the user chose.
 2. **Start folder.** `.file_dialog_default_directory(path)` wraps a view; the dialogs of the views below it start there. For a dialog of your own use `FileDialog::open()` or `FileDialog::save(name)`, `.directory(path)` and `.present(&WindowControls::get()).await`.

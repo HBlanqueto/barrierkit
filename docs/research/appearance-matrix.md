@@ -1,7 +1,7 @@
 # Appearance matrix: light and dark, with blur and without
 
 **Goal:** know how each surface looks in light and dark, with the system's blur and with Reduce Transparency on, and how far it is from SwiftUI or AppKit.
-**Scope:** macOS arm64, the kit's examples (`agents/recipes`) against probes in `~/src/probes`, measured 2026-11-22 at scale 1 on a 2560 x 1440 display.
+**Scope:** macOS arm64, the kit's examples (`crates/bk/examples`) against probes in `~/src/probes`, measured 2026-11-22 at scale 1 on a 2560 x 1440 display.
 **Reader:** whoever changes a material, a glass, a title bar or a popup in `platform/macos/`.
 **Input:** a Mac in an unlocked session, `cargo build -p bk --examples`, `~/src/probes`, numpy and Pillow.
 **Output:** the share of pixels that differ per element, in each cell, and the ceiling each one is held to.

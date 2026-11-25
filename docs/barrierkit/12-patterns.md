@@ -47,7 +47,7 @@ search and saved state.
    SettingsWindow::new().restoration("com.example.notes").group(group)
    ```
 
-5. Run it as its own window with `run_window` ([`recipes/settings_window.rs`](../../agents/recipes/settings_window.rs)): it draws its own sidebar and
+5. Run it as its own window with `run_window` ([`recipes/settings_window.rs`](../../crates/bk/examples/settings_window.rs)): it draws its own sidebar and
    titlebar. An `Application` window with `WindowStyle::HiddenTitleBar` adds no
    second titlebar either ([ADR 0115](../decisions.md#0115--standard-menus-by-default-edit-items-reach-the-focused-text-field-macos-menus-are-appkits)).
    Steps 1 to 3 run inside the window's closure, here a function `panes()`,

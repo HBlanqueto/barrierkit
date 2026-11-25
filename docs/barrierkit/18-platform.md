@@ -204,7 +204,7 @@ cannot run it: it has no display.
    `./dev.sh build` and `./dev.sh lab`. Leave it running.
 2. Terminal 2, in the kit: `nix develop`. The recipes install no logger: add
    `bk::init_tracing();` as the first line of `main` in
-   `agents/recipes/glass_window.rs`, and do not commit it. Read the socket of
+   `crates/bk/examples/glass_window.rs`, and do not commit it. Read the socket of
    the session and open the window:
 
    ```sh
@@ -212,7 +212,7 @@ cannot run it: it has no display.
    WAYLAND_DISPLAY=$socket RUST_LOG=bk::chrome=debug cargo run -p bk --example glass_window
    ```
 
-3. Look at the window, the recipe [`glass_window`](../../agents/recipes/glass_window.rs):
+3. Look at the window, the recipe [`glass_window`](../../crates/bk/examples/glass_window.rs):
    - The log shows two `chrome surface opened` lines: the title bar and the
      card at the bottom right. With a Malaysia that advertises 9 it shows none
      and the bar is blurred by the kit.
@@ -276,7 +276,7 @@ The window and its popups take the system's light or dark, live ([The system's l
 1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
 3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the D-Bus menu exporter carry items only the Linux backend reads), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without `bk-shell` and its `shell` feature.
-4. Optional: `./dev.sh macos-smoke` opens every recipe of `agents/recipes` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
+4. Optional: `./dev.sh macos-smoke` opens every recipe of `crates/bk/examples` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
 
 ### Smoke test on macOS
 
@@ -406,7 +406,7 @@ How to keep it true:
 1. A new capability gets its row in the commit that adds it.
 2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 9 cannot send `set_backdrop` ([ADR 0091](../decisions.md)).
 3. A function that needs a new request goes into `infinity-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
-4. `cfg(target_os)` stays in `platform/` ([AGENTS.md](../../AGENTS.md)): `platform/macos/` and `platform/linux/` hold what one system uses, and `platform/` holds what both use. The matrix names the file.
+4. `cfg(target_os)` stays in `platform/` ([crates/AGENTS.md](../../crates/AGENTS.md)): `platform/macos/` and `platform/linux/` hold what one system uses, and `platform/` holds what both use. The matrix names the file.
 
 To check each row on a Linux machine after changes made on a Mac, follow [Linux verification](linux-verification.md).
 

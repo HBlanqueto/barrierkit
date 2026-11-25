@@ -1,6 +1,6 @@
 // The SwiftUI side of scripts/macos-fullscreen.sh: one window whose style is picked at build time
 // (-D HIDDEN or -D PLAIN; none is the default title bar). It prints "full-screen: true|false"
-// when the window enters or leaves full screen, as agents/recipes/full_screen.rs does.
+// when the window enters or leaves full screen, as crates/bk/examples/full_screen.rs does.
 import SwiftUI
 
 @main

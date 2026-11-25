@@ -215,7 +215,7 @@ The effect views read what the content layer drew, with no frame of lag
 Transparency and Increase Contrast are AppKit's. The layers of a window with
 chromes present inside one Core Animation transaction, so the content and what
 lies over the glass move together. A `ToolGroup` over scrolling content is
-[`recipes/glass_toolbar.rs`](../../agents/recipes/glass_toolbar.rs): its `Titlebar` needs a
+[`recipes/glass_toolbar.rs`](../../crates/bk/examples/glass_toolbar.rs): its `Titlebar` needs a
 clear background to let the glass show.
 
 ### Style

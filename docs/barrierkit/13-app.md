@@ -320,7 +320,7 @@ struct with `Serialize`, `Deserialize` and `Default`, stored as TOML.
   of the file. It uses the id of the running app (`Application::new` or
   `run_window`); before an app runs, as in a test, the value lives in memory
   only. It does not reload when another process changes the file
-  ([`recipes/app_storage.rs`](../../agents/recipes/app_storage.rs)).
+  ([`recipes/app_storage.rs`](../../crates/bk/examples/app_storage.rs)).
 - Reading a missing file gives `T::default()`.
 - Reading a file that does not parse logs a warning, copies it to `<file>.bak`
   and gives `T::default()`.

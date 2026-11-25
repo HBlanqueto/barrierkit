@@ -39,8 +39,8 @@ code, nor several files at once. Design and limits:
    python3 -I scripts/swift-to-bk/recipe.py my_app MyApp.swift
    ```
 
-   It writes `agents/recipes/swift_my_app.rs`, registers the `[[example]]` in
-   `crates/bk/Cargo.toml` and runs `cargo build -p bk --example swift_my_app`.
+   It writes `crates/bk/examples/swift_my_app.rs`, which Cargo finds as an
+   example, and runs `cargo build -p bk --example swift_my_app`.
    It writes nothing while the summary is not empty.
 5. Check the tool after a change: `./dev.sh check` builds every `swift_*`
    recipe with the other examples.

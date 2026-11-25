@@ -205,12 +205,12 @@ SwiftUI modifier against kit method:
 
 | Swift | Kit idiom | Lost or impossible | Evidence |
 |---|---|---|---|
-| `.buttonStyle(.bordered)` | `Button::style(\|s\| ..)`, or a preset: `.style(ButtonStyle::bordered_prominent)`. The default `ButtonStyle::tengen()` is `.bordered` | no `ButtonStyle::bordered` | `styles/button.rs`; S5; [`counter.rs`](../../agents/recipes/counter.rs) line 11 |
+| `.buttonStyle(.bordered)` | `Button::style(\|s\| ..)`, or a preset: `.style(ButtonStyle::bordered_prominent)`. The default `ButtonStyle::tengen()` is `.bordered` | no `ButtonStyle::bordered` | `styles/button.rs`; S5; [`counter.rs`](../../crates/bk/examples/counter.rs) line 11 |
 | custom `ButtonStyle.makeBody(configuration:)` | a plain struct of fields; `StateValue<ShapeStyle>` holds a value per hover, press, focus and disabled | no body: the label cannot be restructured | `styles/button.rs:40-70`; S5 |
-| `.buttonStyle(_)` on a subtree | `.control_style(\|s: ButtonStyle\| ..)`, or `Theme::style` for the whole app | the closure's type picks the style; the scope has no other modifiers | [`styled_control.rs`](../../agents/recipes/styled_control.rs) lines 28-31 |
+| `.buttonStyle(_)` on a subtree | `.control_style(\|s: ButtonStyle\| ..)`, or `Theme::style` for the whole app | the closure's type picks the style; the scope has no other modifiers | [`styled_control.rs`](../../crates/bk/examples/styled_control.rs) lines 28-31 |
 | the nearest ancestor wins | scopes **compose**: the inner closure sees the outer result | SwiftUI replaces: a child's own `.buttonStyle` wins (S5) | `styles/theme.rs:184-205` |
 | `ToggleStyle`, `LabelStyle`, `PickerStyle` | one `*Style` struct per control (`SwitchStyle`, `PopUpButtonStyle`) | no protocols; a style that spans controls does not exist | [glossary](../barrierkit/20-glossary.md), ADR 0064 in [`decisions.md`](../decisions.md) |
-| `.controlSize(.small)` | `.control_size(ControlSize::Small)` on a view, `.size(..)` on a control; 13 families | `.size` wins over the scope | [`control_sizes.rs`](../../agents/recipes/control_sizes.rs) lines 14-22 |
+| `.controlSize(.small)` | `.control_size(ControlSize::Small)` on a view, `.size(..)` on a control; 13 families | `.size` wins over the scope | [`control_sizes.rs`](../../crates/bk/examples/control_sizes.rs) lines 14-22 |
 | precedence | tengen, theme, scopes (outermost first), instance, accessibility | `resolve` is crate-private: an app cannot make its own themed control (UNVERIFIED: no other path) | `styles.rs:170-171`, [`agents/styles.md`](../../agents/styles.md#levels) |
 
 ### 1.5 Static and implicit members
@@ -264,7 +264,7 @@ in 28 (`grep -rn "pub fn [a-z_]*(.*&'static str"`). A formatted label needs
 | `Link` | `Link::new(&str).on_press(cb)` | no URL |
 | `Menu` | `MenuButton::new(l, Vec<MenuItem>).on_activate(cb)` | id string. Kit `Menu` is `CommandMenu` |
 | `List`, `Table` | `List::new(l, Vec<String>).selected(Vec<usize>)`, `Table::new(l, headers).rows(Vec<Vec<String>>).on_sort(cb)` | text cells; the app sorts |
-| `Form`, `Section` | `Form::new().section(Section::titled(..).row(Row::toggle(..)))` | [`settings_form.rs`](../../agents/recipes/settings_form.rs) |
+| `Form`, `Section` | `Form::new().section(Section::titled(..).row(Row::toggle(..)))` | [`settings_form.rs`](../../crates/bk/examples/settings_form.rs) |
 | `GroupBox`, `DisclosureGroup` | `GroupBox::new(Option<&str>).child(v)`, `DisclosureGroup::new(l).expanded(bool).child(v)` | `expanded` seeds the state once (`views/group.rs:119-120`) |
 | `TabView`, `NavigationSplitView` | `TabView::new(l).tab(Symbol, &str, view).selected(usize)`, `SplitView::new(sidebar, detail)` | index; a sidebar item carries `.selected(bool)` |
 | `ScrollView`, `Divider` | `ScrollView::new().direction(Direction)`, `Divider::new()` | |
@@ -289,8 +289,8 @@ uses hooks that return a handle.
 
 | Swift | Kit or Freya | Lost or impossible | Trap |
 |---|---|---|---|
-| `@State` | `let mut x = use_state(\|\| v)`: a `Copy` `State<T>`; `read()`, `write()`, `set(..)`, `peek()` ([`counter.rs`](../../agents/recipes/counter.rs) lines 6-13) | `x += 1` becomes `*x.write() += 1`; whole-value tracking | forgetting `mut`; a read inside a handler subscribes nothing (`fc/lifecycle/state.rs:306,366`; `fc/runner.rs:656-690`) |
-| `@Binding`, `$x` | pass the `State<T>` itself; or value plus callback ([`toggle.rs`](../../agents/recipes/toggle.rs) lines 6-13) | no `Binding` type. Freya has `Writable` and `WritableSetter`, but no kit control takes them | text-like controls take `State<T>`; the rest keep a private copy (`controlled.rs:14-19`) |
+| `@State` | `let mut x = use_state(\|\| v)`: a `Copy` `State<T>`; `read()`, `write()`, `set(..)`, `peek()` ([`counter.rs`](../../crates/bk/examples/counter.rs) lines 6-13) | `x += 1` becomes `*x.write() += 1`; whole-value tracking | forgetting `mut`; a read inside a handler subscribes nothing (`fc/lifecycle/state.rs:306,366`; `fc/runner.rs:656-690`) |
+| `@Binding`, `$x` | pass the `State<T>` itself; or value plus callback ([`toggle.rs`](../../crates/bk/examples/toggle.rs) lines 6-13) | no `Binding` type. Freya has `Writable` and `WritableSetter`, but no kit control takes them | text-like controls take `State<T>`; the rest keep a private copy (`controlled.rs:14-19`) |
 | `.constant(_)` | `Readable::from_value` | a constant `.value(x)` does not snap back as `.constant` does | S8 |
 | `@Bindable` | a `State`, or `Writable::map` | no `$model.field` | a field write wakes every reader |
 | `@Observable` | a `Copy` struct of `State`s, the kit's own idiom (`interaction.rs:7-13`, `app/undo.rs`) | no derive; per-property tracking is manual. S4: `@Observable` re-runs only the readers of the changed property | `grep -rn "Observable"` over crates, docs and agents finds nothing |
@@ -371,7 +371,7 @@ closure passed to `Application::window` re-runs only through its own reads
 | `.task` cancellation | cooperative in Swift (S7); `spawn` is dropped at unmount | | |
 | `actor`, `Sendable`, `AsyncStream` | none; the only cross-thread type is `Arc<Mutex<T>>` inside `Publisher` | | `app/published.rs:7-17` |
 | a result back to the UI | `use_published(initial, start)`, `use_wake`, `Timers::wakeup` | last value wins; a timer has no cancel handle | `app/published.rs`, `platform/timer.rs:52-79` |
-| `Timer`, `TimelineView` | `Timers::get().every(..)`, `use_timeline(active, every)` ([`stopwatch.rs`](../../agents/recipes/stopwatch.rs) line 16) | periodic only | `app/timeline.rs:9` |
+| `Timer`, `TimelineView` | `Timers::get().every(..)`, `use_timeline(active, every)` ([`stopwatch.rs`](../../crates/bk/examples/stopwatch.rs) line 16) | periodic only | `app/timeline.rs:9` |
 
 The thread rule is in [chapter 13](../barrierkit/13-app.md) and
 [chapter 8](../barrierkit/08-windows.md); `agents/` does not repeat it.
@@ -453,7 +453,7 @@ does the same job. The recipes build in `./dev.sh check`.
 Button("Add one") { count += 1 }
 ```
 
-✓ [`counter.rs`](../../agents/recipes/counter.rs) lines 6-13: `use_state`,
+✓ [`counter.rs`](../../crates/bk/examples/counter.rs) lines 6-13: `use_state`,
 `.on_press`, `*count.write() += 1`.
 
 ```swift
@@ -461,7 +461,7 @@ Button("Add one") { count += 1 }
 Toggle("Wi-Fi", isOn: $wifi)
 ```
 
-✓ [`toggle.rs`](../../agents/recipes/toggle.rs) lines 6-13: `Switch` takes
+✓ [`toggle.rs`](../../crates/bk/examples/toggle.rs) lines 6-13: `Switch` takes
 `.on(value)` and `.on_toggle(callback)`.
 
 ```swift
@@ -469,7 +469,7 @@ Toggle("Wi-Fi", isOn: $wifi)
 struct Greeting: View { let name: String; var body: some View { Text(name) } }
 ```
 
-✓ [`reusable_view.rs`](../../agents/recipes/reusable_view.rs) lines 3-12: a
+✓ [`reusable_view.rs`](../../crates/bk/examples/reusable_view.rs) lines 3-12: a
 `PartialEq` struct and `impl Component`.
 
 ```swift
@@ -477,7 +477,7 @@ struct Greeting: View { let name: String; var body: some View { Text(name) } }
 VStack(alignment: .leading, spacing: 4) { Text("Ana"); HStack { Text("Madrid") } }
 ```
 
-✓ [`rows_and_columns.rs`](../../agents/recipes/rows_and_columns.rs) lines 6-14:
+✓ [`rows_and_columns.rs`](../../crates/bk/examples/rows_and_columns.rs) lines 6-14:
 `.cross_align(Alignment::Start)` and `.spacing(SPACE_1)`.
 
 ```swift
@@ -485,7 +485,7 @@ VStack(alignment: .leading, spacing: 4) { Text("Ana"); HStack { Text("Madrid") }
 Form { Section("General") { Toggle("Sounds", isOn: $sounds) } }
 ```
 
-✓ [`settings_form.rs`](../../agents/recipes/settings_form.rs) lines 7-12:
+✓ [`settings_form.rs`](../../crates/bk/examples/settings_form.rs) lines 7-12:
 `Form::new().section(Section::titled(..).row(Row::toggle(..)))`.
 
 ```swift
@@ -493,7 +493,7 @@ Form { Section("General") { Toggle("Sounds", isOn: $sounds) } }
 HStack { Button("Save"); Toggle("Wi-Fi", isOn: $on) }.controlSize(.small)
 ```
 
-✓ [`control_sizes.rs`](../../agents/recipes/control_sizes.rs) lines 14-22:
+✓ [`control_sizes.rs`](../../crates/bk/examples/control_sizes.rs) lines 14-22:
 `.control_size(size)` on the `HStack`.
 
 ```swift
@@ -502,7 +502,7 @@ Button("Reset").buttonStyle(.borderedProminent)
 VStack { … }.buttonStyle(Pill())
 ```
 
-✓ [`styled_control.rs`](../../agents/recipes/styled_control.rs) lines 6-31: a
+✓ [`styled_control.rs`](../../crates/bk/examples/styled_control.rs) lines 6-31: a
 theme override, an instance `.style(..)` and a `.control_style(..)` scope.
 There is no `makeBody`.
 
@@ -513,7 +513,7 @@ TimelineView(.periodic(from: .now, by: 0.01)) { _ in
 }
 ```
 
-✓ [`stopwatch.rs`](../../agents/recipes/stopwatch.rs) lines 16 and 55-59:
+✓ [`stopwatch.rs`](../../crates/bk/examples/stopwatch.rs) lines 16 and 55-59:
 `use_timeline(running, TICK)` and `.children(iter.map(..))`. The recipe gives
 no `.key(..)`: add one for a list that reorders.
 
@@ -522,8 +522,8 @@ no `.key(..)`: add one for a list that reorders.
 .toolbar { ToolbarItemGroup { Button("Add", systemImage: "plus") { }; Button("More", systemImage: "ellipsis") { } } }
 ```
 
-✓ [`titlebar_over_gradient.rs`](../../agents/recipes/titlebar_over_gradient.rs)
-lines 9-33, or [`custom_window.rs`](../../agents/recipes/custom_window.rs):
+✓ [`titlebar_over_gradient.rs`](../../crates/bk/examples/titlebar_over_gradient.rs)
+lines 9-33, or [`custom_window.rs`](../../crates/bk/examples/custom_window.rs):
 `Titlebar::new().right(ToolGroup::new().child(..))` inside `run_window`.
 
 ```swift
@@ -531,7 +531,7 @@ lines 9-33, or [`custom_window.rs`](../../agents/recipes/custom_window.rs):
 @main struct HelloApp: App { var body: some Scene { WindowGroup { Text("Hello") } } }
 ```
 
-✓ [`hello_world.rs`](../../agents/recipes/hello_world.rs) lines 4-8:
+✓ [`hello_world.rs`](../../crates/bk/examples/hello_world.rs) lines 4-8:
 `Application::new(..).window(title, closure).run()`.
 
 ## 4. Probes

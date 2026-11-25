@@ -331,7 +331,7 @@ hid by itself in a narrow window counts as visible.
 
 `.content(view)` is the middle column of
 `NavigationSplitView(sidebar:content:detail:)`. The recipe is
-[`three_columns.rs`](../../agents/recipes/three_columns.rs). A three-column
+[`three_columns.rs`](../../crates/bk/examples/three_columns.rs). A three-column
 app needs it, and SwiftUI's split view takes one.
 
 - It starts `SPLIT_VIEW.content_width` (200) wide, as SwiftUI's, and has the

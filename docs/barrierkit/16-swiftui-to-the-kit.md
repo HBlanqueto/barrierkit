@@ -21,35 +21,35 @@ know the kit's shape.
 
 | Swift | Kit | Recipe |
 |---|---|---|
-| `@State var count = 0` | `let mut count = use_state(\|\| 0)`; `count.read()`, `count.set(v)`, `*count.write() += 1` | [`counter.rs`](../../agents/recipes/counter.rs) |
-| `@AppStorage("bold") var bold = false` | `let bold = use_app_storage("bold", false)`; a `State` saved in the app's settings | [`app_storage.rs`](../../agents/recipes/app_storage.rs) |
-| `@Binding`, `$text` on a text field | pass the `State<String>`; the field edits it | [`binding.rs`](../../agents/recipes/binding.rs) |
-| `@Binding`, `$on` on any other control | pass the `State`: `Switch::new("Wi-Fi", wifi)`; a list or table takes `.selection(state)` | [`toggle.rs`](../../agents/recipes/toggle.rs) |
-| `@Environment`, `.environment(_:_:)` | `.environment(value)` above, `use_environment::<T>()` below | [`environment.rs`](../../agents/recipes/environment.rs) |
-| `.disabled(_:)`, `\.isEnabled` | `.disabled(bool)` on any view, `use_is_enabled()` | [`disabled.rs`](../../agents/recipes/disabled.rs) |
-| `@Observable` | a `Copy` struct of `State`s, given as a context | [`observable.rs`](../../agents/recipes/observable.rs) |
-| `@FocusState`, `.focused($f, equals:)`, `.defaultFocus` | `use_focus_state::<T>()`, `.focused(state, value)`, `state.set(Some(value))`, `.default_focus(state, value)` | [`focus_state.rs`](../../agents/recipes/focus_state.rs) |
-| `ForEach(items, id: \.id)` | `.children(iter.map(..))` and `.key(id)` | [`for_each.rs`](../../agents/recipes/for_each.rs), [`stopwatch.rs`](../../agents/recipes/stopwatch.rs) |
-| `List { ForEach(mail) { MailRow($0) } }`, `TableColumn("On") { Toggle(..) }` | `List::new(label, names).row(\|index\| view)`, `Table::cell(column, \|row\| view)` | [`list_rows.rs`](../../agents/recipes/list_rows.rs) |
-| `if` and `else` in a view builder | a Rust `if`, `.maybe_child(opt)`, `.into_element()` | [`if_else.rs`](../../agents/recipes/if_else.rs) |
-| `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../agents/recipes/callback.rs) |
-| `.commands`, `.keyboardShortcut` on a menu item | `Action`, `Application::commands(Commands::new().menu(..))`, `use_menu_action` | [`actions.rs`](../../agents/recipes/actions.rs) |
-| `.keyboardShortcut` on a button or any view, `Button(role:)` | `Button::keyboard_shortcut(Shortcut)`, `.keyboard_shortcut(Shortcut)` of `EnvironmentModifiers`, `Button::role(ButtonRole)` | [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs) |
-| `WindowGroup`, `Window`, `Settings`, `@Environment(\.openWindow)`, `\.dismissWindow` | `Application::scene(..)`, `use_open_window()`, `use_dismiss_window()` | [`scenes.rs`](../../agents/recipes/scenes.rs) |
-| `.windowStyle(.hiddenTitleBar)` with a `.toolbar` (no title, items after the lights, no bar fill) | a `Titlebar` with `.shows_title(false)`; adjacent items that are a bare `IconButton` share one glass, as SwiftUI's | [`window_designs.rs`](../../agents/recipes/window_designs.rs) |
+| `@State var count = 0` | `let mut count = use_state(\|\| 0)`; `count.read()`, `count.set(v)`, `*count.write() += 1` | [`counter.rs`](../../crates/bk/examples/counter.rs) |
+| `@AppStorage("bold") var bold = false` | `let bold = use_app_storage("bold", false)`; a `State` saved in the app's settings | [`app_storage.rs`](../../crates/bk/examples/app_storage.rs) |
+| `@Binding`, `$text` on a text field | pass the `State<String>`; the field edits it | [`binding.rs`](../../crates/bk/examples/binding.rs) |
+| `@Binding`, `$on` on any other control | pass the `State`: `Switch::new("Wi-Fi", wifi)`; a list or table takes `.selection(state)` | [`toggle.rs`](../../crates/bk/examples/toggle.rs) |
+| `@Environment`, `.environment(_:_:)` | `.environment(value)` above, `use_environment::<T>()` below | [`environment.rs`](../../crates/bk/examples/environment.rs) |
+| `.disabled(_:)`, `\.isEnabled` | `.disabled(bool)` on any view, `use_is_enabled()` | [`disabled.rs`](../../crates/bk/examples/disabled.rs) |
+| `@Observable` | a `Copy` struct of `State`s, given as a context | [`observable.rs`](../../crates/bk/examples/observable.rs) |
+| `@FocusState`, `.focused($f, equals:)`, `.defaultFocus` | `use_focus_state::<T>()`, `.focused(state, value)`, `state.set(Some(value))`, `.default_focus(state, value)` | [`focus_state.rs`](../../crates/bk/examples/focus_state.rs) |
+| `ForEach(items, id: \.id)` | `.children(iter.map(..))` and `.key(id)` | [`for_each.rs`](../../crates/bk/examples/for_each.rs), [`stopwatch.rs`](../../crates/bk/examples/stopwatch.rs) |
+| `List { ForEach(mail) { MailRow($0) } }`, `TableColumn("On") { Toggle(..) }` | `List::new(label, names).row(\|index\| view)`, `Table::cell(column, \|row\| view)` | [`list_rows.rs`](../../crates/bk/examples/list_rows.rs) |
+| `if` and `else` in a view builder | a Rust `if`, `.maybe_child(opt)`, `.into_element()` | [`if_else.rs`](../../crates/bk/examples/if_else.rs) |
+| `let onSave: () -> Void` in a view | a `Callback<A, R>` field, built from any closure | [`callback.rs`](../../crates/bk/examples/callback.rs) |
+| `.commands`, `.keyboardShortcut` on a menu item | `Action`, `Application::commands(Commands::new().menu(..))`, `use_menu_action` | [`actions.rs`](../../crates/bk/examples/actions.rs) |
+| `.keyboardShortcut` on a button or any view, `Button(role:)` | `Button::keyboard_shortcut(Shortcut)`, `.keyboard_shortcut(Shortcut)` of `EnvironmentModifiers`, `Button::role(ButtonRole)` | [`keyboard_shortcut.rs`](../../crates/bk/examples/keyboard_shortcut.rs) |
+| `WindowGroup`, `Window`, `Settings`, `@Environment(\.openWindow)`, `\.dismissWindow` | `Application::scene(..)`, `use_open_window()`, `use_dismiss_window()` | [`scenes.rs`](../../crates/bk/examples/scenes.rs) |
+| `.windowStyle(.hiddenTitleBar)` with a `.toolbar` (no title, items after the lights, no bar fill) | a `Titlebar` with `.shows_title(false)`; adjacent items that are a bare `IconButton` share one glass, as SwiftUI's | [`window_designs.rs`](../../crates/bk/examples/window_designs.rs) |
 | `TabView { … }` in a `Window` | `TabView::new(..).style(\|_\| TabViewStyle::automatic())` in a `HiddenTitleBar` window | none |
 | `.navigationTitle(_:)`, `.navigationSubtitle(_:)` | `Titlebar::title(..)`, `.subtitle(..)` | none |
 | `.windowResizability(.contentSize)` | `.window_resizability(WindowResizability::ContentSize)` in `.options(..)` | none |
-| `.inspector(isPresented:content:)` | `.inspector(view, presented)` on any view, or on a `SplitView` | [`inspector.rs`](../../agents/recipes/inspector.rs) |
-| `.windowStyle(.hiddenTitleBar)`, `.toolbar { ToolbarItem(placement:) }`, `.windowToolbarStyle(_:)`, `.windowToolbarFullScreenVisibility(.onHover)` | `WindowStyle::HiddenTitleBar` in `.options(..)`, a `Titlebar` with `.toolbar(ToolbarItem::new(placement, view))`, `.toolbar_style(..)`, `.shows_title(..)`, `WindowToolbarFullScreenVisibility::OnHover` ([9](09-titlebars.md#window-designs)) | [`window_designs.rs`](../../agents/recipes/window_designs.rs) |
-| `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
-| `.frame(width:height:alignment:)`, `.frame(maxWidth: .infinity)` | `.frame()`, then `.width(..)`, `.height(..)`, `.alignment(..)`; `.width(Size::fill())` for `maxWidth: .infinity` in a column | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
-| `Grid { GridRow { .. } }`, `.gridCellColumns(_:)`, `.gridColumnAlignment(_:)` | `Grid::new().row(GridRow::new().child(..))`, `.grid_cell_columns(n)`, `.grid_column_alignment(..)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |
+| `.inspector(isPresented:content:)` | `.inspector(view, presented)` on any view, or on a `SplitView` | [`inspector.rs`](../../crates/bk/examples/inspector.rs) |
+| `.windowStyle(.hiddenTitleBar)`, `.toolbar { ToolbarItem(placement:) }`, `.windowToolbarStyle(_:)`, `.windowToolbarFullScreenVisibility(.onHover)` | `WindowStyle::HiddenTitleBar` in `.options(..)`, a `Titlebar` with `.toolbar(ToolbarItem::new(placement, view))`, `.toolbar_style(..)`, `.shows_title(..)`, `WindowToolbarFullScreenVisibility::OnHover` ([9](09-titlebars.md#window-designs)) | [`window_designs.rs`](../../crates/bk/examples/window_designs.rs) |
+| `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../crates/bk/examples/layout_grid.rs) |
+| `.frame(width:height:alignment:)`, `.frame(maxWidth: .infinity)` | `.frame()`, then `.width(..)`, `.height(..)`, `.alignment(..)`; `.width(Size::fill())` for `maxWidth: .infinity` in a column | [`layout_grid.rs`](../../crates/bk/examples/layout_grid.rs) |
+| `Grid { GridRow { .. } }`, `.gridCellColumns(_:)`, `.gridColumnAlignment(_:)` | `Grid::new().row(GridRow::new().child(..))`, `.grid_cell_columns(n)`, `.grid_column_alignment(..)` | [`layout_grid.rs`](../../crates/bk/examples/layout_grid.rs) |
 | `LazyVGrid(columns: [GridItem(.adaptive(minimum:))])` | `LazyVGrid::new(GridItem::adaptive(min))` | none |
-| `ZStack(alignment:)`, `.overlay(alignment:content:)`, `.background(alignment:content:)` | `ZStack::new().alignment(..).child(..)`, `.overlay(alignment, content)`, `.background_view(alignment, content)` | [`layout_layers.rs`](../../agents/recipes/layout_layers.rs) |
-| `Layout`, `ViewThatFits(in:)` | `Layout::place_subviews` with `LayoutContainer::with_layout(..)`; `ViewThatFits::new(axis).candidate(extent, view)` | [`layout_layers.rs`](../../agents/recipes/layout_layers.rs) |
-| `.sheet(isPresented:)`, `.alert(_:isPresented:)`, `.popover(isPresented:)` | `.sheet(state, ..)`, `.alert(state, ..)`, `.popover(state, size, ..)` with a `State<bool>` | [`presentations.rs`](../../agents/recipes/presentations.rs) |
-| `.onHover`, `.onTapGesture(count:)` | `.on_hover(\|inside\| ..)`, `.on_tap_gesture(count, \|_\| ..)`; both use the pointer events a gesture uses, so put one on a view without another | [`gestures.rs`](../../agents/recipes/gestures.rs) |
+| `ZStack(alignment:)`, `.overlay(alignment:content:)`, `.background(alignment:content:)` | `ZStack::new().alignment(..).child(..)`, `.overlay(alignment, content)`, `.background_view(alignment, content)` | [`layout_layers.rs`](../../crates/bk/examples/layout_layers.rs) |
+| `Layout`, `ViewThatFits(in:)` | `Layout::place_subviews` with `LayoutContainer::with_layout(..)`; `ViewThatFits::new(axis).candidate(extent, view)` | [`layout_layers.rs`](../../crates/bk/examples/layout_layers.rs) |
+| `.sheet(isPresented:)`, `.alert(_:isPresented:)`, `.popover(isPresented:)` | `.sheet(state, ..)`, `.alert(state, ..)`, `.popover(state, size, ..)` with a `State<bool>` | [`presentations.rs`](../../crates/bk/examples/presentations.rs) |
+| `.onHover`, `.onTapGesture(count:)` | `.on_hover(\|inside\| ..)`, `.on_tap_gesture(count, \|_\| ..)`; both use the pointer events a gesture uses, so put one on a view without another | [`gestures.rs`](../../crates/bk/examples/gestures.rs) |
 | `.onAppear`, `.onDisappear`, `.onChange`, `.task` | [`use_hook`, `use_drop`, `use_side_effect_with_deps`, `use_future`](#effects) | none |
 
 ## State and bindings
@@ -73,7 +73,7 @@ a sidebar row with `.tag(selection, value)`. A part of a `State`, like
 // ✗ Toggle("Wi-Fi", isOn: $wifi)
 ```
 
-✓ [`toggle.rs`](../../agents/recipes/toggle.rs): `Switch::new("Wi-Fi", wifi)`.
+✓ [`toggle.rs`](../../crates/bk/examples/toggle.rs): `Switch::new("Wi-Fi", wifi)`.
 
 ## Environment
 
@@ -81,7 +81,7 @@ a sidebar row with `.tag(selection, value)`. A part of a `State`, like
 
 The scope keeps a `State` and writes the new value in its render, so a view that read the value renders again when it changes: Freya 0.5.3 has no other way to make a context change visible. Put the modifier after the children, as in SwiftUI.
 
-✓ [`environment.rs`](../../agents/recipes/environment.rs).
+✓ [`environment.rs`](../../crates/bk/examples/environment.rs).
 
 A context by type is the level below. `use_provide_context` keeps one value for the life of the view, and `use_consume` returns the same value on every later render; it panics when no ancestor provides the type. A value that changes needs a `State` inside it ([observation](#observation)).
 
@@ -108,7 +108,7 @@ A disabled control draws and behaves as the one with its own flag: no callbacks,
 // ✗ TextField(..).disabled(saving); Button("Save").disabled(saving)   // one call per control
 ```
 
-✓ [`disabled.rs`](../../agents/recipes/disabled.rs): one `.disabled(saving)` on the stack.
+✓ [`disabled.rs`](../../crates/bk/examples/disabled.rs): one `.disabled(saving)` on the stack.
 
 ## Observation
 
@@ -117,7 +117,7 @@ view subscribes to the `State` it reads, so a view that reads `count` and not
 `step` ignores a change to `step`. Put the states in one `Copy` struct, build
 it in the render (its fields are hooks), and give it to `use_provide_context`.
 
-✓ [`observable.rs`](../../agents/recipes/observable.rs).
+✓ [`observable.rs`](../../crates/bk/examples/observable.rs).
 
 ## Focus
 
@@ -129,7 +129,7 @@ it in the render (its fields are hooks), and give it to `use_provide_context`.
 
 `get` follows the window's focus, so after `set` it changes in the next pass, not at once. The `value` of `.focused` is read when the view mounts: a control whose value changes needs a new `.key(..)`.
 
-✓ [`focus_state.rs`](../../agents/recipes/focus_state.rs).
+✓ [`focus_state.rs`](../../crates/bk/examples/focus_state.rs).
 
 Below this level, `use_a11y()` returns an id that the view owns. A control that takes the id becomes the focus target, `id.request_focus()` moves the focus to it, and `use_focus(id)` reads its focus state. Only `SearchField` takes an id, with `.a11y_id(id)`.
 
@@ -146,7 +146,7 @@ siblings panics in debug builds.
 // ✗ ForEach(fruits, id: \.id) { Text($0.name) }
 ```
 
-✓ [`for_each.rs`](../../agents/recipes/for_each.rs).
+✓ [`for_each.rs`](../../crates/bk/examples/for_each.rs).
 
 Two arms of an `if` that return different types do not compile. Convert each
 arm with `.into_element()`, or leave the arm out with `.maybe_child`.
@@ -155,7 +155,7 @@ arm with `.into_element()`, or leave the arm out with `.maybe_child`.
 // ✗ if signedIn { Text("Welcome back") } else { Button("Sign in") { } }
 ```
 
-✓ [`if_else.rs`](../../agents/recipes/if_else.rs).
+✓ [`if_else.rs`](../../crates/bk/examples/if_else.rs).
 
 A string given to `.child("x")` becomes Freya's bare label, with no theme. Use
 `Text`.
@@ -171,11 +171,11 @@ of the window receives every id: compare it with the action's `.id`.
 // ✗ .commands { CommandMenu("Counter") { Button("Add one") { count += 1 }.keyboardShortcut("k") } }
 ```
 
-✓ [`actions.rs`](../../agents/recipes/actions.rs).
+✓ [`actions.rs`](../../crates/bk/examples/actions.rs).
 
 A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)` calls `on_press` when the key is pressed in the window, while the button is enabled. `.keyboard_shortcut(Shortcut)` on any view gives that shortcut to every `Button` inside it that has none of its own, as SwiftUI's environment does; `Shortcut::DEFAULT_ACTION` and `CANCEL_ACTION` are Enter and Escape. `Button::role(ButtonRole::Destructive)` draws the destructive look. A key that a menu item of the window carries goes to the menu and never reaches the button, and a shortcut without a modifier also fires while a text field has the focus.
 
-✓ [`keyboard_shortcut.rs`](../../agents/recipes/keyboard_shortcut.rs).
+✓ [`keyboard_shortcut.rs`](../../crates/bk/examples/keyboard_shortcut.rs).
 
 ## Effects
 
@@ -185,9 +185,9 @@ A button takes its own shortcut: `Button::keyboard_shortcut(Shortcut)` calls `on
 | `.onDisappear`, `deinit` | `use_drop(\|\| ..)` | when the view leaves the tree |
 | `.onChange(of:)` | `use_side_effect_with_deps(&value, ..)`; the old value from `use_previous_and_current` | when the value changes, and once at creation |
 | `.task`, `.task(id:)` | `use_future(..)`; a `State` read outside the async block restarts it | cancelled when the view leaves the tree |
-| `TimelineView` | `use_timeline(active, every)` | every `every` while `active` ([`stopwatch.rs`](../../agents/recipes/stopwatch.rs)) |
-| `NavigationStack(path:)`, `NavigationLink(value:)` | `NavigationStack::new(path, root, destination)` and `use_navigation_path::<R>()` | pages that push and pop ([`navigation_stack.rs`](../../agents/recipes/navigation_stack.rs)) |
-| `withAnimation(.spring(duration:bounce:)) { … }` | `with_animation(Animation::Spring { duration_ms, bounce }, \|\| …)` and `use_animated` | the changes that follow use the animation ([`with_animation.rs`](../../agents/recipes/with_animation.rs)) |
+| `TimelineView` | `use_timeline(active, every)` | every `every` while `active` ([`stopwatch.rs`](../../crates/bk/examples/stopwatch.rs)) |
+| `NavigationStack(path:)`, `NavigationLink(value:)` | `NavigationStack::new(path, root, destination)` and `use_navigation_path::<R>()` | pages that push and pop ([`navigation_stack.rs`](../../crates/bk/examples/navigation_stack.rs)) |
+| `withAnimation(.spring(duration:bounce:)) { … }` | `with_animation(Animation::Spring { duration_ms, bounce }, \|\| …)` and `use_animated` | the changes that follow use the animation ([`with_animation.rs`](../../crates/bk/examples/with_animation.rs)) |
 
 The hooks are in `freya-core` 0.5.3, `src/lifecycle/` and `src/hooks/`.
 

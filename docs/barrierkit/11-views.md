@@ -137,7 +137,7 @@ by `ContentAlignment`, `CENTER` by default.
 | `view.grid_cell_columns(n)` | The cell spans `n` columns; the width it needs beyond them is split equally among them |
 | `view.grid_column_alignment(HorizontalAlignment)` | Aligns the whole column of that cell; a cell that spans columns ignores it |
 
-The program is [`layout_grid.rs`](../../agents/recipes/layout_grid.rs). Three limits:
+The program is [`layout_grid.rs`](../../crates/bk/examples/layout_grid.rs). Three limits:
 
 1. Cells are content-sized. A cell with `Size::fill()` or `Size::flex` takes the
    width the Grid has available, not its column's: give a separator a width.
@@ -156,7 +156,7 @@ It is as large as its largest child, and `.alignment(ContentAlignment)` places
 the others in it (`CENTER` by default). `view.overlay(alignment, content)` and
 `view.background_view(alignment, content)` draw `content` over or behind the
 view; the view alone sizes the result, so a badge larger than its icon does not
-grow it. The recipe is [`layout_layers.rs`](../../agents/recipes/layout_layers.rs).
+grow it. The recipe is [`layout_layers.rs`](../../crates/bk/examples/layout_layers.rs).
 
 ```rust
 // SwiftUI: Image(systemName: "bell").overlay(alignment: .topTrailing) { badge }
@@ -216,7 +216,7 @@ direction, so the direction is a scope that kit views read and mirror. Under it:
 | `Form`, `Row` | the row runs from the right, the chevron points left, the field's text aligns left |
 | the six control styles with a layout direction | `Switch`, `Checkbox`, `RadioGroup`, `Slider`, `LevelSlider`, `Stepper` read it, with their labels |
 
-The recipe is [`right_to_left.rs`](../../agents/recipes/right_to_left.rs). Limits:
+The recipe is [`right_to_left.rs`](../../crates/bk/examples/right_to_left.rs). Limits:
 
 1. A view mirrors when it is built under the direction (inside a component
    below `.layout_direction`) or when it is already built in the view the
@@ -472,7 +472,7 @@ direction.
 
 ### List row modifiers
 
-`List` and `Table` take `ListRowModifiers`, like SwiftUI's `listRow*`. Each method takes a closure of the row index, which in a sectioned `List` counts across the sections. The program is [`list_rows.rs`](../../agents/recipes/list_rows.rs). SwiftUI apps style their rows with these, so the kit takes the same names.
+`List` and `Table` take `ListRowModifiers`, like SwiftUI's `listRow*`. Each method takes a closure of the row index, which in a sectioned `List` counts across the sections. The program is [`list_rows.rs`](../../crates/bk/examples/list_rows.rs). SwiftUI apps style their rows with these, so the kit takes the same names.
 
 | Method | Effect |
 |---|---|
@@ -784,7 +784,7 @@ closes it when the app writes `false`. `size` is the card's, as in `Popover::new
 each time the popover opens, and nothing opens until the view has a size. `.popover` uses a hook:
 call it unconditionally. Neither has `onDismiss`, `item:`, `attachmentAnchor` or `arrowEdge`.
 Both take a `State<bool>`, as `sheet` does, because the kit has no `Binding`.
-The recipe is [`presentations.rs`](../../agents/recipes/presentations.rs).
+The recipe is [`presentations.rs`](../../crates/bk/examples/presentations.rs).
 
 ### `Alert`
 

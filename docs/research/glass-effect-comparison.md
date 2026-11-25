@@ -11,7 +11,7 @@
 1. Build the twin: `swiftc -O ~/src/probes/glasseffect.swift -o ~/src/probes/glasseffect`. Copy `glass_probe.rs` to `crates/bk/examples/` while you measure and build it with `cargo build -p bk --example glass_probe --example glass_effect`.
 2. Light and dark are per process: the twin sets `NSAppearance`; the kit reads `color_scheme` from a temporary `MALAYSIA_CONFIG_DIR/appearance.domain`. Reduce Transparency and Increase Contrast are per process too (`-reduceTransparency 1`, `-increaseContrast 1` for the twin; `reduce_transparency = true`, `contrast = true` in the file for the kit). **No system setting changed**; `shellstate` read Reduce Transparency and Increase Contrast off before and after.
 3. `python3 -I glasscmp/cap.py <dir> kind:layout:scheme:rt|ic|rtic|-:key|inactive ...` opens each app as a bundle, captures its window (`screencapture -l`, through the sRGB profile) and quits it. A `keeper` window makes the other one not key.
-4. The layouts are the recipe (`agents/recipes/glass_effect.rs`), `bands` (flat rows of gray 0, 128, 255, red, green, blue, with empty 140 x 34 capsules), `shapes`, and `nested`. Read the pixels with `glasscmp/bands.py`, `analyze.py`, `full.py` and `profile.py` (raw PNG bytes, no colour conversion).
+4. The layouts are the recipe (`crates/bk/examples/glass_effect.rs`), `bands` (flat rows of gray 0, 128, 255, red, green, blue, with empty 140 x 34 capsules), `shapes`, and `nested`. Read the pixels with `glasscmp/bands.py`, `analyze.py`, `full.py` and `profile.py` (raw PNG bytes, no colour conversion).
 
 ## 1. Like for like
 

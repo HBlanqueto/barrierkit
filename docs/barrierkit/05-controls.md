@@ -110,7 +110,7 @@ Button::new(tr!("save")).margin(SPACE_2).help(tr!("save"))
 - `.keyboard_shortcut(Shortcut)` on any view gives it to every `Button` inside that has none
   ([16](16-swiftui-to-the-kit.md#actions)): it reuses the environment scope and the button's key handler.
 
-The program is [`control_modifiers.rs`](../../agents/recipes/control_modifiers.rs).
+The program is [`control_modifiers.rs`](../../crates/bk/examples/control_modifiers.rs).
 
 ## Gestures
 
@@ -184,7 +184,7 @@ Button::new("Add").style(ButtonStyle::bordered_prominent).label(|| Image::system
 Button::new("Add").style(ButtonStyle::bordered_prominent).label(|| Label::new("Add", Symbol::Plus))
 ```
 
-The program is [`button_label.rs`](../../agents/recipes/button_label.rs).
+The program is [`button_label.rs`](../../crates/bk/examples/button_label.rs).
 
 Presets of `ButtonStyle`, given as `.style(ButtonStyle::glass)`:
 
@@ -952,7 +952,7 @@ finger gives `Interacting` and then `Decelerating`; `scroll_to` with an animatio
 `Tracking` is set when a gesture begins and is replaced in the same event, so a callback sees
 `Interacting`. A mouse wheel gives no phase, and on macOS the system's momentum counts as `Interacting`.
 
-The program is [`recipes/scroll_position.rs`](../../agents/recipes/scroll_position.rs).
+The program is [`recipes/scroll_position.rs`](../../crates/bk/examples/scroll_position.rs).
 Not built: `scrollTargetBehavior`, `defaultScrollAnchor` and a position set before the first layout.
 
 ### Style
@@ -1023,14 +1023,14 @@ square. A `ShapeStyle::Material` fills with its tint and does not blur.
 Freya clips with a rounded rectangle, so an ellipse or a `Path` cannot clip, and a circle clip of a view
 that is not square is a capsule.
 
-The program is [`recipes/shapes.rs`](../../agents/recipes/shapes.rs).
+The program is [`recipes/shapes.rs`](../../crates/bk/examples/shapes.rs).
 
 ## Accessibility modifiers
 
 SwiftUI: `.accessibilityLabel`, `.accessibilityHint`, `.accessibilityValue`,
 `.accessibilityHidden`, `.accessibilityIdentifier`, `.accessibilityElement(children:)`
 and `.accessibilityAddTraits`. The program is
-[`recipes/accessibility.rs`](../../agents/recipes/accessibility.rs).
+[`recipes/accessibility.rs`](../../crates/bk/examples/accessibility.rs).
 
 `AccessibilityModifiers` is in the prelude and works on every view and control.
 

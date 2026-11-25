@@ -74,13 +74,13 @@ the tool must too.
 3. **Report.** For each construct with no kit row, emit a `TODO` that names it,
    with the row of the [API gap](swiftui-api-gap.md). A translation is done
    when the report is empty, not when the code compiles.
-4. **Check.** Compile the output as a recipe (`[[example]]` in
-   `crates/bk/Cargo.toml`) and run the parity test on it.
+4. **Check.** Compile the output as a recipe (a file in
+   `crates/bk/examples/`) and run the parity test on it.
 5. **Running app.** Emit a tree of kit containers from the accessibility and
    view dumps, with fixed sizes, then let the parity test drive the fixes.
 
 Stage 2 on the `Counter` of E5 must give the shape of
-[`counter.rs`](../../agents/recipes/counter.rs):
+[`counter.rs`](../../crates/bk/examples/counter.rs):
 
 ```swift
 struct Counter: View {
@@ -113,7 +113,7 @@ only, the typed AST of `swiftc`, the tool beside `scripts/`.
 | 1. Table | done: one JSON file of 1,897 rows | `scripts/swift-to-bk/table.json`, built by `make-table.py` from the glossary, [chapter 16](../barrierkit/16-swiftui-to-the-kit.md), the closed lists of the [API gap](swiftui-api-gap.md) and 25 hand-written rules (`rules.json`) |
 | 2. View tree | done for the constructs of the [usage](../../scripts/swift-to-bk/README.md#what-it-translates) | `translate.py`, `swiftast.py` |
 | 3. Report | done: a `TODO(swift: construct) -> row` line at the construct and a summary at the end | same |
-| 4. Check | done: 11 tests, five recipes that build on macOS | `tests/run.py`, `check.sh`, `recipe.py`, `agents/recipes/swift_*.rs` |
+| 4. Check | done: 11 tests, five recipes that build on macOS | `tests/run.py`, `check.sh`, `recipe.py`, `crates/bk/examples/swift_*.rs` |
 | 5. Running app | not started | |
 
 The table keeps what is known: each row has the Swift name, the kit item,
@@ -127,7 +127,7 @@ row.
 
 | Measure | Result |
 |---|---|
-| `Counter` | the output equals [`counter.rs`](../../agents/recipes/counter.rs) except the `.options(..)` line: the recipe adds `min_size`, which has no SwiftUI source |
+| `Counter` | the output equals [`counter.rs`](../../crates/bk/examples/counter.rs) except the `.options(..)` line: the recipe adds `min_size`, which has no SwiftUI source |
 | Recipes | `swift_counter`, `swift_form`, `swift_lists`, `swift_components`, `swift_styles` translate with an empty report and pass `cargo build -p bk --example` on macOS arm64. They were not run in a window |
 | Incomplete input | `tests/gaps` reports 7 constructs (`ZStack`, `foregroundStyle`, `tag` three times, `Picker`, `keyboardShortcut`) and the output still compiles, because each gap becomes a `rect()` |
 | Tests | 11: the parser, the declaration names, the table (current, statuses, gap rows) and the goldens |

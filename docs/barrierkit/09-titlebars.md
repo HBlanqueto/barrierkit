@@ -49,9 +49,9 @@ window state.
 ## Window designs
 
 Each SwiftUI design has one kit form. The program that opens every one is
-[`window_designs.rs`](../../agents/recipes/window_designs.rs)
+[`window_designs.rs`](../../crates/bk/examples/window_designs.rs)
 ([recipe 50](../../agents/recipes.md#50-every-swiftui-window-design)); the
-sidebar design is [`notes_sidebar.rs`](../../agents/recipes/notes_sidebar.rs).
+sidebar design is [`notes_sidebar.rs`](../../crates/bk/examples/notes_sidebar.rs).
 Each pair was captured next to its SwiftUI twin, active and inactive, windowed,
 in full screen and with the pointer at the top edge, and matches within 1 to
 2 px and one color level in Dark
@@ -145,7 +145,7 @@ Titlebar::new()
     .toolbar(ToolbarItem::new(ToolbarItemPlacement::PrimaryAction, new_button))
 ```
 
-The recipe is [`toolbar_items.rs`](../../agents/recipes/toolbar_items.rs).
+The recipe is [`toolbar_items.rs`](../../crates/bk/examples/toolbar_items.rs).
 
 | `ToolbarItemPlacement` | Where it goes |
 |---|---|
