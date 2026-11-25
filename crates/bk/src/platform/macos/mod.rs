@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use calloop::{EventLoop, ping::make_ping};
 use ctappearance::material::Material;
-use ctappearance::{Resolved, load_dominant, resolve};
+use ctappearance::{Resolved, resolve};
 use dispatch2::{DispatchQueue, DispatchTime};
 use freya_core::integration::{
     AppComponent, GlobalContexts, KeyboardEventName, NodeId, Platform, PlatformEvent, UserEvent,
@@ -59,6 +59,11 @@ use crate::platform::macos::blur::PlacedGlass;
 // The system delivers the momentum of a trackpad fling as scroll events.
 pub(crate) const SYSTEM_MOMENTUM: bool = true;
 pub(crate) const NATIVE_LIGHTS: bool = true;
+
+// WindowServer tints the windows with the wallpaper; the kit has no dominant colour to resolve.
+pub(crate) fn dominant() -> Option<ctdesign::Rgba> {
+    None
+}
 
 // (top, height) of the row that rides in AppKit's bar: down with the menu bar in full screen, or over its title bar in the window.
 pub(crate) fn bar_row(expanded: bool, windowed: bool) -> (f32, f32) {
@@ -739,7 +744,7 @@ impl Runtime {
             last_input_serial: Rc::new(Cell::new(0)),
             resolved: State::create_global(resolve(
                 &system::appearance(),
-                load_dominant(),
+                dominant(),
                 NATIVE_LIGHTS,
             )),
             defaults_revision: State::create_global(0),
@@ -752,7 +757,7 @@ impl Runtime {
 
     // The window and every popup follow the settings the system changed.
     fn refresh_appearance(&mut self) {
-        let resolved = resolve(&system::appearance(), load_dominant(), NATIVE_LIGHTS);
+        let resolved = resolve(&system::appearance(), dominant(), NATIVE_LIGHTS);
         let mut own = self.resolved;
         own.set_if_modified(resolved);
         for window in &mut self.windows {

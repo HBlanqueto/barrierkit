@@ -531,7 +531,7 @@ of the kit.
 `resolve(&config, dominant, native_lights) -> Resolved` turns the config and
 the wallpaper's dominant color into colors. `native_lights` is true where the
 system draws its own traffic lights: each backend passes its `NATIVE_LIGHTS`,
-true on macOS, where only the graphite accent changes them. `palette(scheme)` returns the base
+true on macOS, where only the graphite accent changes them. `dominant` comes from the backend's `dominant()`: `load_dominant` on Linux, `None` on macOS, where WindowServer tints the windows. `palette(scheme)` returns the base
 `ctdesign::Palette` of a scheme (`LIGHT`, `DARK` or `DARK_TINT`).
 `palette_in(scheme, contrast)` adds the scheme's `ContrastPalette` with
 Increase Contrast; `Resolved::palette()` is that of a resolved appearance.

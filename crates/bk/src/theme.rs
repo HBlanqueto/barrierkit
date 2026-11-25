@@ -1,7 +1,7 @@
 use crate::platform::backdrop::SystemWindowBackground;
-use crate::platform::{NATIVE_LIGHTS, Popups, appearance};
+use crate::platform::{NATIVE_LIGHTS, Popups, appearance, dominant};
 use ctappearance::menu::{MenuInk, ink_over};
-use ctappearance::{AppearanceConfig, ColorScheme, Resolved, load_dominant, resolve};
+use ctappearance::{AppearanceConfig, ColorScheme, Resolved, resolve};
 use ctdesign::{
     BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, MenuPalette, Rgba, SHELL_DARK_OPAQUE,
     SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT_OPAQUE,
@@ -82,7 +82,7 @@ pub fn resolved() -> Resolved {
     {
         *state.read()
     } else {
-        resolve(&appearance(), load_dominant(), NATIVE_LIGHTS)
+        resolve(&appearance(), dominant(), NATIVE_LIGHTS)
     }
 }
 
@@ -94,7 +94,7 @@ pub fn use_appearance(adjust: impl Fn(&mut AppearanceConfig) + 'static) {
         }
         let mut config = appearance();
         adjust(&mut config);
-        resolve(&config, load_dominant(), NATIVE_LIGHTS)
+        resolve(&config, dominant(), NATIVE_LIGHTS)
     });
     let mut scoped = use_hook(|| {
         let scoped = State::create(*adjusted.read());

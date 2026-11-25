@@ -41,6 +41,7 @@ pub(crate) fn blocking_session_bus() -> zbus::Result<zbus::blocking::Connection>
 
 pub(crate) const SYSTEM_MOMENTUM: bool = false;
 pub(crate) const NATIVE_LIGHTS: bool = false;
+pub(crate) use ctappearance::load_dominant as dominant;
 pub(crate) const OPTICAL_SIZING: bool = false;
 // Fontconfig resolves the generic names to the faces the desktop sets as default.
 pub(crate) const SYSTEM_FONTS: (&str, &str) = ("sans-serif", "monospace");

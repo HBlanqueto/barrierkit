@@ -352,7 +352,7 @@ status item, and gives every method call 25 s, as libdbus and GDBus do.
 ## Who provides what on each platform
 
 `platform/mod.rs` imports `linux` or `macos` as `sys` and re-exports the
-same names from either: `app_folders`, `appearance`, `clipboard`, `instance`, `keychain`,
+same names from either: `app_folders`, `appearance`, `clipboard`, `dominant`, `instance`, `keychain`,
 `notifications`, `panels`, `pasteboard`, `ObjectId`, `MOST_CHROMES`,
 `NATIVE_LIGHTS`, `OPTICAL_SIZING` and `SYSTEM_MOMENTUM`; `run_window` and `Bridge` are reached
 through `sys`. Each name has one signature and two
