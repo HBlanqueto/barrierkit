@@ -48,10 +48,11 @@ The kit times every animation with these tokens of `ctdesign` (the springs are i
 
 | Token | Use |
 |---|---|
-| `DURATION_FAST_MS` | Following the pointer: scroll bars, the sidebar width while dragging |
+| `DURATION_FAST_MS` | Quick feedback: pressed scales, `Slider` clicks |
 | `DURATION_BASE` | Showing, hiding, collapsing, morphing |
 | `DURATION_SLOW_MS` | Fading between backdrops |
-| `DURATION_LIST_ROW_MS`, `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | Measured on Mac Catalyst; no kit control uses them yet |
+| `DURATION_LIST_ROW_MS` | Rows of a `List` or `Table` inserted, removed or moved inside `with_animation` (SwiftUI on macOS) |
+| `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | Measured on Mac Catalyst; no kit control uses them yet |
 
 A Freya animation takes them as milliseconds: `AnimNum::new(from, to)
 .time(DURATION_BASE).ease(Ease::Out).function(Function::Cubic)`. A component
@@ -65,16 +66,23 @@ token with its own duration (`SWITCH.transition_ms`,
 
 | Element | Duration | Curve |
 |---|---|---|
-| `Switch` knob | `SWITCH.transition_ms` | Ease out, cubic |
-| Collapsing a sidebar section | `SPRING_SHEET_MS` | `Spring`, no bounce |
-| Showing or hiding the sidebar and the inspector | `DURATION_BASE` | `ease_in_ease_out`, Core Animation's `easeInEaseOut` (measured on the sidebar of a SwiftUI `NavigationSplitView`) |
-| Sidebar width while dragging | `DURATION_FAST_MS` | Ease out, cubic |
-| `Slider` and `LevelSlider` knob and fill, on a click or a key | `DURATION_FAST_MS` | Ease out, cubic |
+| `Switch` knob | `SWITCH.transition_ms` | `Spring`, bounce `SWITCH.transition_bounce` (ω0 15, ζ 0.75, [measured](../research/macos-motion-controls.md#2-animated)) |
+| `DisclosureGroup` and `SidebarSection`, expanding and collapsing: the rows unroll and the chevron turns 90 degrees | `DURATION_DISCLOSURE_MS` | `ease_default`, Core Animation's default Bézier (0.25, 0.1, 0.25, 1); a click animates, the child rows stay mounted until the end (measured on SwiftUI's `DisclosureGroup`, `List(children:)` and `Section(isExpanded:)`) |
+| `OutlineView` expanding a row | `DURATION_OUTLINE_EXPAND_MS` | `ease_out_appkit`, Core Animation's `easeOut` (0, 0, 0.58, 1); collapsing and the chevron are instant, as `NSOutlineView` (`OutlineViewStyle.animation`) |
+| Showing or hiding the sidebar by the toggle (button, shortcut, menu) or inside `with_animation`; the inspector always | `DURATION_BASE` | `ease_in_ease_out`, Core Animation's `easeInEaseOut` (measured on the sidebar of a SwiftUI `NavigationSplitView`) |
+| Sidebar width while dragging, by keys or by a double click on the divider | none | One frame, as AppKit |
+| `Slider` and `LevelSlider` knob and fill, on a click on the track | `SLIDER.click_ms` | `Spring`, bounce `SLIDER.click_bounce` (ω0 18, ζ 0.95, [measured](../research/macos-motion-controls.md#2-animated)); a drag, a key and a value set in code are instant |
+| `Slider` and `LevelSlider` knob growing and shrinking | `SLIDER.press_ms` | `ctdesign::slider_press`, Bézier (0, 0.13, 0.53, 1.11) |
+| [Rows of a `List` or `Table`](11-views.md#rows-inserted-removed-and-moved) inserted, removed or moved inside `with_animation` | `DURATION_LIST_ROW_MS` | `ease_default`, whatever the transaction's animation (`TableStyle.animation`); instant without `with_animation` |
 | [`NavigationStack`](11-views.md#navigationstack) push and pop | `SPRING_PUSH_MS` | `Spring`, no bounce |
+| Pill of a [`TabView`](11-views.md#tabview) strip | `SPRING_SHEET_MS` | `Spring`, no bounce |
 | Revealing hidden titlebars, the focus bar | `DURATION_BASE` | Ease out, cubic |
-| Scroll bar | `DURATION_FAST_MS` | Ease out, cubic |
-| Indeterminate `ProgressView` | `PROGRESS.indeterminate_ms` | In-out, cubic, back and forth |
-| `Spinner` | `PROGRESS.spinner_ms` | Linear, one spoke at a time, looping |
+| Scroll bar fade in, out | `SCROLL_BAR.fade_in_ms`, `SCROLL_BAR.fade_out_ms`; hidden `SCROLL_BAR.hide_delay_ms` after the last scroll | `ease_in_ease_out`, measured on `flashScrollers()`; `ScrollViewStyle.fade_in` and `fade_out` |
+| `scroll_to` and `.scroll_position(..)` set inside `with_animation` | The app's `Animation` | Instant without `with_animation`; SwiftUI's `scrollTo` and `NSClipView.animator()` are too |
+| Determinate `ProgressView` fill, on every value change | `PROGRESS.fill_ms` | Bézier `PROGRESS.fill_curve`; ignores `with_animation` |
+| Indeterminate `ProgressView` | `PROGRESS.indeterminate_ms` | Linear, a segment with a fading tail crosses the bar and starts again |
+| Open `Gauge` marker | The animation of `with_animation` | Only inside `with_animation`; `ProgressRing` and the capacity ring jump |
+| `Spinner` | `PROGRESS.spinner_ms` | Linear, `PROGRESS.spinner_frames` steps a turn, looping |
 | Fade between [`Backdrop`](15-backdrops-and-media.md#backdrop) colors | `DURATION_SLOW_MS` | In-out, cubic |
 
 Pressing a button changes its fill to the pressed color; `BUTTON.pressed_scale` is 1, so it does not scale, as in AppKit.
@@ -95,9 +103,11 @@ measured curves and carries its velocity, which a timed curve cannot.
 | `.current()` | The value at the animation's current time |
 
 - With `bounce` 0 the spring is critically damped: no overshoot. Every spring
-  measured on Mac Catalyst is this one, with periods of 344 ms (sheets), 274 ms
-  (alerts) and about 251 ms (push); they are the `SPRING_*_MS` tokens
-  ([UIKit animations](../research/uikit-animations.md#2-motion-table)).
+  measured is this one: periods of 344 ms (sheets, tab strip pill), 274 ms
+  (alerts, Mac Catalyst) and 503 ms (push and pop, SwiftUI on macOS); they are
+  the `SPRING_*_MS` tokens
+  ([UIKit animations](../research/uikit-animations.md#2-motion-table),
+  [containers](../research/macos-motion-containers.md#2-motion-table)).
 - With more bounce it is underdamped and overshoots.
 - A spring started from the value and velocity of another goes on exactly as
   the first would have. That is how a change interrupted midway keeps moving
@@ -105,7 +115,8 @@ measured curves and carries its velocity, which a timed curve cannot.
 - `ctdesign::ease_out` and `ctdesign::ease_in_out` are the kit's cubic timed
   curves: the kit, the shell and the compositor call the same two functions.
   `ctdesign::ease_in_ease_out` is Core Animation's `easeInEaseOut` Bézier
-  (0.42, 0, 0.58, 1), which AppKit's sidebar follows.
+  (0.42, 0, 0.58, 1), which AppKit's sidebar follows. `ctdesign::cubic_bezier`
+  evaluates any such curve.
 - In reverse it runs from `to` to `from`, from rest.
 
 ## Implicit animation
@@ -159,6 +170,7 @@ Presence::new((*shown.read()).then(|| Text::new("Hello")))
 | `Transition::scale(s)`, `offset(x, y)`, `move_edge(edge)` | Scaled to `s`, shifted by `x, y`, or one of its own widths or heights beyond `edge` (left to right) |
 | `.combined(other)` | Both at once: opacity and scale multiply, offsets add |
 | `Transition::asymmetric(insertion, removal)` | One on the way in, the other on the way out |
+| `Image::system(..)` | A symbol that changes inside `with_animation` crossfades without any modifier (SwiftUI's `Image(systemName:)` swap: t50 140 ms, settle 290 ms, the transaction's spring); outside `with_animation` it swaps at once. `.content_transition(ContentTransition::Identity)` on the `Image` turns it off |
 | `.content_transition(ContentTransition::Opacity)` | Any view: when it changes, the old one fades out over the new one, which fades in. `ContentTransition::Identity` swaps it at once |
 
 - Progress is `use_animated`'s, so a spring may overshoot a scale and a toggle
@@ -170,6 +182,13 @@ Presence::new((*shown.read()).then(|| Text::new("Hello")))
   `ContentTransition::numericText` and `interpolate` (per-glyph), `slide`,
   `push`, `blurReplace`, and a transition that runs on a view the app removes
   without `Presence`.
+- Not built for rows: `CollectionView` tiles inserted, removed or moved, and
+  the height of a `List` section that gains or loses rows (it jumps; the rows
+  inside it animate). `Table` and `List` copy SwiftUI's list, not AppKit's
+  `insertRows` (ease-out, 200 ms) and `moveRow` (ease-out, 400 ms for 4 rows),
+  which only an app that sets `TableStyle.animation` gets.
+- Not built for symbols: `.symbolEffect(.replace)` (a 78 ms blur and scale of the glyph's layers, independent of the transaction), `variableValue`, `.bounce` and the other `symbolEffect`s. The kit draws a symbol as one SVG, with no per-layer or per-wave rendering and no blur, so a copy would be a fake. A pulse is an opacity loop of 2000 ms; it is not built because nothing in the kit loops a symbol yet.
+- Glass buttons add no animation of their own. On macOS 26 and later `ButtonStyle::glass` and `glass_prominent` are one native `NSGlassEffectView`, interactive on macOS 27 (`effectIsInteractive`), so macOS plays the press and release lift. Without native glass (before macOS 26, Reduce Transparency) the button changes its fill only, as a bordered button does.
 
 ## Reduced motion
 

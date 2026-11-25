@@ -197,7 +197,7 @@ row. `strip_mnemonic(label)` returns the label without the mark.
 
 A `Submenu` row opens its items in a child popup, to the right or, when there
 is no room, to the left. The pointer opens it after `MENU_SUBMENU_INTENT_MS`
-(300 ms). While the pointer moves towards an open submenu, the rows it crosses
+(210 ms). While the pointer moves towards an open submenu, the rows it crosses
 do not close it. Submenus open only when the `MenuView` lives in a popup.
 
 For contents that arrive later (a dbusmenu `AboutToShow`, for example):

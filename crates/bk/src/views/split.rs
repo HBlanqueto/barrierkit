@@ -1,12 +1,10 @@
-use freya_animation::prelude::use_animation_transition;
-
 use ctdesign::{Font, LIST_GROUP, LIST_SECTION, SPLIT_VIEW, SUBHEADLINE, TOOLGROUP};
 use freya_core::prelude::*;
 use serde::{Deserialize, Serialize};
 use torin::prelude::{Area, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
-use crate::animation::Clock;
+use crate::animation::with_animation;
 use crate::app::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::compact::IconButton;
 use crate::controls::ToolGroup;
@@ -18,8 +16,8 @@ use crate::platform::backdrop::Declared;
 use crate::sidebar::{SidebarControl, sidebar_control};
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, FormStyle, LayoutDirection, Paints, Role, ShapeStyle, SplitViewStyle, StateValue,
-    StyleScope, Theme, TitlebarStyle, appearance_index, resolve,
+    Animation, ControlState, FormStyle, LayoutDirection, Paints, Role, ShapeStyle, SplitViewStyle,
+    StateValue, StyleScope, Theme, TitlebarStyle, appearance_index, resolve,
 };
 use crate::symbol::Symbol;
 use crate::titlebar::{TITLEBAR_OVERLAY_LAYER, sidebar_toggle_placement};
@@ -253,6 +251,8 @@ impl Component for SplitView {
         let mut content_width = use_state(|| SPLIT_VIEW.content_width.clamp(min_width, max_width));
         let mut content_dragging = use_state(|| false);
         let mut visible = use_state(|| self.sidebar_visible);
+        let mut toggle_animation = use_state(|| style.animation);
+        toggle_animation.set(style.animation);
         let mut auto_hidden = use_state(|| false);
         let mut occupied = use_state(|| 0.0f32);
         let mut settled = use_state(|| false);
@@ -263,6 +263,7 @@ impl Component for SplitView {
             occupied,
             settled,
             overlaid,
+            animation: toggle_animation,
             present: self.sidebar_present,
         };
         use_hook(|| provide_context(control));
@@ -277,43 +278,24 @@ impl Component for SplitView {
         let mut was_narrow = use_state(|| false);
         if *was_narrow.peek() != overlay {
             was_narrow.set(overlay);
-            if overlay && *visible.peek() {
-                visible.set(false);
-                auto_hidden.set(true);
-            } else if !overlay {
-                visible.set(true);
-                auto_hidden.set(false);
-            }
+            with_animation(style.animation, || {
+                if overlay && *visible.peek() {
+                    visible.set(false);
+                    auto_hidden.set(true);
+                } else if !overlay {
+                    visible.set(true);
+                    auto_hidden.set(false);
+                }
+            });
         }
 
+        // A change of the sidebar animates only inside `with_animation`, as in SwiftUI.
         let shown =
-            crate::animation::use_animated(f32::from(u8::from(*visible.read())), style.animation);
+            crate::animation::use_animated(f32::from(u8::from(*visible.read())), Animation::None);
 
-        let resize = style.resize_animation;
-        let resize_ms = use_reactive(&resize.duration_ms());
-        let mut follow_from_to = use_state(|| (initial_width, initial_width));
-        let follow = use_animation_transition(follow_from_to, move |_: (f32, f32), _| {
-            Clock::new(0.0, 1.0).time(*resize_ms.peek())
-        });
-        let followed = move || {
-            let (from, to) = *follow_from_to.peek();
-            if resize.duration_ms() == 0 {
-                to
-            } else {
-                from + (to - from) * resize.progress(follow.get().value())
-            }
-        };
-        let mut resize_to = move |target: f32| {
-            let target = target.clamp(min_width, max_width);
-            let from = if *dragging.peek() { target } else { followed() };
-            follow_from_to.set((from, target));
-            sidebar_width.set(target);
-        };
-        let container = if *dragging.read() {
-            *sidebar_width.read()
-        } else {
-            followed().clamp(min_width, max_width)
-        };
+        let mut resize_to =
+            move |target: f32| sidebar_width.set(target.clamp(min_width, max_width));
+        let container = sidebar_width.read().clamp(min_width, max_width);
         let layout = SidebarLayout {
             width: sidebar_width.read().clamp(min_width, max_width),
             visible: *visible.read() || *auto_hidden.read(),
@@ -365,6 +347,8 @@ impl Component for SplitView {
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
                 let edge = event.element_location().x as f32 + style.grip_width / 2.0;
                 if *dragging.read() {
+                    // AppKit holds the minimum, then collapses in one frame near half of it.
+                    visible.set_if_modified(edge >= min_width / 2.0);
                     resize_to(edge);
                 }
                 if *content_dragging.read() {
@@ -445,6 +429,7 @@ impl Component for SplitView {
                                 width: *sidebar_width.read(),
                                 dragging,
                                 resize: Callback::new(resize_to),
+                                double_click_width: Some(min_width),
                                 style: self.style.clone(),
                             }
                         })),
@@ -463,6 +448,7 @@ impl Component for SplitView {
                         resize: Callback::new(move |width: f32| {
                             content_width.set(width.clamp(min_width, max_width))
                         }),
+                        double_click_width: None,
                         style: self.style.clone(),
                     }))
             }))
@@ -542,6 +528,7 @@ struct ColumnGrip {
     width: f32,
     dragging: State<bool>,
     resize: Callback<f32, ()>,
+    double_click_width: Option<f32>,
     style: Theme,
 }
 
@@ -560,7 +547,9 @@ impl Component for ColumnGrip {
         };
         let paints = Paints::current(state);
         let line = paints.color(style.grip.resolve(state));
-        let (resize, width) = (self.resize.clone(), self.width);
+        let (resize, width, double_click_width) =
+            (self.resize.clone(), self.width, self.double_click_width);
+        let reset = self.resize.clone();
         rect()
             .a11y_id(id)
             .a11y_focusable(true)
@@ -582,7 +571,13 @@ impl Component for ColumnGrip {
             .cursor(CursorIcon::ColResize)
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false))
-            .on_mouse_down(move |_| dragging.set(true))
+            .on_mouse_down(move |event: Event<MouseEventData>| {
+                let double = EventsCombos::<()>::pressed(event.global_location).is_double();
+                match double_click_width.filter(|_| double) {
+                    Some(width) => reset.call(width),
+                    None => dragging.set(true),
+                }
+            })
             .on_key_down(move |event: Event<KeyboardEventData>| match event.key {
                 Key::Named(NamedKey::ArrowLeft) => resize.call(width - SPLIT_VIEW.key_step),
                 Key::Named(NamedKey::ArrowRight) => resize.call(width + SPLIT_VIEW.key_step),

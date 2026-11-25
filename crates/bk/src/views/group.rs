@@ -2,6 +2,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
+use crate::animation::use_animated;
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
@@ -10,6 +11,48 @@ use crate::styles::{
     ControlState, DisclosureGroupStyle, GroupBoxStyle, LayoutDirection, Paints, Theme, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol};
+
+// A right chevron that turns to point down as `progress` goes from 0 to 1, and moves from `closed` to `open`.
+pub(crate) fn turning_chevron(
+    chevron: impl IntoElement,
+    progress: f32,
+    closed: (f32, f32),
+    open: (f32, f32),
+) -> Rect {
+    let at = |from: f32, to: f32| from + (to - from) * progress;
+    rect()
+        .offset_x(at(closed.0, open.0))
+        .offset_y(at(closed.1, open.1))
+        .child(rect().rotate(90.0 * progress).child(chevron))
+}
+
+// The rows of a disclosure unrolling from under their header: `progress` 1 is the natural height, which `measured` keeps from the last layout.
+pub(crate) fn drawer(
+    progress: f32,
+    mut measured: State<f32>,
+    children: impl IntoIterator<Item = Element>,
+) -> Rect {
+    let height = *measured.read();
+    rect()
+        .width(Size::fill())
+        .height(if progress < 1.0 {
+            Size::px(progress * height)
+        } else {
+            Size::auto()
+        })
+        .offset_y(-(1.0 - progress) * height)
+        .overflow(Overflow::Clip)
+        .direction(Direction::Vertical)
+        .child(
+            rect()
+                .width(Size::fill())
+                .direction(Direction::Vertical)
+                .on_sized(move |event: Event<SizedEventData>| {
+                    measured.set_if_modified(event.data().area.size.height);
+                })
+                .children(children),
+        )
+}
 
 #[derive(PartialEq)]
 pub struct GroupBox {
@@ -133,16 +176,8 @@ impl Component for DisclosureGroup {
         let state = control_state(interaction, false);
         let paints = Paints::current(state);
         let open = *expanded.read();
-        let chevron = if open {
-            Symbol::ChevronDown
-        } else {
-            Symbol::ChevronRight
-        };
-        let shift = if open {
-            style.open_chevron_offset
-        } else {
-            style.chevron_offset
-        };
+        let progress = use_animated(f32::from(u8::from(open)), style.animation);
+        let measured = use_state(|| 0.0f32);
         let header = interaction
             .attach(rect(), true)
             .a11y_role(AccessibilityRole::Button)
@@ -153,17 +188,20 @@ impl Component for DisclosureGroup {
             .cross_align(Alignment::Center)
             .on_press(move |_| expanded.toggle())
             .child(
-                rect().width(Size::px(style.lead_width)).center().child(
-                    rect()
-                        .offset_x(shift.0)
-                        .offset_y(shift.1)
-                        .child(stroked_symbol(
-                            chevron,
+                rect()
+                    .width(Size::px(style.lead_width))
+                    .center()
+                    .child(turning_chevron(
+                        stroked_symbol(
+                            Symbol::ChevronRight,
                             style.chevron_size.0,
                             style.chevron_size.1,
                             paints.color(style.chevron.resolve(state)),
-                        )),
-                ),
+                        ),
+                        progress,
+                        style.chevron_offset,
+                        style.open_chevron_offset,
+                    )),
             )
             .child(text(
                 self.label.clone(),
@@ -174,13 +212,14 @@ impl Component for DisclosureGroup {
             .width(Size::fill())
             .direction(Direction::Vertical)
             .child(interaction.focus_ring(header, 0.0))
-            .maybe(open, |el| {
+            .maybe(open || progress > 0.0, |el| {
                 el.child(
-                    rect()
-                        .width(Size::fill())
-                        .direction(Direction::Vertical)
-                        .padding(Gaps::new(0.0, 0.0, 0.0, style.indent))
-                        .children(self.children.clone()),
+                    drawer(progress, measured, self.children.clone()).padding(Gaps::new(
+                        0.0,
+                        0.0,
+                        0.0,
+                        style.indent,
+                    )),
                 )
             });
         self.overrides.apply(root)

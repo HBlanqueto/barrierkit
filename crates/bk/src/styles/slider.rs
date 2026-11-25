@@ -1,7 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{
-    CAPTION, ControlSize, DURATION_FAST_MS, Font, KNOB_SHADOW, SETTINGS, SLIDER, SWITCH,
-};
+use ctdesign::{CAPTION, ControlSize, Font, KNOB_SHADOW, SETTINGS, SLIDER, SWITCH, slider_press};
 
 use super::{
     Animation, Axis, ControlStyle, Edge, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
@@ -63,10 +61,13 @@ pub struct SliderStyle {
     pub labels: Option<Edge>,
     /// Tengen: `CAPTION`.
     pub label_font: Font,
-    /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the knob and the fill glide to a new
-    /// value, except under a drag, where a free knob follows the cursor and a stepped one jumps
-    /// from step to step; `None` makes them jump.
+    /// Tengen: `Spring { duration_ms: SLIDER.click_ms, bounce: SLIDER.click_bounce }`: the knob
+    /// and the fill move to a click on the track; a drag, a key and a value set in code are
+    /// instant unless inside `with_animation`; `None` makes the click jump.
     pub animation: Animation,
+    /// Tengen: `Custom { duration_ms: SLIDER.press_ms, curve: slider_press }`: the knob grows
+    /// when it is held and shrinks when it is let go.
+    pub press_animation: Animation,
 }
 
 impl SliderStyle {
@@ -109,8 +110,13 @@ impl ControlStyle for SliderStyle {
             axis: Axis::Horizontal,
             labels: Some(Edge::Bottom),
             label_font: CAPTION,
-            animation: Animation::Ease {
-                duration_ms: DURATION_FAST_MS,
+            animation: Animation::Spring {
+                duration_ms: SLIDER.click_ms,
+                bounce: SLIDER.click_bounce,
+            },
+            press_animation: Animation::Custom {
+                duration_ms: SLIDER.press_ms,
+                curve: slider_press,
             },
         }
     }
@@ -118,6 +124,7 @@ impl ControlStyle for SliderStyle {
     fn accessible(self, appearance: &Resolved) -> Self {
         reduce_motion(self, appearance, |style| Self {
             animation: Animation::None,
+            press_animation: Animation::None,
             ..style
         })
     }

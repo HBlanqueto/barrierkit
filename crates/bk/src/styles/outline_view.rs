@@ -1,6 +1,8 @@
-use ctdesign::{BODY, DISCLOSURE, Font, HAIRLINE, SPACE_1};
+use ctdesign::{
+    BODY, DISCLOSURE, DURATION_OUTLINE_EXPAND_MS, Font, HAIRLINE, SPACE_1, ease_out_appkit,
+};
 
-use crate::styles::{ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue};
+use crate::styles::{Animation, ControlStyle, CornerStyle, Role, Shape, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct OutlineViewStyle {
@@ -54,6 +56,8 @@ pub struct OutlineViewStyle {
     pub selected_chevron: StateValue<ShapeStyle>,
     /// Tengen: `(Role(Separator), HAIRLINE)`, between `Browser` columns.
     pub column_separator: (ShapeStyle, f32),
+    /// Tengen: `Custom { duration_ms: DURATION_OUTLINE_EXPAND_MS, curve: ease_out_appkit }`, `NSOutlineView`'s `animator().expandItem`: only an expansion animates; the chevron and a collapse are instant. `None` makes the expansion jump.
+    pub animation: Animation,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -123,6 +127,10 @@ impl ControlStyle for OutlineViewStyle {
             selected_chevron: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
                 .focused(ShapeStyle::Role(Role::OnSelectedContent)),
             column_separator: (ShapeStyle::Role(Role::Separator), HAIRLINE),
+            animation: Animation::Custom {
+                duration_ms: DURATION_OUTLINE_EXPAND_MS,
+                curve: ease_out_appkit,
+            },
             font: BODY,
         }
     }

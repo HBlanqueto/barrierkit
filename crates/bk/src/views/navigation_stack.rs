@@ -54,7 +54,7 @@ impl<R> NavigationPath<R> {
 }
 
 // Where page `index` is, in pixels from the left edge, when the stack shows page `position` (a fraction while it moves): the pages
-// above come in from the right edge and the pages below leave PARALLAX of the width to the left, as UIKit's push does.
+// above come in from the right edge and the pages below leave PARALLAX of the width to the left (0 on macOS: the page below stays).
 fn page_offset(index: usize, position: f32, width: f32) -> f32 {
     let behind = index as f32 - position;
     if behind >= 0.0 {

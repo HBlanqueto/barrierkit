@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{DURATION_FAST_MS, KNOB_SHADOW, SLIDER, SLIDER_FAT, SWITCH, SYMBOL};
+use ctdesign::{KNOB_SHADOW, SLIDER, SLIDER_FAT, SWITCH, SYMBOL, slider_press};
 
 use crate::symbol::Symbol;
 
@@ -55,9 +55,13 @@ pub struct LevelSliderStyle {
     pub opacity: f32,
     /// Tengen: `SWITCH.disabled_opacity`, for the track, fill and symbol.
     pub disabled_opacity: f32,
-    /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the knob and the fill glide to a new
-    /// value, except under a drag, where they follow the cursor; `None` makes them jump.
+    /// Tengen: `Spring { duration_ms: SLIDER.click_ms, bounce: SLIDER.click_bounce }`: the knob
+    /// and the fill move to a click; a drag, a key and a value set in code are instant unless
+    /// inside `with_animation`; `None` makes the click jump.
     pub animation: Animation,
+    /// Tengen: `Custom { duration_ms: SLIDER.press_ms, curve: slider_press }`: the knob grows
+    /// when it is held and shrinks when it is let go.
+    pub press_animation: Animation,
 }
 
 impl LevelSliderStyle {
@@ -95,8 +99,13 @@ impl ControlStyle for LevelSliderStyle {
             knob_glass: Some(ShapeStyle::Role(Role::ControlBackground)),
             opacity: 1.0,
             disabled_opacity: SWITCH.disabled_opacity,
-            animation: Animation::Ease {
-                duration_ms: DURATION_FAST_MS,
+            animation: Animation::Spring {
+                duration_ms: SLIDER.click_ms,
+                bounce: SLIDER.click_bounce,
+            },
+            press_animation: Animation::Custom {
+                duration_ms: SLIDER.press_ms,
+                curve: slider_press,
             },
         }
     }
@@ -104,6 +113,7 @@ impl ControlStyle for LevelSliderStyle {
     fn accessible(self, appearance: &Resolved) -> Self {
         reduce_motion(self, appearance, |style| Self {
             animation: Animation::None,
+            press_animation: Animation::None,
             ..style
         })
     }

@@ -3,7 +3,10 @@
 mod ease;
 mod rgba;
 
-pub use ease::{ease_in_ease_out, ease_in_out, ease_out, progress, smoothstep};
+pub use ease::{
+    cubic_bezier, ease_default, ease_in_ease_out, ease_in_out, ease_out, ease_out_appkit, progress,
+    slider_press, smoothstep,
+};
 pub use rgba::Rgba;
 
 /// The window protocol's fixed point: a fraction travels as thousandths in a `u32`.
@@ -359,6 +362,9 @@ pub struct SliderMetrics {
     pub knob_height: f32,
     pub knob_pressed_scale: f32,
     pub knob_glass_alpha: f32,
+    pub press_ms: u64,
+    pub click_ms: u64,
+    pub click_bounce: f32,
     pub mini: SliderSize,
     pub small: SliderSize,
     pub large: SliderSize,
@@ -451,6 +457,7 @@ pub struct SwitchMetrics {
     pub knob_pressed_scale: f32,
     pub knob_glass_alpha: f32,
     pub transition_ms: u64,
+    pub transition_bounce: f32,
     pub disabled_opacity: f32,
     pub disabled_opacity_contrast: f32,
     pub mini: SwitchSize,
@@ -668,10 +675,13 @@ pub struct ProgressMetrics {
     pub ring_size: f32,
     pub ring_stroke: f32,
     pub ring_trim: f32,
+    pub fill_ms: u64,
+    pub fill_curve: [f32; 4],
     pub indeterminate_segment: f32,
     pub indeterminate_ms: u64,
     pub spinner_sizes: [f32; 5],
     pub spinner_spokes: u32,
+    pub spinner_frames: u32,
     pub spinner_ms: u64,
 }
 
@@ -1227,6 +1237,8 @@ pub struct ScrollBarMetrics {
     pub track_opacity: [f32; 4],
     pub edge_height: f32,
     pub hide_delay_ms: u64,
+    pub fade_in_ms: u64,
+    pub fade_out_ms: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

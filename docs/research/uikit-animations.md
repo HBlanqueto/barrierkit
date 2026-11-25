@@ -169,7 +169,7 @@ equivalent of each spring (Mac Catalyst values, not iOS):
 | `duration.sheet` spring | `ω0` 18.26, `ζ` 1 (SwiftUI duration 0.344, bounce 0) | Sheet, detent |
 | `duration.alert` spring | `ω0` 22.9, `ζ` 1 (duration 0.274, bounce 0) | Alert present |
 | `duration.push` spring | `ω0` 25, `ζ` 1 (duration 0.25, bounce 0); parallax 0.3 of the width | Push, pop (fit) |
-| `duration.list-row` | 300 ms, cubic Bézier (0.42, 0, 0.58, 1) | List insert and remove |
+| `duration.list-row` | 300 ms, cubic Bézier (0.42, 0, 0.58, 1) on Catalyst; the token now holds macOS SwiftUI's 248 ms ([containers](macos-motion-containers.md#rows-selection-outline)) | List insert and remove |
 | `duration.popover-in` | 210 ms, Bézier (0.25, 0.08, 0.49, 1.16) | Popover (fit) |
 | `duration.popover-out` | 120 ms, fast ease out | Popover dismiss (fit) |
 | `duration.menu-close` | 200 ms, Bézier (0, 0, 0.35, 1) | Menu |

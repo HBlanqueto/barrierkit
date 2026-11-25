@@ -1,10 +1,12 @@
-use ctdesign::{BODY, CAPTION, ControlSize, Font, Rgba, SPACE_2, TAB_VIEW, TOOLBAR_TABS};
+use ctdesign::{
+    BODY, CAPTION, ControlSize, Font, Rgba, SPACE_2, SPRING_SHEET_MS, TAB_VIEW, TOOLBAR_TABS,
+};
 
 use crate::style::Palette;
 use crate::styles::button::{continuous_rounded, rounded};
 use crate::styles::{
-    ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle, StateValue,
-    appearance_index,
+    Animation, ControlStyle, Gradient, GradientColorSpace, Role, ShadowStyle, Shape, ShapeStyle,
+    StateValue, appearance_index,
 };
 
 /// Where the tabs are, like `NSTabView.TabType`: a strip of segments on one side of a bezel box,
@@ -86,6 +88,10 @@ pub struct TabViewStyle {
     /// Tengen: the label color at `TAB_VIEW.line_border_opacity`, the 1 line of
     /// `NoTabsLineBorder`, which is square.
     pub line_border: Option<(ShapeStyle, f32)>,
+    /// Tengen: `Spring { duration_ms: SPRING_SHEET_MS, bounce: 0.0 }`, the measured spring of the
+    /// pill of an `NSTabView` strip (`Top` and `Bottom`) moving to the chosen tab; `None` makes
+    /// it jump.
+    pub animation: Animation,
 }
 
 fn label_at(opacity: f32) -> ShapeStyle {
@@ -231,6 +237,10 @@ impl ControlStyle for TabViewStyle {
                 label_at(TAB_VIEW.line_border_opacity[mode]),
                 ctdesign::HAIRLINE,
             )),
+            animation: Animation::Spring {
+                duration_ms: SPRING_SHEET_MS,
+                bounce: 0.0,
+            },
         }
     }
 }

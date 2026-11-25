@@ -1,4 +1,4 @@
-use ctdesign::{BODY, Font, SIDEBAR, SPRING_SHEET_MS};
+use ctdesign::{BODY, DURATION_DISCLOSURE_MS, Font, SIDEBAR, ease_default};
 
 use crate::styles::{Animation, ControlStyle, ShapeStyle, StateValue};
 
@@ -16,7 +16,7 @@ pub struct SidebarSectionStyle {
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `font`: `BODY` at `SIDEBAR.section_size` with `SIDEBAR.section_weight`.
     pub font: Font,
-    /// Tengen: `Spring { duration_ms: SPRING_SHEET_MS, bounce: 0.0 }`, the measured spring of a card changing height: the rows fold; `None` makes them jump.
+    /// Tengen: `Custom { duration_ms: DURATION_DISCLOSURE_MS, curve: ease_default }`, SwiftUI's `Section(isExpanded:)`: the rows unroll and the chevron turns on the same curve; `None` makes them jump.
     pub animation: Animation,
 }
 
@@ -35,9 +35,9 @@ impl ControlStyle for SidebarSectionStyle {
                 weight: SIDEBAR.section_weight,
                 ..BODY
             },
-            animation: Animation::Spring {
-                duration_ms: SPRING_SHEET_MS,
-                bounce: 0.0,
+            animation: Animation::Custom {
+                duration_ms: DURATION_DISCLOSURE_MS,
+                curve: ease_default,
             },
         }
     }

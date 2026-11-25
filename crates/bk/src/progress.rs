@@ -5,13 +5,13 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Position, Size};
 
-use crate::animation::{Clock, effective};
+use crate::animation::{Clock, effective, use_animated_own};
 use crate::backdrop::Tint;
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::styles::{
-    Animation, ControlState, LayoutDirection, Painted, Paints, ProgressRingStyle,
-    ProgressViewStyle, SpinnerStyle, StateValue, Theme, resolve,
+    Animation, ControlState, Gradient, LayoutDirection, Painted, Paints, ProgressRingStyle,
+    ProgressViewStyle, ShapeStyle, SpinnerStyle, StateValue, Theme, resolve,
 };
 use crate::theme::color;
 
@@ -62,6 +62,7 @@ impl ProgressView {
 }
 
 fn use_running(animation: Animation, restart: bool) -> f32 {
+    let animation = effective(animation, crate::theme::resolved().reduced_motion);
     let duration_ms = use_reactive(&animation.duration_ms());
     let elapsed = use_animation(move |conf| {
         let duration_ms = *duration_ms.read();
@@ -93,14 +94,32 @@ impl Component for ProgressView {
     fn render(&self) -> impl IntoElement {
         let style: ProgressViewStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default());
-        let animation = effective(style.animation, self.value.is_some());
-        let sweep = use_running(animation, false);
+        let sweep = use_running(
+            if self.value.is_some() {
+                Animation::None
+            } else {
+                style.animation
+            },
+            true,
+        );
+        let fill = use_animated_own(self.value.unwrap_or(0.0), style.fill_animation);
         let (start, length) = match self.value {
-            Some(value) => (0.0, value),
-            None => (
-                sweep * (1.0 - style.indeterminate_length),
-                style.indeterminate_length,
-            ),
+            Some(_) => (0.0, fill),
+            None => {
+                let head = sweep * (1.0 + style.indeterminate_length);
+                let tail = (head - style.indeterminate_length).max(0.0);
+                (tail, head.min(1.0) - tail)
+            }
+        };
+        let fill_paint = match self.value {
+            Some(_) => style.fill.clone(),
+            None => StateValue::new(ShapeStyle::Gradient(Gradient::new(
+                90.0,
+                vec![
+                    (style.fill.resolve(ControlState::default()).clone(), 0.0),
+                    (ShapeStyle::Clear, 1.0),
+                ],
+            ))),
         };
         let value = self.value;
         let height = style.height;
@@ -129,7 +148,7 @@ impl Component for ProgressView {
                     .width(Size::percent(length * 100.0))
                     .height(Size::fill())
                     .corner_radius(radius)
-                    .painted(&paints, &style.fill),
+                    .painted(&paints, &fill_paint),
             );
         self.overrides.apply(
             rect()
@@ -263,8 +282,8 @@ impl Component for Spinner {
         let paints = Paints::current(state);
         let spokes = style.spokes;
         let turn = use_running(style.animation, true);
-        let step = (turn * spokes as f32).floor() as u32 % spokes;
-        let degrees_per_spoke = 360.0 / spokes as f32;
+        let frame = (turn * style.frames as f32).floor() as u32 % style.frames;
+        let phase = frame as f32 * spokes as f32 / style.frames as f32;
         let size = style.size;
 
         let root = dimmed(
@@ -273,9 +292,8 @@ impl Component for Spinner {
                 .a11y_alt(&*self.label)
                 .width(Size::px(size))
                 .height(Size::px(size))
-                .rotation(step as f32 * degrees_per_spoke)
                 .child(
-                    SvgViewer::new(spinner_svg(spokes, style.stroke))
+                    SvgViewer::new(spinner_svg(spokes, phase, style.stroke))
                         .width(Size::px(size))
                         .height(Size::px(size))
                         .color(color(paints.color(style.spoke.resolve(state))))
@@ -287,11 +305,11 @@ impl Component for Spinner {
     }
 }
 
-fn spinner_svg(spokes: u32, stroke: f32) -> Bytes {
+fn spinner_svg(spokes: u32, phase: f32, stroke: f32) -> Bytes {
     let lines: String = (0..spokes)
         .map(|spoke| {
             let angle = spoke as f32 * 360.0 / spokes as f32;
-            let opacity = 1.0 - spoke as f32 / spokes as f32;
+            let opacity = 1.0 - (spoke as f32 + phase).rem_euclid(spokes as f32) / spokes as f32;
             format!(
                 r#"<line x1="8" y1="1.5" x2="8" y2="4.5" stroke-opacity="{opacity}" transform="rotate(-{angle} 8 8)"/>"#
             )

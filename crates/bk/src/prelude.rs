@@ -10,7 +10,7 @@ pub use crate::accessibility::{
     AccessibilityChildBehavior, AccessibilityModifiers, AccessibilityTraits,
 };
 pub use crate::adornments::Divider;
-pub use crate::animation::{use_animated, with_animation};
+pub use crate::animation::{set_animation_speed, use_animated, with_animation};
 pub use crate::app::{
     Application, CommandGroup, CommandGroupPlacement, Commands, DismissWindowAction,
     OpenWindowAction, Scene, Settings, UtilityWindow, Window, WindowGroup, use_app_storage,

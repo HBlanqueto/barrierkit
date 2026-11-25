@@ -5,7 +5,8 @@ use std::rc::Rc;
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
-use crate::elements::{Overrides, forward_overrides};
+use crate::animation::use_animated;
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::interaction::{track_modifiers, use_held_modifiers, use_interaction};
 use crate::scroll::ScrollView;
 use crate::style::text;
@@ -15,6 +16,7 @@ use crate::styles::{
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
+use crate::views::group::drawer;
 use crate::views::table::row_divider;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -163,6 +165,29 @@ pub(crate) fn row(
 }
 
 #[derive(PartialEq)]
+struct Reveal {
+    rows: Vec<Element>,
+    style: Theme,
+    key: DiffKey,
+}
+
+forward_key!(Reveal);
+
+impl Component for Reveal {
+    forward_key!();
+
+    fn render(&self) -> impl IntoElement {
+        let mut revealed = use_state(|| false);
+        let measured = use_state(|| 0.0f32);
+        let style: OutlineViewStyle = resolve(&self.style);
+        let progress = use_animated(f32::from(u8::from(*revealed.read())), style.animation);
+        // The first render shows the closed drawer; this write moves the target and starts the animation.
+        use_hook(|| revealed.set(true));
+        drawer(progress, measured, self.rows.clone())
+    }
+}
+
+#[derive(PartialEq)]
 pub struct OutlineView {
     label: Cow<'static, str>,
     nodes: Vec<TreeNode>,
@@ -215,6 +240,7 @@ impl Component for OutlineView {
         };
         let paints = Paints::current(state);
         let mut expanded = use_state(|| open_paths(&self.nodes));
+        let mut reveal = use_state(|| None::<(Vec<usize>, u32)>);
         let own = use_state(Vec::new);
         let mut selected = self.selection.unwrap_or(own);
         let held = use_held_modifiers();
@@ -222,11 +248,15 @@ impl Component for OutlineView {
         let paths: Rc<Vec<Vec<usize>>> =
             Rc::new(rows.iter().map(|(path, _)| path.clone()).collect());
         let mask = selection_mask(&paths, &selected.read());
-        let items = rows
+        let revealing = reveal.read().clone();
+        let (inside, mut items): (Vec<bool>, Vec<Element>) = rows
             .into_iter()
             .enumerate()
             .filter_map(|(row_index, (path, depth))| {
                 let node = node_at(&self.nodes, &path)?;
+                let revealed = revealing
+                    .as_ref()
+                    .is_some_and(|(root, _)| path.len() > root.len() && path.starts_with(root));
                 let open = expanded.read().contains(&path);
                 let chosen = mask[row_index];
                 let ink = paints.color(
@@ -253,8 +283,12 @@ impl Component for OutlineView {
                             .on_press(move |event: Event<PressEventData>| {
                                 event.stop_propagation();
                                 let mut paths = expanded.write();
-                                if !paths.remove(&toggle_path) {
+                                if paths.remove(&toggle_path) {
+                                    reveal.set(None);
+                                } else {
                                     paths.insert(toggle_path.clone());
+                                    let next = reveal.peek().as_ref().map_or(0, |(_, n)| n + 1);
+                                    reveal.set(Some((toggle_path.clone(), next)));
                                 }
                             })
                             .child(rect().offset_x(shift_x).offset_y(shift_y).child(
@@ -278,7 +312,8 @@ impl Component for OutlineView {
                 let title_start = level
                     + style.lead_width
                     + node.icon.map_or(0.0, |_| style.icon_size + style.spacing);
-                Some(
+                Some((
+                    revealed,
                     rect()
                         .width(Size::fill())
                         .height(Size::px(style.row_height))
@@ -312,8 +347,26 @@ impl Component for OutlineView {
                             },
                         ))
                         .into_element(),
-                )
-            });
+                ))
+            })
+            .unzip();
+        if let (Some((_, generation)), Some(first), Some(last)) = (
+            revealing,
+            inside.iter().position(|&revealed| revealed),
+            inside.iter().rposition(|&revealed| revealed),
+        ) {
+            let rows = items.drain(first..=last).collect();
+            items.insert(
+                first,
+                Reveal {
+                    rows,
+                    style: self.style.clone(),
+                    key: DiffKey::None,
+                }
+                .key(generation)
+                .into_element(),
+            );
+        }
         let root = track_modifiers(interaction.attach(rect(), true), held)
             .a11y_role(AccessibilityRole::Tree)
             .a11y_alt(&*self.label)

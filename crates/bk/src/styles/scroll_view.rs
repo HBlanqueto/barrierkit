@@ -1,4 +1,4 @@
-use ctdesign::{DURATION_FAST_MS, SCROLL_BAR};
+use ctdesign::{SCROLL_BAR, ease_in_ease_out};
 
 use crate::styles::{
     Animation, ControlStyle, Role, Shape, ShapeStyle, StateValue, appearance_index,
@@ -29,9 +29,12 @@ pub struct ScrollViewStyle {
     pub track_opacity: f32,
     /// Tengen: `SCROLL_BAR.hide_delay_ms`, from the last scroll until the bar fades out.
     pub hide_delay_ms: u64,
-    /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the bar fades; `None` makes it appear
-    /// and vanish at once.
-    pub animation: Animation,
+    /// Tengen: `SCROLL_BAR.fade_in_ms` along `ease_in_ease_out`: the bar appears; `None` makes it
+    /// appear at once.
+    pub fade_in: Animation,
+    /// Tengen: `SCROLL_BAR.fade_out_ms` along `ease_in_ease_out`: the bar vanishes; `None` makes it
+    /// vanish at once.
+    pub fade_out: Animation,
 }
 
 impl ControlStyle for ScrollViewStyle {
@@ -50,8 +53,13 @@ impl ControlStyle for ScrollViewStyle {
             thumb_opacity: SCROLL_BAR.opacity[appearance_index()],
             track_opacity: SCROLL_BAR.track_opacity[appearance_index()],
             hide_delay_ms: SCROLL_BAR.hide_delay_ms,
-            animation: Animation::Ease {
-                duration_ms: DURATION_FAST_MS,
+            fade_in: Animation::Custom {
+                duration_ms: SCROLL_BAR.fade_in_ms,
+                curve: ease_in_ease_out,
+            },
+            fade_out: Animation::Custom {
+                duration_ms: SCROLL_BAR.fade_out_ms,
+                curve: ease_in_ease_out,
             },
         }
     }

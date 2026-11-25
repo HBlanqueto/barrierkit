@@ -1,5 +1,5 @@
 use ctappearance::Resolved;
-use ctdesign::{DURATION_BASE, DURATION_FAST_MS, HAIRLINE, SPLIT_VIEW, ease_in_ease_out};
+use ctdesign::{DURATION_BASE, HAIRLINE, SPLIT_VIEW, ease_in_ease_out};
 
 use crate::styles::{Animation, ControlStyle, Role, Shape, ShapeStyle, StateValue, reduce_motion};
 
@@ -28,12 +28,10 @@ pub struct SplitViewStyle {
     pub scrim: StateValue<ShapeStyle>,
     /// Tengen: `(Role(Separator), HAIRLINE)`.
     pub inspector_line: (ShapeStyle, f32),
-    /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the sidebar and the inspector slide in
-    /// and out.
+    /// Tengen: `Custom { DURATION_BASE, ease_in_ease_out }`: the sidebar slides when the user
+    /// toggles it or inside `with_animation`, otherwise it appears in one frame; the inspector
+    /// always slides. A resize of the sidebar never animates.
     pub animation: Animation,
-    /// Tengen: `Ease { duration_ms: DURATION_FAST_MS }`: the sidebar follows a resize from the
-    /// keyboard; a drag follows the pointer.
-    pub resize_animation: Animation,
 }
 
 impl ControlStyle for SplitViewStyle {
@@ -58,16 +56,12 @@ impl ControlStyle for SplitViewStyle {
                 duration_ms: DURATION_BASE,
                 curve: ease_in_ease_out,
             },
-            resize_animation: Animation::Ease {
-                duration_ms: DURATION_FAST_MS,
-            },
         }
     }
 
     fn accessible(self, appearance: &Resolved) -> Self {
         reduce_motion(self, appearance, |style| Self {
             animation: Animation::None,
-            resize_animation: Animation::None,
             ..style
         })
     }

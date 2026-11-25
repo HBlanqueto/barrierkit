@@ -1,10 +1,10 @@
 use ctdesign::{
     BODY, DISCLOSURE, DISCLOSURE_TRIANGLE_CONTRAST_DARK, DISCLOSURE_TRIANGLE_CONTRAST_DARK_TINT,
     DISCLOSURE_TRIANGLE_CONTRAST_LIGHT, DISCLOSURE_TRIANGLE_DARK, DISCLOSURE_TRIANGLE_DARK_TINT,
-    DISCLOSURE_TRIANGLE_LIGHT, Font,
+    DISCLOSURE_TRIANGLE_LIGHT, DURATION_DISCLOSURE_MS, Font, ease_default,
 };
 
-use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue, per_look};
+use crate::styles::{Animation, ControlStyle, Role, ShapeStyle, StateValue, per_look};
 
 pub(super) fn disclosure_triangle() -> StateValue<ShapeStyle> {
     StateValue::new(ShapeStyle::Color(per_look(
@@ -40,6 +40,8 @@ pub struct DisclosureGroupStyle {
     pub chevron: StateValue<ShapeStyle>,
     /// Tengen: `label` `Role(Label)`.
     pub label: StateValue<ShapeStyle>,
+    /// Tengen: `Custom { duration_ms: DURATION_DISCLOSURE_MS, curve: ease_default }`, SwiftUI's `DisclosureGroup`: the content unrolls and the chevron turns on the same curve; `None` makes them jump.
+    pub animation: Animation,
     /// Tengen: `BODY`.
     pub font: Font,
 }
@@ -58,6 +60,10 @@ impl ControlStyle for DisclosureGroupStyle {
             ),
             chevron: disclosure_triangle(),
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
+            animation: Animation::Custom {
+                duration_ms: DURATION_DISCLOSURE_MS,
+                curve: ease_default,
+            },
             font: BODY,
         }
     }

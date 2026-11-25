@@ -3,6 +3,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
 
+use crate::animation::use_animated;
 use crate::choices::Choice;
 use crate::controls::SegmentedControl;
 use crate::controls::shadowed;
@@ -216,6 +217,19 @@ impl TabView {
             ),
         };
         let draws_box = tab_type != TabType::NoTabsNoBorder;
+        let widths: Vec<f32> = self
+            .tabs
+            .iter()
+            .map(|(_, title, _)| strip_tab_width(title, style))
+            .collect();
+        let pill = widths.get(current).map(|width| {
+            StripPill {
+                x: style.tab_inset.0 + widths[..current].iter().sum::<f32>(),
+                width: width - 2.0 * style.tab_inset.0,
+                style: self.style.clone(),
+            }
+            .into_element()
+        });
         let tabs = self.tabs.iter().enumerate().map(|(index, (_, title, _))| {
             StripTab {
                 title: title.clone(),
@@ -237,6 +251,7 @@ impl TabView {
             .direction(Direction::Horizontal)
             .corner_radius(strip_radius)
             .painted(&paints, &style.background)
+            .maybe_child(pill)
             .children(tabs);
         let edge = if tab_type == TabType::Top {
             Position::new_absolute().top(style.strip_inset).left(0.0)
@@ -333,6 +348,39 @@ impl Component for ToolbarTab {
     }
 }
 
+fn strip_tab_width(title: &str, style: &TabViewStyle) -> f32 {
+    measure_text(title, style.font.size as f32) + 2.0 * style.tab_padding_x
+}
+
+#[derive(PartialEq)]
+struct StripPill {
+    x: f32,
+    width: f32,
+    style: Theme,
+}
+
+impl Component for StripPill {
+    fn render(&self) -> impl IntoElement {
+        let style: TabViewStyle = resolve(&self.style);
+        let x = use_animated(self.x, style.animation);
+        let width = use_animated(self.width, style.animation);
+        let paints = Paints::current(ControlState::default());
+        let height = style.strip_height - 2.0 * style.tab_inset.1;
+        let radius = style
+            .tab_shape
+            .corner_radius(height, height, LayoutDirection::LeftToRight);
+        shadowed(
+            rect()
+                .position(Position::new_absolute().left(x).top(style.tab_inset.1))
+                .width(Size::px(width))
+                .height(Size::px(height))
+                .corner_radius(radius)
+                .painted(&paints, &style.selected_tab_background),
+            &style.tab_shadows,
+        )
+    }
+}
+
 #[derive(PartialEq)]
 struct StripTab {
     title: Cow<'static, str>,
@@ -350,12 +398,12 @@ impl Component for StripTab {
         let active = self.active;
         let on_select = self.on_select.clone();
         let (background, ink) = if active {
-            (&style.selected_tab_background, &style.selected_label)
+            (&style.tab_background, &style.selected_label)
         } else {
             (&style.tab_background, &style.label)
         };
         let ink = paints.color(ink.resolve(state));
-        let along = measure_text(&self.title, style.font.size as f32) + 2.0 * style.tab_padding_x;
+        let along = strip_tab_width(&self.title, &style);
         let across = style.strip_height;
         let (inset_x, inset_y) = style.tab_inset;
         let pill_height = across - 2.0 * inset_y;
@@ -375,11 +423,6 @@ impl Component for StripTab {
                     .max_lines(1)
                     .color(color(ink)),
             );
-        let pill = if active {
-            shadowed(pill, &style.tab_shadows)
-        } else {
-            pill
-        };
         let face = rect()
             .width(Size::px(along))
             .height(Size::px(across))

@@ -416,7 +416,7 @@ ToolGroup::new().child(back).child(forward).style(|s| ToolGroupStyle { axis: Axi
 
 Both take `.disabled(bool)`, `.tint(Tint)` and `.style(|s| ..)`.
 
-- `Switch` is 54 × 24 with a 32 × 20 knob that slides over `SWITCH.transition_ms`. Its label is
+- `Switch` is 54 × 24 with a 32 × 20 knob that springs over `SWITCH.transition_ms`. Its label is
   only accessible; put the visible one in a [form row](11-views.md) or set the style's
   `label_position`.
 - Hold the knob to drag it. It follows the cursor, grows to `SWITCH.knob_pressed_scale` (1.65:
@@ -551,8 +551,10 @@ RadioGroup::new("Size", size).option("Small").option("Large")
 - `.continuous(false)` is `NSSlider.isContinuous`: the slider writes its `State` once, with the value where
   you let go, instead of at every move. The knob still moves as you drag. An arrow key still writes at once.
   Use it when each write saves a file or changes the system.
-- A new value glides in `DURATION_FAST_MS` (`SliderStyle::animation`). While you drag, the knob
-  does not wait: a free one follows the pointer and a stepped one jumps from step to step.
+- A click on the track moves the knob and the fill with a spring (`SliderStyle::animation`,
+  `SLIDER.click_ms`). While you drag, the knob does not wait: a free one follows the pointer and a
+  stepped one jumps from step to step. A key or a value you set in code is instant, unless you
+  wrap it in `with_animation`. The knob grows and shrinks along `SliderStyle::press_animation`.
 - While you hold a knob it grows by `SLIDER.knob_pressed_scale` (1.3) and turns into Liquid
   Glass the compositor draws ([platform](18-platform.md), `set_knobs`): the control background
   at `SLIDER.knob_glass_alpha` (0.3) over the Dock's lens (`DOCK_LENS_*`) turned outward, which
@@ -781,13 +783,13 @@ Module `progress`. They report nothing.
 
 | Item | Build | Look |
 |---|---|---|
-| `ProgressView` | `ProgressView::determinate(label, value)` (0 to 1), `.tint(Tint)`, `.style(\|s\| ..)` | 8 tall bar |
-| `ProgressView` | `ProgressView::indeterminate(label)` | A segment of 30 % that sweeps over 1.2 s |
+| `ProgressView` | `ProgressView::determinate(label, value)` (0 to 1), `.tint(Tint)`, `.style(\|s\| ..)` | 8 tall bar; the fill follows a new value over 0.43 s, with or without `with_animation` |
+| `ProgressView` | `ProgressView::indeterminate(label)` | A segment of 40 % with a fading tail that crosses the bar in 1.9 s and starts again |
 | `ProgressRing` | `ProgressRing::new(label, value)` | 32 ring, 5 stroke, round ends |
-| `Spinner` | `Spinner::new(label)` | 16, 12 spokes, one turn per second |
+| `Spinner` | `Spinner::new(label)` | 16, 8 spokes, one turn in 24 steps over 0.8 s |
 
 With reduced motion ([4](04-appearance-and-tokens.md)) the indeterminate bar and the spinner
-stand still.
+stand still and the determinate fill jumps.
 
 ```rust
 ProgressView::determinate("Copying system", 0.62)
@@ -816,7 +818,7 @@ Module `indicator`, after `NSLevelIndicator` and SwiftUI `Gauge`.
 |---|---|---|
 | `CapacityIndicator` | `new(label, value)`, `.thresholds(warning, critical)` (default 1, 1), `.discrete(cells)` | 16 tall bar; green, then yellow at `warning`, red at `critical`. `discrete` splits it into touching cells with a darker border |
 | `RelevancyIndicator` | `new(label, value)` | 12 tall track with a row of 1 px lines, as many as `value` fills |
-| `Gauge` | `new(label, value, current)`, `.capacity(bool)` | 44 open ring (270°) with a marker and `current` in the center; `capacity(true)` is a closed ring that fills with the accent |
+| `Gauge` | `new(label, value, current)`, `.capacity(bool)` | 44 open ring (270°) with a marker and `current` in the center; `capacity(true)` is a closed ring that fills with the accent. The marker follows a new value only inside `with_animation`; the capacity ring jumps |
 | `RatingIndicator` | `new(label, State<u32>)`, `.editable(bool)` (default `false`) | 5 filled stars 12 apart; editable only with `.editable(true)` (click or arrows) |
 
 | Helper | Returns |

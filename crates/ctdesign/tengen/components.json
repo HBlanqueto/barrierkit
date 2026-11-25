@@ -272,7 +272,8 @@
       "knob-pressed-scale": 1.65,
       "knob-lens": [0.45, 0.5],
       "knob-glass-alpha": 0.08,
-      "transition": "duration.fast",
+      "transition": 419,
+      "transition-bounce": 0.25,
       "disabled-opacity": 0.7,
       "disabled-opacity-contrast": 0.74,
       "mini": {"width": 36, "height": 16, "knob-width": 21, "knob-height": 14, "inset": 1},
@@ -287,6 +288,9 @@
       "knob-height": 16,
       "knob-pressed-scale": 1.3,
       "knob-glass-alpha": 0.3,
+      "press-ms": 143,
+      "click-ms": 349,
+      "click-bounce": 0.05,
       "mini": {"height": 12, "track": 4, "knob-width": 15.5},
       "small": {"height": 14, "track": 4, "knob-width": 17.5},
       "large": {"height": 20, "track": 6, "knob-width": 23.5},
@@ -718,8 +722,8 @@
       }
     },
     "navigation": {
-      "parallax": 0.3,
-      "dim": 0.13
+      "parallax": 0,
+      "dim": 0
     },
     "scroll-pocket": {
       "blur": 3.4,
@@ -1164,14 +1168,19 @@
         "stroke": 5,
         "trim": 1
       },
+      "fill": {
+        "duration": 428,
+        "curve": [0.51, 0.29, 0.56, 0.91]
+      },
       "indeterminate": {
-        "segment": 0.3,
-        "duration": 1200
+        "segment": 0.4,
+        "duration": 1900
       },
       "spinner": {
         "sizes": [10, 16, 32, 32, 32],
-        "spokes": 12,
-        "duration": 1000
+        "spokes": 8,
+        "frames": 24,
+        "duration": 800
       }
     },
     "backdrop": {
@@ -1526,7 +1535,9 @@
     }
     },
     "scroll-bar": {
-      "hide-delay": 800,
+      "hide-delay": 1008,
+      "fade-in": 501,
+      "fade-out": 249,
       "thumb": 6,
       "inset": 3,
       "min-length": 20,
@@ -1704,7 +1715,7 @@
           "clear-mix": 0.7
         },
         "submenu": {
-          "intent-ms": 300,
+          "intent-ms": 210,
           "reveal-gap": 8
         },
         "scroll-tick-ms": 30,

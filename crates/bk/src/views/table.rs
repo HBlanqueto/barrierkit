@@ -1,11 +1,17 @@
 use ctdesign::{Font, HAIRLINE, Rgba, TABLE};
-use freya_components::scrollviews::{ScrollController as Inner, VirtualItem, VirtualScrollView};
+use freya_animation::prelude::use_animation_transition;
+use freya_components::scrollviews::{
+    ItemSize, ScrollController as Inner, VirtualItem, VirtualScrollView,
+};
 use freya_core::prelude::*;
 use std::borrow::Cow;
-use std::collections::HashSet;
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use std::time::Instant;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
+use crate::animation::{Clock, effective, transaction_at};
 use crate::context_menu::context_menu;
 use crate::elements::{Overrides, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
@@ -14,8 +20,8 @@ use crate::menu::{CheckState, MenuItem};
 use crate::scroll::{use_elastic, use_scroll_bar, use_scroll_controller};
 use crate::style::{continuous_corner, text};
 use crate::styles::{
-    ControlState, Painted, Paints, Role, ScrollViewStyle, ShapeStyle, StateValue, TableStyle,
-    TextStyleScope, Theme, resolve,
+    Animation, ControlState, Painted, Paints, Role, ScrollViewStyle, ShapeStyle, StateValue,
+    TableStyle, TextStyleScope, Theme, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
@@ -483,6 +489,57 @@ impl Component for Table {
             style.icon_size,
             style.icon_spacing,
         );
+        let motion = use_hook(|| {
+            Rc::new(RefCell::new(RowMotion {
+                rows: self.rows.clone(),
+                slots: Rc::default(),
+                start: Instant::now(),
+                animation: Animation::None,
+            }))
+        });
+        let ghosts = use_hook(|| Rc::new(RefCell::new(HashMap::<usize, Element>::new())));
+        let mut serial = use_state(|| 0u32);
+        let clock = use_animation_transition(serial, {
+            let motion = motion.clone();
+            move |_: u32, _| Clock::new(0.0, 1.0).time(motion.borrow().animation.duration_ms())
+        });
+        clock.get();
+        if *motion.borrow().rows != *self.rows {
+            let animation = transaction_at(Instant::now()).map_or(Animation::None, |_| {
+                effective(style.animation, crate::theme::resolved().reduced_motion)
+            });
+            motion
+                .borrow_mut()
+                .change(self.rows.clone(), animation, |row| {
+                    ghosts.borrow_mut().remove(&row)
+                });
+            ghosts.borrow_mut().clear();
+            if animation.duration_ms() > 0 {
+                *serial.write() += 1;
+            }
+        }
+        let moving = motion.borrow().frame();
+        let (_, scrolled): (i32, i32) = controller.into();
+        let first_shown = (-scrolled).max(0) as usize / style.row_height.max(1.0) as usize;
+        let shown_rows = first_shown
+            ..first_shown + (*body_height.read() / style.row_height.max(1.0)) as usize + 2;
+        let scrolled_outside = self.scrolled_outside;
+        ghosts
+            .borrow_mut()
+            .retain(|row, _| scrolled_outside || shown_rows.contains(row));
+        let length = moving
+            .as_ref()
+            .map_or(self.rows.len(), |(_, slots)| slots.len());
+        let row_height = style.row_height;
+        let item_size = match &moving {
+            Some((progress, slots)) => {
+                let (progress, slots) = (*progress, slots.clone());
+                ItemSize::from(move |index: usize| {
+                    slots[index].grow_at(progress).max(0.0) * row_height
+                })
+            }
+            None => ItemSize::from(row_height),
+        };
         let data = (
             self.rows.clone(),
             self.cells.clone(),
@@ -495,7 +552,7 @@ impl Component for Table {
             held,
             separator,
             icons,
-            list_rows,
+            (list_rows, moving),
         );
         let striped = !matches!(
             style.alternate_row_background.resolve(focused),
@@ -544,9 +601,18 @@ impl Component for Table {
                 held,
                 separator,
                 icons,
-                (row_insets, row_separator, row_background, separated),
+                ((row_insets, row_separator, row_background, separated), moving),
             )| {
-                let index = item.index;
+                let slot = moving
+                    .as_ref()
+                    .map(|(progress, slots)| (*progress, &slots[item.index]));
+                let index = match slot {
+                    None => item.index,
+                    Some((_, Slot { row: Some(row), .. })) => *row,
+                    Some((progress, leaving)) => {
+                        return placed(leaving.ghost.clone(), leaving, progress, metrics.1);
+                    }
+                };
                 let (font, row_height, padding_x, inset, row_radius, column_shift): &(
                     Font,
                     f32,
@@ -624,7 +690,7 @@ impl Component for Table {
                     .as_ref()
                     .filter(|_| !selected_row)
                     .map(|fill| fill.call(index));
-                rect()
+                let row = rect()
                     .key(index)
                     .width(Size::fill())
                     .height(Size::px(*row_height))
@@ -649,10 +715,16 @@ impl Component for Table {
                             cb.call(select(&selected, index, *held.peek()));
                         }
                     })
-                    .into_element()
+                    .into_element();
+                ghosts.borrow_mut().insert(index, row.clone());
+                match slot {
+                    Some((progress, slot)) => placed(Some(row), slot, progress, *row_height),
+                    None => row,
+                }
             },
             controller.raw(),
-            (self.rows.len(), style.row_height),
+            (length, style.row_height),
+            item_size,
         );
 
         let rows = self.rows.len();
@@ -724,6 +796,7 @@ fn rows_view<D: PartialEq + 'static>(
     build: impl Fn(VirtualItem, &D) -> Element + 'static,
     controller: Inner,
     (length, row_height): (usize, f32),
+    item_size: ItemSize,
 ) -> Element {
     if scrolled_outside {
         let rows = (0..length).map(|index| {
@@ -739,7 +812,162 @@ fn rows_view<D: PartialEq + 'static>(
         .show_scrollbar(false)
         .scroll_controller(controller)
         .length(length)
-        .item_size(row_height)
+        .item_size(item_size)
+        .into_element()
+}
+
+type RowKey = (Vec<String>, usize);
+
+#[derive(Clone, PartialEq)]
+struct Slot {
+    key: RowKey,
+    row: Option<usize>,
+    grow: (f32, f32),
+    shift: f32,
+    ghost: Option<Element>,
+}
+
+impl Slot {
+    fn grow_at(&self, progress: f32) -> f32 {
+        self.grow.0 + (self.grow.1 - self.grow.0) * progress
+    }
+
+    fn shift_at(&self, progress: f32) -> f32 {
+        self.shift * (1.0 - progress)
+    }
+}
+
+// A row is its values, as SwiftUI's `id: \.self`; equal rows count by occurrence.
+fn row_keys(rows: &[Vec<String>]) -> Vec<RowKey> {
+    let mut seen = HashMap::<&Vec<String>, usize>::new();
+    rows.iter()
+        .map(|row| {
+            let count = seen.entry(row).or_default();
+            *count += 1;
+            (row.clone(), *count - 1)
+        })
+        .collect()
+}
+
+fn settled(rows: &[Vec<String>]) -> Vec<Slot> {
+    row_keys(rows)
+        .into_iter()
+        .enumerate()
+        .map(|(row, key)| Slot {
+            key,
+            row: Some(row),
+            grow: (1.0, 1.0),
+            shift: 0.0,
+            ghost: None,
+        })
+        .collect()
+}
+
+// Heights and shifts are in rows. A leaving row stays after the row before it and collapses there; every row starts where it was shown (FLIP).
+fn rearranged(
+    old: &[Slot],
+    progress: f32,
+    rows: &[Vec<String>],
+    mut ghost: impl FnMut(usize) -> Option<Element>,
+) -> Vec<Slot> {
+    let tops = old.iter().scan(0.0, |top, slot| {
+        let shown = *top + slot.shift_at(progress);
+        *top += slot.grow_at(progress);
+        Some(shown)
+    });
+    let before: HashMap<&RowKey, (f32, f32)> = old
+        .iter()
+        .zip(tops)
+        .map(|(slot, top)| (&slot.key, (slot.grow_at(progress), top)))
+        .collect();
+    let keys = row_keys(rows);
+    let staying: HashSet<&RowKey> = keys.iter().collect();
+    let mut leaving = HashMap::<Option<&RowKey>, Vec<Slot>>::new();
+    let mut anchor = None;
+    for slot in old {
+        let grow = slot.grow_at(progress);
+        if staying.contains(&slot.key) {
+            anchor = Some(&slot.key);
+        } else if grow > 0.0 {
+            leaving.entry(anchor).or_default().push(Slot {
+                row: None,
+                grow: (grow, 0.0),
+                ghost: slot.ghost.clone().or_else(|| slot.row.and_then(&mut ghost)),
+                ..slot.clone()
+            });
+        }
+    }
+    let mut slots = leaving.remove(&None).unwrap_or_default();
+    for (row, key) in keys.iter().enumerate() {
+        slots.push(Slot {
+            key: key.clone(),
+            row: Some(row),
+            grow: (before.get(key).map_or(0.0, |&(grow, _)| grow), 1.0),
+            shift: 0.0,
+            ghost: None,
+        });
+        slots.extend(leaving.remove(&Some(key)).unwrap_or_default());
+    }
+    let mut top = 0.0;
+    for slot in &mut slots {
+        if let Some(&(_, shown)) = before.get(&slot.key) {
+            slot.shift = shown - top;
+        }
+        top += slot.grow.0;
+    }
+    slots
+}
+
+struct RowMotion {
+    rows: Rc<Vec<Vec<String>>>,
+    slots: Rc<Vec<Slot>>,
+    start: Instant,
+    animation: Animation,
+}
+
+impl RowMotion {
+    fn fraction(&self) -> f32 {
+        match self.animation.duration_ms() {
+            0 => 1.0,
+            ms => (self.start.elapsed().as_secs_f32() * 1000.0 / ms as f32).min(1.0),
+        }
+    }
+
+    fn change(
+        &mut self,
+        rows: Rc<Vec<Vec<String>>>,
+        animation: Animation,
+        ghost: impl FnMut(usize) -> Option<Element>,
+    ) {
+        if animation.duration_ms() > 0 {
+            let progress = self.animation.progress(self.fraction());
+            let old = match self.fraction() < 1.0 {
+                true => self.slots.to_vec(),
+                false => settled(&self.rows),
+            };
+            self.slots = Rc::new(rearranged(&old, progress, &rows, ghost));
+        }
+        self.rows = rows;
+        self.start = Instant::now();
+        self.animation = animation;
+    }
+
+    fn frame(&self) -> Option<(f32, Rc<Vec<Slot>>)> {
+        let fraction = self.fraction();
+        (fraction < 1.0).then(|| (self.animation.progress(fraction), self.slots.clone()))
+    }
+}
+
+fn placed(row: Option<Element>, slot: &Slot, progress: f32, row_height: f32) -> Element {
+    let grow = slot.grow_at(progress);
+    rect()
+        .width(Size::fill())
+        .height(Size::px(grow.max(0.0) * row_height))
+        .offset_y(slot.shift_at(progress) * row_height)
+        .opacity(grow.clamp(0.0, 1.0))
+        .overflow(Overflow::Clip)
+        .interactive(slot.row.is_some())
+        .maybe_child(row)
         .into_element()
 }
 
@@ -813,5 +1041,82 @@ impl Component for HeaderCell {
                     ))
             }));
         interaction.inner_focus_ring(cell)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn rows(names: &[&str]) -> Vec<Vec<String>> {
+        names.iter().map(|name| vec![name.to_string()]).collect()
+    }
+
+    fn shown(slots: &[Slot], progress: f32) -> Vec<(String, f32, f32)> {
+        let mut top = 0.0;
+        slots
+            .iter()
+            .map(|slot| {
+                let at = top + slot.shift_at(progress);
+                top += slot.grow_at(progress);
+                (slot.key.0[0].clone(), at, slot.grow_at(progress))
+            })
+            .collect()
+    }
+
+    #[test]
+    fn inserted_row_grows_and_rows_below_start_where_they_were() {
+        let slots = rearranged(
+            &settled(&rows(&["a", "c"])),
+            1.0,
+            &rows(&["a", "b", "c"]),
+            |_| None,
+        );
+        assert_eq!(
+            shown(&slots, 0.0),
+            [
+                ("a".into(), 0.0, 1.0),
+                ("b".into(), 1.0, 0.0),
+                ("c".into(), 1.0, 1.0)
+            ]
+        );
+        assert_eq!(shown(&slots, 1.0)[2], ("c".into(), 2.0, 1.0));
+    }
+
+    #[test]
+    fn removed_row_stays_in_place_and_collapses() {
+        let slots = rearranged(
+            &settled(&rows(&["a", "b", "c"])),
+            1.0,
+            &rows(&["a", "c"]),
+            |_| None,
+        );
+        assert_eq!(slots[1].row, None);
+        assert_eq!(shown(&slots, 0.0)[2], ("c".into(), 2.0, 1.0));
+        assert_eq!(shown(&slots, 1.0)[2], ("c".into(), 1.0, 1.0));
+    }
+
+    #[test]
+    fn moved_rows_slide_from_their_old_place() {
+        let slots = rearranged(
+            &settled(&rows(&["a", "b", "c"])),
+            1.0,
+            &rows(&["c", "a", "b"]),
+            |_| None,
+        );
+        let start: Vec<f32> = shown(&slots, 0.0).iter().map(|(_, at, _)| *at).collect();
+        assert_eq!(start, [2.0, 0.0, 1.0]);
+    }
+
+    #[test]
+    fn change_midway_starts_from_the_rows_shown() {
+        let first = rearranged(
+            &settled(&rows(&["a", "c"])),
+            1.0,
+            &rows(&["a", "b", "c"]),
+            |_| None,
+        );
+        let second = rearranged(&first, 0.5, &rows(&["a", "c"]), |_| None);
+        assert_eq!(shown(&second, 0.0), shown(&first, 0.5));
     }
 }

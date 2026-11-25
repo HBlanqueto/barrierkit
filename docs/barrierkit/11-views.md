@@ -341,7 +341,7 @@ title 10.75 in: `.style(|s| GroupBoxStyle { label_height: 12.0, label_inset: 10.
 `DisclosureGroup::new(label).expanded(bool).child(view)`: a header row with a
 chevron that shows or hides its children, which SwiftUI does not indent
 (`DisclosureGroupStyle::indent` is 0). `.expanded` is the starting state; after
-that the user owns it.
+that the user owns it. A press unrolls the children and turns the chevron 90 degrees over `DURATION_DISCLOSURE_MS` (248 ms) on `ease_default`, as SwiftUI; `DisclosureGroupStyle::animation` changes it ([animations](14-animations.md#what-animates-in-the-kit)).
 
 ### Style
 
@@ -411,6 +411,29 @@ different `TableStyle`.
 
 Rows are separated by a hairline from the start of the text to the end of the
 row. A selected row and its neighbors have none.
+
+### Rows inserted, removed and moved
+
+A `List` or `Table` whose rows change inside
+[`with_animation`](14-animations.md#implicit-animation) animates the change, as
+SwiftUI's `List` does; outside it the rows jump.
+
+```rust
+Button::new("Add").on_press(move |_| with_animation(Animation::Ease { duration_ms: DURATION_BASE }, || names.write().insert(0, "New".into())))
+```
+
+1. A row is its strings, as SwiftUI's `ForEach(.., id: \.self)`; equal rows
+   count by order. A row whose strings change leaves and a new one comes.
+2. An inserted row grows from 0 to its height and fades in; the rows below
+   slide down. A removed row keeps the last look it was drawn with, fades out
+   and collapses where it was. A moved row slides from where it was shown.
+3. The motion is `TableStyle::animation`, CA default (0.25, 0.1, 0.25, 1) over
+   `DURATION_LIST_ROW_MS` (248), whatever animation `with_animation` names:
+   the measured SwiftUI list ignores it. A change midway starts from the rows
+   shown. Reduced motion and `set_animation_speed` apply.
+4. A removed row that was not on screen is not drawn while it collapses; a row
+   that moves off screen leaves at once. The sections of a sectioned `List`
+   change their height at once.
 
 ### Views in rows and cells
 
@@ -571,6 +594,8 @@ without it the view keeps its own. Ctrl+click and Shift+click work over the visi
 of the row, except in the last top-level node, next to a selected row and
 under the last row. `.scroll_bar(bool)` hides the scroll bar.
 
+`OutlineView` is the AppKit outline: a press on a chevron expands the row over `DURATION_OUTLINE_EXPAND_MS` (200 ms) on `ease_out_appkit`; a collapse and the chevron turn are instant, as `NSOutlineView`. `OutlineViewStyle::animation` changes the expansion. SwiftUI's `List(children:)` is a tree of `DisclosureGroup`s, which animates both ways.
+
 `OutlineViewStyle::classic()` is `NSOutlineView` with the default cell views:
 gray icons, no hairlines and the title 19 after the disclosure column;
 `OutlineViewStyle::full_width()` is the same with square rows from edge to
@@ -643,7 +668,9 @@ It fills the space it is given.
 | `NoTabsLineBorder` | `.noTabsLineBorder` | A square 1 line, no fill |
 | `NoTabsNoBorder` | `.noTabsNoBorder` | The page alone |
 
-The left and right strips of `NSTabView` are not drawn. The tab view that SwiftUI hosts draws the same
+On a `Top` or `Bottom` strip the pill of the chosen tab slides to the new tab on
+`TabViewStyle::animation`, a spring of `SPRING_SHEET_MS`; the page changes with
+no animation. The left and right strips of `NSTabView` are not drawn. The tab view that SwiftUI hosts draws the same
 box and strip. The fields are in
 [Styles and themes](../../crates/bk/src/styles/tab_view.rs); the numbers are in
 [the measurements](../research/macos-control-metrics.md#tab-views).
@@ -900,12 +927,13 @@ a `State`, like `History`).
 | `NavigationLink::new(label, route)` | A button that pushes `route` onto the path of the stack above |
 | `use_navigation_path::<R>()` | The path of the stack above, for a page that pops or pushes from code |
 
-A push moves the new page in from the right edge and the page below 30 % of
-the width to the left (`NAVIGATION_PARALLAX`), dimmed by a black of 0.13
-(`NAVIGATION_DIM`), on a critically damped spring of `SPRING_PUSH_MS`; a pop is
-the same reversed. Only the pages in motion are mounted: once the stack
+A push moves the new page in from the right edge on a critically damped spring
+of `SPRING_PUSH_MS`, as SwiftUI does on macOS; the page below stays, with no
+parallax (`NAVIGATION_PARALLAX` 0) and no dimming (`NAVIGATION_DIM` 0). A pop is
+the same reversed. Any change of the path animates, not only a `with_animation`
+one. Only the pages in motion are mounted: once the stack
 settles only the top page is drawn, so a page rebuilds its state when the path
-pops back to it. The edge shadow of UIKit is not drawn.
+pops back to it.
 
 ## Search
 

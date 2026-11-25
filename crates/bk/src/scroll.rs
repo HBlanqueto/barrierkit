@@ -728,8 +728,11 @@ pub(crate) fn use_scroll_bar(
             });
         }
     }
-    let fade =
-        crate::animation::use_animated(f32::from(u8::from(*scrolling.read())), style.animation);
+    let shown = *scrolling.read();
+    let fade = crate::animation::use_animated(
+        f32::from(u8::from(shown)),
+        if shown { style.fade_in } else { style.fade_out },
+    );
     let visibility = if always { 1.0 } else { fade };
     let (breadth, opacity, edge) = if always {
         (style.track_width, style.thumb_opacity, style.inset)

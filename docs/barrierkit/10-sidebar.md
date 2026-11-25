@@ -182,7 +182,7 @@ window the selection turns gray.
 ### `SidebarSection`
 
 A titled group of rows. It mounts open; a press on its title collapses or
-opens it with a `SPRING_SHEET_MS` (344 ms) spring without bounce. A chevron appears on the title on hover
+opens it over `DURATION_DISCLOSURE_MS` (248 ms) on `ease_default`, as SwiftUI's `Section(isExpanded:)`: the rows unroll and the chevron turns 90 degrees. `SidebarSectionStyle::animation` changes it. A chevron appears on the title on hover
 or with the keyboard focus.
 
 | Method | Effect |
@@ -271,13 +271,15 @@ exists only with `.resizable(true)` and while the sidebar is fully open.
 
 1. On hover and while dragging only the cursor changes, to `col-resize`, as
    over an AppKit split view divider.
-2. While dragging, the width follows the pointer and stays in the range.
-3. Tab focuses the grip; ← and → change the width by `SPLIT_VIEW.key_step`
-   (10 px) with a `DURATION_FAST_MS` (120 ms) ease. With reduced motion the
-   change is immediate. A focused grip shows an accent line of
+2. While dragging, the width follows the pointer 1:1 and stays in the range.
+   Below half of the minimum the sidebar hides in that frame; above it, it
+   shows again.
+3. A double click on the grip sets the width to the minimum in one frame.
+4. Tab focuses the grip; ← and → change the width by `SPLIT_VIEW.key_step`
+   (10 px) in one frame. A focused grip shows an accent line of
    `SPLIT_VIEW.grip_line` (2 px), `grip_line_inset` (18 px) from the top and
    the bottom.
-4. On release, `on_layout` receives the new width.
+5. On release, `on_layout` receives the new width.
 
 ### Hiding: `SidebarToggle` and `TOGGLE_SIDEBAR`
 
@@ -301,7 +303,10 @@ narrow window, the sidebar does not move it.
 the shortcut Ctrl+Alt+S. `SplitView` answers its shortcut itself; add the
 action to the app's menu to show it there.
 
-Hiding and showing animate over `DURATION_BASE` (250 ms).
+`SidebarControl::toggle` (the button, the shortcut, the menu) animates over
+`DURATION_BASE` (250 ms) through `SplitViewStyle::animation`; inside
+`with_animation(Animation::None, ..)` it is instant. The inspector always
+animates.
 
 ### Narrow windows
 

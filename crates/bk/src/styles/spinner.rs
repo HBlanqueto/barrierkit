@@ -9,14 +9,16 @@ pub struct SpinnerStyle {
     pub size: f32,
     /// Tengen: `PROGRESS.spinner_spokes`.
     pub spokes: u32,
+    /// Tengen: `PROGRESS.spinner_frames`: the steps of one turn; the fade moves a spoke every `frames / spokes` of them.
+    pub frames: u32,
     /// Tengen: `SYMBOL.stroke`.
     pub stroke: f32,
     /// Tengen: `spoke` `Role(SecondaryLabel)`, fading around the turn.
     pub spoke: StateValue<ShapeStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `Custom { duration_ms: PROGRESS.spinner_ms, curve: identity }`: one turn, spoke
-    /// by spoke, again and again.
+    /// Tengen: `Custom { duration_ms: PROGRESS.spinner_ms, curve: identity }`: one turn in
+    /// `frames` steps, again and again.
     pub animation: Animation,
 }
 
@@ -34,6 +36,7 @@ impl ControlStyle for SpinnerStyle {
         Self {
             size: PROGRESS.spinner_sizes[ControlSize::Regular as usize],
             spokes: PROGRESS.spinner_spokes,
+            frames: PROGRESS.spinner_frames,
             stroke: SYMBOL.stroke,
             spoke: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             opacity: 1.0,

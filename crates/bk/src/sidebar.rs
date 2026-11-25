@@ -10,6 +10,7 @@ use torin::prelude::{Alignment, Area, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
 use crate::adornments::Avatar;
+use crate::animation::with_animation;
 use crate::focus::{FocusState, Focused, use_focus_state};
 use crate::interaction::{control_state, use_interaction};
 use crate::platform::WindowControls;
@@ -17,9 +18,9 @@ use crate::scroll::ScrollView;
 use crate::style::{Palette, text, text_style, with_font};
 use crate::styles::Painted;
 use crate::styles::{
-    ControlState, LayoutDirection, Paints, ShapeStyle, SidebarAccountStyle, SidebarItemStyle,
-    SidebarSectionStyle, SidebarStyle, StateValue, SymbolTileStyle, Theme, TrafficLightsStyle,
-    resolve,
+    Animation, ControlState, LayoutDirection, Paints, ShapeStyle, SidebarAccountStyle,
+    SidebarItemStyle, SidebarSectionStyle, SidebarStyle, StateValue, SymbolTileStyle, Theme,
+    TrafficLightsStyle, resolve,
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol, tile_symbol};
 use crate::theme;
@@ -113,6 +114,7 @@ pub struct SidebarControl {
     pub(crate) occupied: State<f32>,
     pub(crate) settled: State<bool>,
     pub(crate) overlaid: State<bool>,
+    pub(crate) animation: State<Animation>,
     pub(crate) present: bool,
 }
 
@@ -127,15 +129,17 @@ impl SidebarControl {
 
     pub fn toggle(self) {
         let (mut visible, mut auto_hidden) = (self.visible, self.auto_hidden);
-        auto_hidden.set(false);
-        let shown = *visible.peek();
-        visible.set(!shown);
+        with_animation(*self.animation.peek(), || {
+            auto_hidden.set(false);
+            let shown = *visible.peek();
+            visible.set(!shown);
+        });
     }
 
     pub fn dismiss(self) {
         let mut visible = self.visible;
         if *self.overlaid.peek() {
-            visible.set(false);
+            with_animation(*self.animation.peek(), || visible.set(false));
         }
     }
 }
@@ -660,12 +664,9 @@ impl Component for SidebarSection {
             move |_| expanded.toggle()
         };
 
-        let mut content_height = use_state(|| 0.0f32);
+        let measured = use_state(|| 0.0f32);
         let progress =
             crate::animation::use_animated(f32::from(u8::from(*expanded.read())), style.animation);
-        let measured_height = *content_height.read();
-        let height = progress * measured_height;
-        let drawer_offset = -(1.0 - progress) * measured_height;
 
         let root = rect()
             .width(Size::fill())
@@ -694,35 +695,23 @@ impl Component for SidebarSection {
                             .max_lines(1),
                     )
                     .maybe(show_chevron, |el| {
-                        let chevron = if *expanded.read() {
-                            Symbol::ChevronDown
-                        } else {
-                            Symbol::ChevronRight
-                        };
-                        el.child(symbol(
-                            chevron,
-                            style.chevron_size,
-                            paints.color(style.chevron.resolve(state)),
+                        el.child(crate::views::group::turning_chevron(
+                            symbol(
+                                Symbol::ChevronRight,
+                                style.chevron_size,
+                                paints.color(style.chevron.resolve(state)),
+                            ),
+                            progress,
+                            (0.0, 0.0),
+                            (0.0, 0.0),
                         ))
                     }),
             )
-            .child(
-                rect()
-                    .width(Size::fill())
-                    .height(Size::px(height))
-                    .offset_y(drawer_offset)
-                    .overflow(Overflow::Clip)
-                    .direction(Direction::Vertical)
-                    .child(
-                        rect()
-                            .width(Size::fill())
-                            .direction(Direction::Vertical)
-                            .on_sized(move |event: Event<SizedEventData>| {
-                                content_height.set_if_modified(event.data().area.size.height);
-                            })
-                            .children(self.children.iter().cloned()),
-                    ),
-            );
+            .child(crate::views::group::drawer(
+                progress,
+                measured,
+                self.children.iter().cloned(),
+            ));
         self.overrides.apply(root)
     }
 }

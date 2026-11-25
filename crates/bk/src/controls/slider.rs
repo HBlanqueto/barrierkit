@@ -131,6 +131,7 @@ impl Component for Slider {
         let origin = use_state(CursorPoint::default);
         let continuous = self.continuous;
         let pending = use_state(|| None::<f32>);
+        let moves = use_state(|| 0u8);
 
         let vertical = style.axis == Axis::Vertical;
         let layout_direction = ambient();
@@ -146,13 +147,13 @@ impl Component for Slider {
         let nudge = if stepped { 1.0 } else { span * SLIDER_KEY_STEP };
         let run = (length - knob).max(0.0);
         let current = pending.read().unwrap_or(*value.read()).clamp(low, high);
-        let animation = crate::animation::effective(style.animation, interaction.held());
+        let animation = level::click_animation(interaction, moves, style.animation);
         let fraction = (current - low) / span;
         let knob_at = run * crate::animation::use_animated(fraction, animation);
         let knob_scale = level::use_pressed_scale(
             interaction.held(),
             style.knob_pressed_scale,
-            style.animation,
+            style.press_animation,
         );
         let glass = style
             .knob_glass
@@ -229,7 +230,7 @@ impl Component for Slider {
                 }
             })
             .maybe(!disabled, |el| {
-                level::on_drag(el, interaction, origin, set_from_point, drag)
+                level::on_drag(el, interaction, origin, moves, set_from_point, drag)
                     .on_global_pointer_up(move |_| {
                         interaction.release();
                         let mut pending = pending;

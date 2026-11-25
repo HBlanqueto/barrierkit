@@ -113,7 +113,11 @@ impl Component for Switch {
         let travel = width - knob_width - 2.0 * style.inset;
         let dragged = (*grab.read())
             .map(|current| grabbed_progress(current.was_on, current.shift, travel, right_to_left));
-        let animation = crate::animation::effective(style.animation, interaction.held());
+        let animation = if interaction.held() {
+            crate::styles::Animation::None
+        } else {
+            style.animation
+        };
         let progress = crate::animation::use_animated(
             dragged.unwrap_or(f32::from(u8::from(is_on))),
             animation,

@@ -71,6 +71,7 @@ impl Component for CircularSlider {
         let paints = Paints::current(state);
         let value = self.value;
         let origin = use_state(CursorPoint::default);
+        let moves = use_state(|| 0u8);
         let current = value.read().clamp(0.0, 1.0);
         let size = style.size;
         let (from, to, width) = style.dash;
@@ -95,7 +96,7 @@ impl Component for CircularSlider {
                 node.set_numeric_value_step(f64::from(SLIDER_KEY_STEP));
             })
             .maybe(!disabled, |el| {
-                level::on_drag(el, interaction, origin, set_from_point, update).on_key_down(
+                level::on_drag(el, interaction, origin, moves, set_from_point, update).on_key_down(
                     move |event: Event<KeyboardEventData>| match event.key {
                         Key::Named(NamedKey::ArrowUp | NamedKey::ArrowRight) => {
                             step((current + SLIDER_KEY_STEP).min(1.0))

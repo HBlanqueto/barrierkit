@@ -107,6 +107,7 @@ const TRANSACTION_WINDOW: Duration = Duration::from_millis(100);
 thread_local! {
     static NESTING: Cell<u32> = const { Cell::new(0) };
     static TRANSACTION: Cell<Option<(Instant, Animation)>> = const { Cell::new(None) };
+    static SPEED: Cell<f32> = const { Cell::new(1.0) };
 }
 
 // Freya's State has one write path the kit cannot tag, so the outermost call of a turn decides (docs/barrierkit/14-animations.md#implicit-animation).
@@ -132,8 +133,13 @@ pub(crate) fn effective(animation: Animation, reduced_motion: bool) -> Animation
     if reduced_motion {
         Animation::None
     } else {
-        animation
+        animation.speed(SPEED.get())
     }
+}
+
+// Scales every animation of the app: 2.0 plays them twice as fast. An animation of its own uses `Animation::speed`.
+pub fn set_animation_speed(speed: f32) {
+    SPEED.set(speed.max(0.01));
 }
 
 // The path of one change: from where it started, with the velocity it had, to where it goes.
@@ -216,6 +222,15 @@ impl Segment {
 }
 
 pub fn use_animated(target: f32, animation: Animation) -> f32 {
+    follow(target, animation, true)
+}
+
+// A value the system animates by itself: a `with_animation` does not change its animation (the determinate `ProgressView`).
+pub(crate) fn use_animated_own(target: f32, animation: Animation) -> f32 {
+    follow(target, animation, false)
+}
+
+fn follow(target: f32, animation: Animation, transactional: bool) -> f32 {
     let segment = use_hook(|| Rc::new(Cell::new(Segment::new(target, target, 0.0, animation))));
     let mut serial = use_state(|| 0u32);
     let elapsed = use_animation_transition(serial, {
@@ -234,7 +249,9 @@ pub fn use_animated(target: f32, animation: Animation) -> f32 {
     let shown = current.value(fraction);
     if current.to != target {
         let animation = effective(
-            transaction_at(Instant::now()).unwrap_or(animation),
+            transaction_at(Instant::now())
+                .filter(|_| transactional)
+                .unwrap_or(animation),
             crate::theme::resolved().reduced_motion,
         );
         segment.set(current.retarget(fraction, target, animation));

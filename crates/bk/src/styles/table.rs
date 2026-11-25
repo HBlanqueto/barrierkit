@@ -1,7 +1,9 @@
-use ctdesign::{BODY, CAPTION, ControlSize, Font, HAIRLINE, Rgba, SPACE_1, TABLE};
+use ctdesign::{
+    BODY, CAPTION, ControlSize, DURATION_LIST_ROW_MS, Font, HAIRLINE, Rgba, SPACE_1, TABLE,
+};
 
 use crate::style::Palette;
-use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
+use crate::styles::{Animation, ControlStyle, Role, ShapeStyle, StateValue};
 
 /// `OutlineViewStyle` is one style for `OutlineView` and `Browser`, which draw
 /// the same rows; the rows of the font panel of `FontPicker` take it too.
@@ -73,6 +75,8 @@ pub struct TableStyle {
     /// Tengen: `Role(SecondaryLabel)`, `Role(OnSelectedContent)` while the table has focus;
     /// `Accent` in `source_list`.
     pub selected_icon: StateValue<ShapeStyle>,
+    /// Tengen: `Custom { duration_ms: DURATION_LIST_ROW_MS, curve: ease_default }`, SwiftUI's rows inserted, removed or moved inside `with_animation`, whatever its animation.
+    pub animation: Animation,
 }
 
 fn stripe() -> StateValue<ShapeStyle> {
@@ -138,6 +142,10 @@ impl ControlStyle for TableStyle {
             icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel)),
             selected_icon: StateValue::new(ShapeStyle::Role(Role::SecondaryLabel))
                 .focused(ShapeStyle::Role(Role::OnSelectedContent)),
+            animation: Animation::Custom {
+                duration_ms: DURATION_LIST_ROW_MS,
+                curve: ctdesign::ease_default,
+            },
         }
     }
 }

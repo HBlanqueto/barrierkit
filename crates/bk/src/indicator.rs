@@ -5,6 +5,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Direction, Gaps, Position, Size};
 
+use crate::animation::use_animated;
 use crate::controlled::commit;
 use crate::controls::{dimmed, shadowed};
 use crate::elements::{Overrides, forward_overrides};
@@ -335,6 +336,8 @@ impl Component for Gauge {
         let center = size / 2.0;
         let radius = (size - style.stroke) / 2.0;
         let circumference = std::f32::consts::TAU * radius;
+        let animated = use_animated(self.value, style.animation);
+        let value = if self.capacity { self.value } else { animated };
         let (arc, start) = if self.capacity {
             (360.0, -90.0)
         } else {
@@ -347,11 +350,11 @@ impl Component for Gauge {
             )
         };
         let ring = arc_svg(circumference * arc / 360.0);
-        let (x, y) = gauge_marker(&style, self.value);
+        let (x, y) = gauge_marker(&style, value);
         let (track, marker, marker_ink) = if self.capacity {
             (
                 &style.capacity_track,
-                arc_svg(circumference * self.value),
+                arc_svg(circumference * value),
                 &style.capacity_fill,
             )
         } else {

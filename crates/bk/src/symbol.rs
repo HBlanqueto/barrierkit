@@ -18,6 +18,7 @@ use freya_engine::prelude::{
 use torin::prelude::Size;
 
 use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
+use crate::transition::{ContentTransition, ContentTransitioned};
 
 // An SF symbol at 16 pt fills the kit's 20 px frame on the 16 grid (docs/research/macos-icons.md).
 pub(crate) const SF_POINT: f32 = 20.0 / 16.0;
@@ -982,6 +983,7 @@ pub struct Image {
     glass_plate: bool,
     raster_size: Option<f32>,
     frame: Option<(f32, f32)>,
+    content_transition: ContentTransition,
     style: Theme,
 }
 
@@ -1014,6 +1016,7 @@ impl Image {
             glass_plate: false,
             raster_size: None,
             frame: None,
+            content_transition: ContentTransition::Opacity,
             style: Theme::tengen(),
         }
     }
@@ -1086,6 +1089,12 @@ impl Image {
         self.size(font.size as f32 * SF_POINT).font_weight(weight)
     }
 
+    /// A system symbol that changes inside `with_animation` crossfades by default; `Identity` swaps it at once.
+    pub fn content_transition(mut self, transition: ContentTransition) -> Self {
+        self.content_transition = transition;
+        self
+    }
+
     pub fn frame(mut self, width: f32, height: f32) -> Self {
         self.frame = Some((width, height));
         self
@@ -1121,7 +1130,7 @@ impl From<Image> for Element {
                 let stroke = style.stroke * image.scale.weight_strokes()[image.weight as usize];
                 let (width, height) = glyph.frame_ratio();
                 let points = size / SF_POINT;
-                rect()
+                let glyph = rect()
                     .width(Size::px(points * width))
                     .height(Size::px(points * height))
                     .center()
@@ -1130,7 +1139,8 @@ impl From<Image> for Element {
                         size,
                         color,
                     ))
-                    .into_element()
+                    .into_element();
+                ContentTransitioned::new(glyph, image.content_transition).into_element()
             }
             (Source::Data(bytes), TemplateRenderingMode::Original) if plain && is_svg(&bytes) => {
                 SvgViewer::new(bytes)

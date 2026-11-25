@@ -545,6 +545,27 @@ impl Animation {
         }
     }
 
+    pub fn speed(self, speed: f32) -> Self {
+        let scaled = |duration_ms: u64| (duration_ms as f32 / speed.max(0.01)).round() as u64;
+        match self {
+            Self::None => Self::None,
+            Self::Ease { duration_ms } => Self::Ease {
+                duration_ms: scaled(duration_ms),
+            },
+            Self::Spring {
+                duration_ms,
+                bounce,
+            } => Self::Spring {
+                duration_ms: scaled(duration_ms),
+                bounce,
+            },
+            Self::Custom { duration_ms, curve } => Self::Custom {
+                duration_ms: scaled(duration_ms),
+                curve,
+            },
+        }
+    }
+
     pub(crate) fn progress(self, elapsed: f32) -> f32 {
         match self {
             Self::None => 1.0,

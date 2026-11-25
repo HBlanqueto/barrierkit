@@ -78,7 +78,7 @@ SEARCH_FIELD SearchFieldMetrics components.search-field
 TEXT_EDITOR TextEditorMetrics components.text-editor
 ACCENT_RULE AccentRule components.settings.accent-rule
 PROGRESS ProgressMetrics components.progress
-    indeterminate_ms=indeterminate.duration spinner_ms=spinner.duration
+    indeterminate_ms=indeterminate.duration spinner_ms=spinner.duration spinner_frames=spinner.frames fill_ms=fill.duration fill_curve=fill.curve
 TOOLTIP TooltipMetrics components.tooltip delay_ms=delay
 TITLEBAR_REVEAL TitlebarRevealMetrics components.window.titlebar.reveal
 FULLSCREEN_GLASS FullscreenGlassMetrics components.window.titlebar.fullscreen-glass
@@ -174,7 +174,7 @@ MATERIAL_ULTRA_THICK_LIGHT MaterialSet components.material.swiftui.ultra-thick.l
 MATERIAL_ULTRA_THICK_DARK MaterialSet components.material.swiftui.ultra-thick.dark
 MATERIAL_BAR_LIGHT MaterialSet components.material.swiftui.bar.light
 MATERIAL_BAR_DARK MaterialSet components.material.swiftui.bar.dark
-SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay
+SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay fade_in_ms=fade-in fade_out_ms=fade-out
 GESTURE GestureMetrics components.gesture tap_interval_ms=tap-interval long_press_ms=long-press-duration
 SCROLL_PHYSICS ScrollPhysicsMetrics components.scroll-physics velocity_window_ms=velocity-window
 LIST_SECTION ListSectionMetrics components.list-section
@@ -272,6 +272,8 @@ DURATION_LIST_ROW_MS u64 duration.list-row
 DURATION_MENU_CLOSE_MS u64 duration.menu-close
 DURATION_POPOVER_IN_MS u64 duration.popover-in
 DURATION_POPOVER_OUT_MS u64 duration.popover-out
+DURATION_DISCLOSURE_MS u64 duration.disclosure
+DURATION_OUTLINE_EXPAND_MS u64 duration.outline-expand
 SPRING_DAMPING f32 spring.damping
 SPRING_SHEET_MS u64 spring.sheet-duration
 SPRING_ALERT_MS u64 spring.alert-duration

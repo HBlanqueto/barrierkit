@@ -80,6 +80,7 @@ impl Component for LevelSlider {
         let value = self.value;
         let mut width = use_state(|| 0.0f32);
         let origin = use_state(CursorPoint::default);
+        let moves = use_state(|| 0u8);
         let enabled = !disabled;
         let fraction = value.read().clamp(0.0, 1.0);
         let measured = *width.read();
@@ -113,7 +114,7 @@ impl Component for LevelSlider {
                 width.set_if_modified(event.data().area.size.width);
             })
             .maybe(enabled, |el| {
-                on_drag(el, interaction, origin, from_point, set).on_key_down(
+                on_drag(el, interaction, origin, moves, from_point, set).on_key_down(
                     move |event: Event<KeyboardEventData>| {
                         let step = match event.key {
                             Key::Named(NamedKey::ArrowUp) => SLIDER_KEY_STEP,
@@ -128,12 +129,12 @@ impl Component for LevelSlider {
                 )
             });
 
-        let animation = crate::animation::effective(style.animation, interaction.held());
+        let animation = click_animation(interaction, moves, style.animation);
         let knob_x = run * crate::animation::use_animated(fraction, animation);
         let knob_scale = use_pressed_scale(
             interaction.held(),
             style.knob_pressed_scale,
-            style.animation,
+            style.press_animation,
         );
         let glass = style
             .knob_glass
@@ -284,20 +285,36 @@ pub(crate) fn glass_knob(width: f32, height: f32, mut area: State<Area>) -> Rect
         .on_sized(move |event: Event<SizedEventData>| area.set_if_modified(event.area))
 }
 
+// A click jumps to the pointer with the style's animation; the moves after it follow the pointer 1:1, as do keys and code.
+pub(crate) fn click_animation(
+    interaction: Interaction,
+    moves: State<u8>,
+    animation: Animation,
+) -> Animation {
+    if interaction.held() && *moves.read() == 1 {
+        animation
+    } else {
+        Animation::None
+    }
+}
+
 pub(crate) fn on_drag<T: 'static>(
     root: Rect,
     interaction: Interaction,
     mut origin: State<CursorPoint>,
+    mut moves: State<u8>,
     from_point: impl Fn(CursorPoint) -> T + Copy + 'static,
     set: impl Fn(T) + Clone + 'static,
 ) -> Rect {
     let set_move = set.clone();
     root.on_mouse_down(move |event: Event<MouseEventData>| {
         origin.set((event.global_location - event.element_location).to_point());
+        moves.set(1);
         set(from_point(event.element_location));
     })
     .on_global_pointer_move(move |event: Event<PointerEventData>| {
         if interaction.held() {
+            moves.set_if_modified(2);
             set_move(from_point(
                 event.global_location() - origin.peek().to_vector(),
             ));

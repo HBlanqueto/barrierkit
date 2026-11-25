@@ -945,11 +945,12 @@ the kit measures text without laying it out.
 |---|---|
 | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 250, 420 ms |
 | `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
-| `NAVIGATION_PARALLAX`, `NAVIGATION_DIM` | 0.3 of the width and a black of 0.13 laid over the page below a push (Mac Catalyst; the dimming is one reading) |
+| `NAVIGATION_PARALLAX`, `NAVIGATION_DIM` | 0 and 0: the page below a push stays and is not dimmed, as in SwiftUI on macOS (UIKit moves it 0.3 of the width and lays a black of 0.13 over it) |
 | `SCROLL_POCKET_BLUR`, `SCROLL_POCKET_SCALE_*`, `SCROLL_POCKET_OFFSET_*` | 3.4 pt, and the tone `scale * content + offset` (0 to 1 units) of a scroll pocket: 0.5 and 0.5349 in light, 0.4 and 0.0976 in dark; fitted to the pixels of macOS 27.2.1 ([Shader needs](../research/shader-needs.md)) |
 | `SPRING_DAMPING` | 5; no reader in the kit ([14](14-animations.md#spring)) |
-| `DURATION_LIST_ROW_MS`, `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | 300, 200, 210, 120 ms: rows inserted or removed, a menu closing, a popover in and out (Mac Catalyst; [UIKit animations](../research/uikit-animations.md#2-motion-table)) |
-| `SPRING_SHEET_MS`, `SPRING_ALERT_MS`, `SPRING_PUSH_MS` | 344, 274, 251 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents, an alert, a push and pop; the last is a fit |
+| `DURATION_LIST_ROW_MS` | 248 ms: rows of a SwiftUI `List` inserted, removed or moved, measured on macOS ([containers](../research/macos-motion-containers.md#rows-selection-outline)) |
+| `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | 200, 210, 120 ms: a menu closing, a popover in and out (Mac Catalyst; [UIKit animations](../research/uikit-animations.md#2-motion-table)) |
+| `SPRING_SHEET_MS`, `SPRING_ALERT_MS`, `SPRING_PUSH_MS` | 344, 274, 503 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents and the pill of a tab strip (`ω0` 18.3), an alert (Mac Catalyst), a push and pop (`ω0` 12.5, SwiftUI on macOS) |
 
 ### Materials
 

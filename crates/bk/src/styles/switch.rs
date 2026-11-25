@@ -60,7 +60,7 @@ pub struct SwitchStyle {
     pub label_position: Option<Edge>,
     /// Tengen: `BODY`.
     pub label_font: Font,
-    /// Tengen: `Ease { duration_ms: SWITCH.transition_ms }`: the knob slides to an end when it
+    /// Tengen: `Spring { duration_ms: SWITCH.transition_ms, bounce: SWITCH.transition_bounce }`: the knob slides to an end when it
     /// is released; under a drag it follows the cursor. `None` makes it jump.
     pub animation: Animation,
 }
@@ -110,8 +110,9 @@ impl ControlStyle for SwitchStyle {
             },
             label_position: None,
             label_font: BODY,
-            animation: Animation::Ease {
+            animation: Animation::Spring {
                 duration_ms: SWITCH.transition_ms,
+                bounce: SWITCH.transition_bounce,
             },
         }
     }

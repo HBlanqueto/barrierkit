@@ -1,7 +1,7 @@
 use ctappearance::Resolved;
-use ctdesign::{BAR_TRACK_DARK, BAR_TRACK_DARK_TINT, BAR_TRACK_LIGHT, ControlSize, PROGRESS};
-
-use crate::animation::ease_in_out;
+use ctdesign::{
+    BAR_TRACK_DARK, BAR_TRACK_DARK_TINT, BAR_TRACK_LIGHT, ControlSize, PROGRESS, cubic_bezier,
+};
 
 use crate::styles::{
     Animation, ControlStyle, Role, ShadowStyle, Shape, ShapeStyle, StateValue, per_scheme,
@@ -12,8 +12,8 @@ use crate::styles::{
 /// first stop and a `Material` its tint.
 ///
 /// States: only `normal`. `ProgressView::tint(Tint)` is an instance override of
-/// `fill`. With `Animation::None` (also with reduce motion) the segment rests at
-/// the start and the spinner stands still.
+/// `fill`. With `Animation::None` (also with reduce motion) the indeterminate segment rests at
+/// the start and the determinate fill jumps.
 #[derive(Clone, Debug)]
 pub struct ProgressViewStyle {
     /// Tengen: `PROGRESS.height`; the bar fills its width.
@@ -35,9 +35,18 @@ pub struct ProgressViewStyle {
     pub shadows: Vec<ShadowStyle>,
     /// Tengen: `1.0`.
     pub opacity: f32,
-    /// Tengen: `Custom { duration_ms: PROGRESS.indeterminate_ms, curve }` with an ease-in-out
-    /// cubic curve: the segment sweeps there and back.
+    /// Tengen: `Custom { duration_ms: PROGRESS.indeterminate_ms, curve: identity }`: the segment
+    /// crosses the track once and starts again.
     pub animation: Animation,
+    /// Tengen: `Custom { duration_ms: PROGRESS.fill_ms, curve }` along the Bézier
+    /// `PROGRESS.fill_curve`: the determinate fill follows a new value, with or without
+    /// `with_animation`.
+    pub fill_animation: Animation,
+}
+
+fn fill_curve(progress: f32) -> f32 {
+    let [x1, y1, x2, y2] = PROGRESS.fill_curve;
+    cubic_bezier(x1, y1, x2, y2, progress)
 }
 
 impl ProgressViewStyle {
@@ -71,7 +80,11 @@ impl ControlStyle for ProgressViewStyle {
             opacity: 1.0,
             animation: Animation::Custom {
                 duration_ms: PROGRESS.indeterminate_ms,
-                curve: ease_in_out,
+                curve: std::convert::identity,
+            },
+            fill_animation: Animation::Custom {
+                duration_ms: PROGRESS.fill_ms,
+                curve: fill_curve,
             },
         }
     }
@@ -79,6 +92,7 @@ impl ControlStyle for ProgressViewStyle {
     fn accessible(self, appearance: &Resolved) -> Self {
         reduce_motion(self, appearance, |style| Self {
             animation: Animation::None,
+            fill_animation: Animation::None,
             ..style
         })
     }

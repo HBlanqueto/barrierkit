@@ -1,6 +1,6 @@
 use ctdesign::{CAPTION, Font, GAUGE};
 
-use crate::styles::{ControlStyle, Role, ShapeStyle, StateValue};
+use crate::styles::{Animation, ControlStyle, Role, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct GaugeStyle {
@@ -18,6 +18,9 @@ pub struct GaugeStyle {
     pub opacity: f32,
     /// Tengen: `CAPTION`, the value in the center.
     pub font: Font,
+    /// Tengen: `Animation::None`: the marker of the open ring follows a new value only inside
+    /// `with_animation`, with that animation; the closed capacity ring is always instant.
+    pub animation: Animation,
 }
 
 impl ControlStyle for GaugeStyle {
@@ -34,6 +37,7 @@ impl ControlStyle for GaugeStyle {
             label: StateValue::new(ShapeStyle::Role(Role::Label)),
             opacity: 1.0,
             font: CAPTION,
+            animation: Animation::None,
         }
     }
 }
