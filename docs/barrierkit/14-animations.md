@@ -76,7 +76,6 @@ token with its own duration (`SWITCH.transition_ms`,
 | Indeterminate `ProgressView` | `PROGRESS.indeterminate_ms` | In-out, cubic, back and forth |
 | `Spinner` | `PROGRESS.spinner_ms` | Linear, one spoke at a time, looping |
 | Fade between [`Backdrop`](15-backdrops-and-media.md#backdrop) colors | `DURATION_SLOW_MS` | In-out, cubic |
-| [`GlassContainer`](15-backdrops-and-media.md#glass-that-merges) morph | `DURATION_BASE` | Ease out, cubic |
 
 Pressing a button changes its fill to the pressed color; `BUTTON.pressed_scale` is 1, so it does not scale, as in AppKit.
 

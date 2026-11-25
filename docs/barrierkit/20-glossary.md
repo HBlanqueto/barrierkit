@@ -116,6 +116,7 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `ctdesign::FOCUS_RING_COLOR_LIGHT`, `FOCUS_RING_COLOR_DARK`, `FOCUS_RING_COLOR_DARK_TINT` | The focus ring color of each accent in `ctdesign::ACCENTS` | 2026-11-20 |
 | `SidebarItem::symbol(Symbol, tint)` | `SidebarItem::symbol_tile` | 2026-11-22 |
 | `styles::MaterialStyle::blur` | Gone with the Skia blur: the compositor or AppKit draws it (`MaterialStyle::material`) | 2026-11-22 |
+| `styles::GlassContainerStyle::{rim, blur, animation}`, `glass_container::{Morph, plan, MAX_SHAPES}`, `Frame::lerp`, the blur of `ShapeStyle::Material` | Gone with the Skia blur: the system draws the glass, and the kit's fallback is a flat fill | 2026-11-24 |
 | `bk::shell::*` (`run_layer`, `LayerSpec`, `run_lock`, `SessionUnlock`, `Toplevels`, `Activation`, `use_status_items` and every other item of the module), `bk = { …, features = ["shell"] }` | `bk_shell::*`, the same names, in crate `bk-shell`; a shell depends on `bk-shell` (bk-shell) | 2026-11-24 |
 | `bk::theme::for_scheme`, `bk::theme::use_shell_theme` | `bk_shell::for_scheme`, `bk_shell::use_shell_theme` | 2026-11-24 |
 | `ctappearance::dock`, `menubar`, `notifications`, `shell_glass`, `liquid_glass` | `ctshell::dock`, `menubar`, `notifications`, `shell_glass`, `liquid_glass` (ctshell) | 2026-11-24 |
@@ -263,7 +264,7 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `styles::ImageStyle` | struct | ≈ `.imageScale(_:)`, `.foregroundStyle(_:)` | — | ≈ `UIImage.SymbolConfiguration`, ≈ `UIColor` | Default size, symbol stroke and paint of every `Image` | [Styles](../../crates/bk/src/styles/image.rs) |
 | `styles::MaterialStyle` | struct | `Material` | ≈ `NSVisualEffectView.Material` | ≈ `UIBlurEffect.Style` | Tint and rim of `Material`, and the `material` (`ctappearance::material::Material`, Tengen `HudWindow`) a compositor that composes the blur draws behind it | [Styles](../../crates/bk/src/styles/material.rs) |
 | `styles::TopGlassStyle` | struct | ≈ `.scrollEdgeEffectStyle(_:for:)` | — | ≈ `UIScrollEdgeEffect.Style` | Tint and glass metrics of `TopGlass` | [Styles](../../crates/bk/src/styles/top_glass.rs) |
-| `styles::GlassContainerStyle` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | ≈ `UIGlassEffect` | Tint, solid color, rim, blur, morph and `clear` of `GlassContainer` | [Styles](../../crates/bk/src/styles/glass_container.rs) |
+| `styles::GlassContainerStyle` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | ≈ `UIGlassEffect` | Tint, solid color and `clear` of `GlassContainer` | [Styles](../../crates/bk/src/styles/glass_container.rs) |
 | `styles::BackdropStyle` | struct | — | — | — | Angles, opacity and fade of the gradient layers of `Backdrop` | [Styles](../../crates/bk/src/styles/backdrop.rs) |
 | `styles::ScrollViewStyle` | struct | ≈ `.scrollIndicators(_:axes:)` | ≈ `NSScroller.KnobStyle` | ≈ `UIScrollView.showsVerticalScrollIndicator` | Every visual property of the bar, edge fade and top line of `ScrollView` | [Styles](../../crates/bk/src/styles/scroll_view.rs) |
 | `styles::TextEditorStyle` | struct | `TextEditorStyle` | ≈ `NSTextView` (`backgroundColor`, `textColor`) | ≈ `UITextView` | Every visual property of `TextEditor` | [Styles](../../crates/bk/src/styles/text_editor.rs) |
@@ -1713,10 +1714,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `media::use_artwork_from` | fn | ≈ `AsyncImage` | — | — | Hook that decodes image bytes from any loader in the background | [15](15-backdrops-and-media.md#media) |
 | `glass_container::GlassContainer` | struct | `GlassEffectContainer` | `NSGlassEffectContainerView` | `UIGlassContainerEffect` | Row of glass shapes that merge when close and morph on change | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `WindowGlass` | struct | ≈ `.glassEffect(_:in:)` | ≈ `NSGlassEffectView` | ≈ `UIGlassEffect` | Draws its content over a window that is one glass panel; solid `surfaces.window` without compositor glass | [10](10-sidebar.md#glass) |
-| `glass_container::Frame` | struct | — | — | — | A glass shape's rectangle and corner radius; `lerp` mixes two | [15](15-backdrops-and-media.md#glass-that-merges) |
-| `glass_container::Morph` | struct | — | — | — | One shape's move: id, from frame, to frame | [15](15-backdrops-and-media.md#glass-that-merges) |
-| `glass_container::plan` | fn | ≈ `.glassEffectID(_:in:)` | — | — | Pairs shown and new frames by id; new and leaving shapes use neighbours | [15](15-backdrops-and-media.md#glass-that-merges) |
-| `glass_container::MAX_SHAPES` | constant | — | — | — | Most shapes a container draws: 8 | [15](15-backdrops-and-media.md#glass-that-merges) |
+| `glass_container::Frame` | struct | — | — | — | A glass shape's rectangle and corner radius | [15](15-backdrops-and-media.md#glass-that-merges) |
 | `glass_container::Glass` | struct | `Glass` | `NSGlassEffectView.Style` | ≈ `UIGlassEffect.Style` | The variant of a glass: `REGULAR` or `CLEAR` | [15](15-backdrops-and-media.md#glass-on-any-view) |
 | `modifiers::StyleModifiers::glass_effect` | method | `.glassEffect(_:in:)` | `NSGlassEffectView` | `UIGlassEffect` | Puts glass in a shape behind the view: a `GlassContainer` of one item | [15](15-backdrops-and-media.md#glass-on-any-view) |
 

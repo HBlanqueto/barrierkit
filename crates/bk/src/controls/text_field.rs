@@ -314,9 +314,6 @@ impl Component for TextField {
                 .corner_radius(radius)
                 .border(outer_hairline(ink(&style.border)))
                 .maybe(disabled, |el| el.background(color(ink(&style.background))))
-                .map(paints.blur(&style.background), |el, blur| {
-                    el.corner_radius(radius).backdrop_blur(blur)
-                })
                 .on_pointer_enter(move |_| hovered.set(true))
                 .on_pointer_leave(move |_| hovered.set(false))
                 .on_secondary_down(move |event: Event<PressEventData>| {
@@ -568,9 +565,6 @@ impl Component for SearchField {
             .corner_radius(radius)
             .border(outer_hairline(ink(&style.border)))
             .maybe(disabled, |el| el.background(color(ink(&style.background))))
-            .map(paints.blur(&style.background), |el, blur| {
-                el.corner_radius(radius).backdrop_blur(blur)
-            })
             .on_pointer_enter(move |_| hovered.set(true))
             .on_pointer_leave(move |_| hovered.set(false)),
             a11y_id,

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use freya_engine::prelude::{Data, ImageFilter, RuntimeEffect, Shader, image_filters};
+use freya_engine::prelude::{ImageFilter, RuntimeEffect, image_filters};
 use skia_safe::runtime_effect::RuntimeShaderBuilder;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -114,13 +114,6 @@ impl Program {
 
     pub(crate) fn has_uniform(&self, name: &str) -> bool {
         self.slots.iter().any(|slot| slot.name == name)
-    }
-
-    pub(crate) fn shader(&self, arguments: &[(&str, &[f32])]) -> Option<Shader> {
-        let bytes = pack(&self.slots, self.effect.uniform_size(), arguments)
-            .inspect_err(|error| tracing::warn!(%error, "BarrierKit: a shader was not bound"))
-            .ok()?;
-        self.effect.make_shader(Data::new_copy(&bytes), &[], None)
     }
 
     pub(crate) fn filter(&self, arguments: &[(&str, &[f32])], child: &str) -> Option<ImageFilter> {

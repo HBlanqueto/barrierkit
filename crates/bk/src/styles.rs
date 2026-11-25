@@ -339,13 +339,12 @@ impl Thickness {
         }
     }
 
-    fn material(self, glass: Rgba, opaque: bool) -> (Rgba, Option<f32>) {
-        let metrics = self.metrics();
+    fn material(self, glass: Rgba, opaque: bool) -> Rgba {
         let tint = Rgba {
-            a: metrics.opacity,
+            a: self.metrics().opacity,
             ..glass
         };
-        crate::glass::material(tint, glass, metrics.blur, opaque)
+        crate::glass::material(tint, glass, opaque)
     }
 }
 
@@ -662,13 +661,9 @@ pub enum LayoutDirection {
     RightToLeft,
 }
 
-pub(crate) trait Painted: BackgroundExt + DecorationExt + EffectExt + Sized {
+pub(crate) trait Painted: BackgroundExt + DecorationExt + Sized {
     fn painted(self, paints: &Paints, paint: &StateValue<ShapeStyle>) -> Self {
-        let view = self.background(paints.fill(paint));
-        match paints.blur(paint) {
-            Some(blur) => view.backdrop_blur(blur),
-            None => view,
-        }
+        self.background(paints.fill(paint))
     }
 
     fn bordered(self, paints: &Paints, border: Option<&(ShapeStyle, f32)>) -> Self {
@@ -679,7 +674,7 @@ pub(crate) trait Painted: BackgroundExt + DecorationExt + EffectExt + Sized {
     }
 }
 
-impl<T: BackgroundExt + DecorationExt + EffectExt> Painted for T {}
+impl<T: BackgroundExt + DecorationExt> Painted for T {}
 
 pub(crate) struct Paints {
     palette: Palette,
@@ -713,13 +708,6 @@ impl Paints {
         self.fill_of(paint.resolve(self.state))
     }
 
-    pub(crate) fn blur(&self, paint: &StateValue<ShapeStyle>) -> Option<f32> {
-        match paint.resolve(self.state) {
-            ShapeStyle::Material(thickness) => thickness.material(self.glass, self.opaque).1,
-            _ => None,
-        }
-    }
-
     fn fill_of(&self, paint: &ShapeStyle) -> Fill {
         match (paint, self.backdrop) {
             (ShapeStyle::Gradient(gradient), _) => gradient.fill(|stop| self.color(stop)),
@@ -742,7 +730,7 @@ impl Paints {
             ShapeStyle::Backdrop => self
                 .backdrop
                 .map_or(self.palette.accent, |backdrop| backdrop.highlights()[0]),
-            ShapeStyle::Material(thickness) => thickness.material(self.glass, self.opaque).0,
+            ShapeStyle::Material(thickness) => thickness.material(self.glass, self.opaque),
             ShapeStyle::WindowBackground => self.window,
             ShapeStyle::System(system) => {
                 [SYSTEM_COLORS, SYSTEM_COLORS_DARK][appearance_index() % 2][*system as usize]

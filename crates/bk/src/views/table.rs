@@ -190,7 +190,6 @@ pub fn next_sort(current: Option<SortOrder>, column: usize) -> SortOrder {
 #[derive(PartialEq)]
 struct RowLook {
     background: Fill,
-    blur: Option<f32>,
     label: Rgba,
     foreground: ShapeStyle,
 }
@@ -203,7 +202,6 @@ fn row_look(
 ) -> RowLook {
     RowLook {
         background: paints.fill(background),
-        blur: paints.blur(background),
         label: paints.color(label.resolve(state)),
         foreground: label.resolve(state).clone(),
     }
@@ -638,8 +636,7 @@ impl Component for Table {
                         cells(padding_x, *column_shift, values)
                             .height(Size::fill())
                             .corner_radius(continuous_corner(*row_radius))
-                            .background(row_fill.unwrap_or_else(|| look.background.clone()))
-                            .map(look.blur, Rect::backdrop_blur),
+                            .background(row_fill.unwrap_or_else(|| look.background.clone())),
                     )
                     .maybe_child(divided.then(|| {
                         let (fill, (before, after)) = separator;

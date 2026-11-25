@@ -256,7 +256,7 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 | `launch` as a lock and a socket in `$TMPDIR`; a second run activates the first (`platform/macos/instance.rs`) | `ActivateAction`, files to open |
 | `WindowOptions::status_item` as an `NSStatusItem` with the items as its menu (`platform/macos/status.rs`) | A status item that changes after the window opens |
 | `notifications::post` and `portal::notify` as `UNUserNotificationCenter` banners, for a bundled app; the click callbacks of the last 32 posts wait, the older ones are dropped (`platform/macos/notifications.rs`) | A banner shown on screen (not run: the system refused the permission of a test bundle), action buttons |
-| `Timers`, `WakeHandle`, the clipboard (typed: text, HTML, images, files), dragging typed data out | `ShapeStyle::Material` (Skia and the opaque solid) |
+| `Timers`, `WakeHandle`, the clipboard (typed: text, HTML, images, files), dragging typed data out | `ShapeStyle::Material` (the tint and the opaque solid) |
 | The toolbar glass of a `ToolGroup` as an `NSGlassEffectView` on macOS 26 and later (the opaque fill below) | |
 | AppKit's own title bar under a unified `Titlebar` that no `ScrollView` reaches, with the bar row in a titlebar accessory, on macOS 26 and later ([15](15-backdrops-and-media.md#on-macos)) | Per column of a split view |
 | The glass of a toolbar `SegmentedControl`, `ToolbarSearch` field and `Button`, and of `ButtonStyle::glass` and `glass_prominent`, as an `NSGlassEffectView` each on macOS 26 and later, the prominent ones with the accent as `tintColor` ([15](15-backdrops-and-media.md#on-macos)) | SwiftUI's lens over a pressed segment, its press glow on content buttons |
@@ -371,7 +371,7 @@ app calls, who answers on macOS, who answers on Linux.
 | Capability | macOS | Linux (Malaysia) | State |
 |---|---|---|---|
 | Window, popup, popover | `NSWindow` and child panels (`frame.rs`, `popups.rs`) | `xdg_toplevel` and `xdg_popup` on sctk; `set_popover` and `set_popover_shape` style the popup | both |
-| Blur, glass, scroll edge | Core Animation layers (`blur.rs`) | The compositor: `set_backdrop`, `set_glass`, `set_scroll_edge` (version 10) | both; the client keeps its Skia path where Malaysia does not serve a case |
+| Blur, glass, scroll edge | Core Animation layers (`blur.rs`) | The compositor: `set_backdrop`, `set_glass`, `set_scroll_edge` (version 10) | both; where the system serves no glass the client draws a flat fill |
 | Traffic lights, title bar | AppKit's own; under `WindowStyle::Plain` the kit draws them ([Traffic lights](09-titlebars.md#traffic-lights)), the standard look, gray with the graphite accent | The kit draws them; the `accent` and `wallpaper` tints are Linux-only; `set_bar` styles the bar | both |
 | Frame pacing | One `CADisplayLink` per window | The frame callback of the surface ([The frame](#the-frame)) | both |
 | Full screen (the green light) | `toggleFullScreen`, with the menu bar and the Dock hidden for a `Plain` window; the delegate tells `WindowStatus::fullscreen` ([recipe 39](../../.claude/skills/barrierkit-app/recipes.md#39-full-screen-with-each-window-style)) | `xdg_toplevel.set_fullscreen`; the compositor draws the bar | both |

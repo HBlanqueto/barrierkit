@@ -179,9 +179,6 @@ impl Component for ComboBox {
         )
         .corner_radius(radius)
         .border(outer_hairline(ink(&field_style.border)))
-        .map(field_paints.blur(&field_style.background), |el, blur| {
-            el.corner_radius(radius).backdrop_blur(blur)
-        })
         .on_pointer_enter(move |_| hovered.set(true))
         .on_pointer_leave(move |_| hovered.set(false));
         let root = edit_menu(combo_box, field, true, (true, true), None)

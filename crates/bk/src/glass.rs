@@ -43,11 +43,11 @@ fn composed_by_compositor() -> bool {
         && try_consume_root_context::<BackdropSupport>().is_some_and(|support| support.0)
 }
 
-pub(crate) fn material(tint: Rgba, solid: Rgba, blur: f32, opaque: bool) -> (Rgba, Option<f32>) {
+pub(crate) fn material(tint: Rgba, solid: Rgba, opaque: bool) -> Rgba {
     if opaque {
-        (Rgba { a: 1.0, ..solid }, None)
+        Rgba { a: 1.0, ..solid }
     } else {
-        (tint, Some(blur))
+        tint
     }
 }
 

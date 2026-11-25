@@ -1,7 +1,6 @@
-use ctappearance::Resolved;
-use ctdesign::{DURATION_BASE, MEDIA};
+use ctdesign::MEDIA;
 
-use crate::styles::{Animation, ControlStyle, ShapeStyle, StateValue, reduce_motion};
+use crate::styles::{ControlStyle, ShapeStyle, StateValue};
 
 #[derive(Clone, Debug)]
 pub struct GlassContainerStyle {
@@ -10,12 +9,6 @@ pub struct GlassContainerStyle {
     /// Tengen: `Color` of the window's glass, as `TopGlassStyle`, opaque in place of `tint` when
     /// the user reduces transparency.
     pub solid: StateValue<ShapeStyle>,
-    /// Tengen: `Color(MEDIA.round_rim)`, one pixel along the outline.
-    pub rim: StateValue<ShapeStyle>,
-    /// Tengen: `MEDIA.material_blur`.
-    pub blur: f32,
-    /// Tengen: `Ease { duration_ms: DURATION_BASE }`: the shapes morph; `None` makes them jump.
-    pub animation: Animation,
     /// Tengen: `false`. `true` asks the platform that draws the glass itself for `Glass.clear`.
     pub clear: bool,
 }
@@ -25,19 +18,7 @@ impl ControlStyle for GlassContainerStyle {
         Self {
             tint: StateValue::new(ShapeStyle::Color(MEDIA.round_glass)),
             solid: StateValue::new(ShapeStyle::Color(crate::glass::glass_tint())),
-            rim: StateValue::new(ShapeStyle::Color(MEDIA.round_rim)),
-            blur: MEDIA.material_blur,
-            animation: Animation::Ease {
-                duration_ms: DURATION_BASE,
-            },
             clear: false,
         }
-    }
-
-    fn accessible(self, appearance: &Resolved) -> Self {
-        reduce_motion(self, appearance, |style| Self {
-            animation: Animation::None,
-            ..style
-        })
     }
 }

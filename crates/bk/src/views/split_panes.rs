@@ -89,7 +89,6 @@ impl Component for SplitPanes {
                         ratios: ratios.clone(),
                         thickness: divider_width,
                         fill: paints.fill(&style.divider),
-                        blur: paints.blur(&style.divider),
                         on_drag: Callback::new(move |(ratios, delta): (Vec<f32>, f32)| {
                             let free = *length.peek() - divider_width * (count - 1) as f32;
                             if let (Some(on_ratios), true) = (&on_ratios, free > 0.0) {
@@ -129,7 +128,6 @@ struct Divider {
     ratios: Vec<f32>,
     thickness: f32,
     fill: Fill,
-    blur: Option<f32>,
     on_drag: Callback<(Vec<f32>, f32), ()>,
 }
 
@@ -145,9 +143,7 @@ impl Component for Divider {
         } else {
             CursorIcon::RowResize
         };
-        let line = rect()
-            .background(self.fill.clone())
-            .map(self.blur, Rect::backdrop_blur);
+        let line = rect().background(self.fill.clone());
         let thickness = Size::px(self.thickness);
         let line = if horizontal {
             line.width(thickness).height(Size::fill())

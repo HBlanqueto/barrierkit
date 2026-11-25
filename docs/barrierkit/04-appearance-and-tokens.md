@@ -955,9 +955,9 @@ the kit measures text without laying it out.
 
 `MATERIAL: MaterialMetrics` holds one `MaterialThickness` per
 `styles::Thickness`. A `ShapeStyle::Material` paints the glass tint of its
-context (the window color, or the `Backdrop` base) at `opacity` and blurs what
-lies under the part by `blur`. With Reduce Transparency the tint is opaque and
-nothing is blurred.
+context (the window color, or the `Backdrop` base) at `opacity`; the kit blurs
+nothing, and `blur` is for the compositor. With Reduce Transparency the tint is
+opaque.
 
 | Field | `opacity` | `blur` |
 |---|---|---|

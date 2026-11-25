@@ -142,7 +142,7 @@ When the user reduces transparency (`reduce_transparency` or `contrast` in
 `appearance.domain`, off by default, or the system setting on macOS), the glass
 is solid and sharp: `Material` fills with the opaque
 `MEDIA.material_tint`, `GlassContainer` with the window's opaque glass color
-in light or dark, and both keep their rim; `TopGlass` is an opaque band
+in light or dark, and `Material` keeps its rim; `TopGlass` is an opaque band
 in the window color, `FULLSCREEN_GLASS.height` deep.
 
 ### Who draws the blur
@@ -176,11 +176,12 @@ they stay sharp over the compositor's blur. Four rules follow:
    not blur another's. Put a second material in another element.
 
 The kit draws no tint or rim of its own in that mode, so `tint` and `border` of
-`MaterialStyle` have no effect there. On Wayland two things keep drawing their blur with Skia,
-because the compositor does not serve them yet: `GlassContainer` (the lens and
-the merging) and the per-control `ShapeStyle::Material(Thickness)` (a material per
-control would exceed the requesters). The sidebar is not Skia: from version 10 it is a `behind_window` request for the `sidebar`
-material, before that `set_glass`
+`MaterialStyle` have no effect there. The kit blurs nothing itself: where the
+compositor does not serve a glass, `GlassContainer` draws a flat rounded
+rectangle of its tint (the opaque solid under Reduce Transparency), and a
+`ShapeStyle::Material(Thickness)` paints its tint with no blur. The sidebar is
+a `behind_window` request for the `sidebar` material from version 10, before
+that `set_glass`
 ([18](18-platform.md#wayland-protocols)). A real session needs Malaysia to serve the
 requests ([18](18-platform.md#glass-over-the-windows-content)).
 
@@ -188,8 +189,8 @@ requests ([18](18-platform.md#glass-over-the-windows-content)).
 
 WindowServer is the compositor, so the same declarations become native views
 (`platform/macos/blur.rs`), as in the table's first row. The kit draws no blur
-or glass of its own on macOS, except the two Skia blurs above: a
-`ShapeStyle::Material` fill, and a `GlassContainer` before macOS 26. It draws
+or glass of its own on macOS: before macOS 26 a `GlassContainer` is a flat
+fill, and a `ShapeStyle::Material` paints its tint. It draws
 the content and the ink over the glass,
 and SwiftUI on the same macOS is the reference for both. Why is
 [ADR 0118](../decisions.md#0118--on-macos-appkit-composes-every-blur-and-glass-and-swiftui-is-the-reference).
@@ -205,7 +206,7 @@ and SwiftUI on the same macOS is the reference for both. Why is
 | The glass of a `ToolGroup` (the toolbar capsules, the sidebar toggle) | An `NSGlassEffectView` of the default style, as AppKit's toolbar uses (setting `regular` gives another glass), one `HAIRLINE` inside the group, because AppKit draws the glass rim outside its frame, with the inner capsule's radius; two or more in one chrome sit in an `NSGlassEffectContainerView` and merge when near. On macOS 27 the glass is interactive (`effectIsInteractive`): it takes the pointer events over it, lights a press where it lands and hands every event on to the kit's view. An `IconButton` on it draws SwiftUI's 32 pt circle over that light, for hover and press (`TOOLBAR_ITEM_HIGHLIGHT`). On macOS before 26 the group paints its own fill |
 | A toolbar `SegmentedControl`, `ToolbarSearch` field or `Button`, and a `Button` of `ButtonStyle::glass` or `glass_prominent` | One `NSGlassEffectView` of the default style at the control's frame, interactive as above: a toolbar item is a capsule `GLASS_CONTROL.height` (36) high, as SwiftUI's, and a prominent one (`bordered_prominent` in the toolbar, `glass_prominent`) has the accent as `tintColor`. The kit draws only the ink over it (`GLASS_CONTROL`): full-strength labels, the segment thumbs and SwiftUI's hover veil, and no fill or rim. At rest it matches SwiftUI to the level ([measurements](../research/macos-liquid-glass.md#17-controls-on-their-own-glass-measured-2026-11-23)). On macOS before 26 they paint their own fill |
 | A unified `Titlebar` with no sidebar and no `ScrollView` reaching its bottom (`Effect::Titlebar`) | AppKit's own title bar: the window's title bar stops being transparent, so AppKit draws its material and separator as under SwiftUI's toolbar, and the kit's bar row rides above it in an `NSTitlebarAccessoryViewController`. The row's glass takes its press there, and every other pointer event goes to the kit's view. Over a `ScrollView` and in full screen the title bar stays transparent ([measurements](../research/macos-liquid-glass.md#17-controls-on-their-own-glass-measured-2026-11-23)) |
-| `GlassContainer` | One `NSGlassEffectView` per item at the item's frame, all in one `NSGlassEffectContainerView` whose `spacing` is the container's: shapes nearer than it merge with the system's neck and lens. `GlassContainerStyle::clear` makes them `NSGlassEffectViewStyle.clear`. `tint`, `rim` and `blur` do not apply, and the shapes jump to a new frame without the kit's morph |
+| `GlassContainer` | One `NSGlassEffectView` per item at the item's frame, all in one `NSGlassEffectContainerView` whose `spacing` is the container's: shapes nearer than it merge with the system's neck and lens. `GlassContainerStyle::clear` makes them `NSGlassEffectViewStyle.clear`. `tint` does not apply, and the shapes jump to a new frame |
 | The chrome of a glass | A second `CAMetalLayer` view above the effect, which takes no event |
 | A `Popover` | An `NSPopover` whose content view is the kit's `CAMetalLayer`, drawn clear: AppKit draws the glass body, the arrow and the shadow ([7](07-menus-and-popovers.md#popover)) |
 | A held `Slider`, `LevelSlider` or `Switch` knob (`set_knobs` on Linux) | An `NSGlassEffectView` of the clear style over the content view, at the held knob's frame with a capsule radius, removed on release; the kit draws the track with no knob beneath it. AppKit's lens reads inward, so the track fills the lens, where SwiftUI's shows the track in place with a dark rim. On macOS before 26 the knob stays the opaque `knob` paint |
@@ -227,8 +228,8 @@ clear background to let the glass show.
 `Material`, `TopGlass` and `GlassContainer` take `.style(|s| ..)` with a
 [`MaterialStyle`](../../crates/bk/src/styles/material.rs), a
 [`TopGlassStyle`](../../crates/bk/src/styles/top_glass.rs) and a
-[`GlassContainerStyle`](../../crates/bk/src/styles/glass_container.rs): tint,
-blur, rim and, for the container, the morph; `MaterialStyle` has no blur: the compositor draws it, and `MaterialStyle::material` is the
+[`GlassContainerStyle`](../../crates/bk/src/styles/glass_container.rs): tint
+and, for the container, its solid color and `clear`; `MaterialStyle` has no blur: the compositor draws it, and `MaterialStyle::material` is the
 `NSVisualEffectView.Material` a compositor draws behind `Material` (Tengen:
 `HudWindow`).
 `Scrim` has no style: its gradient follows the ground color.
@@ -250,38 +251,22 @@ GlassContainer::new(20.0)
 | `GlassContainer::new(spacing)` | Shapes closer than `spacing` merge |
 | `.gap(gap)` | The layout gap between items; default `spacing` |
 | `.item(id, radius, content)` | One shape around `content`, laid out in a row; `radius` is capped at half its height |
-| `GlassContainerStyle::clear` | `false`; `true` asks a platform that draws the glass itself (macOS 26) for the clear glass. The Skia lens ignores it |
-| `MAX_SHAPES` | 8; shapes past it are not drawn |
+| `GlassContainerStyle::clear` | `false`; `true` asks a platform that draws the glass itself (macOS 26) for the clear glass. Where the kit draws a flat fill, it ignores it |
 
-1. Each item measures its frame. The container paints the union of all frames
-   as one glass: backdrop blur (`MEDIA.material_blur`), the
-   `MEDIA.round_glass` tint and the `MEDIA.round_rim` edge.
-2. The union is a smooth minimum of the rounded-box distances
-   ([smin](https://iquilezles.org/articles/smin/)) in an SkSL shader, so near
-   shapes melt into each other.
-3. When the set of items or their frames change, each shape moves from its
-   old frame to the new one with the `animation` of its style (Tengen:
-   `Ease` over `DURATION_BASE`, the cubic ease-out; none with
-   reduced motion). The first layout does not animate.
-
-The morph plan is public, for tests and for other containers:
-
-| Item | What it is |
-|---|---|
-| `glass_container::Frame` | `x`, `y`, `width`, `height`, `radius`; `.lerp(&to, t)` mixes two frames. It is not the layout [`Frame`](11-views.md#frame) of the prelude |
-| `Morph` | One shape's move: `id`, `from`, `to` |
-| `plan(shown, target)` | The moves from the frames on screen to the new ones |
-
-`plan` keeps each `id` on its own frame. A new id grows out of the nearest
-shown frame, and an id that leaves melts into the nearest new one. Apple does
-not publish its morph curve; only the duration and the bounce would change.
+1. Each item measures its frame.
+2. Where the system draws the glass (macOS 26 and later, or a compositor that
+   serves it), the container declares one glass per item and the system merges
+   the shapes nearer than `spacing`.
+3. Elsewhere each item gets a flat rounded rectangle of `MEDIA.round_glass`, or
+   the window's opaque glass color under Reduce Transparency. The kit blurs
+   nothing and does not morph the shapes.
 
 ## Glass on any view
 
 `view.glass_effect(Glass::REGULAR, Shape::Capsule)` puts glass behind one
 view, as SwiftUI's `glassEffect(_:in:)` does.
 It is a `GlassContainer` of one item, so it takes the native glass on macOS 26
-and later and the kit's blur or opaque solid elsewhere, as the container does.
+and later and a flat fill elsewhere, as the container does.
 
 ```rust
 Text::new("Capsule").padding(14.0).glass_effect(Glass::REGULAR, Shape::Capsule)
@@ -289,7 +274,7 @@ Text::new("Capsule").padding(14.0).glass_effect(Glass::REGULAR, Shape::Capsule)
 
 | Item | What it is |
 |---|---|
-| `Glass::REGULAR`, `Glass::CLEAR` | The variant; the Skia fallback ignores `CLEAR` |
+| `Glass::REGULAR`, `Glass::CLEAR` | The variant; the flat fallback ignores `CLEAR` |
 | `.glass_effect(glass, shape)` | `Capsule` rounds to half the height, `Circle` is centered and square; `RoundedRectangle` takes its radius; an uneven shape takes its largest corner |
 
 - The view draws in the chrome above the glass, so a subtree (a stack with
