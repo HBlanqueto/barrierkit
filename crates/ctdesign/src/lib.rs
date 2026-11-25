@@ -694,18 +694,6 @@ pub struct TitlebarToolbarStart {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct TitlebarRevealMetrics {
-    pub pill_inset: f32,
-    pub pill_padding_x: f32,
-    pub pill_padding_y: f32,
-    pub pill_radius: f32,
-    pub reveal_zone: f32,
-    pub reveal_corner: f32,
-    pub edge_line: f32,
-    pub edge_accent: f32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FullscreenBarMetrics {
     pub content_top: f32,
     pub band_line: f32,

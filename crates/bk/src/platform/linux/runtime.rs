@@ -386,7 +386,7 @@ fn insert_ping(event_loop: &mut EventLoop<Runtime>, shell: &mut Runtime) -> Resu
             "creating the appearance watcher: {error}"
         )))
     })?;
-    let watch_fd = watch.as_fd().try_clone_to_owned().map_err(RunError::Io)?;
+    let watch_fd = watch.as_fd().try_clone_to_owned()?;
     shell.appearance_watch = Some(watch);
     event_loop
         .handle()

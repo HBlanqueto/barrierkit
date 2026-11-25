@@ -288,16 +288,12 @@ impl Component for Titlebar {
         let draws_lights = controls
             .as_ref()
             .is_none_or(WindowControls::draws_traffic_lights);
-        let lights_opacity = crate::chrome::lights_opacity();
-        let traffic = if sidebar || !lights_shown || !draws_lights || lights_opacity == 0.0 {
+        let traffic = if sidebar || !lights_shown || !draws_lights {
             None
         } else {
             Some(
-                rect()
-                    .opacity(lights_opacity)
-                    .child(
-                        TrafficLights::for_window(status.activated, fixed).close_only(close_only),
-                    )
+                TrafficLights::for_window(status.activated, fixed)
+                    .close_only(close_only)
                     .into_element(),
             )
         };
@@ -478,12 +474,7 @@ impl Component for Titlebar {
             let mut taken = controls.titlebar_height;
             taken.set_if_modified(if overlaid || on_hover { 0.0 } else { height });
         }
-        place_overlaid(
-            crate::chrome::revealable_bar(bar, height),
-            height,
-            controls.as_ref(),
-            overlaid,
-        )
+        place_overlaid(bar, height, controls.as_ref(), overlaid)
     }
 }
 

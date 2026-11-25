@@ -22,10 +22,6 @@ const INK_ON_DARK_PANEL: MenuInk = MenuInk {
     disabled: GLASS_INK_FAINT_DARK,
 };
 
-pub fn panel_luma(panel: Rgba) -> f32 {
-    panel.luma()
-}
-
 pub fn dark_ink_over(panel_luma: f32) -> bool {
     panel_luma > MENU_DARK_INK_ABOVE
 }

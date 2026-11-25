@@ -13,19 +13,7 @@ pub mod platform;
 
 #[cfg(feature = "shell")]
 #[doc(hidden)]
-pub mod extension {
-    pub use crate::platform::{
-        app::{AppInstance, InstanceRole, KitSender},
-        extension::{Extension, ExtensionHooks, packed},
-        runtime::{Connected, Runtime},
-        surface::{ExtensionRole, SurfaceRole},
-    };
-    pub use crate::platform::{
-        dbusmenu::layout::{DbusMenuLayout, LayoutItem},
-        session_bus::{connection, export},
-        status_item::{ITEM_PATH, Pixmaps, WATCHER, WATCHER_PATH},
-    };
-}
+pub use platform::shell_extension as extension;
 
 pub mod password;
 
@@ -33,7 +21,7 @@ pub mod theme;
 
 pub mod titlebar;
 
-pub mod chrome;
+mod chrome;
 
 pub mod traffic;
 mod traffic_raster;

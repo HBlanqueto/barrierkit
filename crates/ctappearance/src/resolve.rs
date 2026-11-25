@@ -24,8 +24,8 @@ use ctdesign::{
 };
 
 use crate::{
-    AppearanceConfig, ColorScheme, ScrollBarClick, ScrollBars, TintParts, Toolkit,
-    TrafficLightStyle, WindowColorMode, accent,
+    AppearanceConfig, ColorScheme, ScrollBarClick, ScrollBars, TintParts, TrafficLightStyle,
+    WindowColorMode, accent,
     backdrop::{WallpaperTinting, lift, shift_like, take_chroma, take_chroma_capped},
     icon_style::IconStyle,
     traffic,
@@ -471,7 +471,10 @@ pub fn resolve(
         reduced_motion: appearance.reduced_motion,
         show_borders: appearance.show_borders,
         differentiate_without_color: appearance.differentiate_without_color,
-        text_size: appearance.text_size_for(Toolkit::BarrierKit),
+        text_size: appearance
+            .text_sizes
+            .barrierkit
+            .unwrap_or(appearance.text_size),
         icon_style: appearance.icon_style,
         icon_dark: appearance
             .icon_style

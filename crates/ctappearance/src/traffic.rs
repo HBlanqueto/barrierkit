@@ -26,20 +26,6 @@ pub fn button_rect(index: usize) -> (f64, f64, f64) {
     )
 }
 
-pub fn hit(point: (f64, f64)) -> Option<ButtonKind> {
-    let (px, py) = point;
-    TITLEBAR
-        .buttons
-        .order
-        .iter()
-        .enumerate()
-        .find_map(|(index, button)| {
-            let (x, y, size) = button_rect(index);
-            let half = size / 2.0;
-            ((px - x - half).hypot(py - y - half) <= half).then_some(button.kind)
-        })
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct TrafficInput {
     pub focused: bool,
@@ -214,13 +200,6 @@ pub struct TrafficPointer {
 }
 
 impl TrafficPointer {
-    pub fn on_motion(&mut self, hit: Option<ButtonKind>, over_group: bool) -> bool {
-        let before = (self.hovered, self.over_armed);
-        self.hovered = over_group;
-        self.over_armed = self.armed.is_some() && self.armed == hit;
-        before != (self.hovered, self.over_armed)
-    }
-
     pub fn on_group_enter(&mut self) -> bool {
         let changed = !self.hovered;
         self.hovered = true;

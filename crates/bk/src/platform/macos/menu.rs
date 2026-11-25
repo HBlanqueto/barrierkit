@@ -152,9 +152,7 @@ fn entries(items: &[MenuItem]) -> Vec<Entry> {
                 title: label.to_string(),
             }),
             MenuItem::Separator => Some(Entry::Separator),
-            MenuItem::Palette { .. }
-            | MenuItem::SearchField { .. }
-            | MenuItem::SearchResult { .. } => None,
+            MenuItem::Palette { .. } => None,
         })
         .collect()
 }

@@ -7,7 +7,7 @@ use std::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::Duration,
 };
 
 pub(crate) type TimerQueue = Rc<RefCell<Vec<(Duration, Rc<dyn Fn()>)>>>;
@@ -95,12 +95,6 @@ impl Timers {
         timer
     }
 
-    pub fn every_minute(&self, callback: impl Fn() + 'static) -> Timer {
-        let timer = Timer::default();
-        self.repeat(Rc::new(until_next_minute), Rc::new(callback), timer.clone());
-        timer
-    }
-
     fn repeat(&self, delay: Rc<dyn Fn() -> Duration>, callback: Rc<dyn Fn()>, timer: Timer) {
         let timers = self.clone();
         let next_delay = delay.clone();
@@ -129,17 +123,6 @@ impl Timers {
         let handle = self.wakeup(callback);
         (handle.clone(), Rc::new(WakeRegistration(handle)))
     }
-}
-
-fn seconds_to_next_minute(unix_seconds: u64) -> u64 {
-    60 - unix_seconds % 60
-}
-
-fn until_next_minute() -> Duration {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |since| since.as_secs());
-    Duration::from_secs(seconds_to_next_minute(now))
 }
 
 pub(crate) struct PingWake(pub(crate) Ping);

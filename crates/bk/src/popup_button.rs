@@ -2,10 +2,7 @@ use std::borrow::Cow;
 use std::cell::Cell;
 use std::rc::Rc;
 
-use ctdesign::{
-    ControlSize, DOCK_MENU_ARROW_INSET, DOCK_MENU_ITEM_PADDING_X, DOCK_MENU_MIN_WIDTH,
-    DOCK_MENU_PADDING, DOCK_MENU_SEPARATOR_MARGIN, MENU_POPOVER, MenuPalette, POPOVER,
-};
+use ctdesign::{ControlSize, MENU_POPOVER};
 use freya_components::svg_viewer::SvgViewer;
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
@@ -17,9 +14,7 @@ use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::environment::use_disabled;
 use crate::interaction::{control_state, use_interaction};
 use crate::menu::{CheckState, MenuIcon, MenuItem, MenuView};
-use crate::platform::{
-    PopoverShape, PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups,
-};
+use crate::platform::{PopupAnchor, PopupConstraintAdjustment, PopupGravity, PopupSpec, Popups};
 use crate::style::with_font;
 use crate::styles::Painted;
 use crate::styles::{LayoutDirection, Paints, PopUpButtonStyle, Theme, resolve};
@@ -239,7 +234,6 @@ fn button_icon(icon: MenuIcon, size: f32) -> Option<Element> {
                 .background(crate::theme::color(fill))
                 .into_element(),
         ),
-        MenuIcon::Image(_) => None,
     }
 }
 
@@ -300,61 +294,10 @@ pub(crate) fn open_popover_menu(
     over: Option<usize>,
     on_activate: impl Fn(String) + 'static,
 ) {
-    open_placed_menu(
-        entries,
-        (anchor, PopupGravity::BottomRight),
-        anchor_rect,
-        over,
-        on_activate,
-        None,
-        false,
-    );
-}
-
-/// A Dock-style menu beside `rect` (surface coordinates) toward `side`; `on_close` runs however it closes.
-pub fn pop_up_menu(
-    items: Vec<MenuItem>,
-    rect: (i32, i32, u32, u32),
-    side: PopupAnchor,
-    on_activate: impl Fn(String) + 'static,
-    on_close: impl Fn() + 'static,
-) {
-    let gravity = match side {
-        PopupAnchor::Top => PopupGravity::TopRight,
-        PopupAnchor::Left => PopupGravity::BottomLeft,
-        _ => PopupGravity::BottomRight,
-    };
-    open_placed_menu(
-        items,
-        (side, gravity),
-        rect,
-        None,
-        on_activate,
-        Some(Rc::new(on_close)),
-        true,
-    );
-}
-
-fn open_placed_menu(
-    entries: Vec<MenuItem>,
-    (anchor, gravity): (PopupAnchor, PopupGravity),
-    anchor_rect: (i32, i32, u32, u32),
-    over: Option<usize>,
-    on_activate: impl Fn(String) + 'static,
-    on_dismissed: Option<Rc<dyn Fn()>>,
-    arrow: bool,
-) {
     // The compositor draws its glass under a kit client's menus (Malaysia ADR 0071), in a window too.
-    let glass: fn(MenuPalette) -> MenuPalette = if arrow {
-        dock_menu
-    } else {
-        crate::theme::over_glass
-    };
-    let palette = glass(crate::styles::popover_style());
-    let band = arrow_band(anchor, if arrow { POPOVER.arrow_height } else { 0.0 });
+    let palette = crate::theme::over_glass(crate::styles::popover_style());
     let size = MenuView::preferred_size(&entries, palette);
-    let size = (size.0 + band.horizontal(), size.1 + band.vertical());
-    let offset = over.map_or(arrow_offset(anchor, arrow), |index| {
+    let offset = over.map_or((0, 0), |index| {
         let above: f32 = entries[..index]
             .iter()
             .map(|item| item.height(palette))
@@ -379,11 +322,11 @@ fn open_placed_menu(
     let view = MenuView::new(entries, on_activate, close_root)
         .with_surface(SurfaceKind::Toplevel)
         .with_popover_metrics()
-        .style(glass);
+        .style(crate::theme::over_glass);
     let spec = PopupSpec {
         anchor_rect,
         anchor,
-        gravity,
+        gravity: PopupGravity::BottomRight,
         offset,
         size: (size.0.ceil() as u32, size.1.ceil() as u32),
         constraint_adjustment: PopupConstraintAdjustment {
@@ -394,66 +337,7 @@ fn open_placed_menu(
             resize_y: false,
         },
         grab: true,
-        on_dismissed,
+        on_dismissed: None,
     };
-    let id = if arrow {
-        let content = AppComponent::new(ArrowBand {
-            band,
-            fill: palette.bg,
-            content: AppComponent::new(view),
-        });
-        popups.open_popover(spec, content, PopoverShape::Menu)
-    } else {
-        popups.open(spec, AppComponent::new(view))
-    };
-    root.set(Some(id));
-}
-
-fn dock_menu(palette: MenuPalette) -> MenuPalette {
-    crate::theme::over_glass(MenuPalette {
-        padding: DOCK_MENU_PADDING,
-        item_padding_x: DOCK_MENU_ITEM_PADDING_X,
-        separator_margin_y: DOCK_MENU_SEPARATOR_MARGIN,
-        min_width: DOCK_MENU_MIN_WIDTH,
-        ..palette
-    })
-}
-
-// The compositor puts the arrow DOCK_MENU_ARROW_INSET from the corner where the menu starts.
-fn arrow_offset(side: PopupAnchor, arrow: bool) -> (i32, i32) {
-    let inset = if arrow {
-        -(DOCK_MENU_ARROW_INSET.round() as i32)
-    } else {
-        0
-    };
-    match side {
-        PopupAnchor::Left | PopupAnchor::Right => (0, inset),
-        _ => (inset, 0),
-    }
-}
-
-/// The edge band that holds the arrow of a popup opening toward `side`.
-pub fn arrow_band(side: PopupAnchor, height: f32) -> Gaps {
-    match side {
-        PopupAnchor::Top => Gaps::new(0.0, 0.0, height, 0.0),
-        PopupAnchor::Left => Gaps::new(0.0, height, 0.0, 0.0),
-        PopupAnchor::Right => Gaps::new(0.0, 0.0, 0.0, height),
-        _ => Gaps::new(height, 0.0, 0.0, 0.0),
-    }
-}
-
-struct ArrowBand {
-    band: Gaps,
-    fill: ctdesign::Rgba,
-    content: AppComponent,
-}
-
-impl App for ArrowBand {
-    fn render(&self) -> impl IntoElement {
-        rect()
-            .expanded()
-            .background(crate::theme::color(self.fill))
-            .padding(self.band)
-            .child(self.content.clone())
-    }
+    root.set(Some(popups.open(spec, AppComponent::new(view))));
 }

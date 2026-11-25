@@ -68,7 +68,6 @@ pub(super) fn next_selectable(
 pub(super) fn activate_at(items: &[MenuItem], index: usize) -> Option<String> {
     match items.get(index)? {
         MenuItem::Action { id, enabled, .. } if *enabled => Some(id.clone()),
-        MenuItem::SearchResult { item, .. } => activate_at(std::slice::from_ref(item), 0),
         _ => None,
     }
 }
@@ -77,7 +76,7 @@ pub(super) fn activate_or_open(ctx: &SubmenuCtx, items: &[MenuItem], index: usiz
     if let Some(id) = activate_at(items, index) {
         (ctx.on_activate)(id);
         (ctx.on_dismiss_all)();
-    } else if let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(index) {
-        open_child_popup(ctx, index, id.as_deref(), sub, items);
+    } else if let Some(MenuItem::Submenu { items: sub, .. }) = items.get(index) {
+        open_child_popup(ctx, index, sub, items);
     }
 }

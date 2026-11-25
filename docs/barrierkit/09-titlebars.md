@@ -2,8 +2,8 @@
 
 **Goal:** give a window its title bar, choose one of SwiftUI's window designs
 and know how the bar looks windowed, in full screen and at the top edge.
-**Scope:** `Titlebar`, its `WindowToolbarStyle`, `TrafficLights`,
-`WindowChrome` and the bar in Malaysia's focus mode. The window
+**Scope:** `Titlebar`, its `WindowToolbarStyle`, `TrafficLights` and the bar
+in Malaysia's focus mode. The window
 options and state they read, `WindowStyle` included, are in
 [8. Windows](08-windows.md). The sidebar that holds the traffic lights is in
 [10. Sidebar](10-sidebar.md).
@@ -43,8 +43,6 @@ window state.
 5. To keep the bar out of full screen until the pointer reaches the top edge,
    set `WindowToolbarFullScreenVisibility::OnHover`
    ([8](08-windows.md#window-options)).
-6. On Malaysia, if the bar should hide, wrap the window in `WindowChrome`
-   ([Linux and Malaysia](#linux-and-malaysia)).
 
 ## Window designs
 
@@ -383,40 +381,6 @@ bar without `Titlebar` declares it with
 `unified` for a client-decorated window. The user can force one radius for
 every window with `corner_radius` in `window.domain`.
 
-### Window chrome
-
-`WindowChrome` (`bk::chrome`) wraps the window and decides when the bar
-shows. `Titlebar` and `Sidebar` inside it read that decision.
-
-```rust
-use bk::chrome::{Reveal, WindowChrome};
-
-WindowChrome::new(window_content).style(|s| WindowChromeStyle {
-    reveal: Reveal::Drawer,
-    ..s
-})
-```
-
-| `WindowChromeStyle` field | Default | Values |
-|---|---|---|
-| `reveal` | `Always` | When the bar shows (below) |
-| `resting_edge` | `None` | What stays while a hidden bar is away: `RestingEdge::None`, `Line` (`TITLEBAR_REVEAL.edge_line`, 1 px) or `Accent` (`edge_accent`, 4 px, accent color) |
-
-The style also holds the pill, its shadow and the animation
-([Styles and themes](../../crates/bk/src/styles/window_chrome.rs)); a `Theme`
-sets them for every window.
-
-| `Reveal` | What happens |
-|---|---|
-| `Always` | The bar is always there |
-| `Drawer` | Hidden. The pointer within `TITLEBAR_REVEAL.reveal_zone` (8 px) of the top edge slides it in over the content, with a shadow |
-| `Push` | Hidden. It grows in from the top edge and pushes the content |
-| `Corner` | The bar stays; only the traffic lights fade in while the pointer is in the top-left `reveal_corner` (96 px) |
-| `Popup` | The traffic lights leave the bar. The pointer at the edge slides in a pill with them, which stays while the pointer is in the corner |
-
-The reveal animates over `DURATION_BASE`. In Malaysia's focus mode the chrome
-behaves as `Always`.
-
 ### Full screen and focus mode
 
 The state comes from [`WindowStatus`](08-windows.md#window-state).
@@ -437,7 +401,7 @@ The state comes from [`WindowStatus`](08-windows.md#window-state).
 
 ## What the app does
 
-1. With `Titlebar`, `WindowChrome`, `Sidebar` or `SettingsWindow`, nothing:
+1. With `Titlebar`, `Sidebar` or `SettingsWindow`, nothing:
    every state above already works.
 2. On Malaysia, it leaves room for the bar in content that sits under the
    overlaid title bar:

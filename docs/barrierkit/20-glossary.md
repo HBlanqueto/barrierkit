@@ -60,7 +60,9 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `ctdesign::SCROLL_BAR.always_opacity`, `SCROLL_BAR.opacity` (one value) | `SCROLL_BAR.opacity` and `SCROLL_BAR.track_opacity`, four values each (light, dark, then both with Increase Contrast); `ScrollViewStyle.always_thumb_opacity` is gone | 2026-11-20 |
 | `ScrollViewStyle.animation` | `ScrollViewStyle.fade_in` and `fade_out`; `SCROLL_BAR.fade_in_ms`, `fade_out_ms` | 2026-11-25 |
 | `controls::Button::style(ButtonStyle)` | `controls::Button::style(\|s\| ..)`, the closure of every control | 2026-11-07 |
+| `menu::MenuView::with_searchable`, `with_help_topics`, `with_search_icons`, `with_reveal_roots`, `with_query_state`, `with_navigation`, `with_fixed_palette`, `with_open_submenu`, `with_submenu_source`; `menu::SearchableEntry`, `SearchSource`, `SearchLocation`, `SearchQuery`, `SearchableSource`, `RevealRoots`, `SubmenuSource`, `MenuNavigation`, `normalize_query`, `search_icon_svg`, `submenu_contents`; `MenuItem::SearchField`, `SearchResult`, `Header.count`; `MenuIcon::image`; `popup_button::pop_up_menu`, `arrow_band`; `symbol::Image::glass_plate`, `raster_size` | Removed: the desktop shell's menu bar search and Dock menu had no app; they live in the shell | 2026-11-25 |
 | `SplitViewStyle::resize_animation` | Removed: a resize of the sidebar never animates, as AppKit's `setPosition` | 2026-11-25 |
+| `chrome::WindowChrome`, `chrome::Reveal`, `chrome::RestingEdge`, `styles::WindowChromeStyle`, `ctdesign::TITLEBAR_REVEAL`, `TitlebarRevealMetrics` | Removed: the desktop shell's reveal chrome had no app; it lives in the shell | 2026-11-25 |
 | `sidebar::SidebarControl::content` | Removed: the bar runs over the content column by itself | 2026-11-24 |
 | `styles::TabType::Left`, `TabViewStyle.tab_padding_y`, `ctdesign::TAB_VIEW.strip_padding_y` and `.left_strip_top` | Removed: no app used the left strip | 2026-11-23 |
 | `Titlebar::right(view)` | `.toolbar(ToolbarItem::new(ToolbarItemPlacement::PrimaryAction, view))`, SwiftUI's only way to add trailing items | 2026-11-23 |
@@ -135,6 +137,8 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `main_menu::layout::{DbusMenuLayout, LayoutItem}`, `status_item::{Pixmaps, ITEM_PATH, WATCHER, WATCHER_PATH}` | `bk::extension::{DbusMenuLayout, LayoutItem, Pixmaps, ITEM_PATH, WATCHER, WATCHER_PATH}` (feature `shell`, Linux): the D-Bus code lives in `platform/linux/` and `zbus` is a Linux-only dependency | 2026-11-25 |
 | `infinity_protocol::THOUSANDTHS` | `ctdesign::THOUSANDTHS` | 2026-11-24 |
 | `infinity-protocol`, `infinity_*` interfaces, `Infinity*` types, `infinity-*.xml` | `limitless`, `limitless_*`, `Limitless*`, `limitless-*.xml` | 2026-11-25 |
+| `ctappearance::write_toml`, `keep_unparsed`, `icon_style::luma`, `xdg::cache_home` | `ctshell::write::write_toml`, `keep_unparsed`, `ctshell::material::luma`; `cache_home` is private to `ctshell::wallpaper` | 2026-11-25 |
+| `ctappearance::read_appearance`, `read_appearance_from`, `Toolkit`, `TextSizes::get_mut`, `TextSizes::{gtk, qt}`, `AppearanceConfig::text_size_for`, `xdg::user_dir`, `traffic::hit`, `TrafficPointer::on_motion`, `menu::panel_luma`, `AppearanceEvent::WallpaperSelection` | Gone: nothing read them; the text size is `text_sizes.barrierkit` or `text_size` | 2026-11-25 |
 
 ## How to read the tables
 
@@ -280,7 +284,6 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `styles::TitlebarStyle` | struct | ≈ `WindowToolbarStyle` | ≈ `NSWindow.ToolbarStyle`, `NSTitlebarSeparatorStyle` | ≈ `UINavigationBarAppearance` | Every visual property of `Titlebar`: heights, paddings, background, title and hairline | [Styles](../../crates/bk/src/styles/titlebar.rs) |
 | `styles::FullscreenBarStyle` | struct | — | — | — | Tint and animation of the band under the overlaid title bar in Malaysia's focus mode; theme and container only | [Styles](../../crates/bk/src/styles/fullscreen_bar.rs) |
 | `styles::TrafficLightsStyle` | struct | — | ≈ `NSWindow.standardWindowButton(_:)` | — | Size, gap, ring width, halo, pressed backdrop and the `ButtonVisual` of each traffic light per state | [Styles](../../crates/bk/src/styles/traffic_lights.rs) |
-| `styles::WindowChromeStyle` | struct | ≈ `WindowStyle` | — | — | Reveal and resting edge of `WindowChrome`, and the look of its pill | [Styles](../../crates/bk/src/styles/window_chrome.rs) |
 | `styles::SidebarStyle` | struct | ≈ `SidebarListStyle` | ≈ `NSTableView.Style.sourceList` | ≈ `UICollectionLayoutListConfiguration.Appearance.sidebar` | Paddings, the lights' position and gap, and the background of `Sidebar` | [Styles](../../crates/bk/src/styles/sidebar.rs) |
 | `styles::SidebarItemStyle` | struct | ≈ `.listItemTint(_:)` | ≈ `NSTableCellView` | ≈ `UITableViewCell` | Every visual property of `SidebarItem`, selected and not | [Styles](../../crates/bk/src/styles/sidebar_item.rs) |
 | `styles::SidebarSectionStyle` | struct | — | — | — | Every visual property of `SidebarSection` and its fold | [Styles](../../crates/bk/src/styles/sidebar_section.rs) |
@@ -433,7 +436,6 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `rule_editor::RuleEditor::style` | method | — | — | — | Changes the style of one rule editor | [Styles](../../crates/bk/src/styles/rule_editor.rs) |
 | `titlebar::Titlebar::style` | method | — | — | — | Changes the style of one title bar | [Styles](../../crates/bk/src/styles/titlebar.rs) |
 | `traffic::TrafficLights::style` | method | — | — | — | Changes the style of one set of traffic lights | [Styles](../../crates/bk/src/styles/traffic_lights.rs) |
-| `chrome::WindowChrome::style` | method | — | — | — | Sets when the bar shows and the look of the window chrome | [Styles](../../crates/bk/src/styles/window_chrome.rs) |
 | `sidebar::Sidebar::style` | method | — | — | — | Changes the style of one sidebar | [Styles](../../crates/bk/src/styles/sidebar.rs) |
 | `sidebar::SidebarItem::style` | method | — | — | — | Changes the style of one sidebar row | [Styles](../../crates/bk/src/styles/sidebar.rs) |
 | `sidebar::SidebarSection::style` | method | — | — | — | Changes the style of one sidebar section | [Styles](../../crates/bk/src/styles/sidebar.rs) |
@@ -469,19 +471,10 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `patterns::about::AboutView::style` | method | — | — | — | Changes the style of one About view | [Styles](../../crates/bk/src/styles/settings_window.rs) |
 | `menu::MenuView::style` | method | — | — | — | Changes the style of one menu and its submenus | [7](07-menus-and-popovers.md#style) |
 | `menu::MenuView::with_surface` | method | — | — | — | Takes its live palette from a `SurfaceKind` | [7](07-menus-and-popovers.md#menu-view) |
-| `menu::MenuView::with_fixed_palette` | method | — | — | — | Draws with one `MenuPalette` that does not follow the appearance | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::MenuView::with_popover_metrics` | method | — | — | — | Uses the paddings of a menu inside a popover | [7](07-menus-and-popovers.md#menu-view) |
-| `menu::MenuView::with_popup_spec` | method | — | — | — | Where the menu opens its submenus | [7](07-menus-and-popovers.md#menu-view) |
-| `menu::MenuView::with_searchable` | method | — | `≈ NSUserInterfaceItemSearching` | — | Adds a search field that finds these entries | [7](07-menus-and-popovers.md#search) |
-| `menu::MenuView::with_help_topics` | method | — | `NSApplication.registerUserInterfaceItemSearchHandler(_:)` | — | Adds these entries as Help Topics results of the search | [7](07-menus-and-popovers.md#search) |
-| `menu::MenuView::with_search_icons` | method | — | — | — | The SVG icons of menu and help results | [7](07-menus-and-popovers.md#search) |
-| `menu::MenuView::with_reveal_roots` | method | — | — | — | The top menus a found item is revealed in | [7](07-menus-and-popovers.md#search) |
+| `menu::MenuView::with_popup_spec` | method | — | — | — | The spec a submenu was opened with; ← closes a menu that has one | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::MenuView::with_focused_index` | method | — | `NSMenu.highlightedItem` | — | The row highlighted when the menu opens | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::MenuView::with_items_source` | method | — | `NSMenuDelegate.menuNeedsUpdate(_:)` | — | Reads the items from a closure on every render | [7](07-menus-and-popovers.md#helpers) |
-| `menu::MenuView::with_open_submenu` | method | — | `NSMenuDelegate.menuWillOpen(_:)` | — | Calls the closure with the id of a submenu as it opens | [7](07-menus-and-popovers.md#submenus) |
-| `menu::MenuView::with_submenu_source` | method | — | `NSMenuDelegate.menuNeedsUpdate(_:)` | — | Loads a lazy submenu's items by id | [7](07-menus-and-popovers.md#submenus) |
-| `menu::MenuView::with_query_state` | method | — | — | — | Keeps the search text across rebuilds of the menu | [7](07-menus-and-popovers.md#search) |
-| `menu::MenuView::with_navigation` | method | — | — | — | Calls the closure when ← or → asks for the neighbouring menu | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::MenuView::preferred_size` | fn | — | `NSMenu.size` | — | The width and height the items take | [7](07-menus-and-popovers.md#menu-view) |
 | `app::Application::theme` | method | ≈ `.environment(_:_:)` on the scene | ≈ `NSApp.appearance` | ≈ `UIWindow.overrideUserInterfaceStyle` | Gives the app its `Theme` | [Styles](../../.claude/skills/barrierkit-app/styles.md#levels) |
 
@@ -505,8 +498,6 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `ctappearance::icon_style::IconTone`, `IconStyle::dark` | enum, fn | — | — | — | Light, dark or automatic icons, and whether a style draws dark for a tone and scheme | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::icon_style` | fn | ≈ `.grayscale(_:)` and `.colorMultiply(_:)` | — | — | Restyles the image's own colors; has no effect on a template image or a symbol | [4](04-appearance-and-tokens.md#icon-styles) |
 | `symbol::Image::app_icon` | fn | — | ≈ `NSWorkspace.icon(forFile:)` | — | Draws an app's own icon on a plate in the user's icon style and color scheme | [4](04-appearance-and-tokens.md#app-icons) |
-| `symbol::Image::glass_plate` | fn | — | — | — | In the clear icon style, draws only the logo: the compositor draws the plate as glass | [4](04-appearance-and-tokens.md#app-icons) |
-| `symbol::Image::raster_size` | fn | — | — | — | Rasterizes the image once at this size and lets the GPU scale it, for an icon whose size changes every frame | [4](04-appearance-and-tokens.md#app-icons) |
 | `symbol::Image::frame` | fn | `.frame(width:height:)` | — | `NSLayoutConstraint` | Sizes an image that keeps its own colors as a rectangle, not a square | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
 | `symbol::Image::system` | fn | `Image(systemName:)` | `NSImage(systemSymbolName:accessibilityDescription:)` | `UIImage(systemName:)` | An image view of a kit `Symbol` | [4](04-appearance-and-tokens.md#symbols) |
 | `symbol::Image::rendering_mode` | method | `.renderingMode(_:)` | `NSImage.isTemplate` | `UIImage.withRenderingMode(_:)` | `Template` draws the image in its foreground color; `Original` keeps its own colors | [4](04-appearance-and-tokens.md#images-and-template-rendering) |
@@ -706,9 +697,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::TintParts` | struct | — | — | — | Which parts take the tint: sidebars, window, groups, controls, menus, and the bars (menu bar and Dock) | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::SidebarGlass` | struct | ≈ `Glass` | ≈ `NSGlassEffectView` | ≈ `UIGlassEffect` | The `base`, `solid` and `chroma` of a sidebar's glass panel; `Resolved.sidebar.glass` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::TrafficLightStyle` | enum | — | — | — | `Standard`, `Accent`, `Wallpaper` traffic-light colors | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::Toolkit` | enum | — | — | — | `BarrierKit`, `Gtk`, `Qt`: the kinds of app in Accessibility › Display › Text size | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::TextSizes` | struct | — | ≈ the per-app list of Accessibility › Display › Text size | — | An optional text size per `Toolkit`; `get_mut(toolkit)` | [4](04-appearance-and-tokens.md#the-appearance-file) |
-| `ctappearance::AppearanceConfig::text_size_for` | method | — | — | — | The toolkit's own text size, or the preferred `text_size` | [4](04-appearance-and-tokens.md#the-appearance-file) |
+| `ctappearance::TextSizes` | struct | — | ≈ the per-app list of Accessibility › Display › Text size | — | The optional BarrierKit text size | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::scheme_at`, `current_scheme` | method | — | ≈ `NSApp.effectiveAppearance` | ≈ `UITraitCollection.userInterfaceStyle` | The color scheme at an hour, or now in local time, with `automatic_scheme` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::AppearanceConfig::transparency_reduced` | method | — | ≈ `NSWorkspace.accessibilityDisplayShouldReduceTransparency` | ≈ `UIAccessibility.isReduceTransparencyEnabled` | True with `reduce_transparency` or `contrast` | [4](04-appearance-and-tokens.md#the-appearance-file) |
 | `ctappearance::ScrollBars` | enum | ≈ `ScrollIndicatorVisibility` | ≈ `NSScroller.Style` | ≈ `UIScrollView.showsVerticalScrollIndicator` | Show scroll bars `Automatic` (by mouse or touchpad), `WhenScrolling` or `Always` | [4](04-appearance-and-tokens.md#the-appearance-file) |
@@ -722,16 +711,14 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::data_dir` | fn | — | — | — | `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::appearance_path` | fn | — | — | — | Path of `appearance.domain` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::wallpaper_state_path` | fn | — | — | — | Path of `wallpaper.state`, the wallpaper's dominant color and grid | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::read_appearance`, `read_appearance_from` | fn | — | — | — | Reads the appearance file; `None` without file, `Err` on bad TOML | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_appearance` | fn | — | — | — | Reads the appearance file, or the default on any error | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::replace_file` | fn | — | — | — | Replaces a file atomically with new text | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::create_private_dir` | fn | — | — | — | Creates a folder and its parents with permission 0700 | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::load_dominant` | fn | — | — | — | Reads the wallpaper's dominant color | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::WallpaperState::grid_for` | method | — | — | — | The color grid of a desktop, or the shared one | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::file_uri`, `file_path` | fn | — | ≈ `g_filename_to_uri` | — | A path as a `file://` URI escaped like GLib, and back | [4](04-appearance-and-tokens.md#reading-and-writing) |
-| `ctappearance::xdg::cache_home` | fn | — | — | — | `$XDG_CACHE_HOME` or `~/.cache` | [4](04-appearance-and-tokens.md#reading-and-writing) |
 | `ctappearance::watch::AppearanceWatch` | struct | — | — | — | inotify watch on the config and data folders; `watch_app_folder(path)`, `drain()` | [4](04-appearance-and-tokens.md#watching) |
-| `ctappearance::watch::AppearanceEvent` | enum | — | — | — | `Appearance`, `Wallpaper`, `WallpaperSelection`, `Defaults(Option<OsString>)`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
+| `ctappearance::watch::AppearanceEvent` | enum | — | — | — | `Appearance`, `Wallpaper`, `Defaults(Option<OsString>)`; `restyles()` | [4](04-appearance-and-tokens.md#watching) |
 
 ## Appearance resolution
 
@@ -767,7 +754,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::traffic::inset` | fn | — | — | — | Distance of the lights from the left edge of a bar: 9 in the 32 px bar, 12 in the 40 px bar | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::corner::concentric` | fn | `RoundedRectangularShapeCorners.concentric(minimum:)` | `NSViewCornerRadius.containerConcentric(_:)` | `UICornerConfiguration.corners(radius:)` | The radius of a nested corner from its container's radius and insets | [4](04-appearance-and-tokens.md#corners) |
 | `ctappearance::traffic::button_rect` | fn | — | ≈ `NSWindow.standardWindowButton(_:)` frame | — | Rectangle of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ctappearance::traffic::hit` | fn | — | — | — | The light under a point | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::visual` | fn | — | — | — | Fill and ring stops, glyph, scale and dodge of each light for an input | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::looks` | fn | — | — | — | The three lights of a style: the measured look, or recolored with the accent's or the wallpaper's tone | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::Glyph` | enum | — | — | — | The glyph of a light: close, minimize, zoom enter, zoom exit (full screen) and plus | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
@@ -776,7 +762,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::traffic::TrafficInput` | struct | — | — | — | Focus, group hover, pressed light and zoom support | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::ButtonVisual` | struct | — | — | — | Fill and ring stops, optional glyph, scale and dodge of one light | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 | `ctappearance::traffic::TrafficPointer` | struct | — | — | — | Pointer state machine for hover, arm and click of the lights | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
-| `ctappearance::traffic::TrafficPointer::on_motion`, `on_group_enter`, `on_button_enter`, `on_leave_button`, `on_leave`, `on_release`, `pressed_visual` | method | — | — | — | The pointer events of the lights; each returns whether the look changed, `on_release` the light that was clicked, `pressed_visual` the light drawn pressed | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
+| `ctappearance::traffic::TrafficPointer::on_group_enter`, `on_button_enter`, `on_leave_button`, `on_leave`, `on_release`, `pressed_visual` | method | — | — | — | The pointer events of the lights; each returns whether the look changed, `on_release` the light that was clicked, `pressed_visual` the light drawn pressed | [4](04-appearance-and-tokens.md#traffic-light-geometry) |
 
 ## Backdrop colors
 
@@ -807,7 +793,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctappearance::xdg::config_home` | fn | — | — | — | `$XDG_CONFIG_HOME` or `~/.config` | [4](04-appearance-and-tokens.md#directories) |
 | `ctappearance::xdg::data_home` | fn | — | — | — | `$XDG_DATA_HOME` or `~/.local/share` | [4](04-appearance-and-tokens.md#directories) |
 | `ctappearance::xdg::data_dirs` | fn | — | — | — | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` | [4](04-appearance-and-tokens.md#directories) |
-| `ctappearance::xdg::user_dir` | fn | — | — | — | An XDG user directory such as `DOWNLOAD` from `user-dirs.dirs` | [4](04-appearance-and-tokens.md#directories) |
 
 ## Design token types
 
@@ -949,7 +934,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::GLASS_INK_{LIGHT,DARK,DARK_TINT}`, `GLASS_INK_MUTED_{LIGHT,DARK,DARK_TINT}`, `GLASS_INK_FAINT_{LIGHT,DARK,DARK_TINT}` | constant | — | — | — | The ink of text on glass, per theme: dark in the light theme and white in the dark ones | [4](04-appearance-and-tokens.md#theme-functions) |
 | `ctappearance::menu::MenuInk`, `ink_over`, `dark_ink_over` | struct, fn | — | — | — | The three inks of a menu on glass and the one a panel of a given luma takes: dark above `MENU_DARK_INK_ABOVE`, white below | [4](04-appearance-and-tokens.md#theme-functions) |
 | `ctappearance::material::Material` | enum | — | `NSVisualEffectView.Material` | `UIBlurEffect.Style` | The 14 materials of the macOS 27.2 SDK | [4](04-appearance-and-tokens.md#window-materials) |
-| `ctappearance::menu::panel_luma` | fn | — | — | — | The luma of a menu's panel: the sum of the sRGB channels weighted 0.2126, 0.7152 and 0.0722 | [4](04-appearance-and-tokens.md#glass-over-a-backdrop) |
 | `ctdesign::WALLPAPER_TINTING`, `WALLPAPER_TINTING_LIFT`, `WALLPAPER_TINTING_TARGET`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_SIDEBAR_LIFT` | constant | — | — | — | Share of the wallpaper's chroma a window takes; share of the way its lightness moves to the target; that target; the sidebar's multiples | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | constant | — | — | — | Contrast minimums: accent on window 3, ink on accent 4.5 | [4](04-appearance-and-tokens.md#colors) |
 | `ctdesign::DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | constant | — | — | — | Lightness range and minimum chroma of a wallpaper's dominant color | [4](04-appearance-and-tokens.md#colors) |
@@ -975,7 +959,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `ctdesign::WINDOW_CLIENT_RESIZE` | constant | — | — | — | Compositor: resize band widths around a window that decorates itself | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::DIALOG`, `DIALOG_PADDING`, `DIALOG_ALERT_WIDTH`, `DIALOG_SOLID_LIGHT`, `DIALOG_SOLID_DARK`, `DIALOG_SOLID_SCRIM_LIGHT`, `DIALOG_ALERT_STACK_SPACING`, `DIALOG_ALERT_HELP_SIZE`, `DIALOG_ALERT_HELP_INSET`, `DIALOG_ALERT_BADGE`, `DIALOG_ALERT_CAUTION`, `DIALOG_ALERT_CAUTION_SIZE`, `DIALOG_ALERT_CAUTION_AT`, `DIALOG_ALERT_PADDING`, `DIALOG_ALERT_SPACING`, `DIALOG_ALERT_ICON`, `DIALOG_ALERT_ICON_GAP`, `DIALOG_ALERT_LINE_HEIGHT`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `POPUP`, `PANEL_GLOW_DEPTH` | constant | — | — | — | Dialog and pop-up corners, dialog padding, the alert's width, padding, spacing, icon and line height, the dialog button width, the size of a sheet window, panel glow depth | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::SHADOW`, `SHADOW_DARK` | constant | — | ≈ `NSShadow` | ≈ `NSShadow` | Window shadows in light and dark | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
-| `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM`, `TITLEBAR_TOOLBAR_START`, `TITLEBAR_FULLSCREEN_START`, `TITLEBAR_SYSTEM_VEIL`, `TITLEBAR_DOUBLE_CLICK`, `TITLEBAR_REVEAL` | constant | — | — | — | Titlebar sizes, lights, double click and the reveal of a hidden bar | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
+| `ctdesign::TITLEBAR`, `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X`, `TITLEBAR_TITLE_GAP`, `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM`, `TITLEBAR_TOOLBAR_START`, `TITLEBAR_FULLSCREEN_START`, `TITLEBAR_SYSTEM_VEIL`, `TITLEBAR_DOUBLE_CLICK` | constant | — | — | — | Titlebar sizes, lights and double click | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::FULLSCREEN_BAR`, `FULLSCREEN_GLASS`, `HUD_BACKGROUND` | constant | — | — | — | Where the content starts under the focus-mode bar, the `TopGlass` band, HUD window background | [4](04-appearance-and-tokens.md#windows-and-titlebars) |
 | `ctdesign::TRAFFIC_LIGHTS_{LIGHT,DARK,DARK_TINT}`, `TRAFFIC_LIGHTS_CONTRAST_*`, `TRAFFIC_GLYPHS`, `TRAFFIC_RING_WIDTH`, `TRAFFIC_MARGIN`, `TRAFFIC_PRESS`, `TRAFFIC_GLYPH_FADE_MS`, `TRAFFIC_CLOSE_MINIMIZE_DARKEN`, `TRAFFIC_ZOOM_LIGHTEN` | constant | — | — | — | Traffic-light looks, glyphs, ring, margin, press and the shifts that derive tinted tones | [4](04-appearance-and-tokens.md#traffic-lights) |
 | `ctdesign::BUTTON`, `ICON_BUTTON`, `SWITCH`, `CHECKBOX`, `SLIDER`, `SLIDER_FAT`, `SLIDER_KEY_STEP`, `KNOB_SHADOW`, `KNOB_HELD_SHADOW`, `KNOB_HELD_SHADOW_DARK`, `SEGMENTED`, `STEPPER`, `TOOLBAR_SEARCH_WIDTH` | constant | — | — | — | Metrics of buttons, toggles, sliders and toolbar controls | [4](04-appearance-and-tokens.md#control-metrics) |
@@ -1225,9 +1209,9 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `menu::MenuView` | struct | — | `≈ NSMenu` | `UIMenu` | Draws a list of menu items with keyboard, search and submenus | [7](07-menus-and-popovers.md#menu-view) |
-| `menu::MenuItem` | enum | — | `NSMenuItem` | `UIAction` | A menu row: `Action`, `Submenu`, `Header`, `Separator`, `Palette`, `SearchField`, `SearchResult` | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuItem` | enum | — | `NSMenuItem` | `UIAction` | A menu row: `Action`, `Submenu`, `Header`, `Separator`, `Palette` | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::CheckState` | enum | — | `≈ NSControl.StateValue` | — | Mark of an action: `None`, `Checkbox(bool)`, `Radio(bool)`, `Mixed` (a dash, dbusmenu `toggle-state` -1), `Minimized` (the Dock's diamond) | [7](07-menus-and-popovers.md#menu-items) |
-| `menu::MenuIcon` | enum | — | `≈ NSMenuItem.image` | — | Row icon: `Svg`, `Image` (encoded bytes, 64 KiB max) or `Swatch` color circle | [7](07-menus-and-popovers.md#menu-items) |
+| `menu::MenuIcon` | enum | — | `≈ NSMenuItem.image` | — | Row icon: `Svg` or `Swatch` color circle | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuItem::action` | fn | `Button` | `NSMenuItem(title:action:keyEquivalent:)` | `UIAction(title:handler:)` | An enabled action row with an id and a label | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuItem::submenu` | fn | `Menu` | `NSMenuItem.submenu` | `UIMenu(children:)` | A row that opens these items | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuItem::header` | fn | `Section(header:)` | `NSMenuItem.sectionHeader(title:)` | `UIMenu(title:options: .displayInline)` | A section title row | [7](07-menus-and-popovers.md#menu-items) |
@@ -1240,11 +1224,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `menu::MenuItem::with_icon` | method | `Label` | `NSMenuItem.image` | `UIAction.image` | The icon of an action or a submenu | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuItem::with_badge` | method | `.badge(_:)` | `NSMenuItem.badge` | — | A badge text at the end of an action | [7](07-menus-and-popovers.md#menu-items) |
 | `menu::MenuIcon::svg` | fn | — | — | — | An icon from SVG text | [7](07-menus-and-popovers.md#menu-items) |
-| `menu::MenuIcon::image` | fn | — | `NSImage(data:)` | — | An icon from encoded image bytes; `None` over 64 KiB | [7](07-menus-and-popovers.md#menu-items) |
-| `menu::MenuNavigation` | enum | — | — | — | `Prev` or `Next`: ← or → asks the menu bar for a neighbouring menu | [7](07-menus-and-popovers.md#menu-view) |
 | `menu::ItemsSource` | type | — | — | — | Closure that returns a menu's items on every render | [7](07-menus-and-popovers.md#helpers) |
-| `menu::SubmenuSource` | type | — | `≈ NSMenuDelegate.menuNeedsUpdate(_:)` | — | Closure that returns a lazy submenu's items by id, once loaded | [7](07-menus-and-popovers.md#submenus) |
-| `menu::submenu_contents` | fn | — | — | — | A "Loading…" row while a submenu is loading and empty | [7](07-menus-and-popovers.md#submenus) |
 | `menu::normalize_separators` | fn | — | — | — | Removes leading, trailing and repeated separators, also in submenus | [7](07-menus-and-popovers.md#helpers) |
 | `menu::MNEMONIC_MARK` | constant | — | `≈ NSMenuItem.mnemonic` | — | U+2063 placed before the letter that Alt underlines | [7](07-menus-and-popovers.md#mnemonics) |
 | `menu::strip_mnemonic` | fn | — | — | — | Returns a label without the mnemonic mark | [7](07-menus-and-popovers.md#mnemonics) |
@@ -1258,14 +1238,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
-| `menu::SearchableEntry` | struct | — | `≈ NSUserInterfaceItemSearching` | — | One findable item: its `MenuItem` and its location | [7](07-menus-and-popovers.md#search) |
-| `menu::SearchSource` | enum | — | — | — | The section of a `SearchResult` row: `Menu` or `Help` | [7](07-menus-and-popovers.md#search) |
-| `menu::SearchLocation` | struct | — | — | — | Top menu index and row indices that lead to a found item | [7](07-menus-and-popovers.md#search) |
-| `menu::SearchQuery` | struct | — | — | — | Search text and whether it is selected, shared between menu rebuilds | [7](07-menus-and-popovers.md#search) |
-| `menu::SearchableSource` | type | — | — | — | Closure that returns the searchable entries | [7](07-menus-and-popovers.md#search) |
-| `menu::RevealRoots` | type | — | — | — | Closure that returns every top menu's items, to reveal found items | [7](07-menus-and-popovers.md#search) |
-| `menu::normalize_query` | fn | — | — | — | Prepares text for search: no mnemonic, trimmed, lower case, no accents | [7](07-menus-and-popovers.md#search) |
-| `menu::search_icon_svg` | fn | — | — | — | Fills `{{text}}` and `{{accent}}` colors in a search icon SVG | [7](07-menus-and-popovers.md#search) |
 
 ## Context menus, popovers and tooltips
 
@@ -1273,7 +1245,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `modifiers::ViewModifiers` | trait | `View` modifiers | — | — | SwiftUI-style modifiers for every element and control with events | [7](07-menus-and-popovers.md#view-modifiers) |
 | `modifiers::ViewModifiers::context_menu` | method | `.contextMenu(menuItems:)` | `NSMenu.popUpContextMenu(_:with:for:)` | `UIContextMenuInteraction` | Opens a menu at the pointer on secondary click | [7](07-menus-and-popovers.md#context_menu) |
-| `popup_button::pop_up_menu` | fn | — | `NSMenu.popUp(positioning:at:in:)` | — | Opens a menu beside a rectangle, as the Dock: arrow in its starting corner, pointing at the rectangle | [7](07-menus-and-popovers.md#pop_up_menu) |
 | `popover::Popover` | struct | `.popover(isPresented:attachmentAnchor:arrowEdge:content:)` | `NSPopover` | `UIPopoverPresentationController` | Content in a popover with an arrow; `.show(anchor)` opens it below an area | [7](07-menus-and-popovers.md#popover) |
 | `popover::Popover::on_dismissed` | method | — | ≈ `NSPopoverDelegate.popoverDidClose(_:)` | ≈ `UIPopoverPresentationControllerDelegate.presentationControllerDidDismiss(_:)` | Calls the closure when the popup closes; `.show` returns its `PopupId` | [7](07-menus-and-popovers.md#popover) |
 | `modifiers::ViewModifiers::help` | method | `.help(_:)` | `NSView.toolTip` | `UIToolTipInteraction` | Tooltip with a fixed text after a 1 s hover | [7](07-menus-and-popovers.md#help-tooltips) |
@@ -1345,7 +1316,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `platform::PopupId` | struct | — | — | — | Identifies an open popup | [8](08-windows.md#popups) |
 | `platform::PopupHandle` | struct | — | — | — | A popup's own handle: close, reposition, open a child | [8](08-windows.md#popups) |
 | `platform::PopoverShape` | enum | — | — | — | Corner and arrow of a popover: `Popover`, `Menu`, `Label` | [7](07-menus-and-popovers.md#other-popover-shapes) |
-| `popup_button::arrow_band` | fn | — | — | — | The band a popover's arrow takes on the edge that faces its anchor, as `Gaps` | [7](07-menus-and-popovers.md#other-popover-shapes) |
 
 ## Timers and input
 
@@ -1353,11 +1323,10 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 |---|---|---|---|---|---|---|
 | `platform::Timers` | struct | — | — | — | Runs callbacks on the UI thread after a delay or on wake | [8](08-windows.md#timers) |
 | `platform::Timers::every` | method | ≈ `Timer.scheduledTimer(repeats: true)` | `Timer.scheduledTimer(withTimeInterval:repeats:)` | ≈ `Timer.scheduledTimer(withTimeInterval:repeats:block:)` | Calls a callback at a fixed interval until its `Timer` is invalidated | [8](08-windows.md#timers) |
-| `platform::Timers::every_minute` | method | ≈ `TimelineView(.everyMinute)` | — | ≈ `CADisplayLink` | Calls a callback at the start of each minute of the clock | [8](08-windows.md#timers) |
 | `app::use_timeline` | fn | ≈ `TimelineView(.periodic(from:by:))` | — | ≈ `CADisplayLink` | Hook that renders the component every interval while it is active | [8](08-windows.md#timers) |
 | `platform::WakeHandle` | struct | — | — | — | `Send` handle another thread uses to run wake callbacks | [8](08-windows.md#timers) |
 | `platform::WakeHandle::invalidate` | method | — | ≈ `Timer.invalidate()` | — | Unregisters the `wakeup` callback the handle came from | [8](08-windows.md#timers) |
-| `platform::Timer` | struct | ≈ `Timer` | `Timer` | `Timer` | A repeating callback that `every` and `every_minute` return | [8](08-windows.md#timers) |
+| `platform::Timer` | struct | ≈ `Timer` | `Timer` | `Timer` | A repeating callback that `every` returns | [8](08-windows.md#timers) |
 | `platform::Timer::invalidate` | method | ≈ `Timer.invalidate()` | `Timer.invalidate()` | `Timer.invalidate()` | Stops the repeating callback | [8](08-windows.md#timers) |
 | `platform::modifier_flags` | fn | — | `NSEvent.modifierFlags` | — | Modifier keys held now, for a pointer handler | [8](08-windows.md#input-helpers) |
 | `platform::inserts_text` | fn | — | — | — | Whether a key press types text: no Control, Alt or Super | [8](08-windows.md#input-helpers) |
@@ -1381,9 +1350,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `traffic::TrafficLights::for_window` | fn | — | `≈ NSWindow.standardWindowButton(_:)` | — | Traffic lights wired to the window and user settings | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::use_window_drag` | fn | — | `≈ NSWindow.performDrag(with:)` | — | Press handler that moves the window or runs the double-click action | [9](09-titlebars.md#traffic-lights) |
 | `titlebar::sidebar_bar_height` | fn | — | — | — | Height of the title bar row beside a sidebar | [9](09-titlebars.md#helpers) |
-| `chrome::WindowChrome` | struct | — | — | — | Wraps the window and decides when its bar shows | [9](09-titlebars.md#window-chrome) |
-| `chrome::Reveal` | enum | — | — | — | When the bar shows: `Always`, `Drawer`, `Push`, `Corner`, `Popup` | [9](09-titlebars.md#window-chrome) |
-| `chrome::RestingEdge` | enum | — | — | — | What a hidden bar leaves: `None`, `Line`, `Accent` | [9](09-titlebars.md#window-chrome) |
 
 ## Sidebar and split view
 

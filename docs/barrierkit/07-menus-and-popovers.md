@@ -2,7 +2,7 @@
 
 **Goal:** show a context menu, open a popover and add a tooltip.
 **Scope:** menu items (`MenuItem`), the menu list (`MenuView`), its keyboard,
-search, shortcuts, mnemonics and submenus; the view modifiers
+shortcuts, mnemonics and submenus; the view modifiers
 (`.context_menu`, `.help`, `.popover`, `.focus_ring`) and `Popover`. The menu bar menu
 (`MainMenu`) is in [13. App](13-app.md). The pop-up button (`PopUpButton`) is
 a control: [5. Controls](05-controls.md).
@@ -66,12 +66,10 @@ variant does nothing.
 |---|---|---|
 | `MenuItem::action(id, label)` | `Action` | A command. Enabled, no check, no icon |
 | `MenuItem::submenu(label, items)` | `Submenu` | A row that opens `items` in a child menu |
-| `MenuItem::header(label)` | `Header` | A section title; not selectable. `Header { label, count: Some(n) }` adds a count at the right |
+| `MenuItem::header(label)` | `Header` | A section title; not selectable |
 | `MenuItem::Separator` | `Separator` | A line between groups |
 | `MenuItem::placeholder(label)` | `Action` | A disabled action with an empty `id`, for rows such as "No Items" |
 | `MenuItem::palette(items)` | `Palette` | The actions in `items`, drawn as one horizontal row of icons, like `NSMenu.PresentationStyle.palette`. ← and → walk it; Enter picks |
-| `MenuItem::SearchField { placeholder }` | `SearchField` | The search row of a searchable menu ([Search](#search)) |
-| — | `SearchResult` | A row the menu builds for a search match; apps do not create it |
 
 | Method | Applies to | Effect |
 |---|---|---|
@@ -80,15 +78,14 @@ variant does nothing.
 | `.with_check(CheckState)` | `Action` | `None` (default), `Checkbox(bool)`, `Radio(bool)`, `Mixed` or `Minimized`: a check mark, a dot, a dash or the diamond of a minimized window in the leading column. The check, dash and the submenu chevron are strokes of the label color, as in AppKit |
 | `.with_icon(MenuIcon)` | `Action`, `Submenu` | An icon before the label |
 | `.with_badge(text)` | `Action` | A counter at the right, before the shortcut, like `NSMenuItemBadge` |
-| `.with_id(id)` | `Submenu` | Gives the submenu an id, so its contents can load on open ([Submenus](#submenus)) |
-| `.label()` | all | The label, or `None` for `Separator`, `Palette` and `SearchField` |
+| `.with_id(id)` | `Submenu` | Gives the submenu an id, so `MainMenu` can find it |
+| `.label()` | all | The label, or `None` for `Separator` and `Palette` |
 
-`MenuIcon` has three variants:
+`MenuIcon` has two variants:
 
 | Variant | Build | What it draws |
 |---|---|---|
 | `Svg(Arc<str>)` | `MenuIcon::svg(text)` | An SVG, tinted with the row color. It is as tall as the other icons and keeps the width over height of its root `width` and `height` |
-| `Image(Arc<[u8]>)` | `MenuIcon::image(bytes)` | Encoded image bytes. Returns `None` above `MenuIcon::MAX_IMAGE_BYTES` (64 KiB). The row has no icon if a side is over `MenuIcon::MAX_IMAGE_SIDE` (1024 px) |
 | `Swatch(Rgba)` | `MenuIcon::Swatch(color)` | A color circle |
 
 The leading column for check marks exists only if some row uses it. If any row
@@ -117,13 +114,9 @@ action's `id` through `on_activate`, then calls `on_dismiss_all`.
 |---|---|
 | `.with_surface(SurfaceKind)` | Palette for a window (`Toplevel`) or a shell surface (`LayerShell`, default). `SurfaceKind` is in `bk::theme` |
 | `.with_popover_metrics()` | Uses the `MENU_POPOVER` sizes (24 px rows, 4 px padding, 180 px minimum width), the look of an app menu on macOS |
-| `.with_fixed_palette(MenuPalette)` | A fixed palette that ignores the appearance, such as `MENU_LIGHT` or `MENU_DARK` |
 | `.with_items_source(f)` | Reads the items from `f` on every render instead of the fixed list |
 | `.with_focused_index(Some(i))` | The row focused when it opens |
-| `.with_popup_spec(spec)` | The `PopupSpec` the menu was opened with; the menu uses its anchor to place revealed menus |
-| `.with_open_submenu(f)`, `.with_submenu_source(f)` | Lazy submenus ([Submenus](#submenus)) |
-| `.with_searchable(f)`, `.with_help_topics(f)`, `.with_search_icons(menu, help)`, `.with_reveal_roots(f)`, `.with_query_state(state)` | Search ([Search](#search)) |
-| `.with_navigation(f)` | ← and → at the edge call `f(MenuNavigation::Prev)` or `f(MenuNavigation::Next)`, so a menu bar moves to the neighbouring menu |
+| `.with_popup_spec(spec)` | The `PopupSpec` a submenu was opened with; the menu resizes its popup with it, and ← closes a menu that has one |
 | `.style(\|s\| ..)` | Changes the `MenuStyle` of this menu and its submenus ([Style](#style)) |
 
 `MenuView::preferred_size(&items, palette)` returns the `(width, height)` the
@@ -137,10 +130,10 @@ The keyboard works while the menu is open:
 |---|---|
 | ↑, ↓ | Previous or next selectable row; headers, separators and disabled rows are skipped |
 | Home, End | First or last selectable row |
-| Enter, Space | Chooses the focused action or opens the focused submenu. Space types into the search while there is a query |
-| → | Opens the focused submenu; on a plain row with navigation, `Next` |
-| ← | Closes this menu; with navigation, `Prev` instead |
-| Esc | Clears the search if there is one; otherwise closes this menu |
+| Enter, Space | Chooses the focused action or opens the focused submenu |
+| → | Opens the focused submenu |
+| ← | Closes this submenu; a top menu stays open |
+| Esc | Closes this menu |
 | Alt (held) | Underlines the mnemonics ([Mnemonics](#mnemonics)) |
 
 A menu taller than its popup shows scroll arrows at the ends. Hovering one
@@ -190,7 +183,7 @@ let label = format!("{}Open", bk::menu::MNEMONIC_MARK);
 ```
 
 While Alt is held, the menu underlines the letter after the mark. The mark is
-never drawn, and search ignores it. Pressing the letter does not choose the
+never drawn. Pressing the letter does not choose the
 row. `strip_mnemonic(label)` returns the label without the mark.
 
 ## Submenus
@@ -199,52 +192,6 @@ A `Submenu` row opens its items in a child popup, to the right or, when there
 is no room, to the left. The pointer opens it after `MENU_SUBMENU_INTENT_MS`
 (210 ms). While the pointer moves towards an open submenu, the rows it crosses
 do not close it. Submenus open only when the `MenuView` lives in a popup.
-
-For contents that arrive later (a dbusmenu `AboutToShow`, for example):
-
-1. Give the submenu an id: `MenuItem::submenu(label, vec![]).with_id("recent")`.
-2. `.with_open_submenu(|id| …)` is called with that id when it opens. Start
-   loading there.
-3. `.with_submenu_source(|id| …)` returns `Some(items)` once they exist. The
-   child re-reads it on every render.
-4. Until then the child shows a disabled "Loading…" row.
-   `submenu_contents(loading, &items)` gives the same result for your own
-   lists.
-
-## Search
-
-A menu with `.with_searchable(f)` filters while the user types, as the Help
-menu on macOS does. The Malaysia menu bar uses it; most apps do not need it.
-
-1. `f` returns one `SearchableEntry` per item that can be found:
-
-   | Field | What it is |
-   |---|---|
-   | `item` | The `MenuItem` the result activates |
-   | `location` | `Some(SearchLocation { title_index, indices })`: the top menu and the row indices that lead to the item, or `None` |
-
-2. `.with_help_topics(f)` adds a second list of entries, shown under a "Help
-   Topics" header.
-3. Typing adds to the query; Backspace removes the last character; Esc clears
-   it. A `SearchField` row shows the query in a capsule with no focus ring, as
-   on macOS; the menu adds one at the top if the items have none.
-4. Matches are ranked: label starts with the query, then a word starts with
-   it, then it appears anywhere; disabled rows go after enabled ones. The menu
-   shows up to `MenuView::MAX_MENU_ROWS` (9) menu results and
-   `MenuView::MAX_HELP_ROWS` (5) help results, and ↑ ↓ scroll beyond them.
-5. With `.with_reveal_roots(f)`, `f` returns the items of every top menu. When
-   a menu result with a `location` is focused, the menu opens that top menu to
-   its left, with the item focused, if there is room.
-6. `.with_query_state(state)` shares the query (`SearchQuery { text, selected }`)
-   through an `Rc<RefCell<SearchQuery>>`, so it survives when the menu is
-   rebuilt.
-7. `.with_search_icons(menu, help)` sets the SVG icons of the two result
-   kinds. `search_icon_svg(template, text, accent)` fills the `{{text}}` and
-   `{{accent}}` placeholders of a template with two colors.
-
-`normalize_query(text)` prepares text the way the search compares it: it
-removes the mnemonic mark, trims, lower-cases and folds accents (`"Vídeos"` →
-`"videos"`).
 
 ## View modifiers
 
@@ -284,40 +231,13 @@ popup flips and slides to stay on screen.
 Text fields and `TextEditor` already have their own edit menu
 ([6. Text and editing](06-text-and-editing.md)).
 
-### `pop_up_menu`
-
-`popup_button::pop_up_menu(items, rect, side, on_activate, on_close)` opens a
-`MenuView` beside `rect`, in surface coordinates, toward `side` (a
-`PopupAnchor`: `Top`, `Bottom`, `Left` or `Right`). It is AppKit's
-`NSMenu.popUp(positioning:at:in:)`. `on_close` runs when the menu closes,
-chosen or dismissed. Malaysia's Dock opens an icon's menu this way, above the
-icon on a bottom Dock and beside it on a side Dock, and stays up until
-`on_close`.
-
-It is drawn as the Dock menu of macOS 26:
-
-1. The menu is a popover with the `Menu` shape. Its arrow sits in the corner
-   where the menu starts, `DOCK_MENU_ARROW_INSET` (30) from the edge, and
-   points at the centre of the edge of `rect` that faces the menu.
-2. The menu grows to the right of that point, or down beside a side Dock.
-   Without room it flips: the arrow moves to the other corner.
-3. The popup adds the arrow band, `POPOVER.arrow_height` (13), on the edge
-   that faces `rect` ([`Popover`](#popover) has the protocol).
-4. The rows take the Dock menu metrics: `DOCK_MENU_PADDING` (5) above and
-   below, text and separators `DOCK_MENU_PADDING` + `DOCK_MENU_ITEM_PADDING_X`
-   (17) from the edges, separators 12 tall (`DOCK_MENU_SEPARATOR_MARGIN`) and
-   a width of at least `DOCK_MENU_MIN_WIDTH` (228).
-5. The menu is clear, `theme::over_glass`: the compositor draws the menu glass
-   under it, arrow included, so the menu takes its
-   measured blur. The glass has one veil, lift and cap for the
-   light scheme and one for the dark ones. The ink follows the panel, not the
-   colour scheme ([Glass over a backdrop](04-appearance-and-tokens.md#glass-over-a-backdrop)).
-   With Increase Contrast it keeps its solid fill and takes the contrast inks
-   and the strong separator of the contrast palette. Reduce Transparency alone
-   leaves the glass, as in macOS.
-   A search field in a menu over the glass takes the faint ink of disabled text
-   (`glass_disabled_fg`) as a translucent fill, not the grey of `search_bg`, so
-   it stays a field on the glass.
+The menu is clear, `theme::over_glass`: the compositor draws the menu glass
+under it, so the menu takes its measured blur. The glass has one veil, lift
+and cap for the light scheme and one for the dark ones. The ink follows the
+panel, not the colour scheme ([Glass over a backdrop](04-appearance-and-tokens.md#glass-over-a-backdrop)).
+With Increase Contrast it keeps its solid fill and takes the contrast inks and
+the strong separator of the contrast palette. Reduce Transparency alone leaves
+the glass, as in macOS.
 
 ### `.help` (tooltips)
 
@@ -395,16 +315,15 @@ The measurements come from the Flutter package
 The compositor puts the arrow on the edge that faces the anchor rectangle:
 the bottom edge when the popup opens above it, the right edge when it opens
 to its left, the left edge when it opens to its right, and the top edge
-otherwise. `popup_button::arrow_band(side, height)` gives that band as `Gaps`
-for a popup that opens toward `side`. Add it to `spec.size` and leave it
-empty in `content`.
+otherwise. Add `POPOVER.arrow_height` (13) on that edge to `spec.size` and
+leave that band empty in `content`.
 
 `PopoverShape` picks the corner and the arrow:
 
 | Shape | Corner | Arrow | Used by |
 |---|---|---|---|
 | `Popover` | `POPOVER.radius` (20) | `POPOVER`, 25.42 × 13 | `Popover` |
-| `Menu` | the menu corner, `components.shell.menu.panel.radius` (12; `CORNER_MENU.fitted` 12.5) | `POPOVER`, 25.42 × 13, with the `DOCK_MENU_ARROW_*` tip (6) and fillet (8) | [`pop_up_menu`](#pop_up_menu) |
+| `Menu` | the menu corner, `components.shell.menu.panel.radius` (12; `CORNER_MENU.fitted` 12.5) | `POPOVER`, 25.42 × 13, with the `DOCK_MENU_ARROW_*` tip (6) and fillet (8) | the desktop shell's Dock menu |
 | `Label` | `DOCK_LABEL_RADIUS` (12, the menu bar's title pill), with circular arcs | `DOCK_LABEL_ARROW_*`, 22 × 6.5 | the name over a Dock icon |
 
 `Menu` and `Label` need `limitless_window_style_v1.set_popover_shape`
@@ -426,7 +345,7 @@ is an `NSPopover` ([`Popover`](#popover)).
 | `measure_text_weight(text, size, weight)` | The same with a `FontWeight` |
 | `measure_wrapped(text, size, weight, width)` | The widest line and the number of lines of `text` wrapped at `width`: `(f32, usize)` |
 
-The type aliases `ItemsSource`, `SubmenuSource`, `SearchableSource` and
-`RevealRoots` name the `Rc` closures that the `with_*` methods above store.
+The type alias `ItemsSource` names the `Rc` closure that `.with_items_source`
+stores.
 
 Next: [8. Windows](08-windows.md).

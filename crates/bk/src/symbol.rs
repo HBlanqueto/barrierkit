@@ -980,8 +980,6 @@ pub struct Image {
     scale: ImageScale,
     icon_style: IconStyle,
     plated: bool,
-    glass_plate: bool,
-    raster_size: Option<f32>,
     frame: Option<(f32, f32)>,
     content_transition: ContentTransition,
     style: Theme,
@@ -1013,8 +1011,6 @@ impl Image {
             scale: ImageScale::default(),
             icon_style: IconStyle::Default,
             plated: false,
-            glass_plate: false,
-            raster_size: None,
             frame: None,
             content_transition: ContentTransition::Opacity,
             style: Theme::tengen(),
@@ -1049,18 +1045,6 @@ impl Image {
     /// Draws the image as an app icon: on a plate, in the user's icon style.
     pub fn app_icon(mut self) -> Self {
         self.plated = true;
-        self
-    }
-
-    /// In the clear icon style the compositor draws the icon's plate as glass, so only the logo is drawn.
-    pub fn glass_plate(mut self) -> Self {
-        self.glass_plate = true;
-        self
-    }
-
-    /// Rasterizes the image once at this size and lets the GPU scale it: for an icon whose `size` changes every frame.
-    pub fn raster_size(mut self, size: f32) -> Self {
-        self.raster_size = Some(size);
         self
     }
 
@@ -1118,12 +1102,8 @@ impl From<Image> for Element {
             (Size::px(width), Size::px(height))
         });
         let icon_style = image.icon_style;
-        let raster_size = image.raster_size;
         let plated = image.plated;
-        let plain = matches!(icon_style, IconStyle::Default | IconStyle::Dark)
-            && !plated
-            && raster_size.is_none();
-        let on_glass = |style: IconStyle| image.glass_plate && style == IconStyle::Clear;
+        let plain = matches!(icon_style, IconStyle::Default | IconStyle::Dark) && !plated;
         match (image.source, image.rendering_mode) {
             (Source::System(glyph), _) => {
                 let size = style.size * SYMBOL_SCALE_SIZE[image.scale as usize];
@@ -1162,14 +1142,14 @@ impl From<Image> for Element {
                         resolved.icon_style,
                         resolved.icon_dark,
                         resolved.icon_tint,
-                        on_glass(resolved.icon_style),
+                        false,
                     ),
                     TemplateRenderingMode::Template => Treatment::Tint(color),
                     TemplateRenderingMode::Original => {
-                        Treatment::Style(icon_style, resolved.icon_tint, on_glass(icon_style))
+                        Treatment::Style(icon_style, resolved.icon_tint, false)
                     }
                 };
-                match cached_image(&source, raster_size.unwrap_or(style.size), treatment) {
+                match cached_image(&source, style.size, treatment) {
                     Some(handle) => freya_core::elements::image::image(handle)
                         .width(width)
                         .height(height)
@@ -1278,7 +1258,7 @@ fn is_svg(bytes: &[u8]) -> bool {
 fn cached_image(source: &Source, size: f32, treatment: Treatment) -> Option<ImageHandle> {
     let scale = *Platform::get().current_window().scale_factor.read() as f32;
     let exact = (size * scale).round().max(1.0) as u32;
-    // A magnified Dock draws every size between two: steps of 1/32 to 1/16 of the size keep the cache from refilling.
+    // A size that animates draws every size between two: steps of 1/32 to 1/16 of the size keep the cache from refilling.
     let side = exact.next_multiple_of(1 << exact.ilog2().saturating_sub(4));
     let (bytes, width) = match source {
         Source::Data(bytes) => (bytes.clone(), 0),

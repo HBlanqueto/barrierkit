@@ -2,30 +2,6 @@ use super::*;
 use crate::i18n::text;
 use std::borrow::Cow;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SearchSource {
-    Menu,
-    Help,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct SearchLocation {
-    pub title_index: usize,
-    pub indices: Vec<usize>,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct SearchableEntry {
-    pub item: MenuItem,
-    pub location: Option<SearchLocation>,
-}
-
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct SearchQuery {
-    pub text: String,
-    pub selected: bool,
-}
-
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum CheckState {
     #[default]
@@ -36,45 +12,17 @@ pub enum CheckState {
     Minimized,
 }
 
-pub type SubmenuSource = Rc<dyn Fn(&str) -> Option<Vec<MenuItem>>>;
-
 pub type ItemsSource = Rc<dyn Fn() -> Vec<MenuItem>>;
-
-pub type SearchableSource = Rc<dyn Fn() -> Vec<SearchableEntry>>;
-
-pub type RevealRoots = Rc<dyn Fn() -> Vec<Vec<MenuItem>>>;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum MenuNavigation {
-    Prev,
-    Next,
-}
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum MenuIcon {
     Svg(Arc<str>),
-    Image(Arc<[u8]>),
     Swatch(Rgba),
 }
 
 impl MenuIcon {
-    pub const MAX_IMAGE_BYTES: usize = 64 * 1024;
-    pub const MAX_IMAGE_SIDE: i32 = 1024;
-
     pub fn svg(s: impl Into<Arc<str>>) -> Self {
         Self::Svg(s.into())
-    }
-
-    pub fn image(bytes: impl Into<Arc<[u8]>>) -> Option<Self> {
-        let bytes = bytes.into();
-        if bytes.len() > Self::MAX_IMAGE_BYTES {
-            tracing::debug!(
-                bytes = bytes.len(),
-                "menu: icon-data is too large; dropping the icon"
-            );
-            return None;
-        }
-        Some(Self::Image(bytes))
     }
 }
 
@@ -98,19 +46,10 @@ pub enum MenuItem {
     },
     Header {
         label: Cow<'static, str>,
-        count: Option<usize>,
     },
     Separator,
     Palette {
         items: Vec<MenuItem>,
-    },
-    SearchField {
-        placeholder: Cow<'static, str>,
-    },
-    SearchResult {
-        item: Box<MenuItem>,
-        source: SearchSource,
-        location: Option<SearchLocation>,
     },
 }
 
@@ -145,7 +84,6 @@ impl MenuItem {
     pub fn header(label: impl Into<Cow<'static, str>>) -> Self {
         Self::Header {
             label: label.into(),
-            count: None,
         }
     }
 
@@ -198,19 +136,15 @@ impl MenuItem {
         match self {
             MenuItem::Action { enabled, .. } => *enabled,
             MenuItem::Submenu { enabled, .. } => *enabled,
-            MenuItem::SearchResult { item, .. } => item.enabled(),
             MenuItem::Palette { items } => items.iter().any(MenuItem::enabled),
-            MenuItem::Header { .. } | MenuItem::Separator | MenuItem::SearchField { .. } => false,
+            MenuItem::Header { .. } | MenuItem::Separator => false,
         }
     }
 
     pub(super) fn selectable(&self) -> bool {
         matches!(
             self,
-            MenuItem::Action { .. }
-                | MenuItem::Submenu { .. }
-                | MenuItem::SearchResult { .. }
-                | MenuItem::Palette { .. }
+            MenuItem::Action { .. } | MenuItem::Submenu { .. } | MenuItem::Palette { .. }
         ) && self.enabled()
     }
 
@@ -219,8 +153,7 @@ impl MenuItem {
             MenuItem::Action { label, .. }
             | MenuItem::Submenu { label, .. }
             | MenuItem::Header { label, .. } => Some(label),
-            MenuItem::SearchResult { item, .. } => item.label(),
-            MenuItem::Separator | MenuItem::SearchField { .. } | MenuItem::Palette { .. } => None,
+            MenuItem::Separator | MenuItem::Palette { .. } => None,
         }
     }
 
@@ -229,19 +162,16 @@ impl MenuItem {
             MenuItem::Action { shortcut, .. } => {
                 shortcut.as_deref().map(|s| format_shortcut(s).into())
             }
-            MenuItem::SearchResult { item, .. } => item.shortcut(),
             MenuItem::Submenu { .. }
             | MenuItem::Header { .. }
             | MenuItem::Separator
-            | MenuItem::Palette { .. }
-            | MenuItem::SearchField { .. } => None,
+            | MenuItem::Palette { .. } => None,
         }
     }
 
     pub(crate) fn height(&self, m: MenuPalette) -> f32 {
         match self {
             MenuItem::Separator => m.separator_height + m.separator_margin_y * 2.0,
-            MenuItem::SearchField { .. } => m.search_height + m.search_margin_y * 2.0,
             MenuItem::Header { .. } => m.header_height,
             _ => m.item_height,
         }

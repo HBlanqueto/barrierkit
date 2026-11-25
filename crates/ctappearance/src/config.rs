@@ -215,13 +215,6 @@ pub enum ScrollBarClick {
     ClickedSpot,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Toolkit {
-    BarrierKit,
-    Gtk,
-    Qt,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Default, Deserialize, Serialize)]
 #[serde(default)]
 pub struct TextSizes {
@@ -230,26 +223,6 @@ pub struct TextSizes {
         skip_serializing_if = "Option::is_none"
     )]
     pub barrierkit: Option<f32>,
-    #[serde(
-        deserialize_with = "toolkit_text_size",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub gtk: Option<f32>,
-    #[serde(
-        deserialize_with = "toolkit_text_size",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub qt: Option<f32>,
-}
-
-impl TextSizes {
-    pub fn get_mut(&mut self, toolkit: Toolkit) -> &mut Option<f32> {
-        match toolkit {
-            Toolkit::BarrierKit => &mut self.barrierkit,
-            Toolkit::Gtk => &mut self.gtk,
-            Toolkit::Qt => &mut self.qt,
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -343,11 +316,6 @@ impl Default for AppearanceConfig {
 }
 
 impl AppearanceConfig {
-    pub fn text_size_for(&self, toolkit: Toolkit) -> f32 {
-        let mut sizes = self.text_sizes;
-        sizes.get_mut(toolkit).unwrap_or(self.text_size)
-    }
-
     pub fn scheme_at(&self, hour: u8) -> ColorScheme {
         if !self.automatic_scheme {
             return self.color_scheme;
@@ -440,14 +408,6 @@ pub fn appearance_path() -> PathBuf {
 
 pub fn wallpaper_state_path() -> PathBuf {
     data_dir().join("wallpaper.state")
-}
-
-pub fn read_appearance() -> Result<Option<AppearanceConfig>, toml::de::Error> {
-    read_appearance_from(&appearance_path())
-}
-
-pub fn read_appearance_from(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
-    Ok(read_unresolved(path)?.map(|config| config.following_system(None)))
 }
 
 fn read_unresolved(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Error> {
@@ -618,32 +578,4 @@ pub fn load_dominant() -> Option<Rgba> {
         b: b.clamp(0.0, 1.0),
         a: 1.0,
     })
-}
-
-// A file that exists but cannot be read is never replaced; one that does not parse is copied to `<name>.bak` first.
-pub fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> io::Result<()> {
-    match std::fs::read_to_string(path) {
-        Ok(text) if toml::from_str::<T>(&text).is_err() => {
-            let mut backup = path.as_os_str().to_owned();
-            backup.push(".bak");
-            std::fs::copy(path, &backup)?;
-            tracing::warn!(
-                path = %path.display(),
-                backup = %Path::new(&backup).display(),
-                "unreadable file backed up before overwrite"
-            );
-        }
-        Err(error) if error.kind() != std::io::ErrorKind::NotFound => return Err(error),
-        _ => {}
-    }
-    Ok(())
-}
-
-/// Replaces `path` with `value` as TOML; a file there that does not parse is kept as `<name>.bak`.
-pub fn write_toml<T: Serialize + DeserializeOwned>(path: &Path, value: &T) -> io::Result<()> {
-    keep_unparsed::<T>(path)?;
-    replace_file(
-        path,
-        &toml::to_string(value).map_err(std::io::Error::other)?,
-    )
 }

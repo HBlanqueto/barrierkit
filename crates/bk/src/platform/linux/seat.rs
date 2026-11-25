@@ -516,6 +516,9 @@ impl KeyboardHandler for Runtime {
         _: &wl_keyboard::WlKeyboard,
         keymap: Keymap<'_>,
     ) {
+        if self.keyboard_layout.is_none() {
+            return;
+        }
         self.keyboard_layouts = layout_names(keymap.as_string());
         self.publish_keyboard_layout();
     }

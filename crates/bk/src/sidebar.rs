@@ -310,11 +310,9 @@ impl Component for Sidebar {
         let draws_lights = controls
             .as_ref()
             .is_none_or(|controls| controls.draws_traffic_lights());
-        let lights_opacity = crate::chrome::lights_opacity();
         let lights_shown = controls
             .as_ref()
-            .is_none_or(|controls| controls.traffic_lights_shown())
-            && lights_opacity > 0.0;
+            .is_none_or(|controls| controls.traffic_lights_shown());
         let overlay_top = controls
             .as_ref()
             .and_then(|controls| controls.titlebar_overlay_top());
@@ -405,7 +403,6 @@ impl Component for Sidebar {
                     .width(Size::px(lights.length()))
                     .height(Size::px(lights.diameter))
                     .probe("sidebar-traffic-lights")
-                    .opacity(lights_opacity)
                     .child(TrafficLights::for_window(status.activated, fixed))
             }));
 

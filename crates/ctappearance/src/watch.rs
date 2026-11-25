@@ -13,7 +13,6 @@ use crate::{config_dir, data_dir};
 pub enum AppearanceEvent {
     Appearance,
     Wallpaper,
-    WallpaperSelection,
     Defaults(Option<OsString>),
 }
 
@@ -131,7 +130,6 @@ impl AppearanceWatch {
             for lost in [
                 AppearanceEvent::Appearance,
                 AppearanceEvent::Wallpaper,
-                AppearanceEvent::WallpaperSelection,
                 AppearanceEvent::Defaults(None),
             ] {
                 push_unique(out, lost);
@@ -149,7 +147,6 @@ impl AppearanceWatch {
         let in_app_folder = self.app_folders.iter().any(|(watch, _)| *watch == event.wd);
         let kind = match name {
             b"appearance.domain" if in_config => AppearanceEvent::Appearance,
-            b"wallpaper-selection.state" if in_data => AppearanceEvent::WallpaperSelection,
             b"wallpaper.state" if in_data => AppearanceEvent::Wallpaper,
             _ if (in_config || in_app_folder) && name.ends_with(b".domain") => {
                 AppearanceEvent::Defaults(Some(OsStr::from_bytes(name).to_owned()))

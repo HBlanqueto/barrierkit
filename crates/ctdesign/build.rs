@@ -80,7 +80,6 @@ ACCENT_RULE AccentRule components.settings.accent-rule
 PROGRESS ProgressMetrics components.progress
     indeterminate_ms=indeterminate.duration spinner_ms=spinner.duration spinner_frames=spinner.frames fill_ms=fill.duration fill_curve=fill.curve
 TOOLTIP TooltipMetrics components.tooltip delay_ms=delay
-TITLEBAR_REVEAL TitlebarRevealMetrics components.window.titlebar.reveal
 FULLSCREEN_GLASS FullscreenGlassMetrics components.window.titlebar.fullscreen-glass
 FULLSCREEN_BAR FullscreenBarMetrics components.window.titlebar.fullscreen-bar
 BACKDROP BackdropMetrics components.backdrop

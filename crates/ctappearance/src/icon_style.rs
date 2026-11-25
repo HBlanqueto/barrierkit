@@ -3,14 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::backdrop::Oklab;
 
-pub fn luma(color: [f32; 3]) -> f32 {
-    color
-        .iter()
-        .zip(Rgba::LUMA)
-        .map(|(channel, weight)| channel * weight)
-        .sum()
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum IconStyle {
@@ -18,7 +10,7 @@ pub enum IconStyle {
     Default,
     Dark,
     Clear,
-    // A monochrome icon is a tinted one in graphite; `read_appearance` gives it that color.
+    // A monochrome icon is a tinted one in graphite; `load_appearance` gives it that color.
     #[serde(alias = "monochrome")]
     Tinted,
 }

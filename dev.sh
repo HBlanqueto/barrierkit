@@ -38,14 +38,12 @@ check() {
     require cargo
     require cargo-fmt
     require cargo-clippy
+    features=bk/shell,bk/tracy
+    allow=
     if [ "$(uname -s)" = Darwin ]; then
-        # The shell feature does not build on macOS. Window and popup commands carry fields and the
-        # menu handle keeps the path and the action queue that only the Linux backend reads.
-        features=bk/tracy
+        # Window and popup commands carry fields and the menu handle keeps the path and the
+        # action queue that only the Linux backend reads.
         allow='-A dead_code'
-    else
-        features=bk/shell,bk/tracy
-        allow=
     fi
     cargo fmt --all -- --check
     if command -v shellcheck >/dev/null 2>&1; then

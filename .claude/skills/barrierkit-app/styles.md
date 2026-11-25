@@ -266,16 +266,6 @@ Titlebar::new().style(|s| TitlebarStyle {
 })
 ```
 
-WindowChromeStyle:
-
-```rust
-WindowChrome::new(content).style(|s| WindowChromeStyle {
-    reveal: Reveal::Drawer,
-    resting_edge: RestingEdge::Accent,
-    ..s
-})
-```
-
 SidebarStyle, SidebarItemStyle, SidebarSectionStyle, SidebarAccountStyle and SymbolTileStyle:
 
 ```rust
@@ -441,7 +431,6 @@ needs 4.5:1 and control parts 3:1 (WCAG 2.2, 1.4.3 and 1.4.11). Roles and
 | `Titlebar` | `TitlebarStyle`; its traffic lights take `TrafficLightsStyle` | 2026-11-07 |
 | The band under the overlaid title bar in focus mode | `FullscreenBarStyle`, theme and container only | 2026-11-07 |
 | `TrafficLights` | `TrafficLightsStyle` | 2026-11-07 |
-| `WindowChrome` | `WindowChromeStyle`, with its reveal | 2026-11-07 |
 | `Sidebar` | `SidebarStyle` | 2026-11-07 |
 | `SidebarItem` | `SidebarItemStyle`; its tile takes `SymbolTileStyle` | 2026-11-07 |
 | `SidebarSection` | `SidebarSectionStyle` | 2026-11-07 |

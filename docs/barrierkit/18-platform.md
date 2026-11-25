@@ -121,7 +121,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `zwp_primary_selection_device_manager_v1` | sctk | No | The primary selection (middle-click paste) | No primary selection |
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
-| `limitless_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
+| `limitless_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (bk-shell reads it); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
 | `limitless_window_style_v1` | 1–9 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests. Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold; the kit binds at the lower of what the compositor offers and 9 ([ADR 0091](../decisions.md)) | The compositor guesses the window style |
 | `limitless_effects_v1` | 1 | No | Objects for glass over the window's own content and behind it: `Sidebar` keeps a `behind_window` visual effect of the `sidebar` material; a chrome keeps a `within_window` visual effect or a glass effect (with a container when its glasses merge) and a scroll edge effect. Destroying an object removes the effect ([design](../research/limitless-effects.md), [ADR 0098](../decisions.md), [ADR 0100](../decisions.md)) | The sidebar and chromes stay a flat fill the kit draws |
 
@@ -265,7 +265,7 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 | `glass_effect(Glass, Shape)` on any view as an `NSGlassEffectView` behind it on macOS 26 and later, with the view drawn in a Metal chrome above; below 26 or under Reduce Transparency the kit's own blur or opaque solid. Up to 8 chromes per window here, 3 on Linux; one radius and one variant per chrome ([15](15-backdrops-and-media.md#glass-on-any-view)) | `tint`, `interactive`, `glassEffectUnion`, a shape per corner |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
 
-The window and its popups take the system's light or dark, live ([The system's light or dark](04-appearance-and-tokens.md#the-systems-light-or-dark)). Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
+The window and its popups take the system's light or dark, live ([The system's light or dark](04-appearance-and-tokens.md#the-systems-light-or-dark)). Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature builds on macOS but adds nothing there: `bk::extension` is empty.
 
 ### Build and check on macOS
 
@@ -276,7 +276,7 @@ The window and its popups take the system's light or dark, live ([The system's l
 
 1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
-3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the menu handle carry items only the Linux backend reads; `ctdesign`, `ctappearance` and `limitless` run again without `-A dead_code`), the unit tests, and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without the `shell` feature.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the menu handle carry items only the Linux backend reads; `ctdesign`, `ctappearance` and `limitless` run again without `-A dead_code`), the unit tests, and the scripts of `scripts/` (`shellcheck` when installed), with the `shell` and `tracy` features.
 4. Optional: `./dev.sh macos-smoke` opens every recipe of `crates/bk/examples` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
 
 ### Smoke test on macOS

@@ -308,29 +308,8 @@ Dark icons suit `Clear` best: the plate has the low luminance that becomes
 the transparency. The ends of the tint and the clear gray are the
 `ICON_STYLE` tokens.
 
-With `.glass_plate()` a compositor that draws a clear icon's plate as glass
-(Malaysia's Dock, `set_plate_frames`) gets only the logo: `app_icon` skips the
-plate, and `icon_style` drops the dark body of the icon, whose alpha starts at
-`ICON_STYLE.clear_cut` (`IconStyle::matrix_on_glass`). The plate's corner is
-`ICON_PLATE.corner`, as a share of its body. The compositor moves the
-lightness of what is behind the plate toward white by `ICON_PLATE_GLASS`, or
-toward black by `ICON_PLATE_GLASS_DARK` with dark icons. A dark Dock is too dark
-to darken, so there dark icons take `ICON_PLATE_GLASS_DARK_ON_DARK`, a smaller
-step toward white than light icons. The plate stands out from any glass and gets
-the same edge. Without `Clear` it changes nothing. A style rasterizes at the window's scale and is cached
+A style rasterizes at the window's scale and is cached
 like a template image. It does not apply to `Template` images or to symbols.
-
-An icon whose `size` changes every frame, such as the Dock's under the pointer,
-takes `.raster_size(largest)`: it is rasterized once at that size, with the
-window's scale, and drawn at `size`, so no frame parses the SVG or plates the
-icon again.
-
-```rust
-Image::data(include_bytes!("firefox.svg").as_slice())
-    .app_icon()
-    .size(magnified)
-    .raster_size(64.0)
-```
 
 ## Fonts
 
@@ -471,7 +450,7 @@ tint_parts = ["sidebars", "window", "groups", "controls", "menus"]
 | `show_borders` | `bool` | | `false` |
 | `differentiate_without_color` | `bool` | | `false` |
 | `text_size` | `f32` | a value of `TEXT_SIZES` | `1.0` |
-| `text_sizes` | `TextSizes` | table with optional `barrierkit`, `gtk`, `qt`, each a value of `TEXT_SIZES` | empty: every toolkit uses `text_size` |
+| `text_sizes` | `TextSizes` | table with an optional `barrierkit`, a value of `TEXT_SIZES` | empty: the kit uses `text_size` |
 | `icon_style` | `IconStyle` | `default`, `dark`, `clear`, `tinted`; the retired `monochrome` reads as `tinted` with a graphite `icon_color` | `default` |
 | `icon_tone` | `IconTone` | `light`, `dark`, `automatic` (follows the color scheme); `default` ignores it | `automatic` |
 | `icon_color` | `Option<[f32; 3]>` | RGB from 0 to 1 for tinted icons and folders; absent means the accent | absent |
@@ -514,7 +493,6 @@ Notes on the values:
 | `config_dir()`, `data_dir()` | The desktop's shared folders: `$MALAYSIA_CONFIG_DIR` or `$XDG_CONFIG_HOME/malaysia`; `$MALAYSIA_DATA_DIR` or `$XDG_DATA_HOME/malaysia`. They hold `appearance.domain`, `window.domain`, `language.domain` and the wallpaper state; an app keeps its own settings in its own folder ([13](13-app.md#settings-and-restoration)). |
 | `appearance_path()` | `config_dir()/appearance.domain`. |
 | `wallpaper_state_path()` | `data_dir()/wallpaper.state`, where the wallpaper's dominant color and grid live. |
-| `read_appearance()` | `Ok(None)` without a file, `Err` when the TOML does not parse. |
 | `load_appearance()` | The file's config, or the default on any error. |
 | `replace_file(path, text)` | Writes `text` to a temporary file beside `path`, syncs it and renames it over `path`. Creates the directory with `create_private_dir`. |
 | `create_private_dir(dir)` | Creates `dir` and its missing parents with mode `0700`, as the XDG Base Directory specification asks. |
@@ -555,7 +533,7 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `reduce_transparency` | `AppearanceConfig::transparency_reduced()`: true with `reduce_transparency` or `contrast`. |
 | `show_borders`, `differentiate_without_color`, `icon_style` | Copies of the config. |
 | `icon_dark`, `icon_tint` | `IconStyle::dark` for `icon_tone` and the scheme, and `icon_color` or the accent. |
-| `text_size` | `AppearanceConfig::text_size_for(Toolkit::BarrierKit)`: the BarrierKit size, or the preferred `text_size`. |
+| `text_size` | `text_sizes.barrierkit`, or the preferred `text_size`. |
 | `menu`, `menu_parent` | `MenuPalette` and the window color a menu sits on. `Resolved::menu_separator(panel_bg)` gives the separator over another background. |
 | `sidebar` | `SidebarSurface`: `bg`, its `SidebarPalette` and `glass`. `glass` is a `SidebarGlass` with `base` (the tone of the glass at rest, tinted with the accent when the accent is the window color), `solid` (the tone of a window that is not active) and `chroma` (the share of the wallpaper's chroma, `GLASS.accent_share` of it under an accent) and is `None` with reduced transparency ([Glass](10-sidebar.md#glass)). |
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
@@ -674,8 +652,7 @@ top clockwise.
 The compositor draws the glass of the menus, the Dock and the notifications;
 the colour it shows over a backdrop is the compositor's.
 
-`menu::panel_luma(panel)` is the luma of the panel and
-`menu::dark_ink_over(luma)` says whether its ink is dark: above
+`menu::dark_ink_over(luma)`, with the panel's `Rgba::luma`, says whether its ink is dark: above
 `MENU_DARK_INK_ABOVE` (0.4) it is, below it the ink is light. A light panel
 over black has luma 0.48 and takes dark ink; a dark one has 0.17 and takes
 light ink.
@@ -711,7 +688,6 @@ what changed as `AppearanceEvent`s:
 |---|---|
 | `Appearance` | `appearance.domain` |
 | `Wallpaper` | `wallpaper.state` |
-| `WallpaperSelection` | `wallpaper-selection.state` in the data directory |
 | `Defaults(name)` | any other `.domain` in the config folder or in a folder added with `watch_app_folder(path)`; `name` is its file name, `None` after a lost event |
 
 If a watched folder is deleted or moved, `drain()` creates it again and watches it again.
@@ -748,14 +724,13 @@ zoom lights, shared by the kit and the compositor:
 |---|---|
 | `inset(bar_height)` | Distance of the lights from the left edge of a bar: `TITLEBAR.buttons.inset` (9) in the 32 px bar and `inset_compact` (12) in the `TITLEBAR_CLIENT_HEIGHT` (40) bar, as measured on macOS. The lights stay centred vertically: 9 and 13 from the top. |
 | `button_rect(index) -> (x, y, size)` | Rectangle of light `index` in a server-side titlebar. |
-| `hit(point) -> Option<ButtonKind>` | The light under a point. |
 | `TrafficInput` | `focused`, `group_hovered`, `pressed`, `zoom_supported`, `fullscreen` (minimize is disabled). |
 | `visual(looks, input) -> [ButtonVisual; 3]` | The fill and ring stops, the glyph color, the scale and the dodge of each light for that input. |
 | `ButtonVisual` | `fill` (4 stops, top to bottom), `ring` (3 stops), `glyph` (`None` without hover), `scale` and `dodge` (1.0 and 0.0 unless pressed). |
 | `looks(style, standard, accent, dominant) -> TrafficLooks` | The `standard` look as it is, or recolored with the tone that `accent` or `wallpaper` gives. |
 | `Glyph` | `Close`, `Minimize`, `ZoomEnter`, `ZoomExit` (full screen) and `Plus`; `Glyph::of(index, fixed_width, fullscreen)` picks the one of a light. |
 | `rounded(triangle) -> [Corner; 3]` | The corners of a zoom triangle rounded on `TRAFFIC_GLYPHS.zoom_corner`. |
-| `TrafficPointer` | Pointer state machine: `on_motion`, `on_group_enter`, `on_button_enter`, `on_leave_button`, `on_press`, `on_release` (returns the clicked light), `on_leave`, `hovered`, `pressed_visual`. |
+| `TrafficPointer` | Pointer state machine: `on_group_enter`, `on_button_enter`, `on_leave_button`, `on_press`, `on_release` (returns the clicked light), `on_leave`, `hovered`, `pressed_visual`. |
 
 ```rust
 // ✗ geometry computed again
@@ -817,9 +792,7 @@ relative paths:
 |---|---|
 | `config_home()` | `$XDG_CONFIG_HOME` or `~/.config` |
 | `data_home()` | `$XDG_DATA_HOME` or `~/.local/share` |
-| `cache_home()` | `$XDG_CACHE_HOME` or `~/.cache` |
 | `data_dirs()` | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` |
-| `user_dir(kind)` | `XDG_<kind>_DIR` from `user-dirs.dirs`, for example `user_dir("DOWNLOAD")` |
 
 `ctshell::ini` reads and edits the INI files that GTK 3 (`settings.ini`)
 and qt5ct and qt6ct read, and keeps every other line:
@@ -1028,16 +1001,15 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `DIALOG_PADDING`, `DIALOG_ALERT_*`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `DIALOG_SOLID_*` | `f32`, `u32`, `Rgba`, `[f32; 2]` | `views::feedback`, `styles` (`AlertStyle`, `SheetStyle`, `AboutViewStyle`) |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
 | `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |
-| `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`WindowChromeStyle`), the compositor |
+| `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`SheetStyle`), the compositor |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
-| `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`), `chrome` ([9](09-titlebars.md)) |
+| `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`) ([9](09-titlebars.md)) |
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
 | `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` | `f32` | The expanded `Titlebar` (SwiftUI `.expanded`): a 28 high title row with the title 15 after the lights, and a toolbar row whose items sit 8 above its middle, 4 under the title row ([9](09-titlebars.md)) |
 | `TITLEBAR_TOOLBAR_START` | `TitlebarToolbarStart` | Where the first toolbar item starts: 16 (unified) and 22 (compact) after the lights, 11 from the edge of the expanded toolbar row ([9](09-titlebars.md)) |
 | `TITLEBAR_SYSTEM_VEIL` | `Rgba` | White at 9/255: what AppKit's title bar lays over the window material, 8 levels in Dark and none in Light ([9](09-titlebars.md)) |
 | `TITLEBAR_FULLSCREEN_START` | `TitlebarToolbarStart` | Where the title or the first item starts in full screen, with no lights: 22 (unified), 14 (compact), 11 (expanded) from the edge ([9](09-titlebars.md)) |
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
-| `TITLEBAR_REVEAL` | `TitlebarRevealMetrics` | `chrome`, `styles` (`WindowChromeStyle`): the pill, reveal zone and corner, and resting edges of a hidden bar ([9](09-titlebars.md#window-chrome)) |
 | `FULLSCREEN_BAR`, `FULLSCREEN_GLASS` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform` (`FULLSCREEN_BAR`), `styles` (`TopGlassStyle`) |
 | `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
 
@@ -1119,7 +1091,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 ### Shell
 
 The kit reads these shell values: `ctappearance` puts the glass in `Resolved`,
-and the popover shapes and `pop_up_menu` draw the Dock's label and menu. The
+and the popover shapes draw the Dock's label and menu. The
 shell's own tokens are not part of the kit.
 
 | Constants | What they size |
@@ -1128,7 +1100,7 @@ shell's own tokens are not part of the kit.
 | `MENU_DARK_INK_ABOVE` | The luma above which a menu panel takes dark ink ([Glass over a backdrop](#glass-over-a-backdrop)) |
 | `DOCK_LABEL_RADIUS` | The corner of the name label over a Dock icon |
 | `DOCK_LABEL_ARROW_WIDTH`, `DOCK_LABEL_ARROW_HEIGHT`, `DOCK_LABEL_ARROW_TIP_RADIUS`, `DOCK_LABEL_ARROW_FILLET` | The arrow of that label, a popover with the `Label` shape |
-| `DOCK_MENU_PADDING`, `DOCK_MENU_ITEM_PADDING_X`, `DOCK_MENU_SEPARATOR_MARGIN`, `DOCK_MENU_MIN_WIDTH` | An icon's menu: row metrics and width ([`pop_up_menu`](07-menus-and-popovers.md#pop_up_menu)) |
+| `DOCK_MENU_PADDING`, `DOCK_MENU_ITEM_PADDING_X`, `DOCK_MENU_SEPARATOR_MARGIN`, `DOCK_MENU_MIN_WIDTH` | An icon's menu: row metrics and width; only the shell reads them |
 | `DOCK_MENU_ARROW_INSET`, `DOCK_MENU_ARROW_TIP_RADIUS`, `DOCK_MENU_ARROW_FILLET` | Its arrow: distance from the corner, tip and fillet of the `Menu` shape |
 
 ## Helpers

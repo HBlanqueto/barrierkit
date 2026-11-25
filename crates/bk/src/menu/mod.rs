@@ -6,14 +6,11 @@ mod shortcut;
 mod submenu;
 mod text;
 
-pub use item::*;
+pub(crate) use item::*;
 pub use model::*;
 use nav::*;
-pub use search::normalize_query;
-use search::*;
 pub(crate) use shortcut::shortcut_keys;
 pub use shortcut::{format_shortcut, shortcut_matches};
-pub use submenu::submenu_contents;
 use submenu::*;
 pub use text::*;
 
@@ -25,12 +22,10 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use freya_components::svg_viewer::SvgViewer;
-use freya_core::elements::image::ImageHandle;
 use freya_core::integration::{AppComponent, default_fonts};
 use freya_core::prelude::*;
 use freya_engine::prelude::{
-    AlphaType, ColorType, FontMgr, FontStyle, ImageInfo, Paragraph, ParagraphBuilder,
-    ParagraphStyle, Pixmap, SkData, SkImage, Slant, TextStyle, Width, svg,
+    FontMgr, FontStyle, Paragraph, ParagraphBuilder, ParagraphStyle, Slant, TextStyle, Width, svg,
 };
 use ragnarok::CursorPoint;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
@@ -52,7 +47,6 @@ use ctdesign::{MenuPalette, Rgba, SANS_FAMILIES};
 #[derive(Clone)]
 struct PaletteSource {
     surface: SurfaceKind,
-    fixed: Option<MenuPalette>,
     popover: bool,
     style: Theme,
 }
@@ -61,16 +55,6 @@ impl PaletteSource {
     fn live(surface: SurfaceKind) -> Self {
         Self {
             surface,
-            fixed: None,
-            popover: false,
-            style: Theme::tengen(),
-        }
-    }
-
-    fn fixed(palette: MenuPalette) -> Self {
-        Self {
-            surface: SurfaceKind::LayerShell,
-            fixed: Some(palette),
             popover: false,
             style: Theme::tengen(),
         }
@@ -81,9 +65,7 @@ impl PaletteSource {
     }
 
     fn with_resolved(&self, resolved: &ctappearance::Resolved) -> MenuPalette {
-        let palette = self
-            .fixed
-            .unwrap_or_else(|| menu_palette(resolved, self.surface));
+        let palette = menu_palette(resolved, self.surface);
         if self.popover {
             crate::theme::apply_popover_metrics(palette)
         } else {
@@ -103,17 +85,8 @@ pub struct MenuView {
     items_source: Option<ItemsSource>,
     on_activate: Rc<dyn Fn(String)>,
     on_dismiss_all: Rc<dyn Fn()>,
-    on_open_submenu: Option<Rc<dyn Fn(String)>>,
-    submenu_source: Option<SubmenuSource>,
-    on_navigation: Option<Rc<dyn Fn(MenuNavigation)>>,
     palette_source: PaletteSource,
-    searchable: Option<SearchableSource>,
-    help_search: Option<SearchableSource>,
-    query_state: Option<Rc<RefCell<SearchQuery>>>,
-    menu_search_icon: Option<&'static str>,
-    help_search_icon: Option<&'static str>,
     popup_spec: Option<PopupSpec>,
-    reveal_roots: Option<RevealRoots>,
     focused_index: Option<usize>,
     probe: Option<&'static str>,
 }
@@ -129,17 +102,8 @@ impl MenuView {
             items_source: None,
             on_activate: Rc::new(on_activate),
             on_dismiss_all: Rc::new(on_dismiss_all),
-            on_open_submenu: None,
-            submenu_source: None,
-            on_navigation: None,
             palette_source: PaletteSource::live(SurfaceKind::LayerShell),
-            searchable: None,
-            help_search: None,
-            query_state: None,
-            menu_search_icon: None,
-            help_search_icon: None,
             popup_spec: None,
-            reveal_roots: None,
             focused_index: None,
             probe: None,
         }
@@ -149,14 +113,6 @@ impl MenuView {
         self.palette_source = PaletteSource {
             style: self.palette_source.style,
             ..PaletteSource::live(kind)
-        };
-        self
-    }
-
-    pub fn with_fixed_palette(mut self, palette: MenuPalette) -> Self {
-        self.palette_source = PaletteSource {
-            style: self.palette_source.style,
-            ..PaletteSource::fixed(palette)
         };
         self
     }
@@ -176,27 +132,6 @@ impl MenuView {
         self
     }
 
-    pub fn with_searchable(mut self, source: impl Fn() -> Vec<SearchableEntry> + 'static) -> Self {
-        self.searchable = Some(Rc::new(source));
-        self
-    }
-
-    pub fn with_help_topics(mut self, source: impl Fn() -> Vec<SearchableEntry> + 'static) -> Self {
-        self.help_search = Some(Rc::new(source));
-        self
-    }
-
-    pub fn with_search_icons(mut self, menu: &'static str, help: &'static str) -> Self {
-        self.menu_search_icon = Some(menu);
-        self.help_search_icon = Some(help);
-        self
-    }
-
-    pub fn with_reveal_roots(mut self, source: impl Fn() -> Vec<Vec<MenuItem>> + 'static) -> Self {
-        self.reveal_roots = Some(Rc::new(source));
-        self
-    }
-
     pub fn with_focused_index(mut self, index: Option<usize>) -> Self {
         self.focused_index = index;
         self
@@ -206,32 +141,6 @@ impl MenuView {
         self.items_source = Some(Rc::new(source));
         self
     }
-
-    pub fn with_open_submenu(mut self, callback: impl Fn(String) + 'static) -> Self {
-        self.on_open_submenu = Some(Rc::new(callback));
-        self
-    }
-
-    pub fn with_submenu_source(
-        mut self,
-        source: impl Fn(&str) -> Option<Vec<MenuItem>> + 'static,
-    ) -> Self {
-        self.submenu_source = Some(Rc::new(source));
-        self
-    }
-
-    pub fn with_query_state(mut self, state: Rc<RefCell<SearchQuery>>) -> Self {
-        self.query_state = Some(state);
-        self
-    }
-
-    pub fn with_navigation(mut self, on_navigation: impl Fn(MenuNavigation) + 'static) -> Self {
-        self.on_navigation = Some(Rc::new(on_navigation));
-        self
-    }
-
-    pub const MAX_MENU_ROWS: usize = 9;
-    pub const MAX_HELP_ROWS: usize = 5;
 
     pub fn preferred_size(items: &[MenuItem], m: MenuPalette) -> (f32, f32) {
         let items = &with_empty_hint(items);
@@ -286,9 +195,6 @@ impl App for MenuView {
         };
         let on_activate = self.on_activate.clone();
         let on_dismiss_all = self.on_dismiss_all.clone();
-        let on_open_submenu = self.on_open_submenu.clone();
-        let submenu_source = self.submenu_source.clone();
-        let on_navigation = self.on_navigation.clone();
         let palette_source = self.palette_source.clone();
         let m = palette_source.current();
         let root_size = *Platform::get().current_window().root_size.read();
@@ -297,6 +203,7 @@ impl App for MenuView {
         let popups: Option<Popups> = try_consume_root_context();
         let opens_left = popup.as_ref().is_some_and(PopupHandle::opens_left);
         let popup_spec = self.popup_spec.clone();
+        let is_child = popup_spec.is_some();
         let initial_focused = self.focused_index;
         let items_for_focus = items.clone();
         let mut focused =
@@ -306,68 +213,9 @@ impl App for MenuView {
         let open_child_index = use_hook(|| Rc::new(Cell::new(None::<usize>)));
         let hover_state = use_hook(|| Rc::new(RefCell::new(HoverState::default())));
         let timers: Option<Timers> = try_consume_root_context();
-        let query_state = self.query_state.clone();
-        let initial = query_state
-            .as_ref()
-            .map(|q| q.borrow().clone())
-            .unwrap_or_default();
-        let mut query = use_state(|| initial.text);
-        let mut selected = use_state(|| initial.selected);
-        let mut result_focused = use_state(|| None::<usize>);
-        let prev_query = use_hook(|| Rc::new(RefCell::new(String::new())));
-        let has_search = self.searchable.is_some() || self.help_search.is_some();
-        let query_text = (*query.read()).clone();
-        let searchable_entries = self
-            .searchable
-            .as_ref()
-            .filter(|_| !query_text.is_empty())
-            .map(|source| source());
-        let help_entries = self
-            .help_search
-            .as_ref()
-            .filter(|_| !query_text.is_empty())
-            .map(|source| source());
-        let is_selected = *selected.read();
-
-        if let Some(state) = &query_state {
-            let current = SearchQuery {
-                text: query_text.clone(),
-                selected: is_selected,
-            };
-            if *state.borrow() != current {
-                *state.borrow_mut() = current;
-            }
-        }
-
-        let (menu_results, help_results) = search_result_lists(
-            searchable_entries.as_deref(),
-            help_entries.as_deref(),
-            &query_text,
-        )
-        .unwrap_or_default();
-        let mut menu_scroll = use_state(|| 0usize);
-        let mut help_scroll = use_state(|| 0usize);
-
-        if prev_query.borrow().as_str() != query_text {
-            *prev_query.borrow_mut() = query_text.clone();
-            menu_scroll.set(0);
-            help_scroll.set(0);
-            result_focused.set(None);
-        }
-
-        let visible = if query_text.is_empty() {
-            match with_empty_hint(&items) {
-                Cow::Borrowed(_) => items.clone(),
-                Cow::Owned(hint) => Rc::new(hint),
-            }
-        } else {
-            Rc::new(visible_items(
-                &items,
-                &menu_results,
-                &help_results,
-                *menu_scroll.read(),
-                *help_scroll.read(),
-            ))
+        let visible = match with_empty_hint(&items) {
+            Cow::Borrowed(_) => items.clone(),
+            Cow::Owned(hint) => Rc::new(hint),
         };
 
         let last_size = use_hook(|| {
@@ -387,15 +235,6 @@ impl App for MenuView {
             }
         }
 
-        let result_rows: Vec<usize> = visible
-            .iter()
-            .enumerate()
-            .filter(|(_, item)| matches!(item, MenuItem::SearchResult { .. }))
-            .map(|(index, _)| index)
-            .collect();
-        let menu_section = find_result_section(&visible, SearchSource::Menu);
-        let help_section = find_result_section(&visible, SearchSource::Help);
-
         let focused_index = *focused.read();
         if let Some(index) = focused_index
             && !items.get(index).is_some_and(MenuItem::selectable)
@@ -405,7 +244,6 @@ impl App for MenuView {
                 focused.set(next);
             }
         }
-        let result_focused_index = *result_focused.read();
         let submenus = SubmenuCtx {
             popup: popup.clone(),
             popups,
@@ -414,48 +252,17 @@ impl App for MenuView {
             palette_source,
             on_activate: on_activate.clone(),
             on_dismiss_all: on_dismiss_all.clone(),
-            on_open_submenu,
-            submenu_source,
             open_child_id: open_child_id.clone(),
             open_child_index: open_child_index.clone(),
             opens_left,
         };
-        let reveal_child_id = use_hook(|| Rc::new(Cell::new(None::<PopupId>)));
-        let prev_revealed = use_hook(|| Rc::new(RefCell::new(None::<SearchLocation>)));
-        let reveal_roots = self.reveal_roots.clone();
-
-        let revealed_location = result_focused_index.and_then(|i| {
-            visible.get(i).and_then(|item| match item {
-                MenuItem::SearchResult {
-                    source: SearchSource::Menu,
-                    location: Some(loc),
-                    ..
-                } => Some(loc.clone()),
-                _ => None,
-            })
-        });
-        if revealed_location != *prev_revealed.borrow() {
-            *prev_revealed.borrow_mut() = revealed_location.clone();
-            submenus.close_child(&reveal_child_id, &Cell::new(None));
-            if let (Some(loc), Some(roots)) = (revealed_location, reveal_roots.as_ref()) {
-                let roots = roots();
-                if let Some(items) = roots.get(loc.title_index) {
-                    let anchor = popup_spec
-                        .as_ref()
-                        .map(|spec| (spec.anchor_rect.0 as f32, spec.anchor_rect.2 as f32))
-                        .unwrap_or((0.0, 1.0));
-                    open_reveal_popup(&submenus, items, &loc, reveal_child_id.clone(), anchor);
-                }
-            }
-        }
-
         let mut alt_held = use_state(|| false);
         let show_mnemonic = *alt_held.read();
 
         let inset = m.padding;
         let content_height: f32 = visible.iter().map(|item| item.height(m)).sum();
         let available = (size.1 - inset * 2.0).max(0.0);
-        let overflow = query_text.is_empty() && content_height > available + m.item_height / 2.0;
+        let overflow = content_height > available + m.item_height / 2.0;
         let arrow_height = m.header_height;
         let viewport = if overflow {
             (available - 2.0 * arrow_height).max(m.item_height)
@@ -516,8 +323,8 @@ impl App for MenuView {
                     return;
                 }
                 submenus.close_child(&submenus.open_child_id, &submenus.open_child_index);
-                if let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(index) {
-                    open_child_popup(&submenus, index, id.as_deref(), sub, &items);
+                if let Some(MenuItem::Submenu { items: sub, .. }) = items.get(index) {
+                    open_child_popup(&submenus, index, sub, &items);
                 }
             })
         };
@@ -572,11 +379,10 @@ impl App for MenuView {
                 hover_state.borrow_mut().pending = None;
                 if let Some(child_index) = open_child_index.get()
                     && child_index != index
-                    && let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(child_index)
+                    && let Some(MenuItem::Submenu { items: sub, .. }) = items.get(child_index)
                 {
                     let child_top = item_top(child_index, &items, m) - shift;
-                    let child_height =
-                        MenuView::preferred_size(&submenu_contents(id.is_some(), sub), m).1;
+                    let child_height = MenuView::preferred_size(sub, m).1;
                     let near_x = if opens_left { 0.0 } else { size.0 };
                     let to_top = CursorPoint::new(near_x as f64, child_top as f64);
                     let to_bottom =
@@ -610,12 +416,6 @@ impl App for MenuView {
             marks: has_marks(&visible),
             text_inset: row_text_inset(&visible, m),
             icon_column: icon_column(&visible, m),
-            size,
-            query,
-            selected,
-            result_focused,
-            menu_search_icon: self.menu_search_icon,
-            help_search_icon: self.help_search_icon,
             on_activate: on_activate.clone(),
             on_dismiss_all: on_dismiss_all.clone(),
             on_row_enter: enter_row,
@@ -627,14 +427,7 @@ impl App for MenuView {
         let rows: Vec<Element> = visible
             .iter()
             .enumerate()
-            .map(|(index, item)| {
-                let is_focused = if !query_text.is_empty() && !result_rows.is_empty() {
-                    result_focused_index == Some(index)
-                } else {
-                    focused_index == Some(index)
-                };
-                render_item(&row_ctx, item, index, is_focused)
-            })
+            .map(|(index, item)| render_item(&row_ctx, item, index, focused_index == Some(index)))
             .collect();
         let rows: Vec<Element> = if overflow {
             let arrow = |direction: i8, active: bool| {
@@ -707,19 +500,9 @@ impl App for MenuView {
             }
             hover_state.borrow_mut().pending = None;
             let current = *focused.read();
-            let query_text = (*query.read()).clone();
-            let result_current = *result_focused.read();
-            let result_row =
-                result_current.and_then(|i| result_rows.iter().position(|&row| row == i));
-            let searching = has_search && !query_text.is_empty();
-            let is_selected = *selected.read();
             let activates = event.key == Key::Named(NamedKey::Enter)
-                || (event.key == Key::Character(" ".into())
-                    && inserts_text(event.modifiers)
-                    && !searching);
-            if !searching
-                && let Some(MenuItem::Palette { items: cells }) = current.and_then(|i| items.get(i))
-            {
+                || (event.key == Key::Character(" ".into()) && inserts_text(event.modifiers));
+            if let Some(MenuItem::Palette { items: cells }) = current.and_then(|i| items.get(i)) {
                 let cursor = (*palette_cursor.peek()).min(cells.len().saturating_sub(1));
                 match event.key {
                     Key::Named(NamedKey::ArrowLeft) => {
@@ -742,128 +525,29 @@ impl App for MenuView {
             }
             match event.key {
                 _ if activates => {
-                    selected.set(false);
-                    let (index, source): (Option<usize>, &[MenuItem]) = if searching {
-                        (result_current, visible.as_slice())
-                    } else {
-                        (current, items.as_slice())
-                    };
-                    if let Some(index) = index {
-                        activate_or_open(&submenus, source, index);
+                    if let Some(index) = current {
+                        activate_or_open(&submenus, &items, index);
                     }
                 }
-                Key::Named(NamedKey::ArrowDown) => {
-                    selected.set(false);
-                    if searching {
-                        match result_row {
-                            None => result_focused.set(result_rows.first().copied()),
-                            Some(row) => {
-                                let i = result_rows[row];
-                                let at_end =
-                                    |section: Option<(usize, usize)>, scroll: usize, len| {
-                                        section.is_some_and(|(start, count)| {
-                                            i == start + count - 1 && scroll + count < len
-                                        })
-                                    };
-                                if at_end(menu_section, *menu_scroll.read(), menu_results.len()) {
-                                    *menu_scroll.write() += 1;
-                                } else if at_end(
-                                    help_section,
-                                    *help_scroll.read(),
-                                    help_results.len(),
-                                ) {
-                                    *help_scroll.write() += 1;
-                                } else if let Some(&next) = result_rows.get(row + 1) {
-                                    result_focused.set(Some(next));
-                                }
-                            }
-                        }
-                    } else {
-                        focused.set(next_selectable(&items, current, 1));
-                    }
-                }
-                Key::Named(NamedKey::ArrowUp) => {
-                    selected.set(false);
-                    if searching {
-                        match result_row {
-                            None => result_focused.set(result_rows.last().copied()),
-                            Some(row) => {
-                                let i = result_rows[row];
-                                let at_start = |section: Option<(usize, usize)>, scroll: usize| {
-                                    scroll > 0 && section.is_some_and(|(start, _)| i == start)
-                                };
-                                if at_start(menu_section, *menu_scroll.read()) {
-                                    *menu_scroll.write() -= 1;
-                                } else if at_start(help_section, *help_scroll.read()) {
-                                    *help_scroll.write() -= 1;
-                                } else if let Some(prev) = row.checked_sub(1) {
-                                    result_focused.set(Some(result_rows[prev]));
-                                }
-                            }
-                        }
-                    } else {
-                        focused.set(next_selectable(&items, current, -1));
-                    }
-                }
-                Key::Named(NamedKey::Home) => {
-                    if !searching {
-                        focused.set(first_selectable(&items));
-                    }
-                }
-                Key::Named(NamedKey::End) => {
-                    if !searching {
-                        focused.set(last_selectable(&items));
-                    }
-                }
-                Key::Character(ref ch) if has_search && inserts_text(event.modifiers) => {
-                    let mut text = query_text;
-                    if is_selected {
-                        text.clear();
-                        selected.set(false);
-                    }
-                    text.push_str(ch);
-                    query.set(text);
-                }
-                Key::Named(NamedKey::Backspace) if has_search => {
-                    if is_selected {
-                        query.set(String::new());
-                        selected.set(false);
-                    } else {
-                        let mut text = query_text;
-                        text.pop();
-                        query.set(text);
-                    }
-                }
+                Key::Named(NamedKey::ArrowDown) => focused.set(next_selectable(&items, current, 1)),
+                Key::Named(NamedKey::ArrowUp) => focused.set(next_selectable(&items, current, -1)),
+                Key::Named(NamedKey::Home) => focused.set(first_selectable(&items)),
+                Key::Named(NamedKey::End) => focused.set(last_selectable(&items)),
                 Key::Named(NamedKey::Escape) => {
-                    if searching {
-                        query.set(String::new());
-                        selected.set(false);
-                        result_focused.set(None);
-                        focused.set(first_selectable(&items));
-                    } else if let Some(popup) = &popup {
+                    if let Some(popup) = &popup {
                         popup.close();
                     }
                 }
                 Key::Named(NamedKey::ArrowRight) => {
-                    if searching {
-                        return;
-                    }
-                    if let Some(index) = current {
-                        if let Some(MenuItem::Submenu { id, items: sub, .. }) = items.get(index) {
-                            open_child_popup(&submenus, index, id.as_deref(), sub, &items);
-                        } else if popup.is_some()
-                            && let Some(on_navigation) = &on_navigation
-                        {
-                            on_navigation(MenuNavigation::Next);
-                        }
+                    if let Some(index) = current
+                        && let Some(MenuItem::Submenu { items: sub, .. }) = items.get(index)
+                    {
+                        open_child_popup(&submenus, index, sub, &items);
                     }
                 }
-                Key::Named(NamedKey::ArrowLeft) if !searching => {
+                Key::Named(NamedKey::ArrowLeft) if is_child => {
                     if let Some(popup) = &popup {
-                        match &on_navigation {
-                            Some(on_navigation) => on_navigation(MenuNavigation::Prev),
-                            None => popup.close(),
-                        }
+                        popup.close();
                     }
                 }
                 _ => {}

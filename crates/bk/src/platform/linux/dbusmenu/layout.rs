@@ -171,10 +171,7 @@ fn layout_item(
                 submenu_node(label, *enabled, children),
             )
         }
-        MenuItem::Header { .. }
-        | MenuItem::SearchField { .. }
-        | MenuItem::SearchResult { .. }
-        | MenuItem::Palette { .. } => {
+        MenuItem::Header { .. } | MenuItem::Palette { .. } => {
             return None;
         }
     };

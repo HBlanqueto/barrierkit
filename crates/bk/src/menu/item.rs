@@ -5,7 +5,6 @@ use ctdesign::{MENU_ICON_TEXT_GAP, MENU_MARK_TEXT_GAP};
 pub(super) fn has_marks(items: &[MenuItem]) -> bool {
     items.iter().any(|item| match item {
         MenuItem::Action { check, .. } => !matches!(check, CheckState::None),
-        MenuItem::SearchResult { item, .. } => has_marks(std::slice::from_ref(item)),
         _ => false,
     })
 }
@@ -13,7 +12,6 @@ pub(super) fn has_marks(items: &[MenuItem]) -> bool {
 fn has_icon(item: &MenuItem) -> bool {
     match item {
         MenuItem::Action { icon, .. } | MenuItem::Submenu { icon, .. } => icon.is_some(),
-        MenuItem::SearchResult { .. } => true,
         _ => false,
     }
 }
@@ -97,17 +95,6 @@ pub(crate) fn last_leading_column_inset(items: &[MenuItem], m: MenuPalette) -> f
     }
 }
 
-pub(super) fn svg_rgb(color: Rgba) -> String {
-    let [r, g, b, _] = color.to_rgba8();
-    format!("rgb({r},{g},{b})")
-}
-
-pub fn search_icon_svg(template: &str, text: Rgba, accent: Rgba) -> String {
-    template
-        .replace("{{text}}", &svg_rgb(text))
-        .replace("{{accent}}", &svg_rgb(accent))
-}
-
 pub(super) fn row_fg(enabled: bool, focused: bool, idle: Rgba, m: MenuPalette) -> Rgba {
     if !enabled {
         m.disabled_fg
@@ -141,12 +128,6 @@ pub(super) struct RowCtx {
     pub(super) marks: bool,
     pub(super) text_inset: f32,
     pub(super) icon_column: f32,
-    pub(super) size: (f32, f32),
-    pub(super) query: State<String>,
-    pub(super) selected: State<bool>,
-    pub(super) result_focused: State<Option<usize>>,
-    pub(super) menu_search_icon: Option<&'static str>,
-    pub(super) help_search_icon: Option<&'static str>,
     pub(super) on_activate: Rc<dyn Fn(String)>,
     pub(super) on_dismiss_all: Rc<dyn Fn()>,
     pub(super) on_row_enter: Rc<dyn Fn(usize, CursorPoint)>,
@@ -308,72 +289,23 @@ pub(super) fn render_item(
             ));
             row.child(left).child(trailing).into_element()
         }
-        MenuItem::Header {
-            label: header,
-            count,
-        } => {
-            let header_label = |text: Cow<'static, str>| {
+        MenuItem::Header { label: header } => rect()
+            .width(Size::fill())
+            .height(Size::px(m.header_height))
+            .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
+            .direction(Direction::Horizontal)
+            .main_align(Alignment::SpaceBetween)
+            .cross_align(Alignment::End)
+            .child(
                 label()
-                    .text(text)
+                    .text(header.clone())
                     .font_size(m.header_font_size)
                     .font_weight(m.header_weight)
                     .color(theme::color(m.disabled_fg))
-                    .max_lines(1)
-            };
-            rect()
-                .width(Size::fill())
-                .height(Size::px(m.header_height))
-                .padding(Gaps::new(0.0, m.item_padding_x, 0.0, m.item_padding_x))
-                .direction(Direction::Horizontal)
-                .main_align(Alignment::SpaceBetween)
-                .cross_align(Alignment::End)
-                .child(header_label(header.clone()))
-                .maybe_child(count.map(|count| header_label(count.to_string().into())))
-                .into_element()
-        }
-        MenuItem::SearchField { placeholder } => search_field(ctx, placeholder),
+                    .max_lines(1),
+            )
+            .into_element(),
         MenuItem::Palette { items } => palette_row(ctx, items, index, is_focused),
-        MenuItem::SearchResult {
-            item: inner,
-            source,
-            ..
-        } => {
-            let MenuItem::Action { id, enabled, .. } = inner.as_ref() else {
-                return rect().into_element();
-            };
-            let enabled = *enabled;
-            let fg = row_fg(enabled, is_focused, m.fg, m);
-            let (mut on_enter, mut on_move) = (ctx.result_focused, ctx.result_focused);
-            let mut row = row_frame(m, is_focused && enabled, m.item_padding_x)
-                .on_pointer_enter(move |_| {
-                    if enabled {
-                        on_enter.set(Some(index));
-                    }
-                })
-                .on_pointer_move(move |_| {
-                    if enabled {
-                        on_move.set(Some(index));
-                    }
-                });
-            if enabled {
-                row = row.on_mouse_down(ctx.activate(id));
-            }
-            let left = rect()
-                .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .spacing(MENU_MARK_TEXT_GAP)
-                .child(search_icon_element(ctx, *source, enabled, is_focused, fg))
-                .child(
-                    label()
-                        .text(strip_mnemonic(&ctx.fitted_label(item)))
-                        .font_size(m.font_size)
-                        .color(theme::color(fg))
-                        .max_lines(1),
-                );
-            row.child(left)
-                .child(ctx.shortcut_label(item, row_fg(enabled, is_focused, m.shortcut_color, m)))
-                .into_element()
-        }
     }
 }
 
@@ -428,148 +360,6 @@ fn palette_row(ctx: &RowCtx, items: &[MenuItem], index: usize, is_focused: bool)
         .into_element()
 }
 
-fn search_field(ctx: &RowCtx, placeholder: &str) -> Element {
-    let m = ctx.m;
-    let (mut query, mut selected) = (ctx.query, ctx.selected);
-    let query_text = (*query.read()).clone();
-    let is_selected = *selected.read();
-    let has_text = !query_text.is_empty();
-    let display_text = if has_text {
-        query_text.clone()
-    } else {
-        placeholder.to_string()
-    };
-    let text_color = if has_text { m.fg } else { m.shortcut_color };
-    let clear_size = ctdesign::MENU_SEARCH_CLEAR;
-    let padding_x = ctdesign::MENU_SEARCH_PADDING_X;
-    let clear_gap = if has_text {
-        clear_size + ctdesign::MENU_SEARCH_ICON_GAP
-    } else {
-        0.0
-    };
-    let available_w = (ctx.size.0
-        - 2.0 * (m.padding + m.search_margin_x + padding_x)
-        - m.icon_size
-        - ctdesign::MENU_SEARCH_ICON_GAP
-        - clear_gap)
-        .max(0.0);
-
-    let caret = rect()
-        .width(Size::px(ctdesign::HAIRLINE))
-        .height(Size::px(m.font_size))
-        .background(theme::color(m.hover_bg));
-    let text_label = label()
-        .text(display_text)
-        .font_size(m.font_size)
-        .color(theme::color(text_color))
-        .max_lines(1);
-    let text_box = rect()
-        .direction(Direction::Horizontal)
-        .cross_align(Alignment::Center)
-        .spacing(ctdesign::HAIRLINE)
-        .width(Size::px(available_w))
-        .overflow(Overflow::Clip);
-    let text_box = if !has_text {
-        text_box.child(caret).child(text_label)
-    } else if is_selected {
-        text_box.child(text_label)
-    } else {
-        text_box.child(text_label).child(caret)
-    };
-
-    let mut content = rect()
-        .width(Size::fill())
-        .height(Size::px(m.search_height))
-        .padding(Gaps::new(0.0, padding_x, 0.0, padding_x))
-        .background(theme::color(m.search_bg))
-        .corner_radius(m.search_height / 2.0)
-        .direction(Direction::Horizontal)
-        .main_align(Alignment::SpaceBetween)
-        .cross_align(Alignment::Center)
-        .child(
-            rect()
-                .direction(Direction::Horizontal)
-                .cross_align(Alignment::Center)
-                .spacing(ctdesign::MENU_SEARCH_ICON_GAP)
-                .child(
-                    symbol(Symbol::MagnifyingGlass, m.icon_size, m.shortcut_color).into_element(),
-                )
-                .child(text_box),
-        );
-
-    if has_text {
-        let clear = rect()
-            .width(Size::px(clear_size))
-            .height(Size::px(clear_size))
-            .corner_radius(clear_size / 2.0)
-            .main_align(Alignment::Center)
-            .cross_align(Alignment::Center)
-            .background(theme::color(
-                m.shortcut_color
-                    .mix(m.search_bg, ctdesign::MENU_SEARCH_CLEAR_MIX),
-            ))
-            .child(symbol(
-                Symbol::XMark,
-                ctdesign::MENU_SEARCH_CLEAR_GLYPH,
-                m.fg,
-            ))
-            .on_mouse_down(move |_: Event<MouseEventData>| {
-                query.set(String::new());
-                selected.set(false);
-            });
-        content = content.child(clear);
-    }
-
-    content
-        .margin(Gaps::new(
-            m.search_margin_y,
-            m.search_margin_x,
-            m.search_margin_y,
-            m.search_margin_x,
-        ))
-        .into_element()
-}
-
-fn search_icon_element(
-    ctx: &RowCtx,
-    source: SearchSource,
-    enabled: bool,
-    focused: bool,
-    fg: Rgba,
-) -> Element {
-    let m = ctx.m;
-    let color = if focused { m.hover_fg } else { fg };
-    let (svg, [width, height], tint) = match source {
-        SearchSource::Menu => {
-            let accent = if enabled && !focused {
-                m.hover_bg
-            } else {
-                color
-            };
-            let svg = search_icon_svg(ctx.menu_search_icon.unwrap_or(""), color, accent);
-            (svg, ctdesign::MENU_SEARCH_ICON, None)
-        }
-        SearchSource::Help => {
-            let side = ctdesign::MENU_HELP_ICON;
-            let svg = ctx.help_search_icon.unwrap_or("").to_string();
-            (svg, [side, side], Some(theme::color(color)))
-        }
-    };
-    let mut icon = SvgViewer::new(Bytes::from(svg.into_bytes()))
-        .width(Size::px(width))
-        .height(Size::px(height))
-        .show_loader(false);
-    if let Some(tint) = tint {
-        icon = icon.color(tint);
-    }
-    rect()
-        .width(Size::px(width))
-        .direction(Direction::Horizontal)
-        .main_align(Alignment::Center)
-        .child(icon.into_element())
-        .into_element()
-}
-
 fn icon_slot(icon: MenuIcon, icon_fg: Rgba, m: MenuPalette, column: f32) -> Element {
     let side = Size::px(m.icon_size);
     let blank = || rect().width(side.clone()).height(side.clone());
@@ -581,13 +371,6 @@ fn icon_slot(icon: MenuIcon, icon_fg: Rgba, m: MenuPalette, column: f32) -> Elem
             .color(theme::color(icon_fg))
             .show_loader(false)
             .into_element(),
-        MenuIcon::Image(bytes) => match icon_image(&bytes, m.icon_size) {
-            Some(handle) => image(handle)
-                .width(side.clone())
-                .height(side.clone())
-                .into_element(),
-            None => blank().into_element(),
-        },
         MenuIcon::Swatch(fill) => blank()
             .corner_radius(m.icon_size / 2.0)
             .background(theme::color(fill))
@@ -601,65 +384,7 @@ fn icon_slot(icon: MenuIcon, icon_fg: Rgba, m: MenuPalette, column: f32) -> Elem
         .into_element()
 }
 
-// The menubar lives for the whole session and receives icon-data from every app.
 const ICON_CACHE_CAPACITY: usize = 128;
-
-type IconCache = HashMap<(Arc<[u8]>, u32), Option<ImageHandle>>;
-
-thread_local! {
-    static IMAGE_CACHE: RefCell<IconCache> = RefCell::new(HashMap::new());
-}
-
-pub(super) fn icon_image(bytes: &Arc<[u8]>, size: f32) -> Option<ImageHandle> {
-    let key = (bytes.clone(), size.to_bits());
-    IMAGE_CACHE.with(|cache| {
-        if let Some(cached) = cache.borrow().get(&key) {
-            return cached.clone();
-        }
-        let decoded = decode_icon(bytes, size);
-        if decoded.is_none() {
-            tracing::debug!(
-                bytes = bytes.len(),
-                "menu: icon-data could not be decoded; dropping the icon"
-            );
-        }
-        let mut cache = cache.borrow_mut();
-        if cache.len() >= ICON_CACHE_CAPACITY {
-            cache.clear();
-        }
-        cache.insert(key, decoded.clone());
-        decoded
-    })
-}
-
-pub(super) fn decode_icon(bytes: &[u8], size: f32) -> Option<ImageHandle> {
-    let data = SkData::new_copy(bytes);
-    let image = SkImage::from_encoded(data)?;
-    // A small file can declare a huge canvas; decoding allocates all of it.
-    if image.width().max(image.height()) > MenuIcon::MAX_IMAGE_SIDE {
-        return None;
-    }
-    let image = image.make_raster_image(None, None).unwrap_or(image);
-    let target = size.max(1.0).round() as i32;
-    let info = ImageInfo::new(
-        (target, target),
-        ColorType::RGBA8888,
-        AlphaType::Premul,
-        None,
-    );
-    let mut pixels = vec![0u8; (target * target * 4) as usize];
-    let pixmap = Pixmap::new(&info, &mut pixels, info.min_row_bytes())?;
-    if !image.scale_pixels(&pixmap, SamplingMode::Bilinear.sampling_options(), None) {
-        return None;
-    }
-    drop(pixmap);
-    ImageHandle::from_rgba(
-        target as u32,
-        target as u32,
-        Bytes::from(pixels),
-        AlphaType::Premul,
-    )
-}
 
 pub(super) fn mark_element(check: CheckState, color: Rgba, m: MenuPalette) -> Element {
     match check {

@@ -97,7 +97,6 @@ mod tool_group;
 mod toolbar_search;
 mod top_glass;
 mod traffic_lights;
-mod window_chrome;
 
 pub use avatar::AvatarStyle;
 pub use backdrop::BackdropStyle;
@@ -177,7 +176,6 @@ pub use tool_group::ToolGroupStyle;
 pub use toolbar_search::ToolbarSearchStyle;
 pub use top_glass::TopGlassStyle;
 pub use traffic_lights::TrafficLightsStyle;
-pub use window_chrome::WindowChromeStyle;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ShapeStyle {

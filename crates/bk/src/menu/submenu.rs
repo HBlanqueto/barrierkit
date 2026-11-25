@@ -1,5 +1,4 @@
 use super::*;
-use crate::i18n::text;
 
 pub(super) fn item_top(index: usize, items: &[MenuItem], m: MenuPalette) -> f32 {
     items[..index].iter().map(|item| item.height(m)).sum()
@@ -28,14 +27,6 @@ pub(super) fn submenu_anchor_rect(
     )
 }
 
-pub fn submenu_contents(loading: bool, items: &[MenuItem]) -> Vec<MenuItem> {
-    if loading && items.is_empty() {
-        vec![MenuItem::placeholder(text!("loading"))]
-    } else {
-        items.to_vec()
-    }
-}
-
 #[derive(Clone)]
 pub(super) struct SubmenuCtx {
     pub(super) popup: Option<PopupHandle>,
@@ -45,8 +36,6 @@ pub(super) struct SubmenuCtx {
     pub(super) palette_source: PaletteSource,
     pub(super) on_activate: Rc<dyn Fn(String)>,
     pub(super) on_dismiss_all: Rc<dyn Fn()>,
-    pub(super) on_open_submenu: Option<Rc<dyn Fn(String)>>,
-    pub(super) submenu_source: Option<SubmenuSource>,
     pub(super) open_child_id: Rc<Cell<Option<PopupId>>>,
     pub(super) open_child_index: Rc<Cell<Option<usize>>>,
     pub(super) opens_left: bool,
@@ -78,7 +67,6 @@ impl SubmenuCtx {
 pub(super) fn open_child_popup(
     ctx: &SubmenuCtx,
     index: usize,
-    id: Option<&str>,
     sub_items: &[MenuItem],
     parent_items: &[MenuItem],
 ) -> Option<PopupId> {
@@ -88,25 +76,8 @@ pub(super) fn open_child_popup(
         return open_child_id.get();
     }
     ctx.close_child(open_child_id, open_child_index);
-    if let (Some(callback), Some(id)) = (&ctx.on_open_submenu, id) {
-        callback(id.to_string());
-    }
     let m = ctx.m;
-    let initial_items = submenu_contents(id.is_some(), sub_items);
-    let child_size = MenuView::preferred_size(&initial_items, m);
-    let mut child_view = ctx.child_view(initial_items.clone());
-    if let (Some(source), Some(id)) = (&ctx.submenu_source, id) {
-        let source = source.clone();
-        let id = id.to_string();
-        let fallback = initial_items;
-        child_view = child_view.with_items_source(move || {
-            source(&id)
-                .filter(|items| !items.is_empty())
-                .unwrap_or_else(|| fallback.clone())
-        });
-    }
-    child_view.on_open_submenu = ctx.on_open_submenu.clone();
-    child_view.submenu_source = ctx.submenu_source.clone();
+    let child_size = MenuView::preferred_size(sub_items, m);
     let open_child_id_set = open_child_id.clone();
     let open_child_index_set = open_child_index.clone();
     let dismissed_id = Rc::new(Cell::new(None::<PopupId>));
@@ -138,54 +109,12 @@ pub(super) fn open_child_popup(
         grab: true,
         on_dismissed: Some(Rc::new(on_dismissed)),
     };
-    child_view = child_view.with_popup_spec(spec.clone());
+    let child_view = ctx
+        .child_view(sub_items.to_vec())
+        .with_popup_spec(spec.clone());
     let id = popup.open_child(spec, AppComponent::new(child_view));
     dismissed_id.set(Some(id));
     open_child_id.set(Some(id));
     open_child_index.set(Some(index));
-    Some(id)
-}
-
-pub(super) fn open_reveal_popup(
-    ctx: &SubmenuCtx,
-    items: &[MenuItem],
-    location: &SearchLocation,
-    reveal_child_id: Rc<Cell<Option<PopupId>>>,
-    (anchor_x, anchor_width): (f32, f32),
-) -> Option<PopupId> {
-    let popup = ctx.popup.as_ref()?;
-    ctx.close_child(&reveal_child_id, &Cell::new(None));
-    let m = ctx.m;
-    let child_size = MenuView::preferred_size(items, m);
-    let parent_width = ctx.size.0;
-    let parent_left = if ctx.opens_left {
-        anchor_x + anchor_width - parent_width
-    } else {
-        anchor_x
-    };
-    let reveal_x = parent_left - child_size.0 - ctdesign::MENU_SUBMENU_REVEAL_GAP;
-    if reveal_x < 0.0 {
-        return None;
-    }
-    let focused_index = location.indices.first().copied();
-    let child_view = ctx
-        .child_view(items.to_vec())
-        .with_focused_index(focused_index);
-    let reveal_child_id_set = reveal_child_id.clone();
-    let on_dismissed = move || {
-        reveal_child_id_set.set(None);
-    };
-    let spec = PopupSpec {
-        anchor_rect: (0, 0, 1, 1),
-        anchor: PopupAnchor::TopLeft,
-        gravity: PopupGravity::BottomLeft,
-        offset: (-(ctdesign::MENU_SUBMENU_REVEAL_GAP as i32), 0),
-        size: (child_size.0 as u32, child_size.1 as u32),
-        constraint_adjustment: PopupConstraintAdjustment::default(),
-        grab: false,
-        on_dismissed: Some(Rc::new(on_dismissed)),
-    };
-    let id = popup.open_child(spec, AppComponent::new(child_view));
-    reveal_child_id.set(Some(id));
     Some(id)
 }

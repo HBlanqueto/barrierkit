@@ -806,16 +806,6 @@
           "interval-ms": 400,
           "slop": 4
         },
-        "reveal": {
-          "pill-inset": 8,
-          "pill-padding-x": 6,
-          "pill-padding-y": 7,
-          "pill-radius": 13,
-          "reveal-zone": 8,
-          "reveal-corner": 96,
-          "edge-line": 1,
-          "edge-accent": 4
-        },
         "fullscreen-glass": {
           "height": 96,
           "blur": 30,

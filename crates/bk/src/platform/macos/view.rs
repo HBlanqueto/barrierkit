@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell};
 
 use dispatch2::{DispatchQueue, MainThreadBound};
-use freya_core::integration::{KeyboardEventName, MouseEventName, PlatformEvent};
+use freya_core::integration::{FileEventName, KeyboardEventName, MouseEventName, PlatformEvent};
 use freya_core::prelude::CursorIcon;
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
@@ -11,7 +11,8 @@ use objc2::{
 };
 use objc2_app_kit::{
     NSApplication, NSApplicationPresentationOptions, NSBackingStoreType, NSDragOperation,
-    NSDraggingContext, NSDraggingSession, NSDraggingSource, NSEvent, NSEventModifierFlags,
+    NSDraggingContext, NSDraggingDestination, NSDraggingInfo, NSDraggingSession, NSDraggingSource,
+    NSEvent, NSEventModifierFlags, NSPasteboardTypeFileURL,
     NSGlassEffectContainerView, NSGlassEffectView, NSPanel, NSResponder, NSSplitView,
     NSSplitViewDividerStyle, NSTextInputClient, NSTrackingArea, NSTrackingAreaOptions, NSView,
     NSViewFrameDidChangeNotification, NSVisualEffectView, NSWindow, NSWindowButton,
@@ -263,6 +264,34 @@ define_class!(
         }
     }
 
+    // SAFETY: each method keeps the selector and signature of NSDraggingDestination.
+    unsafe impl NSDraggingDestination for ContentView {
+        #[unsafe(method(draggingEntered:))]
+        fn dragging_entered(&self, sender: &ProtocolObject<dyn NSDraggingInfo>) -> NSDragOperation {
+            self.file_hover(sender)
+        }
+
+        #[unsafe(method(draggingUpdated:))]
+        fn dragging_updated(&self, sender: &ProtocolObject<dyn NSDraggingInfo>) -> NSDragOperation {
+            self.file_hover(sender)
+        }
+
+        #[unsafe(method(draggingExited:))]
+        fn dragging_exited(&self, _: Option<&ProtocolObject<dyn NSDraggingInfo>>) {
+            self.file(FileEventName::FileHoverCancelled, CursorPoint::default(), None);
+        }
+
+        #[unsafe(method(performDragOperation:))]
+        fn perform_drag_operation(&self, sender: &ProtocolObject<dyn NSDraggingInfo>) -> bool {
+            let cursor = self.drag_position(sender);
+            let files = crate::platform::pasteboard::files(&sender.draggingPasteboard());
+            for path in &files {
+                self.file(FileEventName::FileDrop, cursor, Some(path.clone()));
+            }
+            !files.is_empty()
+        }
+    }
+
     // SAFETY: each method keeps the selector and signature of NSTextInputClient.
     unsafe impl NSTextInputClient for ContentView {
         #[unsafe(method(insertText:replacementRange:))]
@@ -374,7 +403,35 @@ impl ContentView {
         // SAFETY: initWithFrame: is NSView's designated initializer, called once on the allocated object.
         let this: Retained<Self> = unsafe { msg_send![super(this), initWithFrame: frame] };
         this.setWantsLayer(true);
+        // SAFETY: an AppKit constant string, valid for the life of the process.
+        this.registerForDraggedTypes(&NSArray::from_slice(&[unsafe { NSPasteboardTypeFileURL }]));
         this
+    }
+
+    fn drag_position(&self, sender: &ProtocolObject<dyn NSDraggingInfo>) -> CursorPoint {
+        let point = self.convertPoint_fromView(sender.draggingLocation(), None);
+        let scale = self.scale();
+        CursorPoint::from((point.x * scale, point.y * scale))
+    }
+
+    fn file(&self, name: FileEventName, cursor: CursorPoint, path: Option<std::path::PathBuf>) {
+        self.send(PlatformEvent::File {
+            name,
+            cursor,
+            file_paths: path.into_iter().collect(),
+        });
+        with_runtime(|runtime| {
+            runtime.poll_all();
+            runtime.redraw_all();
+        });
+    }
+
+    fn file_hover(&self, sender: &ProtocolObject<dyn NSDraggingInfo>) -> NSDragOperation {
+        if crate::platform::pasteboard::files(&sender.draggingPasteboard()).is_empty() {
+            return NSDragOperation::None;
+        }
+        self.file(FileEventName::FileHover, self.drag_position(sender), None);
+        NSDragOperation::Copy
     }
 
     // Keys that make text go to the input method: while it composes, and for the characters of a focused text field.

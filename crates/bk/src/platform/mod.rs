@@ -19,6 +19,20 @@ mod window_style;
 pub(crate) use app::KitSender;
 #[cfg(all(feature = "shell", target_os = "linux"))]
 pub(crate) use linux::{dbusmenu, extension, session_bus, status_item};
+#[cfg(feature = "shell")]
+#[doc(hidden)]
+pub mod shell_extension {
+    #[cfg(target_os = "linux")]
+    pub use crate::platform::{
+        app::{AppInstance, InstanceRole, KitSender},
+        dbusmenu::layout::{DbusMenuLayout, LayoutItem},
+        extension::{Extension, ExtensionHooks, packed},
+        runtime::{Connected, Runtime},
+        session_bus::{connection, export},
+        status_item::{ITEM_PATH, Pixmaps, WATCHER, WATCHER_PATH},
+        surface::{ExtensionRole, SurfaceRole},
+    };
+}
 #[cfg(target_os = "linux")]
 pub(crate) use linux::{runtime, surface};
 pub use sys::ObjectId;
@@ -77,11 +91,8 @@ pub enum RunError {
     NoWindow,
     #[error("event loop failed: {0}")]
     EventLoop(&'static str),
-    #[error("Skia could not create its Vulkan context")]
+    #[error("Skia could not create its GPU context")]
     Skia,
-    #[cfg(target_os = "linux")]
-    #[error(transparent)]
-    Wayland(#[from] sctk::reexports::client::ConnectError),
     #[cfg(target_os = "linux")]
     #[error(transparent)]
     Registry(#[from] sctk::reexports::client::globals::GlobalError),
