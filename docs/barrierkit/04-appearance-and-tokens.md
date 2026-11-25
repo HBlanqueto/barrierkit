@@ -129,7 +129,11 @@ ring (`docs/research/macos-control-metrics.md`). Outlines use the separator.
 
 `Image::system(symbol)` draws a line icon, like SwiftUI's
 `Image(systemName:)`. It is `BODY.size` pixels square, in the `label` color
-of the `Palette`. `.size(f32)` and `.color(Rgba)` change them. The icons
+of the `Palette`. `.size(f32)` and `.color(Rgba)` change them. `.font(Font)`
+is SwiftUI's `.font(_:)` on a symbol: the font's size in SF points (an SF
+symbol at 16 pt fills the kit's 20 px frame) and its weight; within 1 px of
+SwiftUI from `BODY` to `LARGE_TITLE`, 2 px larger at `CAPTION_2`, where SF
+changes its optical size. The icons
 are drawn on a grid of `SYMBOL.grid` (16) with a stroke of `SYMBOL.stroke`
 (1), like SF Symbols at regular weight and medium scale. Inside a `SymbolTile`
 they take `SYMBOL.fine_stroke` (also 1).

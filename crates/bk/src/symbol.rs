@@ -4,7 +4,7 @@ use std::hash::{Hash, Hasher};
 
 pub use ctappearance::icon_style::IconStyle;
 use ctdesign::{
-    Rgba, SYMBOL, SYMBOL_HIERARCHY, SYMBOL_SCALE_SIZE, SYMBOL_WEIGHT_STROKE_LARGE,
+    Font, Rgba, SYMBOL, SYMBOL_HIERARCHY, SYMBOL_SCALE_SIZE, SYMBOL_WEIGHT_STROKE_LARGE,
     SYMBOL_WEIGHT_STROKE_MEDIUM, SYMBOL_WEIGHT_STROKE_SMALL,
 };
 use freya_components::image_viewer::ImageViewer;
@@ -18,6 +18,9 @@ use freya_engine::prelude::{
 use torin::prelude::Size;
 
 use crate::styles::{ControlState, ImageStyle, Paints, ShapeStyle, StateValue, Theme, resolve};
+
+// An SF symbol at 16 pt fills the kit's 20 px frame on the 16 grid (docs/research/macos-icons.md).
+const SF_POINT: f32 = 20.0 / 16.0;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum SymbolWeight {
@@ -887,6 +890,22 @@ impl Image {
 
     pub fn size(self, size: f32) -> Self {
         self.style(move |s| ImageStyle { size, ..s })
+    }
+
+    /// SwiftUI's `.font(_:)` on a symbol: the font's size, in SF's points, and weight.
+    pub fn font(self, font: Font) -> Self {
+        let weight = match font.weight {
+            0..=149 => SymbolWeight::UltraLight,
+            150..=249 => SymbolWeight::Thin,
+            250..=349 => SymbolWeight::Light,
+            350..=449 => SymbolWeight::Regular,
+            450..=549 => SymbolWeight::Medium,
+            550..=649 => SymbolWeight::Semibold,
+            650..=749 => SymbolWeight::Bold,
+            750..=849 => SymbolWeight::Heavy,
+            _ => SymbolWeight::Black,
+        };
+        self.size(font.size as f32 * SF_POINT).font_weight(weight)
     }
 
     pub fn frame(mut self, width: f32, height: f32) -> Self {
