@@ -908,6 +908,7 @@
   --bk-toolbar-tabs-tab-gap: 4;
   --bk-toolbar-tabs-tab-font-size: 11;
   --bk-toolbar-tabs-tab-font-weight: 500;
+  --bk-tab-view-bar-segment-padding-x: 9.5;
   --bk-tab-view-strip-height: 24;
   --bk-tab-view-strip-inset: 4;
   --bk-tab-view-strip-radius: 6;

@@ -585,6 +585,7 @@
       }
     },
     "tab-view": {
+      "bar-segment-padding-x": 9.5,
       "strip-height": 24,
       "strip-inset": 4,
       "strip-radius": 6,

@@ -1386,6 +1386,7 @@ pub struct TabViewSize {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TabViewMetrics {
+    pub bar_segment_padding_x: f32,
     pub strip_height: f32,
     pub strip_inset: f32,
     pub strip_radius: f32,

@@ -129,7 +129,9 @@ Layout:
 `.toolbar(content)` is SwiftUI's `.toolbar { }`: it takes a
 `ToolbarItem::new(placement, view)` or a `ToolbarSpacer` (`bk::views::toolbar`,
 in the prelude) and lays it into the zones above. Call it again for more items;
-they keep the order of the calls.
+they keep the order of the calls. Adjacent items whose view is a bare
+`IconButton` share one `ToolGroup`, one glass, as SwiftUI groups adjacent
+toolbar items; a `ToolbarSpacer` or another view starts a new one.
 
 ```rust
 Titlebar::new()

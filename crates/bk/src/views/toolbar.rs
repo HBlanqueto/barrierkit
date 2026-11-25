@@ -1,5 +1,9 @@
 use freya_core::prelude::*;
+use std::any::TypeId;
 use torin::prelude::{Alignment, Direction, Size};
+
+use crate::compact::IconButton;
+use crate::controls::ToolGroup;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ToolbarItemPlacement {
@@ -14,13 +18,15 @@ pub enum ToolbarItemPlacement {
 pub struct ToolbarItem {
     placement: ToolbarItemPlacement,
     view: Element,
+    bare_button: bool,
 }
 
 impl ToolbarItem {
-    pub fn new(placement: ToolbarItemPlacement, view: impl IntoElement) -> Self {
+    pub fn new<V: IntoElement + 'static>(placement: ToolbarItemPlacement, view: V) -> Self {
         Self {
             placement,
             view: view.into_element(),
+            bare_button: TypeId::of::<V>() == TypeId::of::<IconButton>(),
         }
     }
 }
@@ -65,13 +71,34 @@ pub(crate) struct Sections {
     pub trailing: Vec<Element>,
 }
 
-impl Sections {
-    fn push(&mut self, section: Section, view: Element) {
-        match section {
-            Section::Navigation => self.navigation.push(view),
-            Section::Center => self.center.push(view),
-            Section::Trailing => self.trailing.push(view),
+// Adjacent bare buttons share one glass, as SwiftUI groups adjacent toolbar items; a spacer or another view ends the group.
+#[derive(Default)]
+struct Pieces {
+    views: Vec<Element>,
+    group: Vec<Element>,
+}
+
+impl Pieces {
+    fn push(&mut self, view: Element, bare_button: bool) {
+        if bare_button {
+            self.group.push(view);
+        } else {
+            self.close();
+            self.views.push(view);
         }
+    }
+
+    fn close(&mut self) {
+        if !self.group.is_empty() {
+            let buttons = std::mem::take(&mut self.group);
+            self.views
+                .push(ToolGroup::new().children(buttons).into_element());
+        }
+    }
+
+    fn finish(mut self) -> Vec<Element> {
+        self.close();
+        self.views
     }
 }
 
@@ -98,19 +125,31 @@ pub(crate) fn lay_out(content: &[ToolbarContent], gap: f32) -> Sections {
     } else {
         Section::Trailing
     };
-    let mut sections = Sections::default();
+    let mut pieces: [Pieces; 3] = Default::default();
+    let at = |section: Section| match section {
+        Section::Navigation => 0,
+        Section::Center => 1,
+        Section::Trailing => 2,
+    };
     for content in content {
         match content {
-            ToolbarContent::Item(item) => {
-                sections.push(section(item.placement, automatic), item.view.clone())
+            ToolbarContent::Item(item) => pieces[at(section(item.placement, automatic))]
+                .push(item.view.clone(), item.bare_button),
+            ToolbarContent::Spacer(spacer) if spacer.flexible => {
+                pieces[at(automatic)].close();
+                automatic = Section::Trailing;
             }
-            ToolbarContent::Spacer(spacer) if spacer.flexible => automatic = Section::Trailing,
             ToolbarContent::Spacer(_) => {
-                sections.push(automatic, rect().width(Size::px(gap)).into_element())
+                pieces[at(automatic)].push(rect().width(Size::px(gap)).into_element(), false)
             }
         }
     }
-    sections
+    let [navigation, center, trailing] = pieces.map(Pieces::finish);
+    Sections {
+        navigation,
+        center,
+        trailing,
+    }
 }
 
 pub(crate) fn row(mut views: Vec<Element>, gap: f32) -> Option<Element> {

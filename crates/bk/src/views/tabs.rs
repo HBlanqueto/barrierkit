@@ -11,7 +11,10 @@ use crate::interaction::{control_state, use_interaction};
 use crate::menu::measure_text;
 use crate::style::text_style;
 use crate::styles::Painted;
-use crate::styles::{ControlState, LayoutDirection, Paints, TabType, TabViewStyle, Theme, resolve};
+use crate::styles::{
+    ControlState, LayoutDirection, Paints, SegmentedControlStyle, TabType, TabViewStyle, Theme,
+    resolve,
+};
 use crate::symbol::{Symbol, symbol};
 use crate::theme::color;
 use crate::titlebar::Titlebar;
@@ -91,7 +94,13 @@ impl Component for TabView {
 impl TabView {
     fn automatic(&self, choice: &Choice, page: Option<Element>) -> Rect {
         let tabs = self.tabs.iter().fold(
-            SegmentedControl::new(self.label.clone(), choice.0),
+            SegmentedControl::new(self.label.clone(), choice.0).style(|style| {
+                SegmentedControlStyle {
+                    equal_segments: true,
+                    segment_padding_x: TAB_VIEW.bar_segment_padding_x,
+                    ..style
+                }
+            }),
             |tabs, (_, title, _)| tabs.segment(title.clone()),
         );
         rect()
