@@ -1253,7 +1253,7 @@
   --bk-window-titlebar-title-gap: 12;
   --bk-window-titlebar-expanded-title-height: 28;
   --bk-window-titlebar-expanded-title-gap: 15;
-  --bk-window-titlebar-expanded-title-toolbar-bottom: 9;
+  --bk-window-titlebar-expanded-title-toolbar-bottom: 8;
   --bk-window-titlebar-toolbar-start-unified: 16;
   --bk-window-titlebar-toolbar-start-compact: 22;
   --bk-window-titlebar-toolbar-start-expanded: 11;
@@ -1366,8 +1366,8 @@
   --bk-window-toolgroup-compact-height: 24;
   --bk-window-toolgroup-compact-inset: 5;
   --bk-window-toolgroup-compact-separator-h: 14;
-  --bk-window-toolgroup-expanded-width: 38;
-  --bk-window-toolgroup-expanded-height: 28;
+  --bk-window-toolgroup-expanded-width: 37.5;
+  --bk-window-toolgroup-expanded-height: 30;
   --bk-window-toolgroup-expanded-inset: 4;
   --bk-window-toolgroup-separator: var(--bk-toolgroup-separator);
   --bk-window-toolgroup-rim: var(--bk-toolgroup-rim);

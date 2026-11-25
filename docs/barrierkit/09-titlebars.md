@@ -110,9 +110,9 @@ Layout:
   `TitlebarStyle::row_title` ink, over a `TITLEBAR_CLIENT_HEIGHT` (40) toolbar
   row. Its `Navigation` and `PrimaryAction` items sit together from
   `TITLEBAR_TOOLBAR_START.expanded` (11), `SETTINGS.toolbar_gap` (13) apart,
-  centred in the row less `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` (9) at its
-  bottom, 28 high (`TOOLGROUP.expanded_*`): their top 4 under the title row, as
-  SwiftUI's.
+  centred in the row less `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` (8) at its
+  bottom, in a group 30 high with 37.5 slots (`TOOLGROUP.expanded_*`) whose
+  glass shows 28 high: their top 4 under the title row, as SwiftUI's.
 - **No title:** with `.shows_title(false)` the trailing items join the
   navigation items after the lights.
 - **Beside a sidebar:** the title goes at the start of the detail, next to

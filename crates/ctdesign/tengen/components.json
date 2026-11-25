@@ -801,7 +801,7 @@
       "titlebar": {
         "padding-x": 10,
         "title-gap": 12,
-        "expanded-title": {"height": 28, "gap": 15, "toolbar-bottom": 9},
+        "expanded-title": {"height": 28, "gap": 15, "toolbar-bottom": 8},
         "toolbar-start": {"unified": 16, "compact": 22, "expanded": 11},
         "fullscreen-start": {"unified": 22, "compact": 14, "expanded": 11},
         "system-veil": "#ffffff09",
@@ -917,8 +917,8 @@
         "compact-height": 24,
         "compact-inset": 5,
         "compact-separator-h": 14,
-        "expanded-width": 38,
-        "expanded-height": 28,
+        "expanded-width": 37.5,
+        "expanded-height": 30,
         "expanded-inset": 4,
         "separator": "toolgroup-separator",
         "rim": "toolgroup-rim"

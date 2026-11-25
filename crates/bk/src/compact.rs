@@ -68,7 +68,7 @@ pub(crate) fn slim_toolbar_items() -> Option<(f32, f32, f32)> {
             TOOLGROUP.compact_inset as f32,
         )),
         WindowToolbarStyle::Expanded => Some((
-            TOOLGROUP.expanded_width as f32,
+            TOOLGROUP.expanded_width,
             TOOLGROUP.expanded_height as f32,
             TOOLGROUP.expanded_inset as f32,
         )),

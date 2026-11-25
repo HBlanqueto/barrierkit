@@ -33,7 +33,7 @@ use std::{
     },
     task::{Context, Waker},
 };
-use torin::prelude::Size2D;
+use torin::prelude::{Area, Size2D};
 
 use super::{
     ObjectId, Sent,
@@ -586,6 +586,10 @@ impl AppInstance {
             self.scale_factor,
             &self.fallback_fonts,
         );
+        for node in self.tree.layout.results.values_mut() {
+            node.area = snapped(node.area);
+            node.inner_area = snapped(node.inner_area.cast_unit()).cast_unit();
+        }
         self.inputs.refresh(&self.tree);
         if self.backdrop {
             self.chromes = super::backdrop::collect(&self.tree, self.size);
@@ -637,4 +641,34 @@ impl Drop for AppInstance {
 
 fn logical_size(size: (u32, u32), scale_factor: f64) -> Size2D {
     Size2D::new(size.0 as f32, size.1 as f32) / scale_factor as f32
+}
+
+// SwiftUI lays every view on whole device pixels; torin keeps fractions, which soften edges and move centered views a
+// pixel (docs/barrierkit/04-appearance-and-tokens.md#pixel-grid). The layout is in device pixels, so the edges round; a
+// view thinner than a pixel keeps one.
+fn snapped(area: Area) -> Area {
+    let mut rounded = area.round();
+    if area.width() > 0.0 && rounded.width() == 0.0 {
+        rounded.size.width = 1.0;
+    }
+    if area.height() > 0.0 && rounded.height() == 0.0 {
+        rounded.size.height = 1.0;
+    }
+    rounded
+}
+
+#[cfg(test)]
+mod snap_tests {
+    use super::*;
+
+    #[test]
+    fn edges_round_to_device_pixels_and_a_hairline_keeps_one() {
+        let centered = snapped(Area::new((76.5, 10.25).into(), (12.0, 20.5).into()));
+        assert_eq!(
+            centered,
+            Area::new((77.0, 10.0).into(), (12.0, 21.0).into())
+        );
+        let hairline = snapped(Area::new((0.0, 52.5).into(), (100.0, 0.5).into()));
+        assert_eq!(hairline.height(), 1.0);
+    }
 }

@@ -1516,7 +1516,7 @@ pub struct ToolgroupMetrics {
     pub compact_height: u32,
     pub compact_inset: u32,
     pub compact_separator_h: u32,
-    pub expanded_width: u32,
+    pub expanded_width: f32,
     pub expanded_height: u32,
     pub expanded_inset: u32,
 }
