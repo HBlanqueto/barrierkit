@@ -41,6 +41,8 @@ pub(crate) fn blocking_session_bus() -> zbus::Result<zbus::blocking::Connection>
 pub(crate) const SYSTEM_MOMENTUM: bool = false;
 pub(crate) const NATIVE_LIGHTS: bool = false;
 pub(crate) const OPTICAL_SIZING: bool = false;
+// Fontconfig resolves the generic names to the faces the desktop sets as default.
+pub(crate) const SYSTEM_FONTS: (&str, &str) = ("sans-serif", "monospace");
 pub(crate) const MODIFIER_GLYPHS: [(Modifiers, &str); 4] = [
     (Modifiers::CONTROL, "⌃"),
     (Modifiers::ALT, "⌥"),

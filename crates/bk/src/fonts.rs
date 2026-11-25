@@ -6,7 +6,7 @@ use freya_engine::prelude::{
     VariationCoordinate, VariationPosition, Weight, Width,
 };
 
-use crate::platform::OPTICAL_SIZING;
+use crate::platform::{OPTICAL_SIZING, SYSTEM_FONTS};
 
 type Optical = (Cow<'static, str>, Option<f32>);
 
@@ -94,6 +94,17 @@ pub(crate) fn fixed_pitch(family: &str) -> bool {
             .match_style(FontStyle::normal())
             .is_some_and(|typeface| typeface.is_fixed_pitch())
     })
+}
+
+// The token families name the design's faces; text shows the system's own, as a native app's does.
+pub(crate) fn system_family(family: &str) -> &str {
+    if family == ctdesign::BODY.family {
+        SYSTEM_FONTS.0
+    } else if family == ctdesign::MONO.family {
+        SYSTEM_FONTS.1
+    } else {
+        family
+    }
 }
 
 /// The family to ask for and the letter spacing, if any, that lay `family` out at `size` as CoreText does: at its optical size and with its `trak` tracking.

@@ -130,8 +130,10 @@ pub(crate) fn text_style<T: TextStyleExt>(element: T, face: Font) -> T {
     sized_font(element, face.family, face.size as f32).font_weight(face.weight as i32)
 }
 
-pub(crate) fn sized_font<T: TextStyleExt>(element: T, family: &str, size: f32) -> T {
-    let (family, spacing) = optical(family, size);
+pub(crate) fn sized_font<T: TextStyleExt>(mut element: T, family: &str, size: f32) -> T {
+    let (family, spacing) = optical(crate::fonts::system_family(family), size);
+    // Freya's `font_family` appends a fallback; a restyled text replaces its face.
+    element.text_style_data_mut().font_families.clear();
     let element = element.font_family(family).font_size(size);
     if let Some(spacing) = spacing {
         element.letter_spacing(spacing)

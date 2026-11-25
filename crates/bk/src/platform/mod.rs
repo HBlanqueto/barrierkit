@@ -23,8 +23,8 @@ pub(crate) use linux::extension;
 pub(crate) use linux::{runtime, surface};
 pub use sys::ObjectId;
 pub(crate) use sys::{
-    MODIFIER_GLYPHS, MOST_CHROMES, NATIVE_LIGHTS, OPTICAL_SIZING, SYSTEM_MOMENTUM, app_folders,
-    appearance, clipboard, instance, keychain, notifications, panels, pasteboard,
+    MODIFIER_GLYPHS, MOST_CHROMES, NATIVE_LIGHTS, OPTICAL_SIZING, SYSTEM_FONTS, SYSTEM_MOMENTUM,
+    app_folders, appearance, clipboard, instance, keychain, notifications, panels, pasteboard,
     preferred_languages,
 };
 

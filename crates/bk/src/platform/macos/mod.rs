@@ -97,6 +97,9 @@ pub(crate) fn preferred_languages() -> Vec<String> {
 }
 // CoreText sets each face's optical size and `trak` tracking from the point size.
 pub(crate) const OPTICAL_SIZING: bool = true;
+// The system's own faces, which every native app uses: SF and SF Mono.
+pub(crate) const SYSTEM_FONTS: (&str, &str) =
+    (".AppleSystemUIFont", ".AppleSystemUIFontMonospaced");
 // Control is ⌘ and Super is ⌃ (`input::modifiers`), in the Mac order ⌃⌥⇧⌘.
 pub(crate) const MODIFIER_GLYPHS: [(Modifiers, &str); 4] = [
     (Modifiers::META, "⌃"),

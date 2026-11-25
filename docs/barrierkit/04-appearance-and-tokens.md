@@ -342,10 +342,12 @@ Call it on the thread that runs the window, before opening it:
 bk::register_font(include_bytes!("../fonts/Display.otf"));
 ```
 
-The type tokens use Adwaita Sans and Geist Mono ([Type](#type)). The dev shell
-installs them.
+The type tokens name Adwaita Sans and Geist Mono ([Type](#type)), but text
+shows the system's own faces, as a native app's does: `.AppleSystemUIFont` and
+`.AppleSystemUIFontMonospaced` (SF and SF Mono) on macOS, fontconfig's
+`sans-serif` and `monospace` (the desktop's default faces) on Linux. A family
+the app names itself, or registers with `register_font`, stays as it is.
 
-On macOS those families are missing, so text falls back to the system font.
 CoreText picks a face's optical size (`opsz`) and its `trak` tracking from the
 point size; Skia pins both. So on macOS the kit lays out every type token as
 CoreText does: a copy of the face at `opsz` equal to the size, and the `trak`
@@ -941,8 +943,9 @@ the line in `.largeTitle`, `.title2` and `.title3`, as SwiftUI's (five lines of
 the glyphs in their line where Skia sets them lower than CoreText: 1 in `TITLE`,
 `TITLE_2` and `FOOTNOTE`.
 
-All use Adwaita Sans, the sans of GNOME, so `bk` text matches GTK; `MONO`
-uses Geist Mono. `SANS_FAMILIES` is the fallback list (Adwaita Sans, Inter,
+All name Adwaita Sans and `MONO` names Geist Mono; text shows the system's
+faces instead ([Fonts](#fonts)). `SANS_FAMILIES` is the fallback list after the
+system's sans (Adwaita Sans, Inter,
 Noto Sans CJK SC, system-ui, sans-serif). `TEXT_LINE_HEIGHT` (1.3) is the
 factor that turns a font size into the height of one line when
 the kit measures text without laying it out.

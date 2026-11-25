@@ -37,9 +37,9 @@ pub(super) fn item_label(text: &str, show_mnemonic: bool, size: f32, color: Rgba
 }
 
 pub(super) fn font_families() -> Vec<Cow<'static, str>> {
-    let mut families: Vec<Cow<'static, str>> = SANS_FAMILIES
-        .iter()
-        .map(|name| Cow::Borrowed(*name))
+    let mut families: Vec<Cow<'static, str>> = std::iter::once(crate::platform::SYSTEM_FONTS.0)
+        .chain(SANS_FAMILIES)
+        .map(Cow::Borrowed)
         .collect();
     families.extend(default_fonts());
     families

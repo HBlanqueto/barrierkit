@@ -682,7 +682,7 @@ impl App for MenuView {
             .background(theme::color(m.bg))
             .overflow(Overflow::Clip)
             .child(content);
-        for family in SANS_FAMILIES {
+        for family in std::iter::once(crate::platform::SYSTEM_FONTS.0).chain(SANS_FAMILIES) {
             root = root.font_family(family);
         }
         let hover_state_leave = hover_state.clone();

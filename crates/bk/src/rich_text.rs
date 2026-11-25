@@ -217,8 +217,7 @@ fn construct(
         '`' => {
             let end = body.find('`').filter(|end| *end > 0)?;
             let code = RunStyle {
-                // Core Text has no "monospace" alias and Geist Mono is not installed on a Mac: Menlo is.
-                family: Some(format!("Menlo, {}", MONO.family)),
+                family: Some(MONO.family.to_owned()),
                 ..base.clone()
             };
             push(text, styles, &body[..end], &code);
@@ -307,7 +306,7 @@ pub(crate) fn styled_spans(
             span = sized_font(span, first, size);
         }
         for family in families {
-            span = span.font_family(family.to_owned());
+            span = span.font_family(crate::fonts::system_family(family).to_owned());
         }
         if let Some(foreground) = &style.foreground_style {
             span = span.color(color(paints.color(foreground)));
