@@ -308,7 +308,7 @@ It is drawn as the Dock menu of macOS 26:
    (17) from the edges, separators 12 tall (`DOCK_MENU_SEPARATOR_MARGIN`) and
    a width of at least `DOCK_MENU_MIN_WIDTH` (228).
 5. The menu is clear, `theme::over_glass`: the compositor draws the menu glass
-   (`Resolved::menu_glass`) under it, arrow included, so the menu takes its
+   under it, arrow included, so the menu takes its
    measured blur. The glass has one veil, lift and cap for the
    light scheme and one for the dark ones. The ink follows the panel, not the
    colour scheme ([Glass over a backdrop](04-appearance-and-tokens.md#glass-over-a-backdrop)).

@@ -31,7 +31,6 @@ zeroize = "1"
 
 serde = { version = "1", features = ["derive"] }
 toml = "1"
-toml_edit = "0.25"
 
 zbus = "5"
 xkbcommon = "0.8"

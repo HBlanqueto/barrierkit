@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, Serialize)]
@@ -46,24 +44,6 @@ pub fn read_window_behavior() -> WindowBehavior {
         tracing::warn!(path = %path.display(), %error, "invalid window.domain");
         WindowBehavior::default()
     })
-}
-
-// window.domain also holds the compositor's keys; only this one is rewritten.
-pub fn write_double_click_titlebar(path: &Path, action: DoubleClickAction) -> std::io::Result<()> {
-    let mut doc = match std::fs::read_to_string(path) {
-        Ok(text) => text
-            .parse::<toml_edit::DocumentMut>()
-            .map_err(std::io::Error::other)?,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => toml_edit::DocumentMut::new(),
-        Err(error) => return Err(error),
-    };
-    let value = toml_edit::ser::to_document(&WindowBehavior {
-        double_click_titlebar: action,
-        ..WindowBehavior::default()
-    })
-    .map_err(std::io::Error::other)?;
-    doc["double_click_titlebar"] = value["double_click_titlebar"].clone();
-    crate::config::replace_file(path, &doc.to_string())
 }
 
 pub fn green_action(action: GreenButtonAction, fixed_width: bool) -> TitlebarAction {

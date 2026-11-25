@@ -516,15 +516,14 @@ Notes on the values:
 | `wallpaper_state_path()` | `data_dir()/wallpaper.state`, where the wallpaper's dominant color and grid live. |
 | `read_appearance()` | `Ok(None)` without a file, `Err` when the TOML does not parse. |
 | `load_appearance()` | The file's config, or the default on any error. |
-| `write_appearance(path, config)` | Writes the config and keeps other keys and comments. A file that does not parse as an appearance config is first copied to `.domain.bak`. The file is replaced atomically. |
 | `replace_file(path, text)` | Writes `text` to a temporary file beside `path`, syncs it and renames it over `path`. Creates the directory with `create_private_dir`. |
 | `create_private_dir(dir)` | Creates `dir` and its missing parents with mode `0700`, as the XDG Base Directory specification asks. |
 | `load_dominant()` | Reads `dominant` from `wallpaper.state`. |
-| `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. A file that does not parse is first copied to `.state.bak`; one that cannot be read is left alone and the call fails. |
-| `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
 
-The wallpaper each desktop shows and the user's collections are not part
-of the kit.
+The wallpaper each desktop shows, the user's collections, the writers of
+the config files and the wallpaper's grid (`write_appearance`,
+`write_double_click_titlebar`, `WallpaperState`, `WallpaperGrid`, `ini`) are not
+part of the kit: they live in `ctshell`.
 
 ### Resolution
 
@@ -562,8 +561,8 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `toolgroup` | `ToolgroupSurface`: `bg` and its `ToolgroupPalette`. |
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `toolbar`, `toolbar_line`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted except `toolbar_line` and `control`. `line` is the separator color. |
 
-The menu bar, Dock, menu-glass and notification fields (`bar_tint`, `shell`,
-`dock`, `menu_glass`, `notification_glass`) are not part of the kit.
+The Dock, menu-glass and notification surfaces are not part of the kit:
+`ctshell::resolve` builds them.
 
 The rules `resolve` applies:
 
@@ -685,13 +684,13 @@ light ink.
 
 Each window takes the average color of the wallpaper behind it into the
 parts of `tint_parts`, with the strength of `tint_strength` (malaysia ADR
-0065). `ctappearance::tinting::WallpaperGrid` does the same
+0065). `ctshell::wallpaper_state::WallpaperGrid` does the same
 from a grid of average colors:
 
 1. `malaysia-wallpaper` builds it with `WallpaperGrid::from_rgba8(rgba8,
    width, height)`: `WALLPAPER_TINTING_GRID` cells per side and the image's
    `aspect`. It writes it to `wallpaper.state` next to `dominant`.
-2. The compositor reads it with `load_wallpaper_state()` and takes
+2. The compositor reads it with `ctshell::wallpaper_state::load_wallpaper_state()` and takes
    `grid_for(desktop)`, the grid of the window's desktop. `grid.behind(output,
    window)` averages the cells behind the window rectangle, weighted by area,
    with the wallpaper scaled to cover the output.
@@ -736,7 +735,7 @@ turn them into a `TitlebarAction`: `Focus`, `Maximize`, `Minimize` or `None`.
 A fixed-width window maximizes instead of entering focus mode; a double click
 never enters focus mode. The titlebar uses them ([9](09-titlebars.md)).
 
-`window::write_double_click_titlebar(path, action)` rewrites only
+`ctshell::write::write_double_click_titlebar(path, action)` rewrites only
 `double_click_titlebar` in that file and keeps the compositor's other keys.
 System Settings uses it.
 
@@ -767,13 +766,10 @@ let (x, y, d) = ctappearance::traffic::button_rect(i);
 
 ### Corners
 
-`ctappearance::corner` is the CPU reference of a rounded corner, shared by the kit and the compositor, with the measurements in [macOS corners](../research/macos-corners.md). A corner has a nominal `radius`, a `smoothing` (0 is the circle, `CORNER_SMOOTHING` the continuous curve of `cornerCurve = .continuous`) and the straight edges at `edge_x`, `edge_y` from the pixel grid:
+`ctappearance::corner` holds the radius of a nested corner, with the measurements in [macOS corners](../research/macos-corners.md). The CPU reference of a rounded corner (`edge`, `coverage` and `tile`, the mask to compare with a capture) is `ctshell::corner`. A corner has a nominal `radius`, a `smoothing` (0 is the circle, `CORNER_SMOOTHING` the continuous curve of `cornerCurve = .continuous`):
 
 | Item | What it does |
 |---|---|
-| `edge(radius, smoothing, y) -> f32` | Where the top-left corner starts at depth `y`: the arc and the two Bezier tails of Freya's smoothed corner. |
-| `coverage(radius, smoothing, x, y, edge_x, edge_y) -> f32` | Share of the pixel at (`x`, `y`) inside the shape, 16 sub-rows. |
-| `tile(radius, smoothing, size, edge_x, edge_y) -> Vec<f32>` | The coverage of a `size` x `size` corner, row by row: the mask to compare with a capture. |
 | `concentric(container, inset_x, inset_y, minimum) -> f32` | The radius of a nested corner (`NSViewCornerRadius.containerConcentric`, SwiftUI `ConcentricRectangle`): the container's radius minus the smaller inset, `minimum` outside the container's corner region (`CORNER_CONCENTRIC_REGION`). |
 
 Draw a window with `CORNER_WINDOW.fitted` (16.8), not its `radius` (16, the API's): the capture of a window is a continuous corner of the larger radius. The other elements have a `CornerShape` each (section [Windows and titlebars](#windows-and-titlebars)). The parity check, with its tolerance, is in [macOS corners](../research/macos-corners.md#9-parity).
@@ -825,7 +821,7 @@ relative paths:
 | `data_dirs()` | `$XDG_DATA_DIRS` or `/usr/local/share` and `/usr/share` |
 | `user_dir(kind)` | `XDG_<kind>_DIR` from `user-dirs.dirs`, for example `user_dir("DOWNLOAD")` |
 
-`ctappearance::ini` reads and edits the INI files that GTK 3 (`settings.ini`)
+`ctshell::ini` reads and edits the INI files that GTK 3 (`settings.ini`)
 and qt5ct and qt6ct read, and keeps every other line:
 
 | Function | Does |
@@ -892,7 +888,7 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `TrafficGlyphs` | Glyph geometry: `stroke`, `zoom_corner`, `close`, `minimize`, `zoom`, `zoom_exit`, `plus`. |
 | `Segment`, `Triangle` | A line from `a` to `b`; three points. |
 | `DoubleClick` | `interval_ms` and pointer `slop` of a double click. |
-| `SettingsStrength`, `SettingsCheck`, `SettingsWallpaper` | Parts of `SettingsMetrics`: the tint-strength scale, the check list and the Wallpaper pane (preview, tiles, color dots, the collection sheet and the custom framing sheet with its desktop preview). |
+| `SettingsStrength` | Part of `SettingsMetrics`: the tint-strength scale. |
 | `*Metrics` | Sizes of one component; see the tables below. |
 
 ### Spacing
@@ -970,38 +966,12 @@ opaque.
 
 ### Window materials
 
-`MATERIAL_<NAME>_LIGHT` and `MATERIAL_<NAME>_DARK` (`<NAME>` is one of the 14
-materials of `NSVisualEffectView.Material`: `TITLEBAR`, `SELECTION`, `MENU`,
-`POPOVER`, `SIDEBAR`, `HEADER_VIEW`, `SHEET`, `WINDOW_BACKGROUND`,
-`HUD_WINDOW`, `FULL_SCREEN_UI`, `TOOL_TIP`, `CONTENT_BACKGROUND`,
-`UNDER_WINDOW_BACKGROUND`, `UNDER_PAGE_BACKGROUND`) are `MaterialSet`s of
-`components.material.visual-effect`. A `MaterialSet` has the `active` look, the
-`inactive` look and the looks under Reduce Transparency (`reduced`) and under
-Reduce Transparency with Increase Contrast (`reduced_contrast`); Increase
-Contrast alone changes no blur. A `MaterialLook` is:
-
-| Field | Unit | Meaning |
-|---|---|---|
-| `sigma` | px at scale 1 | Gaussian of the blur; 0 for a solid. `components.material.visual-effect.blur-sigma`, 27.6 |
-| `saturation` | factor | `colorSaturate` about the Rec. 709 luma, clamped to 0..1 |
-| `veil` | encoded RGBA | colour and alpha mixed over the saturated backdrop |
-| `cap` | 0..1 | per-channel minimum after the veil (light schemes; 1 is none) |
-| `floor` | 0..1 | per-channel maximum after the cap (dark schemes; 0 is none) |
-| `gain`, `bias` | factor, 0..1 | affine map after the floor; 1 and 0 except in `selection` |
-
-The six SwiftUI thicknesses are `MaterialSet`s of the same four looks (in a window
-that is not key only `.bar` turns solid):
-`MATERIAL_ULTRA_THIN_LIGHT` and `_DARK`, `MATERIAL_THIN_*`, `MATERIAL_REGULAR_*`,
-`MATERIAL_THICK_*`, `MATERIAL_ULTRA_THICK_*` and `MATERIAL_BAR_*`
-(`components.material.swiftui`, sigma 59.2). They are the AppKit values with the
-wider blur.
-
-`ctappearance::material::looks(material, scheme)` returns the set of a
-`material::Material` (dark tint takes the dark one). `over(&look, backdrop)`
-is the colour a look shows over one blurred backdrop pixel. The values are numbers of the macOS 27.2.1 stack, measured at
-scale 1 and in the display's device space; the compositor applies them in its
-own output space ([research](../research/macos-materials.md#10-materials-in-windows-measured-2026-11-22)).
-The render server's layer stack is the only source of these numbers: one veil and one cap per surface cannot tell the saturation, the cap and the floor apart.
+`ctappearance::material::Material` names the 14 materials of
+`NSVisualEffectView.Material`. Their looks (blur, saturation, veil, cap, floor,
+gain and bias, with `MATERIAL_<NAME>_LIGHT` and `_DARK`, `MaterialSet`,
+`MaterialLook`, `looks` and `over`) belong to the desktop and live in `ctshell`;
+the measurements are in
+[research](../research/macos-materials.md#10-materials-in-windows-measured-2026-11-22).
 
 ### Colors
 
@@ -1012,12 +982,11 @@ The render server's layer stack is the only source of these numbers: one veil an
 | `BG_SURFACE_LIGHT`, `BG_SURFACE_DARK`, `BG_SURFACE_DARK_TINT` | `Rgba` | Content and group background. |
 | `BG_SUNKEN_LIGHT`, `BG_SUNKEN_DARK`, `BG_SUNKEN_DARK_TINT` | `Rgba` | Sunken background. |
 | `BG_RAISED_LIGHT`, `BG_RAISED_DARK`, `BG_RAISED_DARK_TINT` | `Rgba` | Raised background (menus). |
-| `BG_CONTROL_LIGHT`, `BG_CONTROL_DARK`, `BG_CONTROL_DARK_TINT` | `Rgba` | Control face. |
 | `BG_HOVER_LIGHT`, `BG_HOVER_DARK`, `BG_HOVER_DARK_TINT` | `Rgba` | Control face under the pointer. |
 | `LAYER_FACTOR_BG_SUNKEN`, `LAYER_FACTOR_SURFACE`, `LAYER_FACTOR_RAISED`, `LAYER_FACTOR_CONTROL`, `LAYER_FACTOR_LINE` | `f32` | Share of the window tint each layer takes: 1.4, 1, 0.6, 1.2, 1.2. |
 | `WINDOW_TINT_ACCENT` | `[f32; 2]` | Accent tint amount in light and dark. |
 | `ACCENT_CHROMA_GAIN` | `f32` | Gain (2.5) of the accent's chroma share, so the chroma-only tint looks as strong as the old sRGB mix did. |
-| `WALLPAPER_TINTING`, `WALLPAPER_TINTING_LIFT`, `WALLPAPER_TINTING_TARGET`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_SIDEBAR_LIFT`, `WALLPAPER_TINTING_GRID` | `[f32; 2]`, `[f32; 2]`, `f32`, `f32`, `f32`, `u32` | Share of the wallpaper's OKLab chroma a window takes in light and dark (0.2, 0.15), and share of the way its lightness moves to the target (0, 0.14), measured on macOS 26 (malaysia ADR 0065); that target, L 0.43; the sidebar's share of the chroma (1.8 times) and of the lift (0.5 times); cells per side of the wallpaper grid. |
+| `WALLPAPER_TINTING`, `WALLPAPER_TINTING_LIFT`, `WALLPAPER_TINTING_TARGET`, `WALLPAPER_TINTING_SIDEBAR`, `WALLPAPER_TINTING_SIDEBAR_LIFT` | `[f32; 2]`, `[f32; 2]`, `f32`, `f32`, `f32` | Share of the wallpaper's OKLab chroma a window takes in light and dark (0.2, 0.15), and share of the way its lightness moves to the target (0, 0.14), measured on macOS 26 (malaysia ADR 0065); that target, L 0.43; the sidebar's share of the chroma (1.8 times) and of the lift (0.5 times). |
 | `TINT_STRENGTH` | `[f32; 4]` | Factor of each `TintStrength`: 0.5, 1, 1.5, 2. |
 | `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST` | `f32` | 3 and 4.5: contrast of the accent on the window and of ink on the accent. |
 | `DOMINANT_LIGHTNESS`, `DOMINANT_MIN_CHROMA` | `[f32; 2]`, `f32` | Lightness range and minimum chroma of a wallpaper's dominant color. |
@@ -1155,9 +1124,8 @@ shell's own tokens are not part of the kit.
 
 | Constants | What they size |
 |---|---|
-| `MENUBAR_HEIGHT`, `MENUBAR_TINT_SPREAD` | The menu bar: its slim height, which the focus-mode bar takes, and the share of its width over which `WallpaperGrid::across` blurs the wallpaper |
-| `MENU_GLASS_VEIL_LIGHT`, `MENU_GLASS_VEIL_DARK`, `MENU_GLASS_LIFT_LIGHT`, `MENU_GLASS_LIFT_DARK`, `MENU_GLASS_CAP_LIGHT`, `MENU_GLASS_CAP_DARK`, `MENU_GLASS_CHROMA`, `MENU_GLASS_SPREAD`, `NOTIFICATION_GLASS_VEIL_LIGHT`, `MENU_DARK_INK_ABOVE` | The glass of the menus and notifications and the luma above which a panel takes dark ink; `ctappearance` reads them into `Resolved` ([Glass over a backdrop](#glass-over-a-backdrop)) |
-| `DOCK_RIM_LIGHT`, `DOCK_RIM_DARK`, `DOCK_DIVIDER_LIGHT`, `DOCK_DIVIDER_DARK`, `DOCK_RIM_CORNER_LIGHT`, `DOCK_RIM_CORNER_DARK`, `DOCK_RIM_SIDE_LIGHT`, `DOCK_RIM_SIDE_DARK`, `DOCK_LENS_LIGHT`, `DOCK_LENS_DARK`, `DOCK_RIM_GLOW`, `DOCK_RIM_GLOW_LIGHT`, `DOCK_TONE_LIGHT`, `DOCK_TONE_DARK` | The Dock's frame (the luminance of the rim as `[lift, share]` of the glass's, light and dark; how far a divider moves the glass's luminance; how the frame turns from rim to outline around a corner as `[decay, outline from, outline to]` in degrees; how much of the rim along the top and bottom stays on the left and right sides (`0.0` to `1.0`; the translucent Dock only, never the menus or the solid Dock); how the glass bends the backdrop along the frame's normal as `[depth, strength, split, blur]`, light and dark; the glow inside the rim pixel by pixel as shares of it, with its own steps for the translucent light Dock; and, for the translucent Dock, `DockTone`: the glass and outline taken from the colour behind the glass, its lightness bent down to `cap`, while the rim keeps that colour's hue, scaling it per channel by at most `gain` and making up the rest of its light in white) |
+| `MENUBAR_HEIGHT` | The menu bar's slim height, which the focus-mode bar takes |
+| `MENU_DARK_INK_ABOVE` | The luma above which a menu panel takes dark ink ([Glass over a backdrop](#glass-over-a-backdrop)) |
 | `DOCK_LABEL_RADIUS` | The corner of the name label over a Dock icon |
 | `DOCK_LABEL_ARROW_WIDTH`, `DOCK_LABEL_ARROW_HEIGHT`, `DOCK_LABEL_ARROW_TIP_RADIUS`, `DOCK_LABEL_ARROW_FILLET` | The arrow of that label, a popover with the `Label` shape |
 | `DOCK_MENU_PADDING`, `DOCK_MENU_ITEM_PADDING_X`, `DOCK_MENU_SEPARATOR_MARGIN`, `DOCK_MENU_MIN_WIDTH` | An icon's menu: row metrics and width ([`pop_up_menu`](07-menus-and-popovers.md#pop_up_menu)) |

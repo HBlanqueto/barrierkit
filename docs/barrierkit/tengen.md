@@ -87,7 +87,7 @@ each.
 | Durations | `duration.fast` 120, `base` 250, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |
 | Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.unfocused` (blur 0.45, offset 0.4, opacity 0.55) | `SHADOW`, `SHADOW_DARK` |
 | Controls | `components.<control>` | `BUTTON`, `SWITCH`, `SLIDER`, `TEXT_FIELD`… |
-| Shell | `components.shell` | What the kit reads: `MENUBAR_HEIGHT`, `MENUBAR_TINT_SPREAD`, the Dock's frame, label and menu, `MENU_*`, `SHELL_*`; the rest belongs to the desktop |
+| Shell | `components.shell` | What the kit reads: `MENUBAR_HEIGHT`, the Dock's label and menu, `MENU_*`, `SHELL_*`; the rest belongs to the desktop (`ctshell`) |
 | Appearance factors | `appearance`: `dominant`, `tint-strength`, `modes`, `layer-factors`, `wallpaper-tinting`, `contrast`, `accessibility` | `DOMINANT_*`, `TINT_STRENGTH`, `WINDOW_TINT_*`, `ACCENT_CHROMA_GAIN`, `LAYER_FACTOR_*`, `WALLPAPER_TINTING*`, `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST`, `TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` |
 
 ## Appearance and wallpaper
@@ -108,7 +108,7 @@ each.
    ([4](04-appearance-and-tokens.md#wallpaper-behind-a-window)).
 4. The dominant colour and the wallpaper grid come from `wallpaper.state` in
    the data dir (`~/.local/share/malaysia/wallpaper.state`).
-   `malaysia-wallpaper` writes it with `ctappearance::write_wallpaper_state`.
+   `malaysia-wallpaper` writes it with `ctshell::wallpaper_state::write_wallpaper_state`.
 5. `ctappearance::backdrop::dominant_from_pixels` computes it: k-means in
    OKLab, drops the clusters with less chroma than `DOMINANT_MIN_CHROMA`,
    picks the one with the largest area × chroma and clamps its HSL lightness

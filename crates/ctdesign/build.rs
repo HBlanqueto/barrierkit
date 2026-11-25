@@ -134,46 +134,6 @@ TOOLBAR_SEARCH_WIDTH f32 components.toolbar-search-width
 BADGE BadgeMetrics components.badge
 MEDIA MediaMetrics components.media
 MATERIAL MaterialMetrics components.material
-MATERIAL_TITLEBAR_LIGHT MaterialSet components.material.visual-effect.titlebar.light
-MATERIAL_TITLEBAR_DARK MaterialSet components.material.visual-effect.titlebar.dark
-MATERIAL_SELECTION_LIGHT MaterialSet components.material.visual-effect.selection.light
-MATERIAL_SELECTION_DARK MaterialSet components.material.visual-effect.selection.dark
-MATERIAL_MENU_LIGHT MaterialSet components.material.visual-effect.menu.light
-MATERIAL_MENU_DARK MaterialSet components.material.visual-effect.menu.dark
-MATERIAL_POPOVER_LIGHT MaterialSet components.material.visual-effect.popover.light
-MATERIAL_POPOVER_DARK MaterialSet components.material.visual-effect.popover.dark
-MATERIAL_SIDEBAR_LIGHT MaterialSet components.material.visual-effect.sidebar.light
-MATERIAL_SIDEBAR_DARK MaterialSet components.material.visual-effect.sidebar.dark
-MATERIAL_HEADER_VIEW_LIGHT MaterialSet components.material.visual-effect.header-view.light
-MATERIAL_HEADER_VIEW_DARK MaterialSet components.material.visual-effect.header-view.dark
-MATERIAL_SHEET_LIGHT MaterialSet components.material.visual-effect.sheet.light
-MATERIAL_SHEET_DARK MaterialSet components.material.visual-effect.sheet.dark
-MATERIAL_WINDOW_BACKGROUND_LIGHT MaterialSet components.material.visual-effect.window-background.light
-MATERIAL_WINDOW_BACKGROUND_DARK MaterialSet components.material.visual-effect.window-background.dark
-MATERIAL_HUD_WINDOW_LIGHT MaterialSet components.material.visual-effect.hud-window.light
-MATERIAL_HUD_WINDOW_DARK MaterialSet components.material.visual-effect.hud-window.dark
-MATERIAL_FULL_SCREEN_UI_LIGHT MaterialSet components.material.visual-effect.full-screen-ui.light
-MATERIAL_FULL_SCREEN_UI_DARK MaterialSet components.material.visual-effect.full-screen-ui.dark
-MATERIAL_TOOL_TIP_LIGHT MaterialSet components.material.visual-effect.tool-tip.light
-MATERIAL_TOOL_TIP_DARK MaterialSet components.material.visual-effect.tool-tip.dark
-MATERIAL_CONTENT_BACKGROUND_LIGHT MaterialSet components.material.visual-effect.content-background.light
-MATERIAL_CONTENT_BACKGROUND_DARK MaterialSet components.material.visual-effect.content-background.dark
-MATERIAL_UNDER_WINDOW_BACKGROUND_LIGHT MaterialSet components.material.visual-effect.under-window-background.light
-MATERIAL_UNDER_WINDOW_BACKGROUND_DARK MaterialSet components.material.visual-effect.under-window-background.dark
-MATERIAL_UNDER_PAGE_BACKGROUND_LIGHT MaterialSet components.material.visual-effect.under-page-background.light
-MATERIAL_UNDER_PAGE_BACKGROUND_DARK MaterialSet components.material.visual-effect.under-page-background.dark
-MATERIAL_ULTRA_THIN_LIGHT MaterialSet components.material.swiftui.ultra-thin.light
-MATERIAL_ULTRA_THIN_DARK MaterialSet components.material.swiftui.ultra-thin.dark
-MATERIAL_THIN_LIGHT MaterialSet components.material.swiftui.thin.light
-MATERIAL_THIN_DARK MaterialSet components.material.swiftui.thin.dark
-MATERIAL_REGULAR_LIGHT MaterialSet components.material.swiftui.regular.light
-MATERIAL_REGULAR_DARK MaterialSet components.material.swiftui.regular.dark
-MATERIAL_THICK_LIGHT MaterialSet components.material.swiftui.thick.light
-MATERIAL_THICK_DARK MaterialSet components.material.swiftui.thick.dark
-MATERIAL_ULTRA_THICK_LIGHT MaterialSet components.material.swiftui.ultra-thick.light
-MATERIAL_ULTRA_THICK_DARK MaterialSet components.material.swiftui.ultra-thick.dark
-MATERIAL_BAR_LIGHT MaterialSet components.material.swiftui.bar.light
-MATERIAL_BAR_DARK MaterialSet components.material.swiftui.bar.dark
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay fade_in_ms=fade-in fade_out_ms=fade-out
 GESTURE GestureMetrics components.gesture tap_interval_ms=tap-interval long_press_ms=long-press-duration
 SCROLL_PHYSICS ScrollPhysicsMetrics components.scroll-physics velocity_window_ms=velocity-window
@@ -195,19 +155,10 @@ TOOLBAR_TABS ToolbarTabsMetrics components.toolbar-tabs
 ACCENT_MIN_CONTRAST_ON_WINDOW f32 appearance.contrast.accent-on-window
 ON_ACCENT_MIN_CONTRAST f32 appearance.contrast.on-accent
 ACCENT_CHROMA_GAIN f32 appearance.modes.accent.chroma-gain
-WALLPAPER_TINTING_GRID u32 appearance.wallpaper-tinting.grid
 WALLPAPER_TINTING_SIDEBAR f32 appearance.wallpaper-tinting.sidebar
 WALLPAPER_TINTING_SIDEBAR_LIFT f32 appearance.wallpaper-tinting.sidebar-lift
 WALLPAPER_TINTING_TARGET f32 appearance.wallpaper-tinting.target
 TEXT_SIZES [f32;6] appearance.accessibility.text-sizes
-MENU_GLASS_VEIL_LIGHT Rgba components.shell.menu.glass-veil-light
-MENU_GLASS_VEIL_DARK Rgba components.shell.menu.glass-veil-dark
-MENU_GLASS_LIFT_LIGHT f32 components.shell.menu.glass-lift-light
-MENU_GLASS_LIFT_DARK f32 components.shell.menu.glass-lift-dark
-MENU_GLASS_CAP_LIGHT f32 components.shell.menu.glass-cap-light
-MENU_GLASS_CAP_DARK f32 components.shell.menu.glass-cap-dark
-MENU_GLASS_CHROMA f32 components.shell.menu.glass-chroma
-MENU_GLASS_SPREAD f32 components.shell.menu.glass-spread
 MENU_DARK_INK_ABOVE f32 components.shell.menu.dark-ink-above
 TRAFFIC_RING_WIDTH f32 components.window.traffic-lights.ring-width
 TRAFFIC_MARGIN f32 components.window.traffic-lights.margin
@@ -242,7 +193,6 @@ SHADOW_DARK ShadowStyle shadow.layers.dark unfocused_blur_scale=shadow.unfocused
 KNOB_SHADOW ShadowLayer shadow.slint.knob y_offset=offset-y opacity==1.0
 KNOB_HELD_SHADOW ShadowLayer shadow.slint.knob-held y_offset=offset-y opacity==1.0
 KNOB_HELD_SHADOW_DARK ShadowLayer shadow.slint.knob-held-dark y_offset=offset-y opacity==1.0
-KNOB_LENS [f32;2] components.switch.knob-lens
 SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w padding_x=padding-x
     rim_width=rim-width traffic_x=traffic-x traffic_y=traffic-y app_icon=item.app-icon
     chevron=section.chevron
@@ -280,21 +230,6 @@ SPRING_ALERT_MS u64 spring.alert-duration
 SPRING_PUSH_MS u64 spring.push-duration
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
-MENUBAR_TINT_SPREAD f32 components.shell.menubar.tint-spread
-DOCK_RIM_LIGHT [f32;2] components.shell.dock.rim-light
-DOCK_RIM_DARK [f32;2] components.shell.dock.rim-dark
-DOCK_DIVIDER_LIGHT f32 components.shell.dock.divider-light
-DOCK_DIVIDER_DARK f32 components.shell.dock.divider-dark
-DOCK_RIM_CORNER_LIGHT [f32;3] components.shell.dock.rim-corner-light
-DOCK_RIM_CORNER_DARK [f32;3] components.shell.dock.rim-corner-dark
-DOCK_RIM_SIDE_LIGHT f32 components.shell.dock.rim-side-light
-DOCK_RIM_SIDE_DARK f32 components.shell.dock.rim-side-dark
-DOCK_LENS_LIGHT [f32;2] components.shell.dock.lens-light
-DOCK_LENS_DARK [f32;2] components.shell.dock.lens-dark
-DOCK_RIM_GLOW [f32;6] components.shell.dock.rim-glow
-DOCK_RIM_GLOW_LIGHT [f32;6] components.shell.dock.rim-glow-light
-DOCK_TONE_LIGHT DockTone components.shell.dock.tone-light
-DOCK_TONE_DARK DockTone components.shell.dock.tone-dark
 DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius
 DOCK_LABEL_ARROW_WIDTH f32 components.shell.dock.label-arrow-width
 DOCK_LABEL_ARROW_HEIGHT f32 components.shell.dock.label-arrow-height
@@ -307,7 +242,6 @@ DOCK_MENU_MIN_WIDTH f32 components.shell.dock.menu-min-width
 DOCK_MENU_ARROW_INSET f32 components.shell.dock.menu-arrow-inset
 DOCK_MENU_ARROW_TIP_RADIUS f32 components.shell.dock.menu-arrow-tip-radius
 DOCK_MENU_ARROW_FILLET f32 components.shell.dock.menu-arrow-fillet
-NOTIFICATION_GLASS_VEIL_LIGHT Rgba components.shell.notifications.glass-veil-light
 SETTINGS SettingsMetrics components.settings account_name_font=account.name
     account_detail_font=account.detail card_caption_font=card.caption
 HAIRLINE f32 components.hairline
@@ -356,7 +290,6 @@ MENU_SEARCH_ICON [f32;2] components.shell.menu.search.icon
 
 const THEMED: &str = r"
 BG_WINDOW Rgba themes.{theme}.bg-window
-BG_CONTROL Rgba themes.{theme}.bg-control
 BG_SURFACE Rgba themes.{theme}.bg-surface
 BG_SUNKEN Rgba themes.{theme}.bg-sunken
 BG_RAISED Rgba themes.{theme}.bg-raised
@@ -392,13 +325,9 @@ TRAFFIC_LIGHTS TrafficLooks themes.{theme}.traffic-lights
 TRAFFIC_LIGHTS_CONTRAST TrafficLooks themes.{theme}.traffic-lights-contrast
 CONTRAST ContrastPalette themes.{theme}.contrast
 SHELL ShellPalette components.shell bar=menubar.bg text=menubar.text tile=dock.tile tile_active=dock.tile-active tile_text_active=dock.tile-text-active
-DOCK_GLASS Rgba themes.{theme}.dock-bar
-DOCK_GLASS_SOLID Rgba themes.{theme}.dock-bar-opaque
 GLASS_INK Rgba themes.{theme}.glass-ink
 GLASS_INK_MUTED Rgba themes.{theme}.glass-ink-muted
 GLASS_INK_FAINT Rgba themes.{theme}.glass-ink-faint
-DOCK_OUTLINE Rgba themes.{theme}.dock-outline
-DOCK_OUTLINE_SOLID Rgba themes.{theme}.dock-outline-opaque
 SIDEBAR Rgba themes.{theme}.sidebar-bg
 TOOLBAR_BG Rgba themes.{theme}.toolbar-bg
 TOOLBAR_LINE Rgba themes.{theme}.toolbar-line

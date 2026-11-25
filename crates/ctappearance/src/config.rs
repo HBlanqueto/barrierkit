@@ -1,5 +1,4 @@
 use std::{
-    collections::BTreeMap,
     fs::File,
     io::{self, Read},
     os::unix::fs::MetadataExt,
@@ -13,12 +12,10 @@ use std::{
 
 use ctdesign::{Rgba, TEXT_SIZES, TINT_STRENGTH};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::DeserializeOwned};
-use toml_edit::{Array, DocumentMut};
 
 use crate::{
     accent,
     icon_style::{IconStyle, IconTone},
-    tinting::WallpaperGrid,
     xdg,
 };
 
@@ -467,19 +464,19 @@ fn read_unresolved(path: &Path) -> Result<Option<AppearanceConfig>, toml::de::Er
 
 type Stamp = (u64, SystemTime, u64);
 
-struct Parsed<T> {
+pub struct Parsed<T> {
     path: PathBuf,
     stamp: Stamp,
     value: T,
 }
 
-type Slot<T> = Mutex<Option<Parsed<T>>>;
+pub type Slot<T> = Mutex<Option<Parsed<T>>>;
 
 // A file changed this recently can change again within the same timestamp tick, so it is parsed on every read.
 const SETTLED: Duration = Duration::from_secs(1);
 
 // The stamp is taken from the open file, before its text: a change in between leaves a stamp the next read rejects.
-fn read_parsed<T: Clone, E>(
+pub fn read_parsed<T: Clone, E>(
     slot: &Slot<T>,
     path: &Path,
     parse: impl FnOnce(&str) -> Result<T, E>,
@@ -512,61 +509,6 @@ fn read_parsed<T: Clone, E>(
             value: value.clone(),
         });
     Ok(Some(value))
-}
-
-const RETIRED_KEYS: [&str; 6] = [
-    "blur_all_windows",
-    "blur_behind",
-    "glass_blur",
-    "tint_strength_accent",
-    "traffic_light_shape",
-    "window_tint_scope",
-];
-
-pub fn write_appearance(path: &Path, config: &AppearanceConfig) -> io::Result<()> {
-    keep_unparsed::<AppearanceConfig>(path)?;
-    let text = std::fs::read_to_string(path).unwrap_or_default();
-    let file = toml::from_str::<AppearanceConfig>(&text).ok();
-    let mut doc = file
-        .as_ref()
-        .and_then(|_| text.parse::<DocumentMut>().ok())
-        .unwrap_or_default();
-
-    // Reads resolve `color_scheme` to the hour's scheme; writing that echo back would lose Dark Tint.
-    let kept_scheme = doc
-        .get("color_scheme")
-        .cloned()
-        .filter(|_| file.is_some_and(|file| file.current_scheme() == config.color_scheme));
-    let fresh = toml_edit::ser::to_document(config).map_err(std::io::Error::other)?;
-    for (key, item) in fresh.iter() {
-        doc[key] = item.clone();
-    }
-    if let Some(scheme) = kept_scheme {
-        doc["color_scheme"] = scheme;
-    }
-    // A key that no field reads any more would stay in the file forever.
-    for retired in RETIRED_KEYS {
-        doc.remove(retired);
-    }
-    match &config.accent {
-        Some(name) => doc["accent"] = toml_edit::value(name.as_str()),
-        None => {
-            doc.remove("accent");
-        }
-    }
-    for (key, color) in [
-        ("accent_color", config.accent_color),
-        ("icon_color", config.icon_color),
-    ] {
-        match color {
-            Some(color) => doc[key] = toml_edit::value(accent_array(color)),
-            None => {
-                doc.remove(key);
-            }
-        }
-    }
-
-    replace_file(path, &doc.to_string())
 }
 
 // XDG Base Directory Specification: a missing directory is created with permission 0700.
@@ -618,13 +560,6 @@ fn serialize_tint_parts<S: Serializer>(
     )
 }
 
-fn accent_array(accent: [f32; 3]) -> Array {
-    accent
-        .into_iter()
-        .map(|channel| (f64::from(channel.clamp(0.0, 1.0)) * 1000.0).round() / 1000.0)
-        .collect()
-}
-
 fn value_of<'a>(text: &'a str, key: &str) -> Option<&'a str> {
     text.lines().find_map(|line| {
         let (name, value) = line.split('#').next()?.split_once('=')?;
@@ -664,41 +599,19 @@ pub fn load_appearance() -> AppearanceConfig {
     config.following_system(system_scheme())
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
-pub struct WallpaperOutput {
-    pub name: String,
-    pub width: u32,
-    pub height: u32,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
-pub struct WallpaperState {
-    pub dominant: Option<[f32; 3]>,
-    pub grid: Option<WallpaperGrid>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub grids: BTreeMap<String, WallpaperGrid>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub outputs: Vec<WallpaperOutput>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub shown: BTreeMap<String, String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub shuffled_at: Option<u64>,
-}
-
-impl WallpaperState {
-    pub fn grid_for(&self, desktop: Option<u32>) -> Option<&WallpaperGrid> {
-        desktop
-            .and_then(|number| self.grids.get(&number.to_string()))
-            .or(self.grid.as_ref())
-    }
-}
-
-pub fn load_wallpaper_state() -> WallpaperState {
-    read_wallpaper_state(&wallpaper_state_path()).unwrap_or_default()
+#[derive(Deserialize)]
+struct DominantState {
+    dominant: Option<[f32; 3]>,
 }
 
 pub fn load_dominant() -> Option<Rgba> {
-    let [r, g, b] = read_wallpaper_state(&wallpaper_state_path())?.dominant?;
+    static PARSED: Slot<Option<[f32; 3]>> = Mutex::new(None);
+    let [r, g, b] = read_parsed(&PARSED, &wallpaper_state_path(), |text| {
+        toml::from_str::<DominantState>(text).map(|state| state.dominant)
+    })
+    .ok()
+    .flatten()
+    .flatten()?;
     Some(Rgba {
         r: r.clamp(0.0, 1.0),
         g: g.clamp(0.0, 1.0),
@@ -708,7 +621,7 @@ pub fn load_dominant() -> Option<Rgba> {
 }
 
 // A file that exists but cannot be read is never replaced; one that does not parse is copied to `<name>.bak` first.
-fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> io::Result<()> {
+pub fn keep_unparsed<T: DeserializeOwned>(path: &Path) -> io::Result<()> {
     match std::fs::read_to_string(path) {
         Ok(text) if toml::from_str::<T>(&text).is_err() => {
             let mut backup = path.as_os_str().to_owned();
@@ -733,22 +646,4 @@ pub fn write_toml<T: Serialize + DeserializeOwned>(path: &Path, value: &T) -> io
         path,
         &toml::to_string(value).map_err(std::io::Error::other)?,
     )
-}
-
-pub fn write_wallpaper_state(path: &Path, state: &WallpaperState) -> io::Result<()> {
-    if *state == WallpaperState::default() {
-        keep_unparsed::<WallpaperState>(path)?;
-        return match std::fs::remove_file(path) {
-            Err(error) if error.kind() != std::io::ErrorKind::NotFound => Err(error),
-            _ => Ok(()),
-        };
-    }
-    write_toml(path, state)
-}
-
-fn read_wallpaper_state(path: &Path) -> Option<WallpaperState> {
-    static PARSED: Slot<WallpaperState> = Mutex::new(None);
-    read_parsed(&PARSED, path, |text| toml::from_str(text))
-        .ok()
-        .flatten()
 }

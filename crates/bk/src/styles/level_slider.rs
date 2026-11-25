@@ -47,7 +47,7 @@ pub struct LevelSliderStyle {
     /// Tengen: `SLIDER.knob_pressed_scale`: how much the knob grows while it is held.
     pub knob_pressed_scale: f32,
     /// Tengen: `Some(Role(ControlBackground))`: while held, the knob is Liquid Glass: this paint at
-    /// `SLIDER.knob_glass_alpha` over the Dock's lens (`DOCK_LENS_*`) turned outward, which refracts
+    /// `SLIDER.knob_glass_alpha` over the Dock's lens turned outward, which refracts
     /// what lies outside the knob; its outline is part of the glass. It is fixed, whatever the Liquid Glass blur setting
     /// says; `None` keeps the opaque knob.
     pub knob_glass: Option<ShapeStyle>,

@@ -557,7 +557,7 @@ RadioGroup::new("Size", size).option("Small").option("Large")
   wrap it in `with_animation`. The knob grows and shrinks along `SliderStyle::press_animation`.
 - While you hold a knob it grows by `SLIDER.knob_pressed_scale` (1.3) and turns into Liquid
   Glass the compositor draws ([platform](18-platform.md), `set_knobs`): the control background
-  at `SLIDER.knob_glass_alpha` (0.3) over the Dock's lens (`DOCK_LENS_*`) turned outward, which
+  at `SLIDER.knob_glass_alpha` (0.3) over the Dock's lens turned outward, which
   refracts the panel past the knob; its outline is part of the glass, as the switch's, with no
   frame lines. It does not
   depend on the Liquid Glass blur setting. `knob_pressed_scale: 1.0` or `knob_glass: None` in the

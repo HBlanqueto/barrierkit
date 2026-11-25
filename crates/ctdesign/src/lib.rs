@@ -191,61 +191,9 @@ pub struct SettingsStrength {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct SettingsWallpaper {
-    pub preview_width: u32,
-    pub tile_width: u32,
-    pub tile_height: u32,
-    pub dot: u32,
-    pub sheet_width: u32,
-    pub row_fits: usize,
-    pub shuffle_scrim: f32,
-    pub shuffle_icon: f32,
-    pub field_width: u32,
-    pub filter_width: u32,
-    pub filter_control: f32,
-    pub filter_inset: f32,
-    pub filter_chevron: f32,
-    pub filter_close_icon: f32,
-    pub filter_scope_tint: f32,
-    pub edge_fade: f32,
-    pub kind_size: f32,
-    pub kind_icon: f32,
-    pub kind_inset: f32,
-    pub source_width: u32,
-    pub source_height: u32,
-    pub source_radius: u32,
-    pub crop_width: u32,
-    pub crop_side: u32,
-    pub crop_aspect: f32,
-    pub crop_dim: f32,
-    pub crop_frame: f32,
-    pub crop_guide: f32,
-    pub crop_corner: u32,
-    pub crop_corner_stroke: u32,
-    pub crop_zoom_max: f32,
-    pub crop_zoom_step: f32,
-    pub crop_zoom_button: u32,
-    pub crop_zoom_label: u32,
-    pub crop_soft: f32,
-    pub crop_blurry: f32,
-    pub crop_preview_bar: f32,
-    pub crop_preview_dock_width: f32,
-    pub crop_preview_dock_bottom: f32,
-    pub crop_preview_dock_tiles: u32,
-    pub crop_preview_dock_gap: f32,
-    pub crop_preview_dock_radius: f32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct SettingsCheck {
-    pub row_gap: u32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SettingsMetrics {
     pub window_width: u32,
     pub window_height: u32,
-    pub window_min_height: u32,
     pub search_padding_x: u32,
     pub search_icon: u32,
     pub search_glyph: f32,
@@ -269,13 +217,8 @@ pub struct SettingsMetrics {
     pub account_margin_bottom: u32,
     pub account_name_font: Font,
     pub account_detail_font: Font,
-    pub tile_blue: Rgba,
-    pub tile_green: Rgba,
-    pub tile_cyan: Rgba,
-    pub tile_black: Rgba,
     pub swatch_size: u32,
     pub swatch_gap: u32,
-    pub option_column: u32,
     pub card_width: u32,
     pub card_height: u32,
     pub card_radius: u32,
@@ -283,29 +226,6 @@ pub struct SettingsMetrics {
     pub card_caption_gap: u32,
     pub card_caption_font: Font,
     pub card_caption_selected_weight: u32,
-    pub preview_window_radius: u32,
-    pub preview_window_x: u32,
-    pub preview_window_y: u32,
-    pub preview_light: u32,
-    pub preview_menubar_dot: u32,
-    pub preview_menubar_dot_inset: u32,
-    pub preview_menu_x: u32,
-    pub preview_menu_y: u32,
-    pub preview_menu_w: u32,
-    pub preview_menu_h: u32,
-    pub preview_menu_padding: u32,
-    pub preview_menu_accent_h: u32,
-    pub preview_menu_line_h: u32,
-    pub preview_menu_line_radius: u32,
-    pub preview_app_inset: u32,
-    pub preview_dots_x: u32,
-    pub preview_dots_y: u32,
-    pub preview_dot_gap: u32,
-    pub preview_radius: u32,
-    pub preview_bar_h: u32,
-    pub preview_bar_padding: u32,
-    pub preview_bar_item_w: u32,
-    pub preview_bar_item_gap: u32,
     pub radio_spacing: u32,
     pub sidebar_width: u32,
     pub sidebar_lights_gap: u32,
@@ -313,11 +233,7 @@ pub struct SettingsMetrics {
     pub sidebar_group_gap: u32,
     pub sidebar_padding_top: u32,
     pub strength: SettingsStrength,
-    pub check: SettingsCheck,
     pub dropdown_chevron_glyph: u32,
-    pub empty_padding_y: u32,
-    pub empty_gap: u32,
-    pub wallpaper: SettingsWallpaper,
     pub toolbar_gap: u32,
     pub toolbar_lights_gap: u32,
     pub toolbar_height: u32,
@@ -325,8 +241,6 @@ pub struct SettingsMetrics {
     pub swatch_column: u32,
     pub swatch_name_gap: u32,
     pub swatch_ring_gap: u32,
-    pub icon_card_size: u32,
-    pub icon_card_ring_gap: u32,
     pub card_outline: Rgba,
 }
 
@@ -1209,25 +1123,6 @@ pub struct MaterialThickness {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct MaterialLook {
-    pub sigma: f32,
-    pub saturation: f32,
-    pub veil: Rgba,
-    pub cap: f32,
-    pub floor: f32,
-    pub gain: f32,
-    pub bias: f32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct MaterialSet {
-    pub active: MaterialLook,
-    pub inactive: MaterialLook,
-    pub reduced: MaterialLook,
-    pub reduced_contrast: MaterialLook,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,
@@ -1747,48 +1642,6 @@ pub struct Palette {
     pub card_border: Rgba,
     pub system_fill: Rgba,
     pub text_background: Rgba,
-}
-/// The Dock's glass and its frame, which the compositor draws (malaysia's `dock_frame.glsl`). `rim`
-/// is the rim's luminance as `[lift, share]` of the glass's, `divider` the shift of the glass's
-/// luminance that marks a divider (positive lights it, negative darkens it), `corner` how the frame
-/// turns from rim to outline around a corner: `[decay, outline from, outline to]` in degrees,
-/// `rim_side` how much of the rim along the top and bottom stays on the left and right sides, and
-/// `glow` the glow inside the rim pixel by pixel as shares of it. With `tone` the frame takes its
-/// colours from what is behind the glass, and the rim keeps their hue: the glass is scaled per
-/// channel toward the luminance `rim` gives, as far as `DockTone::gain`, and white makes up the
-/// rest, instead of overlaid with white or black. `lens` is how
-/// the glass bends the backdrop along the frame's normal, as the Liquid Glass config's
-/// `liquid-glass.frag` does: `[depth, strength]`, both as shares of the Dock's thickness. It never
-/// splits the colour channels. These are design values, not measured on macOS. `soften` is how
-/// many times wider than the clear Dock's the Gaussian that softens the backdrop spreads.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct DockSurface {
-    pub glass: Rgba,
-    pub outline: Rgba,
-    pub rim: [f32; 2],
-    pub divider: f32,
-    pub corner: [f32; 3],
-    pub rim_side: f32,
-    pub glow: [f32; 6],
-    pub lens: [f32; 2],
-    pub tone: Option<DockTone>,
-    pub soften: f32,
-}
-
-/// The translucent Dock's frame as macOS draws it over a wallpaper, measured on its Dock: the
-/// glass takes the backdrop's OKLab chroma times `chroma` and its own lightness plus `lift`, bent
-/// down to `cap` with its chroma, and the outline is the glass with its lightness and chroma times
-/// `outline`. `gain` is the most the rim, and the light of a clear icon's plate, scale their glass
-/// per channel, fitted to macOS's rim over the Tahoe wallpaper, top and bottom; past it they light
-/// in white, so over a saturated wallpaper they keep a white base instead of the wallpaper's pure
-/// colour.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct DockTone {
-    pub chroma: f32,
-    pub lift: f32,
-    pub outline: [f32; 2],
-    pub cap: f32,
-    pub gain: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

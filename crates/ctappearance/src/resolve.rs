@@ -3,32 +3,24 @@ use ctdesign::{
     BG_HOVER_DARK_TINT, BG_HOVER_LIGHT, BG_RAISED_DARK, BG_RAISED_DARK_TINT, BG_RAISED_LIGHT,
     BG_SUNKEN_DARK, BG_SUNKEN_DARK_TINT, BG_SUNKEN_LIGHT, BG_SURFACE_DARK, BG_SURFACE_DARK_TINT,
     BG_SURFACE_LIGHT, BG_WINDOW_DARK, BG_WINDOW_DARK_TINT, BG_WINDOW_LIGHT, CONTRAST_DARK,
-    CONTRAST_DARK_TINT, CONTRAST_LIGHT, DARK, DARK_TINT, DOCK_DIVIDER_DARK, DOCK_DIVIDER_LIGHT,
-    DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT, DOCK_GLASS_LIGHT, DOCK_GLASS_SOLID_DARK,
-    DOCK_GLASS_SOLID_DARK_TINT, DOCK_GLASS_SOLID_LIGHT, DOCK_LENS_DARK, DOCK_LENS_LIGHT,
-    DOCK_OUTLINE_DARK, DOCK_OUTLINE_DARK_TINT, DOCK_OUTLINE_LIGHT, DOCK_OUTLINE_SOLID_DARK,
-    DOCK_OUTLINE_SOLID_DARK_TINT, DOCK_OUTLINE_SOLID_LIGHT, DOCK_RIM_CORNER_DARK,
-    DOCK_RIM_CORNER_LIGHT, DOCK_RIM_DARK, DOCK_RIM_GLOW, DOCK_RIM_GLOW_LIGHT, DOCK_RIM_LIGHT,
-    DOCK_RIM_SIDE_DARK, DOCK_RIM_SIDE_LIGHT, DOCK_TONE_DARK, DOCK_TONE_LIGHT, DockSurface,
-    DockTone, GLASS, LAYER_FACTOR_BG_SUNKEN, LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE,
-    LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT, MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT,
-    MENU_DARK_TINT_OPAQUE, MENU_GLASS_CAP_DARK, MENU_GLASS_CAP_LIGHT, MENU_GLASS_CHROMA,
-    MENU_GLASS_LIFT_DARK, MENU_GLASS_LIFT_LIGHT, MENU_GLASS_SPREAD, MENU_GLASS_VEIL_DARK,
-    MENU_GLASS_VEIL_LIGHT, MENU_LIGHT, MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette,
-    NOTIFICATION_GLASS_VEIL_LIGHT, ON_ACCENT_MIN_CONTRAST, Palette, Rgba, SHELL_DARK,
-    SHELL_DARK_OPAQUE, SHELL_DARK_TINT, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT, SHELL_LIGHT_OPAQUE,
-    SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT, SIDEBAR_DARK_TINT_OPAQUE,
-    SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT, SIDEBAR_GLASS_BASE_LIGHT,
-    SIDEBAR_GLASS_SOLID_DARK, SIDEBAR_GLASS_SOLID_DARK_TINT, SIDEBAR_GLASS_SOLID_LIGHT,
-    SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK, SIDEBAR_PALETTE_DARK_TINT,
-    SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette, TOOLBAR_BG_DARK, TOOLBAR_BG_DARK_TINT,
-    TOOLBAR_BG_LIGHT, TOOLBAR_LINE_DARK, TOOLBAR_LINE_DARK_TINT, TOOLBAR_LINE_LIGHT,
-    TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE, TOOLGROUP_BG_DARK_TINT,
-    TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT, TOOLGROUP_BG_LIGHT_OPAQUE,
-    TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT, TOOLGROUP_PALETTE_LIGHT,
-    TRAFFIC_LIGHTS_CONTRAST_DARK, TRAFFIC_LIGHTS_CONTRAST_DARK_TINT, TRAFFIC_LIGHTS_CONTRAST_LIGHT,
-    TRAFFIC_LIGHTS_DARK, TRAFFIC_LIGHTS_DARK_TINT, TRAFFIC_LIGHTS_LIGHT, ToolgroupPalette,
-    TrafficLooks, WALLPAPER_TINTING, WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
+    CONTRAST_DARK_TINT, CONTRAST_LIGHT, DARK, DARK_TINT, GLASS, LAYER_FACTOR_BG_SUNKEN,
+    LAYER_FACTOR_CONTROL, LAYER_FACTOR_LINE, LAYER_FACTOR_RAISED, LAYER_FACTOR_SURFACE, LIGHT,
+    MENU_DARK, MENU_DARK_OPAQUE, MENU_DARK_TINT, MENU_DARK_TINT_OPAQUE, MENU_LIGHT,
+    MENU_LIGHT_OPAQUE, MENU_SEPARATOR_INK_MIX, MenuPalette, ON_ACCENT_MIN_CONTRAST, Palette, Rgba,
+    SHELL_DARK, SHELL_DARK_OPAQUE, SHELL_DARK_TINT, SHELL_DARK_TINT_OPAQUE, SHELL_LIGHT,
+    SHELL_LIGHT_OPAQUE, SIDEBAR_DARK, SIDEBAR_DARK_OPAQUE, SIDEBAR_DARK_TINT,
+    SIDEBAR_DARK_TINT_OPAQUE, SIDEBAR_GLASS_BASE_DARK, SIDEBAR_GLASS_BASE_DARK_TINT,
+    SIDEBAR_GLASS_BASE_LIGHT, SIDEBAR_GLASS_SOLID_DARK, SIDEBAR_GLASS_SOLID_DARK_TINT,
+    SIDEBAR_GLASS_SOLID_LIGHT, SIDEBAR_LIGHT, SIDEBAR_LIGHT_OPAQUE, SIDEBAR_PALETTE_DARK,
+    SIDEBAR_PALETTE_DARK_TINT, SIDEBAR_PALETTE_LIGHT, ShellPalette, SidebarPalette,
+    TOOLBAR_BG_DARK, TOOLBAR_BG_DARK_TINT, TOOLBAR_BG_LIGHT, TOOLBAR_LINE_DARK,
+    TOOLBAR_LINE_DARK_TINT, TOOLBAR_LINE_LIGHT, TOOLGROUP_BG_DARK, TOOLGROUP_BG_DARK_OPAQUE,
+    TOOLGROUP_BG_DARK_TINT, TOOLGROUP_BG_DARK_TINT_OPAQUE, TOOLGROUP_BG_LIGHT,
+    TOOLGROUP_BG_LIGHT_OPAQUE, TOOLGROUP_PALETTE_DARK, TOOLGROUP_PALETTE_DARK_TINT,
+    TOOLGROUP_PALETTE_LIGHT, TRAFFIC_LIGHTS_CONTRAST_DARK, TRAFFIC_LIGHTS_CONTRAST_DARK_TINT,
+    TRAFFIC_LIGHTS_CONTRAST_LIGHT, TRAFFIC_LIGHTS_DARK, TRAFFIC_LIGHTS_DARK_TINT,
+    TRAFFIC_LIGHTS_LIGHT, ToolgroupPalette, TrafficLooks, WALLPAPER_TINTING,
+    WALLPAPER_TINTING_LIFT, WINDOW_TINT_ACCENT,
 };
 
 use crate::{
@@ -102,9 +94,6 @@ pub struct Resolved {
     pub scroll_bars: ScrollBars,
     pub scroll_bar_click: ScrollBarClick,
     pub shell: ShellPalette,
-    pub dock: DockSurface,
-    pub menu_glass: DockSurface,
-    pub notification_glass: DockSurface,
     pub menu: MenuPalette,
     pub sidebar: SidebarSurface,
     pub toolgroup: ToolgroupSurface,
@@ -275,102 +264,6 @@ const TOOLGROUP_BG: [[Rgba; 3]; 2] = [
         TOOLGROUP_BG_DARK_TINT_OPAQUE,
     ],
 ];
-
-// With transparency reduced the Dock is a solid grey, as in macOS, not its glass over the window colour.
-fn dock_surface(scheme: ColorScheme, opaque: bool) -> DockSurface {
-    let (rim, divider, corner, lens, tone) = if scheme.is_dark() {
-        (
-            DOCK_RIM_DARK,
-            DOCK_DIVIDER_DARK,
-            DOCK_RIM_CORNER_DARK,
-            DOCK_LENS_DARK,
-            DOCK_TONE_DARK,
-        )
-    } else {
-        (
-            DOCK_RIM_LIGHT,
-            DOCK_DIVIDER_LIGHT,
-            DOCK_RIM_CORNER_LIGHT,
-            DOCK_LENS_LIGHT,
-            DOCK_TONE_LIGHT,
-        )
-    };
-    let glow = if opaque || scheme.is_dark() {
-        DOCK_RIM_GLOW
-    } else {
-        DOCK_RIM_GLOW_LIGHT
-    };
-    let rim_side = match (opaque, scheme.is_dark()) {
-        (true, _) => 0.0,
-        (false, true) => DOCK_RIM_SIDE_DARK,
-        (false, false) => DOCK_RIM_SIDE_LIGHT,
-    };
-    let (glass, outline) = if opaque {
-        (
-            scheme.pick([
-                DOCK_GLASS_SOLID_LIGHT,
-                DOCK_GLASS_SOLID_DARK,
-                DOCK_GLASS_SOLID_DARK_TINT,
-            ]),
-            scheme.pick([
-                DOCK_OUTLINE_SOLID_LIGHT,
-                DOCK_OUTLINE_SOLID_DARK,
-                DOCK_OUTLINE_SOLID_DARK_TINT,
-            ]),
-        )
-    } else {
-        (
-            scheme.pick([DOCK_GLASS_LIGHT, DOCK_GLASS_DARK, DOCK_GLASS_DARK_TINT]),
-            scheme.pick([
-                DOCK_OUTLINE_LIGHT,
-                DOCK_OUTLINE_DARK,
-                DOCK_OUTLINE_DARK_TINT,
-            ]),
-        )
-    };
-    DockSurface {
-        glass,
-        outline,
-        rim,
-        divider,
-        corner,
-        rim_side,
-        glow,
-        lens,
-        tone: (!opaque).then_some(tone),
-        soften: 1.0,
-    }
-}
-
-fn menu_glass(dock: DockSurface, scheme: ColorScheme) -> DockSurface {
-    let (glass, lift, cap) = if scheme.is_dark() {
-        (
-            MENU_GLASS_VEIL_DARK,
-            MENU_GLASS_LIFT_DARK,
-            MENU_GLASS_CAP_DARK,
-        )
-    } else {
-        (
-            MENU_GLASS_VEIL_LIGHT,
-            MENU_GLASS_LIFT_LIGHT,
-            MENU_GLASS_CAP_LIGHT,
-        )
-    };
-    DockSurface {
-        glass,
-        corner: [dock.corner[0], -1.0, 0.0],
-        rim_side: 0.0,
-        lens: [dock.lens[0], 0.0],
-        tone: Some(DockTone {
-            chroma: MENU_GLASS_CHROMA,
-            lift,
-            cap,
-            ..DOCK_TONE_DARK
-        }),
-        soften: MENU_GLASS_SPREAD,
-        ..dock
-    }
-}
 
 fn chrome_surfaces(
     scheme: ColorScheme,
@@ -557,8 +450,6 @@ pub fn resolve(
     sidebar.palette.selected_ink = on_accent;
     shell.tile_active = accent;
 
-    let dock = dock_surface(scheme, appearance.transparency_reduced());
-    let menu_glass = menu_glass(dock, scheme);
     let untinted = Resolved {
         scheme,
         accent_colors: colors,
@@ -591,23 +482,6 @@ pub fn resolve(
         scroll_bars: appearance.scroll_bars,
         scroll_bar_click: appearance.scroll_bar_click,
         shell,
-        dock,
-        menu_glass,
-        notification_glass: if appearance.transparency_reduced() {
-            dock
-        } else {
-            DockSurface {
-                glass: scheme.pick([
-                    NOTIFICATION_GLASS_VEIL_LIGHT,
-                    menu_glass.glass,
-                    menu_glass.glass,
-                ]),
-                tone: menu_glass.tone,
-                soften: menu_glass.soften,
-                rim_side: menu_glass.rim_side,
-                ..dock
-            }
-        },
         menu,
         sidebar,
         toolgroup,
