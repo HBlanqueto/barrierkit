@@ -49,10 +49,8 @@ pub struct SidebarToggle;
 impl Component for SidebarToggle {
     fn render(&self) -> impl IntoElement {
         let control = sidebar_control();
-        let (offset, width) = sidebar_toggle_placement(
-            control.map_or(0.0, |control| control.occupied()),
-            control.map_or(0.0, |control| control.content()),
-        );
+        let (offset, width) =
+            sidebar_toggle_placement(control.map_or(0.0, |control| control.occupied()));
         rect()
             .width(Size::px(width))
             .height(Size::px(TOOLGROUP.height as f32))
@@ -75,9 +73,26 @@ impl Component for SidebarToggle {
     }
 }
 
-// How wide the inspector stands right of the detail: SwiftUI's toolbar runs over it to the window's edge.
+// AppKit gives the first responder at launch to the first list outside the sidebar: in SwiftUI's split view, the content column's.
 #[derive(Clone, Copy)]
-pub(crate) struct InspectorSpan(pub(crate) State<f32>);
+pub(crate) struct InitialFocus;
+
+#[derive(PartialEq)]
+struct ContentColumn(Element);
+
+impl Component for ContentColumn {
+    fn render(&self) -> impl IntoElement {
+        use_provide_context(|| InitialFocus);
+        self.0.clone()
+    }
+}
+
+// How far the bar runs past the detail: left over the content column and right over the inspector, as SwiftUI's toolbar.
+#[derive(Clone, Copy)]
+pub(crate) struct BarOverhang {
+    pub(crate) leading: State<f32>,
+    pub(crate) trailing: State<f32>,
+}
 
 #[derive(PartialEq)]
 pub struct SplitView {
@@ -204,7 +219,13 @@ impl Component for SplitView {
                 .as_ref()
                 .map_or(0.0, |_| style.inspector_width * inspector_shown),
         );
-        use_hook(|| provide_context(InspectorSpan(inspector_span)));
+        let mut content_span = use_state(|| 0.0f32);
+        use_hook(|| {
+            provide_context(BarOverhang {
+                leading: content_span,
+                trailing: inspector_span,
+            })
+        });
         let bar_height = try_consume_root_context::<WindowControls>()
             .map_or(0.0, |controls| *controls.titlebar_height.read());
         let mut inspector_area = use_state(Area::default);
@@ -225,14 +246,12 @@ impl Component for SplitView {
         let mut visible = use_state(|| self.sidebar_visible);
         let mut auto_hidden = use_state(|| false);
         let mut occupied = use_state(|| 0.0f32);
-        let mut content_shown = use_state(|| 0.0f32);
         let mut settled = use_state(|| false);
         let mut overlaid = use_state(|| false);
         let control = SidebarControl {
             visible,
             auto_hidden,
             occupied,
-            content: content_shown,
             settled,
             overlaid,
             present: self.sidebar_present,
@@ -299,8 +318,8 @@ impl Component for SplitView {
         }
 
         let content_column = content_width.read().clamp(min_width, max_width);
-        content_shown.set_if_modified(if self.content.is_some() {
-            content_column
+        content_span.set_if_modified(if self.content.is_some() {
+            content_column + style.inspector_line.1
         } else {
             0.0
         });
@@ -427,7 +446,7 @@ impl Component for SplitView {
                     .width(Size::px(content_column))
                     .height(Size::fill())
                     .padding(Gaps::new(bar_height, 0.0, 0.0, 0.0))
-                    .child(content.clone())
+                    .child(ContentColumn(content.clone()))
                     .maybe_child(self.resizable.then(|| ColumnGrip {
                         edge: content_column,
                         width: content_column,

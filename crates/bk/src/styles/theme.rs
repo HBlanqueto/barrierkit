@@ -10,7 +10,7 @@ use freya_core::prelude::*;
 
 use super::{
     ButtonStyle, CheckboxStyle, ComboBoxStyle, DatePickerStyle, PopUpButtonStyle,
-    ProgressViewStyle, RadioGroupStyle, SearchFieldStyle, SegmentedControlStyle, ShapeStyle,
+    ProgressViewStyle, RadioGroupStyle, Role, SearchFieldStyle, SegmentedControlStyle, ShapeStyle,
     SliderStyle, SpinnerStyle, StateValue, StepperStyle, SwitchStyle, TabViewStyle, TextFieldStyle,
     TextStyle,
 };
@@ -178,6 +178,10 @@ impl Component for StyleScope {
 #[derive(Clone, Copy)]
 pub(crate) struct InTextStyleScope;
 
+// Whether the scope's ink is the selection's: a secondary text there takes that ink, as on a selected SwiftUI row.
+#[derive(Clone, Copy)]
+pub(crate) struct OnSelection(pub(crate) State<bool>);
+
 #[derive(PartialEq)]
 pub(crate) struct TextStyleScope {
     font: Font,
@@ -200,6 +204,9 @@ impl TextStyleScope {
 impl Component for TextStyleScope {
     fn render(&self) -> impl IntoElement {
         use_hook(|| provide_context(InTextStyleScope));
+        let mut selected = use_state(|| false);
+        selected.set_if_modified(self.foreground == ShapeStyle::Role(Role::OnSelectedContent));
+        use_hook(|| provide_context(OnSelection(selected)));
         let mut text = use_state(|| (self.font, self.foreground.clone()));
         text.set_if_modified((self.font, self.foreground.clone()));
         let scope = use_hook(move || {

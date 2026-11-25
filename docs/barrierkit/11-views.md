@@ -432,8 +432,10 @@ The program is [recipe 23](../../agents/recipes.md#23-views-in-list-rows-and-tab
    draws its string, so a table can mix text and views.
 3. The view runs inside a text scope: `Text`, `Label` and a Freya `label()` take
    the font of the table and the ink of the row, which is `OnSelectedContent`
-   while the row is selected and the table has focus. A view of text draws the
-   same pixels as the text it replaces.
+   while the row is selected and the table has focus; there a text set to
+   `.foreground_style(ShapeStyle::Role(Role::SecondaryLabel))` takes that ink
+   at `TABLE.selected_secondary_alpha` (0.75), as SwiftUI's `.secondary` on a
+   selected row. A view of text draws the same pixels as the text it replaces.
 4. In a sectioned list the index counts across the sections, as `.selection`
    does. Selection stays by index.
 5. A `Table` keeps the height of the style, `TableStyle::row_height`, so set it

@@ -163,11 +163,11 @@ A row with an optional symbol and a one-line label.
 
 | Method | Default | Effect |
 |---|---|---|
-| `SidebarItem::new(label)` | — | A row with that text |
+| `SidebarItem::new(label)` | — | A row with that text; selected, it stays at the item weight, but a row with a symbol (SwiftUI's `Label`) turns `SIDEBAR.item_label_selected_weight` (600), as SwiftUI's |
 | `.symbol(Symbol)` | none | A bare glyph before the label: the accent, the selected ink on the selected row, as a SwiftUI `Label` in a sidebar `List` |
 | `.symbol_tile(Symbol, tint)` | none | A [`SymbolTile`](#symboltile) of color `tint` before the label, as System Settings draws it |
 | `.tag(State<T>, value)` | not selected | Draws the row as selected while the `State` holds `value`; a press stores `value` in it (SwiftUI `List(selection:)` with `.tag`) |
-| `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent. Inside a `Sidebar` it turns gray on its own until the sidebar is clicked or focused, and while the keyboard focus is outside it, as in AppKit |
+| `.emphasized(bool)` | `true` | With `false`, the selection is gray instead of accent and a symbol keeps its tint. Inside a `Sidebar` it turns gray on its own until the sidebar is clicked or focused, and while the keyboard focus is outside it, as in AppKit |
 | `.style(f)` | Tengen | A `SidebarItemStyle` ([Style](#style)) |
 | `.key(key)` | none | Diff key |
 
@@ -340,11 +340,13 @@ app needs it, and SwiftUI's split view takes one.
 - It does not hide: the sidebar toggle and a narrow window hide the sidebar
   only, as SwiftUI's `doubleColumn` does. Its width is not reported by
   `on_layout`.
-- The `Titlebar` belongs to the detail. `SidebarControl::occupied` stays the
-  sidebar's width and `SidebarControl::content` is this column's, so the bar
-  keeps the toggle at the sidebar's edge and the traffic lights over the
-  columns when the sidebar hides. The content column has no bar of its own:
-  leave `sidebar_bar_height()` free at its top.
+- The `Titlebar` belongs to the detail and runs left over this column, as
+  SwiftUI's toolbar: its title starts 20 after the sidebar's edge, over the
+  column, and the toggle stays at the sidebar's edge. The column starts below
+  the bar by itself, and a `List` in it scrolls under the bar, so the bar
+  draws no veil or line there. At launch its first `List` or `Table` takes the
+  keyboard focus, as AppKit gives the first responder to the first list
+  outside the sidebar, so its selection is the accent.
 
 ### Inspector
 

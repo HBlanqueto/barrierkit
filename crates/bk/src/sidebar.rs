@@ -1,8 +1,8 @@
 use crate::elements::{Overrides, forward_container, forward_key, forward_overrides};
 use ctappearance::{ColorScheme, SidebarSurface};
 use ctdesign::{
-    GlassSelection, Rgba, SIDEBAR, SIDEBAR_GLASS_SELECTION_DARK, SIDEBAR_GLASS_SELECTION_LIGHT,
-    SidebarPalette,
+    Font, GlassSelection, Rgba, SIDEBAR, SIDEBAR_GLASS_SELECTION_DARK,
+    SIDEBAR_GLASS_SELECTION_LIGHT, SidebarPalette,
 };
 use freya_core::prelude::*;
 use std::borrow::Cow;
@@ -66,10 +66,12 @@ struct InSidebar;
 #[derive(Clone, Copy)]
 struct Engaged(State<bool>);
 
+// Without focus the selection is gray and the symbol keeps its tint, as in SwiftUI's sidebar.
 fn unemphasized(s: SidebarItemStyle) -> SidebarItemStyle {
     SidebarItemStyle {
         selected_background: StateValue::new(ShapeStyle::Color(item_palette(false).selected_bg)),
         selected_label: StateValue::new(ShapeStyle::Color(item_palette(false).selected_ink)),
+        selected_symbol: s.symbol.clone(),
         ..s
     }
 }
@@ -109,7 +111,6 @@ pub struct SidebarControl {
     pub(crate) visible: State<bool>,
     pub(crate) auto_hidden: State<bool>,
     pub(crate) occupied: State<f32>,
-    pub(crate) content: State<f32>,
     pub(crate) settled: State<bool>,
     pub(crate) overlaid: State<bool>,
     pub(crate) present: bool,
@@ -118,10 +119,6 @@ pub struct SidebarControl {
 impl SidebarControl {
     pub fn occupied(&self) -> f32 {
         *self.occupied.read()
-    }
-
-    pub fn content(&self) -> f32 {
-        *self.content.read()
     }
 
     pub fn settled(&self) -> bool {
@@ -501,11 +498,18 @@ impl Component for SidebarItem {
         let interaction = use_interaction();
         let state = control_state(interaction, false);
         let paints = Paints::current(state);
+        // A selected Label (symbol and title) is semibold in SwiftUI's sidebar; a selected text is not.
         let (background, ink, font) = if self.selected {
             (
                 &style.selected_background,
                 &style.selected_label,
-                style.selected_font,
+                match self.symbol {
+                    Some(_) => Font {
+                        weight: SIDEBAR.item_label_selected_weight,
+                        ..style.selected_font
+                    },
+                    None => style.selected_font,
+                },
             )
         } else {
             (&style.background, &style.label, style.font)

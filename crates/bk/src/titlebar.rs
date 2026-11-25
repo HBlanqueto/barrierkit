@@ -4,7 +4,7 @@ use std::rc::Rc;
 use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
-use crate::views::split::{InspectorSpan, SidebarToggle};
+use crate::views::split::{BarOverhang, SidebarToggle};
 use crate::views::toolbar::{ToolbarContent, lay_out, row};
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
@@ -229,17 +229,16 @@ impl Component for Titlebar {
         let style: TitlebarStyle = resolve(&self.style);
         let control = crate::sidebar::sidebar_control();
         let sidebar = self.sidebar && control.is_none_or(|control| control.settled());
-        // Beside a sidebar, over content that does not scroll under it, AppKit's bar draws its separator, as SwiftUI's.
+        // Beside a sidebar, over content that does not scroll under it, AppKit's bar draws its veil and separator, as SwiftUI's.
+        let bar_over_still = sidebar
+            && !status.fullscreen
+            && !scroll_under(
+                style.sidebar_height,
+                control.map_or(0.0, |control| control.occupied()),
+            );
         let style = TitlebarStyle {
             hairline: style.hairline.clone().or_else(|| {
-                (sidebar
-                    && !status.fullscreen
-                    && crate::theme::window_material_here()
-                    && !scroll_under(
-                        style.sidebar_height,
-                        control.map_or(0.0, |control| control.occupied()),
-                    ))
-                .then(TitlebarStyle::line)
+                (bar_over_still && crate::theme::window_material_here()).then(TitlebarStyle::line)
             }),
             ..style
         };
@@ -252,8 +251,10 @@ impl Component for Titlebar {
             paints.fill(&StateValue::new(ShapeStyle::Clear))
         } else if close_only {
             paints.fill(&style.close_only_background)
-        } else if sidebar && !status.fullscreen {
+        } else if bar_over_still {
             paints.fill(&style.sidebar_background)
+        } else if sidebar && !status.fullscreen {
+            paints.fill(&StateValue::new(ShapeStyle::Clear))
         } else {
             paints.fill(&style.background)
         };
@@ -413,11 +414,13 @@ impl Component for Titlebar {
         } else {
             bar
         };
-        let inspector = try_consume_context::<InspectorSpan>().map_or(0.0, |span| *span.0.read());
-        let bar = if inspector > 0.0 {
+        let (leading, trailing) = try_consume_context::<BarOverhang>().map_or((0.0, 0.0), |over| {
+            (*over.leading.read(), *over.trailing.read())
+        });
+        let bar = if leading > 0.0 || trailing > 0.0 {
             rect()
                 .width(Size::fill())
-                .margin(Gaps::new(0.0, -inspector, 0.0, 0.0))
+                .margin(Gaps::new(0.0, -trailing, 0.0, -leading))
                 .layer(TITLEBAR_OVERLAY_LAYER)
                 .child(bar)
                 .into_element()
@@ -523,8 +526,7 @@ impl Titlebar {
         drag: impl Fn(Event<MouseEventData>) + 'static,
         background: Fill,
     ) -> (Element, f32) {
-        let occupied = crate::sidebar::sidebar_control()
-            .map_or(0.0, |control| control.occupied() + control.content());
+        let occupied = crate::sidebar::sidebar_control().map_or(0.0, |control| control.occupied());
         let height = style.sidebar_height;
         let padding_x = style.sidebar_padding_x;
         let sidebar: SidebarStyle = resolve(&Theme::tengen());
@@ -904,7 +906,7 @@ pub(crate) fn fullscreen_title_height() -> f32 {
 }
 
 // The toggle sits at the sidebar's right end while it is docked and after the traffic lights once it is not. Returns how far it moves from where the bar's left zone puts it, and the width it keeps there.
-pub(crate) fn sidebar_toggle_placement(occupied: f32, content: f32) -> (f32, f32) {
+pub(crate) fn sidebar_toggle_placement(occupied: f32) -> (f32, f32) {
     let style: TitlebarStyle = resolve(&Theme::tengen());
     let sidebar: SidebarStyle = resolve(&Theme::tengen());
     let lights: TrafficLightsStyle = resolve(&Theme::tengen());
@@ -925,7 +927,7 @@ pub(crate) fn sidebar_toggle_placement(occupied: f32, content: f32) -> (f32, f32
     } else {
         hidden_x
     };
-    let zone_x = (occupied + content + padding_x).max(hidden_x);
+    let zone_x = (occupied + padding_x).max(hidden_x);
     (
         toggle_x - zone_x,
         (toggle_x + platter - zone_x).clamp(0.0, platter),

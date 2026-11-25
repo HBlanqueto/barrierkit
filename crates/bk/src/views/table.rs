@@ -19,6 +19,7 @@ use crate::styles::{
 };
 use crate::symbol::{Symbol, stroked_symbol, symbol};
 use crate::views::collection::select;
+use crate::views::split::InitialFocus;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SortOrder {
@@ -265,6 +266,16 @@ impl Component for Table {
     fn render(&self) -> impl IntoElement {
         let style: TableStyle = resolve(&self.style);
         let interaction = use_interaction();
+        let first_responder = try_consume_context::<InitialFocus>().is_some();
+        let claimed = use_hook(|| Rc::new(std::cell::Cell::new(false)));
+        use_after_side_effect(move || {
+            if first_responder
+                && !claimed.replace(true)
+                && freya_core::accessibility::tree::ACCESSIBILITY_ROOT_ID.is_focused()
+            {
+                interaction.request_focus();
+            }
+        });
         let focused = ControlState {
             focused: interaction.focused(),
             ..ControlState::default()
@@ -297,6 +308,14 @@ impl Component for Table {
         let mut body_height = use_state(|| 0.0f32);
         let clicked = use_state(|| None::<usize>);
         let controller = use_scroll_controller();
+        // A table scrolls, so the bar over it takes it as content that scrolls under, as over SwiftUI's List.
+        let frame = use_state(|| (0.0f32, 0.0f32));
+        let frames = try_consume_root_context::<crate::titlebar::ScrollFrames>();
+        use_drop(move || {
+            if let Some(frames) = frames {
+                frames.forget(frame);
+            }
+        });
         let elastic = use_elastic(controller, None);
         let scroll_style: ScrollViewStyle = resolve(&self.style);
         if widths.peek().len() != self.columns.len() {
@@ -682,6 +701,9 @@ impl Component for Table {
                     .on_sized(move |event: Event<SizedEventData>| {
                         body_height.set_if_modified(event.area.height());
                         controller.set_viewport((event.area.width(), event.area.height()));
+                        if let Some(frames) = frames {
+                            frames.report(frame, event.area);
+                        }
                     })
                     .maybe_child(bars.track)
                     .maybe_child(bars.thumb)

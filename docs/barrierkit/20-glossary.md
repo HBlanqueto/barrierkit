@@ -59,6 +59,7 @@ AI agent ([`agents/prompt.md`](../../agents/prompt.md)).
 | `TabView` with the toolbar tabs as its only look (`TabViewStyle::tengen()`) | `TabView` draws the classic strip (`TabType::Top`); the toolbar tabs are `TabViewStyle::toolbar()` | 2026-11-20 |
 | `ctdesign::SCROLL_BAR.always_opacity`, `SCROLL_BAR.opacity` (one value) | `SCROLL_BAR.opacity` and `SCROLL_BAR.track_opacity`, four values each (light, dark, then both with Increase Contrast); `ScrollViewStyle.always_thumb_opacity` is gone | 2026-11-20 |
 | `controls::Button::style(ButtonStyle)` | `controls::Button::style(\|s\| ..)`, the closure of every control | 2026-11-07 |
+| `sidebar::SidebarControl::content` | Removed: the bar runs over the content column by itself | 2026-11-24 |
 | `styles::TabType::Left`, `TabViewStyle.tab_padding_y`, `ctdesign::TAB_VIEW.strip_padding_y` and `.left_strip_top` | Removed: no app used the left strip | 2026-11-23 |
 | `Titlebar::right(view)` | `.toolbar(ToolbarItem::new(ToolbarItemPlacement::PrimaryAction, view))`, SwiftUI's only way to add trailing items | 2026-11-23 |
 | `chrome::TitlebarLayout` (`Top`, `Rail`), `chrome::RailStyle`, `WindowChrome::rail_top`, `rail_bottom`, `WindowChromeStyle::{layout, rail_style, rail_width, rail_padding_top, rail_padding_bottom, rail_spacing, rail_background, drawer_background, title, rail_line, title_angle, title_font}`, `TrafficLights::vertical`, `TrafficLightsStyle::axis`, `SidebarStyle::animation` | Gone: the vertical title bar had no SwiftUI design and no app | 2026-11-23 |
@@ -1392,7 +1393,6 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `sidebar::SidebarAccount` | struct | — | — | — | The account row: avatar with initials, name and a detail line | [10](10-sidebar.md#sidebaraccount) |
 | `sidebar::SidebarControl` | struct | ≈ `NavigationSplitViewVisibility` | ≈ `NSSplitViewController.toggleSidebar(_:)` | ≈ `UISplitViewController.DisplayMode` | Handle to toggle, dismiss and read the enclosing `SplitView`'s sidebar | [10](10-sidebar.md#sidebarcontrol) |
 | `sidebar::sidebar_control` | fn | — | — | — | The enclosing `SplitView`'s `SidebarControl`, or `None` outside one | [10](10-sidebar.md#sidebarcontrol) |
-| `sidebar::SidebarControl::content` | method | — | — | — | Width of the content column that sits left of the detail | [10](10-sidebar.md#content-column) |
 | `sidebar::SymbolTile` | struct | — | — | — | The colored square tile with a white symbol; `.rim(color)` adds a border | [10](10-sidebar.md#symboltile) |
 | `views::split::SplitView` | struct | `NavigationSplitView` | `NSSplitViewController` | `UISplitViewController` | Sidebar, optional content column, detail and optional inspector; resizes, hides and collapses the sidebar | [10](10-sidebar.md#splitview) |
 | `modifiers::ViewModifiers::inspector` | method | `.inspector(isPresented:content:)` | `NSSplitViewItem(inspectorWithViewController:)` | — | A view with an inspector column and no sidebar | [10](10-sidebar.md#inspector) |

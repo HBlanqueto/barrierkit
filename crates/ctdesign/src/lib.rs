@@ -1320,6 +1320,7 @@ pub struct SplitPanesMetrics {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TableMetrics {
     pub row_height: f32,
+    pub selected_secondary_alpha: f32,
     pub header_height: f32,
     pub padding_x: f32,
     pub plain_padding_x: f32,
@@ -1485,6 +1486,7 @@ pub struct SidebarMetrics {
     pub item_text_size: u32,
     pub item_weight: u16,
     pub item_selected_weight: u16,
+    pub item_label_selected_weight: u16,
     pub item_icon: u32,
     pub item_glyph: f32,
     pub item_glyph_stroke: f32,

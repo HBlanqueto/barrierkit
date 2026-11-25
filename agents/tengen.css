@@ -976,6 +976,7 @@
   --bk-tab-view-bezel-page-inset-2: 10;
   --bk-tab-view-bezel-page-inset-3: 13;
   --bk-table-row-height: 24;
+  --bk-table-selected-secondary-alpha: 0.75;
   --bk-table-header-height: 28;
   --bk-table-padding-x: 6;
   --bk-table-plain-padding-x: 8;
@@ -1330,6 +1331,7 @@
   --bk-window-sidebar-item-text-size: 13;
   --bk-window-sidebar-item-weight: 400;
   --bk-window-sidebar-item-selected-weight: 400;
+  --bk-window-sidebar-item-label-selected-weight: 600;
   --bk-window-sidebar-item-selected-bg: var(--bk-sidebar-selection);
   --bk-window-sidebar-item-selected-ink: var(--bk-on-accent);
   --bk-window-sidebar-item-selected-icon-rim: #00000033;

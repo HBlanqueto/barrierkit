@@ -615,6 +615,7 @@
     },
     "table": {
       "row-height": 24,
+      "selected-secondary-alpha": 0.75,
       "header-height": 28,
       "padding-x": 6,
       "plain-padding-x": 8,
@@ -883,6 +884,7 @@
           "text-size": 13,
           "weight": 400,
           "selected-weight": 400,
+          "label-selected-weight": 600,
           "selected-bg": "sidebar-selection",
           "selected-ink": "on-accent",
           "selected-icon-rim": "#00000033",

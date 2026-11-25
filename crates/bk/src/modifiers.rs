@@ -1,4 +1,4 @@
-use ctdesign::{ControlSize, Rgba};
+use ctdesign::{ControlSize, Rgba, TABLE};
 use freya_core::prelude::*;
 use std::borrow::Cow;
 use std::path::PathBuf;
@@ -13,9 +13,10 @@ use crate::layout::{Frame, LayoutDirectionScope};
 use crate::menu::MenuItem;
 use crate::shapes::UNBOUNDED;
 use crate::styles::{
-    ControlState, ControlStyle, GlassContainerStyle, LayoutDirection, Painted, Paints, ShadowStyle,
-    Shape, ShapeStyle, StateValue, StyleScope, Theme,
+    ControlState, ControlStyle, GlassContainerStyle, LayoutDirection, OnSelection, Painted, Paints,
+    Role, ShadowStyle, Shape, ShapeStyle, StateValue, StyleScope, Theme,
 };
+use crate::theme::color;
 use crate::transition::{ContentTransition, ContentTransitioned};
 use crate::views::feedback::Alert;
 use crate::views::split::SplitView;
@@ -109,6 +110,15 @@ pub trait ViewModifiers: EventHandlersExt + Sized {
         Self: TextStyleExt,
     {
         let paints = Paints::current(ControlState::default());
+        let on_selection =
+            try_consume_context::<OnSelection>().is_some_and(|selected| *selected.0.read());
+        if on_selection && style == ShapeStyle::Role(Role::SecondaryLabel) {
+            let ink = paints.color(&ShapeStyle::Role(Role::OnSelectedContent));
+            return self.color(color(Rgba {
+                a: ink.a * TABLE.selected_secondary_alpha,
+                ..ink
+            }));
+        }
         self.color(paints.fill(&StateValue::new(style)))
     }
 
