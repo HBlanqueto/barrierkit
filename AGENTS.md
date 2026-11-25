@@ -37,6 +37,16 @@ Starting sources by area. Those of each pinned dependency are in rule 10 of
 - `for-malaysia` was merged into `main` on 2026-10-31 with the merge
   `ab120c2`; its history stays in `main`.
 
+## Build output (permanent)
+
+- A check that builds in its own copy or target dir (`CARGO_TARGET_DIR=target/verify-…`,
+  an exported tree) deletes it when it ends, pass or fail:
+  `trap 'rm -rf "$dir"' EXIT`.
+- `target/debug` is shared by every session. When it passes 20 GB, run
+  `cargo clean` only if no other build is running (`pgrep rustc` is empty).
+- Logs, patches and scratch files go in the session's scratchpad, not in
+  `target/`.
+
 ## Commits
 
 Group the work by change and session: one commit per session, not split into
