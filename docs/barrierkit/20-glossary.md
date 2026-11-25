@@ -1571,14 +1571,14 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `app::WindowGroup` | struct | `WindowGroup` | — | `UIWindowScene` | Windows that share their content, one per `open`; `for_value` gives one per value | [8](08-windows.md#scenes) |
 | `app::Window` | struct | `Window` | `NSWindow` | `UIWindow` | One window with an id; opening it again fronts it | [8](08-windows.md#scenes) |
 | `app::Settings` | struct | `Settings` | `NSWindowController` | ≈ `UIViewController` | The single settings window, id `SETTINGS_WINDOW` | [8](08-windows.md#scenes) |
-| `app::MAIN_WINDOW`, `app::SETTINGS_WINDOW` | constant | — | — | — | The ids of the window `Application::window` declares and of the settings scene | [8](08-windows.md#scenes) |
+| `app::MAIN_WINDOW`, `app::SETTINGS_WINDOW`, `app::ABOUT_WINDOW` | constant | — | — | — | The ids of the window `Application::window` declares, of the settings scene and of the About window | [8](08-windows.md#scenes) |
 | `app::OpenWindowAction` | struct | `OpenWindowAction` | — | `UIApplication.requestSceneSessionActivation(_:userActivity:options:errorHandler:)` | `open(id)` and `open_value(value)` | [8](08-windows.md#scenes) |
 | `app::use_open_window` | fn | `EnvironmentValues.openWindow` | — | `UIApplication.requestSceneSessionActivation(_:userActivity:options:errorHandler:)` | Hook that returns the `OpenWindowAction` | [8](08-windows.md#scenes) |
 | `app::DismissWindowAction` | struct | `DismissWindowAction` | `NSWindow.performClose(_:)` | `UIApplication.requestSceneSessionDestruction(_:options:errorHandler:)` | `dismiss()` and `dismiss_id(id)` | [8](08-windows.md#scenes) |
 | `app::use_dismiss_window` | fn | `EnvironmentValues.dismissWindow` | — | `UIApplication.requestSceneSessionDestruction(_:options:errorHandler:)` | Hook that returns the `DismissWindowAction` | [8](08-windows.md#scenes) |
 | `app::Commands` | struct | `Commands`, `TextEditingCommands` | `NSApplication.mainMenu` | `UIMenuBuilder`, `UIMenu.Identifier.edit` | The standard menus of the app; `.menu`, `.group`, `.text_editing` | [13](13-app.md#standard-menus) |
 | `app::CommandGroup` | struct | `CommandGroup` | — | `UIMenuBuilder` | Items placed before, after or in place of a standard group | [13](13-app.md#standard-menus) |
-| `app::CommandGroupPlacement` | enum | `CommandGroupPlacement` | — | `UIMenu.Identifier` | The standard groups: `AppSettings`, `AppTermination`, `NewItem`, `SaveItem`, `UndoRedo`, `Pasteboard`, `TextEditing`, `WindowSize`, `SingleWindowList`, `WindowArrangement`, `WindowList`, `Help` | [13](13-app.md#standard-menus) |
+| `app::CommandGroupPlacement` | enum | `CommandGroupPlacement` | — | `UIMenu.Identifier` | The standard groups: `AppInfo`, `AppSettings`, `AppTermination`, `NewItem`, `SaveItem`, `UndoRedo`, `Pasteboard`, `TextEditing`, `WindowSize`, `SingleWindowList`, `WindowArrangement`, `WindowList`, `Help` | [13](13-app.md#standard-menus) |
 
 ## Actions and shortcuts
 
@@ -1592,6 +1592,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | `app::use_menu_action` | fn | — | ≈ `NSApplication.sendAction(_:to:from:)` | — | Hook that receives every action id from menus, shortcuts and activation | [13](13-app.md#actions-and-shortcuts) |
 | `app::UNDO` | constant | `CommandGroupPlacement.undoRedo` | — | `UIMenu.Identifier.undoRedo` | The kit's Undo action, Ctrl+Z | [13](13-app.md#undo) |
 | `app::REDO` | constant | `CommandGroupPlacement.undoRedo` | — | `UIMenu.Identifier.undoRedo` | The kit's Redo action, Ctrl+Shift+Z | [13](13-app.md#undo) |
+| `app::ABOUT` | constant | `CommandGroupPlacement.appInfo` | `NSApplication.orderFrontStandardAboutPanel(_:)` | — | The About item of the app menu; the kit handles it | [13](13-app.md#standard-menus) |
 | `app::NEW_WINDOW`, `app::CLOSE_WINDOW`, `app::SETTINGS`, `app::QUIT` | constant | `CommandGroupPlacement.newItem`, `.appSettings`, `.appTermination` | `NSApplication.terminate(_:)` for `QUIT` | `UIMenu.Identifier.newScene` | The actions of the File and app menus, Ctrl+N, W, comma and Q; the kit handles them | [13](13-app.md#standard-menus) |
 | `app::TOGGLE_FULL_SCREEN` | constant | View ▸ Enter Full Screen | `NSWindow.toggleFullScreen(_:)` | — | The standard View menu action; the kit toggles full screen | [13](13-app.md#standard-menus) |
 | `app::MINIMIZE`, `app::ZOOM`, `app::BRING_ALL_TO_FRONT` | constant | `CommandGroupPlacement.windowSize`, `.windowArrangement` | `NSWindow.performMiniaturize(_:)`, `performZoom(_:)`, `NSApplication.arrangeInFront(_:)` | `UIMenu.Identifier.window` | The actions of the Window menu; the kit handles them | [13](13-app.md#standard-menus) |

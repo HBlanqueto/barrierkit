@@ -8,24 +8,27 @@ use freya_core::prelude::*;
 use torin::prelude::Gaps;
 
 use crate::app::commands::{
-    BRING_ALL_TO_FRONT, CLOSE_WINDOW, Commands, Layout, MINIMIZE, NEW_WINDOW, QUIT, SETTINGS,
-    TOGGLE_FULL_SCREEN, WINDOW_ACTIVATE, WINDOW_OPEN, ZOOM,
+    ABOUT, BRING_ALL_TO_FRONT, CLOSE_WINDOW, Commands, Layout, MINIMIZE, NEW_WINDOW, QUIT,
+    SETTINGS, TOGGLE_FULL_SCREEN, WINDOW_ACTIVATE, WINDOW_OPEN, ZOOM,
 };
 use crate::app::use_menu_action;
 use crate::document::first_edited;
 use crate::i18n::text;
 use crate::main_menu::MenuHandle;
+use crate::patterns::about::AboutView;
 use crate::platform::{WindowControls, WindowOptions, WindowResizability, WindowStyle};
 use crate::titlebar::Titlebar;
 
 pub const MAIN_WINDOW: &str = "main";
 pub const SETTINGS_WINDOW: &str = "settings";
+pub const ABOUT_WINDOW: &str = "about";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Kind {
     Group,
     Window,
     Settings,
+    About,
 }
 
 #[derive(Clone, Copy)]
@@ -58,6 +61,22 @@ impl Scene {
             options: WindowOptions::new(title, ""),
             build,
         }
+    }
+
+    pub(crate) fn about(app: &str) -> Self {
+        let name = app.to_owned();
+        Self::new(
+            Kind::About,
+            ABOUT_WINDOW,
+            text!("about-app", app = app).into(),
+            plain(move || AboutView::new(rect(), name.clone(), "")),
+        )
+        .with_options(|window| {
+            window
+                .size(ctdesign::WINDOW_MIN_SIZE)
+                .min_size(Some(ctdesign::WINDOW_MIN_SIZE))
+                .max_size(Some(ctdesign::WINDOW_MIN_SIZE))
+        })
     }
 
     fn with_options(mut self, configure: impl FnOnce(WindowOptions) -> WindowOptions) -> Self {
@@ -179,7 +198,9 @@ impl Scenes {
         scenes: Vec<Scene>,
         commands: Option<Commands>,
     ) -> (Self, Option<usize>) {
-        let launch = scenes.iter().position(|scene| scene.kind != Kind::Settings);
+        let launch = scenes
+            .iter()
+            .position(|scene| matches!(scene.kind, Kind::Group | Kind::Window));
         let inner = Inner {
             app,
             scenes,
@@ -326,6 +347,8 @@ impl Scenes {
             if let Some(index) = self.new_window_scene() {
                 self.open_index(index, None, own);
             }
+        } else if action == ABOUT.id {
+            self.open_scene(ABOUT_WINDOW, None, own);
         } else if action == SETTINGS.id {
             self.open_scene(SETTINGS_WINDOW, None, own);
         } else if action == CLOSE_WINDOW.id {
@@ -379,7 +402,7 @@ fn scene_root(scenes: &Scenes, index: usize, value: Option<Rc<dyn Any>>) -> Elem
     let content = (scene.build)(value.as_deref());
     match scene.kind {
         Kind::Settings => content.into_element(),
-        Kind::Group | Kind::Window => window_root(&scene.options, content),
+        Kind::Group | Kind::Window | Kind::About => window_root(&scene.options, content),
     }
 }
 

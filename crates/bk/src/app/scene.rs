@@ -69,8 +69,9 @@ impl Application {
     }
 
     pub(crate) fn launch(self) -> Result<(WindowOptions, AppComponent), RunError> {
-        let (scenes, launch) =
-            Scenes::new(app_name(&self.id).to_owned(), self.scenes, self.commands);
+        let about = Scene::about(app_name(&self.id));
+        let app = self.scene(about);
+        let (scenes, launch) = Scenes::new(app_name(&app.id).to_owned(), app.scenes, app.commands);
         Ok(scenes.window(launch.ok_or(RunError::NoWindow)?, None))
     }
 }

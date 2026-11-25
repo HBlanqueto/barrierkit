@@ -130,6 +130,7 @@ settings = Settings
 settings-item = Settings…
 quit = Quit
 quit-app = Quit { $app }
+about = About
 about-app = About { $app }
 hide-app = Hide { $app }
 hide-others = Hide Others

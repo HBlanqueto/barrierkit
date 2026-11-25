@@ -165,7 +165,7 @@ The menus, in order, and the groups you can place items in:
 
 | Menu | Groups, in order | Standard items |
 |---|---|---|
-| the app name | `AppSettings`, `AppTermination` | Settings…, Quit *App* |
+| the app name | `AppInfo`, `AppSettings`, `AppTermination` | About *App*, Settings…, Quit *App* |
 | File | `NewItem`, `SaveItem` | New Window, Close |
 | Edit | `UndoRedo`, `Pasteboard`, `TextEditing` | Undo, Redo; Cut, Copy, Paste, Delete, Select All; Find ▸ (only with `.text_editing()`) |
 | View | | Enter Full Screen |
@@ -182,9 +182,10 @@ keyboard layout.
 
 | Action | Shortcut | Handled by | Enabled |
 |---|---|---|---|
-| `NEW_WINDOW` | Ctrl+N | the kit: opens another window of the first `WindowGroup` | a `WindowGroup` without a value exists |
+| `ABOUT` | none | the kit: opens the About window | always |
+| `NEW_WINDOW` | Ctrl+N | the kit: opens another window of the first `WindowGroup` | always; the item exists only with a `WindowGroup` without a value, as in SwiftUI |
 | `CLOSE_WINDOW` | Ctrl+W | the kit: closes this window | always |
-| `SETTINGS` | Ctrl+, | the kit: opens the `Settings` scene | a `Settings` scene exists |
+| `SETTINGS` | Ctrl+, | the kit: opens the `Settings` scene | always; the item exists only with a `Settings` scene, as in SwiftUI |
 | `QUIT` | Ctrl+Q | the kit: closes every window, so the process ends | always |
 | `MINIMIZE` | Ctrl+M | the kit | always |
 | `ZOOM` | none | the kit: maximizes or restores | not for a fixed-size window |
@@ -207,6 +208,12 @@ Settings… and Services; Enter Full Screen, Minimize, Zoom, Bring All to Front
 and a Help the app does not serve are AppKit's own items, so AppKit adds Fill,
 Center, Move & Resize and Full Screen Tile to Window and a search field to Help
 (ADR 0115).
+
+About *App* is AppKit's standard panel on macOS, filled from the bundle. On
+Linux `ABOUT` opens the scene with the id `ABOUT_WINDOW`: the kit's own shows
+the app name in an [`AboutView`](12-patterns.md#aboutview). To show an icon, a
+version and a copyright, declare a `Window::new(ABOUT_WINDOW, title, content)`
+scene; yours opens instead.
 
 ```swift
 // ✗ Button("Copy") { }.keyboardShortcut("c") in a CommandGroup, enabled by the responder chain

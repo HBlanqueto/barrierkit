@@ -61,7 +61,7 @@ Linux: ⌘ becomes Ctrl, ⌥ becomes Alt and ⇧ stays Shift, as for `UNDO` and
 
 | Item (en) | Item (es) | Shortcut | Kit |
 |---|---|---|---|
-| About *App* | Acerca de *App* | none | — (the app shows its `AboutView`) |
+| About *App* | Acerca de *App* | none | `ABOUT` (on Linux the kit opens the `ABOUT_WINDOW` scene) |
 | Settings… | Ajustes… | ⌘, | `SETTINGS`, Ctrl+, |
 | Services ▸ | Servicios ▸ | none | — (no Linux equivalent) |
 | Hide *App* | Ocultar *App* | ⌘H | — (Wayland has no hide) |

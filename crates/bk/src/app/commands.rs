@@ -11,6 +11,7 @@ pub const NEW_WINDOW: Action = Action::new("new-window", || text!("new-window"))
     .shortcut(Shortcut::ctrl(ShortcutKey::Char('n')));
 pub const CLOSE_WINDOW: Action = Action::new("close-window", || text!("window-close"))
     .shortcut(Shortcut::ctrl(ShortcutKey::Char('w')));
+pub const ABOUT: Action = Action::new("about", || text!("about"));
 pub const SETTINGS: Action = Action::new("settings", || text!("settings-item"))
     .shortcut(Shortcut::ctrl(ShortcutKey::Char(',')));
 pub const QUIT: Action =
@@ -64,6 +65,7 @@ pub(crate) const WINDOW_OPEN: &str = "window-open:";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CommandGroupPlacement {
+    AppInfo,
     AppSettings,
     AppTermination,
     NewItem,
@@ -155,7 +157,10 @@ impl Commands {
         use CommandGroupPlacement::*;
         let group = |placements: &[CommandGroupPlacement]| self.items(placements, layout);
         let mut menus = vec![
-            Menu::new(layout.app.clone(), group(&[AppSettings, AppTermination])),
+            Menu::new(
+                layout.app.clone(),
+                group(&[AppInfo, AppSettings, AppTermination]),
+            ),
             Menu::new(text!("menu-file"), group(&[NewItem, SaveItem])),
             Menu::new(
                 text!("menu-edit"),
@@ -243,12 +248,16 @@ fn standard_group(
 ) -> Vec<MenuItem> {
     use CommandGroupPlacement::*;
     match placement {
-        AppSettings => vec![SETTINGS.item(layout.settings)],
+        AppInfo => vec![labeled(
+            ABOUT.item(true),
+            text!("about-app", app = layout.app.as_str()),
+        )],
+        AppSettings => Vec::from_iter(layout.settings.then(|| SETTINGS.item(true))),
         AppTermination => vec![labeled(
             QUIT.item(true),
             text!("quit-app", app = layout.app.as_str()),
         )],
-        NewItem => vec![NEW_WINDOW.item(layout.new_window)],
+        NewItem => Vec::from_iter(layout.new_window.then(|| NEW_WINDOW.item(true))),
         SaveItem => vec![CLOSE_WINDOW.item(true)],
         UndoRedo => vec![UNDO.item(false), REDO.item(false)],
         Pasteboard => [CUT, COPY, PASTE, DELETE, SELECT_ALL]

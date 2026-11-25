@@ -130,6 +130,7 @@ settings = Ajustes
 settings-item = Ajustes…
 quit = Salir
 quit-app = Salir de { $app }
+about = Acerca de
 about-app = Acerca de { $app }
 hide-app = Ocultar { $app }
 hide-others = Ocultar otros
