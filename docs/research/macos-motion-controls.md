@@ -9,7 +9,7 @@ controls draw inside a window. Tooltips, menus opening, sheets and the desktop
 shell are other families.
 **Snapshot:** macOS 27.2.1 (26B131), Apple-silicon Mac, 2560x1440 display at 1x
 and 180 Hz, Light appearance, 2026-11-25. System Reduce Motion is off; it was
-never changed (see [Reduce Motion](#reduce-motion)).
+never changed (see [Reduce Motion](macos-motion-swiftui-core.md#27-reduce-motion)).
 **Reader:** anyone who changes a duration, spring or press behaviour of a kit
 control.
 **Input:** the in-process probes in `~/src/probes/controls` (not in the repo) and
