@@ -18,7 +18,7 @@ output of step 2, and the logs of the rows that failed.
 The Linux code moved to `crates/bk/src/platform/linux/` on 2026-11-23
 (`2683357e`) and changed in later commits that only the macOS `./dev.sh check`
 saw. macOS does not compile `platform/linux/`, `crates/ctappearance/src/watch.rs`,
-`crates/bk-shell` or anything under `cfg(feature = "shell")`. Since the Linux VM went away on
+anything under `cfg(feature = "shell")`. Since the Linux VM went away on
 2026-11-22 23:01, no session compiled them.
 
 ## Steps
@@ -29,8 +29,7 @@ saw. macOS does not compile `platform/linux/`, `crates/ctappearance/src/watch.rs
    nix develop
    ```
 
-2. Run the checks. On Linux `./dev.sh check` builds the whole workspace,
-   `bk-shell` included, with `bk/shell,bk/tracy` and runs clippy with
+2. Run the checks. On Linux `./dev.sh check` builds the whole workspace with `bk/shell,bk/tracy` and runs clippy with
    `-D warnings`, so it compiles every line in the last column of step 5:
 
    ```sh
@@ -78,6 +77,6 @@ saw. macOS does not compile `platform/linux/`, `crates/ctappearance/src/watch.rs
 | Accessibility | any | `accessibility` | Read the window with Orca or Accerciser | Each control has its role and label | `linux/atspi.rs` (moved, `184bd711`) |
 | Keyboard, text input | any | `documents` | Type, use an input method, right-click the field | Text and composed text arrive; the edit menu opens | `linux/seat.rs`, `linux/input.rs` (`ea65d78a`) |
 | Single instance, notifications, secrets, status item | any | none | Use an app that calls `app::launch`, `notifications::post`, `Secrets` or `StatusItem` ([13](13-app.md#single-instance)) | A second launch raises the first window; a banner; a stored secret; an icon in the status area | `linux/instance.rs`, `linux/notifications.rs`, `linux/keychain.rs` (`ea65d78a`) |
-| Shell surfaces | Malaysia | none | Run Malaysia's menu bar and Dock built at this rev | They draw and take input | `crates/bk-shell`, everything under `cfg(feature = "shell")` |
+| Shell surfaces | Malaysia | none | Run Malaysia's menu bar and Dock built at this rev | They draw and take input | everything under `cfg(feature = "shell")` |
 
 6. Send back the table, the output of step 2, and the log of each failed row.

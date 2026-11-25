@@ -4,10 +4,8 @@
 resolver = "3"
 members = [
     "crates/bk",
-    "crates/bk-shell",
     "crates/ctdesign",
     "crates/ctappearance",
-    "crates/ctshell",
     "crates/infinity-protocol",
 ]
 
@@ -33,7 +31,6 @@ zeroize = "1"
 
 serde = { version = "1", features = ["derive"] }
 toml = "1"
-md-5 = "0.11"
 toml_edit = "0.25"
 
 zbus = "5"

@@ -21,23 +21,15 @@ extract() {
 for doc in docs/barrierkit/*.md .claude/skills/barrierkit-app/*.md; do
     extract "$(basename "$doc" .md)" "$doc"
 done
-extract shell-02-first-component docs/shell/02-first-component.md
 
 status=0
 grep -lq 'fn main' "$blocks"/02-first-app-*.rs 2>/dev/null || {
     printf 'check-recipes: no program found in 02-first-app.md\n' >&2
     status=1
 }
-grep -lq 'fn main' "$blocks"/shell-02-first-component-*.rs 2>/dev/null || {
-    printf 'check-recipes: no program found in docs/shell/02-first-component.md\n' >&2
-    status=1
-}
 for block in "$blocks"/*.rs; do
     grep -q 'fn main' "$block" 2>/dev/null || continue
-    case $(basename "$block") in
-        (shell-*) programs=crates/bk-shell/examples ;;
-        (*) programs=crates/bk/examples ;;
-    esac
+    programs=crates/bk/examples
     found=0
     for recipe in "$programs"/*.rs; do
         cmp -s "$block" "$recipe" && found=1 && break

@@ -459,8 +459,8 @@ a pointer event carries none.
 
 `MainMenuAddress { service, path }` is the D-Bus address of a window's menu
 bar menu. The runner publishes it to the compositor with
-`org_kde_kwin_appmenu`; a shell reads it back for each window
-([bk-shell](../shell/04-desktop-windows.md#toplevels)). On Linux `ObjectId` is the Wayland object id
+`org_kde_kwin_appmenu`; a shell reads it back for each window.
+On Linux `ObjectId` is the Wayland object id
 (re-exported from `wayland-backend`) that identifies a surface in those
 lists.
 
@@ -490,12 +490,12 @@ Not built: `UTType` filters, `FileDocument`, `DocumentGroup`, autosave and versi
 |---|---|
 | `NoDisplay` | `$WAYLAND_DISPLAY` names no reachable socket |
 | `Wayland`, `Registry` | The connection or the registry fails |
-| `MissingGlobal(name)` | A [needed global](18-platform.md#wayland-protocols) is missing, or one a [shell surface](../shell/10-run-and-debug.md#globals) needs |
+| `MissingGlobal(name)` | A [needed global](18-platform.md#wayland-protocols) is missing, or one a shell surface needs |
 | `Vulkan(reason)` | No `libvulkan`, no GPU that can present, or the surface lacks the swapchain format |
 | `Skia` | Skia cannot create its GPU context: Vulkan on Linux; on macOS, no Metal device, queue or context |
 | `DeviceLost` | The GPU device cannot be recreated, or is lost again after two recreations without a presented frame; a swapchain image not ready within one second counts as a loss |
 | `SurfaceLost` | Never returned: the runner creates a new Vulkan surface and swapchain |
-| `LayerSize` | A shell [`LayerSpec`](../shell/03-layer-surfaces.md#run_layer-and-layerspec) leaves a size at 0 without anchoring both opposite edges |
+| `LayerSize` | A shell `LayerSpec` leaves a size at 0 without anchoring both opposite edges |
 | `NoWindow` | `Application::run` finds no scene to open at launch (only `Settings`, or none) |
 | `EventLoop(reason)` | A `calloop` source cannot be created or the loop fails |
 | `Io` | The appearance watcher cannot start |

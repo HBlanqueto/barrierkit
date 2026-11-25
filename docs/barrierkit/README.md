@@ -54,7 +54,6 @@ answers it.
 | How do I change how a control looks? | [`.claude/skills/barrierkit-app/styles.md`](../../.claude/skills/barrierkit-app/styles.md) |
 | Where does an app store its data? | [13](13-app.md#settings-and-restoration): in its own folder, named by its id |
 | How do I add a component to the kit? | [3, What every component does](03-layers.md#what-every-component-does) and [`AGENTS.md`](../../AGENTS.md) |
-| How do I write a desktop shell component? | [The shell docs](../shell/README.md) |
 | How do I check a change? | `./dev.sh check`; on Linux inside `nix develop` ([on macOS](18-platform.md#build-and-check-on-macos)); its steps are `check()` in [`dev.sh`](../../dev.sh) |
 
 ## Single sources

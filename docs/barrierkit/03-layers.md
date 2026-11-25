@@ -80,8 +80,8 @@ other token comes from `ctdesign`, which the app then adds as a dependency.
 5. An app may use any layer. A settings app uses layer 3; a player composes
    layer 2; a special view draws with Freya's `rect` and `label` and the
    `Palette`.
-6. Shell surfaces are not part of the kit: they live in
-   [`bk-shell`](../shell/README.md).
+6. Shell surfaces are not part of the kit. The hidden `shell` feature only
+   gives a shell crate the runner's extension points.
 
 ## What every component does
 

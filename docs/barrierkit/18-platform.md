@@ -5,8 +5,8 @@ protocols and desktop services it uses.
 **Scope:** from the call to `run_window` to the frame on screen. The public
 window API (`run_window`, `WindowOptions`, `WindowControls`, popups, timers,
 `RunError`) is in [8. Windows](08-windows.md). The desktop services an app
-calls are in [13. App](13-app.md). Shell surfaces are in
-[the shell docs](../shell/README.md).
+calls are in [13. App](13-app.md). Shell surfaces are
+not part of the kit.
 **Reader:** whoever works inside the kit, or debugs an app on a compositor
 other than Malaysia.
 **Input:** an app that runs a window ([2. First app](02-first-app.md)).
@@ -26,8 +26,7 @@ other than Malaysia.
 
 ## The runner
 
-`run_window` and the shell's `run_layer` and `run_lock`
-([bk-shell](../shell/01-what-is-the-shell-kit.md)) share one runner
+`run_window` and a shell's layer and lock runners share one runner
 (`platform::runtime::Runtime`). It does this, in order:
 
 1. Connects to `$WAYLAND_DISPLAY` with smithay-client-toolkit and binds the
@@ -123,7 +122,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
 | `infinity_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
-| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests ([bk-shell](../shell/10-run-and-debug.md#globals)). Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
+| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `infinity_*` protocols are Malaysia's private protocols, in
@@ -264,7 +263,7 @@ its display, driven by a `CADisplayLink` that pauses when nothing is due
 | `glass_effect(Glass, Shape)` on any view as an `NSGlassEffectView` behind it on macOS 26 and later, with the view drawn in a Metal chrome above; below 26 or under Reduce Transparency the kit's own blur or opaque solid. Up to 8 chromes per window here, 3 on Linux; one radius and one variant per chrome ([15](15-backdrops-and-media.md#glass-on-any-view)) | `tint`, `interactive`, `glassEffectUnion`, a shape per corner |
 | The sidebar glass, `Material`, `TopGlass` and the glass bars as `NSVisualEffectView`s with a Metal chrome above them ([15](15-backdrops-and-media.md#on-macos)) | |
 
-The window and its popups take the system's light or dark, live ([The system's light or dark](04-appearance-and-tokens.md#the-systems-light-or-dark)). Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. `bk-shell` does not build on macOS.
+The window and its popups take the system's light or dark, live ([The system's light or dark](04-appearance-and-tokens.md#the-systems-light-or-dark)). Reduce Transparency, Increase Contrast and Reduce Motion are the system's: they add to the file's (`platform/macos/system.rs`) at launch and each time the system changes them. The `shell` feature does not build on macOS.
 
 ### Build and check on macOS
 
@@ -275,7 +274,7 @@ The window and its popups take the system's light or dark, live ([The system's l
 
 1. Nothing to install by hand: `rust-toolchain.toml` makes `rustup` fetch the stable toolchain with `rustfmt` and `clippy` on the first `cargo` run.
 2. Run `./dev.sh check` from the repository root. It does not ask for `nix develop` on macOS.
-3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the D-Bus menu exporter carry items only the Linux backend reads), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without `bk-shell` and its `shell` feature.
+3. It runs `cargo fmt --check`, clippy with `-D warnings -A dead_code` (window commands and the D-Bus menu exporter carry items only the Linux backend reads), and the scripts of `scripts/` (`shellcheck` when installed), with the `tracy` feature, without the `shell` feature.
 4. Optional: `./dev.sh macos-smoke` opens every recipe of `crates/bk/examples` as an app and checks it ([Smoke test](#smoke-test-on-macos)).
 
 ### Smoke test on macOS

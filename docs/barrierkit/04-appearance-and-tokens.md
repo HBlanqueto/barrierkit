@@ -8,8 +8,8 @@ whole of `ctappearance`. Backdrops and their tints are in
 [15](15-backdrops-and-media.md); traffic lights as a control in
 [9](09-titlebars.md); the language of the text in [17](17-languages.md); how
 `build.rs` reads the JSON in [Tengen](tengen.md). The desktop's own settings
-(wallpaper, menu bar, Dock, notifications), glass and tokens are in
-[ctshell](../shell/README.md).
+(wallpaper, menu bar, Dock, notifications), glass and tokens are not part of
+the kit.
 **Reader:** anyone who designs an app or a component.
 **Input:** an app from [2](02-first-app.md). **Output:** a view that uses only
 tokens and the palette, and follows the user's appearance.
@@ -533,8 +533,8 @@ Notes on the values:
 | `write_wallpaper_state(path, &WallpaperState)` | Writes `dominant` and `grid`; an empty state removes the file. A file that does not parse is first copied to `.state.bak`; one that cannot be read is left alone and the call fails. |
 | `load_wallpaper_state()` | The whole `wallpaper.state`, or the default. `WallpaperState::grid_for(desktop)` picks a desktop's grid. |
 
-The wallpaper each desktop shows and the user's collections are in
-[ctshell](../shell/08-desktop-settings.md#wallpaper-catalog).
+The wallpaper each desktop shows and the user's collections are not part
+of the kit.
 
 ### Resolution
 
@@ -573,8 +573,7 @@ lights of a style ([Traffic-light geometry](#traffic-light-geometry)).
 | `surfaces` | `Surfaces`: `window`, `titlebar_inactive`, `toolbar`, `toolbar_line`, `sunken`, `surface`, `raised`, `control`, `hover`, `line`, already tinted except `toolbar_line` and `control`. `line` is the separator color. |
 
 The menu bar, Dock, menu-glass and notification fields (`bar_tint`, `shell`,
-`dock`, `menu_glass`, `notification_glass`) are in
-[ctshell](../shell/07-glass-and-blur.md#the-shell-colors-of-resolved).
+`dock`, `menu_glass`, `notification_glass`) are not part of the kit.
 
 The rules `resolve` applies:
 
@@ -684,8 +683,7 @@ top clockwise.
 ### Glass over a backdrop
 
 The compositor draws the glass of the menus, the Dock and the notifications;
-the colour it shows over a backdrop is in
-[ctshell](../shell/07-glass-and-blur.md#the-glass-a-surface-shows).
+the colour it shows over a backdrop is the compositor's.
 
 `menu::panel_luma(panel)` is the luma of the panel and
 `menu::dark_ink_over(luma)` says whether its ink is dark: above
@@ -1038,7 +1036,7 @@ The render server's layer stack is the only source of these numbers: one veil an
 | `MULTICOLOR` | `[Rgba; 25]` | The stops of the Multicolor swatch, from the top clockwise, measured on System Settings; the last is the first. |
 | `LEVEL_INDICATOR_COLORS`, `LEVEL_INDICATOR_COLORS_DARK`, `LEVEL_INDICATOR_COLORS_CONTRAST`, `LEVEL_INDICATOR_COLORS_CONTRAST_DARK` | `[Rgba; 3]` | Normal, warning and critical colors of a level indicator, in light, dark and Increase Contrast. |
 | `SHELL_LIGHT`, `SHELL_LIGHT_OPAQUE`, `SHELL_DARK`, `SHELL_DARK_OPAQUE`, `SHELL_DARK_TINT`, `SHELL_DARK_TINT_OPAQUE` | `ShellPalette` | Menu bar and Dock, translucent and opaque. |
-| `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of `bk_shell::use_shell_theme` ([bk-shell](../shell/07-glass-and-blur.md#shell-theme)). |
+| `THEME_SHADOW_OPACITY` | `f32` | Shadow opacity of a shell's theme. |
 | `MENU_LIGHT`, `MENU_LIGHT_OPAQUE`, `MENU_DARK`, `MENU_DARK_OPAQUE`, `MENU_DARK_TINT`, `MENU_DARK_TINT_OPAQUE` | `MenuPalette` | Menus, translucent and opaque. |
 | `SIDEBAR_LIGHT`, `SIDEBAR_LIGHT_OPAQUE`, `SIDEBAR_DARK`, `SIDEBAR_DARK_OPAQUE`, `SIDEBAR_DARK_TINT`, `SIDEBAR_DARK_TINT_OPAQUE` | `Rgba` | Sidebar background, measured on macOS 27: `#ededed` in light and `#262626` in dark; the `_OPAQUE` ones are the same with Reduce Transparency on: `#f7f7f7` in light and `#141414` in dark. |
 | `TOOLBAR_BG_LIGHT`, `TOOLBAR_BG_DARK`, `TOOLBAR_BG_DARK_TINT` | `Rgba` | Background of the unified title bar beside a sidebar (`Surfaces::toolbar`): `#ffffff` in light and `#262626` in dark. |
@@ -1134,7 +1132,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 
 | Constant | Type | Read by |
 |---|---|---|
-| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read `chroma` per scheme with `glass_chroma`, and the others with `ctshell::resolve` ([ctshell](../shell/07-glass-and-blur.md#panel-glass-per-scheme), [Glass](10-sidebar.md#glass)). Values chosen by the owner on the sidebar mockup |
+| `GLASS` | `GlassMetrics` | Per color scheme (`_light`, `_dark`): `chroma` (0.22, 0.05), the share of the wallpaper's OKLab chroma the glass takes; `chroma_cap` (0.05, 0.04), the chroma it saturates towards (`backdrop::take_chroma_capped`); `lightness` (0.00, 0.00), the share of the lightness of what is behind that shows through; `blur_passes` (4, 6), how many times the glass blurs what is behind it, also for the edge; `edge_intensity` (0.70, 0.70), `edge_span` (53, 60 logical pixels), `edge_chroma` (0.58, 0.45), `edge_lightness` (0.00, 0.10) and `edge_cap` (0.08, 0.18), `rim_lift` (0.03, 0.06) and `rim_lift_edge` (0.02, 0.05) and `edge_offset` (11 logical pixels outside the window): the wallpaper that shows along the left, top and bottom edges of a panel and fades inwards. Shared: `accent_share` (0.35), the part of `chroma` that stays when the accent tints the sidebar; `content_span` (200 logical pixels) and `content_opacity` (0.60): on a panel that does not reach the window's right edge, the glass's `base` veils the fill, growing smoothly from `content_span` before that edge to `content_opacity` at it, so the wallpaper's colours fade towards the content without disappearing; `rim_opacity` (1.00), `rim_chroma` (1.35) and `rim_cap` (0.25): the glass panel's border is derived from the fill under it, `rim_lift` lighter (`rim_lift_edge` more where the wallpaper shows) and `rim_chroma` times its chroma with its hue, up to `rim_cap`; `shadow_opacity` (0.13), `shadow_lightness` (0.20), `shadow_span` (25) and `shadow_tint` (1.00): the glass panel's shadow on the window, only in light; `glass_shadow` gives none in dark. Read `chroma` per scheme with `glass_chroma`, and the others with `ctshell::resolve` ([Glass](10-sidebar.md#glass)). Values chosen by the owner on the sidebar mockup |
 | `SIDEBAR` | `SidebarMetrics` | `sidebar`, `styles` (the sidebar styles); `item_weight` and `item_selected_weight` (both 400) weigh the row labels |
 | `TOOLGROUP` | `ToolgroupMetrics` | `compact`, `titlebar`, `views::split`, `styles` (`ToolGroupStyle`) |
 | `SPLIT_VIEW` | `SplitViewMetrics` | `views::split`, `styles` |
@@ -1162,7 +1160,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 
 The kit reads these shell values: `ctappearance` puts the glass in `Resolved`,
 and the popover shapes and `pop_up_menu` draw the Dock's label and menu. The
-shell's own tokens are in [`ctshell::design`](../shell/09-shell-tokens.md).
+shell's own tokens are not part of the kit.
 
 | Constants | What they size |
 |---|---|

@@ -298,14 +298,14 @@ affected.
   of `menu_glass`, the panel luma that picks the ink).
 
 These stay in place and keep working until the pipeline of section 13 replaces
-them; they are superseded, not removed ([Shell glass](../shell/07-glass-and-blur.md#the-glass-a-surface-shows)).
+them; they are superseded, not removed (Shell glass).
 
 ## 10. Code gaps against the current kit and compositor
 
 Superseded on 2026-11-22: the veils, lifts and caps below were fitted to the
 shifted numbers of [section 9.1](#91-2026-11-21-mid-tones-read-with-sample-were-too-light).
 They stay in `ctdesign` and `ctappearance` until Malaysia moves to
-`ShellGlass` ([Shell glass](../shell/07-glass-and-blur.md#the-glass-a-surface-shows)); [section 14](#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)
+`ShellGlass` (Shell glass); [section 14](#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22)
 has the measured replacement.
 
 Closed on 2026-11-20 in `ctdesign` and `ctappearance`; the tests in
@@ -562,7 +562,7 @@ Checks, glass:
   backdrop whatever is under the backdrop: the glass has no transparency of its own
   beyond the backdrop it blurs.
 
-[`ctappearance::shell_glass::over`](../shell/07-glass-and-blur.md#the-glass-a-surface-shows)
+`ctappearance::shell_glass::over`
 is the glass function (the Spaces bar uses `ctappearance::material::over`); the tests
 reproduce every gray and colour sample of the table within 2 levels (1 level the
 Spaces bar).

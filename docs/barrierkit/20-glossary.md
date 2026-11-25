@@ -5,7 +5,7 @@ AppKit or UIKit, and name new items the same way.
 **Scope:** every public item of `bk`, `ctdesign` and
 `ctappearance`, with its SwiftUI, AppKit and UIKit equivalent and the chapter that
 documents it. Some methods have a row; the chapters document the rest. The
-names of `bk_shell` and `ctshell` are in [the shell glossary](../shell/glossary.md).
+names of `bk_shell` and `ctshell` are not in this glossary: those crates left the repository.
 **Reader:** anyone who writes an app with the kit, adds an item to it, or is an
 AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrierkit-app/SKILL.md)).
 **Input:** a name. **Output:** its counterpart and the chapter to read.
@@ -116,9 +116,9 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `ctdesign::FOCUS_RING_COLOR_LIGHT`, `FOCUS_RING_COLOR_DARK`, `FOCUS_RING_COLOR_DARK_TINT` | The focus ring color of each accent in `ctdesign::ACCENTS` | 2026-11-20 |
 | `SidebarItem::symbol(Symbol, tint)` | `SidebarItem::symbol_tile` | 2026-11-22 |
 | `styles::MaterialStyle::blur` | Gone with the Skia blur: the compositor or AppKit draws it (`MaterialStyle::material`) | 2026-11-22 |
-| `bk::shell::*` (`run_layer`, `LayerSpec`, `run_lock`, `SessionUnlock`, `Toplevels`, `Activation`, `use_status_items` and every other item of the module), `bk = { …, features = ["shell"] }` | `bk_shell::*`, the same names, in crate `bk-shell`; a shell depends on `bk-shell` ([bk-shell](../shell/01-what-is-the-shell-kit.md)) | 2026-11-24 |
+| `bk::shell::*` (`run_layer`, `LayerSpec`, `run_lock`, `SessionUnlock`, `Toplevels`, `Activation`, `use_status_items` and every other item of the module), `bk = { …, features = ["shell"] }` | `bk_shell::*`, the same names, in crate `bk-shell`; a shell depends on `bk-shell` (bk-shell) | 2026-11-24 |
 | `bk::theme::for_scheme`, `bk::theme::use_shell_theme` | `bk_shell::for_scheme`, `bk_shell::use_shell_theme` | 2026-11-24 |
-| `ctappearance::dock`, `menubar`, `notifications`, `shell_glass`, `liquid_glass` | `ctshell::dock`, `menubar`, `notifications`, `shell_glass`, `liquid_glass` ([ctshell](../shell/README.md)) | 2026-11-24 |
+| `ctappearance::dock`, `menubar`, `notifications`, `shell_glass`, `liquid_glass` | `ctshell::dock`, `menubar`, `notifications`, `shell_glass`, `liquid_glass` (ctshell) | 2026-11-24 |
 | `ctappearance::WallpaperSelection`, `WallpaperConfig`, `WallpaperCollection`, `WallpaperSource`, `WallpaperScale`, `WallpaperShuffle`, `WallpaperAppearance`, `WallpaperKind`, `ALL_DESKTOPS`, `desktop_key`, `wallpaper_selection_path`, `read_wallpaper_selection`, `write_wallpaper_selection`, `wallpaper_config_path`, `read_wallpaper_config`, `write_wallpaper_config`, `wallpapers_in`, `system_wallpapers_dir`, `custom_colors_dir`, `wallpaper_colors`, `thumbnail_path`, `thumbnail_is_fresh`, `thumbnail_image_size`, `frame_path`, `modified_seconds` | `ctshell::wallpaper::`, the same names; `WallpaperState` and its functions stay in `ctappearance` | 2026-11-24 |
 | `ctappearance::glass_lightness`, `glass_rim_lift`, `glass_blur_passes`, `GlassEdge`, `glass_edge`, `GlassShadow`, `glass_shadow` | `ctshell::resolve::`, the same names; `glass_chroma` stays | 2026-11-24 |
 | `ctappearance::material::blur_region`, `ctappearance::menu::panel_over`, `ctappearance::traffic::group_rect`, `glyph_svg` | `ctshell::material::blur_region`, `ctshell::menu::panel_over`, `ctshell::traffic::group_rect`, `glyph_svg` | 2026-11-24 |

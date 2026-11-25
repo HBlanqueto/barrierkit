@@ -317,7 +317,7 @@ inputs follow `clamp(a x m + b, lo, hi)`; all were read at 11 sizes from
 
 The model is a pure function of the backdrop, the shape and the look. Its Rust
 reference is `ctappearance::liquid_glass`; tokens are
-`components.liquid-glass` ([Liquid Glass](../shell/07-glass-and-blur.md#liquid-glass)). Values are device
+`components.liquid-glass` (Liquid Glass). Values are device
 values 0 to 255; distances are points at scale 1; `d` is the signed distance to
 the shape (negative inside) and `n` its outward normal.
 
@@ -752,7 +752,7 @@ sigma of Gaussian is the width over 1.349):
 | Regular, light | 0, 0.25, 0.5, 0.75, 1 | 7.8 / 8.2, 9.1 / 10.7, 11.4 / 13.3, 15.3 / 16.1, 22.4 / 19.6 | 149 / 140, 127 / 120, 105 / 99, 78 / 74, 54 / 51 |
 | Clear, both | 0, 0.25, 0.5, 0.75, 1 | 1.0 / 1.0, 1.3 / 1.1, 1.7 / 1.3, 3.6 / 3.3, 21.5 / 20.2 | 223 / 223, 223 / 223, 223 / 223, 214 / 213, 185 / 183 |
 
-The tolerance is 2.5 px of sigma (3.4 px of width; [Liquid Glass](../shell/07-glass-and-blur.md#liquid-glass)) and 0.08 on the contrast
+The tolerance is 2.5 px of sigma (3.4 px of width; Liquid Glass) and 0.08 on the contrast
 as a share of its value at `t` = 0: the model keeps 5 to 11 levels more contrast than
 the captures at every `t` (the bleed is not modelled, section 4), and the regular
 blur at `t` = 0 is up to 2 px narrower than macOS (section 6.1), which the slider
@@ -861,7 +861,7 @@ Dock or the menus.
 | A glass tile (a card or a panel built with `glassEffect`) | Yes, as the two rows above | `[R]` | same |
 | The toolbar's button glass (36 px) and the scroll-edge bar of a `NavigationSplitView` window (`safeAreaInset`, 48 px) | Yes, the inputs of the regular glass | `[R]` | section 13.4, `swiftwin` rows; no pixels |
 | The tab control's pill | Only the face fill moves | `[R]` | section 13.4 |
-| The window sidebar (variant 18) | Yes, by its own rule: blur fill 0.25, 0.5 and 1 at `t` 0, 0.5 and 1, darken or lighten as section 13.1, read scale 0.5 up to 0.5 and 0.25 from 0.75, fill fixed | `[R]` | section 13.4; not modelled ([Liquid Glass](../shell/07-glass-and-blur.md#liquid-glass)) |
+| The window sidebar (variant 18) | Yes, by its own rule: blur fill 0.25, 0.5 and 1 at `t` 0, 0.5 and 1, darken or lighten as section 13.1, read scale 0.5 up to 0.5 and 0.25 from 0.75, fill fixed | `[R]` | section 13.4; not modelled (Liquid Glass) |
 | The titlebar, toolbar and sidebar backdrops made of `gaussianBlur`, `colorMatrix`, `sdrNormalize`, `vibrantColorMatrix`, and the scroll-edge effect (`variableBlur`) | No: no input moves | `[R]` | section 13.4 |
 | The 14 `NSVisualEffectView` materials and the SwiftUI materials | Not measured: nothing was read or captured at another value | `[N]` | `60-materials.sh` of `lg-clear` and `lg-tinted` |
 | The application menu (`NSMenu`) | Yes, as the regular glass: over gray 128 it gives 122 at 0 and 76 at 1, the two values of the glass view; its kernel at 1 was not captured | `[C]` | section 13.6, dark, 1x |
@@ -963,7 +963,7 @@ they request `glass_regular` or `glass_clear` through `set_backdrop`:
    them.
 6. **The Settings preview** (the card of 285 x 180 with a scrolling article and a glass toolbar, section 14) needs the glass of a
    window to follow the slider while it is dragged: it works when its toolbar requests `glass_regular`.
-7. **Goldens at the default position** (value 0) do not change, because at 0 every look is the one of [Liquid Glass](../shell/07-glass-and-blur.md#liquid-glass).
+7. **Goldens at the default position** (value 0) do not change, because at 0 every look is the one of Liquid Glass.
 
 ## 17. Controls on their own glass (measured 2026-11-23)
 
