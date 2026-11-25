@@ -38,6 +38,7 @@ know the kit's shape.
 | `WindowGroup`, `Window`, `Settings`, `@Environment(\.openWindow)`, `\.dismissWindow` | `Application::scene(..)`, `use_open_window()`, `use_dismiss_window()` | [`scenes.rs`](../../agents/recipes/scenes.rs) |
 | `.windowStyle(.hiddenTitleBar)` with a `.toolbar` (no title, items after the lights, no bar fill) | a `Titlebar` with `.shows_title(false)`; adjacent items that are a bare `IconButton` share one glass, as SwiftUI's | [`window_designs.rs`](../../agents/recipes/window_designs.rs) |
 | `TabView { … }` in a `Window` | `TabView::new(..).style(\|_\| TabViewStyle::automatic())` in a `HiddenTitleBar` window | none |
+| `.navigationTitle(_:)`, `.navigationSubtitle(_:)` | `Titlebar::title(..)`, `.subtitle(..)` | none |
 | `.inspector(isPresented:content:)` | `.inspector(view, presented)` on any view, or on a `SplitView` | [`inspector.rs`](../../agents/recipes/inspector.rs) |
 | `.windowStyle(.hiddenTitleBar)`, `.toolbar { ToolbarItem(placement:) }`, `.windowToolbarStyle(_:)`, `.windowToolbarFullScreenVisibility(.onHover)` | `WindowStyle::HiddenTitleBar` in `.options(..)`, a `Titlebar` with `.toolbar(ToolbarItem::new(placement, view))`, `.toolbar_style(..)`, `.shows_title(..)`, `WindowToolbarFullScreenVisibility::OnHover` ([9](09-titlebars.md#window-designs)) | [`window_designs.rs`](../../agents/recipes/window_designs.rs) |
 | `Spacer()` | `Spacer::new()`, `.min_length(f32)` | [`layout_grid.rs`](../../agents/recipes/layout_grid.rs) |

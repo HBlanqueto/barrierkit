@@ -376,6 +376,8 @@ impl Runtime {
                                 self.request_activation_after_press(window.wl_surface())
                             }
                             WindowCommand::SetTitle(title) => window.set_title(title),
+                            // The kit draws the title row on Linux, subtitle included.
+                            WindowCommand::SetSubtitle(_) => {}
                             WindowCommand::Bar(bar) => {
                                 if let Some(style) = &self.window_style {
                                     style.set_bar(window.wl_surface(), wire(bar as u32));

@@ -68,6 +68,10 @@
   --bk-font-styles-toolbar-title-size: 15;
   --bk-font-styles-toolbar-title-line-height: 16;
   --bk-font-styles-toolbar-title-weight: 600;
+  --bk-font-styles-toolbar-title-subtitled-family: sans;
+  --bk-font-styles-toolbar-title-subtitled-size: 13;
+  --bk-font-styles-toolbar-title-subtitled-line-height: 16;
+  --bk-font-styles-toolbar-title-subtitled-weight: 600;
   --bk-font-styles-about-name-family: sans;
   --bk-font-styles-about-name-size: 22;
   --bk-font-styles-about-name-line-height: 26;

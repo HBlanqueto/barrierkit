@@ -572,6 +572,7 @@ enum Native {
     Front,
     Present,
     Title(String),
+    Subtitle(String),
     Size(u32, u32),
     Toolbar(TitlebarBar),
 }
@@ -603,6 +604,7 @@ fn native(id: u64, command: Native) {
             }
         }
         Native::Title(title) => window.setTitle(&NSString::from_str(&title)),
+        Native::Subtitle(subtitle) => window.setSubtitle(&NSString::from_str(&subtitle)),
         Native::Toolbar(bar) => {
             let style = match bar {
                 TitlebarBar::Unified => NSWindowToolbarStyle::Unified,
@@ -1583,6 +1585,9 @@ impl Runtime {
                     WindowCommand::Present(_) => later(id, Native::Present),
                     WindowCommand::MakeKey => later(id, Native::Front),
                     WindowCommand::SetTitle(title) => later(id, Native::Title(title.to_string())),
+                    WindowCommand::SetSubtitle(subtitle) => {
+                        later(id, Native::Subtitle(subtitle.to_string()))
+                    }
                     WindowCommand::Fit((width, height)) => later(id, Native::Size(width, height)),
                     WindowCommand::Bar(bar) => later(id, Native::Toolbar(bar)),
                     WindowCommand::ImeCursor(area) => areas.push((id, area)),

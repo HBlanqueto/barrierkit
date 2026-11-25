@@ -231,6 +231,7 @@ CALLOUT Font font.styles.callout
 CAPTION Font font.styles.caption
 TITLE_3 Font font.styles.title-3
 TOOLBAR_TITLE Font font.styles.toolbar-title
+TOOLBAR_TITLE_SUBTITLED Font font.styles.toolbar-title-subtitled
 ABOUT_NAME Font font.styles.about-name
 SUBHEADLINE Font font.styles.subheadline
 FOOTNOTE Font font.styles.footnote

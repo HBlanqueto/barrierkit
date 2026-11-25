@@ -1363,6 +1363,7 @@ Each `Symbol` with its SwiftUI name (`Image(systemName:)`) and the AppKit name o
 | BarrierKit | Kind | SwiftUI | AppKit | UIKit | What it is | Chapter |
 |---|---|---|---|---|---|---|
 | `titlebar::WindowToolbarStyle` | enum | `WindowToolbarStyle` | `≈ NSWindow.ToolbarStyle` | — | The bar of a `Titlebar`: `Unified` (52 high, title at the start), `UnifiedCompact` (40 high, title at the start) or `Expanded` (a 28 title row over a 40 toolbar row, items 28 high) | [9](09-titlebars.md#titlebar) |
+| `titlebar::Titlebar::subtitle` | method | `.navigationSubtitle(_:)` | `NSWindow.subtitle` | — | A second line under the title, or after it in an expanded bar | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar::shows_title` | method | `.unified(showsTitle:)`, `.unifiedCompact(showsTitle:)` | `NSWindow.titleVisibility` | — | `false` drops the title; the trailing items then follow the lights | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar::toolbar_style` | method | `windowToolbarStyle(_:)` | `NSWindow.toolbarStyle` | — | Chooses the `WindowToolbarStyle`; by default `Unified` with a sidebar or items | [9](09-titlebars.md#titlebar) |
 | `titlebar::Titlebar` | struct | `≈ .toolbar(content:)` | `≈ NSToolbar` | ≈ `UIToolbar` | The title bar the kit draws beside the native lights (`HiddenTitleBar`) or its own (Linux, `Plain`): a left item, toolbar items by placement, title | [9](09-titlebars.md#titlebar) |

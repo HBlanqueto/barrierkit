@@ -82,6 +82,7 @@ and the title.
 |---|---|---|
 | `Titlebar::new()` | — | A bar that reads the title and state from `WindowControls` |
 | `.title(text)` | the window title | Replaces the title shown |
+| `.subtitle(text)` | none | SwiftUI's `navigationSubtitle`: in a unified bar the title turns `TOOLBAR_TITLE_SUBTITLED` (13 semibold) over the subtitle in `SUBHEADLINE`; in an expanded bar the title row reads title – subtitle, through `NSWindow.subtitle` where AppKit draws that row |
 | `.shows_title(bool)` | `true` | `false` drops the title and lays the trailing items after the lights, as SwiftUI's `.unified(showsTitle: false)` and `.unifiedCompact(showsTitle: false)` |
 | `.toolbar(content)` | none | Adds a `ToolbarItem` or a `ToolbarSpacer`; call it once per item ([Toolbar items](#toolbar-items)) |
 | `.toolbar_style(WindowToolbarStyle)` | `Unified` with a sidebar, a `.left` view or items, else `UnifiedCompact` | `Unified`, `UnifiedCompact` or `Expanded`, as SwiftUI's `windowToolbarStyle`; in a `HiddenTitleBar` window it also moves the native lights ([8](08-windows.md#window-style)) |

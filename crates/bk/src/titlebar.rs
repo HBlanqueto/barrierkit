@@ -13,7 +13,7 @@ use ctdesign::{
     ButtonKind, TITLEBAR_DOUBLE_CLICK, TITLEBAR_EXPANDED_TITLE_GAP, TITLEBAR_EXPANDED_TITLE_HEIGHT,
     TITLEBAR_EXPANDED_TOOLBAR_BOTTOM, TITLEBAR_FULLSCREEN_START, TITLEBAR_TOOLBAR_START,
 };
-use ctdesign::{SIDEBAR, TOOLGROUP};
+use ctdesign::{SIDEBAR, SUBHEADLINE, TOOLBAR_TITLE_SUBTITLED, TOOLGROUP};
 use freya_core::prelude::*;
 use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
@@ -22,7 +22,7 @@ use crate::app::DefaultsRevision;
 use crate::platform::{Bar, DecorationResponse, WindowControls, WindowStatus};
 use crate::style::{text_style, with_font};
 use crate::styles::{
-    ControlState, Paints, ShapeStyle, SidebarStyle, StateValue, Theme, TitlebarStyle,
+    ControlState, Paints, Role, ShapeStyle, SidebarStyle, StateValue, Theme, TitlebarStyle,
     TrafficLightsStyle, resolve,
 };
 use crate::theme;
@@ -38,6 +38,7 @@ pub enum WindowToolbarStyle {
 pub struct Titlebar {
     preview: Option<Preview>,
     title: Option<Cow<'static, str>>,
+    subtitle: Option<Cow<'static, str>>,
     shows_title: bool,
     sidebar: bool,
     toolbar_style: Option<WindowToolbarStyle>,
@@ -66,6 +67,7 @@ impl Titlebar {
         Self {
             preview: None,
             title: None,
+            subtitle: None,
             shows_title: true,
             sidebar: false,
             toolbar_style: None,
@@ -90,6 +92,12 @@ impl Titlebar {
 
     pub fn title(mut self, title: impl Into<Cow<'static, str>>) -> Self {
         self.title = Some(title.into());
+        self
+    }
+
+    /// SwiftUI's `navigationSubtitle`: under the title in a unified bar, after it with a dash in an expanded one.
+    pub fn subtitle(mut self, subtitle: impl Into<Cow<'static, str>>) -> Self {
+        self.subtitle = Some(subtitle.into());
         self
     }
 
@@ -291,7 +299,16 @@ impl Component for Titlebar {
         } else {
             style.title_font
         };
-        let title_label = if unified {
+        let subtitle = self.subtitle.clone().filter(|_| self.shows_title);
+        let system_shown_subtitle = subtitle.clone();
+        let stacked = unified && subtitle.is_some();
+        let title = match subtitle.as_ref().filter(|_| !unified) {
+            Some(subtitle) => Cow::Owned(format!("{title} – {subtitle}")),
+            None => title,
+        };
+        let title_label = if stacked {
+            with_font(label(), TOOLBAR_TITLE_SUBTITLED)
+        } else if unified {
             with_font(label(), title_font)
         } else {
             text_style(label(), title_font)
@@ -303,6 +320,22 @@ impl Component for Titlebar {
         .map(self.probe, |label, id| {
             label.a11y_builder(move |node| node.set_author_id(id))
         });
+        let title_label = match subtitle.filter(|_| stacked) {
+            Some(subtitle) => rect()
+                .direction(Direction::Vertical)
+                .child(title_label)
+                .child(
+                    with_font(label(), SUBHEADLINE)
+                        .text(subtitle)
+                        .color(theme::color(
+                            paints.color(&ShapeStyle::Role(Role::SecondaryLabel)),
+                        ))
+                        .max_lines(1)
+                        .text_overflow(TextOverflow::Ellipsis),
+                )
+                .into_element(),
+            None => title_label.into_element(),
+        };
         let title_label = if status.fullscreen && status.decoration == DecorationResponse::Hybrid {
             rect()
                 .child(crate::platform::backdrop::Declared::layer())
@@ -330,6 +363,14 @@ impl Component for Titlebar {
         };
         // On AppKit's own bar, AppKit draws the expanded title row, as SwiftUI's.
         let system_title = system_bar(TITLEBAR_EXPANDED_TITLE_HEIGHT + style.height);
+        if let Some(controls) = &controls {
+            controls.set_subtitle(
+                system_shown_subtitle
+                    .as_deref()
+                    .filter(|_| expanded && system_title)
+                    .unwrap_or(""),
+            );
+        }
         let (bar, height) = if expanded && !close_only {
             self.expanded_bar(
                 &style,

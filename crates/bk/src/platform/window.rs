@@ -213,6 +213,7 @@ pub struct WindowControls {
     pub focus_bar_height: State<f32>,
     pub desktop: State<Option<u32>>,
     pub(crate) titlebar_height: State<f32>,
+    pub(crate) subtitle: State<String>,
     // Where the sidebar spans the window, left and width: on macOS the full-screen bar leaves a soft edge over it.
     pub(crate) sidebar_span: State<(f32, f32)>,
     pub hud: bool,
@@ -261,6 +262,7 @@ impl WindowControls {
             focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
             desktop: State::create_global(None),
             titlebar_height: State::create_global(0.0),
+            subtitle: State::create_global(String::new()),
             sidebar_span: State::create_global((0.0, 0.0)),
             hud: options.hud,
             panel,
@@ -352,6 +354,15 @@ impl WindowControls {
         self.send(WindowCommand::SetTitle(title.into()));
     }
 
+    // Where the system draws the title row, its subtitle; sent only when it changes.
+    pub(crate) fn set_subtitle(&self, subtitle: &str) {
+        if *self.subtitle.peek() != subtitle {
+            let mut current = self.subtitle;
+            *current.write() = subtitle.to_owned();
+            self.send(WindowCommand::SetSubtitle(subtitle.to_owned().into()));
+        }
+    }
+
     pub fn copy_rich(&self, text: String, html: String) {
         self.clipboard.set_rich(text, html);
     }
@@ -413,6 +424,7 @@ pub(crate) enum WindowCommand {
     MakeKey,
     Bar(Bar),
     SetTitle(Cow<'static, str>),
+    SetSubtitle(Cow<'static, str>),
     BackgroundAlpha(f32),
     Open(Box<(AppComponent, WindowOptions)>),
     Sheet(Box<(AppComponent, WindowOptions)>),
