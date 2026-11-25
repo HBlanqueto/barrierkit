@@ -538,7 +538,7 @@
     },
     "text-editor": {
       "padding-x": 5.5,
-      "padding-y": 2.4,
+      "padding-y": 0,
       "line-height": 16
     },
     "search-field": {
@@ -800,7 +800,7 @@
       "titlebar": {
         "padding-x": 10,
         "title-gap": 12,
-        "expanded-title": {"height": 28, "gap": 15, "toolbar-bottom": 5},
+        "expanded-title": {"height": 28, "gap": 15, "toolbar-bottom": 9},
         "toolbar-start": {"unified": 16, "compact": 22, "expanded": 11},
         "fullscreen-start": {"unified": 22, "compact": 14, "expanded": 11},
         "system-veil": "#ffffff09",

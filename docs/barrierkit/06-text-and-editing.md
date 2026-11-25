@@ -52,7 +52,7 @@ In `TextField` and `TextEditor`, a click on a misspelled word adds the spelling 
 `text_editor::TextEditor` edits several lines, like `NSTextView`. It uses Freya's editing
 engine (`freya-edit`). It looks like an `NSTextView` in a bordered scroll view: a square
 field of the window background (`textBackgroundColor`) with a 1 border inside, the text 13 on 16
-lines starting 5.5 from the left and 2.4 from the top (`TEXT_EDITOR`). `NSTextView` and SwiftUI's
+lines starting 5.5 from the left and flush with the top (`TEXT_EDITOR`), as SwiftUI's `TextEditor` on macOS 27.2. `NSTextView` and SwiftUI's
 `TextEditor` draw 12 pt Helvetica until the app sets a font; the kit always draws the 13 pt
 system face.
 

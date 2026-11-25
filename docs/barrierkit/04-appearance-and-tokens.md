@@ -1060,7 +1060,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`), `chrome` ([9](09-titlebars.md)) |
 | `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
-| `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` | `f32` | The expanded `Titlebar` (SwiftUI `.expanded`): a 28 high title row with the title 15 after the lights, and a toolbar row whose items sit 5 above its middle ([9](09-titlebars.md)) |
+| `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` | `f32` | The expanded `Titlebar` (SwiftUI `.expanded`): a 28 high title row with the title 15 after the lights, and a toolbar row whose items sit 9 above its middle, 4 under the title row ([9](09-titlebars.md)) |
 | `TITLEBAR_TOOLBAR_START` | `TitlebarToolbarStart` | Where the first toolbar item starts: 16 (unified) and 22 (compact) after the lights, 11 from the edge of the expanded toolbar row ([9](09-titlebars.md)) |
 | `TITLEBAR_SYSTEM_VEIL` | `Rgba` | White at 9/255: what AppKit's title bar lays over the window material, 8 levels in Dark and none in Light ([9](09-titlebars.md)) |
 | `TITLEBAR_FULLSCREEN_START` | `TitlebarToolbarStart` | Where the title or the first item starts in full screen, with no lights: 22 (unified), 14 (compact), 11 (expanded) from the edge ([9](09-titlebars.md)) |
