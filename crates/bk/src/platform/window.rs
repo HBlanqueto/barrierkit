@@ -33,6 +33,14 @@ pub enum WindowToolbarFullScreenVisibility {
     OnHover,
 }
 
+/// SwiftUI's `WindowResizability`: `ContentSize` sizes the window to its content and keeps it there.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WindowResizability {
+    #[default]
+    Automatic,
+    ContentSize,
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum WindowStyle {
     #[default]
@@ -78,6 +86,7 @@ pub struct WindowOptions {
     pub scene: Option<&'static str>,
     pub window_style: WindowStyle,
     pub window_toolbar_full_screen_visibility: WindowToolbarFullScreenVisibility,
+    pub window_resizability: WindowResizability,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -119,6 +128,7 @@ impl WindowOptions {
             scene: None,
             window_style: WindowStyle::TitleBar,
             window_toolbar_full_screen_visibility: WindowToolbarFullScreenVisibility::Automatic,
+            window_resizability: WindowResizability::Automatic,
         }
     }
 
@@ -129,6 +139,11 @@ impl WindowOptions {
 
     pub fn window_style(mut self, window_style: WindowStyle) -> Self {
         self.window_style = window_style;
+        self
+    }
+
+    pub fn window_resizability(mut self, resizability: WindowResizability) -> Self {
+        self.window_resizability = resizability;
         self
     }
 

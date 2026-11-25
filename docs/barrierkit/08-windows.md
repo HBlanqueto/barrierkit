@@ -88,6 +88,7 @@ method changes one field (the fields are also public).
 | `.menu(MainMenu)` | none | The window's menu bar menu ([13. App](13-app.md)) |
 | `.status_item(StatusItem)` | none | A status icon in the menu bar ([13. App](13-app.md)) |
 | `.window_style(WindowStyle)` | `TitleBar` | Who frames the window on macOS ([Window style](#window-style)). On Linux it only sets the bar the limits add and whether `Application` adds its `Titlebar` |
+| `.window_resizability(WindowResizability)` | `Automatic` | `ContentSize` sizes a scene's window to its view and keeps it there, as SwiftUI's `.windowResizability(.contentSize)`; the view gives the size, so it should not fill. For an `Application` window |
 | `.window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility)` | `Automatic` | `OnHover` keeps a `HiddenTitleBar` window's bar out of full screen until the pointer reaches the top edge, where it comes down with the menu bar, as SwiftUI's `.windowToolbarFullScreenVisibility(.onHover)` (AppKit's `.autoHideToolbar`); Linux ignores it |
 | `.hud(bool)` | `false` | The HUD panel look ([Utility windows](#utility-windows)) |
 | `.panel(PanelBehavior)` | `PanelBehavior::UTILITY` | How a utility window behaves on Linux; ignored by main windows and on macOS |

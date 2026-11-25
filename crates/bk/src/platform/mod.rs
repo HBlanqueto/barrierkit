@@ -50,8 +50,8 @@ pub(crate) struct EditShortcut {
     pub(crate) key: String,
 }
 pub use window::{
-    DecorationResponse, PanelBehavior, WindowControls, WindowEdge, WindowOptions, WindowStatus,
-    WindowStyle, WindowToolbarFullScreenVisibility, run_window,
+    DecorationResponse, PanelBehavior, WindowControls, WindowEdge, WindowOptions,
+    WindowResizability, WindowStatus, WindowStyle, WindowToolbarFullScreenVisibility, run_window,
 };
 pub(crate) use window::{app_name, open_utility_window, window_activated};
 pub(crate) use window_style::Knob;

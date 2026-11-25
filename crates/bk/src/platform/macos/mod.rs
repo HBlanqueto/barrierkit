@@ -626,7 +626,10 @@ fn native(id: u64, command: Native) {
             }
         }
         Native::Size(width, height) => {
-            window.setContentSize(NSSize::new(f64::from(width), f64::from(height)))
+            let size = NSSize::new(f64::from(width), f64::from(height));
+            window.setContentMinSize(size);
+            window.setContentMaxSize(size);
+            window.setContentSize(size);
         }
     }
 }

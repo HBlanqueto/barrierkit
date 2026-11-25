@@ -14,7 +14,7 @@ use crate::app::use_menu_action;
 use crate::document::first_edited;
 use crate::i18n::text;
 use crate::main_menu::MenuHandle;
-use crate::platform::{WindowControls, WindowOptions, WindowStyle};
+use crate::platform::{WindowControls, WindowOptions, WindowResizability, WindowStyle};
 use crate::titlebar::Titlebar;
 
 pub const MAIN_WINDOW: &str = "main";
@@ -397,7 +397,22 @@ fn window_root(options: &WindowOptions, content: AppComponent) -> Element {
             (options.window_style == WindowStyle::TitleBar)
                 .then(|| Titlebar::new().title(options.title.clone())),
         )
-        .child(rect().expanded().center().child(content))
+        .child(rect().expanded().center().child(fitted(options, content)))
+        .into_element()
+}
+
+// `ContentSize` fits the window to the content's own size and keeps it there, as SwiftUI's `.windowResizability(.contentSize)`.
+fn fitted(options: &WindowOptions, content: AppComponent) -> Element {
+    if options.window_resizability != WindowResizability::ContentSize {
+        return content.into_element();
+    }
+    let controls = WindowControls::get();
+    rect()
+        .on_sized(move |event: Event<SizedEventData>| {
+            let size = event.area.size;
+            controls.fit((size.width.ceil() as u32, size.height.ceil() as u32));
+        })
+        .child(content)
         .into_element()
 }
 

@@ -31,7 +31,8 @@ pub use crate::layout::{
 };
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
 pub use crate::platform::{
-    RunError, WindowOptions, WindowStyle, WindowToolbarFullScreenVisibility, run_window,
+    RunError, WindowOptions, WindowResizability, WindowStyle, WindowToolbarFullScreenVisibility,
+    run_window,
 };
 pub use crate::popup_button::PopUpButton;
 pub use crate::progress::ProgressView;
