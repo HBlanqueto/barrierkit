@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 use freya_core::integration::AppComponent;
 use freya_core::prelude::*;
+use torin::prelude::Gaps;
 
 use crate::app::commands::{
     BRING_ALL_TO_FRONT, CLOSE_WINDOW, Commands, Layout, MINIMIZE, NEW_WINDOW, QUIT, SETTINGS,
@@ -397,17 +398,36 @@ fn window_root(options: &WindowOptions, content: AppComponent) -> Element {
             (options.window_style == WindowStyle::TitleBar)
                 .then(|| Titlebar::new().title(options.title.clone())),
         )
-        .child(rect().expanded().center().child(fitted(options, content)))
+        .child(
+            rect()
+                .expanded()
+                .center()
+                .child(fitted(options, safe_area_top(options), content)),
+        )
         .into_element()
 }
 
+// Under a hidden title bar with no toolbar and no sidebar, SwiftUI keeps the title bar's height free above the content.
+fn safe_area_top(options: &WindowOptions) -> f32 {
+    let controls = WindowControls::get();
+    let bare = options.window_style == WindowStyle::HiddenTitleBar
+        && *controls.titlebar_height.read() == 0.0
+        && controls.sidebar_span.read().1 == 0.0;
+    if bare {
+        ctdesign::TITLEBAR.thickness as f32
+    } else {
+        0.0
+    }
+}
+
 // `ContentSize` fits the window to the content's own size and keeps it there, as SwiftUI's `.windowResizability(.contentSize)`.
-fn fitted(options: &WindowOptions, content: AppComponent) -> Element {
+fn fitted(options: &WindowOptions, top: f32, content: AppComponent) -> Element {
+    let inset = rect().padding(Gaps::new(top, 0.0, 0.0, 0.0));
     if options.window_resizability != WindowResizability::ContentSize {
-        return content.into_element();
+        return inset.expanded().center().child(content).into_element();
     }
     let controls = WindowControls::get();
-    rect()
+    inset
         .on_sized(move |event: Event<SizedEventData>| {
             let size = event.area.size;
             controls.fit((size.width.ceil() as u32, size.height.ceil() as u32));
