@@ -172,7 +172,7 @@ M0 is built: 15 files changed (+147, −34) and one new file,
 | `cargo check -p bk` on `aarch64-apple-darwin` | passes; 60-odd dead-code warnings, all items only the Linux runner uses |
 | `cargo test -p bk -p ctappearance -p ctdesign --lib` on macOS | 214, 211 and 10 pass |
 | `cargo test -p bk --test kit` on macOS (CPU render) | 117 pass, 5 fail, 19 ignored. The five are golden images and a label comparison; Inter, Adwaita Sans and Geist are not installed on this Mac, which is the likely cause (not isolated) |
-| `cargo clippy -p bk -p ctappearance -p infinity-protocol --all-targets --features bk/shell -- -D warnings` in the Linux container | clean |
+| `cargo clippy -p bk -p ctappearance -p limitless-protocol --all-targets --features bk/shell -- -D warnings` in the Linux container | clean |
 | `cargo test --lib` for `bk` and `ctappearance` in the Linux container | 223 and 272 pass |
 
 What it did, and what it found:
@@ -180,7 +180,7 @@ What it did, and what it found:
 1. Dependencies by `target_os`. Linux keeps `sctk`, `wayland-*`, `xkbcommon`,
    `ash`, `accesskit_unix` and the Vulkan feature; macOS takes the Metal
    feature and `calloop`. The workspace `wayland-client` loses `system` and
-   `bk` adds it back for Linux, so `infinity-protocol`'s client code (and with
+   `bk` adds it back for Linux, so `limitless-protocol`'s client code (and with
    it `Bar`, `PopoverShape` and `Knob`) builds on macOS with the Rust backend.
 2. `smithay-client-toolkit` 0.20 does not build on macOS
    (`rustix::pipe::pipe_with` is Linux-only), so no Wayland runner code can be

@@ -370,7 +370,7 @@ Linux keeps the face as it is.
 | `menu_palette(resolved, kind) -> MenuPalette` | Menu colors over that surface. A tinted surface lifts the menu background and recomputes its separator. |
 | `popover_palette(resolved, kind) -> MenuPalette` | `menu_palette` with the metrics of a pop-up menu (`MENU_POPOVER`). |
 | `apply_popover_metrics(palette) -> MenuPalette` | Replaces the padding, widths, item size and check mark of a `MenuPalette` with `MENU_POPOVER`. |
-| `over_glass(palette) -> MenuPalette` | The palette of a menu or popover the compositor draws its glass under: a transparent `bg`, translucent inks (`glass_fg`, `glass_shortcut_color`, `glass_disabled_fg`) so the glass shows through the text, and `search_bg` the faint ink `glass_disabled_fg` as a translucent fill, so the search field reads as a field on the glass. The inks follow the glass the compositor reports under the popup (`infinity_focus_surface_v1.glass`): dark on a light panel and white on a dark one, whatever the colour scheme; until it reports, they are the scheme's. With Increase Contrast it returns the palette as it is; Reduce Transparency alone leaves the glass, as macOS does. |
+| `over_glass(palette) -> MenuPalette` | The palette of a menu or popover the compositor draws its glass under: a transparent `bg`, translucent inks (`glass_fg`, `glass_shortcut_color`, `glass_disabled_fg`) so the glass shows through the text, and `search_bg` the faint ink `glass_disabled_fg` as a translucent fill, so the search field reads as a field on the glass. The inks follow the glass the compositor reports under the popup (`limitless_focus_surface_v1.glass`): dark on a light panel and white on a dark one, whatever the colour scheme; until it reports, they are the scheme's. With Increase Contrast it returns the palette as it is; Reduce Transparency alone leaves the glass, as macOS does. |
 
 `SurfaceKind` has two variants: `Toplevel` (an app window) and `LayerShell`
 (a shell surface such as the menu bar).
@@ -696,7 +696,7 @@ from a grid of average colors:
    window)` averages the cells behind the window rectangle, weighted by area,
    with the wallpaper scaled to cover the output.
 3. The compositor sends that color to the window with the `wallpaper` event of
-   `infinity_focus_surface_v1` (version 3).
+   `limitless_focus_surface_v1` (version 3).
 4. The kit keeps one `Resolved` per window: the global one passed through
    `behind_window(color)`. It recomputes it when the appearance changes and,
    when the event brings a new color, fades to it over `DURATION_BASE` with a

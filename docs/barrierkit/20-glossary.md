@@ -81,8 +81,8 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `rich_text::TextStyle` | `rich_text::RunStyle`; `styles::TextStyle` is the style of `Text` | 2026-11-07 |
 | `chrome::ChromeStyle` | `styles::WindowChromeStyle`, with the look of the rail | 2026-11-07 |
 | `chrome::WindowChrome::new(style, child)` | `chrome::WindowChrome::new(child).style(\|s\| ..)` | 2026-11-07 |
-| `shell::SpaceInfo`, `Toplevels::space` | `Toplevels::focus_bar` (`FocusBar`); the `space` event keeps only `focus_bar` (Infinity v7) | 2026-11-08 |
-| `platform::Bar::Compact`, `WindowCorner::compact`, Infinity `bar` entry `compact` | `Bar::UnifiedCompact`, `WindowCorner::unified_compact`, `unified_compact` | 2026-11-08 |
+| `shell::SpaceInfo`, `Toplevels::space` | `Toplevels::focus_bar` (`FocusBar`); the `space` event keeps only `focus_bar` (Limitless v7) | 2026-11-08 |
+| `platform::Bar::Compact`, `WindowCorner::compact`, Limitless `bar` entry `compact` | `Bar::UnifiedCompact`, `WindowCorner::unified_compact`, `unified_compact` | 2026-11-08 |
 | `ctdesign::MENU_GLASS`, `MENU_GLASS_CAP_DARK` and `MENU_GLASS_CHROMA_DARK` (an earlier set), then `MENU_GLASS_VEIL`, `MENU_GLASS_LIFT` and `MENU_GLASS_CAP` (one set for every scheme) | `MENU_GLASS_VEIL_LIGHT`, `MENU_GLASS_VEIL_DARK`, `MENU_GLASS_LIFT_LIGHT`, `MENU_GLASS_LIFT_DARK`, `MENU_GLASS_CAP_LIGHT`, `MENU_GLASS_CAP_DARK`, with `MENU_GLASS_CHROMA` in every scheme; `MENU_GLASS_CAP_DARK` now names the dark cap of the new pair | 2026-11-20 |
 | `ctdesign::LOCK_FIELD_MIN_WIDTH`, `LOCK_FIELD_MAX_WIDTH` (the field grew while typing) | `ctdesign::LOCK_FIELD_WIDTH`, one fixed width, a project value (the macOS lock screen was never measured) | 2026-11-11 |
 | `ctdesign::LOCK_TOP_MARGIN` (72 px) | `ctdesign::LOCK_TOP_PERCENT`, a share of the screen height | 2026-11-11 |
@@ -127,6 +127,7 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `ctappearance::{MenuBarSize, ColorFilter}` and the `AppearanceConfig` keys `invert_colors`, `display_contrast`, `menu_bar_size`, `shake_to_locate`, `pointer_size`, `color_filters`, `color_filter`, `color_filter_intensity`, `liquid_glass_tint`, `gtk_bridge`, `qt_bridge`; `ctdesign::{POINTER_SIZES, DISPLAY_CONTRAST, COLOR_FILTER_INTENSITY}` | `ctshell::appearance::{DesktopAppearance, MenuBarSize, ColorFilter}`; the tokens in `ctshell::design`; the file keeps its keys | 2026-11-24 |
 | `ctappearance::resolve(appearance, dominant)` | `ctappearance::resolve(appearance, dominant, native_lights)`: each backend passes its `NATIVE_LIGHTS`, Malaysia `false` | 2026-11-24 |
 | `infinity_protocol::THOUSANDTHS` | `ctdesign::THOUSANDTHS` | 2026-11-24 |
+| `infinity-protocol`, `infinity_*` interfaces, `Infinity*` types, `infinity-*.xml` | `limitless-protocol`, `limitless_*`, `Limitless*`, `limitless-*.xml` | 2026-11-25 |
 
 ## How to read the tables
 

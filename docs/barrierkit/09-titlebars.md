@@ -356,7 +356,7 @@ their layout; focus mode and the hidden bars follow Malaysia.
 ### Corner radius
 
 The `Titlebar` tells the compositor which bar it draws with
-`infinity_window_style_v1.set_bar`, and Malaysia rounds the window with that
+`limitless_window_style_v1.set_bar`, and Malaysia rounds the window with that
 bar's radius
 ([Malaysia ADR 0059](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions.md)).
 The app does nothing:
@@ -369,7 +369,7 @@ The app does nothing:
 | `UnifiedCompact` | `UnifiedCompact` | `TITLEBAR_CLIENT_HEIGHT` (40) | `unified_compact` (16) |
 | `Expanded` | `Titlebar` | 68 | `titlebar` (16) |
 
-`Bar` (`bk::platform`) comes from the Infinity protocol and has four
+`Bar` (`bk::platform`) comes from the Limitless protocol and has four
 values, each an AppKit window kind: `Titlebar` (no toolbar), `UnifiedCompact`
 (`NSWindow.ToolbarStyle.unifiedCompact`), `Unified` (`.unified`) and
 `Utility` (a panel, radius 16). Every radius is 16, as macOS 27.2.1 gives every window kind; the silhouette to draw is `CORNER_WINDOW.fitted` (16.8, [Corners](04-appearance-and-tokens.md#corners)).
@@ -426,7 +426,7 @@ The state comes from [`WindowStatus`](08-windows.md#window-state).
   ([Malaysia ADRs 0051 and 0054](https://github.com/HBlanqueto/malaysia/blob/main/docs/decisions.md)):
   the bar leaves the layout and the content fills the window. When the pointer
   nears the top, the compositor slides its bar down and the kit asks for
-  `set_overlay` through `infinity_focus_v1` version 2, so the window does not
+  `set_overlay` through `limitless_focus_v1` version 2, so the window does not
   move: `titlebar_overlaid()` is true and the `Titlebar` comes down over the
   content, right below the compositor bar, on an opaque band of
   `FullscreenBarStyle::tint`. The sidebar's traffic lights move down by the same

@@ -6,7 +6,7 @@ members = [
     "crates/bk",
     "crates/ctdesign",
     "crates/ctappearance",
-    "crates/infinity-protocol",
+    "crates/limitless-protocol",
 ]
 
 [workspace.package]
@@ -43,7 +43,7 @@ rust-embed = "8"
 
 ctdesign = { path = "crates/ctdesign" }
 ctappearance = { path = "crates/ctappearance" }
-infinity-protocol = { path = "crates/infinity-protocol" }
+limitless-protocol = { path = "crates/limitless-protocol" }
 
 freya-core = "=0.5.3"
 freya-components = { version = "=0.5.3", default-features = false }

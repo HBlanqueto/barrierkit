@@ -22,14 +22,14 @@ use crate::platform::{
     backdrop::{Chrome, Placement, Requests},
     linux::{
         glass::packed,
-        window_style::{BlendingMode, InfinityWindowStyleV1, wire},
+        window_style::{BlendingMode, LimitlessWindowStyleV1, wire},
     },
 };
 
 #[derive(Clone)]
 pub(crate) struct ChromeHost {
     pub(crate) subcompositor: Rc<SubcompositorState>,
-    pub(crate) style: InfinityWindowStyleV1,
+    pub(crate) style: LimitlessWindowStyleV1,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) queue: QueueHandle<Runtime>,
 }
@@ -128,7 +128,7 @@ impl ChromeSurface {
 
 // The requests go out before the buffer they describe, so both land in the parent's next commit.
 fn send_requests(
-    style: &InfinityWindowStyleV1,
+    style: &LimitlessWindowStyleV1,
     surface: &WlSurface,
     old: &Requests,
     new: &Requests,

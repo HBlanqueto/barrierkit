@@ -155,7 +155,7 @@ the compositor once per window:
 
 | Compositor | `Material` and `TopGlass` |
 |---|---|
-| `infinity_window_style_v1` version 10 or later (and `wl_subcompositor`) | Paint nothing and declare themselves: `TopGlass` a soft scroll edge, `Material` a `within_window` backdrop of `MaterialStyle::material` with its corner radius. The compositor draws the material, with its measured blur, saturation and tint |
+| `limitless_window_style_v1` version 10 or later (and `wl_subcompositor`) | Paint nothing and declare themselves: `TopGlass` a soft scroll edge, `Material` a `within_window` backdrop of `MaterialStyle::material` with its corner radius. The compositor draws the material, with its measured blur, saturation and tint |
 | Version 9 or lower, another compositor, no global | The opaque solid the kit draws under Reduce Transparency |
 | Either, with `reduce_transparency` | The same opaque solid |
 

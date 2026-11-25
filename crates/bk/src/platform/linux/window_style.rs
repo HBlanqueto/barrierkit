@@ -2,8 +2,8 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle, globals:
 
 use crate::platform::{PanelBehavior, runtime::Runtime};
 
-pub(crate) use infinity_protocol::client::style::infinity_window_style_v1::infinity_window_style_v1::{
-    BlendingMode, InfinityWindowStyleV1, Material, Panel,
+pub(crate) use limitless_protocol::client::style::limitless_window_style_v1::limitless_window_style_v1::{
+    BlendingMode, LimitlessWindowStyleV1, Material, Panel,
 };
 
 pub(crate) fn wire<T: TryFrom<u32, Error = ()>>(value: u32) -> T {
@@ -29,22 +29,22 @@ pub(crate) const BACKDROP_VERSION: u32 = 10;
 pub(crate) fn bind<State>(
     globals: &GlobalList,
     queue: &QueueHandle<State>,
-) -> Option<InfinityWindowStyleV1>
+) -> Option<LimitlessWindowStyleV1>
 where
-    State: Dispatch<InfinityWindowStyleV1, ()> + 'static,
+    State: Dispatch<LimitlessWindowStyleV1, ()> + 'static,
 {
     globals.bind(queue, 1..=BACKDROP_VERSION, ()).ok()
 }
 
-pub(crate) fn offers_backdrop(style: &InfinityWindowStyleV1) -> bool {
+pub(crate) fn offers_backdrop(style: &LimitlessWindowStyleV1) -> bool {
     style.version() >= BACKDROP_VERSION
 }
 
-impl Dispatch<InfinityWindowStyleV1, ()> for Runtime {
+impl Dispatch<LimitlessWindowStyleV1, ()> for Runtime {
     fn event(
         _: &mut Self,
-        _: &InfinityWindowStyleV1,
-        _: <InfinityWindowStyleV1 as Proxy>::Event,
+        _: &LimitlessWindowStyleV1,
+        _: <LimitlessWindowStyleV1 as Proxy>::Event,
         _: &(),
         _: &Connection,
         _: &QueueHandle<Self>,

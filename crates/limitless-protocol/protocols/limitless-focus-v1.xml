@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<protocol name="infinity_focus_v1">
+<protocol name="limitless_focus_v1">
   <copyright>
     Copyright © 2026 Malaysia contributors
 
@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_focus_manager_v1" version="5">
+  <interface name="limitless_focus_manager_v1" version="5">
     <description summary="focus mode notices for applications">
       Malaysia focus mode (ADR 0051): a maximized window gets a space of
       its own and the xdg fullscreen state. In that space, the pointer at the
@@ -62,12 +62,12 @@
         Creates an object that reports the notices that concern the toplevel
         or popup whose wl_surface is given. The others are never sent.
       </description>
-      <arg name="id" type="new_id" interface="infinity_focus_surface_v1"/>
+      <arg name="id" type="new_id" interface="limitless_focus_surface_v1"/>
       <arg name="surface" type="object" interface="wl_surface"/>
     </request>
   </interface>
 
-  <interface name="infinity_focus_surface_v1" version="5">
+  <interface name="limitless_focus_surface_v1" version="5">
     <description summary="focus mode notices for one toplevel or popup"/>
 
     <request name="destroy" type="destructor">

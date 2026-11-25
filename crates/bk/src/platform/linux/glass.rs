@@ -2,7 +2,7 @@ use sctk::reexports::client::{Proxy, protocol::wl_surface::WlSurface};
 
 use crate::platform::glass::GlassPanels;
 use crate::platform::linux::window_style::{
-    BlendingMode, InfinityWindowStyleV1, Material, offers_backdrop, wire,
+    BlendingMode, LimitlessWindowStyleV1, Material, offers_backdrop, wire,
 };
 use crate::platform::runtime::Runtime;
 use crate::platform::surface::SurfaceWindow;
@@ -20,7 +20,7 @@ const MINIMUM_VERSION: u32 = 6;
 const KNOB_VERSION: u32 = 9;
 
 impl Runtime {
-    pub(crate) fn glass_style(&self) -> Option<InfinityWindowStyleV1> {
+    pub(crate) fn glass_style(&self) -> Option<LimitlessWindowStyleV1> {
         self.window_style
             .clone()
             .filter(|style| style.version() >= MINIMUM_VERSION)
@@ -43,7 +43,7 @@ impl Runtime {
 
 // A compositor that offers `set_backdrop` draws the sidebar as the measured material behind the window.
 fn send_panels(
-    style: &InfinityWindowStyleV1,
+    style: &LimitlessWindowStyleV1,
     surface: &WlSurface,
     panels: &GlassPanels,
     measured: bool,

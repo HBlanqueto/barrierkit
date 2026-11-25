@@ -130,7 +130,7 @@ in.
 | `hud`, `panel`, `toolbar_on_hover` | Whether it is a HUD window; whether it is a utility window; whether its options ask for `WindowToolbarFullScreenVisibility::OnHover` |
 | `ime_preedit` | `State<String>` with the input method's composition text, empty when there is none. Committed text arrives as `Key::Character` events |
 | `focus_bar`, `focus_bar_progress`, `focus_bar_height`, `focus_overlay` | Malaysia's focus mode: whether the compositor bar is down, its animation progress (0…1), its height, and whether the window draws its title bar over the content ([9](09-titlebars.md#full-screen-and-focus-mode)) |
-| `desktop` | `State<Option<u32>>`: the number of the Malaysia desktop the window is on, from 1; `None` in a focus space or outside Malaysia (`infinity_focus_v1` 4) |
+| `desktop` | `State<Option<u32>>`: the number of the Malaysia desktop the window is on, from 1; `None` in a focus space or outside Malaysia (`limitless_focus_v1` 4) |
 | `traffic_lights_shown()` | `false` in full screen while the compositor bar is up |
 | `titlebar_overlaid()` | `true` in full screen when the title bar is drawn over the content |
 | `titlebar_overlay_top()` | The top of the overlaid title bar while it shows |
@@ -314,7 +314,7 @@ background: `content` draws its own `Titlebar` if it wants one.
 3. It neither saves nor restores its size. On Linux it takes the parent's
    `app_id`.
 4. On Linux, before its first commit it declares itself a panel
-   (`infinity_window_style_v1.set_panel`, version 3) with
+   (`limitless_window_style_v1.set_panel`, version 3) with
    `WindowOptions::panel`. A panel is never the main window: while it holds
    the keyboard, its parent stays active. Without version 3 it behaves like a
    normal window.

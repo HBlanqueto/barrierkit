@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<protocol name="infinity_window_style_v1">
+<protocol name="limitless_window_style_v1">
   <copyright>
     Copyright © 2026 Malaysia contributors
 
@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_style_v1" version="10">
+  <interface name="limitless_window_style_v1" version="10">
     <description summary="window style hints for applications">
       Malaysia rounds every window it composites (ADR 0059). As in macOS
       Tahoe, the corner radius depends on the window's bar. A

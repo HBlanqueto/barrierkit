@@ -52,7 +52,7 @@ sketch, the plan for P1 and the open questions.
    uploads shader code (`grep -rni shader` over `wayland-protocols` 0.32.13 and
    `wayland-protocols-plasma` 0.3.12: 0 matches). `ext-background-effect-v1`
    has one capability, `blur`; KDE's contrast protocol adds contrast, intensity,
-   saturation and a frost color. Malaysia's `infinity-window-style-v1` carries
+   saturation and a frost color. Malaysia's `limitless-window-style-v1` carries
    the rest.
 6. **Measured in Skia:** a backdrop filter of `blur` then a veil-and-cap tone
    shader flattens an 8 px checker to 153/255, the value the model of

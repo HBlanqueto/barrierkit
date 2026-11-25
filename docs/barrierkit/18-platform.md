@@ -121,17 +121,17 @@ to use Vulkan is [ADR 0056](../decisions.md).
 | `zwp_primary_selection_device_manager_v1` | sctk | No | The primary selection (middle-click paste) | No primary selection |
 | `zwp_text_input_manager_v3` | 1 | No | Input methods: preedit and commit | Keys only |
 | `org_kde_kwin_appmenu_manager` | 1 | No | Announces a window's D-Bus menu for the global menu bar | No global menu |
-| `infinity_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
-| `infinity_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
+| `limitless_focus_manager_v1` | 1–5 | No | Focus mode: when the bar comes down; from version 2, `set_overlay` and the bar height; from 3, the wallpaper behind the window; from 4, the desktop it is on (`WindowControls::desktop`); from 5, how light the glass under a popup is, which sets the ink of its menu (`theme::over_glass`) | Focus mode notices, the wallpaper tint and the desktop are missing |
+| `limitless_window_style_v1` | 1–10 | No | `set_bar` with the `Titlebar`'s bar; `set_popover` (v2) for popups; `set_panel` (v3) for utility windows; versions 4, 5 and 8 carry shell requests. Version 6 adds `set_glass`, which `Sidebar` sends for its glass panel ([Glass](10-sidebar.md#glass)); from version 10 it sends `set_backdrop` with `behind_window` instead ([ADR 0100](../decisions.md)). Version 7 adds `set_popover_shape`, which a `PopoverShape` popup sends. Version 9 adds `set_knobs`, which `Slider`, `LevelSlider` and `Switch` send for the knob they hold. Version 10 adds `set_backdrop` and `set_scroll_edge`, for glass over the window's own content: the kit binds at the lower of what the compositor offers and 10 and sends them only from 10 ([ADR 0091](../decisions.md), [ADR 0098](../decisions.md)) | The compositor guesses the window style; the glass is drawn by the kit |
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
-`infinity_*` protocols are Malaysia's private protocols, in
-`crates/infinity-protocol/protocols/`. They carry a fraction as thousandths in a
+`limitless_*` protocols are Malaysia's private protocols, in
+`crates/limitless-protocol/protocols/`. They carry a fraction as thousandths in a
 `u32` (`ctdesign::THOUSANDTHS`). When an optional global is missing,
 the runner logs it at `info` level and continues.
 
 A held `Slider`, `LevelSlider` or `Switch` knob is glass the compositor draws above
-the surface (`infinity_window_style_v1.set_knobs`, version 9). The control sends the
+the surface (`limitless_window_style_v1.set_knobs`, version 9). The control sends the
 knob's rectangle in surface-local logical pixels, its `Knob` kind and its tint before each
 commit, draws its track with no knob, and the lens refracts the pixels the app
 committed there. The compositor adds the knob's border and its shadow (`KNOB_HELD_SHADOW`, `KNOB_HELD_SHADOW_DARK` in the dark scheme).
@@ -166,7 +166,7 @@ the plan. This section says what the runner does and how to see it.
 
 **Goal:** draw the glass of `TopGlass` and `Material` with the compositor's
 blur, over the window's own content.
-**Scope:** a window of a compositor that offers `infinity_window_style_v1` at
+**Scope:** a window of a compositor that offers `limitless_window_style_v1` at
 version 10 or later. Everywhere else the kit draws the glass itself
 ([15](15-backdrops-and-media.md#who-draws-the-blur)).
 **Reader:** whoever changes the runner, or checks the glass on a real session.
@@ -366,7 +366,7 @@ app calls, who answers on macOS, who answers on Linux.
 
 - **Kit:** code in `bk`, the same on both systems.
 - **macOS:** AppKit, Core Animation, Metal and the Security and UserNotifications frameworks, in `crates/bk/src/platform/macos/`.
-- **Linux (Malaysia):** Wayland protocols and D-Bus services; what the compositor does, it does through `infinity-protocol` ([ADR 0091](../decisions.md)). Malaysia served `infinity_window_style_v1` version 10 and `infinity_window_manager_v1` version 8 on 2026-11-22 and pinned the kit at `ccf65557`.
+- **Linux (Malaysia):** Wayland protocols and D-Bus services; what the compositor does, it does through `limitless-protocol` ([ADR 0091](../decisions.md)). Malaysia served `limitless_window_style_v1` version 10 and `limitless_window_manager_v1` version 8 on 2026-11-22 and pinned the kit at `ccf65557`.
 
 | Capability | macOS | Linux (Malaysia) | State |
 |---|---|---|---|
@@ -379,7 +379,7 @@ app calls, who answers on macOS, who answers on Linux.
 | Drag and drop | Out: an `NSDraggingSession` from the content view with `NSPasteboardItem`s (`macos/view.rs`, `macos/pasteboard.rs`); in: no code | `wl_data_device`; out offers text, `text/html`, `image/png` and `text/uri-list`; in accepts only `text/uri-list` | Linux both ways; macOS out only (not run with a real drag) |
 | Text input | `NSTextInputClient` (`macos/view.rs`): committed and composing text, the candidates at `set_ime_cursor_area`; a CJK input method not run | `zwp_text_input_v3` (`ime.rs`) | both, macOS partial |
 | Accessibility | `accesskit_macos` on the content view (`macos/accessibility.rs`): VoiceOver and the AX API ([Accessibility](#accessibility)) | AT-SPI through `accesskit_unix` ([Accessibility](#accessibility)) | both |
-| Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, announced with `org_kde_kwin_appmenu_manager`; the shell reads it from the `app_menu` event of `infinity_window_manager_v1` | both |
+| Menus | `NSMenu` (`menu.rs`) | `com.canonical.dbusmenu`, announced with `org_kde_kwin_appmenu_manager`; the shell reads it from the `app_menu` event of `limitless_window_manager_v1` | both |
 | Status item | `NSStatusItem` (`status.rs`) | `StatusNotifierItem` | both |
 | File dialogs | `NSOpenPanel` and `NSSavePanel` as a sheet of the window, with extensions and a start folder (`macos/panels.rs`) | The `FileChooser` portal with the extensions as `filters` and the start folder as `current_folder`; no parent window, which needs `xdg-foreign` (`linux/panels.rs`, `linux/portal.rs`) | both, Linux partial |
 | Documents | Dirty dot and `representedURL`, the close veto (`windowShouldClose:`), the "Save changes?" `NSAlert` sheet, Cmd-Q and `application(_:openURLs:)` (`macos/panels.rs`, `macos/delegate.rs`) | The close request and `WindowControls::close()` are vetoed; the kit's `Alert` in a sheet window asks with the same buttons; quit closes the first edited window first; `org.freedesktop.Application.Open` hands each URI to `on_open_url`. No dirty dot (`linux/panels.rs`, `linux/window.rs`) | both |
@@ -404,7 +404,7 @@ How to keep it true:
 
 1. A new capability gets its row in the commit that adds it.
 2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 9 cannot send `set_backdrop` ([ADR 0091](../decisions.md)).
-3. A function that needs a new request goes into `infinity-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
+3. A function that needs a new request goes into `limitless-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
 4. `cfg(target_os)` stays in `platform/` ([crates/AGENTS.md](../../crates/AGENTS.md)): `platform/macos/` and `platform/linux/` hold what one system uses, and `platform/` holds what both use. The matrix names the file.
 
 To check each row on a Linux machine after changes made on a Mac, follow [Linux verification](linux-verification.md).

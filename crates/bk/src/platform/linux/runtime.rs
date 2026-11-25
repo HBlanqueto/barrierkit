@@ -111,10 +111,10 @@ pub struct Runtime {
     pub qh: QueueHandle<Runtime>,
     pub extension: Option<Extension>,
     pub(crate) appmenu_manager: Option<OrgKdeKwinAppmenuManager>,
-    pub(crate) focus_manager: Option<super::focus::InfinityFocusManagerV1>,
+    pub(crate) focus_manager: Option<super::focus::LimitlessFocusManagerV1>,
     pub(crate) dialog_manager:
         Option<wayland_protocols::xdg::dialog::v1::client::xdg_wm_dialog_v1::XdgWmDialogV1>,
-    pub window_style: Option<crate::platform::linux::window_style::InfinityWindowStyleV1>,
+    pub window_style: Option<crate::platform::linux::window_style::LimitlessWindowStyleV1>,
     pub(crate) fractional_manager: Option<WpFractionalScaleManagerV1>,
     pub(crate) viewporter: Option<WpViewporter>,
     pub(crate) timers: TimerQueue,
@@ -149,7 +149,7 @@ pub(crate) struct WindowContext {
     pub(crate) controls: WindowControls,
     pub(crate) app_id: String,
     pub(crate) state: String,
-    pub(crate) focus_notice: Option<super::focus::InfinityFocusSurfaceV1>,
+    pub(crate) focus_notice: Option<super::focus::LimitlessFocusSurfaceV1>,
     pub(crate) resolved: State<Resolved>,
     pub(crate) wallpaper: Option<ctdesign::Rgba>,
     pub(crate) wallpaper_fade: Option<WallpaperFade>,
@@ -470,7 +470,7 @@ impl Runtime {
             tracing::info!("org_kde_kwin_appmenu_manager unavailable; continuing without it");
         }
         let focus_manager = globals
-            .bind::<super::focus::InfinityFocusManagerV1, _, _>(&qh, 1..=5, ())
+            .bind::<super::focus::LimitlessFocusManagerV1, _, _>(&qh, 1..=5, ())
             .ok();
         let dialog_manager = globals.bind(&qh, 1..=1, ()).ok();
         let window_style = crate::platform::linux::window_style::bind(&globals, &qh);

@@ -3,7 +3,7 @@
 **Goal:** declare how a BarrierKit app asks for a material and Malaysia composes
 every blur, inside the window too, so the kit can delete its Skia backdrop
 blur.
-**Scope:** the protocol that landed in `infinity-protocol` (version 10), the
+**Scope:** the protocol that landed in `limitless-protocol` (version 10), the
 rules a compositor follows, the compositor algorithm, the kit changes, the
 phase 0 results, the GPU measurement that decides whether the in-window blur
 ships on by default, the kit ADRs
@@ -25,7 +25,7 @@ questions still open.
 | Decision | Taken by the owner: the compositor composes all blur; the kit drops its Skia in-window blur |
 | Requirements | The owner's, in [the Requirements section](#requirements) |
 | Phase 0 | Done, in software. The lag test passes; the frame time on a GPU is **NOT measured** |
-| Phase 1 | Done: `infinity_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), and Malaysia's «Blur and wallpaper tinting» |
+| Phase 1 | Done: `limitless_window_style_v1` version 10, [ADR 0091](../decisions.md) and [ADR 0092](../decisions.md), and Malaysia's «Blur and wallpaper tinting» |
 | Phase 2 | Started on 2026-11-22 as M2, before the GPU frame time is measured. The criterion of [section 10](#10-gpu-criterion-the-frame-time-of-the-band-pass) decides whether it ships on by default |
 | Phase 3 | Done on 2026-11-22 for what the compositor serves ([ADR 0098](../decisions.md), [ADR 0100](../decisions.md)): the kit declares `TopGlass`, `Material`, the full-screen glass bars and the sidebar to a compositor that offers version 10. Tested headlessly against a fake compositor and on raster canvases; **not run end to end**, which needs M2 on the owner's laptop ([section 7.3](#73-k3-the-slices-and-what-they-need)) |
 | Phase 4 | Partly done on 2026-11-22 ([ADR 0100](../decisions.md)): the Skia blur of `TopGlass`, `Material` and the full-screen bars is deleted. `GlassContainer` and the per-control `ShapeStyle::Material` keep theirs until Malaysia serves a lens and a material per control |
@@ -120,7 +120,7 @@ Consequences:
    Reduce Transparency (`FullscreenBar::Solid`, the `solid` of `Material`).
 3. Kit goldens and doc shots cannot show compositor blur. The tests of this
    blur live in Malaysia, on its headless renderer.
-4. Malaysia advertises version 10 of `infinity_window_style_v1` only when it
+4. Malaysia advertises version 10 of `limitless_window_style_v1` only when it
    serves the new requests (section 3, "Versions").
 
 ## 2. What the kit declares
@@ -142,8 +142,8 @@ question (section 9).
 
 ## 3. The protocol
 
-Version 10 of `infinity_window_style_v1` in
-[`infinity-window-style-v1.xml`](../../crates/infinity-protocol/protocols/infinity-window-style-v1.xml).
+Version 10 of `limitless_window_style_v1` in
+[`limitless-window-style-v1.xml`](../../crates/limitless-protocol/protocols/limitless-window-style-v1.xml).
 The XML is the only statement of each request; this section lists what it
 holds and what changed from the first draft.
 
@@ -245,7 +245,7 @@ that ignores the requests would leave the transparent rectangle empty.
    ignores the requests from other clients, and from surfaces outside the tree
    of a BarrierKit toplevel.
 8. **One request per surface.** A surface that sends `set_backdrop` and
-   `ext_background_effect_surface_v1.set_blur_region` gets the Infinity one.
+   `ext_background_effect_surface_v1.set_blur_region` gets the Limitless one.
    The in-window request never feeds the wallpaper path that reads the root's
    region. The region of a sub-surface stays ignored.
 9. **Capture.** A capture of the toplevel alone includes `within_window`
@@ -328,7 +328,7 @@ and 10. Item 6 is K4. The plan as first written follows.
    `vulkan.rs`), a `wl_subcompositor` binding, a synchronized sub-surface.
 4. Input and focus across the two surfaces: pointer enter and leave, scroll,
    cursor shape, IME and xdg popups all map to one Freya app.
-5. The bind range of `infinity_window_style_v1` in `platform/linux/window_style.rs` (`fn bind`)
+5. The bind range of `limitless_window_style_v1` in `platform/linux/window_style.rs` (`fn bind`)
    goes from `1..=9` to `1..=10`, a `BACKDROP_VERSION` of 10 beside
    `KNOB_VERSION`, and an outbox for the requests like `GlassOutbox`, flushed
    before the commit (`flush_glass` is the model).
@@ -343,7 +343,7 @@ and 10. Item 6 is K4. The plan as first written follows.
 | Phase | Output | Sessions | Status on 2026-11-21 |
 |---|---|---|---|
 | 0 | The experiment of section 7.2 | 1 to 2 | Done, in software. GPU frame time **NOT measured** |
-| 1 | Protocol version 10 in `infinity-protocol`, the ADRs | 1 to 2 | Done |
+| 1 | Protocol version 10 in `limitless-protocol`, the ADRs | 1 to 2 | Done |
 | 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Started on 2026-11-22 (M2), before the GPU frame time is measured. The criterion of section 10 decides whether it ships on by default |
 | 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Done on 2026-11-22 for what the compositor serves ([section 7.3](#73-k3-the-slices-and-what-they-need)) |
 | 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Partly done on 2026-11-22: deleted for `TopGlass`, `Material` and the full-screen bars; kept for `GlassContainer` and `ShapeStyle::Material` |

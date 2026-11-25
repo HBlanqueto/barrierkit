@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<protocol name="infinity_window_manager_v1">
+<protocol name="limitless_window_manager_v1">
   <copyright>
     Copyright © 2026 Malaysia contributors
 
@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_window_manager_v1" version="8">
+  <interface name="limitless_window_manager_v1" version="8">
     <description summary="private window geometry channel for malaysia-shell">
       This protocol is private to malaysia-shell. It lets the shell ask the
       compositor to place windows in halves, quarters, pairs and fullscreen

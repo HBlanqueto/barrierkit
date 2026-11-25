@@ -1,4 +1,4 @@
-// Each enum declares the values of its infinity-window-style-v1 namesake, which the Linux backend sends.
+// Each enum declares the values of its limitless-window-style-v1 namesake, which the Linux backend sends.
 
 /// How a window lays out its title bar and toolbar.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]

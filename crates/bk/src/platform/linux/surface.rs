@@ -54,7 +54,7 @@ pub struct SurfaceWindow {
     failing: bool,
     pub(crate) opaque_region: Option<((u32, u32), Rects)>,
     pub(crate) glass_holes: Rects,
-    pub(crate) glass_style: Option<crate::platform::linux::window_style::InfinityWindowStyleV1>,
+    pub(crate) glass_style: Option<crate::platform::linux::window_style::LimitlessWindowStyleV1>,
     pub(crate) background_alpha: f32,
     pub(crate) pending_configure: Option<(WindowConfigure, u32)>,
     pub(crate) appmenu: Option<OrgKdeKwinAppmenu>,
@@ -63,7 +63,7 @@ pub struct SurfaceWindow {
     pub(crate) fractional: Option<WpFractionalScaleV1>,
     pub(crate) viewport: Option<WpViewport>,
     pub(crate) context: Option<WindowContext>,
-    pub(crate) glass_notice: Option<super::focus::InfinityFocusSurfaceV1>,
+    pub(crate) glass_notice: Option<super::focus::LimitlessFocusSurfaceV1>,
     pub(crate) chrome_host: Option<ChromeHost>,
     pub(crate) chromes: Vec<ChromeSurface>,
 }

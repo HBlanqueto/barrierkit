@@ -1,5 +1,5 @@
 [package]
-name = "infinity-protocol"
+name = "limitless-protocol"
 description = "The window protocol between apps and the compositor."
 version.workspace = true
 edition.workspace = true

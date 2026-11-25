@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<protocol name="infinity_session_v1">
+<protocol name="limitless_session_v1">
   <copyright>
     Copyright © 2026 Malaysia contributors
 
@@ -23,7 +23,7 @@
     DEALINGS IN THE SOFTWARE.
   </copyright>
 
-  <interface name="infinity_session_v1" version="1">
+  <interface name="limitless_session_v1" version="1">
     <description summary="session lock notices for the shell">
       Tells the shell when the session starts to lock and when it is
       unlocked again, so the menu bar can turn into the lock screen's status

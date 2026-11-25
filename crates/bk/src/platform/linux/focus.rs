@@ -4,15 +4,15 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
 use super::runtime::Runtime;
 
-pub(crate) use infinity_protocol::client::focus::infinity_focus_v1::infinity_focus_manager_v1::InfinityFocusManagerV1;
-use infinity_protocol::client::focus::infinity_focus_v1::infinity_focus_surface_v1;
-pub(crate) use infinity_protocol::client::focus::infinity_focus_v1::infinity_focus_surface_v1::InfinityFocusSurfaceV1;
+pub(crate) use limitless_protocol::client::focus::limitless_focus_v1::limitless_focus_manager_v1::LimitlessFocusManagerV1;
+use limitless_protocol::client::focus::limitless_focus_v1::limitless_focus_surface_v1;
+pub(crate) use limitless_protocol::client::focus::limitless_focus_v1::limitless_focus_surface_v1::LimitlessFocusSurfaceV1;
 
-impl Dispatch<InfinityFocusManagerV1, ()> for Runtime {
+impl Dispatch<LimitlessFocusManagerV1, ()> for Runtime {
     fn event(
         _: &mut Self,
-        _: &InfinityFocusManagerV1,
-        _: <InfinityFocusManagerV1 as Proxy>::Event,
+        _: &LimitlessFocusManagerV1,
+        _: <LimitlessFocusManagerV1 as Proxy>::Event,
         _: &(),
         _: &Connection,
         _: &QueueHandle<Self>,
@@ -20,11 +20,11 @@ impl Dispatch<InfinityFocusManagerV1, ()> for Runtime {
     }
 }
 
-impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
+impl Dispatch<LimitlessFocusSurfaceV1, ObjectId> for Runtime {
     fn event(
         state: &mut Self,
-        _: &InfinityFocusSurfaceV1,
-        event: infinity_focus_surface_v1::Event,
+        _: &LimitlessFocusSurfaceV1,
+        event: limitless_focus_surface_v1::Event,
         surface_id: &ObjectId,
         _: &Connection,
         _: &QueueHandle<Self>,
@@ -32,7 +32,7 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
         let Some(index) = state.surface_index_by_id(surface_id) else {
             return;
         };
-        if let infinity_focus_surface_v1::Event::Glass { luma } = event {
+        if let limitless_focus_surface_v1::Event::Glass { luma } = event {
             let mut glass_luma = state.surfaces[index].app.glass_luma;
             let luma = Some(luma as f32 / ctdesign::THOUSANDTHS);
             if *glass_luma.peek() != luma {
@@ -42,7 +42,7 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
             }
             return;
         }
-        if let infinity_focus_surface_v1::Event::Wallpaper { rgb } = event {
+        if let limitless_focus_surface_v1::Event::Wallpaper { rgb } = event {
             let [_, r, g, b] = rgb.to_be_bytes();
             let global = *state.resolved.peek();
             if let Some(context) = state.surfaces[index].context.as_mut() {
@@ -56,8 +56,8 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
             return;
         };
         let revealed = match event {
-            infinity_focus_surface_v1::Event::Bar { revealed } => revealed,
-            infinity_focus_surface_v1::Event::Desktop { desktop } => {
+            limitless_focus_surface_v1::Event::Bar { revealed } => revealed,
+            limitless_focus_surface_v1::Event::Desktop { desktop } => {
                 let mut shown = context.controls.desktop;
                 let number = (desktop > 0).then_some(desktop);
                 if *shown.peek() != number {
@@ -66,7 +66,7 @@ impl Dispatch<InfinityFocusSurfaceV1, ObjectId> for Runtime {
                 }
                 return;
             }
-            infinity_focus_surface_v1::Event::BarHeight { height } => {
+            limitless_focus_surface_v1::Event::BarHeight { height } => {
                 let mut bar_height = context.controls.focus_bar_height;
                 if *bar_height.peek() != height as f32 {
                     bar_height.set(height as f32);

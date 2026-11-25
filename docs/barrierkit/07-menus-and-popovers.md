@@ -380,7 +380,7 @@ content view is the kit's Metal layer drawn clear: AppKit draws the Liquid
 Glass body, the arrow, the shadow and the placement, and follows Reduce
 Transparency. A click in a popup opened from the popover keeps it open.
 
-On Linux the app asks Malaysia, with `infinity_window_style_v1.set_popover` (version
+On Linux the app asks Malaysia, with `limitless_window_style_v1.set_popover` (version
 2), for the shape of `NSPopover` on macOS 26: a continuous 20 px corner and a
 25.42 × 13 px arrow with a round tip, filleted into the body, pointing at the
 centre of the anchor. The compositor clips, borders and shadows that shape
@@ -407,7 +407,7 @@ empty in `content`.
 | `Menu` | the menu corner, `components.shell.menu.panel.radius` (12; `CORNER_MENU.fitted` 12.5) | `POPOVER`, 25.42 × 13, with the `DOCK_MENU_ARROW_*` tip (6) and fillet (8) | [`pop_up_menu`](#pop_up_menu) |
 | `Label` | `DOCK_LABEL_RADIUS` (12, the menu bar's title pill), with circular arcs | `DOCK_LABEL_ARROW_*`, 22 × 6.5 | the name over a Dock icon |
 
-`Menu` and `Label` need `infinity_window_style_v1.set_popover_shape`
+`Menu` and `Label` need `limitless_window_style_v1.set_popover_shape`
 (version 7). Without it, the popup keeps a plain frame.
 
 On macOS the runner draws `Menu` and `Label` itself

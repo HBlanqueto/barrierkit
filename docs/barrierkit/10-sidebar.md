@@ -119,7 +119,7 @@ lights are in the sidebar, the first row starts below them.
 
 #### Glass
 
-With a compositor that offers `infinity_window_style_v1` version 6, as
+With a compositor that offers `limitless_window_style_v1` version 6, as
 Malaysia does, the sidebar is a glass panel. The kit leaves its rectangle
 transparent and sends it with `set_glass`, or from version 10 with
 `set_backdrop` ([18](18-platform.md#wayland-protocols)); the compositor draws
