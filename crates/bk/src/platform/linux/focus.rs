@@ -4,9 +4,9 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle};
 
 use super::runtime::Runtime;
 
-pub(crate) use limitless_protocol::client::focus::limitless_focus_v1::limitless_focus_manager_v1::LimitlessFocusManagerV1;
-use limitless_protocol::client::focus::limitless_focus_v1::limitless_focus_surface_v1;
-pub(crate) use limitless_protocol::client::focus::limitless_focus_v1::limitless_focus_surface_v1::LimitlessFocusSurfaceV1;
+pub(crate) use limitless::client::focus::limitless_focus_v1::limitless_focus_manager_v1::LimitlessFocusManagerV1;
+use limitless::client::focus::limitless_focus_v1::limitless_focus_surface_v1;
+pub(crate) use limitless::client::focus::limitless_focus_v1::limitless_focus_surface_v1::LimitlessFocusSurfaceV1;
 
 impl Dispatch<LimitlessFocusManagerV1, ()> for Runtime {
     fn event(

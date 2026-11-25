@@ -56,7 +56,7 @@ Cargo workspace with four library crates. They need Rust 1.98 (edition 2024).
 | `bk` | **BarrierKit**, the kit: Wayland and macOS runners, style, controls, views, patterns and app services. | Apps. |
 | `ctdesign` | **CTDesign** (CT = Curse Techniques): **Tengen**, the design system. `build.rs` turns `tengen/tokens.json` and `tengen/components.json` into Rust constants ([4](04-appearance-and-tokens.md#tokens-ctdesign)). | The kit and the desktop. |
 | `ctappearance` | **CTAppearance**: reads the user's appearance and the wallpaper color and resolves them into concrete colors ([4](04-appearance-and-tokens.md#user-appearance-ctappearance)). | The kit and the desktop. |
-| `limitless-protocol` | Private Wayland protocol between the apps and the Malaysia compositor ([18](18-platform.md)). | The kit and the compositor. |
+| `limitless` | Private Wayland protocol between the apps and the Malaysia compositor ([18](18-platform.md)). | The kit and the compositor. |
 
 `bk` has two Cargo features for apps. Only `a11y` is on by default; an app
 lists the other when it needs it: `bk = { …, features = ["tracy"] }`. A third,

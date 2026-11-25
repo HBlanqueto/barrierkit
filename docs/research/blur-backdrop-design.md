@@ -4,7 +4,7 @@
 every blur, inside the window too, so the kit can delete its Skia backdrop
 blur.
 **Superseded in part:** the requests of version 10 are the objects of [limitless_effects_v1](limitless-effects.md).
-**Scope:** the protocol that landed in `limitless-protocol` (version 10), the
+**Scope:** the protocol that landed in `limitless` (version 10), the
 rules a compositor follows, the compositor algorithm, the kit changes, the
 phase 0 results, the GPU measurement that decides whether the in-window blur
 ships on by default, the kit ADRs
@@ -144,7 +144,7 @@ question (section 9).
 ## 3. The protocol
 
 Version 10 of `limitless_window_style_v1` in
-[`limitless-window-style-v1.xml`](../../crates/limitless-protocol/protocols/limitless-window-style-v1.xml).
+[`limitless-window-style-v1.xml`](../../crates/limitless/protocols/limitless-window-style-v1.xml).
 The XML is the only statement of each request; this section lists what it
 holds and what changed from the first draft.
 
@@ -344,7 +344,7 @@ and 10. Item 6 is K4. The plan as first written follows.
 | Phase | Output | Sessions | Status on 2026-11-21 |
 |---|---|---|---|
 | 0 | The experiment of section 7.2 | 1 to 2 | Done, in software. GPU frame time **NOT measured** |
-| 1 | Protocol version 10 in `limitless-protocol`, the ADRs | 1 to 2 | Done |
+| 1 | Protocol version 10 in `limitless`, the ADRs | 1 to 2 | Done |
 | 2 | Compositor: state, split, blur, mask, gate, capture, tests | 3 to 5 | Started on 2026-11-22 (M2), before the GPU frame time is measured. The criterion of section 10 decides whether it ships on by default |
 | 3 | Kit: sub-surface, layer split, input, outbox | 4 to 6 | Done on 2026-11-22 for what the compositor serves ([section 7.3](#73-k3-the-slices-and-what-they-need)) |
 | 4 | Migrate the four elements, delete the Skia blur, update docs | 2 to 3 | Partly done on 2026-11-22: deleted for `TopGlass`, `Material` and the full-screen bars; kept for `GlassContainer` and `ShapeStyle::Material` |

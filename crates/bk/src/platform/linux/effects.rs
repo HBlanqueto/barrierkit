@@ -9,7 +9,7 @@ use crate::platform::{
     window_style::WireMaterial,
 };
 
-pub(crate) use limitless_protocol::client::effects::limitless_effects_v1::{
+pub(crate) use limitless::client::effects::limitless_effects_v1::{
     limitless_effects_v1::LimitlessEffectsV1,
     limitless_glass_container_v1::LimitlessGlassContainerV1,
     limitless_glass_effect_v1::{LimitlessGlassEffectV1, Style as GlassStyle},

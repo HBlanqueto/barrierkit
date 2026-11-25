@@ -44,7 +44,7 @@ async-io.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 freya-engine = { workspace = true, features = ["vulkan"] }
-limitless-protocol = { workspace = true, features = ["client"] }
+limitless = { workspace = true, features = ["client"] }
 accesskit_unix = { workspace = true, optional = true }
 sctk.workspace = true
 wayland-client = { workspace = true, features = ["system"] }

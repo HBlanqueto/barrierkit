@@ -127,7 +127,7 @@ to use Vulkan is [ADR 0056](../decisions.md).
 
 `sctk` means the version range smithay-client-toolkit 0.20 binds. The
 `limitless_*` protocols are Malaysia's private protocols, in
-`crates/limitless-protocol/protocols/`. They carry a fraction as thousandths in a
+`crates/limitless/protocols/`. They carry a fraction as thousandths in a
 `u32` (`ctdesign::THOUSANDTHS`). When an optional global is missing,
 the runner logs it at `info` level and continues.
 
@@ -368,7 +368,7 @@ app calls, who answers on macOS, who answers on Linux.
 
 - **Kit:** code in `bk`, the same on both systems.
 - **macOS:** AppKit, Core Animation, Metal and the Security and UserNotifications frameworks, in `crates/bk/src/platform/macos/`.
-- **Linux (Malaysia):** Wayland protocols and D-Bus services; what the compositor does, it does through `limitless-protocol` ([ADR 0091](../decisions.md)). Malaysia served `limitless_window_style_v1` version 10 on 2026-11-22 and pinned the kit at `ccf65557`.
+- **Linux (Malaysia):** Wayland protocols and D-Bus services; what the compositor does, it does through `limitless` ([ADR 0091](../decisions.md)). Malaysia served `limitless_window_style_v1` version 10 on 2026-11-22 and pinned the kit at `ccf65557`.
 
 | Capability | macOS | Linux (Malaysia) | State |
 |---|---|---|---|
@@ -406,7 +406,7 @@ How to keep it true:
 
 1. A new capability gets its row in the commit that adds it.
 2. The Linux cell names the request and the version that carries it. A client reads the version it bound and does not send a request above it: a client that binds 8 cannot send `set_knobs` ([ADR 0091](../decisions.md)).
-3. A function that needs a new request goes into `limitless-protocol` with a `since` number first. Malaysia serves it after it bumps its pin.
+3. A function that needs a new request goes into `limitless` with a `since` number first. Malaysia serves it after it bumps its pin.
 4. `cfg(target_os)` stays in `platform/` ([crates/AGENTS.md](../../crates/AGENTS.md)): `platform/macos/` and `platform/linux/` hold what one system uses, and `platform/` holds what both use. The matrix names the file.
 
 To check each row on a Linux machine after changes made on a Mac, follow [Linux verification](linux-verification.md).

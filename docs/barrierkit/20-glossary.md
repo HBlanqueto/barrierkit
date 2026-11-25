@@ -127,7 +127,7 @@ AI agent ([`.claude/skills/barrierkit-app/SKILL.md`](../../.claude/skills/barrie
 | `ctappearance::{MenuBarSize, ColorFilter}` and the `AppearanceConfig` keys `invert_colors`, `display_contrast`, `menu_bar_size`, `shake_to_locate`, `pointer_size`, `color_filters`, `color_filter`, `color_filter_intensity`, `liquid_glass_tint`, `gtk_bridge`, `qt_bridge`; `ctdesign::{POINTER_SIZES, DISPLAY_CONTRAST, COLOR_FILTER_INTENSITY}` | `ctshell::appearance::{DesktopAppearance, MenuBarSize, ColorFilter}`; the tokens in `ctshell::design`; the file keeps its keys | 2026-11-24 |
 | `ctappearance::resolve(appearance, dominant)` | `ctappearance::resolve(appearance, dominant, native_lights)`: each backend passes its `NATIVE_LIGHTS`, Malaysia `false` | 2026-11-24 |
 | `infinity_protocol::THOUSANDTHS` | `ctdesign::THOUSANDTHS` | 2026-11-24 |
-| `infinity-protocol`, `infinity_*` interfaces, `Infinity*` types, `infinity-*.xml` | `limitless-protocol`, `limitless_*`, `Limitless*`, `limitless-*.xml` | 2026-11-25 |
+| `infinity-protocol`, `infinity_*` interfaces, `Infinity*` types, `infinity-*.xml` | `limitless`, `limitless_*`, `Limitless*`, `limitless-*.xml` | 2026-11-25 |
 
 ## How to read the tables
 

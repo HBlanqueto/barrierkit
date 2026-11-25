@@ -42,7 +42,7 @@ nix develop
 - `bk` — the toolkit: platform runners, controls, views and window patterns.
 - `ctdesign` — Tengen, the design tokens, as typed Rust constants.
 - `ctappearance` — resolves the appearance settings and the wallpaper into a palette.
-- `limitless-protocol` — the private Wayland protocol shared with Malaysia.
+- `limitless` — the private Wayland protocol shared with Malaysia.
 
 ## Documentation
 

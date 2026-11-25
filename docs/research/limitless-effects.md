@@ -2,7 +2,7 @@
 
 **Goal:** replace the effect requests of `limitless_window_style_v1` with objects named as in AppKit and SwiftUI, so a new macOS effect adds an object, not a request with a `since` number.
 **Reader:** whoever writes the compositor side or moves the kit to it.
-**Status:** the XML is in `crates/limitless-protocol/protocols/limitless-effects-v1.xml` and the Linux backend of the kit sends it (`platform/linux/effects.rs`). No compositor serves it yet, and the Linux code was checked for types against the generated bindings, not built or run.
+**Status:** the XML is in `crates/limitless/protocols/limitless-effects-v1.xml` and the Linux backend of the kit sends it (`platform/linux/effects.rs`). No compositor serves it yet, and the Linux code was checked for types against the generated bindings, not built or run.
 
 ## Why
 
@@ -29,7 +29,7 @@ Tint and interaction of a glass (`Glass.tint`, `.interactive`), `state`, `isEmph
 
 ## What changed in the kit
 
-1. `limitless-protocol` has the `effects` module; `set_glass`, `set_backdrop` and `set_scroll_edge` left `limitless_window_style_v1`, now at version 9.
+1. `limitless` has the `effects` module; `set_glass`, `set_backdrop` and `set_scroll_edge` left `limitless_window_style_v1`, now at version 9.
 2. `platform/linux/effects.rs` binds the global and keeps one backdrop object and one scroll edge object per chrome surface (`Applied`), recreated when the material or the glass spacing changes. `platform/linux/glass.rs` keeps the sidebar's visual effect in `SurfaceWindow::sidebar`.
 3. `GlassPanels` lost `base`, `solid` and `chroma`: only `set_glass` read them.
 

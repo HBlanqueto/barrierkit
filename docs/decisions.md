@@ -29,7 +29,7 @@ Decision:
 - `bk` uses Freya's core crates pinned `=0.5.3`: `freya-core`, `freya-components` (no default features), `freya-edit`, `freya-animation`, `freya-engine`, `freya-clipboard`, `torin`, `ragnarok`.
 - Never `freya`, `freya-winit` or any `otto-*` crate.
 - Its own Wayland runner on smithay-client-toolkit and `calloop`.
-- Skia runs only in clients. `ctdesign`, `ctappearance` and `limitless-protocol` pull no Freya or Skia, so the compositor never links them.
+- Skia runs only in clients. `ctdesign`, `ctappearance` and `limitless` pull no Freya or Skia, so the compositor never links them.
 - The runner draws with Vulkan through `ash`, with no GL fallback. `freya-engine` builds Skia with only `vulkan`.
 - One shared device and `DirectContext`, one swapchain per surface, `MAILBOX` when offered, else `FIFO`.
 Why: winit would own the Wayland connection, and Freya's Vulkan driver lives in `freya-winit`. Frame callbacks already pace redraws, so `FIFO` would throttle twice.
@@ -42,9 +42,9 @@ Why: an app built on the kit is not Malaysia's, so its id, settings folder and b
 Code: `crates/bk/src/platform/window.rs`
 
 ## 0039 — Limitless v1
-Decision: `limitless-protocol` holds the private Wayland protocols that apps speak (`limitless_window_style_v1`, `limitless_focus_v1`): the client side with feature `client` and the server side with feature `server`, used by the compositor. The protocols only a desktop shell binds, `limitless_window_manager_v1` and `limitless_session_v1`, live with the shell in `limitless-shell`; the compositor decides which clients may bind them.
+Decision: `limitless` holds the private Wayland protocols that apps speak (`limitless_window_style_v1`, `limitless_focus_v1`): the client side with feature `client` and the server side with feature `server`, used by the compositor. The protocols only a desktop shell binds, `limitless_window_manager_v1` and `limitless_session_v1`, live with the shell in `limitless-shell`; the compositor decides which clients may bind them.
 Why: the standard protocols do not cover what apps ask of the compositor, and a toolkit repository carries only what its apps use.
-Code: `crates/limitless-protocol/protocols/`
+Code: `crates/limitless/protocols/`
 
 ## 0047 — BarrierKit in layers
 Decision: `bk` is one crate in four layers (platform, primitives, views, patterns) plus a cross-cutting `app`. A layer uses only the layers below it, and patterns compose only the public API of views. Code only a desktop shell uses lives outside the repository and reaches the runner through `bk`'s hidden `shell` feature.
@@ -53,7 +53,7 @@ Pending: nothing is built until an app needs it. Partial damage waits for Freya:
 Code: `crates/bk/src/lib.rs`, [Layers](barrierkit/03-layers.md)
 
 ## 0048 — BarrierKit in its own repository
-Decision: `bk`, `ctdesign`, `ctappearance` and `limitless-protocol` live in `github.com/HBlanqueto/barrierkit`. malaysia pins them by one git `rev` in `Cargo.toml` and takes barrierkit as a flake input, reusing its prebuilt Skia. `./dev.sh kit-local` in malaysia tests a local checkout before publishing.
+Decision: `bk`, `ctdesign`, `ctappearance` and `limitless` live in `github.com/HBlanqueto/barrierkit`. malaysia pins them by one git `rev` in `Cargo.toml` and takes barrierkit as a flake input, reusing its prebuilt Skia. `./dev.sh kit-local` in malaysia tests a local checkout before publishing.
 Why: the toolkit carries its style and its reading of the appearance; keeping them in malaysia would make the two repos depend on each other.
 Code: `flake.nix`
 
@@ -131,7 +131,7 @@ Decided by the owner on 2026-11-22: the criterion for the in-window blur is the 
 Decided by the owner on 2026-11-22: M2 and K3 start before the GPU frame time is measured; the owner accepts the risk that the work is wasted if the GPU criterion fails; the criterion still decides whether it ships on by default ([order of execution](research/blur-backdrop-design.md#71-the-phases)).
 Decided by the owner on 2026-11-22: the kit's own Skia backdrop blur is deleted at the end of the plan, and Malaysia applies the measured values in every shell component ([order of execution](research/blur-backdrop-design.md#71-the-phases)).
 Pending: confirmation by the owner of the protocol's shape (physical `leading` and `trailing`, `automatic` left to the compositor, the glass styles inside `material`, `set_backdrop` winning over `ext-background-effect-v1`, the radius in logical pixels at every scale). To review when the measurements end: whether version 10 carries all of macOS's configuration (`state`, `isEmphasized`, `maskImage`, `tintColor`, `effectIsInteractive`, container `spacing`, SwiftUI `tint` and `interactive`) or must grow before Malaysia serves it ([design 9.3](research/blur-backdrop-design.md#93-to-review-when-the-measurements-end)). The blur values per material are being measured ([materials](research/macos-materials.md), [blur](research/macos-blur.md)); the extent at 2x on macOS and what `automatic` resolves to are not measured.
-Code: `crates/limitless-protocol/protocols/limitless-window-style-v1.xml`, [Backdrop design](research/blur-backdrop-design.md), [Who composes the blur](research/blur-ownership.md)
+Code: `crates/limitless/protocols/limitless-window-style-v1.xml`, [Backdrop design](research/blur-backdrop-design.md), [Who composes the blur](research/blur-ownership.md)
 
 ## 0092 — In-window glass is a request
 Date: 2026-11-21

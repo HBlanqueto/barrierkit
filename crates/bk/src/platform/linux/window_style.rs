@@ -2,7 +2,7 @@ use sctk::reexports::client::{Connection, Dispatch, Proxy, QueueHandle, globals:
 
 use crate::platform::{PanelBehavior, runtime::Runtime};
 
-pub(crate) use limitless_protocol::client::style::limitless_window_style_v1::limitless_window_style_v1::{
+pub(crate) use limitless::client::style::limitless_window_style_v1::limitless_window_style_v1::{
     LimitlessWindowStyleV1, Panel,
 };
 
