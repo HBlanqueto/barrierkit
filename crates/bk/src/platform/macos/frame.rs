@@ -20,6 +20,9 @@ pub(super) fn frame(
             NSWindowStyleMask::Borderless | lights,
             DecorationResponse::Client,
         ),
+        WindowStyle::Borderless => {
+            return (NSWindowStyleMask::Borderless, DecorationResponse::Client);
+        }
     };
     let resize = if resizable {
         NSWindowStyleMask::Resizable

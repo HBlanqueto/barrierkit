@@ -167,6 +167,7 @@ and sheets are always `TitleBar`.
 | `TitleBar` | titled, native lights | `Server` | Apps that look like any Mac app |
 | `HiddenTitleBar` | titled with `fullSizeContentView`, transparent title bar, and, once a `Titlebar` is drawn, an empty `NSToolbar` whose style follows its `toolbar_style`, so the native lights sit where the kit draws its own: (18, 18) under `Unified`, (11, 12) under `UnifiedCompact`, (9, 9) under `Expanded`, (8, 8) with no `Titlebar`, as SwiftUI's `.hiddenTitleBar` | `Hybrid` | Any window with a `Titlebar`: the kit draws it and the sidebar beside the native lights, with AppKit's wallpaper tint |
 | `Plain` | borderless, shadow, corner `CORNER_WINDOW.fitted` | `Client` | A frame drawn as on Linux: the kit draws the `Titlebar` and `TrafficLights`, with no wallpaper tint and the limits below |
+| `Borderless` | style mask 0, clear, no shadow, `.fullScreenNone` | `Client` | SwiftUI's `.windowStyle(.plain)`: only the content shows, with no background, corners or lights; the window never becomes key or main, never resizes and never enters full screen |
 
 In an `Application`, a `HiddenTitleBar` or `Plain` window gets no kit
 `Titlebar`: the app draws its own and keeps the scenes and the standard menus

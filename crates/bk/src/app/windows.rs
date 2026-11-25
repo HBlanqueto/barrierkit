@@ -388,7 +388,9 @@ fn window_root(options: &WindowOptions, content: AppComponent) -> Element {
     rect()
         .expanded()
         .background(crate::theme::color(
-            if crate::theme::window_material_here() {
+            if crate::theme::window_material_here()
+                || options.window_style == WindowStyle::Borderless
+            {
                 ctdesign::Rgba::TRANSPARENT
             } else {
                 crate::style::Palette::current().window_background

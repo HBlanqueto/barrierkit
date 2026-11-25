@@ -47,6 +47,7 @@ pub enum WindowStyle {
     TitleBar,
     HiddenTitleBar,
     Plain,
+    Borderless,
 }
 
 impl WindowStyle {
@@ -55,7 +56,7 @@ impl WindowStyle {
             Self::TitleBar if system_title_bar => 0,
             Self::TitleBar => ctdesign::TITLEBAR_CLIENT_HEIGHT,
             Self::HiddenTitleBar => ctdesign::SETTINGS.toolbar_height,
-            Self::Plain => 0,
+            Self::Plain | Self::Borderless => 0,
         }
     }
 }

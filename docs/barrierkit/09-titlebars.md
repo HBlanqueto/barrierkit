@@ -70,7 +70,9 @@ in full screen and with the pointer at the top edge, and matches within 1 to
 | `.windowToolbarFullScreenVisibility(.onHover)` | `WindowOptions::window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility::OnHover)` | As its design windowed; no bar at rest in full screen |
 
 `WindowStyle::Plain` is not a SwiftUI design: it is a borderless frame drawn as
-on Linux, with the kit's own lights ([8](08-windows.md#window-style)).
+on Linux, with the kit's own lights. SwiftUI's `.windowStyle(.plain)` is
+`WindowStyle::Borderless`: no bar, no lights, only the content
+([8](08-windows.md#window-style)).
 
 ## Titlebar
 

@@ -24,8 +24,8 @@ use objc2::runtime::ProtocolObject;
 use objc2::{MainThreadMarker, MainThreadOnly, sel};
 use objc2_app_kit::{
     NSAppearance, NSAppearanceCustomization, NSAppearanceNameAqua, NSAppearanceNameDarkAqua,
-    NSApplication, NSApplicationActivationPolicy, NSAutoresizingMaskOptions, NSColor, NSEvent,
-    NSEventModifierFlags, NSEventType, NSLayoutAttribute, NSSplitViewController,
+    NSApplication, NSApplicationActivationPolicy, NSAutoresizingMaskOptions, NSBackingStoreType,
+    NSColor, NSEvent, NSEventModifierFlags, NSEventType, NSLayoutAttribute, NSSplitViewController,
     NSTitlebarAccessoryViewController, NSTitlebarSeparatorStyle, NSToolbar, NSToolbarDisplayMode,
     NSView, NSVisualEffectBlendingMode, NSWindow, NSWindowButton, NSWindowCollectionBehavior,
     NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
@@ -814,7 +814,20 @@ impl Runtime {
             style,
             self.mtm,
         );
-        let window = Retained::into_super(Toplevel::new(self.mtm, frame, style));
+        let window = if window_style == WindowStyle::Borderless {
+            // SAFETY: NSWindow's designated initializer; a plain borderless NSWindow refuses key and main, as SwiftUI's `.plain`.
+            unsafe {
+                NSWindow::initWithContentRect_styleMask_backing_defer(
+                    NSWindow::alloc(self.mtm),
+                    frame,
+                    style,
+                    NSBackingStoreType::Buffered,
+                    false,
+                )
+            }
+        } else {
+            Retained::into_super(Toplevel::new(self.mtm, frame, style))
+        };
         // SAFETY: the runner owns the window; `setReleasedWhenClosed(false)` keeps it valid after close.
         unsafe { window.setReleasedWhenClosed(false) };
         window.setTitle(&NSString::from_str(&options.title));
@@ -830,6 +843,15 @@ impl Runtime {
                 window.setBackgroundColor(Some(&NSColor::clearColor()));
                 window.setHasShadow(true);
                 window.setCollectionBehavior(NSWindowCollectionBehavior::FullScreenPrimary);
+            }
+            WindowStyle::Borderless => {
+                window.setOpaque(false);
+                window.setBackgroundColor(Some(&NSColor::clearColor()));
+                window.setHasShadow(false);
+                window.setCollectionBehavior(
+                    NSWindowCollectionBehavior::Primary
+                        | NSWindowCollectionBehavior::FullScreenNone,
+                );
             }
         }
         let bar = window_style.inner_bar_height(true);
@@ -848,7 +870,7 @@ impl Runtime {
         }
         // A titled window's frame holds AppKit's background material, which shows where the kit paints none.
         let titled = style.contains(NSWindowStyleMask::Titled);
-        layer.setOpaque(!titled);
+        layer.setOpaque(!titled && window_style != WindowStyle::Borderless);
         let container = blur::container(self.mtm, frame);
         view.setAutoresizingMask(
             NSAutoresizingMaskOptions::ViewWidthSizable
@@ -1249,7 +1271,10 @@ impl Runtime {
         let window = &mut self.windows[index];
         let scale = window.window.backingScaleFactor();
         let resolved = *window.app.resolved.read();
-        let background = if window.popup.is_some() {
+        // A popup and a `Borderless` window (style mask 0) show only what the kit draws, as SwiftUI's `.plain`.
+        let background = if window.popup.is_some()
+            || window.window.styleMask() == NSWindowStyleMask::Borderless
+        {
             crate::theme::color(ctdesign::Rgba::TRANSPARENT)
         } else {
             let titled = window
