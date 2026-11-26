@@ -1,0 +1,42 @@
+# dock
+tone(G) 12 26 39 51 64 87 108 128 145 161 169 176
+e0255: sigma 16.00 px shift -0.1 rms(in-levels) 2.6  raw 82 87 91 96 101 105 110 114 119 123 127 130 134
+e2550: sigma 16.05 px shift +0.1 rms(in-levels) 3.4  raw 130 127 123 119 114 110 105 101 96 91 87 82 78
+e064: sigma 15.85 px shift -0.2 rms(in-levels) 1.0  raw 31 32 34 35 37 38 40 41 43 44 45 47 48
+lw: sigma 15.70 px shift +1.4 rms(in-levels) 0.6  raw 18 18 18 18 18 18 18 18 18 18 18 18 18
+lb: sigma 19.10 px shift -0.5 rms(in-levels) 2.1  raw 173 173 173 173 173 173 173 173 172 172 173 173 173
+# apple
+tone(G) 32 39 46 52 58 68 76 82 85 86 86 86
+e0255: sigma 19.95 px shift +2.0 rms(in-levels) 55.8  raw 69 70 71 72 74 75 76 77 78 79 80 80 81
+e2550: sigma 19.95 px shift -2.0 rms(in-levels) 59.1  raw 80 80 79 79 78 77 76 75 73 72 70 69 67
+e064: sigma 19.95 px shift -0.7 rms(in-levels) 4.9  raw 43 43 44 44 45 45 46 46 47 48 48 49 49
+lw: sigma 19.95 px shift -2.0 rms(in-levels) 0.9  raw 34 34 34 35 34 34 34 34 34 34 34 33 33
+lb: sigma 19.95 px shift +2.0 rms(in-levels) 26.0  raw 87 87 87 87 87 87 87 87 87 87 87 87 87
+# spot
+tone(G) 32 39 46 52 58 68 76 82 85 86 86 86
+e0255: sigma 19.95 px shift +2.0 rms(in-levels) 50.6  raw 68 70 71 73 75 76 78 79 80 81 81 82 82
+e2550: sigma 19.95 px shift -2.0 rms(in-levels) 55.9  raw 80 79 79 78 77 75 74 72 70 69 67 65 64
+e064: sigma 19.95 px shift -1.8 rms(in-levels) 3.9  raw 42 43 44 44 45 46 47 47 48 49 49 50 50
+lw: sigma 19.95 px shift +2.0 rms(in-levels) 1.0  raw 33 33 33 33 34 34 34 34 34 34 34 34 34
+lb: sigma 19.95 px shift -2.0 rms(in-levels) 26.8  raw 87 87 87 87 87 87 87 87 87 87 87 87 87
+# cc
+tone(G) 32 41 51 61 71 90 110 129 149 168 178 186
+e0255: sigma 16.70 px shift +0.1 rms(in-levels) 2.0  raw 88 92 96 100 103 107 111 115 119 123 127 130 134
+e2550: sigma 16.65 px shift -0.1 rms(in-levels) 2.0  raw 130 126 123 119 115 111 107 103 99 95 91 88 84
+e064: sigma 16.40 px shift -0.3 rms(in-levels) 0.7  raw 46 47 48 49 50 51 52 53 54 55 56 57 58
+lw: sigma 14.50 px shift +1.2 rms(in-levels) 0.6  raw 35 35 36 36 36 36 36 36 36 36 36 36 36
+lb: sigma 14.40 px shift +0.9 rms(in-levels) 0.8  raw 183 183 183 183 183 182 182 182 182 183 183 183 183
+# apps
+tone(G) 32 39 46 52 58 68 76 82 85 86 86 86
+e0255: sigma 19.95 px shift +2.0 rms(in-levels) 52.0  raw 68 70 71 73 75 76 77 78 79 80 80 81 81
+e2550: sigma 19.95 px shift -2.0 rms(in-levels) 52.2  raw 80 80 79 78 77 76 74 73 72 70 69 68 66
+e064: sigma 19.95 px shift -0.5 rms(in-levels) 3.4  raw 42 43 44 44 45 46 46 47 48 48 49 49 49
+lw: sigma 19.95 px shift +2.0 rms(in-levels) 0.9  raw 33 33 34 34 34 34 34 34 34 34 34 34 34
+lb: sigma 19.95 px shift -2.0 rms(in-levels) 27.7  raw 87 87 87 87 87 87 87 87 87 87 87 87 87
+# popover
+tone(G) 25 36 47 59 70 93 115 138 160 183 194 205
+e0255: sigma 15.20 px shift +0.1 rms(in-levels) 2.9  raw 84 88 93 98 103 109 115 121 128 134 140 145 150
+e2550: sigma 15.20 px shift +0.2 rms(in-levels) 2.9  raw 146 142 137 132 126 121 115 109 102 96 90 85 80
+e064: sigma 15.25 px shift +0.2 rms(in-levels) 0.7  raw 40 40 42 43 44 46 47 49 50 52 54 55 56
+lw: sigma 14.35 px shift -2.0 rms(in-levels) 0.9  raw 30 31 31 31 31 31 30 30 29 29 28 28 28
+lb: sigma 15.70 px shift -2.0 rms(in-levels) 0.8  raw 200 199 199 199 199 199 200 200 201 201 202 202 202

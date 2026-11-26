@@ -1,0 +1,20 @@
+# dock-tl
+circle radius 21.9 px, edge offset -0.2, rms 0.19, inner diff 191
+# apple-bl
+circle radius 51.2 px, edge offset -2.0, rms 10.13, inner diff 70
+# spot-bl
+circle radius 42.3 px, edge offset -2.0, rms 5.28, inner diff 70
+# apps-tl
+circle radius 31.6 px, edge offset -0.5, rms 2.18, inner diff 70
+# popover-tr
+circle radius 28.7 px, edge offset -0.5, rms 3.81, inner diff 171
+# dock-tl
+circle radius 47.0 px, edge offset +2.0, rms 5.40, inner diff 215
+# apple-bl
+circle radius 19.2 px, edge offset +2.0, rms 8.46, inner diff 70
+# spot-bl
+circle radius 23.2 px, edge offset -0.7, rms 1.97, inner diff 70
+# apps-tl
+circle radius 38.6 px, edge offset +2.0, rms 5.93, inner diff 70
+# popover-tr
+circle radius 20.9 px, edge offset -0.3, rms 0.34, inner diff 184

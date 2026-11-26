@@ -1,0 +1,49 @@
+contentBackground        aqua active   k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+contentBackground        aqua inactive k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+contentBackground        dark active   k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+contentBackground        dark inactive k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+glass                    aqua active   k=0.002 0.000 0.001 n=224.3 224.0 224.2 encRMS/max=0.25/1.0 linRMS/max=0.25/0.9 span=1
+glass                    aqua inactive k=0.002 0.000 0.001 n=224.3 224.0 224.2 encRMS/max=0.25/1.0 linRMS/max=0.25/0.9 span=1
+glass                    dark active   k=0.006 0.003 0.003 n= 74.9  75.3  75.2 encRMS/max=0.33/0.9 linRMS/max=0.31/0.8 span=3
+glass                    dark inactive k=0.006 0.003 0.003 n= 74.9  75.3  75.2 encRMS/max=0.33/0.9 linRMS/max=0.31/0.8 span=3
+headerView               aqua active   k=0.000 0.000 0.000 n=230.0 230.0 230.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+headerView               aqua inactive k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+headerView               dark active   k=0.065 0.071 0.070 n= 53.0  51.1  51.9 encRMS/max=1.77/4.4 linRMS/max=1.96/4.8 span=22
+headerView               dark inactive k=0.086 0.091 0.091 n= 34.3  32.0  32.6 encRMS/max=2.06/5.7 linRMS/max=2.29/5.9 span=28
+hudWindow                aqua active   k=0.043 0.047 0.044 n=186.2 185.5 185.2 encRMS/max=1.28/3.9 linRMS/max=1.33/3.2 span=15
+hudWindow                aqua inactive k=0.042 0.046 0.045 n=240.3 240.0 240.2 encRMS/max=1.27/3.9 linRMS/max=1.40/3.2 span=14
+hudWindow                dark active   k=0.044 0.046 0.044 n= 94.6  93.6  94.0 encRMS/max=1.11/2.6 linRMS/max=1.36/3.3 span=15
+hudWindow                dark inactive k=0.044 0.046 0.044 n= 42.2  40.8  41.3 encRMS/max=1.32/3.6 linRMS/max=1.31/3.2 span=15
+menu                     aqua active   k=0.046 0.046 0.045 n=214.1 213.1 213.2 encRMS/max=1.10/2.6 linRMS/max=1.38/3.3 span=16
+menu                     aqua inactive k=0.042 0.046 0.045 n=240.3 240.0 240.2 encRMS/max=1.27/3.9 linRMS/max=1.40/3.2 span=14
+menu                     dark active   k=0.042 0.047 0.044 n= 68.0  66.9  67.0 encRMS/max=1.23/3.9 linRMS/max=1.29/3.2 span=14
+menu                     dark inactive k=0.087 0.093 0.092 n= 44.1  41.6  42.3 encRMS/max=2.02/5.7 linRMS/max=2.33/5.9 span=29
+plain                    aqua active   k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+plain                    aqua inactive k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+plain                    dark active   k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+plain                    dark inactive k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+popover                  aqua active   k=0.042 0.046 0.045 n=199.6 199.1 199.2 encRMS/max=1.27/3.9 linRMS/max=1.33/3.2 span=14
+popover                  aqua inactive k=0.042 0.046 0.045 n=240.3 240.0 240.2 encRMS/max=1.27/3.9 linRMS/max=1.40/3.2 span=14
+popover                  dark active   k=0.044 0.046 0.045 n= 76.8  75.8  76.0 encRMS/max=1.05/2.6 linRMS/max=1.32/3.3 span=15
+popover                  dark inactive k=0.087 0.093 0.092 n= 44.1  41.6  42.3 encRMS/max=2.02/5.7 linRMS/max=2.33/5.9 span=29
+sidebar                  aqua active   k=0.045 0.047 0.044 n=227.3 227.2 226.8 encRMS/max=1.19/2.8 linRMS/max=1.49/3.1 span=16
+sidebar                  aqua inactive k=0.042 0.046 0.045 n=240.3 240.0 240.2 encRMS/max=1.27/3.9 linRMS/max=1.40/3.2 span=14
+sidebar                  dark active   k=0.046 0.047 0.044 n= 59.6  58.6  59.2 encRMS/max=1.18/3.1 linRMS/max=1.25/2.7 span=15
+sidebar                  dark inactive k=0.087 0.093 0.092 n= 44.1  41.6  42.3 encRMS/max=2.02/5.7 linRMS/max=2.33/5.9 span=29
+split-content            aqua active   k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+split-content            aqua inactive k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+split-content            dark active   k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+split-content            dark inactive k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+split-sidebar            aqua active   k=0.000 0.000 0.000 n=235.2 235.1 235.2 encRMS/max=0.04/0.1 linRMS/max=0.04/0.1 span=0
+split-sidebar            aqua inactive k=0.000 0.000 0.000 n=242.0 242.0 242.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+split-sidebar            dark active   k=0.000 0.000 0.000 n= 40.0  40.0  40.0 encRMS/max=0.02/0.1 linRMS/max=0.02/0.1 span=0
+split-sidebar            dark inactive k=0.000 0.000 0.000 n= 37.0  37.0  37.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+underWindowBackground    aqua active   k=0.045 0.047 0.044 n=227.3 227.2 226.8 encRMS/max=1.19/2.8 linRMS/max=1.49/3.1 span=16
+underWindowBackground    aqua inactive k=0.042 0.046 0.045 n=240.3 240.0 240.2 encRMS/max=1.27/3.9 linRMS/max=1.40/3.2 span=14
+underWindowBackground    dark active   k=0.046 0.047 0.044 n= 59.6  58.6  59.2 encRMS/max=1.18/3.1 linRMS/max=1.25/2.7 span=15
+underWindowBackground    dark inactive k=0.087 0.093 0.092 n= 44.1  41.6  42.3 encRMS/max=2.02/5.7 linRMS/max=2.33/5.9 span=29
+windowBackground         aqua active   k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+windowBackground         aqua inactive k=0.000 0.000 0.000 n=255.0 255.0 255.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+windowBackground         dark active   k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+windowBackground         dark inactive k=0.000 0.000 0.000 n= 30.0  30.0  30.0 encRMS/max=0.00/0.0 linRMS/max=0.00/0.0 span=0
+wall {'red': [255, 0, 0], 'green': [0, 255, 2], 'blue': [2, 1, 255], 'white': [255, 255, 255], 'black': [0, 0, 0], 'gray': [128, 128, 128], 'orange': [255, 128, 2], 'navy': [38, 81, 160], 'ice': [201, 220, 255]}

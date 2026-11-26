@@ -1,0 +1,3 @@
+AppleAccentColor: Error: Could not find key 'AppleAccentColor' in domain 'kCFPreferencesAnyApplication'.
+AppleHighlightColor: Error: Could not find key 'AppleHighlightColor' in domain 'kCFPreferencesAnyApplication'.
+AppleInterfaceStyle: Dark

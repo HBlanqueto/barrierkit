@@ -1,0 +1,5 @@
+com.anthropic.claudefordesktop.plist
+com.apple.Wallpaper-Settings.extension.plist
+com.apple.wallpaper.aerial.plist
+com.apple.wallpaper.plist
+com.tdesktop.Telegram.plist

@@ -1,0 +1,6 @@
+4e831763051518790d68e5d0d6910ba50e05acf2  Index.plist
+63a49c721a590def1bfc7860a3ed6123a3ab2eb3  com.anthropic.claudefordesktop.plist
+35b5446e9c7b1c924c2e5aa3037bf5502573681e  com.apple.Wallpaper-Settings.extension.plist
+b24f16e2c395ca1e1736e2c45f9e2e90e8959e76  com.apple.wallpaper.aerial.plist
+07441364b5f5bb4c33027536314096b109f2a750  com.apple.wallpaper.plist
+ab7e0cb8101d48cd7ddc89d15351a430336e31bf  com.tdesktop.Telegram.plist

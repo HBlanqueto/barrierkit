@@ -1,0 +1,61 @@
+dock AX list (x y w h): [164, 1262, 2232, 158] px = [82.0, 631.0, 1116.0, 79.0] pt
+dock glass height: 158.00 px = 79.00 pt  top 1272 bottom 1429
+dock glass width: 2214.00 px = 1107.00 pt  left 173 right 2386
+menu bar height (visible top inset): 30 pt
+dock reserved bottom: visible ['85', '605'] pt
+dock rim col@g128 (top..top+6): 128 156 136 118 115 113 112 111 111 110 110 109 109 109
+dock rim col@g0 (top..top+6): 0 104 65 30 26 22 20 18 17 16 15 14 14 13
+dock tone@128: (raw out at in 0/64/128/192/255: 12 64 108.0 145 176)
+dock sigma e0255: 32.00 px = 16.00 pt  rms 2.6 shift +0.0
+dock sigma e2550: 32.50 px = 16.25 pt  rms 2.5 shift -0.2
+dock sigma e064: 32.00 px = 16.00 pt  rms 1.0 shift -0.4
+dock sigma lb: 30.50 px = 15.25 pt  rms 1.3 shift +3.0
+dock sigma lw: 40.00 px = 20.00 pt  rms 1.2 shift +2.4
+dock corner radius: 38.80 px = 19.40 pt  edge offset -0.9, rms 0.27, inner diff 164
+dark active shadow: 39.00 px = 19.50 pt  A 0.690 spread +0.5 pt dy 36.0 px = 18.00 pt rms 0.0010
+dark active alpha top/bottom/left at d=1,4,10,20,40 pt: 0.138 0.096 0.057 0.020 0.000 | 0.573 0.535 0.463 0.326 0.096 | 0.352 0.299 0.220 0.113 0.015
+titled-dark outline row on black (x0-3pt..x0+3pt): 0 0 1 0 0 0 53 53 31 31 31 31 31
+titled-dark outline col on black top (y0-3pt..y0+3pt): 0 1 0 0 0 0 60 60 38 38 38 38 38
+aqua inactive shadow: 16.00 px = 8.00 pt  A 0.220 spread +0.0 pt dy 14.0 px = 7.00 pt rms 0.0004
+aqua inactive alpha top/bottom/left at d=1,4,10,20,40 pt: 0.056 0.019 0.004 0.001 0.000 | 0.189 0.144 0.081 0.012 0.000 | 0.122 0.071 0.024 0.001 0.000
+dark inactive shadow: 16.00 px = 8.00 pt  A 0.451 spread +0.0 pt dy 14.0 px = 7.00 pt rms 0.0006
+dark inactive alpha top/bottom/left at d=1,4,10,20,40 pt: 0.091 0.039 0.008 0.001 0.000 | 0.365 0.296 0.166 0.024 0.000 | 0.225 0.145 0.050 0.002 0.000
+aqua active shadow: 39.50 px = 19.75 pt  A 0.393 spread +0.5 pt dy 36.0 px = 18.00 pt rms 0.0006
+aqua active alpha top/bottom/left at d=1,4,10,20,40 pt: 0.094 0.055 0.033 0.011 0.000 | 0.338 0.304 0.264 0.186 0.055 | 0.214 0.171 0.126 0.065 0.009
+titled-aqua outline row on black (x0-3pt..x0+3pt): 0 0 1 0 0 0 255 255 255 255 255 255 255
+titled-aqua outline col on black top (y0-3pt..y0+3pt): 0 1 0 0 0 0 255 255 255 255 255 255 255
+noshadow-dark corner radius: 30.90 px = 15.45 pt  edge offset -0.5, rms 0.23, inner diff 156
+noshadow-dark corner radius: 30.70 px = 15.35 pt  edge offset -0.6, rms 0.23, inner diff 157
+noshadow-aqua corner radius: 30.70 px = 15.35 pt  edge offset -0.6, rms 0.22, inner diff 157
+noshadow-aqua corner radius: 30.70 px = 15.35 pt  edge offset -0.6, rms 0.23, inner diff 157
+popover body: x 1180..1659 y 300..645 px (240.0 x 173.0 pt)
+popover corner radius: 60.20 px = 30.10 pt  edge offset -2.0, rms 6.84, inner diff 54
+popover(black-only) corner radius: 38.40 px = 19.20 pt  edge offset -0.6, rms 0.34, inner diff 223
+popover tone@128: (raw out at in 0/64/128/192/255: 32 57 75.0 84 84)
+popover sigma e0255: 79.50 px = 39.75 pt  rms 34.5 shift +3.0
+popover sigma e2550: 79.50 px = 39.75 pt  rms 34.1 shift -3.0
+popover sigma e064: 50.00 px = 25.00 pt  rms 2.2 shift -0.6
+popover sigma lb: 53.00 px = 26.50 pt  rms 30.4 shift +3.0
+popover sigma lw: 42.00 px = 21.00 pt  rms 0.5 shift -3.0
+vev-sidebar tone@128: (raw out at in 0/64/128/192/255: 37 45 57.0 69 81)
+vev-sidebar sigma e0255: 55.00 px = 27.50 pt  rms 4.7 shift +0.6
+vev-sidebar sigma e2550: 54.50 px = 27.25 pt  rms 4.8 shift -0.8
+vev-sidebar sigma e064: 34.00 px = 17.00 pt  rms 5.1 shift +3.0
+vev-sidebar sigma lb: 79.50 px = 39.75 pt  rms 0.7 shift +3.0
+vev-sidebar sigma lw: 79.50 px = 39.75 pt  rms 0.7 shift +3.0
+vev-windowBackground tone@128: (raw out at in 0/64/128/192/255: 31 31 31.0 31 31)
+vev-windowBackground sigma e0255: 79.50 px = 39.75 pt  rms 159.6 shift +3.0
+vev-windowBackground sigma e2550: 79.50 px = 39.75 pt  rms 159.6 shift -3.0
+vev-windowBackground sigma e064: 79.50 px = 39.75 pt  rms 40.0 shift +3.0
+vev-windowBackground sigma lb: 58.50 px = 29.25 pt  rms 254.4 shift -0.6
+vev-windowBackground sigma lw: 79.50 px = 39.75 pt  rms 0.7 shift +3.0
+menu body: x 10..623 bottom 671 px (width 307.0 pt, bottom 335.5 pt)
+menu corner radius: 47.30 px = 23.65 pt  edge offset -2.0, rms 6.67, inner diff 54
+menu(black-only) corner radius: 22.30 px = 11.15 pt  edge offset -0.3, rms 0.16, inner diff 223
+menu tone@128: (raw out at in 0/64/128/192/255: 33 58 75.0 83 85)
+menu sigma e0255: 79.50 px = 39.75 pt  rms 58.3 shift -3.0
+menu sigma e2550: 79.50 px = 39.75 pt  rms 111.8 shift -3.0
+menu sigma e064: 79.50 px = 39.75 pt  rms 29.2 shift -3.0
+menu sigma lb: 28.50 px = 14.25 pt  rms 29.4 shift -0.4
+menu sigma lw: 79.50 px = 39.75 pt  rms 1.1 shift +3.0
+menu right shadow A exp(-d/tau): 25.00 px = 12.50 pt  A 0.109 rms 0.0031 alpha d=1,5,10,20pt: 0.090 0.075 0.055 0.024

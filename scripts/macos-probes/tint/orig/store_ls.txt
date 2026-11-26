@@ -1,0 +1,4 @@
+total 8
+drwxr-xr-x@ 3 humbe  staff    96 Nov 25 23:28 .
+drwxr-xr-x@ 4 humbe  staff   128 Apr 27  2026 ..
+-rw-r--r--@ 1 humbe  staff  1312 Nov 25 23:28 Index.plist
