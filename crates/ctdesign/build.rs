@@ -183,10 +183,11 @@ FOOTNOTE Font font.styles.footnote
 CAPTION_2 Font font.styles.caption-2
 MONO Font font.styles.mono
 TEXT_LINE_HEIGHT f32 font.line-height-scale
-SHADOW ShadowStyle shadow.layers.light unfocused_blur_scale=shadow.unfocused.blur
-    unfocused_offset_scale=shadow.unfocused.offset unfocused_opacity_scale=shadow.unfocused.opacity
-SHADOW_DARK ShadowStyle shadow.layers.dark unfocused_blur_scale=shadow.unfocused.blur
-    unfocused_offset_scale=shadow.unfocused.offset unfocused_opacity_scale=shadow.unfocused.opacity
+SHADOW ShadowStyle shadow.layers.light
+SHADOW_DARK ShadowStyle shadow.layers.dark
+WINDOW_SHADOW_LIGHT WindowShadow shadow.window.light
+WINDOW_SHADOW_DARK WindowShadow shadow.window.dark
+WINDOW_SHADOW_SPREAD f32 shadow.window.spread
 KNOB_SHADOW ShadowLayer shadow.slint.knob y_offset=offset-y opacity==1.0
 SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w padding_x=padding-x
     rim_width=rim-width traffic_x=traffic-x traffic_y=traffic-y app_icon=item.app-icon

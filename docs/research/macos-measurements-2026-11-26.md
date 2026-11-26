@@ -22,7 +22,8 @@ Method as the menu shadow in `macos-blur.md`: alpha(d) = 1 − px/bg over flat
 white, gray 128 and black. The shadow is black composited in encoded sRGB, with
 no light glow, and linear in the backdrop (gray 128 gives the same alpha as
 white within 0.002). Every window has a 1 px dark outline on the first row
-outside its frame; d starts after it.
+outside its frame; d = 1 is the row after it, so d = 0 is the centre of the
+outline row, 0.5 px outside the frame.
 
 One blurred, offset box fits all four sides (rms 0.0004 to 0.0012):
 alpha(d) = A · ½ · erfc((d − spread ∓ dy) / (σ√2)). Spread grows (+) or
@@ -32,17 +33,23 @@ edge, lower sign at the top edge.
 | Case | σ | dy | A aqua | A dark |
 |---|---|---|---|---|
 | Titled window, main | 19.5 | 18 | .393 | .689 |
-| Titled window not main, and sheet | 7.5 | 7 | .210 | .431 (sheet .401) |
+| Titled window not main, and sheet | 7.75 (sheet 7.5) | 7 | .210 | .431 (sheet .401) |
 | Utility panel | 7.5 | 4 | .210 (key .241) | .289 |
 | Borderless window | 7.5 aqua, 8.5 dark | 4 | .207 | .394 |
 | Popover (top and sides) | 7.0 | about 4 | .188 | .226 |
 | Alert, modal / sheet | 16.5 | 10 | .205 / .176 | .224 / .205 |
 
-- Only the borderless profiles are kept
+- Only the borderless profiles are kept whole
   (`scripts/macos-probes/shadows/data/profiles-meta-borderless.txt`). Their
-  fit gives spread 0 in aqua and −3 in dark. The profiles of the other rows
-  were not kept, so their spread cannot be recovered; read their σ as fitted
-  with an unknown spread.
+  fit gives spread 0 in aqua and −3 in dark.
+- The titled rows keep 11 points per side in `data/summary-shadows.txt`.
+  They fit with spread 0, so their box is the frame grown by 0.5 px
+  (`WINDOW_SHADOW_SPREAD` counts from the frame). The not-main σ is 7.75:
+  `fit.py` steps σ by 0.5 and returns 7.5, but in steps of 0.25 7.75 fits
+  better (rms .0006 aqua and .0010 dark, against .0007 and .0014), matches
+  section 6 at 1x and gives the extents below, where 7.5 gives 8 at the top.
+- The profiles of the other rows were not kept, so their spread cannot be
+  recovered; read their σ as fitted with an unknown spread.
 - The strong shadow follows the **main** window, not the key window.
 - Dark is 1.75 to 2 times stronger than aqua at the same σ and dy.
 - The alert is small (260×176), so its σ is biased low.

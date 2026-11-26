@@ -1436,24 +1436,6 @@ pub struct ToolgroupMetrics {
 pub struct ShadowStyle {
     pub ambient: ShadowLayer,
     pub contact: ShadowLayer,
-    pub unfocused_blur_scale: f32,
-    pub unfocused_offset_scale: f32,
-    pub unfocused_opacity_scale: f32,
-}
-
-impl ShadowStyle {
-    pub fn layers(self, focused: bool) -> [ShadowLayer; 2] {
-        if focused {
-            return [self.ambient, self.contact];
-        }
-        let unfocused = |layer: ShadowLayer| ShadowLayer {
-            blur: (layer.blur as f32 * self.unfocused_blur_scale).round() as u32,
-            y_offset: (layer.y_offset as f32 * self.unfocused_offset_scale).round() as i32,
-            opacity: layer.opacity * self.unfocused_opacity_scale,
-            ..layer
-        };
-        [unfocused(self.ambient), unfocused(self.contact)]
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1560,6 +1542,19 @@ pub struct FrameLines {
     pub inner: Rgba,
     pub outer_inactive: Rgba,
     pub inner_inactive: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BoxShadow {
+    pub sigma: f32,
+    pub y_offset: f32,
+    pub opacity: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct WindowShadow {
+    pub main: BoxShadow,
+    pub inactive: BoxShadow,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

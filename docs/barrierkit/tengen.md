@@ -85,7 +85,7 @@ each.
 | Text styles | `font.styles` (size, line height and weight; values in [4](04-appearance-and-tokens.md#type)): `display`, `title-1`, `title-2`, `title-3`, `headline`, `body`, `callout`, `subheadline`, `caption`, `footnote`, `caption-2`, `mono`, `toolbar-title`, `about-name` | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `TITLE_3`, `HEADLINE`, `BODY`, `CALLOUT`, `SUBHEADLINE`, `CAPTION`, `FOOTNOTE`, `CAPTION_2`, `MONO`, `TOOLBAR_TITLE`, `ABOUT_NAME`; the window title uses `headline` (`TITLEBAR.font`) |
 | Spacing | `space.1`–`space.4`: 4, 8, 12, 16 | `SPACE_1`–`SPACE_4` |
 | Durations | `duration.fast` 120, `base` 250, `slow` 420 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` |
-| Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.unfocused` (blur 0.45, offset 0.4, opacity 0.55) | `SHADOW`, `SHADOW_DARK` |
+| Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.window.{light,dark}.{main,inactive}` (`sigma`, `y-offset`, `opacity`) and `shadow.window.spread` 0.5 | `SHADOW`, `SHADOW_DARK`; `WINDOW_SHADOW_LIGHT`, `WINDOW_SHADOW_DARK`, `WINDOW_SHADOW_SPREAD` |
 | Controls | `components.<control>` | `BUTTON`, `SWITCH`, `SLIDER`, `TEXT_FIELD`… |
 | Shell | `components.shell` | What the kit reads: `MENUBAR_HEIGHT`, the Dock's label and menu, `MENU_*`, `SHELL_*`; the rest belongs to the desktop (`ctshell`) |
 | Appearance factors | `appearance`: `dominant`, `tint-strength`, `modes`, `layer-factors`, `wallpaper-tinting`, `contrast`, `accessibility` | `DOMINANT_*`, `TINT_STRENGTH`, `WINDOW_TINT_*`, `ACCENT_CHROMA_GAIN`, `LAYER_FACTOR_*`, `WALLPAPER_TINTING*`, `ACCENT_MIN_CONTRAST_ON_WINDOW`, `ON_ACCENT_MIN_CONTRAST`, `TEXT_SIZES`, `POINTER_SIZES`, `DISPLAY_CONTRAST`, `COLOR_FILTER_INTENSITY` |

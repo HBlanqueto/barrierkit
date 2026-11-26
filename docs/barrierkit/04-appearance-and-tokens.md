@@ -858,7 +858,9 @@ A color, size or duration never goes into `bk`. It goes into Tengen:
 | `ToolgroupPalette` | Toolbar group: `separator`, `rim`. |
 | `ShadowLayer` | `blur`, `y_offset`, `opacity`, `color`. |
 | `MaterialThickness` | `opacity` and `blur` of one material thickness. |
-| `ShadowStyle` | `ambient` and `contact` layers and their scale when unfocused; `layers(focused)` returns both. |
+| `ShadowStyle` | `ambient` and `contact` layers. |
+| `BoxShadow` | One blurred box moved down, measured on macOS 27.2.1: `sigma`, `y_offset` and `opacity`, in points. |
+| `WindowShadow` | The `BoxShadow` of the `main` window and of the others (`inactive`); `WINDOW_SHADOW_*`. |
 | `WindowCorner` | Window radii (`titlebar`, `unified_compact`, `unified`, `utility`; all 16), curve `expansion` and superellipse `exponent`. |
 | `CornerShape` | `radius` (the API's or the design value), `fitted` (the radius that draws the measured silhouette) and `smoothing` of one element. |
 | `CornerControls` | The corner radius of each control at mini, small, regular, large and extra large: `push`, `circular`, `help`, `text_field`, `popup`, `combo_button`, `checkbox`, `radio`, `segmented`, `segmented_square`, `slider_track`, `slider_knob`, `progress_bar`. |
@@ -1008,7 +1010,8 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
 | `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |
 | `FRAME_LINE_WIDTH` | `f32` | The compositor: width in points of each `FrameLines` line, the outline outside the window and the inner line inside it |
-| `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`SheetStyle`), the compositor |
+| `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`SheetStyle`) |
+| `WINDOW_SHADOW_LIGHT`, `WINDOW_SHADOW_DARK`, `WINDOW_SHADOW_SPREAD` | `WindowShadow`, `f32` | The compositor: the shadow of each window, the strong one under the main window; the box is the frame grown by `WINDOW_SHADOW_SPREAD` points ([macOS measurements](../research/macos-measurements-2026-11-26.md#1-window-shadows)) |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`) ([9](09-titlebars.md)) |
 | `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` | `f32` | The expanded `Titlebar` (SwiftUI `.expanded`): a 28 high title row with the title 15 after the lights, and a toolbar row whose items sit 8 above its middle, 4 under the title row ([9](09-titlebars.md)) |
