@@ -208,7 +208,10 @@ impl SurfaceWindow {
             .as_ref()
             .is_some_and(|context| context.controls.hud);
         let background = if hud {
-            crate::theme::color(ctdesign::HUD_BACKGROUND)
+            crate::theme::color(ctdesign::Rgba {
+                a: ctdesign::HUD_BACKGROUND.a * self.background_alpha,
+                ..ctdesign::HUD_BACKGROUND
+            })
         } else if self
             .context
             .as_ref()
