@@ -26,10 +26,10 @@ The proposal built on these numbers is in malaysia,
 
 ## 1. Window layout
 
-30 arrangements of 1 to 9 probe windows and two reruns, 87 window rows, in
+116 arrangements of 1 to 9 probe windows, 312 window rows, in
 `scripts/macos-probes/mission-control/layout-results.txt` (original frame,
-thumbnail box, scale). The two reruns matched pixel for pixel: the layout is
-deterministic.
+thumbnail box, scale), measured in two passes. Reruns matched pixel for
+pixel: the layout is deterministic.
 
 | Rule | Value | Confidence |
 |---|---|---|
@@ -39,9 +39,13 @@ deterministic.
 | Area, strip expanded | The top moves to about 184 (strip 146 plus about 38) and the layout is computed again (`n4`: scale .928 to .847). The bottom stays. | high |
 | Area, one window | y about 97 to 1324. A window that must shrink is capped at a height of about 1220 and centred at (1280, 711): `n1full` .866, `n1big` .911, `n1tall` .867. | medium |
 | Least movement | A window outside the area is moved inside without scaling. Windows that do not overlap keep their place and their gaps. | high |
-| Overlap | Overlapping windows are pushed apart along the line between their centres, then the group is scaled to fit. Order is mostly kept, not strictly (`n9cascade`: window 1 ends right of window 2). Two windows on the same frame split left and right. | high |
-| Gap | About 13 (11 to 16) between the edges of two neighbours, at every scale (1, .93, .77, .57, .43). Cascades leave more, 30 to 116. | high |
-| Grouping | `expose-group-apps` is off by default: every window is shown on its own. | high |
+| Overlap | An overlapping pair is pushed apart along the line between the two centres until it is clear on one axis, whichever comes first. Both windows move the same distance whatever their sizes, so the pair's centroid stays (`u_nest`: a 600×400 and a 300×200 window both move 157.5). Offsets of (100, 50), (50, 100), (200, 20), (20, 200) and (300, 300) all end on the original line, to 1. | high |
+| Same centre | The pair splits at exactly 45°: the window behind goes up and left, the one in front down and right. The order is the stacking order, not the order of creation (`z1`, `z3`). | high |
+| Only what overlaps | Windows that overlap nothing do not move (`n4one`). A pair closer than 12 is pushed (`bh605`); one 12 apart is left (`bh612`). | high |
+| Gap | 12 to 15 between the edges of a pair that was pushed, at every scale. It varies with the window size as a sawtooth of about 2.5 with a period of about 20, the trace of an iteration and not a constant. Cascades leave more, 30 to 116. | high |
+| Walls | A window that is only moved inside stops exactly at the area. One driven into a wall by a push ends 2 past it sideways and 3 to 4 past it up or down. | high |
+| Scale | It drops below 1 only when a window is held by two walls at once. A pair in a corner is scaled although there is room: .921 with no offset, .943, .963, .979, .993 and 1 as the pair starts 40, 80, 120, 160 and 200 from the corner (`k_*`). A window held by one wall slides along it and nothing is scaled. "The largest scale that packs" is ruled out. | high |
+| Apps | Windows of two apps are placed like windows of one (`g1`, `g2`); `expose-group-apps` is off by default. | high |
 
 Example scales: four windows that nearly fill the screen .928, a cascade of
 four 1200×800 windows .770, of six .574, of nine .434.
@@ -224,63 +228,73 @@ click on the other.
 
 ## 8. The layout as an algorithm
 
-No algorithm was found that reproduces every arrangement. The best one,
-`scripts/macos-probes/mission-control/layoutfit.py`, is exact to 1 on 19 of
-the 30 arrangements, within 3 on four more, and wrong on the dense ones. Its error
-table is `layoutfit-results.txt` in the same folder.
+The rule for a few overlapping windows at scale 1 is found: it predicted
+fresh arrangements to 1 to 3 before they were measured. The rule for the
+scale and for dense arrangements is not. The best algorithm,
+`scripts/macos-probes/mission-control/layoutfit2.py`, is within 3 on 78 of
+the 116 arrangements; `layoutfit2-results.txt` lists every one. The first
+attempt, `layoutfit.py`, is kept for comparison.
 
-Gap g = 13. The area is that of section 1.
+The area is that of section 1. Windows are taken back to front.
 
 1. **One window:** s = min(1, 2520/w, 1220/h). Scale it about its own centre,
    then move it inside the one-window area; if it is still larger, centre it.
-2. **Several windows, start:** s0 = min(1, area width / widest window, area
-   height / tallest window).
-3. **Place at a scale s:** every window keeps its own centre and gets the size
-   s·w by s·h, then is moved inside the area. Positions are not scaled about a
-   common point (`n2tall`, `n2wide`).
-4. **Settle:** sweep over the pairs (i, j), i before j in creation order. If
-   the two overlap with g added, take the unit vector u from the centre of i
-   to the centre of j, or (1, 1)/√2 when the centres are the same. Let t be
-   the smallest, over the axes where u is not zero, of ((size i + size j)/2 +
-   g − distance on that axis) / |u on that axis|. Move i by −0.1·t·u and j by
-   +0.1·t·u. After each sweep move every window inside the area. Stop when a
-   sweep moves nothing, or fail after 3000 sweeps.
-5. **Scale:** if step 4 settles at s0, that is the layout. Otherwise bisect s
-   between .05 and s0, 18 times, each try from the original frames, and keep
-   the largest s that settles.
+2. **Start:** s = min(1, area width / widest window, area height / tallest
+   window). Each window gets the size s·w by s·h about its own centre, is
+   moved inside the area, and then window i is moved by .25·i on both axes,
+   which breaks ties in stacking order.
+3. **Sweep:** for every pair i before j that is closer than 12.5 on both axes,
+   take the unit vector u from the centre of i to the centre of j, and let t
+   be the smallest, over the axes where u is not zero, of ((size i + size
+   j)/2 + 15.5 − distance on that axis) / |u on that axis|. Window i collects
+   −.375·t·u and window j +.375·t·u. Every pair is read from the positions at
+   the start of the sweep. Then each window moves by the mean of what it
+   collected and is kept inside the area grown by 2 sideways and 3 up and
+   down.
+4. **Scale:** if a window was stopped on both axes in that sweep, s becomes
+   .995·s, with the sizes about the centres.
+5. **Stop** at the first sweep with no pair closer than 12.5, or after 400.
 
-| Arrangements | Largest edge error |
+| Largest edge error | Arrangements |
 |---|---|
-| `n1a`, `n1tiny`, `n1corner`, `n1top`, `n1left`, `n1right`, `n1wide`, `n1low`, `n1hi`, `n2side`, `n2top`, `n2bottom`, `n2left`, `n2low`, `n2wide`, `n2tall`, `n9grid`, `sizes`, `tiny4` | 0 to 1 |
-| `n1big`, `n1full`, `n1tall`, `n2same` | 3 |
-| `n3` | 6 |
-| `n2stack` | 11 (scale 1.000 against .996) |
-| `n4cascade` | 26 (scale .780 against .770, same slots) |
-| `mixed` | 96 |
-| `n4` | 289 |
-| `n9cascade` | 408 (scale .515 against .434) |
-| `n6cascade` | 429 (scale .693 against .574) |
+| 3 or less | 78: every window alone, every arrangement without overlap, every free pair (`a2_600`, `a2_900`, `bh*`, `bv*`, `d_*`, `s1_*`, `u_*`, `z1`, `g1`), three windows (`t3`, `t3c`, `t3cr`), pairs on one wall (`e3_*`, `c_left`, `c_top`), `n2same`, `n4o20`, `n4one` |
+| 4 to 10 | 3: `n4sym`, `k_200`, `ky_1` |
+| 11 to 33 | 13: the pairs in a corner (`k_0` to `k_160`, `c_tl`), `n2stack` (scale .990 against .996), `a2_1250`, `kx_1`, four and five windows on one frame (`t4`, `t4c`, `t5`) |
+| 34 to 100 | 7: `n3` (the first attempt was 6 off), `c_br`, `hc4`, `g2`, `mixed` |
+| over 100 | 15: `n4` and its mirrors (200), the cascades (`n4cascade` 107, `n6cascade` 701, `n9cascade` 1192) |
 
-What holds exactly in the data, whatever the algorithm: one scale per view
-(spread .003 at most); never above 1; a window that fits is not scaled; a
-window that does not fit shrinks about its own centre and is then moved
-inside; the gap between window edges is 11 to 16; the result touches the walls
-of the area.
+Predictions made before measuring:
 
-Where it fails: in `n4` only the vertical pairs overlap, and macOS still moves
-the top-right window 286 to the left, next to the top-left one, and the
-bottom-right one 181 to the right wall; a push between pairs cannot do that.
-In the cascades macOS takes a smaller scale than the largest that packs and
-leaves gaps of 30 to 116. The outcome of this algorithm on cascades changes a
-lot with the step (.2 here) and the order of the pairs, so macOS probably has
-a different global step, such as slots or a priority by stacking order.
-Shrinking while pushing, and scaling the positions about the centre of the
-area or of the group, fit worse.
+| Arrangement | Predicted | Measured | Error |
+|---|---|---|---|
+| `p1`, two unequal windows, diagonal offset | (621, 143), (979, 657), scale 1 | (621, 143), (979, 658), scale 1 | 1 |
+| `p2`, a chain of three | (287, 468), (800, 520), (1314, 572) | (287, 469), (800, 520), (1314, 572) | 1 |
+| `p3`, a pair on the left wall | (18, 119), (411, 532) | (16, 118), (412, 533) | 3 |
+| `p4`, a pair on one frame near a corner | scale .980 | scale .995 | 12 |
+| `p5`, two overlapping pairs | scale .951 | scale .985 | 85 |
 
-To settle it, measure: `n4` mirrored and with the windows created in reverse
-order; three and four windows on the same frame; cascades of 5, 7 and 8 and
-one with a sideways offset; `mixed` with the small windows swapped; windows of
-two apps.
+Where it fails:
+
+- **The scale.** The .995 per sweep is a stand-in. Measured, 1 − s grows as
+  about the 1.6 power of the travel the cornered window lost, which neither a
+  constant per sweep nor a shrink in proportion to the lost travel gives.
+- **The step.** No single value fits the four pairs on a wall: they ask for
+  .60, .70, .77 and .80 of the needed separation per sweep.
+- **Three or more windows against a wall:** 25 to 54 off.
+- **`n4`:** two rows that cannot separate up and down. The sideways part of
+  the tie grows with each sweep; in the symmetric case the rows shear, the top
+  one left and the bottom one right by 117 each, and in the others the
+  stacking order decides which row packs.
+- **Cascades:** hundreds off.
+
+Ruled out by the data: slots or a grid; a push along the axis of least
+overlap; a split weighted by size; the order of creation; grouping by app; a
+final fit of the bounding box; positions scaled about a common point; the
+largest scale that packs.
+
+New rows were read at a colour tolerance of 40, because the shadow of the
+front window clips the fill of the one behind, and stored in the convention
+of the first pass. Positions are good to 1 and the scale to about .001.
 
 ## 9. Behaviour, from sources
 
@@ -404,8 +418,8 @@ spring started from rest with the values below is half way and at 90 % at
 
 - Whether the swipe follows the fingers, its threshold and its velocity rule:
   a probe cannot post a trackpad gesture.
-- The layout rule for overlapping windows (section 8), the margins on another
-  display size, with the Dock on a side or hidden, and with windows of two
+- The rule for the scale and for dense arrangements (section 8), the margins
+  on another display size, with the Dock on a side or hidden, and with windows of two
   apps.
 - Fonts: sizes come from the width of the ink only, with no weight. The radii
   of the Space ring and of the label pill. The hover ring at a small scale.
