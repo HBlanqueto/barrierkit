@@ -82,7 +82,6 @@ pub struct Host {
     pub(crate) native_popovers: bool,
     pub(crate) window_background: bool,
     pub(crate) knobs: bool,
-    pub(crate) frame_lines: bool,
 }
 
 pub struct AppInstance {
@@ -119,7 +118,6 @@ pub struct AppInstance {
     backdrop: bool,
     pub(crate) chromes: Vec<super::backdrop::Chrome>,
     controls: Option<WindowControls>,
-    frame_lines: bool,
     ime_area: Option<(i32, i32, i32, i32)>,
 }
 
@@ -139,15 +137,6 @@ pub enum InstanceRole {
 }
 
 impl AppInstance {
-    /// Whether the kit rounds and frames this window itself: the surface must stay transparent in the corners.
-    pub(crate) fn kit_framed(&self) -> bool {
-        self.frame_lines
-            && self.controls.as_ref().is_some_and(|controls| {
-                let status = *controls.status.peek();
-                !status.maximized && !status.fullscreen
-            })
-    }
-
     pub fn new(
         host: &Host,
         owner: ObjectId,
@@ -262,7 +251,6 @@ impl AppInstance {
         let knobs = window.is_some() && host.knobs;
         runner.provide_root_context(move || super::KnobSupport(knobs));
         let knob_outbox = runner.provide_root_context(super::KnobOutbox::default);
-        runner.provide_root_context(move || super::FrameLines(host.frame_lines));
         let inputs = runner.provide_root_context(crate::spelling::InputParagraphs::default);
 
         if let Some(handle) = menu_handle {
@@ -324,7 +312,6 @@ impl AppInstance {
             inputs,
             glass: glass_outbox,
             knobs: knob_outbox,
-            frame_lines: host.frame_lines,
             backdrop,
             chromes: Vec::new(),
             controls,

@@ -209,8 +209,11 @@ impl SurfaceWindow {
             .is_some_and(|context| context.controls.hud);
         let background = if hud {
             crate::theme::color(ctdesign::HUD_BACKGROUND)
-        } else if self.app.kit_framed() {
-            // The window paints its own rounded background; the corners stay transparent.
+        } else if self
+            .context
+            .as_ref()
+            .is_some_and(|context| context.controls.draws_frame())
+        {
             Color::TRANSPARENT
         } else if matches!(&self.role, SurfaceRole::Window(_)) {
             let resolved = *self.app.resolved.read();

@@ -15,7 +15,7 @@ use sctk::{
 
 use crate::platform::{
     ObjectId, RunError,
-    app::{AppInstance, Host, InstanceRole},
+    app::{AppInstance, InstanceRole},
     linux::{dbusmenu::server::AddressCallback, window_style::wire},
     runtime::{Connected, Runtime, WindowContext},
     surface::{SurfaceRole, SurfaceWindow},
@@ -231,6 +231,9 @@ impl Runtime {
                 .focus_manager
                 .as_ref()
                 .is_some_and(|manager| manager.version() >= 2),
+            kit_framed: self.window_style.is_none()
+                && options.window_style != WindowStyle::Borderless
+                && !options.hud,
             ..WindowControls::new(
                 &options,
                 DecorationResponse::Client,
@@ -249,12 +252,8 @@ impl Runtime {
             notice
         });
 
-        let host = self.host();
         let app_instance = AppInstance::new(
-            &Host {
-                frame_lines: host.frame_lines && options.window_style != WindowStyle::Borderless,
-                ..host
-            },
+            &self.host(),
             surface.id(),
             app,
             1.0,

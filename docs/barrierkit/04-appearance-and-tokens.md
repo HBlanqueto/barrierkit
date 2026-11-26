@@ -1009,7 +1009,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `DIALOG_PADDING`, `DIALOG_ALERT_*`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `DIALOG_SOLID_*` | `f32`, `u32`, `Rgba`, `[f32; 2]` | `views::feedback`, `styles` (`AlertStyle`, `SheetStyle`, `AboutViewStyle`) |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
 | `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |
-| `FRAME_LINE_WIDTH` | `f32` | The compositor: width in points of each `FrameLines` line, the outline outside the window and the inner line inside it |
+| `FRAME_LINE_WIDTH` | `f32` | The compositor and the kit: width in points of each `FrameLines` line, the outline outside the window and the inner line inside it |
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`SheetStyle`) |
 | `WINDOW_SHADOW_LIGHT`, `WINDOW_SHADOW_DARK`, `WINDOW_SHADOW_SPREAD` | `WindowShadow`, `f32` | The compositor: the shadow of each window, the strong one under the main window; the box is the frame grown by `WINDOW_SHADOW_SPREAD` points ([macOS measurements](../research/macos-measurements-2026-11-26.md#1-window-shadows)) |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
@@ -1021,7 +1021,6 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
 | `FULLSCREEN_BAR`, `FULLSCREEN_GLASS` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform` (`FULLSCREEN_BAR`), `styles` (`TopGlassStyle`) |
 | `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
-| `WINDOW_INNER_LINE` | `Rgba` | White at 50%: the inner frame line of a Light window where the kit draws the frame ([8](08-windows.md#window-style)); Dark keeps the palette's `inner_line` |
 
 ### Traffic lights
 

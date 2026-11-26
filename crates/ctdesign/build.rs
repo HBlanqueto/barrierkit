@@ -261,7 +261,6 @@ MENU_ICON_TEXT_GAP f32 components.shell.menu.icon.text-gap
 MENU_SUBMENU_INTENT_MS u64 components.shell.menu.submenu.intent-ms
 MENU_SCROLL_TICK_MS u64 components.shell.menu.scroll-tick-ms
 HUD_BACKGROUND Rgba components.hud.background
-WINDOW_INNER_LINE Rgba components.window.inner-line
 DOMINANT_LIGHTNESS [f32;2] appearance.dominant.lightness
 ";
 

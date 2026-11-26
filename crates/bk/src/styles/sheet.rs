@@ -29,7 +29,7 @@ pub struct SheetStyle {
     pub background: StateValue<ShapeStyle>,
     /// Tengen: `Some((Role(Outline), HAIRLINE))`, drawn outside.
     pub border: Option<(ShapeStyle, f32)>,
-    /// Tengen: the window shadow, `SHADOW` (`SHADOW_DARK` in dark): the sheet floats like a window.
+    /// Tengen: `SHADOW` (`SHADOW_DARK` in dark): the sheet floats like a window.
     pub shadows: Vec<ShadowStyle>,
 }
 

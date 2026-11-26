@@ -21,7 +21,6 @@ impl Runtime {
             native_popovers: false,
             window_background: false,
             knobs: self.knobs_supported(),
-            frame_lines: self.window_style.is_none(),
         }
     }
 }

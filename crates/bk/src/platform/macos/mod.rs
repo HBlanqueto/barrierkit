@@ -792,7 +792,6 @@ impl Runtime {
             native_popovers: true,
             window_background: false,
             knobs: blur::glass_available(),
-            frame_lines: false,
         }
     }
 

@@ -532,7 +532,7 @@ every window with `corner_radius` in `window.domain`.
 
 ### Frame lines outside Malaysia
 
-Recommendation: `FRAME_LINES` and `FRAME_LINES_CONTRAST` (`ctdesign::FrameLines`) are for a desktop that is not Malaysia, where the kit draws the window's frame lines itself. Malaysia keeps its own lines (`window-outer`, `window-inner`, `style::panel_edges`), so a Malaysia window does not read them.
+Recommendation: `FRAME_LINES` (`ctdesign::FrameLines`) are the window's frame lines, `FRAME_LINE_WIDTH` points wide. Malaysia draws them compositor-side from `FRAME_LINES_LIGHT` or `FRAME_LINES_DARK`; under a compositor without `limitless_window_style_v1` the kit draws them itself ([8](08-windows.md#window-style)). Both pick the `_inactive` pair by the window's focus.
 
 Reason: macOS 27.2.1 draws a 1 px outer line outside the window and a 1 px inner line inside it, and both change with the window's state and with Increase Contrast. Measured at 1x over black and white backdrops (the outer alpha has ±0.03, the contrast set was taken with Reduce Transparency on too):
 
@@ -545,7 +545,7 @@ Reason: macOS 27.2.1 draws a 1 px outer line outside the window and a 1 px inner
 
 `DarkTint` copies Dark and keeps its `#ffffff24` inner line; its inactive and contrast values are not measured. Every standard toolbar design (32, 40, 52 and 68 px bars) has the same lines.
 
-Risks: no code reads these tokens yet. The first desktop that draws a kit frame must pick `FRAME_LINES` or `FRAME_LINES_CONTRAST` by `Resolved::contrast` and the `_inactive` pair by the window's focus.
+Risks: no code reads `FRAME_LINES_CONTRAST` yet, so Increase Contrast keeps the standard lines.
 
 ### Full screen and focus mode
 

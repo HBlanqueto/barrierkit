@@ -167,7 +167,6 @@ pub fn panel_edges(body: Rect, radius: f32, fill: Rgba) -> Rect {
     let palette = ctappearance::palette(crate::theme::resolved().scheme);
     let corner = continuous_corner(radius);
     let body = body.corner_radius(corner);
-    // The compositor's frame lines are one physical pixel at every scale.
     let pixel = 1.0 / *Platform::get().current_window().scale_factor.read() as f32;
     let body = match (palette.panel_inner_line, palette.inner_line) {
         (Some(line), _) => body.background(Fill::Callback(RenderCallback::new(move |context| {

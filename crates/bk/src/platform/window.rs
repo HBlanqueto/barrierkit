@@ -192,9 +192,6 @@ impl WindowOptions {
     }
 }
 
-#[derive(Clone, Copy)]
-pub(crate) struct FrameLines(pub(crate) bool);
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WindowStatus {
     pub activated: bool,
@@ -229,6 +226,7 @@ pub struct WindowControls {
     pub focus_bar: State<bool>,
     pub focus_bar_progress: State<f32>,
     pub focus_overlay: bool,
+    pub(crate) kit_framed: bool,
     pub focus_bar_height: State<f32>,
     pub(crate) titlebar_height: State<f32>,
     pub(crate) subtitle: State<String>,
@@ -275,6 +273,7 @@ impl WindowControls {
             focus_bar: State::create_global(false),
             focus_bar_progress: State::create_global(0.0),
             focus_overlay: false,
+            kit_framed: false,
             focus_bar_height: State::create_global(ctdesign::MENUBAR_HEIGHT as f32),
             titlebar_height: State::create_global(0.0),
             subtitle: State::create_global(String::new()),
@@ -306,6 +305,11 @@ impl WindowControls {
         self.toolbar_on_hover
             && status.fullscreen
             && status.decoration == DecorationResponse::Hybrid
+    }
+
+    pub(crate) fn draws_frame(&self) -> bool {
+        let status = *self.status.read();
+        self.kit_framed && !status.maximized && !status.fullscreen
     }
 
     pub(crate) fn draws_traffic_lights(&self) -> bool {
