@@ -251,6 +251,7 @@ SPACES_RING_GAP i32 components.spaces-strip.ring-gap
 SPACES_ADD_SIZE i32 components.spaces-strip.add-size
 SPACES_ADD_STROKE i32 components.spaces-strip.add-stroke
 SPACES_ADD_INSET f32 components.spaces-strip.add-inset
+SPACES_ADD_EXPANDED_CENTER f32 components.spaces-strip.add-expanded-center
 SPACES_ADD_COLOR Rgba components.spaces-strip.add-color
 SPACES_CLOSE_SIZE i32 components.spaces-strip.close-size
 SPACES_CLOSE_COLOR Rgba components.spaces-strip.close-color
