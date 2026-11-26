@@ -129,6 +129,9 @@ Raw, in dark mode, the panel shows 146 over white, 129 over gray, 32 over black 
 blur of 9.0 px plus a wide halo, a luma tone and a chroma gain: [section 14](macos-blur.md#14-desktop-surfaces-as-a-pipeline-measured-2026-11-22). The bar
 itself is identical to the backdrop to 0 levels over every backdrop of the series. Light mode was not measured.
 
+**Re-read 2026-11-26.** In light mode, under the dark Aerial wallpaper, the bar is clear too and its text and icons are white:
+the ink did not follow the colour scheme there. The cause is unknown ([2026-11-26 measurements, section 5](macos-measurements-2026-11-26.md#5-shell-surfaces-light-and-dark-slider-at-1)).
+
 The ink follows the panel in both modes: `ctappearance::menu::dark_ink_over`
 takes dark ink above `MENU_DARK_INK_ABOVE` (0.4) and white below it. The
 light panel over black is 0.46 luma and the dark panel over black is 0.17,

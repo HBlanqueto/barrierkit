@@ -229,7 +229,7 @@ Rec. 709 saturation matrix; mutter's `ClutterBlur` is a separable Gaussian with
   Center tile blur is about 16 pt at slider 1, not 2.0 and 3.5 px. Those were read
   at slider 0; the slider's effect on these kernels is not separated from a
   change of build.
-- `macos-liquid-glass.md` §14.4: Spotlight and Apps follow the slider like the app
+- `macos-liquid-glass.md` §14.2: Spotlight and Apps follow the slider like the app
   menu (identical tone at slider 1).
 - `macos-menu-bar.md`: the bar's ink is white in light mode too.
 - `macos-blur.md`: the dark Spotlight shadow at d = 1 is .53, about twice the

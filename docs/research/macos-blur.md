@@ -640,6 +640,10 @@ Fitted with the tone after the blur, mixing in encoded values and one or two Gau
 | Dock | 2.0 px (0.75 px for a 0\|255 edge) | none | 0 | 0.5 | not measured |
 | Spaces bar | 27.5 px | none | 0 | 1.1 | 0.3 to 0.8 |
 
+**Re-read 2026-11-26.** These kernels were read with the Liquid Glass slider at 0. With the slider at 1 the Dock blur is about
+16 pt and the Control Center tile about 16.5 pt ([2026-11-26 measurements, section 5](macos-measurements-2026-11-26.md#5-shell-surfaces-light-and-dark-slider-at-1)). That pass does
+not separate the slider from a change of build.
+
 What the fits leave out:
 
 - The glass of the menu family shows more contrast in a black box of 16 or 32 px (28
@@ -704,6 +708,9 @@ black and 5 over white. The shell's panel is the same filter family with other i
   white and gray). The Control Center tiles sit on a backing panel that dims what is
   behind by 0.903 and blurs it by about 1 px: the strip beyond them (x 2549 to
   2559, y 60 to 500) is flat at 0.903 of the backdrop.
+
+  **Re-read 2026-11-26** (slider at 1): the dark Spotlight shadow at d = 1 is 0.53, about twice the pill value above
+  ([2026-11-26 measurements, section 5](macos-measurements-2026-11-26.md#5-shell-surfaces-light-and-dark-slider-at-1)).
 
 ### 14.7 Malaysia's blurs against the measured kernels
 

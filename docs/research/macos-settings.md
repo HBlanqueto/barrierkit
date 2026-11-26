@@ -202,9 +202,9 @@ Heading **Windows / Ventanas**:
 7. **Sidebar icon size / Íconos de la barra lateral**: popup, live `Medium` /
    `Medianos`; the other values were not read (not measured).
 8. **Tint window background with wallpaper color / Teñir el fondo de las
-   ventanas con el color del fondo de pantalla**: a switch. Live off, key
-   `AppleReduceDesktopTinting` = 1 (the key is the inverse: 1 turns the tint
-   off).
+   ventanas con el color del fondo de pantalla**: a switch. Live on, key
+   `AppleReduceDesktopTinting` = 0 (the key is the inverse: 1 turns the tint
+   off). Read 2026-11-26; this note said off and 1 before.
 9. **Show scroll bars / Mostrar barras de desplazamiento**: radio group:
    `Automatically based on mouse or trackpad` / `Automáticamente según el mouse
    o trackpad` (live), `When scrolling` / `Durante el desplazamiento`,
@@ -432,7 +432,7 @@ trees saved, and are not described here.
 |---|---|---|---|---|
 | Light, Dark, Auto | Appearance > Appearance | `AppleInterfaceStyle`, `AppleInterfaceStyleSwitchesAutomatically` | `Dark` or absent; absent here | Selects the light or dark material set; measured in [`macos-materials.md`](macos-materials.md) and [`macos-blur.md`](macos-blur.md) |
 | Liquid Glass | Appearance > Liquid Glass | `NSGlassTintAmount` | 0 to 1 slider, 0 here | one slider for the glass of every `NSGlassEffectView`: blur sigma, tint and tone; measured per process in [`macos-liquid-glass.md`](macos-liquid-glass.md) section 13; the system surfaces were not measured |
-| Tint window background with wallpaper color | Appearance > Windows | `AppleReduceDesktopTinting` (1 = off) | switch; off here | Window backgrounds pick up the wallpaper color in dark; effect values in [`macos-blur.md`](macos-blur.md) |
+| Tint window background with wallpaper color | Appearance > Windows | `AppleReduceDesktopTinting` (1 = off) | switch; on here | Window backgrounds pick up the wallpaper color in dark; effect values in [`macos-blur.md`](macos-blur.md) and in the [2026-11-26 measurements, section 4](macos-measurements-2026-11-26.md#4-wallpaper-tint) |
 | Increase contrast | Accessibility > Display | `increaseContrast` (`com.apple.universalaccess`) | 0 or 1 | Alone it keeps every blur ([`macos-materials.md`](macos-materials.md) section 10.4) |
 | Reduce transparency | Accessibility > Display | `reduceTransparency` (`com.apple.universalaccess`) | 0 or 1 | Every blurred `NSVisualEffectView` material becomes a solid; the Dock becomes the scheme solid; the menu glass and Control Center are unchanged ([`macos-defaults.md`](macos-defaults.md) section 7b) |
 | Reduce transparency with Increase contrast | both | both keys | | A different, stronger solid in 11 of 13 materials |

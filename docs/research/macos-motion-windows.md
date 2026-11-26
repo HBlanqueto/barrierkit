@@ -99,6 +99,11 @@ Row 3 equals rows 1 and 2 because a titled `NSWindow` resolves `default` to
 `documentWindow`. Rows 12 and 13 were seen as the bounds of the warp; the
 genie shape needs pixels of the Dock tile and was not captured.
 
+**Re-read 2026-11-26.** The scale of row 1 was not seen: the window is at its
+final size in its first frame, and the cause is unknown. The close of row 2
+fits a spring omega0 55 to 68, zeta 1.2 to 1.4 in that pass
+([2026-11-26 measurements, section 3](macos-measurements-2026-11-26.md#3-animations)).
+
 ## Surprises
 
 - Open does not fade. It is a 2 % scale spring with an alpha of 1 from the

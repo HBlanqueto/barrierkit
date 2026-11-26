@@ -825,6 +825,8 @@ Raw device value of the surface plateau for a bare backdrop of the level on the 
 - **The menu bar does not follow it**: it is identical to the backdrop (clear) at 0 and at 1, as in [`macos-blur.md`](macos-blur.md) section 14.
 - **Not measured under the slider:** the kernel of the application menu and of the Dock (the rim and kernel pass was not captured at 1, so whether the menu's blur widens as
   the regular glass does in 13.2 is open), values between 0 and 1 (the model of 13.3 is assumed), light mode, Reduce Transparency, Increase Contrast and scale 2.
+- **Measured 2026-11-26, at 1 only:** the Dock kernel is about 16 pt, against 2.0 px at 0 in [`macos-blur.md`](macos-blur.md) 14.5; that pass does not separate the
+  slider from a change of build. Spotlight and Apps have the tone of the application menu to 0 levels ([2026-11-26 measurements, section 5](macos-measurements-2026-11-26.md#5-shell-surfaces-light-and-dark-slider-at-1)).
 ## 14. Which surfaces follow the slider (audit, 2026-11-22)
 
 **Goal:** say, for each surface macOS draws as Liquid Glass, whether the Appearance › Liquid Glass slider changes it, and
@@ -879,13 +881,14 @@ moved the slider).
 | Surface | Follows the slider | Tag | Evidence |
 |---|---|---|---|
 | Application menu panel | Yes, as the regular glass (122 to 76 over gray 128, cap 146 to 86); values between 0 and 1 follow the model of 13.3 by assumption | `[C]` | section 13.6 |
-| Notification banner, Spotlight, Apps | By inference, as the menu: the four agree to 0.5 level at 0 and equal the regular dark tone | `[I]` | `macos-blur.md` 14.4 |
+| Spotlight, Apps | Yes, as the menu: they agree with it to 0.5 level at 0 and to 0 levels at 1 | `[C]` | `macos-blur.md` 14.4, [2026-11-26 measurements, section 5](macos-measurements-2026-11-26.md#5-shell-surfaces-light-and-dark-slider-at-1) |
+| Notification banner | By inference, as the menu: it agrees with it to 0.5 level at 0 and equals the regular dark tone | `[I]` | `macos-blur.md` 14.4 |
 | Dock | No: the tone is the same within 0.9 level and the colours within 1.4 at 0 and 1 | `[C]` | section 13.6 |
 | Menu bar | No: identical to the backdrop (clear) at 0 and at 1 | `[C]` | section 13.6, `macos-blur.md` 14.2 |
 | Notification card of Notification Center | Not measured; another variant (its tone differs from the menu's); Apple's note speaks of notifications on the Lock Screen, which is another surface | `[N]` | `lg-tinted` `20-lg-shell.sh` |
 | Control Center, tiles and backing panel | Not measured | `[N]` | same |
 | Mission Control's Spaces bar | Not measured | `[N]` | same |
-| The kernel of the menu and of the Dock at 1 | Not measured: the rim and kernel pass was not captured at 1 | `[N]` | the kernel passes of `20-lg-shell.sh` |
+| The kernel of the menu and of the Dock at 1 | Measured at 1 on 2026-11-26 (Dock about 16 pt, against 2.0 px at 0); whether the slider or a change of build makes the difference is not separated | `[N]` | [2026-11-26 measurements, section 5](macos-measurements-2026-11-26.md#5-shell-surfaces-light-and-dark-slider-at-1) |
 | Lock screen and login window | Not reachable: a locked session captures only the wallpaper | `[N]` | none |
 
 ### 14.3 What Malaysia applies

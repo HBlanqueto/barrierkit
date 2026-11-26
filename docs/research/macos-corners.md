@@ -92,6 +92,8 @@ Row-mean edge `x(j)` of the corner (the same in the four corners of every window
 
 `CORNER_WINDOW` is `{ radius: 16 (API), fitted: 16.8, smoothing: 0.745 }`. A compositor draws the window with `fitted`: `R = fitted * expansion = 25.7`, exponent 3.34: rms 0.013 and maximum 0.14 (with the API radius: 0.030 and 0.35).
 
+A circle fit of the same corner gives 15.3 ([2026-11-26 measurements, section 6](macos-measurements-2026-11-26.md#6-display-scale)). The difference is the fit method; `fitted` stays 16.8.
+
 ## 4. Popovers, menus and tooltips
 
 | Element | Radius | Edge offset | Fit | Provenance |
