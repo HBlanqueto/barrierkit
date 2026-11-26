@@ -139,7 +139,7 @@ the probability that the approach works as described.
 | 10 | `mask`; `NSVisualEffectView.maskImage` | Kit | `DstIn` layer over the subtree (the kit does it for glass, `glass_container.rs:257`). Gain: any view as a mask. | M | 0.8 | P1 |
 | 11 | `blur(radius:opaque:)` on a view; `CIGaussianBlur` | Kit | Blur image filter on the layer; `opaque` picks the tile mode. Gain: blurred content and transitions. | M | 0.85 | P1 |
 | 12 | `saturation`, `brightness`, `contrast`, `hueRotation`, `grayscale`, `colorInvert`, `colorMultiply`, `luminanceToAlpha`; `CIColorControls`, `CIHueAdjust`, `CIColorInvert`, `CIMaskToAlpha` | Kit | Stock `ColorFilter` (matrix, `hsla_matrix`, `luma`, blend); the kit already uses them on images (`symbol.rs:768-790`). Measured on macOS 27.2.1 (E14), on sRGB-encoded values: `saturation(s)` mixes toward the luma 0.2126/0.7152/0.0722 (the same at 8 bits as SVG's 0.213/0.715/0.072); `grayscale(g)` is `saturation(1 - g)`; `brightness(b)` adds b; `contrast(k)` is (c - 0.5)k + 0.5; `hueRotation` is the SVG `hue-rotate` matrix; `colorInvert` is 1 - c; `colorMultiply` multiplies. Gain: the eight modifiers on any view. | S leaf, M container | 0.95: formulas match every sampled value within 1/255 | P1 for containers |
-| 13 | `MeshGradient`, `Shading.meshGradient` | Kit | `Canvas::draw_patch` per cell (Coons patch, corner colors) or an SkSL with point and color arrays (compiles, E7). Gain: the macOS 15 mesh backgrounds. | M | 0.6: Apple's interpolation is unmeasured | probe |
+| 13 | `MeshGradient`, `Shading.meshGradient` | Kit | Done 2026-11-25: `mesh_gradient::MeshGradient` draws each cell as 8 by 8 `Canvas::draw_patch` patches. Measured on macOS 27.2 against SwiftUI at 361 points of a 3 by 3 mesh with an off-center middle point: bilinear positions with a `smoothstep` blend in sRGB differ by 11.6 levels of 255 on average (worst 24), the best of 19 candidates (a straight blend 21.6, Catmull-Rom colors 24.6, OKLab 27.7, linear light 43.7 and more). Not offered: Bézier control points, `background`, a color space. | M | 0.8 | none |
 | 14 | `AngularGradient`, `EllipticalGradient`, `Gradient.ColorSpace.perceptual`, `Color.mix` | Kit | Done 2026-11-21: `Gradient::angular`, `Gradient::elliptical` and `.color_space(GradientColorSpace)` draw a Skia gradient through Freya's `Fill::Callback` (default `Perceptual`: OKLab, premultiplied; SwiftUI's angular starts right and runs clockwise, its elliptical radii are half the width and half the height; four tests). Not offered: center, start and end angles or radii. `Color.mix` is not done. Gain: all SwiftUI gradients. | S | 0.9 | none |
 | 15 | `Canvas`, `GraphicsContext` (`addFilter`, `drawLayer`, `clip`, `Shading.backdrop`) | Kit | A leaf element drawing with the Skia canvas (the `glass.rs` pattern); `addFilter` and `drawLayer` are `save_layer` plus a filter (E11). `backdrop` samples the window only. Gain: immediate-mode drawing. | M | 0.8 | none |
 | 16 | `TextRenderer`, `Text.Layout` | Kit | Skia `Paragraph::visit` exposes glyph runs, but Freya draws paragraphs itself, so the kit would own those text views. No compensa now: apps get gradient or shimmering text from `ShaderFill` on text. Gain would be per-glyph animation only. | L | 0.5 | Freya text path |
@@ -359,7 +359,7 @@ E1 to E13 ran on Skia's **CPU raster**; no GPU ran. E14 ran on macOS 27.2.1 in a
   premultiplication details; Skia surfaces here do math on encoded values.
 - Whether macOS leaves user shaders alone under Reduce Transparency and Increase
   Contrast.
-- Numeric match of macOS `plusDarker` and `MeshGradient` against the Skia ports.
+- Numeric match of macOS `plusDarker` against the Skia port.
 - Pixel behavior of `scrollEdgeEffectStyle` (`soft`, `hard`) and of the real
   background extension; both need a window probe.
 - `Color.mix`, and the center, angle and radius variants of the gradients.
@@ -386,7 +386,7 @@ E1 to E13 ran on Skia's **CPU raster**; no GPU ran. E14 ran on macOS 27.2.1 in a
 | `compositingGroup`, `drawingGroup` | `canDrawSubviewsIntoLayer` | P2 |
 | `mask` | `NSVisualEffectView.maskImage` | P2 |
 | `blur`, `saturation`, `brightness`, `contrast`, `hueRotation`, `grayscale`, `colorInvert`, `colorMultiply`, `luminanceToAlpha` | `contentFilters`, `backgroundFilters` | P2 (`implemented` on images) |
-| `MeshGradient` | — | P3 |
+| `MeshGradient` | — | P3 (`implemented`) |
 | `AngularGradient`, `EllipticalGradient`, `Gradient.ColorSpace` | `NSGradient` | P2 (`partial`) |
 | `Canvas`, `GraphicsContext` | `NSGraphicsContext` | P2 |
 | `TextRenderer` | — | P3 |

@@ -660,3 +660,11 @@ SwiftUI: `@AppStorage("bold") private var bold = false` and `Toggle("Bold", isOn
 The program is [`crates/bk/examples/app_storage.rs`](../../../crates/bk/examples/app_storage.rs). `use_app_storage` gives a `State`
 like `use_state`, read from the app's settings file and saved when it changes
 ([13](../../../docs/barrierkit/13-app.md#settings-and-restoration)).
+
+## 52. A mesh gradient
+
+SwiftUI: `MeshGradient(width: 3, height: 3, points: [..], colors: [..])`
+
+The program is [`crates/bk/examples/mesh_gradient.rs`](../../../crates/bk/examples/mesh_gradient.rs). `MeshGradient` fills
+its parent; the points are in unit space and run row by row with the colors
+([15](../../../docs/barrierkit/15-backdrops-and-media.md#mesh-gradient)).

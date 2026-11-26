@@ -318,4 +318,26 @@ appears.
 ✗ `Opacity` on each child: the overlap shows both colors.
 ✓ `CompositingGroup::new(GroupEffect::Opacity(0.5))` around both.
 
+## Mesh gradient
+
+SwiftUI: `MeshGradient(width:height:points:colors:)`. The program is
+[`recipes/mesh_gradient.rs`](../../crates/bk/examples/mesh_gradient.rs).
+
+`MeshGradient::new(width, height, points, colors)` fills its parent with a grid
+of `width` by `height` colors. `points` and `colors` run row by row; a point is
+in unit space, (0, 0) the top leading corner and (1, 1) the bottom trailing one.
+A mesh whose lists do not hold `width * height` items draws nothing.
+
+1. Each cell blends its four colors in sRGB, eased with `smoothstep`, so a
+   color holds around its point. `.smooths_colors(false)` blends in straight
+   lines.
+2. The edges between points are straight; SwiftUI's Bézier control points are
+   not offered.
+3. To animate it, pass other points or colors on each render, with
+   `use_timeline` ([8](08-windows.md#timers)).
+
+Against SwiftUI's mesh on macOS 27.2, 361 points of a 3 by 3 mesh differ by 12
+levels of 255 on average and 24 at most; a straight blend differs by 22
+([shader needs](../research/shader-needs.md)).
+
 Next: [17. Languages](17-languages.md).

@@ -100,6 +100,8 @@ pub mod backdrop;
 
 pub mod canvas;
 
+pub mod mesh_gradient;
+
 pub mod shapes;
 
 pub mod notifications;

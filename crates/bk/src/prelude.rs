@@ -29,6 +29,7 @@ pub use crate::layout::{
     Layout, LayoutContainer, LazyVGrid, OverlayModifiers, Placement, Spacer, VerticalAlignment,
     ViewThatFits, ZStack, ZStackLayout,
 };
+pub use crate::mesh_gradient::MeshGradient;
 pub use crate::modifiers::{EnvironmentModifiers, StyleModifiers, ViewModifiers};
 pub use crate::platform::{
     RunError, WindowOptions, WindowResizability, WindowStyle, WindowToolbarFullScreenVisibility,
