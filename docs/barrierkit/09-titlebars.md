@@ -72,6 +72,154 @@ on Linux, with the kit's own lights. SwiftUI's `.windowStyle(.plain)` is
 `WindowStyle::Borderless`: no bar, no lights, only the content
 ([8](08-windows.md#window-style)).
 
+### Each design and its code
+
+Each picture is the kit's render of the program under it, on Linux in Light
+([where the images come from](assets/README.md)). The base is the unified
+window of `window_designs.rs`. Each design changes only the lines its section
+shows:
+
+```rust
+Application::new("com.example.window_designs")
+    .window("Hello", || {
+        rect()
+            .expanded()
+            .child(
+                Titlebar::new()
+                    .toolbar_style(WindowToolbarStyle::Unified)
+                    .toolbar(ToolbarItem::new(
+                        ToolbarItemPlacement::PrimaryAction,
+                        ToolGroup::new().child(IconButton::new(Symbol::Plus, "Add")),
+                    )),
+            )
+            .child(
+                rect()
+                    .expanded()
+                    .center()
+                    .child(Text::new("Hello, World").font(TITLE)),
+            )
+    })
+    .options(|window| {
+        window
+            .size((480, 300))
+            .window_style(WindowStyle::HiddenTitleBar)
+    })
+    .run()
+```
+
+#### Title bar
+
+![A window with the kit's title bar](assets/window-designs/title-bar.png)
+
+`cargo run -p bk --example window_designs -- title-bar`
+
+Drop the `Titlebar` and the `.window_style(..)` line: `WindowStyle::TitleBar`
+is the default. On Linux `Application` draws the bar, unless the compositor
+does.
+
+```rust
+.options(|window| window.size((480, 300)))
+```
+
+#### Hidden title bar
+
+![A window with no bar](assets/window-designs/hidden-title-bar.png)
+
+`cargo run -p bk --example window_designs -- hidden-title-bar`
+
+Drop the `Titlebar` and keep `WindowStyle::HiddenTitleBar`. The lights over
+the content are macOS's own, so on Linux the window has none.
+
+#### Unified
+
+![A bar with the title at the start and a toolbar item](assets/window-designs/unified.png)
+
+`cargo run -p bk --example window_designs`
+
+The base as it is.
+
+#### Unified without a title
+
+![A bar whose item follows the lights](assets/window-designs/unified-no-title.png)
+
+`cargo run -p bk --example window_designs -- unified-no-title`
+
+```rust
+Titlebar::new()
+    .toolbar_style(WindowToolbarStyle::Unified)
+    .shows_title(false)
+```
+
+#### Compact
+
+![A compact bar with the title at the start](assets/window-designs/compact.png)
+
+`cargo run -p bk --example window_designs -- compact`
+
+```rust
+Titlebar::new().toolbar_style(WindowToolbarStyle::UnifiedCompact)
+```
+
+#### Compact without a title
+
+![A compact bar whose item follows the lights](assets/window-designs/compact-no-title.png)
+
+`cargo run -p bk --example window_designs -- compact-no-title`
+
+```rust
+Titlebar::new()
+    .toolbar_style(WindowToolbarStyle::UnifiedCompact)
+    .shows_title(false)
+```
+
+#### Expanded
+
+![A title row over a toolbar row](assets/window-designs/expanded.png)
+
+`cargo run -p bk --example window_designs -- expanded`
+
+```rust
+Titlebar::new().toolbar_style(WindowToolbarStyle::Expanded)
+```
+
+#### Sidebar
+
+![A sidebar that holds the lights, beside the bar over the detail](assets/window-designs/sidebar.png)
+
+`cargo run -p bk --example notes_sidebar`
+
+The root view is a `SplitView`. The sidebar takes the lights and the
+`Titlebar` goes at the top of the detail:
+
+```rust
+SplitView::new(
+    Sidebar::new()
+        .traffic_lights(true)
+        .child(SidebarItem::new("All Notes").symbol(Symbol::DocText)),
+    rect()
+        .expanded()
+        .direction(Direction::Vertical)
+        .child(Titlebar::new().title("Notes").with_sidebar(true))
+        .child(detail),
+)
+.sidebar_width(220.0)
+```
+
+#### On hover
+
+`cargo run -p bk --example window_designs -- on-hover`
+
+Windowed, it is the unified design, so there is no picture. Add the option:
+
+```rust
+.options(|window| {
+    window
+        .size((480, 300))
+        .window_style(WindowStyle::HiddenTitleBar)
+        .window_toolbar_full_screen_visibility(WindowToolbarFullScreenVisibility::OnHover)
+})
+```
+
 ## Titlebar
 
 `Titlebar` (`bk::titlebar`, in the prelude) is the bar the kit draws: the

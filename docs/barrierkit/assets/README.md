@@ -1,7 +1,7 @@
 # Documentation images
 
 **Goal:** know where each image of the BarrierKit chapters comes from.
-**Scope:** the two folders under `docs/barrierkit/assets/`. Which chapter
+**Scope:** the three folders under `docs/barrierkit/assets/`. Which chapter
 shows each image is in that chapter.
 **Reader:** whoever updates the documentation after changing how the
 titlebar or the sidebar looks.
@@ -13,7 +13,12 @@ retouched.
 | Folder | Holds | Produced by |
 |---|---|---|
 | `states/` | The titlebar and the sidebar in each window state ([9. Titlebars](../09-titlebars.md)) | Renders of the kit; the repository has no script for them |
+| `window-designs/` | One window per design of [9. Titlebars](../09-titlebars.md#each-design-and-its-code) | `window_designs` and `notes_sidebar` on Linux in Light, captured from a headless GNOME Shell; the repository has no script for them |
 | `brand/` | The BarrierKit banner, as SVG | Drawn by hand; the repository has no script for them |
+
+The windows of `window-designs/` use the default appearance. Its
+`traffic_lights` key is `wallpaper`, and with no wallpaper the lights take the
+accent, so they are blue ([9](../09-titlebars.md#color)).
 
 The black band at the top of the focus-mode scenes stands for the compositor
 bar, which Malaysia draws over a real window.
