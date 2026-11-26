@@ -1017,6 +1017,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `TITLEBAR_DOUBLE_CLICK` | `DoubleClick` | `titlebar`, the compositor |
 | `FULLSCREEN_BAR`, `FULLSCREEN_GLASS` | `FullscreenBarMetrics`, `FullscreenGlassMetrics` | `platform` (`FULLSCREEN_BAR`), `styles` (`TopGlassStyle`) |
 | `HUD_BACKGROUND` | `Rgba` | Background of a HUD window (`platform`) |
+| `WINDOW_INNER_LINE` | `Rgba` | White at 50%: the inner frame line of a Light window where the kit draws the frame ([8](08-windows.md#window-style)); Dark keeps the palette's `inner_line` |
 
 ### Traffic lights
 

@@ -158,8 +158,11 @@ The look of the title bar in each state is in
 
 `WindowStyle` (like SwiftUI's `windowStyle`) says who frames a main window on
 macOS. The compositor frames it on Linux, where the style only sets the bar
-that the size limits add ([Window options](#window-options)). Utility windows
-and sheets are always `TitleBar`.
+that the size limits add ([Window options](#window-options)). Under a
+compositor without `limitless_window_style_v1`
+([18](18-platform.md#wayland-protocols)), the kit draws the frame's outer and
+inner lines itself, except on a `Borderless`, maximized or full-screen window.
+Utility windows and sheets are always `TitleBar`.
 
 | Variant | `NSWindow` | `WindowStatus::decoration` | Use |
 |---|---|---|---|

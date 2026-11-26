@@ -15,14 +15,14 @@ use sctk::{
 
 use crate::platform::{
     ObjectId, RunError,
-    app::{AppInstance, InstanceRole},
+    app::{AppInstance, Host, InstanceRole},
     linux::{dbusmenu::server::AddressCallback, window_style::wire},
     runtime::{Connected, Runtime, WindowContext},
     surface::{SurfaceRole, SurfaceWindow},
     timer::WakeHandle,
     window::{
         DecorationResponse, WindowCommand, WindowControls, WindowEdge, WindowOptions, WindowStatus,
-        below_bar,
+        WindowStyle, below_bar,
     },
 };
 
@@ -249,8 +249,12 @@ impl Runtime {
             notice
         });
 
+        let host = self.host();
         let app_instance = AppInstance::new(
-            &self.host(),
+            &Host {
+                frame_lines: host.frame_lines && options.window_style != WindowStyle::Borderless,
+                ..host
+            },
             surface.id(),
             app,
             1.0,

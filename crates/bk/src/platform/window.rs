@@ -192,6 +192,9 @@ impl WindowOptions {
     }
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct FrameLines(pub(crate) bool);
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct WindowStatus {
     pub activated: bool,

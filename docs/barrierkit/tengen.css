@@ -1194,6 +1194,7 @@
   --bk-window-default-height: 420;
   --bk-window-resize-edge: 5;
   --bk-window-resize-corner: 16;
+  --bk-window-inner-line: #ffffff80;
   --bk-window-corner-titlebar: var(--bk-radius-lg);
   --bk-window-corner-unified-compact: 16;
   --bk-window-corner-unified: 16;
