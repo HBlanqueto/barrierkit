@@ -2464,8 +2464,8 @@
   --bk-glass-ink-faint: #00000042;
   --bk-menubar-title-open: #0d12191f;
   --bk-scrim: #aaaaaa99;
-  --bk-window-outer: #0d12191f;
-  --bk-window-inner: #ffffff00;
+  --bk-window-outer: #00000023;
+  --bk-window-inner: #ffffff1a;
   --bk-panel-inner: #ffffff00;
   --bk-panel-inner-edge: #ffffff00;
   --bk-panel-glow: #ffffff00;
@@ -2725,7 +2725,7 @@
     --bk-glass-ink-faint: #ffffff40;
     --bk-menubar-title-open: #ffffff2e;
     --bk-scrim: #14141499;
-    --bk-window-outer: #000000e6;
+    --bk-window-outer: #000000f1;
     --bk-window-inner: #ffffff1a;
     --bk-panel-inner: #ffffff1a;
     --bk-panel-inner-edge: #ffffff42;
@@ -2986,7 +2986,7 @@
   --bk-glass-ink-faint: #ffffff40;
   --bk-menubar-title-open: #ffffff2e;
   --bk-scrim: #14141499;
-  --bk-window-outer: #000000e6;
+  --bk-window-outer: #000000f1;
   --bk-window-inner: #ffffff1a;
   --bk-panel-inner: #ffffff1a;
   --bk-panel-inner-edge: #ffffff42;
@@ -3246,7 +3246,7 @@
   --bk-glass-ink-faint: #ffffff40;
   --bk-menubar-title-open: #ffffff2e;
   --bk-scrim: #14141499;
-  --bk-window-outer: #000000e6;
+  --bk-window-outer: #000000f1;
   --bk-window-inner: #ffffff24;
   --bk-panel-inner: #ffffff1a;
   --bk-panel-inner-edge: #ffffff42;
