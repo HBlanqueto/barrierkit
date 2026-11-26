@@ -27,6 +27,9 @@
   --bk-spring-desktop-switch-damping: 1.72;
   --bk-spring-desktop-gap: 64;
   --bk-spring-desktop-gap-color: #000000;
+  --bk-spring-desktop-background: #19191f;
+  --bk-cursor-fallback-size: 16;
+  --bk-cursor-fallback-color: #ffffff;
   --bk-font-families-sans: Adwaita Sans, Inter, "Noto Sans CJK SC", system-ui, sans-serif;
   --bk-font-families-mono: Geist Mono, monospace;
   --bk-font-styles-mono-family: mono;

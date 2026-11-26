@@ -222,6 +222,9 @@ DESKTOP_SWITCH_OMEGA f32 spring.desktop-switch-omega
 DESKTOP_SWITCH_DAMPING f32 spring.desktop-switch-damping
 DESKTOP_GAP f32 spring.desktop-gap
 DESKTOP_GAP_COLOR Rgba spring.desktop-gap-color
+DESKTOP_BACKGROUND Rgba spring.desktop-background
+CURSOR_FALLBACK_SIZE i32 cursor.fallback-size
+CURSOR_FALLBACK_COLOR Rgba cursor.fallback-color
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 WINDOW_CASCADE_STEP i32 components.window.cascade-step
 WINDOW_CENTER_TOP f32 components.window.center-top
