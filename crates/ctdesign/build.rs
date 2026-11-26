@@ -228,6 +228,7 @@ CURSOR_FALLBACK_COLOR Rgba cursor.fallback-color
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 WINDOW_CASCADE_STEP i32 components.window.cascade-step
 WINDOW_CENTER_TOP f32 components.window.center-top
+WINDOW_TILE_MARGIN i32 components.window.tile-margin
 MENUBAR_HEIGHT i32 components.shell.menubar.height
 DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius
 DOCK_LABEL_ARROW_WIDTH f32 components.shell.dock.label-arrow-width

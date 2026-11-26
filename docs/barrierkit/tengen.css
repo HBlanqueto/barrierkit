@@ -1214,6 +1214,7 @@
   --bk-window-resize-corner: 16;
   --bk-window-cascade-step: 29;
   --bk-window-center-top: 0.25;
+  --bk-window-tile-margin: 0;
   --bk-window-corner-titlebar: var(--bk-radius-lg);
   --bk-window-corner-unified-compact: 16;
   --bk-window-corner-unified: 16;

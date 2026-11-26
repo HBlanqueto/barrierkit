@@ -257,6 +257,7 @@ Rec. 709 saturation matrix; mutter's `ClutterBlur` is a separable Gaussian with
 
 ## 9. Not measured
 
+- The margin of tiled windows with "Tiled windows have margins" on.
 - Window shadow: main borderless, key dark panel, popover bottom, the corners.
 - Dock bounce at more than 60 Hz.
 - Notification Center and banners (nothing opened or appeared on this host);
