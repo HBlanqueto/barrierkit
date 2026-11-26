@@ -1,0 +1,5 @@
+Desktop->FS n 135 first 169 ms | travel 2640 (gap 80) w0 21.0 z 1.60 start 152 ms rms 1.8 px | t10 29 t50 112 t90 331 | rms of 2624/23/1.72 3.4 px
+FS->Desktop n 80 first 162 ms | travel 2640 (gap 80) w0 21.5 z 1.65 start 152 ms rms 5.2 px | t10 28 t50 113 t90 334 | rms of 2624/23/1.72 3.3 px
+Desktop->FS n 134 first 173 ms | travel 2640 (gap 80) w0 21.0 z 1.60 start 156 ms rms 4.5 px | t10 29 t50 112 t90 331 | rms of 2624/23/1.72 5.4 px
+FS->Desktop n 80 first 156 ms | travel 2624 (gap 64) w0 23.5 z 1.75 start 148 ms rms 4.4 px | t10 27 t50 109 t90 327 | rms of 2624/23/1.72 3.9 px
+frame gaps in windows: n 405 max 16.7 share>6ms 0.13

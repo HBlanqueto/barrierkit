@@ -1,0 +1,27 @@
+## tr1 frames in transitions 170 gap ms max 2566.6 share >6ms 0.14
+enter R width          v 1000.0->2560.0 delay 87 t10 42 t50 97 t90 264 last 442 over 0.000 | spring w0 22 z 1.25 dt -10ms rms 0.010
+    bezier over last: (0.2, 0.0, 0.0, 0.9) rms 0.010
+enter R left           v 500.0->0.0 delay 98 t10 31 t50 86 t90 253 last 381 over 0.000 | spring w0 32 z 1.71 dt -8ms rms 0.010
+enter R top            v 332.0->0.0 delay 109 t10 19 t50 69 t90 231 last 353 over 0.000 | spring w0 48 z 2.40 dt 0ms rms 0.009
+exit R width           v 2560.0->1000.0 delay 62 t10 36 t50 92 t90 258 last 419 over 0.000 | spring w0 25 z 1.39 dt -10ms rms 0.009
+    bezier over last: (0.2, 0.0, 0.0, 0.9) rms 0.005
+exit R left            v 0.0->500.0 delay 84 t10 14 t50 69 t90 236 last 364 over 0.000 | spring w0 28 z 1.55 dt 8ms rms 0.009
+exit R top             v 0.0->332.0 delay 62 t10 31 t50 81 t90 236 last 358 over 0.000 | spring w0 30 z 1.44 dt -10ms rms 0.020
+## tr2 frames in transitions 169 gap ms max 2650.0 share >6ms 0.15
+enter R width          v 1000.0->2560.0 delay 64 t10 36 t50 97 t90 258 last 442 over 0.000 | spring w0 26 z 1.43 dt -12ms rms 0.009
+    bezier over last: (0.2, 0.1, 0.1, 1.0) rms 0.010
+enter R left           v 500.0->0.0 delay 69 t10 31 t50 92 t90 253 last 381 over 0.000 | spring w0 27 z 1.50 dt -8ms rms 0.010
+enter R top            v 332.0->0.0 delay 80 t10 19 t50 81 t90 231 last 358 over 0.000 | spring w0 40 z 2.00 dt 0ms rms 0.009
+exit R width           v 2560.0->1000.0 delay 57 t10 36 t50 92 t90 264 last 425 over 0.000 | spring w0 25 z 1.39 dt -10ms rms 0.009
+    bezier over last: (0.2, 0.0, 0.0, 0.9) rms 0.007
+exit R left            v 0.0->500.0 delay 74 t10 19 t50 75 t90 247 last 369 over 0.000 | spring w0 30 z 1.65 dt 2ms rms 0.008
+exit R top             v 0.0->332.0 delay 57 t10 31 t50 75 t90 236 last 358 over 0.000 | spring w0 29 z 1.44 dt -8ms rms 0.020
+## tr3 frames in transitions 170 gap ms max 2644.4 share >6ms 0.13
+enter R width          v 1000.0->2560.0 delay 60 t10 42 t50 97 t90 258 last 442 over 0.000 | spring w0 26 z 1.44 dt -14ms rms 0.009
+    bezier over last: (0.2, 0.1, 0.1, 1.0) rms 0.010
+enter R left           v 500.0->0.0 delay 66 t10 36 t50 92 t90 253 last 386 over 0.000 | spring w0 28 z 1.54 dt -10ms rms 0.009
+enter R top            v 332.0->0.0 delay 77 t10 25 t50 81 t90 231 last 358 over 0.000 | spring w0 58 z 2.80 dt -6ms rms 0.011
+exit R width           v 2560.0->1000.0 delay 55 t10 42 t50 97 t90 258 last 425 over 0.000 | spring w0 26 z 1.44 dt -14ms rms 0.009
+    bezier over last: (0.2, 0.0, 0.0, 0.9) rms 0.008
+exit R left            v 0.0->500.0 delay 72 t10 25 t50 81 t90 242 last 375 over 0.000 | spring w0 48 z 2.45 dt -8ms rms 0.009
+exit R top             v 0.0->332.0 delay 55 t10 36 t50 86 t90 236 last 358 over 0.000 | spring w0 31 z 1.50 dt -14ms rms 0.020
