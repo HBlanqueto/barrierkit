@@ -284,6 +284,8 @@ CALENDAR CalendarPalette themes.{theme}.calendar
 CALENDAR_CONTRAST CalendarPalette themes.{theme}.calendar-contrast
 DISCLOSURE_TRIANGLE Rgba themes.{theme}.disclosure-triangle
 DISCLOSURE_TRIANGLE_CONTRAST Rgba themes.{theme}.disclosure-triangle-contrast
+FRAME_LINES FrameLines themes.{theme}.frame-lines
+FRAME_LINES_CONTRAST FrameLines themes.{theme}.frame-lines-contrast
 PRESSED PressedPalette themes.{theme}.pressed
 PRESSED_CONTRAST PressedPalette themes.{theme}.pressed-contrast
 DISABLED_CONTRAST DisabledPalette themes.{theme}.disabled-contrast

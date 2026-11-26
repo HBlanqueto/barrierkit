@@ -1555,6 +1555,14 @@ pub struct PressedPalette {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FrameLines {
+    pub outer: Rgba,
+    pub inner: Rgba,
+    pub outer_inactive: Rgba,
+    pub inner_inactive: Rgba,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DisabledPalette {
     pub off: Rgba,
     pub on: Rgba,

@@ -382,6 +382,23 @@ bar without `Titlebar` declares it with
 `unified` for a client-decorated window. The user can force one radius for
 every window with `corner_radius` in `window.domain`.
 
+### Frame lines outside Malaysia
+
+Recommendation: `FRAME_LINES` and `FRAME_LINES_CONTRAST` (`ctdesign::FrameLines`) are for a desktop that is not Malaysia, where the kit draws the window's frame lines itself. Malaysia keeps its own lines (`window-outer`, `window-inner`, `style::panel_edges`), so a Malaysia window does not read them.
+
+Reason: macOS 27.2.1 draws a 1 px outer line outside the window and a 1 px inner line inside it, and both change with the window's state and with Increase Contrast. Measured at 1x over black and white backdrops (the outer alpha has ±0.03, the contrast set was taken with Reduce Transparency on too):
+
+| Theme | State | `outer` | `inner` |
+|---|---|---|---|
+| Light | active, inactive | `#00000023`, `#00000021` | `#ffffff1a` |
+| Dark | active, inactive | `#000000f1`, `#000000d8` | `#ffffff1a`, `#ffffff14` |
+| Light, contrast | active, inactive | `#00000020`, `#0000001f` | `#ffffffb3` |
+| Dark, contrast | active, inactive | `#00000020`, `#0000001f` | `#ffffff32`, `#ffffff2e` |
+
+`DarkTint` copies Dark and keeps its `#ffffff24` inner line; its inactive and contrast values are not measured. Every standard toolbar design (32, 40, 52 and 68 px bars) has the same lines.
+
+Risks: no code reads these tokens yet. The first desktop that draws a kit frame must pick `FRAME_LINES` or `FRAME_LINES_CONTRAST` by `Resolved::contrast` and the `_inactive` pair by the window's focus.
+
 ### Full screen and focus mode
 
 The state comes from [`WindowStatus`](08-windows.md#window-state).
