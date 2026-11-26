@@ -773,7 +773,29 @@
       "margin-bottom": 15
     },
     "spaces-strip": {
-      "height": 40
+      "height": 40,
+      "expanded-height": 146,
+      "tint": "#2c2c2c69",
+      "line": "#ffffff39",
+      "thumbnail-height": 90,
+      "thumbnail-top": 29,
+      "thumbnail-gap": 32,
+      "label-cell": 95,
+      "label-pill-height": 24,
+      "label-pill-top": 7,
+      "label-pill-radius": 8,
+      "label-pill-lift": 0.137255,
+      "ring-width": 3,
+      "ring-gap": 1,
+      "add-size": 20,
+      "add-stroke": 2,
+      "add-inset": 26.5,
+      "add-color": "#e5e5e5",
+      "close-size": 22,
+      "close-color": "#ffffff",
+      "close-cross-color": "#989898",
+      "close-cross-size": 8,
+      "close-cross-stroke": 1.5
     },
     "window": {
       "min-width": 480,

@@ -381,7 +381,7 @@ Defaults keys, from [25], [26] and [28]:
 
 ## 11. Proposed tokens
 
-In `ctdesign` now: `EXPANSION_OMEGA`, `EXPANSION_DAMPING`, `EXPANSION_MARGIN_SIDE`, `EXPANSION_MARGIN_TOP`, `EXPANSION_MARGIN_BOTTOM` and `SPACES_STRIP_HEIGHT`; the rest are not. Each is added by the step of the compositor that
+In `ctdesign` now: `EXPANSION_OMEGA`, `EXPANSION_DAMPING`, `EXPANSION_MARGIN_SIDE`, `EXPANSION_MARGIN_TOP`, `EXPANSION_MARGIN_BOTTOM` and `SPACES_STRIP_HEIGHT`, and the Spaces strip's `SPACES_STRIP_EXPANDED_HEIGHT`, `SPACES_STRIP_EXPAND_OMEGA`, `SPACES_STRIP_EXPAND_DAMPING`, `SPACES_STRIP_TINT`, `SPACES_STRIP_LINE`, `SPACES_STRIP_SHADOW`, `SPACES_THUMBNAIL_HEIGHT`, `SPACES_THUMBNAIL_TOP`, `SPACES_THUMBNAIL_GAP`, `SPACES_LABEL_*`, `SPACES_RING_*`, `SPACES_ADD_*` and `SPACES_CLOSE_*`; the rest are not. Each is added by the step of the compositor that
 first reads it, as `DESKTOP_SWITCH_*` was.
 
 The times of sections 5 and 7 count from the first frame that changes. A
@@ -424,6 +424,7 @@ spring started from rest with the values below is half way and at 90 % at
 - Fonts: sizes come from the width of the ink only, with no weight. The radii
   of the Space ring and of the label pill. The hover ring at a small scale.
 - Light mode: every tone here is dark.
+- The colour of the strip's last-row line (`SPACES_STRIP_LINE`, white is a placeholder), and the arm and stroke of the close button's cross (`SPACES_CLOSE_CROSS_SIZE` 8, `SPACES_CLOSE_CROSS_STROKE` 1.5, placeholders).
 - The Dock's slide in Mission Control and in full screen, the motion of the
   strip's labels, Show Desktop, and the animation of App Exposé.
 - Whether the wallpaper moves on Control+arrows inside Mission Control: both
