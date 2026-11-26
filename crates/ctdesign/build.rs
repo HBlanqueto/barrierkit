@@ -234,6 +234,7 @@ SPACES_STRIP_SHADOW BoxShadow shadow.spaces-strip
 EXPANSION_MARGIN_SIDE i32 components.expansion.margin-side
 EXPANSION_MARGIN_TOP i32 components.expansion.margin-top
 EXPANSION_MARGIN_BOTTOM i32 components.expansion.margin-bottom
+EXPANSION_HOVER_RING_WIDTH i32 components.expansion.hover-ring-width
 SPACES_STRIP_HEIGHT i32 components.spaces-strip.height
 SPACES_STRIP_EXPANDED_HEIGHT i32 components.spaces-strip.expanded-height
 SPACES_STRIP_TINT Rgba components.spaces-strip.tint

@@ -1216,6 +1216,7 @@
   --bk-expansion-margin-side: 20;
   --bk-expansion-margin-top: 40;
   --bk-expansion-margin-bottom: 15;
+  --bk-expansion-hover-ring-width: 4;
   --bk-spaces-strip-height: 40;
   --bk-spaces-strip-expanded-height: 146;
   --bk-spaces-strip-tint: #2c2c2c69;

@@ -770,7 +770,8 @@
     "expansion": {
       "margin-side": 20,
       "margin-top": 40,
-      "margin-bottom": 15
+      "margin-bottom": 15,
+      "hover-ring-width": 4
     },
     "spaces-strip": {
       "height": 40,
