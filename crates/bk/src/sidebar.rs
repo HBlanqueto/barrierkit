@@ -321,8 +321,12 @@ impl Component for Sidebar {
         let slides_over = controls
             .as_ref()
             .is_some_and(WindowControls::toolbar_slides_over);
+        let bar_pinned = draws_lights
+            && !controls
+                .as_ref()
+                .is_some_and(WindowControls::titlebar_overlaid);
         let top_height = match (
-            lights_shown,
+            lights_shown || bar_pinned,
             controls.as_ref().filter(|_| overlay_top.is_some()),
         ) {
             (false, _) if slides_over => 0.0,
