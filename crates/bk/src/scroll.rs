@@ -820,7 +820,7 @@ impl Component for ScrollView {
             self.autohides,
             &style,
         );
-        let elastic = use_elastic(controller, self.refresh.clone());
+        let elastic = use_elastic(controller, self.refresh.clone().filter(|_| !horizontal));
         use_scroll_position(controller, self.position);
         use_scroll_events(
             controller,

@@ -1,3 +1,4 @@
+use ctdesign::SCROLL_PHYSICS;
 use freya_core::{
     integration::{KeyboardEventName, MouseEventName, PlatformEvent, WheelEventName, WheelSource},
     prelude::{Code, CursorIcon, Key, Modifiers, MouseButton, NamedKey, TouchPhase},
@@ -74,7 +75,11 @@ pub(super) fn wheel(event: &NSEvent, position: CursorPoint, started: &mut bool) 
     } else {
         (WheelSource::Line, TouchPhase::Moved)
     };
-    let step = if precise { 1.0 } else { 10.0 };
+    let step = if precise {
+        1.0
+    } else {
+        f64::from(SCROLL_PHYSICS.line_step)
+    };
     PlatformEvent::Wheel {
         name: WheelEventName::Wheel,
         scroll: CursorPoint::from((-dx * step, -dy * step)),

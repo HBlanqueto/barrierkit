@@ -224,7 +224,9 @@ pub fn palette_from_pixels(rgba8: &[u8]) -> Option<ImagePalette> {
     }
     let mid_tones: Vec<&Cluster> = clusters
         .iter()
-        .filter(|c| c.centre.l > 0.12 && c.centre.l < 0.95)
+        .filter(|c| {
+            c.centre.l > BACKDROP.mid_lightness[0] && c.centre.l < BACKDROP.mid_lightness[1]
+        })
         .collect();
     let pool: Vec<&Cluster> = if mid_tones.len() >= 3 {
         mid_tones
@@ -243,7 +245,7 @@ pub fn palette_from_pixels(rgba8: &[u8]) -> Option<ImagePalette> {
     let vivid = pool
         .iter()
         .take(5)
-        .filter(|c| c.share > 0.03)
+        .filter(|c| c.share > BACKDROP.vivid_min_share)
         .max_by(|p, q| p.centre.chroma().total_cmp(&q.centre.chroma()))
         .unwrap_or(&pool[0]);
     let pick = |i: usize| chosen[i.min(chosen.len() - 1)].centre.to_rgba();
@@ -342,15 +344,11 @@ impl Backdrop {
         ink_on(self.average())
     }
 
-    pub fn accent(self, vivid: Rgba) -> Rgba {
-        self.highlight(vivid)
-    }
-
     pub fn highlights(self) -> [Rgba; 3] {
         self.layers.map(|layer| self.highlight(layer))
     }
 
-    fn highlight(self, color: Rgba) -> Rgba {
+    pub fn highlight(self, color: Rgba) -> Rgba {
         let color = Oklab::from_rgba(color);
         let chroma = color.chroma().max(BACKDROP.accent_min_chroma);
         let hue = color.b.atan2(color.a);

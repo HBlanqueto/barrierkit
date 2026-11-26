@@ -41,7 +41,7 @@ pub enum GroupEffect {
     /// A 4x5 color matrix in row-major order, as Skia reads it (`translate` column in 0 to 1).
     ColorMatrix([f32; 20]),
     /// An SkSL image filter: `uniform shader content;` receives the layer; a uniform named `time` is bound to the seconds since the
-    /// group appeared, added to its starting time; the group redraws every frame.
+    /// group appeared; the group redraws every frame.
     Shader(ShaderEffect),
     /// The pocket under a toolbar where content scrolls: a blur and a tone over the first `depth` points, as macOS draws it, shown
     /// by `progress` (0 to 1). The edge is a hard step. Measured values: [UIKit animations](../../../docs/research/shader-needs.md).
@@ -66,11 +66,6 @@ impl ShaderEffect {
             uniforms,
             time: 0.0,
         }
-    }
-
-    pub(crate) fn at(mut self, time: f32) -> Self {
-        self.time = time;
-        self
     }
 }
 
@@ -244,9 +239,7 @@ impl Component for CompositingGroup {
         let _ = clock.get().value();
         let mut effect = self.effect.clone();
         if let GroupEffect::Shader(shader) = &mut effect {
-            *shader = shader
-                .clone()
-                .at(shader.time + started.elapsed().as_secs_f32());
+            shader.time = started.elapsed().as_secs_f32();
         }
         rect().child(marker(effect)).children(self.children.clone())
     }

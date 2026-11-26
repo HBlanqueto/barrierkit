@@ -246,8 +246,8 @@ impl Component for TextView {
             .holder(holder.read().clone())
             .on_sized(move |event: Event<SizedEventData>| area.set(event.visible_area))
             .on_focus_press(on_focus_press)
-            .width(self.width.clone())
-            .height(self.height.clone())
+            .width(within(&self.width))
+            .height(within(&self.height))
             .with(|el| sized_font(el, &self.family, self.size))
             .line_height(self.line_height / self.size)
             .color(color(paints.color(style.text.resolve(state))))
@@ -284,5 +284,13 @@ impl Component for TextView {
             .height(self.height.clone())
             .child(paragraph);
         self.overrides.apply(root)
+    }
+}
+
+fn within(root: &Size) -> Size {
+    if *root == Size::auto() {
+        Size::auto()
+    } else {
+        Size::fill()
     }
 }

@@ -64,7 +64,8 @@ impl Slider {
     }
 
     pub fn range(mut self, range: RangeInclusive<f32>) -> Self {
-        self.range = (*range.start(), *range.end());
+        let (start, end) = (*range.start(), *range.end());
+        self.range = (start.min(end), start.max(end));
         self
     }
 
@@ -148,7 +149,11 @@ impl Component for Slider {
         let run = (length - knob).max(0.0);
         let current = pending.read().unwrap_or(*value.read()).clamp(low, high);
         let animation = level::click_animation(interaction, moves, style.animation);
-        let fraction = (current - low) / span;
+        let fraction = if span > 0.0 {
+            (current - low) / span
+        } else {
+            0.0
+        };
         let knob_at = run * crate::animation::use_animated(fraction, animation);
         let knob_scale = level::use_pressed_scale(
             interaction.held(),

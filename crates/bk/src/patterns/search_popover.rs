@@ -95,7 +95,7 @@ pub(crate) fn use_search_popover(
         anchor_rect(field),
         (field.size.width.round() as u32, height.ceil() as u32),
     );
-    content.set(results);
+    content.set_if_modified(results);
     let spec = |on_dismissed| PopupSpec {
         anchor_rect: placement.0,
         anchor: PopupAnchor::BottomLeft,

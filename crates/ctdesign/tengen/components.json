@@ -350,6 +350,8 @@
       "tile-top-lift": 0.02,
       "tile-bottom-lift": -0.02,
       "dark-glyph-lightness": 0.65,
+      "hue-bins": 24,
+      "hue-bin-occupied": 0.03,
       "lobe-dark": {
         "top-lightness": 0.29,
         "top-chroma-scale": 0.5,
@@ -612,7 +614,9 @@
       "box-border-opacity": [0.045, 0.124, 0.4, 0.486],
       "line-border-opacity": [0.25, 0.25, 0.5, 0.51],
       "bezel-inset": [3, 2, 3, 4],
-      "bezel-page-inset": [10, 7, 10, 13]
+      "bezel-page-inset": [10, 7, 10, 13],
+      "bottom-box-offset": 1,
+      "bottom-page-offset": 2
     },
     "table": {
       "row-height": 24,
@@ -727,6 +731,17 @@
       "offset-light": 0.5349,
       "scale-dark": 0.4,
       "offset-dark": 0.0976
+    },
+    "scroll-edge": {
+      "fade-stops": [0, 0.75, 1],
+      "fade-whole": 0.6,
+      "fade-tail": 0,
+      "pocket-ramp": 30,
+      "pocket-overrun": 10,
+      "pocket-veil-start": 0.5,
+      "pocket-veil": 0.85,
+      "detail-veil": 0.56,
+      "backdrop-scale": 0.5
     },
     "corner": {
       "smoothing": 0.745,
@@ -1085,7 +1100,9 @@
       "sunken": 0.18,
       "accent-lightness-on-dark": 0.74,
       "accent-lightness-on-light": 0.5,
-      "accent-min-chroma": 0.12
+      "accent-min-chroma": 0.12,
+      "mid-lightness": [0.12, 0.95],
+      "vivid-min-share": 0.03
     },
     "backdrop-scenes": {
       "dusk": ["#7a3b5e", "#2d6e6a", "#b4703f"]
@@ -1167,7 +1184,10 @@
       "refresh-band": 0.5,
       "fling-power": 4,
       "settled-over": 0.25,
-      "settled-speed": 0.002
+      "settled-speed": 0.002,
+      "settle-limit": 4000,
+      "settle-step": 4,
+      "line-step": 10
     },
     "badge": {
       "height": 20,

@@ -1,5 +1,5 @@
 use ctappearance::material::Material;
-use ctdesign::Rgba;
+use ctdesign::{Rgba, SCROLL_EDGE};
 use objc2::rc::Retained;
 use objc2::runtime::{AnyClass, AnyObject};
 use objc2::{MainThreadMarker, MainThreadOnly, msg_send, sel};
@@ -59,15 +59,10 @@ pub(super) fn autoresizing(
     }
 }
 
-pub(super) fn effect(
-    mtm: MainThreadMarker,
-    material: Material,
-    blending: NSVisualEffectBlendingMode,
-    radius: f32,
-) -> Retained<Effect> {
+pub(super) fn effect(mtm: MainThreadMarker, material: Material, radius: f32) -> Retained<Effect> {
     let effect = Effect::new(mtm);
     effect.setMaterial(self::material(material));
-    effect.setBlendingMode(blending);
+    effect.setBlendingMode(NSVisualEffectBlendingMode::WithinWindow);
     effect.setState(NSVisualEffectState::Active);
     effect.setWantsLayer(true);
     if let Some(layer) = effect.layer() {
@@ -96,21 +91,10 @@ pub(super) fn edge_rect(
     }
 }
 
-const FADE_STOPS: [f64; 3] = [0.0, 0.75, 1.0];
-
-// How much of the material a soft edge shows where it is whole and at its end: the SwiftUI window over a red row shows it at half.
-pub(super) const FADE_STRENGTH: (f64, f64) = (0.6, 0.0);
-
 // SwiftUI's sidebar scroll pocket under a full-screen bar, read from Resonance Swift (docs/barrierkit/09-titlebars.md#full-screen), with Core Animation's private
 // backdrop layers: a half-scale variable blur of the rows, and over it the background behind the rows, captured below them and shown
-// through a gradient. Both run 10 pt past the pocket's bottom; the blur's mask and the gradient each ramp over 30 pt there.
-const POCKET_RAMP: f64 = 30.0;
-const POCKET_OVERRUN: f64 = 10.0;
+// through a gradient. Both run `SCROLL_EDGE.pocket_overrun` past the pocket's bottom; the blur's mask and the gradient each ramp over `pocket_ramp` there.
 const POCKET_MASK_ROWS: usize = 128;
-const POCKET_VEIL_START: f64 = 0.5;
-const POCKET_VEIL: f64 = 0.85;
-// Under an `OnHover` bar SwiftUI lays the window color over the detail at this alpha, edge to edge: white reads 130/255 there (macOS 27.2).
-const DETAIL_VEIL: f64 = 0.56;
 
 pub(super) struct Pocket {
     pub(super) capture: Retained<NSView>,
@@ -129,7 +113,7 @@ impl Pocket {
         let gradient = CAGradientLayer::new();
         let (clear, veiled) = (
             CGColor::new_generic_rgb(1.0, 0.0, 1.0, 0.0),
-            CGColor::new_generic_rgb(1.0, 0.0, 1.0, POCKET_VEIL),
+            CGColor::new_generic_rgb(1.0, 0.0, 1.0, SCROLL_EDGE.pocket_veil),
         );
         // SAFETY: a CGColor is a Core Foundation object, and CAGradientLayer takes them as its colors.
         let colors = unsafe {
@@ -176,7 +160,7 @@ impl Pocket {
                 f64::from(color.r),
                 f64::from(color.g),
                 f64::from(color.b),
-                DETAIL_VEIL,
+                SCROLL_EDGE.detail_veil,
             );
             self.tint.setBackgroundColor(Some(&color.CGColor()));
         }
@@ -191,8 +175,8 @@ impl Pocket {
     pub(super) fn set_frame(&self, frame: NSRect) {
         let (width, depth) = (frame.size.width, frame.size.height);
         let overrun = NSRect::new(
-            NSPoint::new(0.0, -POCKET_OVERRUN),
-            NSSize::new(width, depth + POCKET_OVERRUN),
+            NSPoint::new(0.0, -SCROLL_EDGE.pocket_overrun),
+            NSSize::new(width, depth + SCROLL_EDGE.pocket_overrun),
         );
         let bounds = NSRect::new(NSPoint::new(0.0, 0.0), frame.size);
         CATransaction::begin();
@@ -222,10 +206,10 @@ impl Pocket {
             {
                 let height = overrun.size.height;
                 gradient.setFrame(NSRect::new(NSPoint::new(0.0, 0.0), overrun.size));
-                gradient.setStartPoint(NSPoint::new(0.5, POCKET_VEIL_START / height));
+                gradient.setStartPoint(NSPoint::new(0.5, SCROLL_EDGE.pocket_veil_start / height));
                 gradient.setEndPoint(NSPoint::new(
                     0.5,
-                    (POCKET_VEIL_START + POCKET_RAMP) / height,
+                    (SCROLL_EDGE.pocket_veil_start + SCROLL_EDGE.pocket_ramp) / height,
                 ));
             }
         }
@@ -244,7 +228,7 @@ fn backdrop(group: Option<&NSString>) -> Option<Retained<CALayer>> {
     let layer: Retained<CALayer> = unsafe { msg_send![class, layer] };
     // SAFETY: `scale` is the backdrop's capture resolution, a CGFloat; `groupName` an NSString or nil.
     unsafe {
-        let _: () = msg_send![&layer, setScale: 0.5f64];
+        let _: () = msg_send![&layer, setScale: SCROLL_EDGE.backdrop_scale];
         let _: () = msg_send![&layer, setGroupName: group];
     }
     Some(layer)
@@ -289,16 +273,17 @@ fn variable_blur(depth: f64) -> Option<Retained<AnyObject>> {
     Some(filter)
 }
 
-// The same bytes as SwiftUI's mask for this depth: zero, then a 30 pt ramp ending at the pocket's bottom, then whole over the overrun.
+// The same bytes as SwiftUI's mask for this depth: zero, then a `pocket_ramp` ramp ending at the pocket's bottom, then whole over the overrun.
 fn pocket_mask(depth: f64) -> [u8; POCKET_MASK_ROWS] {
-    let height = depth + POCKET_OVERRUN;
+    let (ramp, height) = (SCROLL_EDGE.pocket_ramp, depth + SCROLL_EDGE.pocket_overrun);
     std::array::from_fn(|row| {
         let y = row as f64 / (POCKET_MASK_ROWS - 1) as f64 * height;
-        (((y - (depth - POCKET_RAMP)) / POCKET_RAMP).clamp(0.0, 1.0) * 255.0) as u8
+        (((y - (depth - ramp)) / ramp).clamp(0.0, 1.0) * 255.0) as u8
     })
 }
 
-pub(super) fn fade(effect: &Effect, edge: Edge, (whole, tail): (f64, f64)) {
+pub(super) fn fade(effect: &Effect, edge: Edge) {
+    let (whole, tail) = (SCROLL_EDGE.fade_whole, SCROLL_EDGE.fade_tail);
     let gray = |alpha| CGColor::new_generic_gray(0.0, alpha);
     let (start, end) = edge_points(edge);
     let layer = CAGradientLayer::new();
@@ -314,9 +299,10 @@ pub(super) fn fade(effect: &Effect, edge: Edge, (whole, tail): (f64, f64)) {
     };
     // SAFETY: the colors are the three CGColors above.
     unsafe { layer.setColors(Some(&colors)) };
-    let stops: Vec<_> = FADE_STOPS
+    let stops: Vec<_> = SCROLL_EDGE
+        .fade_stops
         .iter()
-        .map(|stop| NSNumber::new_f64(*stop))
+        .map(|stop| NSNumber::new_f64(f64::from(*stop)))
         .collect();
     layer.setLocations(Some(&NSArray::from_retained_slice(&stops)));
     layer.setStartPoint(NSPoint::new(start.0, start.1));
@@ -416,12 +402,6 @@ pub(super) fn place_pane(split: &NSSplitViewController, frame: NSRect) {
         pane.setMaximumThickness(frame.size.width);
     }
     split.view().setFrame(frame);
-}
-
-pub(super) fn container(mtm: MainThreadMarker, frame: NSRect) -> Retained<NSView> {
-    let container = NSView::initWithFrame(NSView::alloc(mtm), frame);
-    container.setAutoresizesSubviews(true);
-    container
 }
 
 pub(crate) type PlacedGlass = ((i32, i32, i32, i32), u32, bool, Option<Rgba>);

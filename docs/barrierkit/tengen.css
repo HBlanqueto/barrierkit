@@ -636,6 +636,8 @@
   --bk-icon-plate-tile-top-lift: 0.02;
   --bk-icon-plate-tile-bottom-lift: -0.02;
   --bk-icon-plate-dark-glyph-lightness: 0.65;
+  --bk-icon-plate-hue-bins: 24;
+  --bk-icon-plate-hue-bin-occupied: 0.03;
   --bk-icon-plate-lobe-dark-top-lightness: 0.29;
   --bk-icon-plate-lobe-dark-top-chroma-scale: 0.5;
   --bk-icon-plate-lobe-dark-top-chroma-cap: 0.11;
@@ -959,6 +961,8 @@
   --bk-tab-view-bezel-page-inset-1: 7;
   --bk-tab-view-bezel-page-inset-2: 10;
   --bk-tab-view-bezel-page-inset-3: 13;
+  --bk-tab-view-bottom-box-offset: 1;
+  --bk-tab-view-bottom-page-offset: 2;
   --bk-table-row-height: 24;
   --bk-table-selected-secondary-alpha: 0.75;
   --bk-table-header-height: 28;
@@ -1077,6 +1081,18 @@
   --bk-scroll-pocket-offset-light: 0.5349;
   --bk-scroll-pocket-scale-dark: 0.4;
   --bk-scroll-pocket-offset-dark: 0.0976;
+  --bk-scroll-edge-fade-stops: 0 0.75 1;
+  --bk-scroll-edge-fade-stops-0: 0;
+  --bk-scroll-edge-fade-stops-1: 0.75;
+  --bk-scroll-edge-fade-stops-2: 1;
+  --bk-scroll-edge-fade-whole: 0.6;
+  --bk-scroll-edge-fade-tail: 0;
+  --bk-scroll-edge-pocket-ramp: 30;
+  --bk-scroll-edge-pocket-overrun: 10;
+  --bk-scroll-edge-pocket-veil-start: 0.5;
+  --bk-scroll-edge-pocket-veil: 0.85;
+  --bk-scroll-edge-detail-veil: 0.56;
+  --bk-scroll-edge-backdrop-scale: 0.5;
   --bk-corner-smoothing: 0.745;
   --bk-corner-concentric-region: 1.0;
   --bk-corner-window-radius: var(--bk-window-corner-titlebar);
@@ -1898,6 +1914,10 @@
   --bk-backdrop-accent-lightness-on-dark: 0.74;
   --bk-backdrop-accent-lightness-on-light: 0.5;
   --bk-backdrop-accent-min-chroma: 0.12;
+  --bk-backdrop-mid-lightness: 0.12 0.95;
+  --bk-backdrop-mid-lightness-0: 0.12;
+  --bk-backdrop-mid-lightness-1: 0.95;
+  --bk-backdrop-vivid-min-share: 0.03;
   --bk-backdrop-scenes-dusk: #7a3b5e #2d6e6a #b4703f;
   --bk-backdrop-scenes-dusk-0: #7a3b5e;
   --bk-backdrop-scenes-dusk-1: #2d6e6a;
@@ -1986,6 +2006,9 @@
   --bk-scroll-physics-fling-power: 4;
   --bk-scroll-physics-settled-over: 0.25;
   --bk-scroll-physics-settled-speed: 0.002;
+  --bk-scroll-physics-settle-limit: 4000;
+  --bk-scroll-physics-settle-step: 4;
+  --bk-scroll-physics-line-step: 10;
   --bk-badge-height: 20;
   --bk-badge-padding-x: 8;
   --bk-focus-ring-width: 3;

@@ -389,7 +389,7 @@ impl Runtime {
                             | WindowCommand::Sheet(_)
                             | WindowCommand::Fit(_)
                             | WindowCommand::ImeCursor(_)
-                            | WindowCommand::FieldCursor(_) => unreachable!(),
+                            | WindowCommand::FieldCursor(_) => {}
                         }
                         self.surfaces[index].needs_redraw = true;
                     }
@@ -479,12 +479,13 @@ impl Runtime {
             };
             if let Some(context) = &self.surfaces[index].context {
                 let mut status = context.controls.status;
+                let fixed = status.peek().fixed;
                 status.set(WindowStatus {
                     activated: configure.is_activated(),
                     maximized: configure.is_maximized(),
                     fullscreen: configure.is_fullscreen(),
                     decoration,
-                    fixed: context.controls.fixed,
+                    fixed,
                 });
             }
             if !size_changed && let SurfaceRole::Window(window) = &self.surfaces[index].role {
@@ -510,6 +511,14 @@ impl Runtime {
             ));
             window.set_min_size(fixed);
             window.set_max_size(fixed);
+            if let Some(context) = &self.surfaces[index].context {
+                let mut status = context.controls.status;
+                let shown = *status.peek();
+                status.set(WindowStatus {
+                    fixed: true,
+                    ..shown
+                });
+            }
         }
         let scale = self.surfaces[index].scale;
         self.surfaces[index].configure(size, scale);

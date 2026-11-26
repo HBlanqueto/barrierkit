@@ -1,4 +1,4 @@
-use ctdesign::{ControlSize, TAB_VIEW};
+use ctdesign::{ControlSize, HAIRLINE, TAB_VIEW};
 use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Position, Size};
@@ -187,8 +187,18 @@ impl TabView {
                 Gaps::new(past, side + page_in, far + page_in, side + page_in),
             ),
             TabType::Bottom => (
-                Gaps::new(near, side, style.strip_inset + half + 1.0, side),
-                Gaps::new(near + page_in, side + page_in, past - 2.0, side + page_in),
+                Gaps::new(
+                    near,
+                    side,
+                    style.strip_inset + half + TAB_VIEW.bottom_box_offset,
+                    side,
+                ),
+                Gaps::new(
+                    near + page_in,
+                    side + page_in,
+                    past - TAB_VIEW.bottom_page_offset,
+                    side + page_in,
+                ),
             ),
             TabType::NoTabsBezelBorder => {
                 let [left, top, right, bottom] = TAB_VIEW.bezel_inset;
@@ -198,7 +208,7 @@ impl TabView {
                     Gaps::new(page_top, page_right, page_bottom, page_left),
                 )
             }
-            TabType::NoTabsLineBorder => (Gaps::new_all(0.0), Gaps::new_all(1.0)),
+            TabType::NoTabsLineBorder => (Gaps::new_all(0.0), Gaps::new_all(HAIRLINE)),
             TabType::Automatic | TabType::Toolbar | TabType::NoTabsNoBorder => {
                 (Gaps::new_all(0.0), Gaps::new_all(0.0))
             }

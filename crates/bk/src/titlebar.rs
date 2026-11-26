@@ -1012,7 +1012,7 @@ pub fn use_window_drag(fixed: bool) -> impl Fn(Event<MouseEventData>) + Clone {
         }
         let controls = WindowControls::get();
         let now = Instant::now();
-        let point = (event.element_location.x, event.element_location.y);
+        let point = (event.global_location.x, event.global_location.y);
         let double = last_click.get().is_some_and(|(then, before)| {
             now.duration_since(then)
                 <= Duration::from_millis(u64::from(TITLEBAR_DOUBLE_CLICK.interval_ms))

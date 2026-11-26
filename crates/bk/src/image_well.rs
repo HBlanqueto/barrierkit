@@ -134,6 +134,7 @@ fn choose(mut image: State<Option<PathBuf>>) {
         if let Some(path) = crate::portal::open_files(text!("choose-image"), false, false)
             .await
             .and_then(|paths| paths.into_iter().next())
+            .filter(|path| is_image(path))
         {
             image.set(Some(path));
         }

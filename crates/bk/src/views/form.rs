@@ -10,7 +10,7 @@ use std::any::TypeId;
 use crate::compact::Stepper;
 use crate::controls::{Button, Checkbox, ControlSize, SegmentedControl, Switch, TextField};
 use crate::date_picker::DatePicker;
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::indicator::CapacityIndicator;
 use crate::interaction::{control_state, use_interaction};
 use crate::layout::{ambient, resolve_mirrored};
@@ -241,6 +241,7 @@ pub struct Form {
     highlighted: Option<Cow<'static, str>>,
     style: Theme,
     overrides: Overrides,
+    key: DiffKey,
 }
 
 impl Default for Form {
@@ -257,6 +258,7 @@ impl Form {
             highlighted: None,
             style: Theme::tengen(),
             overrides: Overrides::default(),
+            key: DiffKey::None,
         }
     }
 
@@ -293,9 +295,13 @@ impl Form {
     }
 }
 
+forward_key!(Form);
+
 forward_overrides!(Form);
 
 impl Component for Form {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: FormStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default());

@@ -20,7 +20,7 @@ use objc2_quartz_core::CAShapeLayer;
 use super::arrow;
 use super::place::{Rect, place};
 use super::view::{ContentView, Panel, WindowDelegate};
-use super::{Runtime, Window, with_runtime};
+use super::{Runtime, Window, configure_metal_layer, with_runtime};
 use crate::platform::ObjectId;
 use crate::platform::app::{AppInstance, InstanceRole};
 use crate::platform::popup::{PopupCommand, PopupId, PopupSpec};
@@ -33,7 +33,7 @@ pub(super) struct PopupState {
     on_dismissed: Option<Rc<dyn Fn()>>,
     opens_left: Rc<Cell<bool>>,
     grabbed: bool,
-    arrowed: Option<(Retained<NSVisualEffectView>, PopoverShape)>,
+    arrowed: Option<Retained<NSVisualEffectView>>,
     popover: Option<(Retained<NSPopover>, Retained<PopoverDelegate>)>,
 }
 
@@ -79,11 +79,10 @@ impl PopoverDelegate {
 fn shape_effect(
     effect: &NSVisualEffectView,
     content: &NSView,
-    shape: PopoverShape,
     anchor: (i32, i32, u32, u32),
     placed: Rect,
 ) {
-    let shape_of = arrow::metrics(shape);
+    let shape_of = arrow::metrics();
     let anchor = Rect {
         x: anchor.0,
         y: anchor.1,
@@ -263,7 +262,7 @@ impl Runtime {
             NSAutoresizingMaskOptions::ViewWidthSizable
                 | NSAutoresizingMaskOptions::ViewHeightSizable,
         );
-        let layer = self.configure_layer(&view);
+        let layer = configure_metal_layer(&self.gpu.device, &view);
         layer.setOpaque(false);
         let (native, arrowed, shown) = if popover == Some(PopoverShape::Popover) {
             let Some(owner_view) = self.window(owner.raw()).map(|window| window.view.clone())
@@ -295,16 +294,11 @@ impl Runtime {
             panel.setHasShadow(true);
             panel.setLevel(NSPopUpMenuWindowLevel);
             let (material, corner) = match popover {
-                Some(PopoverShape::Label) => (
+                None if !spec.grab => (
                     NSVisualEffectMaterial::ToolTip,
                     ctdesign::CORNER_TOOLTIP.radius,
                 ),
-                Some(_) => (NSVisualEffectMaterial::Menu, ctdesign::CORNER_MENU.radius),
-                None if spec.grab => (NSVisualEffectMaterial::Menu, ctdesign::CORNER_MENU.radius),
-                None => (
-                    NSVisualEffectMaterial::ToolTip,
-                    ctdesign::CORNER_TOOLTIP.radius,
-                ),
+                _ => (NSVisualEffectMaterial::Menu, ctdesign::CORNER_MENU.radius),
             };
             let effect = NSVisualEffectView::new(self.mtm);
             effect.setFrame(bounds);
@@ -318,9 +312,9 @@ impl Runtime {
             }
             effect.addSubview(&view);
             panel.setContentView(Some(&effect));
-            let arrowed = popover.map(|shape| {
-                shape_effect(&effect, &view, shape, spec.anchor_rect, placed);
-                (effect.clone(), shape)
+            let arrowed = popover.is_some().then(|| {
+                shape_effect(&effect, &view, spec.anchor_rect, placed);
+                effect.clone()
             });
             let native: Retained<NSWindow> = Retained::into_super(Retained::into_super(panel));
             (native, arrowed, None)
@@ -422,12 +416,12 @@ impl Runtime {
                 return;
             }
             window.window.setFrame_display(frame, true);
-            if let Some((effect, shape)) = window
+            if let Some(effect) = window
                 .popup
                 .as_ref()
                 .and_then(|popup| popup.arrowed.as_ref())
             {
-                shape_effect(effect, &window.view, *shape, spec.anchor_rect, placed);
+                shape_effect(effect, &window.view, spec.anchor_rect, placed);
             }
         }
     }

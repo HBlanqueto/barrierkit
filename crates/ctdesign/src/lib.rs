@@ -624,6 +624,8 @@ pub struct BackdropMetrics {
     pub accent_lightness_on_dark: f32,
     pub accent_lightness_on_light: f32,
     pub accent_min_chroma: f32,
+    pub mid_lightness: [f32; 2],
+    pub vivid_min_share: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -741,6 +743,8 @@ pub struct IconPlateMetrics {
     pub tile_top_lift: f32,
     pub tile_bottom_lift: f32,
     pub dark_glyph_lightness: f32,
+    pub hue_bins: usize,
+    pub hue_bin_occupied: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1111,6 +1115,19 @@ pub struct MaterialThickness {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ScrollEdgeMetrics {
+    pub fade_stops: [f32; 3],
+    pub fade_whole: f64,
+    pub fade_tail: f64,
+    pub pocket_ramp: f64,
+    pub pocket_overrun: f64,
+    pub pocket_veil_start: f64,
+    pub pocket_veil: f64,
+    pub detail_veil: f64,
+    pub backdrop_scale: f64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScrollBarMetrics {
     pub thumb: f32,
     pub inset: f32,
@@ -1148,6 +1165,9 @@ pub struct ScrollPhysicsMetrics {
     pub refresh_trigger: f32,
     pub refresh_hold: f32,
     pub refresh_band: f32,
+    pub settle_limit: f32,
+    pub settle_step: f32,
+    pub line_step: f32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -1306,6 +1326,8 @@ pub struct TabViewMetrics {
     pub line_border_opacity: [f32; 4],
     pub bezel_inset: [f32; 4],
     pub bezel_page_inset: [f32; 4],
+    pub bottom_box_offset: f32,
+    pub bottom_page_offset: f32,
 }
 
 impl TabViewMetrics {

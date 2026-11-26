@@ -129,11 +129,11 @@ impl Bounce {
 
     fn settles_at(self) -> f32 {
         let mut at = 0.0;
-        while at < 4000.0
+        while at < SCROLL_PHYSICS.settle_limit
             && (self.over_at(at).abs() > SCROLL_SETTLED_OVER
                 || self.speed_at(at).abs() > SCROLL_SETTLED_SPEED)
         {
-            at += 4.0;
+            at += SCROLL_PHYSICS.settle_step;
         }
         at
     }
@@ -154,8 +154,8 @@ pub(crate) struct Glide {
     from: f32,
     limit: f32,
     fling: Fling,
-    edge: Option<(f32, f32, Bounce)>,
-    bounce: Option<Bounce>,
+    edge: Option<(f32, f32, Bounce, f32)>,
+    bounce: Option<(Bounce, f32)>,
 }
 
 impl Glide {
@@ -168,39 +168,38 @@ impl Glide {
         let reach = if speed > 0.0 { limit - from } else { -from };
         let edge = fling.reaches(reach).map(|at| {
             let arrival = fling.speed_at(at);
-            (
-                at,
-                reach,
-                Bounce {
-                    over: 0.0,
-                    speed: SCROLL_PHYSICS.band_speed * arrival,
-                },
-            )
+            let bounce = Bounce {
+                over: 0.0,
+                speed: SCROLL_PHYSICS.band_speed * arrival,
+            };
+            (at, reach, bounce, bounce.settles_at())
         });
         Self {
             from,
             limit,
             fling,
             edge,
-            bounce: (over != 0.0).then_some(Bounce { over, speed: 0.0 }),
+            bounce: (over != 0.0)
+                .then_some(Bounce { over, speed: 0.0 })
+                .map(|bounce| (bounce, bounce.settles_at())),
         }
     }
 
     pub(crate) fn at(self, at: f32) -> Position {
-        if let Some(bounce) = self.bounce {
+        if let Some((bounce, settles_at)) = self.bounce {
             return Position {
                 rest: self.from,
                 over: bounce.over_at(at),
-                done: at >= bounce.settles_at(),
+                done: at >= settles_at,
             };
         }
         match self.edge {
-            Some((arrival, reach, bounce)) if at >= arrival => {
+            Some((arrival, reach, bounce, settles_at)) if at >= arrival => {
                 let since = at - arrival;
                 Position {
                     rest: self.from + reach,
                     over: bounce.over_at(since),
-                    done: since >= bounce.settles_at(),
+                    done: since >= settles_at,
                 }
             }
             _ => Position {

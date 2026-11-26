@@ -13,7 +13,7 @@ use torin::prelude::{Alignment, Content, Direction, Gaps, Position, Size};
 
 use crate::animation::{Clock, effective, transaction_at};
 use crate::context_menu::context_menu;
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::interaction::{track_modifiers, use_held_modifiers};
 use crate::menu::{CheckState, MenuItem};
@@ -97,6 +97,7 @@ pub struct Table {
     scroll_bar: bool,
     style: Theme,
     overrides: Overrides,
+    key: DiffKey,
 }
 
 impl Table {
@@ -118,6 +119,7 @@ impl Table {
             scroll_bar: true,
             style: Theme::tengen(),
             overrides: Overrides::default(),
+            key: DiffKey::None,
         }
     }
 
@@ -264,9 +266,13 @@ pub fn toggle_column(hidden: &[usize], column: usize, count: usize) -> Vec<usize
     next
 }
 
+forward_key!(Table);
+
 forward_overrides!(Table);
 
 impl Component for Table {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: TableStyle = resolve(&self.style);
         let interaction = use_interaction();
@@ -535,7 +541,7 @@ impl Component for Table {
         }
         let moving = motion.borrow().frame();
         let (_, scrolled): (i32, i32) = controller.into();
-        let first_shown = (-scrolled).max(0) as usize / style.row_height.max(1.0) as usize;
+        let first_shown = ((-scrolled).max(0) as f32 / style.row_height.max(1.0)) as usize;
         let shown_rows = first_shown
             ..first_shown + (*body_height.read() / style.row_height.max(1.0)) as usize + 2;
         let scrolled_outside = self.scrolled_outside;
@@ -774,6 +780,10 @@ impl Component for Table {
                     && let (Some(next), Some(cb)) = (next, &on_select)
                 {
                     cb.call(vec![next]);
+                    controller.reveal_y(
+                        next as f32 * row_height,
+                        (next + 1) as f32 * row_height + style.body_inset,
+                    );
                 }
             })
             .bordered(&paints, style.border.as_ref())

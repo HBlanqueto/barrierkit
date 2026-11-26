@@ -114,9 +114,7 @@ fn prepare(
 // A sheet of its window when the runner knows it, a window of its own otherwise.
 async fn run(dialog: FileDialog, window: Option<u64>) -> Vec<PathBuf> {
     on_main(move |mtm, sender| {
-        let parent = window.and_then(|id| {
-            with_runtime(|runtime| runtime.window(id).map(|found| found.window.clone())).flatten()
-        });
+        let parent = window.and_then(|id| with_runtime(|runtime| runtime.window_of(id)).flatten());
         let sender = RefCell::new(Some(sender));
         let (panel, open) = prepare(mtm, &dialog);
         let finished = panel.clone();
@@ -169,8 +167,7 @@ pub(crate) async fn confirm_save(window: &WindowControls, name: &str) -> SaveCho
                 let _ = sender.send(choice);
             }
         });
-        let parent =
-            with_runtime(|runtime| runtime.window(id).map(|found| found.window.clone())).flatten();
+        let parent = with_runtime(|runtime| runtime.window_of(id)).flatten();
         match parent {
             Some(parent) => alert.beginSheetModalForWindow_completionHandler(&parent, Some(&block)),
             None => block.call((alert.runModal(),)),
@@ -186,9 +183,7 @@ pub(crate) fn mark_document(window: &WindowControls, edited: bool, url: Option<&
         url.map(|path| path.to_string_lossy().into_owned()),
     );
     DispatchQueue::main().exec_async(move || {
-        let Some(found) =
-            with_runtime(|runtime| runtime.window(id).map(|found| found.window.clone())).flatten()
-        else {
+        let Some(found) = with_runtime(|runtime| runtime.window_of(id)).flatten() else {
             return;
         };
         found.setDocumentEdited(edited);

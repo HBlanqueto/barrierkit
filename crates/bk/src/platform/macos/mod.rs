@@ -27,9 +27,8 @@ use objc2_app_kit::{
     NSApplication, NSApplicationActivationPolicy, NSAutoresizingMaskOptions, NSBackingStoreType,
     NSColor, NSEvent, NSEventModifierFlags, NSEventType, NSLayoutAttribute, NSSplitViewController,
     NSTitlebarAccessoryViewController, NSTitlebarSeparatorStyle, NSToolbar, NSToolbarDisplayMode,
-    NSView, NSVisualEffectBlendingMode, NSWindow, NSWindowButton, NSWindowCollectionBehavior,
-    NSWindowDelegate, NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility,
-    NSWindowToolbarStyle,
+    NSView, NSWindow, NSWindowButton, NSWindowCollectionBehavior, NSWindowDelegate,
+    NSWindowOrderingMode, NSWindowStyleMask, NSWindowTitleVisibility, NSWindowToolbarStyle,
 };
 use objc2_core_foundation::{
     CFFileDescriptor, CFFileDescriptorContext, CFRunLoop, CGSize, kCFRunLoopCommonModes,
@@ -311,12 +310,7 @@ impl ChromeLayer {
     fn slide(&mut self, (x, y): (i32, i32)) {
         let (from_x, from_y) = self.wanted.placement.origin;
         let (dx, dy) = (f64::from(x - from_x), f64::from(from_y - y));
-        for view in self
-            .effects
-            .iter()
-            .map(|effect| &**effect)
-            .chain([&**self.view])
-        {
+        for view in self.views() {
             let origin = view.frame().origin;
             view.setFrameOrigin(NSPoint::new(origin.x + dx, origin.y + dy));
         }
@@ -587,9 +581,7 @@ enum Native {
 }
 
 fn native(id: u64, command: Native) {
-    let Some(window) =
-        with_runtime(|runtime| runtime.window(id).map(|w| w.window.clone())).flatten()
-    else {
+    let Some(window) = with_runtime(|runtime| runtime.window_of(id)).flatten() else {
         return;
     };
     match command {
@@ -798,7 +790,7 @@ impl Runtime {
     }
 
     fn create_window(&mut self, app: AppComponent, options: WindowOptions, parent: Option<u64>) {
-        let parent = parent.and_then(|id| self.window(id).map(|w| w.window.clone()));
+        let parent = parent.and_then(|id| self.window_of(id));
         let sheet = parent.is_some() && options.modal;
         let utility = parent.is_some();
         let id = self.next_window;
@@ -872,14 +864,14 @@ impl Runtime {
         let delegate = WindowDelegate::object(self.mtm, id);
         window.setDelegate(Some(&delegate));
         let view = ContentView::new(self.mtm, id, frame);
-        let layer = self.configure_layer(&view);
+        let layer = configure_metal_layer(&self.gpu.device, &view);
         if window_style == WindowStyle::Plain {
             round_corners(&layer);
         }
         // A titled window's frame holds AppKit's background material, which shows where the kit paints none.
         let titled = style.contains(NSWindowStyleMask::Titled);
         layer.setOpaque(!titled && window_style != WindowStyle::Borderless);
-        let container = blur::container(self.mtm, frame);
+        let container = NSView::initWithFrame(NSView::alloc(self.mtm), frame);
         view.setAutoresizingMask(
             NSAutoresizingMaskOptions::ViewWidthSizable
                 | NSAutoresizingMaskOptions::ViewHeightSizable,
@@ -984,10 +976,6 @@ impl Runtime {
             }
         };
         window.setAppearance(NSAppearance::appearanceNamed(name).as_deref());
-    }
-
-    fn configure_layer(&self, view: &ContentView) -> Retained<CAMetalLayer> {
-        configure_metal_layer(&self.gpu.device, view)
     }
 
     pub(super) fn resized(&mut self, id: u64) {
@@ -1229,8 +1217,8 @@ impl Runtime {
         }
     }
 
-    fn window_of(&mut self, id: &ObjectId) -> Option<Retained<NSWindow>> {
-        self.window(id.raw()).map(|found| found.window.clone())
+    fn window_of(&mut self, id: u64) -> Option<Retained<NSWindow>> {
+        self.window(id).map(|found| found.window.clone())
     }
 
     // A document with unsaved changes keeps its window and asks first (crate::document).
@@ -1395,11 +1383,8 @@ impl Runtime {
             })
             .collect();
         if wanted
-            == window
-                .chromes
-                .iter()
-                .map(|chrome| chrome.wanted.clone())
-                .collect::<Vec<_>>()
+            .iter()
+            .eq(window.chromes.iter().map(|chrome| &chrome.wanted))
         {
             return;
         }
@@ -1427,15 +1412,10 @@ impl Runtime {
             let mut effects = Vec::new();
             if let Some(edge) = wanted.requests.scroll_edge {
                 let rect = blur::edge_rect(edge.edge, (x, y), (width, strip), edge.depth);
-                let effect = blur::effect(
-                    mtm,
-                    Material::Titlebar,
-                    NSVisualEffectBlendingMode::WithinWindow,
-                    0.0,
-                );
+                let effect = blur::effect(mtm, Material::Titlebar, 0.0);
                 effect.setFrame(blur::frame(rect, height));
                 if edge.style == ScrollEdgeEffectStyle::Soft {
-                    blur::fade(&effect, edge.edge, blur::FADE_STRENGTH);
+                    blur::fade(&effect, edge.edge);
                 }
                 effects.push(Retained::into_super(Retained::into_super(effect)));
             }
@@ -1443,12 +1423,7 @@ impl Runtime {
             match wanted.native {
                 Some(Backing::Visual(material)) => {
                     for &(left, top, w, h) in &wanted.requests.backdrop.rects {
-                        let effect = blur::effect(
-                            mtm,
-                            material,
-                            NSVisualEffectBlendingMode::WithinWindow,
-                            radius,
-                        );
+                        let effect = blur::effect(mtm, material, radius);
                         effect.setFrame(blur::frame((x + left, y + top, w, h), height));
                         effects.push(Retained::into_super(Retained::into_super(effect)));
                     }

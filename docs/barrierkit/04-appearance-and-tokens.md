@@ -277,7 +277,9 @@ Image::data(include_bytes!("app.svg").as_slice())
 the squircle: on a plate, on the 1024 grid, in the user's icon style and in the
 current color scheme. The icon keeps its art; the plate comes from its colors.
 
-1. The icon is read pixel by pixel in OKLCH. Hues that carry chroma form lobes.
+1. The icon is read pixel by pixel in OKLCH. Hues that carry chroma fall into
+   `ICON_PLATE.hue_bins` bins; runs of bins with `hue_bin_occupied` of the peak
+   or more form lobes.
 2. A bright icon (mean lightness `ICON_PLATE.bright_lightness` or more) takes
    the hue of its darkest lobe with at least `lobe_min_share` of the chroma; a
    dark icon takes the lightest lobe. A bright gray icon gets the silver plate
@@ -767,7 +769,7 @@ The kit draws every `CornerStyle::Continuous` shape through one function, `style
 |---|---|
 | `palette_from_pixels(rgba8) -> Option<ImagePalette>` | Three representative colors (`colors`) and the most vivid one (`vivid`), by k-means in OKLab. |
 | `dominant_from_pixels(rgba8) -> Option<Rgba>` | The dominant chromatic color, with lightness kept inside `DOMINANT_LIGHTNESS`. `None` for a grey image. |
-| `Backdrop` | Three gradient `layers` and a `base`. `from_colors`, `solid`, `mix`, `average`, `ink`, `accent(vivid)`, `highlights`. |
+| `Backdrop` | Three gradient `layers` and a `base`. `from_colors`, `solid`, `mix`, `average`, `ink`, `highlight(color)`, `highlights`. |
 | `ink_on(background) -> Rgba` | The light or dark ink with more contrast on that background. |
 | `Oklab` | A color in OKLab: `from_rgba`, `to_rgba`. |
 
@@ -915,6 +917,7 @@ the kit measures text without laying it out.
 | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 250, 420 ms |
 | `NAVIGATION_PARALLAX`, `NAVIGATION_DIM` | 0 and 0: the page below a push stays and is not dimmed, as in SwiftUI on macOS (UIKit moves it 0.3 of the width and lays a black of 0.13 over it) |
 | `SCROLL_POCKET_BLUR`, `SCROLL_POCKET_SCALE_*`, `SCROLL_POCKET_OFFSET_*` | 3.4 pt, and the tone `scale * content + offset` (0 to 1 units) of a scroll pocket: 0.5 and 0.5349 in light, 0.4 and 0.0976 in dark; fitted to the pixels of macOS 27.2.1 ([Shader needs](../research/shader-needs.md)) |
+| `SCROLL_EDGE` | The native macOS looks: a soft edge shows the material at `fade_whole` (0.6) and `fade_tail` (0) over `fade_stops`, as the SwiftUI window over a red row shows it at half; the full-screen sidebar pocket runs `pocket_overrun` (10 pt) past its bottom, ramps over `pocket_ramp` (30 pt), veils from `pocket_veil_start` at `pocket_veil` (0.85) and captures at `backdrop_scale` (0.5); under an `OnHover` bar the window color lies over the detail at `detail_veil` (0.56: white reads 130/255, macOS 27.2) |
 | `DURATION_LIST_ROW_MS` | 248 ms: rows of a SwiftUI `List` inserted, removed or moved, measured on macOS ([containers](../research/macos-motion-containers.md#rows-selection-outline)) |
 | `SPRING_SHEET_MS`, `SPRING_PUSH_MS` | 344, 503 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents and the pill of a tab strip (`ω0` 18.3), a push and pop (`ω0` 12.5, SwiftUI on macOS) |
 

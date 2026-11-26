@@ -271,12 +271,15 @@ impl Text {
         text
     }
 
+    /// Call it first: it rebuilds the view and keeps only the Markdown runs, `selectable` and `line_limit`.
     pub fn style(self, restyle: impl Fn(TextStyle) -> TextStyle + 'static) -> Self {
         let inline = self.3;
-        let mut text = Self::styled(self.1, self.2.style(restyle));
-        text.3.pieces = inline.pieces;
-        text.3.selectable = inline.selectable;
-        text
+        let text = Self::styled(self.1, self.2.style(restyle));
+        let inline = Inline {
+            line_height: text.3.line_height,
+            ..inline
+        };
+        Self(text.0.max_lines(inline.max_lines), text.1, text.2, inline)
     }
 
     pub fn font(mut self, font: Font) -> Self {

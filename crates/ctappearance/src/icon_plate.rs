@@ -8,9 +8,6 @@ use ctdesign::{
 use crate::backdrop::Oklab;
 use crate::icon_style::{IconStyle, duotone, gray};
 
-const BINS: usize = 24;
-const OCCUPIED: f32 = 0.03;
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Lobe {
     pub hue: f32,
@@ -75,8 +72,9 @@ fn lobes(colors: &[Oklab]) -> Vec<Lobe> {
         })
         .filter(|&(_, chroma, _)| chroma >= ICON_PLATE.neutral_chroma)
         .collect();
-    let bin = |hue: f32| (hue / (360.0 / BINS as f32)) as usize % BINS;
-    let mut weight = [0.0_f32; BINS];
+    let bin =
+        |hue: f32| (hue / (360.0 / ICON_PLATE.hue_bins as f32)) as usize % ICON_PLATE.hue_bins;
+    let mut weight = [0.0_f32; ICON_PLATE.hue_bins];
     for &(hue, chroma, _) in &chromatic {
         weight[bin(hue)] += chroma;
     }
@@ -85,9 +83,14 @@ fn lobes(colors: &[Oklab]) -> Vec<Lobe> {
     if total == 0.0 {
         return Vec::new();
     }
-    let occupied: Vec<bool> = weight.iter().map(|&w| w >= OCCUPIED * peak).collect();
+    let occupied: Vec<bool> = weight
+        .iter()
+        .map(|&w| w >= ICON_PLATE.hue_bin_occupied * peak)
+        .collect();
     let start = occupied.iter().position(|&o| !o).map_or(0, |gap| gap + 1);
-    let order: Vec<usize> = (0..BINS).map(|step| (start + step) % BINS).collect();
+    let order: Vec<usize> = (0..ICON_PLATE.hue_bins)
+        .map(|step| (start + step) % ICON_PLATE.hue_bins)
+        .collect();
     order
         .split(|&index| !occupied[index])
         .filter(|run| !run.is_empty())

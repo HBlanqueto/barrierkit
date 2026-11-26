@@ -502,13 +502,14 @@ fn show_in(installed: &mut Installed, owner: u64) {
     }
     // AppKit adds its tiling items to the menu it knows as Window, and the search field to Help.
     let app = NSApplication::sharedApplication(installed.mtm);
-    for (index, menu) in menus.iter().enumerate() {
-        if holds(menu, MINIMIZE.id) {
-            app.setWindowsMenu(submenu(index + 1).as_deref());
-        } else if holds(menu, HELP.id) {
-            app.setHelpMenu(submenu(index + 1).as_deref());
-        }
-    }
+    let menu_with = |id: &str| {
+        menus
+            .iter()
+            .position(|menu| holds(menu, id))
+            .and_then(|index| submenu(index + 1))
+    };
+    app.setWindowsMenu(menu_with(MINIMIZE.id).as_deref());
+    app.setHelpMenu(menu_with(HELP.id).as_deref());
     installed.shown = Some(Shown { owner, revision });
 }
 

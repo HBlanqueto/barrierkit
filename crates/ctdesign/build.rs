@@ -126,6 +126,7 @@ TOOLBAR_SEARCH_WIDTH f32 components.toolbar-search-width
 BADGE BadgeMetrics components.badge
 MEDIA MediaMetrics components.media
 MATERIAL MaterialMetrics components.material
+SCROLL_EDGE ScrollEdgeMetrics components.scroll-edge
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay fade_in_ms=fade-in fade_out_ms=fade-out
 GESTURE GestureMetrics components.gesture tap_interval_ms=tap-interval long_press_ms=long-press-duration
 SCROLL_PHYSICS ScrollPhysicsMetrics components.scroll-physics velocity_window_ms=velocity-window

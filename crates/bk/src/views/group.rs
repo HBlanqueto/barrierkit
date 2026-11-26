@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
 use crate::animation::use_animated;
-use crate::elements::{Overrides, forward_overrides};
+use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
 use crate::styles::Painted;
@@ -60,6 +60,7 @@ pub struct GroupBox {
     children: Vec<Element>,
     style: Theme,
     overrides: Overrides,
+    key: DiffKey,
 }
 
 impl GroupBox {
@@ -69,6 +70,7 @@ impl GroupBox {
             children: Vec::new(),
             style: Theme::tengen(),
             overrides: Overrides::default(),
+            key: DiffKey::None,
         }
     }
 
@@ -83,9 +85,13 @@ impl GroupBox {
     }
 }
 
+forward_key!(GroupBox);
+
 forward_overrides!(GroupBox);
 
 impl Component for GroupBox {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: GroupBoxStyle = resolve(&self.style);
         let state = ControlState::default();
@@ -133,6 +139,7 @@ pub struct DisclosureGroup {
     children: Vec<Element>,
     style: Theme,
     overrides: Overrides,
+    key: DiffKey,
 }
 
 impl DisclosureGroup {
@@ -143,6 +150,7 @@ impl DisclosureGroup {
             children: Vec::new(),
             style: Theme::tengen(),
             overrides: Overrides::default(),
+            key: DiffKey::None,
         }
     }
 
@@ -165,9 +173,13 @@ impl DisclosureGroup {
     }
 }
 
+forward_key!(DisclosureGroup);
+
 forward_overrides!(DisclosureGroup);
 
 impl Component for DisclosureGroup {
+    forward_key!();
+
     fn render(&self) -> impl IntoElement {
         let style: DisclosureGroupStyle = resolve(&self.style);
         let initial = self.expanded;

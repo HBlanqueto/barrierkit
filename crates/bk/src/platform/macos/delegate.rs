@@ -34,7 +34,7 @@ define_class!(
         #[unsafe(method(applicationShouldTerminate:))]
         fn should_terminate(&self, _: &NSApplication) -> NSApplicationTerminateReply {
             let window = first_edited()
-                .and_then(|id| with_runtime(|runtime| runtime.window_of(&id)).flatten());
+                .and_then(|id| with_runtime(|runtime| runtime.window_of(id.raw())).flatten());
             match window {
                 Some(window) => {
                     window.performClose(None);

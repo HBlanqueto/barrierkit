@@ -1,11 +1,10 @@
 use ctdesign::{
-    ButtonKind, Rgba, TITLEBAR, TITLEBAR_CLIENT_HEIGHT, TRAFFIC_CLOSE_MINIMIZE_DARKEN,
-    TRAFFIC_GLYPHS, TRAFFIC_PRESS, TRAFFIC_ZOOM_LIGHTEN, TrafficLook, TrafficLooks, Triangle,
+    ACCENT_MIN_CONTRAST_ON_WINDOW, ButtonKind, Rgba, TITLEBAR, TITLEBAR_CLIENT_HEIGHT,
+    TRAFFIC_CLOSE_MINIMIZE_DARKEN, TRAFFIC_GLYPHS, TRAFFIC_PRESS, TRAFFIC_ZOOM_LIGHTEN,
+    TrafficLook, TrafficLooks, Triangle,
 };
 
 use crate::TrafficLightStyle;
-
-const MIN_GLYPH_CONTRAST: f32 = 3.0;
 
 pub fn inset(bar_height: u32) -> f64 {
     f64::from(if bar_height == TITLEBAR_CLIENT_HEIGHT {
@@ -156,7 +155,7 @@ fn legible(ink: Rgba, ground: Rgba) -> Rgba {
     };
     (0..=10)
         .map(pushed)
-        .find(|candidate| candidate.contrast_ratio(ground) >= MIN_GLYPH_CONTRAST)
+        .find(|candidate| candidate.contrast_ratio(ground) >= ACCENT_MIN_CONTRAST_ON_WINDOW)
         .unwrap_or_else(|| pushed(10))
 }
 

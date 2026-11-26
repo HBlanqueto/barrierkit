@@ -22,6 +22,7 @@ impl Badge {
         Self::styled(content.into(), Theme::tengen())
     }
 
+    /// Call it first: it rebuilds the view and drops the modifiers set before it.
     pub fn style(self, restyle: impl Fn(BadgeStyle) -> BadgeStyle + 'static) -> Self {
         Self::styled(self.1, self.2.style(restyle))
     }
@@ -56,6 +57,7 @@ impl Divider {
         Self::styled(Theme::tengen())
     }
 
+    /// Call it first: it rebuilds the view and drops the modifiers set before it.
     pub fn style(self, restyle: impl Fn(DividerStyle) -> DividerStyle + 'static) -> Self {
         Self::styled(self.1.style(restyle))
     }
@@ -105,6 +107,7 @@ impl Avatar {
         Self::styled(self.1, self.2, Some(path.into()))
     }
 
+    /// Call it first: it rebuilds the view and drops the modifiers set before it.
     pub fn style(self, restyle: impl Fn(AvatarStyle) -> AvatarStyle + 'static) -> Self {
         Self::styled(self.1, self.2.style(restyle), self.3)
     }

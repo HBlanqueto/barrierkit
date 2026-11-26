@@ -14,13 +14,19 @@ pub fn file_uri(path: &Path) -> String {
 }
 
 pub fn file_path(uri: &str) -> Option<PathBuf> {
-    let rest = uri.strip_prefix("file://")?.as_bytes();
+    let rest = uri.strip_prefix("file://")?;
+    let (host, path) = rest.split_at(rest.find('/')?);
+    if !(host.is_empty() || host == "localhost") {
+        return None;
+    }
+    let rest = path.as_bytes();
     let mut bytes = Vec::with_capacity(rest.len());
     let mut index = 0;
     while index < rest.len() {
         let escaped = (rest[index] == b'%')
             .then(|| rest.get(index + 1..index + 3))
             .flatten()
+            .filter(|hex| hex.iter().all(u8::is_ascii_hexdigit))
             .and_then(|hex| u8::from_str_radix(std::str::from_utf8(hex).ok()?, 16).ok());
         match escaped {
             Some(byte) => {
@@ -34,4 +40,17 @@ pub fn file_path(uri: &str) -> Option<PathBuf> {
         }
     }
     Some(PathBuf::from(std::ffi::OsString::from_vec(bytes)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn file_path_drops_a_local_host_rejects_another_and_decodes_only_two_hex_digits() {
+        let path = |uri| file_path(uri).map(|path| path.into_os_string());
+        assert_eq!(path("file://localhost/tmp/a%20b"), Some("/tmp/a b".into()));
+        assert_eq!(path("file:///tmp/%+1"), Some("/tmp/%+1".into()));
+        assert_eq!(path("file://example.org/tmp/a"), None);
+    }
 }

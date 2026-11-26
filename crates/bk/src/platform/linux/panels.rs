@@ -71,9 +71,11 @@ pub(crate) async fn confirm_save(window: &WindowControls, name: &str) -> SaveCho
     let (sender, receiver) = futures_channel::oneshot::channel();
     let sender = Rc::new(RefCell::new(Some(sender)));
     let answer = |choice: SaveChoice| {
-        let sender = sender.clone();
+        let sender = Rc::downgrade(&sender);
         Callback::new(move |_: ()| {
-            if let Some(sender) = sender.borrow_mut().take() {
+            if let Some(sender) = sender.upgrade()
+                && let Some(sender) = sender.borrow_mut().take()
+            {
                 let _ = sender.send(choice);
             }
         })
@@ -90,6 +92,8 @@ pub(crate) async fn confirm_save(window: &WindowControls, name: &str) -> SaveCho
     let registered = opened.clone();
     window.open_sheet(
         AppComponent::from(move || {
+            // The sheet owns the sender: closing it with its parent answers Cancel.
+            let _ = &sender;
             sheet_window_root(content, &Theme::tengen(), &registered, &Rc::default())
         }),
         WindowOptions::new("", "sheet").size((DIALOG_SHEET_WIDTH, DIALOG_SHEET_HEIGHT)),

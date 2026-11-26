@@ -185,9 +185,7 @@ impl Component for Presence {
             .into_element()
     }
 
-    fn render_key(&self) -> DiffKey {
-        self.key.clone()
-    }
+    forward_key!();
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

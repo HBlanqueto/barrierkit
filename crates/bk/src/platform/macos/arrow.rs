@@ -7,7 +7,6 @@ use objc2_core_graphics::{CGContext, CGMutablePath};
 use objc2_foundation::{NSRect, NSSize};
 
 use super::place::Rect;
-use crate::platform::window_style::PopoverShape;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(super) enum Edge {
@@ -28,7 +27,7 @@ pub(super) struct Shape {
     fillet: f64,
 }
 
-pub(super) fn metrics(shape: PopoverShape) -> Shape {
+pub(super) fn metrics() -> Shape {
     let popover = ctdesign::POPOVER;
     let band = f64::from(popover.arrow_height);
     let drawn = |radius: f32, width: f32, height: f32, tip_radius: f32, fillet: f32| Shape {
@@ -39,22 +38,13 @@ pub(super) fn metrics(shape: PopoverShape) -> Shape {
         tip_radius: f64::from(tip_radius),
         fillet: f64::from(fillet),
     };
-    match shape {
-        PopoverShape::Label => drawn(
-            ctdesign::DOCK_LABEL_RADIUS,
-            ctdesign::DOCK_LABEL_ARROW_WIDTH,
-            ctdesign::DOCK_LABEL_ARROW_HEIGHT,
-            ctdesign::DOCK_LABEL_ARROW_TIP_RADIUS,
-            ctdesign::DOCK_LABEL_ARROW_FILLET,
-        ),
-        _ => drawn(
-            ctdesign::POPUP.corner_radius as f32,
-            popover.arrow_width,
-            popover.arrow_height,
-            ctdesign::DOCK_MENU_ARROW_TIP_RADIUS,
-            ctdesign::DOCK_MENU_ARROW_FILLET,
-        ),
-    }
+    drawn(
+        ctdesign::POPUP.corner_radius as f32,
+        popover.arrow_width,
+        popover.arrow_height,
+        ctdesign::DOCK_MENU_ARROW_TIP_RADIUS,
+        ctdesign::DOCK_MENU_ARROW_FILLET,
+    )
 }
 
 pub(super) fn facing_edge(anchor: Rect, popup: Rect) -> Edge {

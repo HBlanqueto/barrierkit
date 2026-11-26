@@ -10,7 +10,6 @@ use crate::compact::IconButton;
 use crate::controls::ToolGroup;
 use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::i18n::text;
-use crate::modifiers::StyleModifiers;
 use crate::platform::WindowControls;
 use crate::platform::backdrop::Declared;
 use crate::sidebar::{SidebarControl, sidebar_control};
@@ -205,6 +204,8 @@ impl Component for SplitView {
         let style: SplitViewStyle = resolve(&self.style);
         let paints = Paints::current(ControlState::default());
         let mut window_width = use_state(|| f32::MAX);
+        let mut origin_x = use_state(|| 0.0f32);
+        let inspector_theme = use_hook(inspector_form_theme);
         let mut presented = use_state(|| self.inspector.as_ref().is_some_and(|(_, shown)| *shown));
         let wanted = self.inspector.as_ref().is_some_and(|(_, shown)| *shown);
         if *presented.peek() != wanted {
@@ -343,9 +344,11 @@ impl Component for SplitView {
             .painted(&paints, &style.background)
             .on_sized(move |event: Event<SizedEventData>| {
                 window_width.set_if_modified(event.area.size.width);
+                origin_x.set_if_modified(event.area.min_x());
             })
             .on_global_pointer_move(move |event: Event<PointerEventData>| {
-                let edge = event.element_location().x as f32 + style.grip_width / 2.0;
+                let edge =
+                    event.global_location().x as f32 - *origin_x.peek() + style.grip_width / 2.0;
                 if *dragging.read() {
                     // AppKit holds the minimum, then collapses in one frame near half of it.
                     visible.set_if_modified(edge >= min_width / 2.0);
@@ -483,7 +486,10 @@ impl Component for SplitView {
                                     .width(Size::px(style.inspector_width))
                                     .height(Size::fill())
                                     .padding(Gaps::new(bar_height, 0.0, 0.0, 0.0))
-                                    .child(inspector_form(inspector.clone())),
+                                    .child(StyleScope::new(
+                                        inspector_theme.clone(),
+                                        inspector.clone(),
+                                    )),
                             )
                             .maybe_child(native_panes.then(|| {
                                 // SwiftUI's divider starts under the bar's veil, as the bar runs over the inspector.
@@ -610,12 +616,9 @@ fn inspector_bar_line(height: f32) -> Option<Rect> {
 }
 
 // A form in SwiftUI's inspector keeps its inset to the column, and over the column's material its cards and titles are the sidebar's.
-fn inspector_form(inspector: Element) -> StyleScope {
-    let inset = SPLIT_VIEW.inspector_form_padding;
-    let card = LIST_GROUP.inspector_card[appearance_index()];
-    let ink = crate::sidebar::item_palette(true).item_ink;
-    inspector.control_style(move |style: FormStyle| FormStyle {
-        padding: [inset; 4],
+fn inspector_form_theme() -> Theme {
+    Theme::tengen().style(|style: FormStyle| FormStyle {
+        padding: [SPLIT_VIEW.inspector_form_padding; 4],
         header_padding: [
             style.header_padding[0],
             style.header_padding[1],
@@ -627,8 +630,12 @@ fn inspector_form(inspector: Element) -> StyleScope {
             weight: LIST_SECTION.header_weight,
             ..SUBHEADLINE
         },
-        background: StateValue::new(ShapeStyle::Color(card)),
-        title: StateValue::new(ShapeStyle::Color(ink)),
+        background: StateValue::new(ShapeStyle::Color(
+            LIST_GROUP.inspector_card[appearance_index()],
+        )),
+        title: StateValue::new(ShapeStyle::Color(
+            crate::sidebar::item_palette(true).item_ink,
+        )),
         ..style
     })
 }

@@ -1,12 +1,11 @@
 use std::borrow::Cow;
+use std::cell::Cell;
 use std::sync::{
     Arc, Mutex,
     atomic::{AtomicBool, Ordering},
 };
 
-use freya_core::prelude::{
-    Key, Modifiers, WritableUtils, try_consume_root_context, use_hook, use_state,
-};
+use freya_core::prelude::{Key, Modifiers, try_consume_root_context, use_hook};
 
 use crate::app::{Action, COPY, CUT, PASTE, REDO, SELECT_ALL, UNDO};
 use crate::lock;
@@ -89,7 +88,13 @@ impl MenuHandle {
 
     pub fn update(&self, id: impl AsRef<str>, f: impl Fn(&mut MenuItem)) {
         let mut state = lock(&self.state);
-        if update_item(&mut state.menu, id.as_ref(), &f) {
+        let changed = Cell::new(false);
+        update_item(&mut state.menu, id.as_ref(), &|item| {
+            let before = item.clone();
+            f(item);
+            changed.set(*item != before);
+        });
+        if changed.get() {
             state.revision = state.revision.wrapping_add(1);
             drop(state);
             self.publish();
@@ -221,18 +226,8 @@ fn find_shortcut_in_items(items: &[MenuItem], modifiers: Modifiers, key: &Key) -
     })
 }
 
-pub fn use_menu_update<T: PartialEq + Clone + 'static>(
-    id: &'static str,
-    value: T,
-    apply: fn(&mut MenuItem, &T),
-) {
-    let handle = use_hook(try_consume_root_context::<MenuHandle>);
-    let mut published = use_state(|| None::<T>);
-    if published.peek().as_ref() == Some(&value) {
-        return;
-    }
-    published.set(Some(value.clone()));
-    if let Some(handle) = handle {
+pub fn use_menu_update<T>(id: &'static str, value: T, apply: fn(&mut MenuItem, &T)) {
+    if let Some(handle) = use_hook(try_consume_root_context::<MenuHandle>) {
         handle.update(id, |item| apply(item, &value));
     }
 }

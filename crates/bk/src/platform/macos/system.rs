@@ -19,40 +19,6 @@ use objc2_foundation::{
 
 use super::with_runtime;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub(super) struct Flags {
-    pub(super) reduce_transparency: bool,
-    pub(super) increase_contrast: bool,
-    pub(super) reduce_motion: bool,
-    pub(super) legacy_scrollers: bool,
-}
-
-// The system's accessibility settings add to the file's: either asks for the plainer look.
-pub(super) fn merged(config: AppearanceConfig, flags: Flags) -> AppearanceConfig {
-    AppearanceConfig {
-        reduce_transparency: config.reduce_transparency || flags.reduce_transparency,
-        contrast: config.contrast || flags.increase_contrast,
-        reduced_motion: config.reduced_motion || flags.reduce_motion,
-        scroll_bars: match config.scroll_bars {
-            ScrollBars::Automatic if flags.legacy_scrollers => ScrollBars::Always,
-            ScrollBars::Automatic => ScrollBars::WhenScrolling,
-            chosen => chosen,
-        },
-        ..config
-    }
-}
-
-fn flags() -> Flags {
-    let workspace = NSWorkspace::sharedWorkspace();
-    Flags {
-        reduce_transparency: workspace.accessibilityDisplayShouldReduceTransparency(),
-        increase_contrast: workspace.accessibilityDisplayShouldIncreaseContrast(),
-        reduce_motion: workspace.accessibilityDisplayShouldReduceMotion(),
-        legacy_scrollers: objc2::MainThreadMarker::new()
-            .is_some_and(|mtm| NSScroller::preferredScrollerStyle(mtm) == NSScrollerStyle::Legacy),
-    }
-}
-
 fn scheme() -> Option<ColorScheme> {
     let mtm = objc2::MainThreadMarker::new()?;
     let appearance = NSApplication::sharedApplication(mtm).effectiveAppearance();
@@ -69,7 +35,23 @@ fn scheme() -> Option<ColorScheme> {
 
 pub(crate) fn appearance() -> AppearanceConfig {
     set_system_scheme(scheme());
-    merged(load_appearance(), flags())
+    let config = load_appearance();
+    let workspace = NSWorkspace::sharedWorkspace();
+    let legacy_scrollers = objc2::MainThreadMarker::new()
+        .is_some_and(|mtm| NSScroller::preferredScrollerStyle(mtm) == NSScrollerStyle::Legacy);
+    // The system's accessibility settings add to the file's: either asks for the plainer look.
+    AppearanceConfig {
+        reduce_transparency: config.reduce_transparency
+            || workspace.accessibilityDisplayShouldReduceTransparency(),
+        contrast: config.contrast || workspace.accessibilityDisplayShouldIncreaseContrast(),
+        reduced_motion: config.reduced_motion || workspace.accessibilityDisplayShouldReduceMotion(),
+        scroll_bars: match config.scroll_bars {
+            ScrollBars::Automatic if legacy_scrollers => ScrollBars::Always,
+            ScrollBars::Automatic => ScrollBars::WhenScrolling,
+            chosen => chosen,
+        },
+        ..config
+    }
 }
 
 fn refresh() {

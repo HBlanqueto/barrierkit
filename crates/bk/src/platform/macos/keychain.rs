@@ -24,7 +24,7 @@ fn unescape(text: &str) -> String {
         .replace("%25", "%")
 }
 
-pub(crate) fn service(attributes: &HashMap<&str, &str>) -> String {
+fn service(attributes: &HashMap<&str, &str>) -> String {
     let mut pairs: Vec<_> = attributes
         .iter()
         .map(|(key, value)| format!("{}={}", escape(key), escape(value)))
@@ -66,9 +66,7 @@ pub type ItemPath = String;
 pub type BusError = std::convert::Infallible;
 
 // The Keychain has no object paths; the label and the attributes find an item again.
-fn keychain_path() -> ItemPath {
-    "/keychain".to_owned()
-}
+const KEYCHAIN_PATH: &str = "/keychain";
 
 pub struct Secrets;
 
@@ -95,7 +93,7 @@ impl Secrets {
                 let fields = result.simplify_dict()?;
                 let attributes = attributes_of(fields.get("svce")?)?;
                 holds(query, &attributes).then(|| Item {
-                    path: keychain_path(),
+                    path: KEYCHAIN_PATH.to_owned(),
                     label: fields.get("acct").cloned().unwrap_or_default(),
                     attributes,
                 })

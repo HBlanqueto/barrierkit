@@ -75,6 +75,7 @@ pub struct Resolved {
     pub ring_accent: Rgba,
     pub toggle_accent_disabled: Rgba,
     pub automatic_accent: bool,
+    custom_accent: bool,
     pub on_accent: Rgba,
     pub focus_ring: Rgba,
     pub link: Rgba,
@@ -170,9 +171,9 @@ impl Resolved {
             ON_ACCENT_MIN_CONTRAST,
             scheme,
         );
-        if self.contrast && !self.automatic_accent {
+        if self.contrast && self.custom_accent {
             self.focus_ring = reaching(
-                self.accent,
+                self.accent_colors.focus_ring,
                 &[self.surfaces.window],
                 ACCENT_MIN_CONTRAST_ON_WINDOW,
                 scheme,
@@ -459,6 +460,7 @@ pub fn resolve(
         ring_accent: colors.ring,
         toggle_accent_disabled: colors.toggle_disabled,
         automatic_accent: chosen.is_none(),
+        custom_accent: matches!(chosen, Some(Chosen::Custom(_))),
         on_accent,
         focus_ring,
         link,
@@ -564,38 +566,19 @@ fn legible_on_accent(accent: Rgba, light: Rgba) -> Rgba {
 }
 
 fn reaching(accent: Rgba, backgrounds: &[Rgba], min: f32, scheme: ColorScheme) -> Rgba {
-    if backgrounds
-        .iter()
-        .all(|bg| accent.contrast_ratio(*bg) >= min)
-    {
+    let reaches = |color: &Rgba| {
+        backgrounds
+            .iter()
+            .all(|bg| color.contrast_ratio(*bg) >= min)
+    };
+    if reaches(&accent) {
         return accent;
     }
     let (hue, saturation, lightness) = accent.to_hsl();
-    let lightness = reach_contrast(backgrounds, min, scheme, hue, saturation, lightness);
-    Rgba::from_hsl(hue, saturation, lightness, 1.0)
-}
-
-fn reach_contrast(
-    backgrounds: &[Rgba],
-    min: f32,
-    scheme: ColorScheme,
-    hue: f32,
-    saturation: f32,
-    mut lightness: f32,
-) -> f32 {
-    let direction = if scheme.is_dark() { 1.0 } else { -1.0 };
-    for _ in 0..100 {
-        let accent = Rgba::from_hsl(hue, saturation, lightness, 1.0);
-        if backgrounds
-            .iter()
-            .all(|bg| accent.contrast_ratio(*bg) >= min)
-        {
-            break;
-        }
-        lightness += direction * 0.01;
-        if !(0.0..=1.0).contains(&lightness) {
-            break;
-        }
-    }
-    lightness.clamp(0.0, 1.0)
+    let step = if scheme.is_dark() { 0.01 } else { -0.01 };
+    let shade = |steps: u8| {
+        let lightness = (lightness + step * f32::from(steps)).clamp(0.0, 1.0);
+        Rgba::from_hsl(hue, saturation, lightness, 1.0)
+    };
+    (0..=100).map(shade).find(reaches).unwrap_or(shade(100))
 }
