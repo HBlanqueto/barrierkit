@@ -23,6 +23,9 @@
   --bk-duration-outline-expand: 200;
   --bk-spring-sheet-duration: 344;
   --bk-spring-push-duration: 503;
+  --bk-spring-desktop-switch-omega: 24;
+  --bk-spring-desktop-switch-damping: 1.73;
+  --bk-spring-desktop-gap: 64;
   --bk-font-families-sans: Adwaita Sans, Inter, "Noto Sans CJK SC", system-ui, sans-serif;
   --bk-font-families-mono: Geist Mono, monospace;
   --bk-font-styles-mono-family: mono;

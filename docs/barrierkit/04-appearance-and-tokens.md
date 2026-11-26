@@ -930,6 +930,7 @@ the kit measures text without laying it out.
 | `SCROLL_EDGE` | The native macOS looks: a soft edge shows the material at `fade_whole` (0.6) and `fade_tail` (0) over `fade_stops`, as the SwiftUI window over a red row shows it at half; the full-screen sidebar pocket runs `pocket_overrun` (10 pt) past its bottom, ramps over `pocket_ramp` (30 pt), veils from `pocket_veil_start` at `pocket_veil` (0.85) and captures at `backdrop_scale` (0.5); under an `OnHover` bar the window color lies over the detail at `detail_veil` (0.56: white reads 130/255, macOS 27.2) |
 | `DURATION_LIST_ROW_MS` | 248 ms: rows of a SwiftUI `List` inserted, removed or moved, measured on macOS ([containers](../research/macos-motion-containers.md#rows-selection-outline)) |
 | `SPRING_SHEET_MS`, `SPRING_PUSH_MS` | 344, 503 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents and the pill of a tab strip (`ω0` 18.3), a push and pop (`ω0` 12.5, SwiftUI on macOS) |
+| `DESKTOP_SWITCH_OMEGA`, `DESKTOP_SWITCH_DAMPING`, `DESKTOP_GAP` | 24 rad/s, 1.73, 64 pt: the overdamped spring (`ω0`, `ζ`) the compositor moves the Desktops with on ctrl+Left and ctrl+Right, and the gap between two Desktops ([macOS measurements](../research/macos-measurements-2026-11-26.md#3-animations)) |
 
 ### Materials
 

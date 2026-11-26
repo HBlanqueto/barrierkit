@@ -218,6 +218,9 @@ DURATION_DISCLOSURE_MS u64 duration.disclosure
 DURATION_OUTLINE_EXPAND_MS u64 duration.outline-expand
 SPRING_SHEET_MS u64 spring.sheet-duration
 SPRING_PUSH_MS u64 spring.push-duration
+DESKTOP_SWITCH_OMEGA f32 spring.desktop-switch-omega
+DESKTOP_SWITCH_DAMPING f32 spring.desktop-switch-damping
+DESKTOP_GAP f32 spring.desktop-gap
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
 DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius
