@@ -6,7 +6,8 @@ use std::thread;
 use zbus::blocking::Proxy;
 use zbus::zvariant::Value;
 
-use crate::notifications::{Notification, WAITING, lock, take};
+use crate::lock;
+use crate::notifications::{Notification, WAITING, take};
 pub use crate::platform::linux::portal::notify;
 
 const SERVICE: &str = "org.freedesktop.Notifications";

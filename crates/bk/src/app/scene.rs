@@ -11,7 +11,7 @@ pub struct Application {
     id: String,
     theme: Theme,
     scenes: Vec<Scene>,
-    commands: Option<Commands>,
+    commands: Commands,
 }
 
 impl Application {
@@ -21,7 +21,7 @@ impl Application {
             id: id.into(),
             theme: Theme::tengen(),
             scenes: Vec::new(),
-            commands: Some(Commands::new()),
+            commands: Commands::new(),
         }
     }
 
@@ -59,7 +59,7 @@ impl Application {
     }
 
     pub fn commands(mut self, commands: Commands) -> Self {
-        self.commands = Some(commands);
+        self.commands = commands;
         self
     }
 

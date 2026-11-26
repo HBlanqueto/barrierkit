@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::iter;
 
 use freya_core::prelude::{Modifiers, NamedKey};
 
@@ -187,14 +188,12 @@ impl Commands {
     }
 
     fn items(&self, placements: &[CommandGroupPlacement], layout: &Layout) -> Vec<MenuItem> {
-        let mut items = Vec::new();
-        for placement in placements {
-            let group = self.group_items(*placement, layout);
-            if !group.is_empty() && !items.is_empty() {
-                items.push(MenuItem::Separator);
-            }
-            items.extend(group);
-        }
+        let mut items = placements
+            .iter()
+            .flat_map(|placement| {
+                iter::once(MenuItem::Separator).chain(self.group_items(*placement, layout))
+            })
+            .collect();
         normalize_separators(&mut items);
         items
     }
@@ -218,27 +217,11 @@ impl Commands {
     }
 }
 
-fn labeled(item: MenuItem, label: String) -> MenuItem {
-    match item {
-        MenuItem::Action {
-            id,
-            shortcut,
-            enabled,
-            check,
-            icon,
-            badge,
-            ..
-        } => MenuItem::Action {
-            id,
-            label: label.into(),
-            shortcut,
-            enabled,
-            check,
-            icon,
-            badge,
-        },
-        other => other,
+fn labeled(mut item: MenuItem, label: String) -> MenuItem {
+    if let MenuItem::Action { label: shown, .. } = &mut item {
+        *shown = label.into();
     }
+    item
 }
 
 fn standard_group(

@@ -84,7 +84,7 @@ each.
 | Fonts | `font.families.sans` starts with Adwaita Sans; `font.families.mono` with Geist Mono | `SANS_FAMILIES`; each `Font` takes the first family |
 | Text styles | `font.styles` (size, line height and weight; values in [4](04-appearance-and-tokens.md#type)): `display`, `title-1`, `title-2`, `title-3`, `headline`, `body`, `callout`, `subheadline`, `caption`, `footnote`, `caption-2`, `mono`, `toolbar-title`, `about-name` | `LARGE_TITLE`, `TITLE`, `TITLE_2`, `TITLE_3`, `HEADLINE`, `BODY`, `CALLOUT`, `SUBHEADLINE`, `CAPTION`, `FOOTNOTE`, `CAPTION_2`, `MONO`, `TOOLBAR_TITLE`, `ABOUT_NAME`; the window title uses `headline` (`TITLEBAR.font`) |
 | Spacing | `space.1`–`space.4`: 4, 8, 12, 16 | `SPACE_1`–`SPACE_4` |
-| Durations | `duration.fast` 120, `base` 250, `slow` 420, `wait-max` 150 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS`, `THEME_FADE_WAIT_MS` |
+| Durations | `duration.fast` 120, `base` 250, `slow` 420 (ms) | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` |
 | Shadows | `shadow.layers.{light,dark}` (ambient and contact layers); `shadow.unfocused` (blur 0.45, offset 0.4, opacity 0.55) | `SHADOW`, `SHADOW_DARK` |
 | Controls | `components.<control>` | `BUTTON`, `SWITCH`, `SLIDER`, `TEXT_FIELD`… |
 | Shell | `components.shell` | What the kit reads: `MENUBAR_HEIGHT`, the Dock's label and menu, `MENU_*`, `SHELL_*`; the rest belongs to the desktop (`ctshell`) |

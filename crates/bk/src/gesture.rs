@@ -814,7 +814,7 @@ impl<T: Clone + PartialEq + 'static> GestureState<T> {
 }
 
 macro_rules! gesture {
-    ($name:ident, $recognizer:ty, $value:ty, $new:expr, $began:literal) => {
+    ($name:ident, $recognizer:ty, $value:ty, $new:expr) => {
         impl $name {
             /// Called as the gesture changes: when it begins and each time it moves.
             pub fn on_changed(mut self, callback: impl Into<Callback<$value, ()>>) -> Self {
@@ -912,13 +912,9 @@ impl Default for TapGesture {
     }
 }
 
-gesture!(
-    TapGesture,
-    TapRecognizer,
-    TapValue,
-    |g: &TapGesture| TapRecognizer::new(g.count),
-    false
-);
+gesture!(TapGesture, TapRecognizer, TapValue, |g: &TapGesture| {
+    TapRecognizer::new(g.count)
+});
 
 /// `LongPressGesture`: the pointer stays down in place for `minimum_duration`.
 pub struct LongPressGesture {
@@ -957,8 +953,7 @@ gesture!(
     LongPressGesture,
     LongPressRecognizer,
     LongPressValue,
-    |g: &LongPressGesture| LongPressRecognizer::new(g.minimum_duration, g.maximum_distance),
-    false
+    |g: &LongPressGesture| LongPressRecognizer::new(g.minimum_duration, g.maximum_distance)
 );
 
 /// `DragGesture`: the pointer moves `minimum_distance` with the button or the finger down.
@@ -995,13 +990,9 @@ impl Default for DragGesture {
     }
 }
 
-gesture!(
-    DragGesture,
-    DragRecognizer,
-    DragValue,
-    |g: &DragGesture| DragRecognizer::new(g.minimum_distance).touches_only(g.touches_only),
-    true
-);
+gesture!(DragGesture, DragRecognizer, DragValue, |g: &DragGesture| {
+    DragRecognizer::new(g.minimum_distance).touches_only(g.touches_only)
+});
 
 /// `MagnifyGesture`: two fingers moving apart or together.
 pub struct MagnifyGesture {
@@ -1028,8 +1019,7 @@ gesture!(
     MagnifyGesture,
     MagnifyRecognizer,
     MagnifyValue,
-    |g: &MagnifyGesture| MagnifyRecognizer::new(g.minimum_delta),
-    true
+    |g: &MagnifyGesture| MagnifyRecognizer::new(g.minimum_delta)
 );
 
 /// `RotateGesture`: two fingers turning around each other.
@@ -1057,8 +1047,7 @@ gesture!(
     RotateGesture,
     RotateRecognizer,
     RotateValue,
-    |g: &RotateGesture| RotateRecognizer::new(g.minimum_delta),
-    true
+    |g: &RotateGesture| RotateRecognizer::new(g.minimum_delta)
 );
 
 /// `SequenceGesture`: the first gesture, then the second from where the first ended.

@@ -181,12 +181,6 @@ impl ProbeExt for MenuView {
     }
 }
 
-impl PartialEq for MenuView {
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-}
-
 impl App for MenuView {
     fn render(&self) -> impl IntoElement {
         let items = match &self.items_source {

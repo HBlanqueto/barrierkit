@@ -6,7 +6,7 @@ use std::io::{ErrorKind, Write};
 use std::ops::Range;
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::sync::{LazyLock, Mutex, MutexGuard, Once, OnceLock, PoisonError};
+use std::sync::{LazyLock, Mutex, MutexGuard, Once, OnceLock};
 use std::time::SystemTime;
 
 use ctdesign::{Rgba, SPELLING};
@@ -95,7 +95,7 @@ impl Personal {
 }
 
 fn personal() -> MutexGuard<'static, Personal> {
-    PERSONAL.lock().unwrap_or_else(PoisonError::into_inner)
+    crate::lock(&PERSONAL)
 }
 
 thread_local! {

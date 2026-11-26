@@ -52,7 +52,6 @@ The kit times every animation with these tokens of `ctdesign` (the springs are i
 | `DURATION_BASE` | Showing, hiding, collapsing, morphing |
 | `DURATION_SLOW_MS` | Fading between backdrops |
 | `DURATION_LIST_ROW_MS` | Rows of a `List` or `Table` inserted, removed or moved inside `with_animation` (SwiftUI on macOS) |
-| `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | Measured on Mac Catalyst; no kit control uses them yet |
 
 A Freya animation takes them as milliseconds: `AnimNum::new(from, to)
 .time(DURATION_BASE).ease(Ease::Out).function(Function::Cubic)`. A component

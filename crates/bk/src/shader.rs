@@ -8,7 +8,6 @@ use skia_safe::runtime_effect::RuntimeShaderBuilder;
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Slot {
     pub(crate) name: String,
-    pub(crate) offset: usize,
     pub(crate) floats: usize,
 }
 
@@ -37,14 +36,8 @@ impl std::fmt::Display for BindError {
     }
 }
 
-// The uniform block of `size` bytes with every slot written from its argument. A uniform nobody binds is an error: Skia would
-// read zeros and the effect would draw wrong without a sign.
-pub(crate) fn pack(
-    slots: &[Slot],
-    size: usize,
-    arguments: &[(&str, &[f32])],
-) -> Result<Vec<u8>, BindError> {
-    let mut bytes = vec![0u8; size];
+// A uniform nobody binds is an error: Skia would read zeros and the effect would draw wrong without a sign.
+pub(crate) fn pack(slots: &[Slot], arguments: &[(&str, &[f32])]) -> Result<(), BindError> {
     let mut bound = vec![false; slots.len()];
     for (name, values) in arguments {
         let index = slots
@@ -59,15 +52,11 @@ pub(crate) fn pack(
                 got: values.len(),
             });
         }
-        for (i, value) in values.iter().enumerate() {
-            let at = slot.offset + i * 4;
-            bytes[at..at + 4].copy_from_slice(&value.to_ne_bytes());
-        }
         bound[index] = true;
     }
     match bound.iter().position(|bound| !bound) {
         Some(index) => Err(BindError::Missing(slots[index].name.clone())),
-        None => Ok(bytes),
+        None => Ok(()),
     }
 }
 
@@ -101,7 +90,6 @@ impl Program {
                                 .iter()
                                 .map(|uniform| Slot {
                                     name: uniform.name().to_string(),
-                                    offset: uniform.offset(),
                                     floats: uniform.size_in_bytes() / 4,
                                 })
                                 .collect();
@@ -117,7 +105,7 @@ impl Program {
     }
 
     pub(crate) fn filter(&self, arguments: &[(&str, &[f32])], child: &str) -> Option<ImageFilter> {
-        pack(&self.slots, self.effect.uniform_size(), arguments)
+        pack(&self.slots, arguments)
             .inspect_err(|error| tracing::warn!(%error, "BarrierKit: a shader was not bound"))
             .ok()?;
         let mut builder = RuntimeShaderBuilder::new(self.effect.clone());

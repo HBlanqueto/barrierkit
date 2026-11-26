@@ -14,7 +14,8 @@ use objc2_user_notifications::{
     UNUserNotificationCenter, UNUserNotificationCenterDelegate,
 };
 
-use crate::notifications::{Notification, WAITING, lock, take};
+use crate::lock;
+use crate::notifications::{Notification, WAITING, take};
 
 // customDismissAction reports only an explicit dismissal, not an ignored banner (https://developer.apple.com/documentation/usernotifications/unnotificationdismissactionidentifier), so the oldest callbacks give way.
 const WAITING_LIMIT: usize = 32;

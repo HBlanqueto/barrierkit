@@ -142,31 +142,24 @@ fn png_of_tiff(tiff: &NSData) -> Option<Vec<u8>> {
     Some(png.to_vec())
 }
 
-pub(crate) fn files(board: &NSPasteboard) -> Vec<PathBuf> {
-    // SAFETY: an AppKit constant string, valid for the life of the process.
-    let file = unsafe { NSPasteboardTypeFileURL };
-    board
-        .pasteboardItems()
-        .iter()
-        .flatten()
-        .filter_map(|item| file_path(&item.stringForType(file)?.to_string()))
-        .collect()
-}
-
 /// The richest payload on the pasteboard: files, an image (PNG), HTML with its text, or text.
 pub(crate) fn read(name: Option<&str>) -> Option<DragPayload> {
     // SAFETY: these are AppKit's own constant strings, valid for the life of the process.
-    let (string, html, png, tiff) = unsafe {
+    let (string, html, file, png, tiff) = unsafe {
         (
             NSPasteboardTypeString,
             NSPasteboardTypeHTML,
+            NSPasteboardTypeFileURL,
             NSPasteboardTypePNG,
             NSPasteboardTypeTIFF,
         )
     };
     let board = board(name);
     let items = board.pasteboardItems()?;
-    let files = files(&board);
+    let files: Vec<PathBuf> = items
+        .iter()
+        .filter_map(|item| file_path(&item.stringForType(file)?.to_string()))
+        .collect();
     if !files.is_empty() {
         return Some(DragPayload::Files(files));
     }

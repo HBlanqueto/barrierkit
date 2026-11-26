@@ -7,7 +7,7 @@ use freya_core::prelude::*;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use crate::{notifications::lock, platform::app_folders};
+use crate::{lock, platform::app_folders};
 
 #[derive(Clone, Copy)]
 pub(crate) struct DefaultsRevision(pub(crate) State<u64>);

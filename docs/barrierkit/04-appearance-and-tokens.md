@@ -913,13 +913,10 @@ the kit measures text without laying it out.
 | Constant | Value |
 |---|---|
 | `DURATION_FAST_MS`, `DURATION_BASE`, `DURATION_SLOW_MS` | 120, 250, 420 ms |
-| `THEME_FADE_WAIT_MS` | 150 ms: longest wait for clients before the compositor's theme fade |
 | `NAVIGATION_PARALLAX`, `NAVIGATION_DIM` | 0 and 0: the page below a push stays and is not dimmed, as in SwiftUI on macOS (UIKit moves it 0.3 of the width and lays a black of 0.13 over it) |
 | `SCROLL_POCKET_BLUR`, `SCROLL_POCKET_SCALE_*`, `SCROLL_POCKET_OFFSET_*` | 3.4 pt, and the tone `scale * content + offset` (0 to 1 units) of a scroll pocket: 0.5 and 0.5349 in light, 0.4 and 0.0976 in dark; fitted to the pixels of macOS 27.2.1 ([Shader needs](../research/shader-needs.md)) |
-| `SPRING_DAMPING` | 5; no reader in the kit ([14](14-animations.md#spring)) |
 | `DURATION_LIST_ROW_MS` | 248 ms: rows of a SwiftUI `List` inserted, removed or moved, measured on macOS ([containers](../research/macos-motion-containers.md#rows-selection-outline)) |
-| `DURATION_MENU_CLOSE_MS`, `DURATION_POPOVER_IN_MS`, `DURATION_POPOVER_OUT_MS` | 200, 210, 120 ms: a menu closing, a popover in and out (Mac Catalyst; [UIKit animations](../research/uikit-animations.md#2-motion-table)) |
-| `SPRING_SHEET_MS`, `SPRING_ALERT_MS`, `SPRING_PUSH_MS` | 344, 274, 503 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents and the pill of a tab strip (`ω0` 18.3), an alert (Mac Catalyst), a push and pop (`ω0` 12.5, SwiftUI on macOS) |
+| `SPRING_SHEET_MS`, `SPRING_PUSH_MS` | 344, 503 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents and the pill of a tab strip (`ω0` 18.3), a push and pop (`ω0` 12.5, SwiftUI on macOS) |
 
 ### Materials
 
@@ -992,19 +989,16 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 |---|---|---|
 | `WINDOW_MIN_SIZE`, `WINDOW_DEFAULT_SIZE` | `(u32, u32)` | 480 × 360, which an app passes to `.min_size(Some(..))`, and 640 × 420, the default `WindowOptions::size` ([8](08-windows.md)) |
 | `WINDOW_CORNER` | `WindowCorner` | `style::panel_edges` (`expansion`), the compositor |
-| `CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_POPOVER`, `CORNER_MENU`, `CORNER_TOOLTIP` | `CornerShape` | The kit (`CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_MENU`, `CORNER_TOOLTIP`) and the compositor: the measured radius and curve of each element |
+| `CORNER_WINDOW`, `CORNER_SHEET`, `CORNER_ALERT`, `CORNER_MENU`, `CORNER_TOOLTIP` | `CornerShape` | The kit and the compositor: the measured radius and curve of each element |
 | `CORNER_CONTROLS` | `CornerControls` | The radii of the controls by size, read from the API |
 | `CORNER_SMOOTHING`, `CORNER_CONCENTRIC_REGION` | `f32` | `style::continuous` and `ctappearance::corner::concentric`: the smoothing of the continuous curve (0.745) and the width of the concentric region as a share of the container's radius (1.0) |
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
-| `WINDOW_CLIENT_RESIZE` | `WindowResize` | The compositor: the resize band around a window that decorates itself |
-| `DIALOG` | `WindowStyle` | No reader in the kit |
 | `DIALOG_PADDING`, `DIALOG_ALERT_*`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `DIALOG_SOLID_*` | `f32`, `u32`, `Rgba`, `[f32; 2]` | `views::feedback`, `styles` (`AlertStyle`, `SheetStyle`, `AboutViewStyle`) |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
 | `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`SheetStyle`), the compositor |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`) ([9](09-titlebars.md)) |
-| `TITLEBAR_TITLE_GAP` | `f32` | The compositor's titlebar |
 | `TITLEBAR_EXPANDED_TITLE_HEIGHT`, `TITLEBAR_EXPANDED_TITLE_GAP`, `TITLEBAR_EXPANDED_TOOLBAR_BOTTOM` | `f32` | The expanded `Titlebar` (SwiftUI `.expanded`): a 28 high title row with the title 15 after the lights, and a toolbar row whose items sit 8 above its middle, 4 under the title row ([9](09-titlebars.md)) |
 | `TITLEBAR_TOOLBAR_START` | `TitlebarToolbarStart` | Where the first toolbar item starts: 16 (unified) and 22 (compact) after the lights, 11 from the edge of the expanded toolbar row ([9](09-titlebars.md)) |
 | `TITLEBAR_SYSTEM_VEIL` | `Rgba` | White at 9/255: what AppKit's title bar lays over the window material, 8 levels in Dark and none in Light ([9](09-titlebars.md)) |
@@ -1054,7 +1048,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `TOOLTIP` | `TooltipMetrics` | `tooltip` |
 | `POPOVER` | `PopoverMetrics` | `popover`, the compositor |
 | `MENU_POPOVER` | `MenuPopoverMetrics` | `theme`, `popup_button`, `styles` |
-| `MENU_MARK_TEXT_GAP`, `MENU_ICON_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SUBMENU_REVEAL_GAP`, `MENU_SCROLL_TICK_MS`, `MENU_SEARCH_ICON`, `MENU_SEARCH_ICON_GAP`, `MENU_SEARCH_CLEAR`, `MENU_SEARCH_CLEAR_GLYPH`, `MENU_SEARCH_PADDING_X`, `MENU_SEARCH_CLEAR_MIX`, `MENU_HELP_ICON` | `f32`, `u64`, `[f32; 2]` | `menu` ([7](07-menus-and-popovers.md)) |
+| `MENU_MARK_TEXT_GAP`, `MENU_ICON_TEXT_GAP`, `MENU_SUBMENU_INTENT_MS`, `MENU_SCROLL_TICK_MS` | `f32`, `u64` | `menu` ([7](07-menus-and-popovers.md)) |
 | `MENU_SEPARATOR_INK_MIX` | `f32` | `Resolved::menu_separator` |
 | `DRAG` | `DragMetrics` | `drag` |
 | `GESTURE` | `GestureMetrics` | `gesture` |
@@ -1100,8 +1094,7 @@ shell's own tokens are not part of the kit.
 | `MENU_DARK_INK_ABOVE` | The luma above which a menu panel takes dark ink ([Glass over a backdrop](#glass-over-a-backdrop)) |
 | `DOCK_LABEL_RADIUS` | The corner of the name label over a Dock icon |
 | `DOCK_LABEL_ARROW_WIDTH`, `DOCK_LABEL_ARROW_HEIGHT`, `DOCK_LABEL_ARROW_TIP_RADIUS`, `DOCK_LABEL_ARROW_FILLET` | The arrow of that label, a popover with the `Label` shape |
-| `DOCK_MENU_PADDING`, `DOCK_MENU_ITEM_PADDING_X`, `DOCK_MENU_SEPARATOR_MARGIN`, `DOCK_MENU_MIN_WIDTH` | An icon's menu: row metrics and width; only the shell reads them |
-| `DOCK_MENU_ARROW_INSET`, `DOCK_MENU_ARROW_TIP_RADIUS`, `DOCK_MENU_ARROW_FILLET` | Its arrow: distance from the corner, tip and fillet of the `Menu` shape |
+| `DOCK_MENU_ARROW_TIP_RADIUS`, `DOCK_MENU_ARROW_FILLET` | The arrow of an icon's menu: tip and fillet of the `Menu` shape |
 
 ## Helpers
 

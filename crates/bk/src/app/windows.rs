@@ -184,7 +184,7 @@ struct Open {
 struct Inner {
     app: String,
     scenes: Vec<Scene>,
-    commands: Option<Commands>,
+    commands: Commands,
     open: State<Vec<Open>>,
     next: Cell<u32>,
 }
@@ -196,7 +196,7 @@ impl Scenes {
     pub(crate) fn new(
         app: String,
         scenes: Vec<Scene>,
-        commands: Option<Commands>,
+        commands: Commands,
     ) -> (Self, Option<usize>) {
         let launch = scenes
             .iter()
@@ -219,11 +219,10 @@ impl Scenes {
         let scene = &self.0.scenes[index];
         let mut options = scene.options.clone();
         options.scene = Some(scene.id).filter(|id| *id != MAIN_WINDOW);
-        if options.menu.is_none()
-            && let Some(commands) = &self.0.commands
-        {
-            options.menu = Some(commands.menu_bar(&self.layout(&self.0.open.peek(), None, true)));
-        }
+        options.menu.get_or_insert_with(|| {
+            let layout = self.layout(&self.0.open.peek(), None, true);
+            self.0.commands.menu_bar(&layout)
+        });
         let scenes = self.clone();
         let root = AppComponent::from(move || scene_root(&scenes, index, value.clone()));
         (options, root)
@@ -276,9 +275,9 @@ impl Scenes {
 
     fn publish_window_menu(&self, own: u32, zoom: bool) {
         let handle = use_hook(try_consume_root_context::<MenuHandle>);
-        if let (Some(commands), Some(handle)) = (&self.0.commands, handle) {
+        if let Some(handle) = handle {
             let layout = self.layout(&self.0.open.read(), Some(own), zoom);
-            handle.set_menu_items(text!("menu-window"), commands.window_items(&layout));
+            handle.set_menu_items(text!("menu-window"), self.0.commands.window_items(&layout));
         }
     }
 

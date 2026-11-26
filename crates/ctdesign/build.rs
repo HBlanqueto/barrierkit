@@ -31,14 +31,10 @@ CORNER_CONCENTRIC_REGION f32 components.corner.concentric-region
 CORNER_WINDOW CornerShape components.corner.window
 CORNER_SHEET CornerShape components.corner.sheet
 CORNER_ALERT CornerShape components.corner.alert
-CORNER_POPOVER CornerShape components.corner.popover
 CORNER_MENU CornerShape components.corner.menu
 CORNER_TOOLTIP CornerShape components.corner.tooltip
 CORNER_CONTROLS CornerControls components.corner.controls
 WINDOW_RESIZE WindowResize components.window edge=resize-edge corner=resize-corner
-WINDOW_CLIENT_RESIZE WindowResize components.window edge=client-resize-edge
-    corner=client-resize-corner
-DIALOG WindowStyle components.dialog corner_radius=radius superellipse_exponent=components.window.corner.exponent
 DIALOG_PADDING f32 components.dialog.padding
 DIALOG_ALERT_WIDTH f32 components.dialog.alert-width
 DIALOG_ALERT_PADDING f32 components.dialog.alert-padding
@@ -102,9 +98,6 @@ ICON_PLATE_TINTED IconPlateLook components.icon-plate.tinted
 ICON_PLATE_TINTED_DARK IconPlateLook components.icon-plate.tinted-dark
 LEVEL_RING_RADII [f32;4] components.level-indicator.ring-radii
 LEVEL_BOTTOM [f32;4] components.level-indicator.bottom
-ICON_PLATE_GLASS [f32;4] components.icon-plate.glass
-ICON_PLATE_GLASS_DARK [f32;4] components.icon-plate.glass-dark
-ICON_PLATE_GLASS_DARK_ON_DARK [f32;4] components.icon-plate.glass-dark-on-dark
 ICON_LOGO_CLEAR IconLogoEnds components.icon-logo.clear
 ICON_LOGO_CLEAR_DARK IconLogoEnds components.icon-logo.clear-dark
 ICON_LOGO_TINTED IconLogoEnds components.icon-logo.tinted
@@ -136,6 +129,9 @@ MATERIAL MaterialMetrics components.material
 SCROLL_BAR ScrollBarMetrics components.scroll-bar hide_delay_ms=hide-delay fade_in_ms=fade-in fade_out_ms=fade-out
 GESTURE GestureMetrics components.gesture tap_interval_ms=tap-interval long_press_ms=long-press-duration
 SCROLL_PHYSICS ScrollPhysicsMetrics components.scroll-physics velocity_window_ms=velocity-window
+SCROLL_FLING_POWER i32 components.scroll-physics.fling-power
+SCROLL_SETTLED_OVER f32 components.scroll-physics.settled-over
+SCROLL_SETTLED_SPEED f32 components.scroll-physics.settled-speed
 LIST_SECTION ListSectionMetrics components.list-section
 LIST_GROUP ListGroupMetrics components.list-group
     separator_inset=separator.inset-left header_padding=section-header.padding
@@ -190,8 +186,6 @@ SHADOW ShadowStyle shadow.layers.light unfocused_blur_scale=shadow.unfocused.blu
 SHADOW_DARK ShadowStyle shadow.layers.dark unfocused_blur_scale=shadow.unfocused.blur
     unfocused_offset_scale=shadow.unfocused.offset unfocused_opacity_scale=shadow.unfocused.opacity
 KNOB_SHADOW ShadowLayer shadow.slint.knob y_offset=offset-y opacity==1.0
-KNOB_HELD_SHADOW ShadowLayer shadow.slint.knob-held y_offset=offset-y opacity==1.0
-KNOB_HELD_SHADOW_DARK ShadowLayer shadow.slint.knob-held-dark y_offset=offset-y opacity==1.0
 SIDEBAR SidebarMetrics components.window.sidebar width=size.sidebar-w padding_x=padding-x
     rim_width=rim-width traffic_x=traffic-x traffic_y=traffic-y app_icon=item.app-icon
     chevron=section.chevron
@@ -216,16 +210,10 @@ MENU_POPOVER MenuPopoverMetrics components.menu-popover
 DURATION_BASE u64 duration.base
 DURATION_FAST_MS u64 duration.fast
 DURATION_SLOW_MS u64 duration.slow
-THEME_FADE_WAIT_MS u64 duration.wait-max
 DURATION_LIST_ROW_MS u64 duration.list-row
-DURATION_MENU_CLOSE_MS u64 duration.menu-close
-DURATION_POPOVER_IN_MS u64 duration.popover-in
-DURATION_POPOVER_OUT_MS u64 duration.popover-out
 DURATION_DISCLOSURE_MS u64 duration.disclosure
 DURATION_OUTLINE_EXPAND_MS u64 duration.outline-expand
-SPRING_DAMPING f32 spring.damping
 SPRING_SHEET_MS u64 spring.sheet-duration
-SPRING_ALERT_MS u64 spring.alert-duration
 SPRING_PUSH_MS u64 spring.push-duration
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
@@ -234,11 +222,6 @@ DOCK_LABEL_ARROW_WIDTH f32 components.shell.dock.label-arrow-width
 DOCK_LABEL_ARROW_HEIGHT f32 components.shell.dock.label-arrow-height
 DOCK_LABEL_ARROW_TIP_RADIUS f32 components.shell.dock.label-arrow-tip-radius
 DOCK_LABEL_ARROW_FILLET f32 components.shell.dock.label-arrow-fillet
-DOCK_MENU_PADDING f32 components.shell.dock.menu-padding
-DOCK_MENU_ITEM_PADDING_X f32 components.shell.dock.menu-item-padding-x
-DOCK_MENU_SEPARATOR_MARGIN f32 components.shell.dock.menu-separator-margin
-DOCK_MENU_MIN_WIDTH f32 components.shell.dock.menu-min-width
-DOCK_MENU_ARROW_INSET f32 components.shell.dock.menu-arrow-inset
 DOCK_MENU_ARROW_TIP_RADIUS f32 components.shell.dock.menu-arrow-tip-radius
 DOCK_MENU_ARROW_FILLET f32 components.shell.dock.menu-arrow-fillet
 SETTINGS SettingsMetrics components.settings account_name_font=account.name
@@ -265,7 +248,6 @@ CONTENT_UNAVAILABLE_ACTIONS_GAP f32 components.content-unavailable.actions-gap
 DOMINANT_MIN_CHROMA f32 appearance.dominant.min-chroma
 TITLEBAR_PADDING_X f32 components.window.titlebar.padding-x
 TITLEBAR_SYSTEM_VEIL Rgba components.window.titlebar.system-veil
-TITLEBAR_TITLE_GAP f32 components.window.titlebar.title-gap
 TITLEBAR_EXPANDED_TITLE_HEIGHT f32 components.window.titlebar.expanded-title.height
 TITLEBAR_EXPANDED_TITLE_GAP f32 components.window.titlebar.expanded-title.gap
 TITLEBAR_EXPANDED_TOOLBAR_BOTTOM f32 components.window.titlebar.expanded-title.toolbar-bottom
@@ -274,17 +256,9 @@ TITLEBAR_FULLSCREEN_START TitlebarToolbarStart components.window.titlebar.fullsc
 MENU_MARK_TEXT_GAP f32 components.shell.menu.mark.text-gap
 MENU_ICON_TEXT_GAP f32 components.shell.menu.icon.text-gap
 MENU_SUBMENU_INTENT_MS u64 components.shell.menu.submenu.intent-ms
-MENU_SUBMENU_REVEAL_GAP f32 components.shell.menu.submenu.reveal-gap
 MENU_SCROLL_TICK_MS u64 components.shell.menu.scroll-tick-ms
-MENU_SEARCH_ICON_GAP f32 components.shell.menu.search.icon-gap
-MENU_SEARCH_CLEAR f32 components.shell.menu.search.clear
-MENU_SEARCH_CLEAR_GLYPH f32 components.shell.menu.search.clear-glyph
-MENU_SEARCH_PADDING_X f32 components.shell.menu.search.padding-x
-MENU_SEARCH_CLEAR_MIX f32 components.shell.menu.search.clear-mix
-MENU_HELP_ICON f32 components.shell.menu.help-icon
 HUD_BACKGROUND Rgba components.hud.background
 DOMINANT_LIGHTNESS [f32;2] appearance.dominant.lightness
-MENU_SEARCH_ICON [f32;2] components.shell.menu.search.icon
 ";
 
 const THEMED: &str = r"

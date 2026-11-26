@@ -350,9 +350,6 @@
       "tile-top-lift": 0.02,
       "tile-bottom-lift": -0.02,
       "dark-glyph-lightness": 0.65,
-      "glass": [1, 0.227, 1.09, 0.2],
-      "glass-dark": [0, 0.532, 0.94, 0.16],
-      "glass-dark-on-dark": [1, 0.16, 0.94, 0.16],
       "lobe-dark": {
         "top-lightness": 0.29,
         "top-chroma-scale": 0.5,
@@ -737,7 +734,6 @@
       "window": {"radius": "components.window.corner.titlebar", "fitted": 16.8, "smoothing": "components.corner.smoothing"},
       "sheet": {"radius": "components.window.corner.titlebar", "fitted": 16.8, "smoothing": "components.corner.smoothing"},
       "alert": {"radius": "components.dialog.radius", "fitted": "components.dialog.radius", "smoothing": "components.corner.smoothing"},
-      "popover": {"radius": "components.popover.radius", "fitted": 19.7, "smoothing": "components.corner.smoothing"},
       "menu": {"radius": "components.shell.menu.panel.radius", "fitted": 12.5, "smoothing": "components.corner.smoothing"},
       "tooltip": {"radius": "components.tooltip.radius", "fitted": 5.2, "smoothing": 0},
       "controls": {
@@ -763,8 +759,6 @@
       "default-height": 420,
       "resize-edge": 5,
       "resize-corner": 16,
-      "client-resize-edge": 6,
-      "client-resize-corner": 12,
       "corner": {
         "titlebar": "radius.lg",
         "unified-compact": 16,
@@ -797,7 +791,6 @@
       },
       "titlebar": {
         "padding-x": 10,
-        "title-gap": 12,
         "expanded-title": {"height": 28, "gap": 15, "toolbar-bottom": 8},
         "toolbar-start": {"unified": 16, "compact": 22, "expanded": 11},
         "fullscreen-start": {"unified": 22, "compact": 14, "expanded": 11},
@@ -1171,7 +1164,10 @@
       "return-omega": 12,
       "refresh-trigger": 80,
       "refresh-hold": 60,
-      "refresh-band": 0.5
+      "refresh-band": 0.5,
+      "fling-power": 4,
+      "settled-over": 0.25,
+      "settled-speed": 0.002
     },
     "badge": {
       "height": 20,
@@ -1198,11 +1194,6 @@
         "label-arrow-height": 6.5,
         "label-arrow-tip-radius": 3,
         "label-arrow-fillet": 5,
-        "menu-padding": 5,
-        "menu-item-padding-x": 12,
-        "menu-separator-margin": 5.5,
-        "menu-min-width": 228,
-        "menu-arrow-inset": 30,
         "menu-arrow-tip-radius": 6,
         "menu-arrow-fillet": 8,
         "tile": "{bg-control}",
@@ -1274,19 +1265,12 @@
           "margin-x": 5,
           "margin-y": 5,
           "padding-x": 8,
-          "bg": "bg-control",
-          "icon": [16, 14],
-          "icon-gap": 4,
-          "clear": 16,
-          "clear-glyph": 12,
-          "clear-mix": 0.7
+          "bg": "bg-control"
         },
         "submenu": {
-          "intent-ms": 210,
-          "reveal-gap": 8
+          "intent-ms": 210
         },
-        "scroll-tick-ms": 30,
-        "help-icon": 16
+        "scroll-tick-ms": 30
       }
     },
     "content-unavailable": {
