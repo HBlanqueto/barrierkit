@@ -2,7 +2,7 @@ import AppKit
 
 // bd: full-screen backdrop at level 3 driven by the file `mode`; writes `ack` once the mode is on screen.
 // modes: off | gray:v | rgb:r,g,b | edgev:x:a:b | line:x:a:b | lvl:n | win:on | win:off | quit
-let dir = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light"
+let dir = ProcessInfo.processInfo.environment["PROBE_DIR"]!
 let screen = NSScreen.main!
 let cs = screen.colorSpace!
 let W = screen.frame.width, H = screen.frame.height

@@ -1,5 +1,5 @@
 m=$1
-cd /private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light
+cd "$(dirname "$0")"
 echo "# dock top"; python3 edge.py base-$m col 1676 1400 1300
 echo "# dock left"; python3 edge.py base-$m row 1395 760 680
 echo "# apple bottom"; python3 edge.py apple-$m col 150 300 420

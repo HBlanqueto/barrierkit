@@ -1,4 +1,4 @@
-cd /private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light
+cd "$(dirname "$0")"
 for m in d l; do
 c() { echo "$m $1 $(python3 corner.py - data/$2-$m-g0.png $3 $4 $5 $6 $7 | tail -1)"; }
 c apple-bl apple 0 19 290 345 bl

@@ -1,7 +1,7 @@
-import subprocess, sys, math
+import subprocess, sys, math, os
 # kern.py prefix y x0 x1 edge_x patch_x patch_y patch_w patch_h
 # tone from the gray series at the patch, inverted; then fits sigma (px) of a Gaussian to the steps and the lines
-L = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light"
+L = os.path.dirname(os.path.abspath(__file__))
 p, y, x0, x1, ex = sys.argv[1], *map(int, sys.argv[2:6])
 px, py, pw, ph = map(int, sys.argv[6:10])
 rd = lambda *a: subprocess.run([L + "/rd", *map(str, a)], capture_output=True, text=True).stdout

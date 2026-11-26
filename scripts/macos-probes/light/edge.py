@@ -1,7 +1,7 @@
-import subprocess, sys, math
+import subprocess, sys, math, os
 # edge.py prefix col|row fixed a0 a1: profile across an edge over white, gray 128 and black, then a fit of the
 # shadow alpha(d) = 1 - out/bare beyond the last glass pixel (where white and black differ by < 200) as A exp(-d/tau)
-L = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light"
+L = os.path.dirname(os.path.abspath(__file__))
 p, kind, fixed, a0, a1 = sys.argv[1], sys.argv[2], *map(int, sys.argv[3:6])
 def prof(g):
     v = [int(l.split()[2]) for l in subprocess.run([L + "/rd", f"{L}/data/{p}-g{g}.png", kind, str(fixed), str(min(a0, a1)), str(max(a0, a1))], capture_output=True, text=True).stdout.splitlines()]

@@ -1,5 +1,5 @@
 m=$1
-cd /private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light
+cd "$(dirname "$0")"
 echo "# dock"; python3 kern.py base-$m 1363 1160 1240 1200 1668 1375 20 40
 echo "# apple"; python3 kern.py apple-$m 222 135 295 215 180 200 41 41
 echo "# spot"; python3 kern.py spot-$m 820 720 880 800 700 800 41 41

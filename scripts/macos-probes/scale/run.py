@@ -1,6 +1,6 @@
 import subprocess, sys, os, time
 # run.py tag: every capture for one display mode into data/<tag>/ ; sp must not be running
-D = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/scale"
+D = os.path.dirname(os.path.abspath(__file__))
 L = D + "/../light"
 tag = sys.argv[1]
 out = f"{D}/data/{tag}"

@@ -1,6 +1,6 @@
 import AppKit
 // an tag...: reads data/<tag>.meta and pngs, prints tag ap state label R G B
-let dir = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/tint/data"
+let dir = ProcessInfo.processInfo.environment["PROBE_DIR"]! + "/data"
 func load(_ f: String) -> NSBitmapImageRep? { guard let d = try? Data(contentsOf: URL(fileURLWithPath: f)) else { return nil }; return NSBitmapImageRep(data: d)!.converting(to: .sRGB, renderingIntent: .default) }
 func patch(_ r: NSBitmapImageRep, _ cx: Int, _ cy: Int) -> [Double] {
   let spp = r.samplesPerPixel, bpr = r.bytesPerRow, p = r.bitmapData!; var s = [0.0, 0.0, 0.0]

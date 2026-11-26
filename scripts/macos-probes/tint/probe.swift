@@ -1,6 +1,6 @@
 import AppKit
 
-let dir = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/tint/data"
+let dir = ProcessInfo.processInfo.environment["PROBE_DIR"]! + "/data"
 try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
 let args = CommandLine.arguments
 let mode = args[1]

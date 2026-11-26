@@ -1,4 +1,4 @@
-L=/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light
+L=$(cd "$(dirname "$0")" && pwd)
 D=$L/data
 mode() { rm -f $L/ack; printf '%s' "$1" > $L/mode; i=0; while [ ! -f $L/ack ] && [ $i -lt 200 ]; do sleep 0.02; i=$((i+1)); done; }
 shot() { mode "$2"; sleep 0.2; screencapture -x -m "$D/$1.png"; mode off; }

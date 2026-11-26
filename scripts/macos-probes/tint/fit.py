@@ -1,5 +1,5 @@
-import sys, subprocess, collections
-T = '/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/tint/'
+import os, sys, subprocess, collections
+T = os.path.dirname(os.path.abspath(__file__)) + '/'
 C = ['red', 'green', 'blue', 'white', 'black', 'gray', 'orange', 'navy', 'ice']
 sw = sys.argv[1] if len(sys.argv) > 1 else 'on'
 

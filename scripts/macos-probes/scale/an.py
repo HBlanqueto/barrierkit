@@ -1,6 +1,6 @@
 import sys, math, os
 # an.py tag: every measure of one mode, in device px and in pt (px / scale)
-D = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/scale/data/" + sys.argv[1]
+D = os.path.dirname(os.path.abspath(__file__)) + "/data/" + sys.argv[1]
 W, H = map(int, open(D + "/dims").read().split())
 G = [0, 16, 32, 48, 64, 96, 128, 160, 192, 224, 240, 255]
 _c = {}
@@ -62,7 +62,7 @@ def kern(ser, y, x0, x1, ex, pxp, label):
 
 def corner(wn, bn, x0, x1, y0, y1, c, label):
     import subprocess
-    L = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light"
+    L = os.path.dirname(os.path.abspath(__file__)) + "/../light"
     r = subprocess.run(["python3", L + "/corner.py", f"{D}/{wn}.png" if wn != "-" else "-", f"{D}/{bn}.png", *map(str, (x0, x1, y0, y1)), c], capture_output=True, text=True).stdout.splitlines()[-1]
     R = float(r.split()[2])
     say(f"{label} corner radius", r.split(",", 1)[1].strip(), R)

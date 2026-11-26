@@ -1,6 +1,6 @@
 import AppKit
 // sp tag ap label: for each window position prints x and R,G,B every 50 px across the window (row y=170)
-let dir = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/tint/data"
+let dir = ProcessInfo.processInfo.environment["PROBE_DIR"]! + "/data"
 let a = CommandLine.arguments
 let ch = Int(a[4]) ?? 0
 let lines = (try! String(contentsOfFile: "\(dir)/\(a[1]).meta", encoding: .utf8)).split(separator: "\n").map { $0.split(separator: " ").map(String.init) }.filter { $0.count == 8 && $0[1] == a[2] && $0[2] == a[3] }

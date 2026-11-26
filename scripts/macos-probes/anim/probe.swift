@@ -1,6 +1,6 @@
 import AppKit
 
-let dir = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/anim/sig"
+let dir = ProcessInfo.processInfo.environment["PROBE_DIR"]! + "/sig"
 let args = CommandLine.arguments
 let mode = args.count > 1 ? args[1] : "tile"
 let app = NSApplication.shared

@@ -3,7 +3,7 @@ import AppKit
 // sp: backdrop (level 3) plus probe scenes (level 4/5), driven by the file `mode`, positions in device px converted by the scale.
 // backdrop: gray:v | edgev:xpx:a:b | line:xpx:a:b (1 device px) ; scene:none|dark|aqua|noshadow|pop|vev ; off ; quit
 // writes `ack` and `meta` (scale, screen, every probe window frame in device px, top-left origin, key state)
-let dir = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/scale"
+let dir = ProcessInfo.processInfo.environment["PROBE_DIR"]!
 let screen = NSScreen.main!
 let cs = screen.colorSpace!
 let S = screen.backingScaleFactor

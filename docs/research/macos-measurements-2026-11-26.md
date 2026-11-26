@@ -25,17 +25,24 @@ white within 0.002). Every window has a 1 px dark outline on the first row
 outside its frame; d starts after it.
 
 One blurred, offset box fits all four sides (rms 0.0004 to 0.0012):
-alpha(d) = A · ½ · erfc((d ∓ dy) / (σ√2)), with dy pushing the shadow down.
+alpha(d) = A · ½ · erfc((d − spread ∓ dy) / (σ√2)). Spread grows (+) or
+shrinks (−) the box in px. Dy pushes the shadow down: upper sign at the bottom
+edge, lower sign at the top edge.
 
 | Case | σ | dy | A aqua | A dark |
 |---|---|---|---|---|
 | Titled window, main | 19.5 | 18 | .393 | .689 |
 | Titled window not main, and sheet | 7.5 | 7 | .210 | .431 (sheet .401) |
 | Utility panel | 7.5 | 4 | .210 (key .241) | .289 |
-| Borderless window | 7.5 | 4 | .207 | .394 |
+| Borderless window | 7.5 aqua, 8.5 dark | 4 | .207 | .394 |
 | Popover (top and sides) | 7.0 | about 4 | .188 | .226 |
 | Alert, modal / sheet | 16.5 | 10 | .205 / .176 | .224 / .205 |
 
+- Only the borderless profiles are kept
+  (`scripts/macos-probes/shadows/data/profiles-meta-borderless.txt`). Their
+  fit gives spread 0 in aqua and −3 in dark. The profiles of the other rows
+  were not kept, so their spread cannot be recovered; read their σ as fitted
+  with an unknown spread.
 - The strong shadow follows the **main** window, not the key window.
 - Dark is 1.75 to 2 times stronger than aqua at the same σ and dy.
 - The alert is small (260×176), so its σ is biased low.
@@ -260,5 +267,6 @@ Rec. 709 saturation matrix; mutter's `ClutterBlur` is a separable Gaussian with
 The probes and the small result files of this pass are in
 `scripts/macos-probes/` (`shadows`, `anim`, `tint`, `light`, `scale` and the
 loose display and pacing probes). The screenshots and raw captures (about
-1.6 GB) are not kept. The probes still hold the absolute paths of the session
-scratchpad they ran in: change them before running.
+1.6 GB) are not kept. Each shell and Python probe works in its own folder. Each Swift
+probe reads its work directory from the `PROBE_DIR` environment variable: the
+folder of its own sources.

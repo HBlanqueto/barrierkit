@@ -2,7 +2,7 @@ import AppKit
 import ScreenCaptureKit
 import CoreMedia
 
-let out = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/shadows/data"
+let out = ProcessInfo.processInfo.environment["PROBE_DIR"]! + "/data"
 try? FileManager.default.createDirectory(atPath: out, withIntermediateDirectories: true)
 let screen = NSScreen.main!
 let H = screen.frame.height

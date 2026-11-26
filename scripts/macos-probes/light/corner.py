@@ -1,7 +1,7 @@
-import subprocess, sys, math
+import subprocess, sys, math, os
 # corner.py white.png black.png x0 x1 y0 y1 corner(tl|bl|tr|br)
 # coverage per pixel from the white/black pair, inset of each row from the straight side, fitted circle radius
-L = "/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light"
+L = os.path.dirname(os.path.abspath(__file__))
 w, b = sys.argv[1], sys.argv[2]
 x0, x1, y0, y1 = map(int, sys.argv[3:7]); corner = sys.argv[7]
 def rows(f): return {y: [int(l.split()[2]) for l in subprocess.run([L + "/rd", f, "row", str(y), str(x0), str(x1)], capture_output=True, text=True).stdout.splitlines()] for y in range(y0, y1 + 1)}

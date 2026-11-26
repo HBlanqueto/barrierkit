@@ -1,5 +1,5 @@
-import sys, subprocess, collections, itertools
-T='/private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/tint/'
+import os, sys, subprocess, collections, itertools
+T=os.path.dirname(os.path.abspath(__file__)) + '/'
 C=['red','green','blue','white','black','gray','orange','navy','ice']
 W={'red':[255,0,0],'green':[0,255,2],'blue':[2,1,255],'white':[255]*3,'black':[0]*3,'gray':[128]*3,'orange':[255,128,2],'navy':[38,81,160],'ice':[201,220,255]}
 rows=collections.defaultdict(dict)

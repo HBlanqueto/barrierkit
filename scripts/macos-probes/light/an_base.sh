@@ -1,5 +1,5 @@
 # an_base.sh prefix: Dock patch, bare backdrop, menu bar clear test and ink, per gray and colour
-cd /private/tmp/claude-501/-Users-humbe--claude-spares-spare-wxcbfZ/815469d1-10d1-46d0-9155-bfb2393396d4/scratchpad/light
+cd "$(dirname "$0")"
 p=$1
 for s in g0 g16 g32 g48 g64 g96 g128 g160 g192 g224 g240 g255 red blue; do
   f=data/$p-$s.png
