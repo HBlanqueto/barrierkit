@@ -381,7 +381,7 @@ Defaults keys, from [25], [26] and [28]:
 
 ## 11. Proposed tokens
 
-None is in `ctdesign` yet. Each is added by the step of the compositor that
+In `ctdesign` now: `EXPANSION_OMEGA`, `EXPANSION_DAMPING`, `EXPANSION_MARGIN_SIDE`, `EXPANSION_MARGIN_TOP`, `EXPANSION_MARGIN_BOTTOM` and `SPACES_STRIP_HEIGHT`; the rest are not. Each is added by the step of the compositor that
 first reads it, as `DESKTOP_SWITCH_*` was.
 
 The times of sections 5 and 7 count from the first frame that changes. A

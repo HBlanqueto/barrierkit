@@ -767,6 +767,14 @@
         "progress-bar": [3, 3, 4, 4, 4]
       }
     },
+    "expansion": {
+      "margin-side": 20,
+      "margin-top": 40,
+      "margin-bottom": 15
+    },
+    "spaces-strip": {
+      "height": 40
+    },
     "window": {
       "min-width": 480,
       "min-height": 360,

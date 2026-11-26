@@ -225,7 +225,13 @@ DESKTOP_GAP_COLOR Rgba spring.desktop-gap-color
 DESKTOP_BACKGROUND Rgba spring.desktop-background
 CURSOR_FALLBACK_SIZE i32 cursor.fallback-size
 CURSOR_FALLBACK_COLOR Rgba cursor.fallback-color
+EXPANSION_OMEGA f32 spring.expansion-omega
+EXPANSION_DAMPING f32 spring.expansion-damping
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
+EXPANSION_MARGIN_SIDE i32 components.expansion.margin-side
+EXPANSION_MARGIN_TOP i32 components.expansion.margin-top
+EXPANSION_MARGIN_BOTTOM i32 components.expansion.margin-bottom
+SPACES_STRIP_HEIGHT i32 components.spaces-strip.height
 WINDOW_CASCADE_STEP i32 components.window.cascade-step
 WINDOW_CENTER_TOP f32 components.window.center-top
 WINDOW_TILE_MARGIN i32 components.window.tile-margin

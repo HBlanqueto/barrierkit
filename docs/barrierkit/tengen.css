@@ -28,6 +28,8 @@
   --bk-spring-desktop-gap: 64;
   --bk-spring-desktop-gap-color: #000000;
   --bk-spring-desktop-background: #19191f;
+  --bk-spring-expansion-omega: 25;
+  --bk-spring-expansion-damping: 1;
   --bk-cursor-fallback-size: 16;
   --bk-cursor-fallback-color: #ffffff;
   --bk-font-families-sans: Adwaita Sans, Inter, "Noto Sans CJK SC", system-ui, sans-serif;
@@ -1206,6 +1208,10 @@
   --bk-corner-controls-progress-bar-2: 4;
   --bk-corner-controls-progress-bar-3: 4;
   --bk-corner-controls-progress-bar-4: 4;
+  --bk-expansion-margin-side: 20;
+  --bk-expansion-margin-top: 40;
+  --bk-expansion-margin-bottom: 15;
+  --bk-spaces-strip-height: 40;
   --bk-window-min-width: 480;
   --bk-window-min-height: 360;
   --bk-window-default-width: 640;
