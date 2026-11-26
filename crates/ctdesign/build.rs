@@ -17,6 +17,7 @@ const THEMES: [(&str, &str); 3] = [
 const CONSTANTS: &str = r"
 TITLEBAR_CLIENT_HEIGHT u32 size.titlebar-h
 PANEL_GLOW_DEPTH f32 size.panel-glow-depth
+FRAME_LINE_WIDTH f32 size.frame-line-width
 TITLEBAR_DOUBLE_CLICK DoubleClick components.window.titlebar.double-click
 WINDOW_CORNER WindowCorner components.window.corner
 CORNER_SMOOTHING f32 components.corner.smoothing

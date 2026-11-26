@@ -1007,6 +1007,7 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `DIALOG_PADDING`, `DIALOG_ALERT_*`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `DIALOG_SOLID_*` | `f32`, `u32`, `Rgba`, `[f32; 2]` | `views::feedback`, `styles` (`AlertStyle`, `SheetStyle`, `AboutViewStyle`) |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
 | `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |
+| `FRAME_LINE_WIDTH` | `f32` | The compositor: width in points of each `FrameLines` line, the outline outside the window and the inner line inside it |
 | `SHADOW`, `SHADOW_DARK` | `ShadowStyle` | `styles` (`SheetStyle`), the compositor |
 | `TITLEBAR` | `Titlebar` | Server-side titlebar of the compositor, `ctappearance::traffic`, `traffic`, `styles` (`TitlebarStyle`) |
 | `TITLEBAR_CLIENT_HEIGHT`, `TITLEBAR_PADDING_X` | `u32`, `f32` | `styles` (`TitlebarStyle`) ([9](09-titlebars.md)) |
