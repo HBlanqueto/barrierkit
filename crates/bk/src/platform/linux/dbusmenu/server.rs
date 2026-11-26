@@ -116,13 +116,13 @@ async fn run(mut commands: UnboundedReceiver<Command>) {
                     tracing::warn!("barrier-dbusmenu: the session bus gave no unique name");
                     continue;
                 };
-                if export(&connection, &path, &registered, &mut menus, &mut id_maps).await {
-                    if let Some(on_address) = on_address {
-                        on_address(MainMenuAddress {
-                            service: unique,
-                            path,
-                        });
-                    }
+                if export(&connection, &path, &registered, &mut menus, &mut id_maps).await
+                    && let Some(on_address) = on_address
+                {
+                    on_address(MainMenuAddress {
+                        service: unique,
+                        path,
+                    });
                 }
             }
             Command::StatusItem {
