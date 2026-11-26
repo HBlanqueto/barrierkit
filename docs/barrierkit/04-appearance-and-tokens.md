@@ -1008,6 +1008,8 @@ are the colors measured with Reduce Transparency. `resolve` picks them for
 | `CORNER_CONTROLS` | `CornerControls` | The radii of the controls by size, read from the API |
 | `CORNER_SMOOTHING`, `CORNER_CONCENTRIC_REGION` | `f32` | `style::continuous` and `ctappearance::corner::concentric`: the smoothing of the continuous curve (0.745) and the width of the concentric region as a share of the container's radius (1.0) |
 | `WINDOW_RESIZE` | `WindowResize` | `platform` |
+| `WINDOW_CASCADE_STEP` | `i32` | The compositor: 29 pt, right and down, from the window in front to a new window. Measured on macOS on 2026-11-25 with two windows of the same app (Finder 700 × 600, TextEdit 603 × 505); where the cascade starts again at the edge of the display was not measured |
+| `WINDOW_CENTER_TOP` | `f32` | The compositor: 0.25, the share of the free height that stays above the first window of a Desktop, which is centered horizontally (`NSWindow.center()`: "somewhat above center"). Measured on macOS at two points, on the Open panel with no window; for a document window it was not measured |
 | `DIALOG_PADDING`, `DIALOG_ALERT_*`, `DIALOG_BUTTON_WIDTH`, `DIALOG_SHEET_WIDTH`, `DIALOG_SHEET_HEIGHT`, `DIALOG_SOLID_*` | `f32`, `u32`, `Rgba`, `[f32; 2]` | `views::feedback`, `styles` (`AlertStyle`, `SheetStyle`, `AboutViewStyle`) |
 | `POPUP` | `WindowStyle` | The compositor, for pop-up corners; `platform` (the macOS popover arrow) |
 | `PANEL_GLOW_DEPTH` | `f32` | `style::panel_edges` and the compositor: depth in points of the `PanelLine::glow` |

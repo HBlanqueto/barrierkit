@@ -774,6 +774,8 @@
       "default-height": 420,
       "resize-edge": 5,
       "resize-corner": 16,
+      "cascade-step": 29,
+      "center-top": 0.25,
       "corner": {
         "titlebar": "radius.lg",
         "unified-compact": 16,

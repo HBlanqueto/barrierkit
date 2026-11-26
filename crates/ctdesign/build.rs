@@ -223,6 +223,8 @@ DESKTOP_SWITCH_DAMPING f32 spring.desktop-switch-damping
 DESKTOP_GAP f32 spring.desktop-gap
 DESKTOP_GAP_COLOR Rgba spring.desktop-gap-color
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
+WINDOW_CASCADE_STEP i32 components.window.cascade-step
+WINDOW_CENTER_TOP f32 components.window.center-top
 MENUBAR_HEIGHT i32 components.shell.menubar.height
 DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius
 DOCK_LABEL_ARROW_WIDTH f32 components.shell.dock.label-arrow-width

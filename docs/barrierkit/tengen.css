@@ -1209,6 +1209,8 @@
   --bk-window-default-height: 420;
   --bk-window-resize-edge: 5;
   --bk-window-resize-corner: 16;
+  --bk-window-cascade-step: 29;
+  --bk-window-center-top: 0.25;
   --bk-window-corner-titlebar: var(--bk-radius-lg);
   --bk-window-corner-unified-compact: 16;
   --bk-window-corner-unified: 16;
