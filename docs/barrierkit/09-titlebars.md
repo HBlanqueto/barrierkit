@@ -91,6 +91,7 @@ and the title.
 | `.spacing(px)` | 0; `SETTINGS.toolbar_gap` (13) beside a sidebar | Gap between the bar's items. Beside a sidebar it is the gap before the title, so the title sits 20 from the sidebar's edge |
 | `.close_only(bool)` | `false` | Only the close button works, for dialogs and panels |
 | `.hairline(bool)` | `false` | Draws `TitlebarStyle::line()` under the bar, as `NSTitlebarSeparatorStyle.line` |
+| `.toolbar_background_visibility(Visibility)` | `Automatic` | `views::table::Visibility::Hidden` leaves the bar with no fill and no hairline, as `.toolbarBackgroundVisibility(.hidden, for: .windowToolbar)` |
 | `Titlebar::preview(status, title, fixed)` | — | Draws the bar for a given `WindowStatus` without a window, for previews and tests |
 
 Layout:

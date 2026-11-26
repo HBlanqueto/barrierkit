@@ -8,10 +8,10 @@ use objc2_app_kit::{
     NSPasteboardItem, NSPasteboardTypeFileURL, NSPasteboardTypeHTML, NSPasteboardTypePNG,
     NSPasteboardTypeString, NSPasteboardTypeTIFF, NSPasteboardWriting, NSWorkspace,
 };
-use objc2_foundation::{NSArray, NSData, NSDictionary, NSPoint, NSRect, NSSize, NSString};
+use objc2_foundation::{NSArray, NSData, NSDictionary, NSPoint, NSRect, NSSize, NSString, NSURL};
 
 use crate::drag::DragPayload;
-use crate::portal::{file_path, file_uri};
+use crate::portal::file_uri;
 
 fn board(name: Option<&str>) -> Retained<NSPasteboard> {
     match name {
@@ -142,28 +142,39 @@ fn png_of_tiff(tiff: &NSData) -> Option<Vec<u8>> {
     Some(png.to_vec())
 }
 
+// Finder may hand a file-reference URL (`file:///.file/id=…`), which only NSURL resolves to a path.
+pub(crate) fn files(board: &NSPasteboard) -> Vec<PathBuf> {
+    // SAFETY: an AppKit constant string, valid for the life of the process.
+    let file = unsafe { NSPasteboardTypeFileURL };
+    board
+        .pasteboardItems()
+        .iter()
+        .flatten()
+        .filter_map(|item| {
+            let text = item.stringForType(file)?;
+            let url = NSURL::URLWithString(&text)?;
+            Some(PathBuf::from(url.filePathURL()?.path()?.to_string()))
+        })
+        .collect()
+}
+
 /// The richest payload on the pasteboard: files, an image (PNG), HTML with its text, or text.
 pub(crate) fn read(name: Option<&str>) -> Option<DragPayload> {
     // SAFETY: these are AppKit's own constant strings, valid for the life of the process.
-    let (string, html, file, png, tiff) = unsafe {
+    let (string, html, png, tiff) = unsafe {
         (
             NSPasteboardTypeString,
             NSPasteboardTypeHTML,
-            NSPasteboardTypeFileURL,
             NSPasteboardTypePNG,
             NSPasteboardTypeTIFF,
         )
     };
     let board = board(name);
-    let items = board.pasteboardItems()?;
-    let files: Vec<PathBuf> = items
-        .iter()
-        .filter_map(|item| file_path(&item.stringForType(file)?.to_string()))
-        .collect();
+    let files = files(&board);
     if !files.is_empty() {
         return Some(DragPayload::Files(files));
     }
-    let first = items.firstObject()?;
+    let first = board.pasteboardItems()?.firstObject()?;
     if let Some(bytes) = first.dataForType(png) {
         return Some(DragPayload::Image(bytes.to_vec()));
     }
@@ -178,5 +189,26 @@ pub(crate) fn read(name: Option<&str>) -> Option<DragPayload> {
         }),
         (Some(text), None) => Some(DragPayload::Text(text)),
         (None, None) => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_file_reference_url_resolves_to_its_path() {
+        let path = std::env::current_exe().unwrap().canonicalize().unwrap();
+        let reference = NSURL::fileURLWithPath(&NSString::from_str(&path.to_string_lossy()))
+            .fileReferenceURL()
+            .unwrap()
+            .absoluteString()
+            .unwrap();
+        assert!(reference.to_string().contains("/.file/id="));
+        let board = NSPasteboard::pasteboardWithUniqueName();
+        board.clearContents();
+        // SAFETY: an AppKit constant string, valid for the life of the process.
+        board.setString_forType(&reference, unsafe { NSPasteboardTypeFileURL });
+        assert_eq!(files(&board), vec![path]);
     }
 }

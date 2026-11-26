@@ -143,6 +143,7 @@ SwiftUI's inline forms. Each is a `Text` again, so it keeps the layout and style
 |---|---|
 | `Text::new("a") + Text::new("b").bold(true)` | One paragraph of two runs; each keeps what its author set (`bold`, `italic`, `underline`, `strikethrough`, `font`, `foreground_style`). What neither set, such as a `foreground_style` on the sum, reaches both |
 | ``Text::markdown("**b** *i* ~~s~~ `c` [t](https://x.org)")`` | Bold, italic, struck, monospaced and a link in the accent; a click on the link opens it through the `OpenURI` portal. A mark without its mate (`2 * 3`), `snake_case` and `\*` stay literal. `Text::new` never reads Markdown, so a file name with an asterisk stays as written |
+| `.monospaced_digit()` | Every digit takes the same width (the font's `tnum` feature), so a clock or a counter does not shift as it changes |
 | `.text_selection(true)` | The reader selects with the pointer and copies with Command+C or Ctrl+C |
 
 Limits:

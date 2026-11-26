@@ -14,7 +14,7 @@ COPY_TYPES = ('Int', 'Double', 'Float', 'CGFloat', 'Bool')
 RUST_TYPES = {'Int': 'i64', 'Double': 'f64', 'Float': 'f32', 'CGFloat': 'f32', 'Bool': 'bool', 'String': 'String'}
 FONTS = {'largeTitle': 'LARGE_TITLE', 'title': 'TITLE', 'title2': 'TITLE_2', 'title3': 'TITLE_3',
          'headline': 'HEADLINE', 'subheadline': 'SUBHEADLINE', 'body': 'BODY', 'callout': 'CALLOUT',
-         'footnote': 'FOOTNOTE', 'caption': 'CAPTION', 'caption2': 'CAPTION_2'}
+         'footnote': 'FOOTNOTE', 'caption': 'FOOTNOTE', 'caption2': 'CAPTION_2'}
 BUTTON_STYLES = {'automatic': None, 'bordered': None, 'borderedProminent': 'bordered_prominent',
                  'borderless': 'borderless', 'plain': 'plain', 'glass': 'glass', 'glassProminent': 'glass_prominent'}
 ALIGNMENTS = {'leading': 'Start', 'trailing': 'End', 'center': 'Center', 'top': 'Start', 'bottom': 'End'}

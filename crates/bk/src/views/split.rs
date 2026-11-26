@@ -460,6 +460,7 @@ impl Component for SplitView {
                 rect()
                     .width(Size::flex(1.0))
                     .height(Size::fill())
+                    .key("detail")
                     .on_sized(move |event: Event<SizedEventData>| {
                         detail_area.set_if_modified(event.area)
                     })

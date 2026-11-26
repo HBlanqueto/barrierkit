@@ -169,6 +169,16 @@ thread_local! {
 
 // Callbacks of AppKit reach the runner through this cell. A call made while it is borrowed (a window the runner is
 // closing tells its delegate) finds it busy and does nothing.
+// Freya's thread-locals are destroyed before this one at exit, and dropping the runner then panics inside a
+// destructor, which aborts (https://doc.rust-lang.org/std/thread/struct.LocalKey.html#platform-specific-behavior).
+pub(super) fn drop_runtime() {
+    RUNTIME.with(|cell| {
+        cell.try_borrow_mut()
+            .ok()
+            .and_then(|mut runtime| runtime.take())
+    });
+}
+
 pub(super) fn with_runtime<R>(f: impl FnOnce(&mut Runtime) -> R) -> Option<R> {
     RUNTIME.with(|cell| cell.try_borrow_mut().ok()?.as_mut().map(f))
 }

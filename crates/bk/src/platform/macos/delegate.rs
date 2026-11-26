@@ -2,10 +2,10 @@ use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2::{MainThreadMarker, MainThreadOnly, define_class, msg_send};
 use objc2_app_kit::{NSApplication, NSApplicationDelegate, NSApplicationTerminateReply};
-use objc2_foundation::{NSArray, NSObject, NSObjectProtocol, NSURL};
+use objc2_foundation::{NSArray, NSNotification, NSObject, NSObjectProtocol, NSURL};
 
-use super::with_runtime;
 use crate::document::{OpenedUrl, deliver_open, first_edited};
+use crate::platform::macos::{drop_runtime, with_runtime};
 
 define_class!(
     // The app answers Finder, `open` and Cmd-Q here.
@@ -28,6 +28,11 @@ define_class!(
                 runtime.poll_all();
                 runtime.redraw_all();
             });
+        }
+
+        #[unsafe(method(applicationWillTerminate:))]
+        fn will_terminate(&self, _: &NSNotification) {
+            drop_runtime();
         }
 
         // A document with unsaved changes asks first; the user quits again after answering.

@@ -337,6 +337,10 @@ impl Text {
         }
     }
 
+    pub fn monospaced_digit(self) -> Self {
+        self.font_tabular()
+    }
+
     /// Lets the reader select the text with the pointer and copy it; a link of a selectable text does not open.
     pub fn text_selection(mut self, enabled: bool) -> Self {
         self.3.selectable = enabled;

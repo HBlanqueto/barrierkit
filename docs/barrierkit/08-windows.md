@@ -414,7 +414,9 @@ Inside the popup's content, `PopupHandle::get()` gives the popup itself:
 ## Timers
 
 `Timers::get()` runs code on the UI thread later. The runner polls and redraws
-after each callback.
+after each callback. Call it in a component, a hook or an event handler, and
+move a clone into a callback that needs it: a timer callback runs outside the
+component tree, where `Timers::get()` panics.
 
 | Method | Effect |
 |---|---|

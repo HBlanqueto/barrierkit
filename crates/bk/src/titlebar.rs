@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 
 use crate::traffic::TrafficLights;
 use crate::views::split::{BarOverhang, SidebarToggle};
+use crate::views::table::Visibility;
 use crate::views::toolbar::{ToolbarContent, lay_out, row};
 use ctappearance::window::{
     TitlebarAction, WindowBehavior, double_click_action, green_action, read_window_behavior,
@@ -143,6 +144,19 @@ impl Titlebar {
     pub fn hairline(self, hairline: bool) -> Self {
         self.style(move |s| TitlebarStyle {
             hairline: hairline.then(TitlebarStyle::line),
+            ..s
+        })
+    }
+
+    /// `Hidden` leaves the bar with no fill and no hairline, so the content shows through it.
+    pub fn toolbar_background_visibility(self, visibility: Visibility) -> Self {
+        if visibility != Visibility::Hidden {
+            return self;
+        }
+        self.style(|s| TitlebarStyle {
+            background: StateValue::new(ShapeStyle::Clear),
+            sidebar_background: StateValue::new(ShapeStyle::Clear),
+            hairline: Some((ShapeStyle::Clear, 0.0)),
             ..s
         })
     }

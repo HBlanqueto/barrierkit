@@ -26,10 +26,11 @@ impl Glass {
         tint: None,
     };
 
-    // SwiftUI's prominent glass is tinted with the accent.
+    // SwiftUI's prominent glass is tinted with the accent, and untinted in an inactive window.
     pub(crate) fn prominent(self) -> Self {
         Self {
-            tint: Some(crate::style::Palette::current().accent),
+            tint: crate::platform::window_activated()
+                .then(|| crate::style::Palette::current().accent),
             ..self
         }
     }

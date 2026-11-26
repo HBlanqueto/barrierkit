@@ -586,13 +586,14 @@ Linux reads text only. The read has no size cap on macOS: the system already hol
 
 ## Drag and drop
 
-On Linux, files dropped on a window arrive as Freya file events. On macOS a
-window takes no drop yet ([18](18-platform.md#the-macos-runner)).
+Files dropped on a window arrive as Freya file events. On macOS the content
+view is the `NSDraggingDestination` ([18](18-platform.md#the-macos-runner)).
 
 1. While a drag is over the window, every element with
    `on_global_file_hover` gets the cursor position.
-2. On drop, the kit reads the `text/uri-list` offer, turns each `file://` URI
-   into a path with `file_path`, and sends one `on_file_drop` event per path
+2. On drop, the kit reads the `text/uri-list` offer (the file URLs of the
+   dragging pasteboard on macOS), turns each `file://` URI into a path with
+   `file_path`, and sends one `on_file_drop` event per path
    to the element under the cursor; its `file_paths` holds that one path.
 3. `on_global_file_hover_cancelled` fires when the drag leaves.
 
