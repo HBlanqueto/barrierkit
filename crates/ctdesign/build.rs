@@ -221,6 +221,7 @@ SPRING_PUSH_MS u64 spring.push-duration
 DESKTOP_SWITCH_OMEGA f32 spring.desktop-switch-omega
 DESKTOP_SWITCH_DAMPING f32 spring.desktop-switch-damping
 DESKTOP_GAP f32 spring.desktop-gap
+DESKTOP_GAP_COLOR Rgba spring.desktop-gap-color
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 MENUBAR_HEIGHT i32 components.shell.menubar.height
 DOCK_LABEL_RADIUS f32 components.shell.dock.label-radius

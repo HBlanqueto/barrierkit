@@ -268,6 +268,7 @@ Rec. 709 saturation matrix; mutter's `ClutterBlur` is a separable Gaussian with
   display; 960×540 at 2x.
 - The menu, popover and Spotlight σ in dark from full steps (the tone flattens
   above input 192); the sidebar σ from the 0|64 step.
+- The colour of the gap between Spaces during the slide (observed black, not sampled).
 - Why the window open shows no scale animation, and why the menu bar ink and
   Control Center ignore the light scheme.
 

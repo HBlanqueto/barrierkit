@@ -931,6 +931,7 @@ the kit measures text without laying it out.
 | `DURATION_LIST_ROW_MS` | 248 ms: rows of a SwiftUI `List` inserted, removed or moved, measured on macOS ([containers](../research/macos-motion-containers.md#rows-selection-outline)) |
 | `SPRING_SHEET_MS`, `SPRING_PUSH_MS` | 344, 503 ms: the perceptual duration of a critically damped spring (`bounce` 0) of a sheet and its detents and the pill of a tab strip (`ω0` 18.3), a push and pop (`ω0` 12.5, SwiftUI on macOS) |
 | `DESKTOP_SWITCH_OMEGA`, `DESKTOP_SWITCH_DAMPING`, `DESKTOP_GAP` | 23 rad/s, 1.72, 64 pt: the overdamped spring (`ω0`, `ζ`) the compositor moves the Desktops with on ctrl+Left and ctrl+Right, and the gap between two Desktops ([macOS measurements](../research/macos-measurements-2026-11-26.md#3-animations)) |
+| `DESKTOP_GAP_COLOR` | `Rgba` | Opaque black: the band between two Desktops during the slide. Observed on macOS on 2026-11-26, not measured |
 
 ### Materials
 
