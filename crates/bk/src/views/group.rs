@@ -2,7 +2,7 @@ use freya_core::prelude::*;
 use std::borrow::Cow;
 use torin::prelude::{Alignment, Direction, Gaps, Size};
 
-use crate::animation::use_animated;
+use crate::animation::{pixel_aligned, use_animated};
 use crate::elements::{Overrides, forward_key, forward_overrides};
 use crate::interaction::{control_state, use_interaction};
 use crate::style::text;
@@ -33,14 +33,15 @@ pub(crate) fn drawer(
     children: impl IntoIterator<Item = Element>,
 ) -> Rect {
     let height = *measured.read();
+    let unrolled = pixel_aligned(progress * height);
     rect()
         .width(Size::fill())
         .height(if progress < 1.0 {
-            Size::px(progress * height)
+            Size::px(unrolled)
         } else {
             Size::auto()
         })
-        .offset_y(-(1.0 - progress) * height)
+        .offset_y(unrolled - height)
         .overflow(Overflow::Clip)
         .direction(Direction::Vertical)
         .child(

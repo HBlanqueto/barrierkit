@@ -6,7 +6,7 @@ use ctdesign::{NAVIGATION_DIM, NAVIGATION_PARALLAX, Rgba, SPRING_PUSH_MS};
 use freya_core::prelude::*;
 use torin::prelude::{Position, Size};
 
-use crate::animation::use_animated;
+use crate::animation::{pixel_aligned, use_animated};
 use crate::controls::Button;
 use crate::styles::Animation;
 use crate::theme::color;
@@ -173,7 +173,7 @@ impl<R: Clone + PartialEq + 'static> Component for NavigationStack<R> {
                     .key(index)
                     .position(
                         Position::new_absolute()
-                            .left(page_offset(index, position, width))
+                            .left(pixel_aligned(page_offset(index, position, width)))
                             .top(0.0),
                     )
                     .width(Size::fill())

@@ -124,6 +124,13 @@ rounds the edges of every area to the nearest device pixel (a half rounds up).
 A view thinner than a pixel keeps one. Glyphs inside a text and the paths of a
 symbol keep Skia's own placement.
 
+An animated length that carries other views is rounded to a device pixel
+before the layout (`animation::pixel_aligned`): the sidebar and inspector
+widths, the unrolled height of a disclosure and the page offset of a
+`NavigationStack`. The views that travel with it keep their place on the grid,
+so none shifts a pixel against its neighbours. Views centered in a pane that
+resizes still do.
+
 ## Text, shapes and colors
 
 | Function | What it does |

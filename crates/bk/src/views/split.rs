@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use torin::prelude::{Area, Content, Direction, Gaps, Position, Size};
 
 use crate::ProbeExt;
-use crate::animation::with_animation;
+use crate::animation::{pixel_aligned, with_animation};
 use crate::app::{Action, Shortcut, ShortcutKey, use_menu_action};
 use crate::compact::IconButton;
 use crate::controls::ToolGroup;
@@ -215,11 +215,8 @@ impl Component for SplitView {
             crate::animation::use_animated(f32::from(u8::from(*presented.read())), style.animation);
         let native_panes = crate::glass_panel::native_pane_glass();
         let mut inspector_span = use_state(|| 0.0f32);
-        inspector_span.set_if_modified(
-            self.inspector
-                .as_ref()
-                .map_or(0.0, |_| style.inspector_width * inspector_shown),
-        );
+        let inspector_width = pixel_aligned(style.inspector_width * inspector_shown);
+        inspector_span.set_if_modified(self.inspector.as_ref().map_or(0.0, |_| inspector_width));
         let mut content_span = use_state(|| 0.0f32);
         let bar_band = use_state(|| false);
         use_hook(|| {
@@ -315,7 +312,12 @@ impl Component for SplitView {
         } else {
             0.0
         });
-        occupied.set_if_modified(if overlay { 0.0 } else { container * shown });
+        let lead = if overlay {
+            0.0
+        } else {
+            pixel_aligned(container * shown)
+        };
+        occupied.set_if_modified(lead);
         overlaid.set_if_modified(overlay && *visible.read());
         settled.set_if_modified(*visible.read() && shown >= 1.0);
         let sidebar = || {
@@ -325,9 +327,8 @@ impl Component for SplitView {
                 .child(self.sidebar.clone())
         };
 
-        let lead = if overlay { 0.0 } else { container * shown };
         let trail = if native_panes && self.inspector.is_some() {
-            style.inspector_width * inspector_shown
+            inspector_width
         } else {
             0.0
         };
@@ -421,10 +422,10 @@ impl Component for SplitView {
             )
             .maybe_child((!overlay && shown > 0.0).then(|| {
                 rect()
-                    .width(Size::px(container * shown))
+                    .width(Size::px(lead))
                     .height(Size::fill())
                     .maybe(shown < 1.0, |el| el.overflow(Overflow::Clip))
-                    .offset_x(container * (shown - 1.0))
+                    .offset_x(lead - container)
                     .child(
                         sidebar().maybe_child((self.resizable && shown >= 1.0).then(|| {
                             ColumnGrip {
@@ -475,7 +476,7 @@ impl Component for SplitView {
                     .filter(|_| inspector_shown > 0.0)
                     .map(|(inspector, _)| {
                         rect()
-                            .width(Size::px(style.inspector_width * inspector_shown))
+                            .width(Size::px(inspector_width))
                             .height(Size::fill())
                             .overflow(Overflow::Clip)
                             .on_sized(move |event: Event<SizedEventData>| {

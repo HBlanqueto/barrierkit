@@ -56,7 +56,11 @@ frame resets the count. Debug builds fake one loss after `n` draws with
 ## The frame
 
 A surface draws only when something changed. A change requests a frame
-callback; the frame callback draws. One draw does this:
+callback; the frame callback steps the animations, so the frame shows them at
+its own time, and draws. It requests the next frame callback before it
+presents: the request reaches the compositor in the commit of the buffer.
+Mutter answers a request that arrives in a later, empty commit one refresh
+late, which halves the frame rate. One draw does this:
 
 1. Picks the background: the toplevel background of the resolved appearance
    for windows, `HUD_BACKGROUND` for a HUD, transparent for layer, lock and

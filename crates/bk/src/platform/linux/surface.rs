@@ -153,9 +153,8 @@ impl SurfaceWindow {
         {
             let _ = self.draw(compositor);
         }
-        if self.needs_redraw {
-            self.request_frame_callback(qh);
-        }
+        // The ticker fires in the frame callback, so every draw asks for one.
+        self.request_frame_callback(qh);
     }
 
     pub fn configure(&mut self, size: (u32, u32), scale: f64) {
@@ -319,7 +318,6 @@ impl SurfaceWindow {
             swap_us,
             "swap done (buffer committed)"
         );
-        self.app.ticker_sender.notify();
         self.needs_redraw = false;
         self.failing = false;
         true
@@ -481,18 +479,28 @@ impl CompositorHandler for Runtime {
         let Some(index) = self.surface_for(surface) else {
             return;
         };
-        self.surfaces[index].frame_pending = false;
-        self.surfaces[index].flush_pending_motion();
+        let window = &mut self.surfaces[index];
+        window.frame_pending = false;
+        window.flush_pending_motion();
+        // Animations step at the start of each refresh, so each frame shows them at its own time.
+        window.app.ticker_sender.notify();
+        window.needs_redraw |= window.app.pump();
+        let drawn = window.draw_count;
         self.apply_pending_window_configures();
         let fading = self.step_wallpaper_fade(index);
-        if self.surfaces[index].needs_redraw {
-            let _ = self.surfaces[index].draw(&self.compositor);
+        let window = &mut self.surfaces[index];
+        if window.needs_redraw {
+            // Mutter answers a frame request that follows the buffer's commit a refresh late: it rides that commit.
+            window.frame_pending = true;
+            let _callback: WlCallback = surface.frame(qh, surface.clone());
+            if !window.draw(&self.compositor) {
+                surface.commit();
+            }
         }
-        if fading {
-            self.surfaces[index].needs_redraw = true;
-        }
-        if self.surfaces[index].needs_redraw {
-            self.surfaces[index].request_redraw(qh);
+        window.needs_redraw |= fading;
+        // The ticker fires in the frame callback, so every draw asks for one.
+        if window.needs_redraw || window.draw_count != drawn {
+            window.request_frame_callback(qh);
         }
     }
 

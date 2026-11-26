@@ -221,6 +221,12 @@ impl Segment {
     }
 }
 
+// An animated length on whole device pixels: what moves with it keeps its place on the grid, so no view shifts a pixel against its neighbours (docs/barrierkit/04-appearance-and-tokens.md#pixel-grid).
+pub(crate) fn pixel_aligned(length: f32) -> f32 {
+    let scale = *Platform::get().current_window().scale_factor.read() as f32;
+    (length * scale).round() / scale
+}
+
 pub fn use_animated(target: f32, animation: Animation) -> f32 {
     follow(target, animation, true)
 }
