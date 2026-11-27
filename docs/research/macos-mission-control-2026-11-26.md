@@ -334,8 +334,11 @@ attempt, `layoutfit.py`, is kept for comparison.
 
 The area is that of section 1. Windows are taken back to front.
 
-1. **One window:** s = min(1, 2520/w, 1220/h). Scale it about its own centre,
-   then move it inside the one-window area; if it is still larger, centre it.
+1. **One window:** s = min(1, 2520/w, 1220/h). At s 1 it is only moved
+   inside the one-window area. Below 1 it is centred in that area, at
+   (1280, 711) here, as section 1 measured (`n1full`, `n1big`, `n1tall`);
+   scaling it about its own centre and then moving it inside would leave
+   `n1full` 3 lower.
 2. **Start:** s = min(1, area width / widest window, area height / tallest
    window). Each window gets the size s·w by s·h about its own centre, is
    moved inside the area, and then window i is moved by .25·i on both axes,
@@ -490,9 +493,9 @@ spring started from rest with the values below is half way and at 90 % at
 | `EXPANSION_OMEGA`, `EXPANSION_DAMPING` | 25, 1 | section 5: windows in, out and on a pick |
 | `SPACES_STRIP_EXPAND_OMEGA` | 16 (ζ 1) | section 5 |
 | `EXPANSION_MARGIN_SIDE`, `EXPANSION_MARGIN_TOP`, `EXPANSION_MARGIN_BOTTOM` | 20, 40 below the strip, 15 above the Dock | section 1 |
-| `EXPANSION_GAP` | 13 | section 1 |
+| `EXPANSION_WINDOW_GAP`, `EXPANSION_WINDOW_GAP_MIN`, `EXPANSION_LONE_INSET`, `EXPANSION_LONE_HEIGHT_INSET` | 15.5, 12.5; 17 from the top and bottom of the area, a height 41 short of it | section 8 |
 | `SPACES_STRIP_HEIGHT`, `SPACES_STRIP_EXPANDED_HEIGHT` | 40, 146 | section 2 |
-| `SPACES_THUMBNAIL_DIVISOR`, `SPACES_THUMBNAIL_TOP`, `SPACES_THUMBNAIL_GAP` | 16, 29, 32 | section 2 |
+| `SPACES_THUMBNAIL_HEIGHT`, `SPACES_THUMBNAIL_TOP`, `SPACES_THUMBNAIL_GAP` | 90 (1/16 of this display), 29, 32 | section 2 |
 | `SPACES_LABEL_CELL`, `SPACES_LABEL_PILL_HEIGHT`, `SPACES_LABEL_PILL_RADIUS`, `SPACES_LABEL_PILL_LIFT` | 95, 24, 8, 35 levels | section 2 |
 | `SPACES_RING_WIDTH`, `SPACES_RING_GAP`, `EXPANSION_HOVER_RING_WIDTH` | 3, 1, 4; the colour is the accent | sections 2 and 4 |
 | `EXPANSION_HOVER_RING_OFFSET`, `EXPANSION_DRAG_FLOOR_SCALE` | 3 outside the content, .074 | sections 4 and 5 |
@@ -504,7 +507,7 @@ spring started from rest with the values below is half way and at 90 % at
 | `SPACES_ADD_SIZE`, `SPACES_ADD_STROKE`, `SPACES_ADD_INSET` | 20, 2, 26.5 to its centre | section 2 |
 | `SPACES_CLOSE_SIZE` | 22 | section 2 |
 | `SPACES_STRIP_BLUR`, `SPACES_STRIP_SATURATION`, `SPACES_STRIP_TINT`, `SPACES_STRIP_CAP`, `SPACES_STRIP_LINE` | σ 27.5, saturation 1.6, gray 46 at .40, a cap of 169, a black line of alpha .224 on the row below the body (dark). The veil with the cap is the fit of [macos-blur.md](macos-blur.md) over 21 samples; it gives 18, 95 and 169 over the three grays of section 2, where gray 44 at .41 gives 18, 94 and 169 | section 2 |
-| `SPACES_STRIP_SHADOW` | alpha .137, reach 48, power 1.8 | section 2 |
+| `SPACES_STRIP_SHADOW` | a blurred box, σ 17.2, offset 9.5, opacity .188, fitted to the measured alpha .137 · (1 − d/48)^1.8 | section 2 |
 | `FULL_SCREEN_OMEGA`, `FULL_SCREEN_DAMPING` | 25, 1.4: the window growing to the display and back | section 7 |
 | `FULL_SCREEN_REVEAL_EDGE`, `FULL_SCREEN_REVEAL_DELAY_MS`, `FULL_SCREEN_REVEAL_MS`, `FULL_SCREEN_HIDE_BELOW` | 4, 180, 100, 36 below the revealed bar | section 7 |
 | `SPLIT_DIVIDER_WIDTH`, `SPLIT_HANDLE_WIDTH`, `SPLIT_HANDLE_HEIGHT`, `SPLIT_MIN_TILE` | 12, 4, 64, 87 | section 7 |
