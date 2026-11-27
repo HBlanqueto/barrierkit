@@ -825,7 +825,7 @@
         "weight": 400
       },
       "expanded-label-font": "callout",
-      "label-gap": 4,
+      "label-gap": 5,
       "label-color": "#ffffff",
       "ring-width": 3,
       "ring-gap": 1,
