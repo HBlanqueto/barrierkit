@@ -235,6 +235,8 @@ SPACES_STRIP_ENTRY_OMEGA f32 spring.spaces-strip-entry-omega
 SPACES_STRIP_ENTRY_DAMPING f32 spring.spaces-strip-entry-damping
 SPACES_STRIP_EXIT_OMEGA f32 spring.spaces-strip-exit-omega
 SPACES_STRIP_EXIT_DAMPING f32 spring.spaces-strip-exit-damping
+EXPANSION_DROP_OMEGA f32 spring.expansion-drop-omega
+EXPANSION_DROP_DAMPING f32 spring.expansion-drop-damping
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 SPACES_STRIP_SHADOW BoxShadow shadow.spaces-strip
 EXPANSION_MARGIN_SIDE i32 components.expansion.margin-side
@@ -297,8 +299,11 @@ SPACES_CLOSE_CROSS_SIZE i32 components.spaces-strip.close-cross-size
 SPACES_CLOSE_CROSS_STROKE f32 components.spaces-strip.close-cross-stroke
 SPACES_CLOSE_DELAY_MS u64 components.spaces-strip.close-delay-ms
 SPACES_CLOSE_PRESSED_COLOR Rgba components.spaces-strip.close-pressed-color
-SPACES_SPLIT_PLACEHOLDER Rgba components.spaces-strip.split-placeholder
+SPACES_STRIP_ENTRY_DELAY_MS u64 components.spaces-strip.entry-delay-ms
+SPACES_SPLIT_PLACEHOLDER_LEFT Rgba components.spaces-strip.split-placeholder-left
+SPACES_SPLIT_PLACEHOLDER_RIGHT Rgba components.spaces-strip.split-placeholder-right
 SPACES_SPLIT_PLACEHOLDER_PLUS Rgba components.spaces-strip.split-placeholder-plus
+SPACES_SPLIT_LABEL_FADE_MS u64 components.spaces-strip.split-label-fade-ms
 WINDOW_CASCADE_STEP i32 components.window.cascade-step
 WINDOW_CENTER_TOP f32 components.window.center-top
 WINDOW_TILE_MARGIN i32 components.window.tile-margin

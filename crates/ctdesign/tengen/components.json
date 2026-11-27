@@ -846,8 +846,11 @@
       "close-cross-stroke": 1.5,
       "close-delay-ms": 1000,
       "close-pressed-color": "#e5e5e5",
-      "split-placeholder": "#4a4a5c",
-      "split-placeholder-plus": "#ffffff"
+      "entry-delay-ms": 21,
+      "split-placeholder-left": "#464656",
+      "split-placeholder-right": "#4e4e63",
+      "split-placeholder-plus": "#ffffff",
+      "split-label-fade-ms": 60
     },
     "window": {
       "min-width": 480,
