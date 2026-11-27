@@ -24,6 +24,28 @@ from pixels.
 The proposal built on these numbers is in malaysia,
 `crates/malaysia-compositor/src/workspaces/`.
 
+**Update of 2026-11-27, for the session that builds Expansion on Linux.** A
+second pass on the Mac measured the strip's line and the animations of the
+strip. What changed, and what the compositor may need to follow:
+
+- `SPACES_STRIP_LINE` is now black at alpha .224 (`#00000039`); white was a
+  placeholder. macOS draws it on the first row below the strip's body (y 40
+  collapsed, 146 expanded) and the shadow starts on the row after it;
+  `effects/strip.rs` draws it on the strip's own last row (section 2).
+- Adding and removing a Desktop are animated, on the strip's spring
+  (`SPACES_STRIP_EXPAND_*`, ω0 16, ζ 1), so no new token is needed: the other
+  thumbnails move half a pitch to stay centred, a new one slides in from the
+  right edge at full size and full opacity, a removed one vanishes in one
+  frame, labels move with their thumbnails and the "+" stays (section 5). The
+  probe rested the pointer on "+" for 300 ms before the click, and the new
+  thumbnail starts with its centre at the display's edge, which fits the
+  docking of the preview that `SPACES_ADD_PREVIEW_REACH` stands for; that
+  preview itself is still not measured.
+- The close button shows about 1.0 s after the pointer enters a thumbnail, not
+  within 300 ms, with no fade, and dims to 229 while pressed (section 2).
+- A click on another Desktop's thumbnail closes Mission Control into it, with
+  no slide of the row (section 5, low confidence).
+
 ## 1. Window layout
 
 116 arrangements of 1 to 9 probe windows, 312 window rows, in
