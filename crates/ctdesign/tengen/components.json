@@ -774,6 +774,10 @@
       "hover-ring-width": 4,
       "hover-ring-offset": 3,
       "drag-floor-scale": 0.074,
+      "window-gap": 15.5,
+      "window-gap-min": 12.5,
+      "lone-inset": 17,
+      "lone-height-inset": 41,
       "title-font": {
         "family": "sans",
         "size": 14,

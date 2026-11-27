@@ -245,6 +245,10 @@ EXPANSION_MARGIN_BOTTOM i32 components.expansion.margin-bottom
 EXPANSION_HOVER_RING_WIDTH i32 components.expansion.hover-ring-width
 EXPANSION_HOVER_RING_OFFSET i32 components.expansion.hover-ring-offset
 EXPANSION_DRAG_FLOOR_SCALE f32 components.expansion.drag-floor-scale
+EXPANSION_WINDOW_GAP f32 components.expansion.window-gap
+EXPANSION_WINDOW_GAP_MIN f32 components.expansion.window-gap-min
+EXPANSION_LONE_INSET f32 components.expansion.lone-inset
+EXPANSION_LONE_HEIGHT_INSET f32 components.expansion.lone-height-inset
 EXPANSION_TITLE_FONT Font components.expansion.title-font
 EXPANSION_TITLE_HEIGHT i32 components.expansion.title-height
 EXPANSION_TITLE_PADDING i32 components.expansion.title-padding
