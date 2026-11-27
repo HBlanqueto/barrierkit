@@ -63,12 +63,33 @@ Measured over a flat backdrop window that stays under Mission Control.
 | Desktop entry | label only, white 255, ink 70×11 for "Escritorio 1" (about 14 pt regular; low confidence), in a cell 95 wide; cells touch and the row is centred | thumbnail 160×90 (1/16 of the display), top at y 29, 32 apart, row centred; label under it, ink 7 below the thumbnail, white 254, about 12 pt (low confidence) |
 | Current Desktop | pill 95×24 at y 7 to 30, radius about 8, 35 levels lighter than the strip on every backdrop (53 on black, 130 on gray 128, 204 on white) | ring 3 wide, 1 outside the thumbnail, sRGB (58, 154, 252), opaque, outer radius about 4 (low confidence); thumbnail corners about square |
 | Add button | "+" with arms of 20 and a stroke of 2, gray 229, centre 26.5 from the right edge, y 19.5 | centre moves to y 77.5 |
-| Close button | none | on hover of any thumbnail, the current one too: a white circle of 22 with a gray (152) cross, centred on the thumbnail's top-left corner, shown within 300 ms |
+| Close button | none | on hover of any thumbnail, the current one too: a white circle of 22 with a gray (152) cross, centred on the thumbnail's top-left corner. It shows in one frame, with no fade, about 1.0 s (1014 to 1021 ms, 4 runs) after the pointer first moves inside the thumbnail, whether the pointer stops at 650 or 990 ms; a hover of 15 px in 450 ms never showed it. It hides in one frame within 12 ms of leaving. Pressed, the circle dims from 255 to 229 |
 
 Material, the same in both states: output 18, 95 and 169 over gray 0, 128 and
 255, which is a gray of 44 at alpha .41 over the blurred backdrop; blur σ 27.5
-(error-function fit on a 0|255 step, rms .58). The bottom row of the strip has
-alpha .224. Below it a shadow: alpha .133 on the first row, zero at about 44,
+(error-function fit on a 0|255 step, rms .58).
+
+The line under the strip is black at alpha .224, one row high, on the first row
+below the body: y 40 collapsed, y 146 expanded, the same in both states. It
+darkens the backdrop by the same factor on every backdrop and every channel,
+so it is a line of fixed colour and not a row that lets the strip through.
+Raw device values at x 1500 and x 2200 (both columns equal), body, line and the
+rows below:
+
+| Backdrop | Body | Line | Below (41, 42, 43) | Backdrop × .776 |
+|---|---|---|---|---|
+| 0, 0, 0 | 18 | 0 | 0, 0, 0 | 0 |
+| 128 gray | 95 | 99 | 111, 112, 112 | 99.3 |
+| 255 gray | 169 | 198 | 221, 223, 224 | 197.9 |
+| 59, 28, 242 | 57, 27, 169 | 46, 22, 188 | 51, 24, 210 | 45.8, 21.7, 187.8 |
+
+A row that let the strip through would mix body and backdrop with one
+coverage on every backdrop; the coverage it would need differs on every
+backdrop, and the red channel of the colour backdrop (46) is below both the
+body (57) and the row under it (51), which no mix gives. A light line would
+show over black, and it does not.
+
+Below the line a shadow: alpha .133 on the first row, zero at about 44,
 alpha(d) = .137 · (1 − d/48)^1.8 (rms .0010).
 
 ## 3. Backdrop and chrome
@@ -112,6 +133,10 @@ alpha(d) = .137 · (1 − d/48)^1.8 (rms .0010).
 | Strip entry, 0 to 40 | t50 47 to 58, t90 136 to 142, last 169 to 175 ms; ω0 29 to 33, ζ 1.1 to 1.2. The content fills from the top: it slides down. |
 | Strip expansion, 40 to 146 | Starts 48 to 75 ms after the pointer enters. ω0 16, ζ 1.00 (rms .003, high confidence): t50 92, t90 225 to 236, last 353 to 386 ms. |
 | Strip exit, 146 to 0 | t50 64 to 69, t90 142 to 147, last 192 to 197 ms; ω0 22 to 24, ζ .85 to .91. |
+| Add a Desktop ("+", strip expanded), 1→2, 2→3, 3→4 | One run each. The existing thumbnails and their labels move 96 left (half the pitch of 192, so the row stays centred) on the strip's spring: ω0 16 to 17, ζ .99 to 1.03, t50 92 to 97, t90 225 to 231, last 420 to 437 ms. Mouse-up to first change 36 to 48 ms; the fitted curve starts 6 to 14 ms earlier. The new thumbnail slides in from the right at full size and full opacity on the same spring, its left edge starting at about x 2480 (its centre at the display's edge), and passes over the "+" for about 30 ms. Its label moves with it and does not fade in. The "+" does not move. |
+| Add a Desktop, strip still collapsed | Pointer at the "+" at 0, press at 10, release at 45 ms. A Desktop is added and the strip grows anyway, because the pointer stays inside it: 39 to 145 from 40 ms after the move, ω0 20, ζ 1.13, t50 92, t90 237 (one run, medium confidence). The "+" goes down with the strip; the thumbnails grow and shift at once, so their shift was not fitted alone. |
+| Remove a Desktop (close button), 2→1, 5→4, 4→3 | Three runs, always the last Desktop. The removed thumbnail and its label vanish in one frame 14 to 31 ms after mouse-up, with no shrink, fade or slide. The others move 96 to recentre with their labels: ω0 16, ζ .99 to 1.00, t50 92 to 97, t90 225 to 231, last 376 to 381 ms, first change 34 to 45 ms after mouse-up. |
+| Click on another Desktop's thumbnail | Two runs, from line captures only (low confidence). No row slide: Mission Control closes into that Desktop. The strip goes up from about 90 to 200 ms; all is still at 250 to 300 ms; first change 35 to 55 ms after mouse-up. |
 | Control+Left and Right inside Mission Control | The thumbnails of the area slide sideways with the Space switch curve (t10 22 to 29, t50 98 to 109, t90 304 to 320 ms). The strip stays. |
 | App Exposé (Control+Down), still only | No strip. Four windows in a strict 2×2 grid at .768, each with its title always shown below it in white. |
 
@@ -400,7 +425,7 @@ spring started from rest with the values below is half way and at 90 % at
 | `SPACES_RING_WIDTH`, `SPACES_RING_GAP`, `EXPANSION_HOVER_RING_WIDTH` | 3, 1, 4; the colour is the accent | sections 2 and 4 |
 | `SPACES_ADD_SIZE`, `SPACES_ADD_STROKE`, `SPACES_ADD_INSET` | 20, 2, 26.5 to its centre | section 2 |
 | `SPACES_CLOSE_SIZE` | 22 | section 2 |
-| `SPACES_STRIP_BLUR`, `SPACES_STRIP_SATURATION`, `SPACES_STRIP_TINT`, `SPACES_STRIP_CAP`, `SPACES_STRIP_LINE` | σ 27.5, saturation 1.6, gray 46 at .40, a cap of 169, line alpha .224 (dark). The veil with the cap is the fit of [macos-blur.md](macos-blur.md) over 21 samples; it gives 18, 95 and 169 over the three grays of section 2, where gray 44 at .41 gives 18, 94 and 169 | section 2 |
+| `SPACES_STRIP_BLUR`, `SPACES_STRIP_SATURATION`, `SPACES_STRIP_TINT`, `SPACES_STRIP_CAP`, `SPACES_STRIP_LINE` | σ 27.5, saturation 1.6, gray 46 at .40, a cap of 169, a black line of alpha .224 on the row below the body (dark). The veil with the cap is the fit of [macos-blur.md](macos-blur.md) over 21 samples; it gives 18, 95 and 169 over the three grays of section 2, where gray 44 at .41 gives 18, 94 and 169 | section 2 |
 | `SPACES_STRIP_SHADOW` | alpha .137, reach 48, power 1.8 | section 2 |
 | `FULL_SCREEN_OMEGA`, `FULL_SCREEN_DAMPING` | 25, 1.4: the window growing to the display and back | section 7 |
 | `FULL_SCREEN_REVEAL_EDGE`, `FULL_SCREEN_REVEAL_DELAY_MS`, `FULL_SCREEN_REVEAL_MS`, `FULL_SCREEN_HIDE_BELOW` | 4, 180, 100, 36 below the revealed bar | section 7 |
@@ -424,7 +449,9 @@ spring started from rest with the values below is half way and at 90 % at
 - Fonts: sizes come from the width of the ink only, with no weight. The radii
   of the Space ring and of the label pill. The hover ring at a small scale.
 - Light mode: every tone here is dark.
-- The colour of the strip's last-row line (`SPACES_STRIP_LINE`, white is a placeholder), and the arm and stroke of the close button's cross (`SPACES_CLOSE_CROSS_SIZE` 8, `SPACES_CLOSE_CROSS_STROKE` 1.5, placeholders).
+- The arm and stroke of the close button's cross (`SPACES_CLOSE_CROSS_SIZE` 8, `SPACES_CLOSE_CROSS_STROKE` 1.5, placeholders).
+- Removing a Desktop from the middle of the row; whether "+" fires on press or
+  release; the zoom of a click on another Desktop's thumbnail beyond the strip.
 - The Dock's slide in Mission Control and in full screen, the motion of the
   strip's labels, Show Desktop, and the animation of App Exposé.
 - The preview of a new Desktop as the pointer nears "+" and its docking on a
