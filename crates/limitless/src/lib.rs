@@ -2,6 +2,7 @@
 macro_rules! protocol {
     ($module:ident, $wayland:ident, $generate:ident, $file:literal) => {
         pub mod __interfaces {
+            #[allow(unused_imports)]
             use $wayland::protocol::__interfaces::*;
             wayland_scanner::generate_interfaces!($file);
         }
@@ -9,6 +10,7 @@ macro_rules! protocol {
         pub mod $module {
             use super::__interfaces::*;
             use $wayland;
+            #[allow(unused_imports)]
             use $wayland::protocol::*;
             wayland_scanner::$generate!($file);
         }
@@ -24,6 +26,15 @@ macro_rules! side {
                 $wayland,
                 $generate,
                 "protocols/limitless-effects-v1.xml"
+            );
+        }
+
+        pub mod expansion {
+            protocol!(
+                limitless_expansion_v1,
+                $wayland,
+                $generate,
+                "protocols/limitless-expansion-v1.xml"
             );
         }
 

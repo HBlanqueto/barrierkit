@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="limitless_expansion_v1">
+  <copyright>
+    Copyright © 2026 Malaysia contributors
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice (including the next
+    paragraph) shall be included in all copies or substantial portions of the
+    Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+  </copyright>
+
+  <interface name="limitless_expansion_v1" version="1">
+    <description summary="open and close Expansion">
+      Expansion is Malaysia's Mission Control: the windows of the current
+      Desktop spread with no overlap under a strip that lists the Desktops.
+      A launcher or a dock uses this global to open it, as the Dock opens
+      Mission Control on macOS. It grants nothing, so every client may bind
+      it.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the global object">
+        Expansion stays as it is.
+      </description>
+    </request>
+
+    <request name="toggle">
+      <description summary="open Expansion, or close it">
+        Opens Expansion when it is closed and closes it when it is open, as
+        Control+Up does.
+      </description>
+    </request>
+  </interface>
+</protocol>
