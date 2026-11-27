@@ -45,6 +45,14 @@ strip. What changed, and what the compositor may need to follow:
   within 300 ms, with no fade, and dims to 229 while pressed (section 2).
 - A click on another Desktop's thumbnail closes Mission Control into it, with
   no slide of the row (section 5, low confidence).
+- Control+Up, a third pass. The strip comes in as one rigid piece from −41 to
+  0: its labels, pill and "+" ride with it with no fade, and its shadow is
+  there from the first frame. On exit the labels go before the pill and the
+  "+" because they sit lower, and the line and the shadow go on the first
+  frame. The windows all start on one frame, 14 to 28 ms before the strip,
+  with their corners and shadows scaled on every frame, no dim and no title.
+  The empty Desktop's pill fades in on the windows' spring and goes in one
+  frame. The Dock has a spring now (section 5).
 
 ## 1. Window layout
 
@@ -119,13 +127,18 @@ alpha(d) = .137 · (1 − d/48)^1.8 (rms .0010).
 - **Wallpaper:** identical to the Desktop, pixel for pixel. No dim, no blur,
   no scale.
 - **Desktop icons** are hidden.
-- **Menu bar:** replaced by the strip, which slides in from the top.
-- **Dock:** shown even with auto-hide on. It slides up from the bottom edge,
-  starting 50 to 77 ms after the key, and slides down on exit, finished at
-  about 300 ms (low confidence, no fit).
+- **Menu bar:** replaced by the strip, which slides in from the top. The menu
+  bar fades out on entry and back in on exit, over about 150 to 300 ms (low
+  confidence).
+- **Dock:** shown even with auto-hide on. It slides up from the bottom edge
+  and down on exit (section 5). At rest its top row is 1356 (a light rim) and
+  its bottom 1434, 6 above the edge.
 - **Other Spaces:** their windows are shown only inside the strip thumbnails,
-  which are live. An empty Desktop shows a pill with "No Available Windows" at
-  the centre of the area.
+  which are live. An empty Desktop shows a pill with "No Available Windows"
+  ("No hay ventanas disponibles" here): 216×29 at x 1172 to 1387, y 696 to
+  724, with a light line on the row above (y 695), so about 30 high, centre
+  1279.5, 710, a capsule of radius about 15 (medium confidence). Its fill reads
+  168 over gray 128 and its text 17.
 
 ## 4. Thumbnail decoration
 
@@ -152,7 +165,12 @@ alpha(d) = .137 · (1 − d/48)^1.8 (rms .0010).
 |---|---|
 | Entry and exit | Centre x, centre y, width and height of every window follow one critically damped spring: ω0 24 to 28 (median 25 to 26), ζ .97 to 1.07. t10 8 to 19, t50 53 to 69, t90 142 to 158 ms, last change 192 to 297 ms by travel. Exit is the same spring. Key to first changed frame 29 to 42 ms. |
 | Pick (click on a thumbnail) | Fires on button release, motion starts 28 to 36 ms later. Same spring (ω0 25, ζ 1.00). The picked window is on top from the first frame. |
-| Strip entry, 0 to 40 | t50 47 to 58, t90 136 to 142, last 169 to 175 ms; ω0 29 to 33, ζ 1.1 to 1.2. The content fills from the top: it slides down. |
+| Strip entry, 0 to 40 | t50 47 to 58, t90 136 to 142, last 169 to 175 ms; ω0 29 to 33, ζ 1.1 to 1.2. The whole strip moves from −41 to 0 as one piece. Its shadow is drawn from the first frame, under the bar still off screen. The pill and the "+" keep their rest offset from the strip's lower edge (10 above it) and the label ink 15 to 16, on every frame, with no fade (pill 130 over gray 128 and "+" 229 on their first visible row). They show 22 to 30 ms (pill, "+") and 33 to 40 ms (label) after the strip's first frame, only because they enter from above. 4 entries, high confidence. An earlier note that the content fills from the top was wrong. |
+| Strip content on exit | Rigid with the strip, no fade. The labels leave first (91 to 101 ms from the key), then the pill and the "+" together (112 to 118), only because they sit lower. The strip is gone at 175 to 206 ms. The line and the shadow go on the first exit frame. Escape and Control+Up give the same timing. 6 exits, high confidence. |
+| Windows during entry and exit | All windows change on the same frame (6 windows, unbroken 5.6 ms frames): 14 to 28 ms before the strip on entry, on the strip's frame on exit. The corner radius and the shadow scale with the window on every frame: corner insets of rows 1 to 4 go 15.0, 10.6, 8.4, 6.9 at rest to 5.5, 3.4, 2.2, 1.6 at .49, and the shadow's reach of 13 to 6 or 7, its alpha at d 2 from .148 to about .10, as the scaled profile gives. No dim (window content stays exactly 255 and 0), no title, no ring, the stacking order kept. Last pixel change 403 to 545 ms for travels up to about 800. High confidence, stacking medium. |
+| Dock | Entry starts 0 to 11 ms after the strip's first frame (48 to 117 ms from the key): ω0 18 to 24 (median 19), ζ 1.10 to 1.32 (median 1.11), t50 75 to 92, t90 214 to 220, last 370 to 387 ms from the first change, 5 runs. Exit starts 5 to 17 ms after the strip (34 to 73 from the key): ω0 15 to 16, ζ .82 to .87, t50 75 to 92, t90 192 to 203, last 248 to 264 ms, 7 runs. Fit rms .009 to .014, the size of one row of the 84 travel: medium confidence. Bezier curves fit as well but scatter between runs. |
+| "No Available Windows" pill | Entry: fades in at full size and in place from the windows' first frame (5 to 11 ms before the strip), its alpha on the windows' spring: ω0 26, ζ 1.00 to 1.02, t50 53 to 58, t90 136 to 142, last 242 to 253 ms (3 runs; one outlier at ω0 35, ζ 1.25). Exit: gone in one frame, on the strip's first exit frame (4 runs). High confidence. |
+| First open after idle | 50 to 60 ms later than a warm open: windows start 81 to 88 ms after the key instead of 24 to 35. |
 | Strip expansion, 40 to 146 | Starts 48 to 75 ms after the pointer enters. ω0 16, ζ 1.00 (rms .003, high confidence): t50 92, t90 225 to 236, last 353 to 386 ms. |
 | Strip exit, 146 to 0 | t50 64 to 69, t90 142 to 147, last 192 to 197 ms; ω0 22 to 24, ζ .85 to .91. |
 | Add a Desktop ("+", strip expanded), 1→2, 2→3, 3→4 | One run each. The existing thumbnails and their labels move 96 left (half the pitch of 192, so the row stays centred) on the strip's spring: ω0 16 to 17, ζ .99 to 1.03, t50 92 to 97, t90 225 to 231, last 420 to 437 ms. Mouse-up to first change 36 to 48 ms; the fitted curve starts 6 to 14 ms earlier. The new thumbnail slides in from the right at full size and full opacity on the same spring, its left edge starting at about x 2480 (its centre at the display's edge), and passes over the "+" for about 30 ms. Its label moves with it and does not fade in. The "+" does not move. |
@@ -474,8 +492,9 @@ spring started from rest with the values below is half way and at 90 % at
 - The arm and stroke of the close button's cross (`SPACES_CLOSE_CROSS_SIZE` 8, `SPACES_CLOSE_CROSS_STROKE` 1.5, placeholders).
 - Removing a Desktop from the middle of the row; whether "+" fires on press or
   release; the zoom of a click on another Desktop's thumbnail beyond the strip.
-- The Dock's slide in Mission Control and in full screen, the motion of the
-  strip's labels, Show Desktop, and the animation of App Exposé.
+- The Dock's slide in full screen and finer than one row in Mission Control,
+  the hover ring and title while windows move with the pointer over one, Show
+  Desktop, and the animation of App Exposé.
 - The preview of a new Desktop as the pointer nears "+" and its docking on a
   click (`SPACES_ADD_PREVIEW_REACH` is a placeholder), the Space bar preview,
   and App Exposé with other than four windows.

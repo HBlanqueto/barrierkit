@@ -5,10 +5,11 @@ import CoreMedia
 let a = CommandLine.arguments
 let outPath = a[1]
 let secs = Double(a[2])!
-let rows = a[3].split(separator: ",").map { Int($0)! }
 let cols = a[4].split(separator: ",").map { Int($0)! }
 let actions = Array(a.dropFirst(5))
-let W = 2560, H = 200
+let region = (ProcessInfo.processInfo.environment["REGION"] ?? "0,0,2560,200").split(separator: ",").map { Int($0)! }
+let W = region[2], H = region[3]
+let rows = a[3] == "all" ? Array(0..<H) : a[3].split(separator: ",").map { Int($0)! }
 FileManager.default.createFile(atPath: outPath + ".bin", contents: nil)
 let fh = FileHandle(forWritingAtPath: outPath + ".bin")!
 var evlog = ""
@@ -38,11 +39,11 @@ func pbLock(_ sb: CMSampleBuffer) -> CVPixelBuffer {
   return pb
 }
 
-func key(_ code: UInt16) {
+func key(_ code: UInt16, _ ctrl: Bool) {
   let src = CGEventSource(stateID: .hidSystemState)
   for down in [true, false] {
     let e = CGEvent(keyboardEventSource: src, virtualKey: code, keyDown: down)!
-    e.flags = [.maskControl, .maskSecondaryFn, .maskNumericPad]
+    if ctrl { e.flags = [.maskControl, .maskSecondaryFn, .maskNumericPad] }
     e.post(tap: .cghidEventTap)
   }
 }
@@ -56,7 +57,8 @@ func run(_ act: String) async {
   let nums = (parts.count > 1 ? parts[1] : "").split(separator: ",").compactMap { Double($0) }
   evlog += String(format: "%.6f %@\n", hostNow(), act)
   switch parts[0] {
-  case "k": key(UInt16(nums[0]))
+  case "k": key(UInt16(nums[0]), true)
+  case "kp": key(UInt16(nums[0]), false)
   case "m": mouse(.mouseMoved, nums[0], nums[1])
   case "d": mouse(.leftMouseDown, nums[0], nums[1])
   case "u": mouse(.leftMouseUp, nums[0], nums[1])
@@ -73,7 +75,7 @@ Task {
     let f = SCContentFilter(display: c.displays.first!, excludingWindows: [])
     let cfg = SCStreamConfiguration()
     cfg.pixelFormat = kCVPixelFormatType_32BGRA
-    cfg.sourceRect = CGRect(x: 0, y: 0, width: W, height: H)
+    cfg.sourceRect = CGRect(x: region[0], y: region[1], width: W, height: H)
     cfg.width = W; cfg.height = H
     cfg.minimumFrameInterval = CMTime(value: 1, timescale: 180)
     cfg.queueDepth = 8; cfg.showsCursor = false

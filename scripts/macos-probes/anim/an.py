@@ -59,7 +59,7 @@ def fit_spring(pts):
                     if best is None or e < best[0]: best = (e, w, z, dt)
         return best
     e, w, z, dt = go(range(4, 160, 4), [i / 20 for i in range(6, 60)], (-0.008, 0, 0.008, 0.016))
-    return go([w + i * 0.5 for i in range(-8, 9)], [z + i * 0.01 for i in range(-5, 6) if z + i * 0.01 > 0.05], [dt + i * 0.002 for i in range(-4, 5)])
+    return go([w + i * 0.5 for i in range(-8, 9) if w + i * 0.5 > 0], [z + i * 0.01 for i in range(-5, 6) if z + i * 0.01 > 0.05], [dt + i * 0.002 for i in range(-4, 5)])
 
 def fit_bez(pts, T):
     best = None
