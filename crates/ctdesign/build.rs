@@ -240,6 +240,7 @@ EXPANSION_TITLE_HEIGHT i32 components.expansion.title-height
 EXPANSION_TITLE_PADDING i32 components.expansion.title-padding
 EXPANSION_TITLE_COLOR Rgba components.expansion.title-color
 EXPANSION_TITLE_FILL Rgba components.expansion.title-fill
+FULL_SCREEN_BACKGROUND Rgba components.full-screen.background
 SPACES_STRIP_HEIGHT i32 components.spaces-strip.height
 SPACES_STRIP_EXPANDED_HEIGHT i32 components.spaces-strip.expanded-height
 SPACES_STRIP_TINT Rgba components.spaces-strip.tint

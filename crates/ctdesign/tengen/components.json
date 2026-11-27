@@ -783,6 +783,9 @@
       "title-color": "#000000",
       "title-fill": "#f4f4f45d"
     },
+    "full-screen": {
+      "background": "#000000"
+    },
     "spaces-strip": {
       "height": 40,
       "expanded-height": 146,
