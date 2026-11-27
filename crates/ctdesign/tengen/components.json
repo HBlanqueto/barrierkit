@@ -786,6 +786,14 @@
     "full-screen": {
       "background": "#000000"
     },
+    "split-view": {
+      "divider-width": 12,
+      "handle-width": 4,
+      "handle-height": 64,
+      "min-tile": 87,
+      "handle-active": "#d9d9d9",
+      "handle-inactive": "#8c8c8c"
+    },
     "spaces-strip": {
       "height": 40,
       "expanded-height": 146,

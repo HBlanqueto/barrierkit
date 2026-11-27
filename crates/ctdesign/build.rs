@@ -243,6 +243,12 @@ EXPANSION_TITLE_PADDING i32 components.expansion.title-padding
 EXPANSION_TITLE_COLOR Rgba components.expansion.title-color
 EXPANSION_TITLE_FILL Rgba components.expansion.title-fill
 FULL_SCREEN_BACKGROUND Rgba components.full-screen.background
+SPLIT_DIVIDER_WIDTH i32 components.split-view.divider-width
+SPLIT_HANDLE_WIDTH i32 components.split-view.handle-width
+SPLIT_HANDLE_HEIGHT i32 components.split-view.handle-height
+SPLIT_MIN_TILE i32 components.split-view.min-tile
+SPLIT_HANDLE_ACTIVE Rgba components.split-view.handle-active
+SPLIT_HANDLE_INACTIVE Rgba components.split-view.handle-inactive
 SPACES_STRIP_HEIGHT i32 components.spaces-strip.height
 SPACES_STRIP_EXPANDED_HEIGHT i32 components.spaces-strip.expanded-height
 SPACES_STRIP_TINT Rgba components.spaces-strip.tint
