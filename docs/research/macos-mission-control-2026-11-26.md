@@ -53,6 +53,15 @@ strip. What changed, and what the compositor may need to follow:
   with their corners and shadows scaled on every frame, no dim and no title.
   The empty Desktop's pill fades in on the windows' spring and goes in one
   frame. The Dock has a spring now (section 5).
+- Hover and drag, a fourth pass (sections 4 and 5). The ring keeps its width
+  at every scale and its radius is the window's plus its offset; the title
+  shows one pointer event after the ring, at a fixed size. A window held in
+  Mission Control expands the strip at once, jumps to its slot size and
+  shrinks linearly with the pointer's y down to a scale of about .074 at the
+  strip's bottom edge, keeping its grab point. Over a full-screen Space's
+  thumbnail the thumbnail splits at once into the app's share and a "+"
+  placeholder with the dragged window's share of the width, on the side of
+  the pointer; that is the preview of the Split View the drop makes.
 
 ## 1. Window layout
 
@@ -149,12 +158,30 @@ alpha(d) = .137 · (1 − d/48)^1.8 (rms .0010).
   .02 is reached at 39 at rest, 37 at .93 and 17 at .43.
 - The corner radius scales the same way (the corner inset ends at row 11 at
   rest, 10 at .93, about 5 at .43; medium confidence).
-- **Hover ring:** sRGB (58, 154, 252), 4 wide, starting right outside the
-  window's outline, no gap. It has no fade: one frame, 18 to 51 ms after the
-  pointer moves. Measured at scale .93 only.
-- **Hover title:** a capsule centred on the thumbnail, not below it: 79×29 for
-  "Probe 4", black text of about 14 pt medium (low confidence), 14 of side
-  padding, a light material (251, 251, 89 over yellow). No app icon.
+- **Hover ring:** sRGB (58, 154, 252), starting right outside the window's
+  outline, no gap. It has no fade: one frame, 17 to 51 ms after the pointer
+  moves into the window. It is 4 full pixels plus anti-aliased edges (summed
+  coverage 4.7 to 5.0) and its outer edge is 7 outside the window's content,
+  the same at scales 1, .90 and .46: the width does not scale. Its outer
+  radius is the window's plus 7.5 to 7.75 (24.0, 20.75, 15.25 against 16.5,
+  13.25, 7.5; medium confidence), so it is concentric with the window.
+- **Hover title:** a capsule centred on the thumbnail, not below it: 76 to
+  79×29 to 30 for "Probe 4", the same size at scales 1, .90 and .46, black
+  text of about 14 pt medium (low confidence), 14 of side padding, a light
+  material (251, 251, 89 over yellow). No app icon. It does not come with the
+  ring: it shows 8 to 13 ms after the next pointer event inside the window
+  (a move of zero distance is enough, at any gap from 10 to 730 ms), in one
+  frame with no fade; after a single move and 1.6 s of stillness it never
+  showed. Ring and title leave together, 16 to 23 ms after the pointer leaves.
+  6 runs, high confidence.
+- **While Mission Control opens**, with the pointer still: nothing shows
+  until the windows settle; ring and title then appear together, 56 ms after
+  the last window pixel changed (1 run). With the pointer moving: the ring
+  shows from the first frame of the motion, scaled with the window (about 10
+  wide and 14 out near scale 1, 5 and 7 at the end) and following it on every
+  frame; the title shows at full size and opacity but placed at the window's
+  top-left plus its final centre offset, and is centred only once the window
+  settles (3 runs).
 
 ## 5. Animations
 
@@ -171,6 +198,11 @@ alpha(d) = .137 · (1 − d/48)^1.8 (rms .0010).
 | Dock | Entry starts 0 to 11 ms after the strip's first frame (48 to 117 ms from the key): ω0 18 to 24 (median 19), ζ 1.10 to 1.32 (median 1.11), t50 75 to 92, t90 214 to 220, last 370 to 387 ms from the first change, 5 runs. Exit starts 5 to 17 ms after the strip (34 to 73 from the key): ω0 15 to 16, ζ .82 to .87, t50 75 to 92, t90 192 to 203, last 248 to 264 ms, 7 runs. Fit rms .009 to .014, the size of one row of the 84 travel: medium confidence. Bezier curves fit as well but scatter between runs. |
 | "No Available Windows" pill | Entry: fades in at full size and in place from the windows' first frame (5 to 11 ms before the strip), its alpha on the windows' spring: ω0 26, ζ 1.00 to 1.02, t50 53 to 58, t90 136 to 142, last 242 to 253 ms (3 runs; one outlier at ω0 35, ζ 1.25). Exit: gone in one frame, on the strip's first exit frame (4 runs). High confidence. |
 | First open after idle | 50 to 60 ms later than a warm open: windows start 81 to 88 ms after the key instead of 24 to 35. |
+| Drag a window, start | Probe windows of 2400×1350 at scales .465 and .903. The strip expands on the first drag frame (43 ms after the first drag event), with the pointer still near y 840, on its hover spring (t50 about 90 ms), and the other windows lay out again for it at the same moment. There is no drag with the strip collapsed. The held window jumps in one frame to its slot size in the new layout, keeping its top-left corner. 4 runs, high confidence. |
+| Drag a window, scale | From then on the pointer keeps its fractional place in the window (fx .223 to .226, fy .209 to .217 in one run; .203 to .206, .887 to .888 in another). The width is linear in the pointer's y, from the slot size at the drag's start y to a scale of about .074 at y 146, the strip's bottom edge, and constant above it: 1020 wide from y 840 gives 972, 728, 486, 242 and 178 at y 800, 600, 400, 200 and 146 (slope 1.2146, predicted 1.2147); 1980 from y 1090 gives 1906, 1236, 472, 282 at 1050, 700, 300, 200. At and inside the strip a 2400×1350 window is 177×100 and a 1600×900 one 117 to 118×66: a scale floor, not a box, 1.11 times a thumbnail's width. A pure function of y: on a drag of 550 in about 80 ms the size follows within a frame and holds still. 3 runs, high confidence. |
+| Drag a window, release | Over the background: it returns to its slot in the expanded-strip layout and Mission Control stays open; size and y on ω0 16 to 17, ζ .98 to 1.04, first change 18 to 26 ms after mouse-up (2 runs; centre x ω0 22 to 25, low confidence). On another Desktop's thumbnail: the thumbnail does not highlight while hovered; on release the window flies to its miniature in that thumbnail (its frame divided by 16) on ω0 16.5 to 17, ζ .96 to 1.12, from 20 to 22 ms, done at about 430 ms; its old miniature leaves the source thumbnail in 3 frames at 472 to 494 ms (1 run, medium confidence). |
+| Drag onto a full-screen Space's thumbnail, preview | The thumbnail splits when the pointer enters the strip in that thumbnail's column, already at the strip's bottom edge (y 142 to 146), below the thumbnail. The pointer's x on the thumbnail chooses the side: left half puts the placeholder on the left, right half (centre included) on the right; crossing the centre switches it in one frame, 28 ms after the move. Split and un-split take one frame each, with no animation. In a 160×89 thumbnail the app keeps 60 and the placeholder takes 100, with no divider: (2560 − 1600) to 1600, the dragged window's share of the width, as in the Split View the drop then makes (956, 12, 1592). The placeholder is a gray gradient from 70, 70, 86 on the left to 78, 78, 99 on the right with a white "+" at its centre. The label turns at once into both names ("<app> y <app>"). The dragged window does not change over it: it stays at the floor scale and its grab point, above the thumbnail with its shadow. Leaving without a drop restores the thumbnail in one frame 22 to 44 ms later; the label returns at once while a ghost of the joined label fades out from 66 to 255 ms (τ about 60 ms). High confidence for the preview, medium for leaving (1 run). |
+| Drag onto a full-screen Space's thumbnail, drop | One run, medium confidence. The window flies into the placeholder and takes its shape, 118×64 to 99×86 by 375 ms: centre ω0 17, ζ 1.02; width ω0 15, ζ .82; height ω0 20, ζ 1.58, from 22 to 28 ms after mouse-up. From 386 to 470 ms the thumbnail turns into the live Space (the placeholder flickers back for a few frames while the real tiles resize); at 475 ms it is the app 60, a black divider 2, the window 98. The window's old miniature fades out of its Desktop's thumbnail from 425 to about 770 ms (τ about 65 ms). The strip and the other thumbnails do not move, and Mission Control stays open. |
 | Strip expansion, 40 to 146 | Starts 48 to 75 ms after the pointer enters. ω0 16, ζ 1.00 (rms .003, high confidence): t50 92, t90 225 to 236, last 353 to 386 ms. |
 | Strip exit, 146 to 0 | t50 64 to 69, t90 142 to 147, last 192 to 197 ms; ω0 22 to 24, ζ .85 to .91. |
 | Add a Desktop ("+", strip expanded), 1→2, 2→3, 3→4 | One run each. The existing thumbnails and their labels move 96 left (half the pitch of 192, so the row stays centred) on the strip's spring: ω0 16 to 17, ζ .99 to 1.03, t50 92 to 97, t90 225 to 231, last 420 to 437 ms. Mouse-up to first change 36 to 48 ms; the fitted curve starts 6 to 14 ms earlier. The new thumbnail slides in from the right at full size and full opacity on the same spring, its left edge starting at about x 2480 (its centre at the display's edge), and passes over the "+" for about 30 ms. Its label moves with it and does not fade in. The "+" does not move. |
@@ -493,8 +525,11 @@ spring started from rest with the values below is half way and at 90 % at
 - Removing a Desktop from the middle of the row; whether "+" fires on press or
   release; the zoom of a click on another Desktop's thumbnail beyond the strip.
 - The Dock's slide in full screen and finer than one row in Mission Control,
-  the hover ring and title while windows move with the pointer over one, Show
-  Desktop, and the animation of App Exposé.
+  Show Desktop, and the animation of App Exposé.
+- A second run of a drop onto a full-screen Space and onto a Desktop's
+  thumbnail; how far to the sides of a full-screen thumbnail the split is
+  triggered; the drag's scale floor for a window whose aspect ratio is not the
+  display's.
 - The preview of a new Desktop as the pointer nears "+" and its docking on a
   click (`SPACES_ADD_PREVIEW_REACH` is a placeholder), the Space bar preview,
   and App Exposé with other than four windows.

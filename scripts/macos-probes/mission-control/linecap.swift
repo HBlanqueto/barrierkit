@@ -62,6 +62,13 @@ func run(_ act: String) async {
   case "m": mouse(.mouseMoved, nums[0], nums[1])
   case "d": mouse(.leftMouseDown, nums[0], nums[1])
   case "u": mouse(.leftMouseUp, nums[0], nums[1])
+  case "dg":
+    let steps = max(1, Int(nums[4] / 8))
+    for i in 1...steps {
+      let f = Double(i) / Double(steps)
+      mouse(.leftMouseDragged, nums[0] + (nums[2] - nums[0]) * f, nums[1] + (nums[3] - nums[1]) * f)
+      try? await Task.sleep(nanoseconds: 8_000_000)
+    }
   case "s": try? await Task.sleep(nanoseconds: UInt64(nums[0] * 1_000_000))
   default: print("bad action", act)
   }
