@@ -772,6 +772,8 @@
       "margin-top": 40,
       "margin-bottom": 15,
       "hover-ring-width": 4,
+      "hover-ring-offset": 3,
+      "drag-floor-scale": 0.074,
       "title-font": {
         "family": "sans",
         "size": 14,
@@ -843,7 +845,9 @@
       "close-cross-size": 8,
       "close-cross-stroke": 1.5,
       "close-delay-ms": 1000,
-      "close-pressed-color": "#e5e5e5"
+      "close-pressed-color": "#e5e5e5",
+      "split-placeholder": "#4a4a5c",
+      "split-placeholder-plus": "#ffffff"
     },
     "window": {
       "min-width": 480,

@@ -231,12 +231,18 @@ FULL_SCREEN_OMEGA f32 spring.full-screen-omega
 FULL_SCREEN_DAMPING f32 spring.full-screen-damping
 SPACES_STRIP_EXPAND_OMEGA f32 spring.spaces-strip-expand-omega
 SPACES_STRIP_EXPAND_DAMPING f32 spring.spaces-strip-expand-damping
+SPACES_STRIP_ENTRY_OMEGA f32 spring.spaces-strip-entry-omega
+SPACES_STRIP_ENTRY_DAMPING f32 spring.spaces-strip-entry-damping
+SPACES_STRIP_EXIT_OMEGA f32 spring.spaces-strip-exit-omega
+SPACES_STRIP_EXIT_DAMPING f32 spring.spaces-strip-exit-damping
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
 SPACES_STRIP_SHADOW BoxShadow shadow.spaces-strip
 EXPANSION_MARGIN_SIDE i32 components.expansion.margin-side
 EXPANSION_MARGIN_TOP i32 components.expansion.margin-top
 EXPANSION_MARGIN_BOTTOM i32 components.expansion.margin-bottom
 EXPANSION_HOVER_RING_WIDTH i32 components.expansion.hover-ring-width
+EXPANSION_HOVER_RING_OFFSET i32 components.expansion.hover-ring-offset
+EXPANSION_DRAG_FLOOR_SCALE f32 components.expansion.drag-floor-scale
 EXPANSION_TITLE_FONT Font components.expansion.title-font
 EXPANSION_TITLE_HEIGHT i32 components.expansion.title-height
 EXPANSION_TITLE_PADDING i32 components.expansion.title-padding
@@ -291,6 +297,8 @@ SPACES_CLOSE_CROSS_SIZE i32 components.spaces-strip.close-cross-size
 SPACES_CLOSE_CROSS_STROKE f32 components.spaces-strip.close-cross-stroke
 SPACES_CLOSE_DELAY_MS u64 components.spaces-strip.close-delay-ms
 SPACES_CLOSE_PRESSED_COLOR Rgba components.spaces-strip.close-pressed-color
+SPACES_SPLIT_PLACEHOLDER Rgba components.spaces-strip.split-placeholder
+SPACES_SPLIT_PLACEHOLDER_PLUS Rgba components.spaces-strip.split-placeholder-plus
 WINDOW_CASCADE_STEP i32 components.window.cascade-step
 WINDOW_CENTER_TOP f32 components.window.center-top
 WINDOW_TILE_MARGIN i32 components.window.tile-margin
