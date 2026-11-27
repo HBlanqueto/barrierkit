@@ -227,6 +227,8 @@ CURSOR_FALLBACK_SIZE i32 cursor.fallback-size
 CURSOR_FALLBACK_COLOR Rgba cursor.fallback-color
 EXPANSION_OMEGA f32 spring.expansion-omega
 EXPANSION_DAMPING f32 spring.expansion-damping
+FULL_SCREEN_OMEGA f32 spring.full-screen-omega
+FULL_SCREEN_DAMPING f32 spring.full-screen-damping
 SPACES_STRIP_EXPAND_OMEGA f32 spring.spaces-strip-expand-omega
 SPACES_STRIP_EXPAND_DAMPING f32 spring.spaces-strip-expand-damping
 THEME_SHADOW_OPACITY f32 shadow.theme.opacity
