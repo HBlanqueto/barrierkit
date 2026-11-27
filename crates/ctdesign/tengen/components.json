@@ -786,7 +786,7 @@
     "full-screen": {
       "background": "#000000"
     },
-    "split-view": {
+    "full-screen-split": {
       "divider-width": 12,
       "handle-width": 4,
       "handle-height": 64,
