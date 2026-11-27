@@ -771,7 +771,17 @@
       "margin-side": 20,
       "margin-top": 40,
       "margin-bottom": 15,
-      "hover-ring-width": 4
+      "hover-ring-width": 4,
+      "title-font": {
+        "family": "sans",
+        "size": 14,
+        "line-height": 17,
+        "weight": 500
+      },
+      "title-height": 29,
+      "title-padding": 14,
+      "title-color": "#000000",
+      "title-fill": "#f4f4f45d"
     },
     "spaces-strip": {
       "height": 40,
@@ -786,6 +796,15 @@
       "label-pill-top": 7,
       "label-pill-radius": 8,
       "label-pill-lift": 0.137255,
+      "label-font": {
+        "family": "sans",
+        "size": 14,
+        "line-height": 17,
+        "weight": 400
+      },
+      "expanded-label-font": "callout",
+      "label-gap": 4,
+      "label-color": "#ffffff",
       "ring-width": 3,
       "ring-gap": 1,
       "add-size": 20,

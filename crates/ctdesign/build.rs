@@ -235,6 +235,11 @@ EXPANSION_MARGIN_SIDE i32 components.expansion.margin-side
 EXPANSION_MARGIN_TOP i32 components.expansion.margin-top
 EXPANSION_MARGIN_BOTTOM i32 components.expansion.margin-bottom
 EXPANSION_HOVER_RING_WIDTH i32 components.expansion.hover-ring-width
+EXPANSION_TITLE_FONT Font components.expansion.title-font
+EXPANSION_TITLE_HEIGHT i32 components.expansion.title-height
+EXPANSION_TITLE_PADDING i32 components.expansion.title-padding
+EXPANSION_TITLE_COLOR Rgba components.expansion.title-color
+EXPANSION_TITLE_FILL Rgba components.expansion.title-fill
 SPACES_STRIP_HEIGHT i32 components.spaces-strip.height
 SPACES_STRIP_EXPANDED_HEIGHT i32 components.spaces-strip.expanded-height
 SPACES_STRIP_TINT Rgba components.spaces-strip.tint
@@ -247,6 +252,10 @@ SPACES_LABEL_PILL_HEIGHT i32 components.spaces-strip.label-pill-height
 SPACES_LABEL_PILL_TOP i32 components.spaces-strip.label-pill-top
 SPACES_LABEL_PILL_RADIUS f32 components.spaces-strip.label-pill-radius
 SPACES_LABEL_PILL_LIFT f32 components.spaces-strip.label-pill-lift
+SPACES_LABEL_FONT Font components.spaces-strip.label-font
+SPACES_EXPANDED_LABEL_FONT Font components.spaces-strip.expanded-label-font
+SPACES_LABEL_GAP i32 components.spaces-strip.label-gap
+SPACES_LABEL_COLOR Rgba components.spaces-strip.label-color
 SPACES_RING_WIDTH i32 components.spaces-strip.ring-width
 SPACES_RING_GAP i32 components.spaces-strip.ring-gap
 SPACES_ADD_SIZE i32 components.spaces-strip.add-size
