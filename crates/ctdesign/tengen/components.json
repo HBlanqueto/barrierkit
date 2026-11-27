@@ -841,7 +841,9 @@
       "close-color": "#ffffff",
       "close-cross-color": "#989898",
       "close-cross-size": 8,
-      "close-cross-stroke": 1.5
+      "close-cross-stroke": 1.5,
+      "close-delay-ms": 1000,
+      "close-pressed-color": "#e5e5e5"
     },
     "window": {
       "min-width": 480,

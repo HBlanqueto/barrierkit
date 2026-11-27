@@ -289,6 +289,8 @@ SPACES_CLOSE_COLOR Rgba components.spaces-strip.close-color
 SPACES_CLOSE_CROSS_COLOR Rgba components.spaces-strip.close-cross-color
 SPACES_CLOSE_CROSS_SIZE i32 components.spaces-strip.close-cross-size
 SPACES_CLOSE_CROSS_STROKE f32 components.spaces-strip.close-cross-stroke
+SPACES_CLOSE_DELAY_MS u64 components.spaces-strip.close-delay-ms
+SPACES_CLOSE_PRESSED_COLOR Rgba components.spaces-strip.close-pressed-color
 WINDOW_CASCADE_STEP i32 components.window.cascade-step
 WINDOW_CENTER_TOP f32 components.window.center-top
 WINDOW_TILE_MARGIN i32 components.window.tile-margin
