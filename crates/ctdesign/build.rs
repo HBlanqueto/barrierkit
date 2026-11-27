@@ -243,6 +243,9 @@ EXPANSION_TITLE_FILL Rgba components.expansion.title-fill
 SPACES_STRIP_HEIGHT i32 components.spaces-strip.height
 SPACES_STRIP_EXPANDED_HEIGHT i32 components.spaces-strip.expanded-height
 SPACES_STRIP_TINT Rgba components.spaces-strip.tint
+SPACES_STRIP_BLUR f32 components.spaces-strip.blur
+SPACES_STRIP_SATURATION f32 components.spaces-strip.saturation
+SPACES_STRIP_CAP f32 components.spaces-strip.cap
 SPACES_STRIP_LINE Rgba components.spaces-strip.line
 SPACES_THUMBNAIL_HEIGHT i32 components.spaces-strip.thumbnail-height
 SPACES_THUMBNAIL_TOP i32 components.spaces-strip.thumbnail-top

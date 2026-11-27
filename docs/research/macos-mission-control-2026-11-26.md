@@ -400,7 +400,7 @@ spring started from rest with the values below is half way and at 90 % at
 | `SPACES_RING_WIDTH`, `SPACES_RING_GAP`, `EXPANSION_HOVER_RING_WIDTH` | 3, 1, 4; the colour is the accent | sections 2 and 4 |
 | `SPACES_ADD_SIZE`, `SPACES_ADD_STROKE`, `SPACES_ADD_INSET` | 20, 2, 26.5 to its centre | section 2 |
 | `SPACES_CLOSE_SIZE` | 22 | section 2 |
-| `SPACES_STRIP_BLUR`, `SPACES_STRIP_TINT`, `SPACES_STRIP_TINT_ALPHA`, `SPACES_STRIP_LINE_ALPHA` | σ 27.5, gray 44, .41, .224 (dark) | section 2 |
+| `SPACES_STRIP_BLUR`, `SPACES_STRIP_SATURATION`, `SPACES_STRIP_TINT`, `SPACES_STRIP_CAP`, `SPACES_STRIP_LINE` | σ 27.5, saturation 1.6, gray 46 at .40, a cap of 169, line alpha .224 (dark). The veil with the cap is the fit of [macos-blur.md](macos-blur.md) over 21 samples; it gives 18, 95 and 169 over the three grays of section 2, where gray 44 at .41 gives 18, 94 and 169 | section 2 |
 | `SPACES_STRIP_SHADOW` | alpha .137, reach 48, power 1.8 | section 2 |
 | `FULL_SCREEN_OMEGA`, `FULL_SCREEN_DAMPING` | 25, 1.4: the window growing to the display and back | section 7 |
 | `FULL_SCREEN_REVEAL_EDGE`, `FULL_SCREEN_REVEAL_DELAY_MS`, `FULL_SCREEN_REVEAL_MS`, `FULL_SCREEN_HIDE_BELOW` | 4, 180, 100, 36 below the revealed bar | section 7 |

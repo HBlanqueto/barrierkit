@@ -786,7 +786,10 @@
     "spaces-strip": {
       "height": 40,
       "expanded-height": 146,
-      "tint": "#2c2c2c69",
+      "tint": "#2e2e2e66",
+      "blur": 27.5,
+      "saturation": 1.6,
+      "cap": 0.662745,
       "line": "#ffffff39",
       "thumbnail-height": 90,
       "thumbnail-top": 29,
