@@ -786,6 +786,14 @@
     "full-screen": {
       "background": "#000000"
     },
+    "swipe": {
+      "distance-vertical": 300,
+      "distance-horizontal": 400,
+      "lock-distance": 16,
+      "history-ms": 150,
+      "fling-velocity": 0.6,
+      "deceleration": 0.997
+    },
     "full-screen-split": {
       "divider-width": 12,
       "handle-width": 4,

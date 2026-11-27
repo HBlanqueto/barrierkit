@@ -243,6 +243,12 @@ EXPANSION_TITLE_PADDING i32 components.expansion.title-padding
 EXPANSION_TITLE_COLOR Rgba components.expansion.title-color
 EXPANSION_TITLE_FILL Rgba components.expansion.title-fill
 FULL_SCREEN_BACKGROUND Rgba components.full-screen.background
+SWIPE_DISTANCE_VERTICAL f64 components.swipe.distance-vertical
+SWIPE_DISTANCE_HORIZONTAL f64 components.swipe.distance-horizontal
+SWIPE_LOCK_DISTANCE f64 components.swipe.lock-distance
+SWIPE_HISTORY_MS u64 components.swipe.history-ms
+SWIPE_FLING_VELOCITY f64 components.swipe.fling-velocity
+SWIPE_DECELERATION f64 components.swipe.deceleration
 SPLIT_DIVIDER_WIDTH i32 components.full-screen-split.divider-width
 SPLIT_HANDLE_WIDTH i32 components.full-screen-split.handle-width
 SPLIT_HANDLE_HEIGHT i32 components.full-screen-split.handle-height
