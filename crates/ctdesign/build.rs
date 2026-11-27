@@ -242,6 +242,8 @@ EXPANSION_TITLE_HEIGHT i32 components.expansion.title-height
 EXPANSION_TITLE_PADDING i32 components.expansion.title-padding
 EXPANSION_TITLE_COLOR Rgba components.expansion.title-color
 EXPANSION_TITLE_FILL Rgba components.expansion.title-fill
+EXPANSION_CAPTION_COLOR Rgba components.expansion.caption-color
+EXPANSION_GRID_GAP i32 components.expansion.grid-gap
 FULL_SCREEN_BACKGROUND Rgba components.full-screen.background
 SWIPE_DISTANCE_VERTICAL f64 components.swipe.distance-vertical
 SWIPE_DISTANCE_HORIZONTAL f64 components.swipe.distance-horizontal
@@ -281,6 +283,7 @@ SPACES_ADD_STROKE i32 components.spaces-strip.add-stroke
 SPACES_ADD_INSET f32 components.spaces-strip.add-inset
 SPACES_ADD_EXPANDED_CENTER f32 components.spaces-strip.add-expanded-center
 SPACES_ADD_COLOR Rgba components.spaces-strip.add-color
+SPACES_ADD_PREVIEW_REACH i32 components.spaces-strip.add-preview-reach
 SPACES_CLOSE_SIZE i32 components.spaces-strip.close-size
 SPACES_CLOSE_COLOR Rgba components.spaces-strip.close-color
 SPACES_CLOSE_CROSS_COLOR Rgba components.spaces-strip.close-cross-color

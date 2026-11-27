@@ -781,7 +781,9 @@
       "title-height": 29,
       "title-padding": 14,
       "title-color": "#000000",
-      "title-fill": "#f4f4f45d"
+      "title-fill": "#f4f4f45d",
+      "caption-color": "#ffffff",
+      "grid-gap": 40
     },
     "full-screen": {
       "background": "#000000"
@@ -834,6 +836,7 @@
       "add-inset": 26.5,
       "add-expanded-center": 77.5,
       "add-color": "#e5e5e5",
+      "add-preview-reach": 80,
       "close-size": 22,
       "close-color": "#ffffff",
       "close-cross-color": "#989898",
